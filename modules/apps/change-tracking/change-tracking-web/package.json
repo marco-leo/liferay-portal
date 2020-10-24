@@ -1,11 +1,17 @@
 {
 	"dependencies": {
-		"clay-label": "2.19.0",
-		"clay-progress-bar": "2.19.0",
-		"clay-sticker": "2.19.0",
+		"@clayui/alert": "3.4.1",
+		"@clayui/breadcrumb": "3.2.8",
+		"@clayui/button": "3.4.0",
+		"@clayui/drop-down": "3.7.0",
+		"@clayui/form": "3.11.1",
+		"@clayui/icon": "3.0.5",
+		"@clayui/management-toolbar": "3.2.3",
+		"@clayui/pagination-bar": "3.1.12",
+		"@clayui/table": "3.0.7",
 		"frontend-js-web": "*",
-		"metal-soy": "2.16.8",
-		"metal-state": "2.16.8"
+		"prop-types": "15.7.2",
+		"react": "16.12.0"
 	},
 	"name": "change-tracking-web",
 	"scripts": {
@@ -13,5 +19,5 @@
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "1.0.0"
+	"version": "2.0.0"
 }

@@ -15,20 +15,27 @@
 package com.liferay.portal.search.tuning.rankings.web.internal.index;
 
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.search.document.Document;
 import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
 import com.liferay.portal.search.engine.adapter.search.SearchSearchRequest;
 import com.liferay.portal.search.engine.adapter.search.SearchSearchResponse;
+import com.liferay.portal.search.hits.SearchHit;
+import com.liferay.portal.search.hits.SearchHits;
 import com.liferay.portal.search.query.BooleanQuery;
 import com.liferay.portal.search.query.IdsQuery;
 import com.liferay.portal.search.query.Queries;
 import com.liferay.portal.search.query.Query;
 import com.liferay.portal.search.query.TermsQuery;
+import com.liferay.portal.search.tuning.rankings.web.internal.index.name.RankingIndexName;
+import com.liferay.portal.search.tuning.rankings.web.internal.index.name.RankingIndexNameBuilder;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
@@ -47,28 +54,39 @@ public class DuplicateQueryStringsDetectorImpl
 	}
 
 	@Override
-	public boolean detect(Criteria criteria) {
+	public List<String> detect(Criteria criteria) {
 		Collection<String> queryStrings = criteria.getQueryStrings();
 
 		if (queryStrings.isEmpty()) {
-			return false;
+			return Collections.emptyList();
 		}
 
 		SearchSearchResponse searchSearchResponse = searchEngineAdapter.execute(
 			new SearchSearchRequest() {
 				{
-					setIndexNames(RankingIndexDefinition.INDEX_NAME);
+					RankingIndexName rankingIndexName =
+						criteria.getRankingIndexName();
+
+					setIndexNames(rankingIndexName.getIndexName());
+
 					setQuery(getCriteriaQuery(criteria));
 					setScoreEnabled(false);
-					setSize(0);
 				}
 			});
 
-		if (searchSearchResponse.getCount() > 0) {
-			return true;
-		}
+		SearchHits searchHits = searchSearchResponse.getSearchHits();
 
-		return false;
+		List<SearchHit> searchHitsList = searchHits.getSearchHits();
+
+		Stream<SearchHit> stream = searchHitsList.stream();
+
+		return stream.map(
+			searchHit -> getDuplicateQueryStrings(searchHit, queryStrings)
+		).flatMap(
+			Collection::stream
+		).collect(
+			Collectors.toList()
+		);
 	}
 
 	protected BooleanQuery getCriteriaQuery(Criteria criteria) {
@@ -83,6 +101,19 @@ public class DuplicateQueryStringsDetectorImpl
 			getUnlessRankingIdQuery(criteria));
 
 		return booleanQuery;
+	}
+
+	protected Collection<String> getDuplicateQueryStrings(
+		SearchHit searchHit, Collection<String> queryStrings) {
+
+		Document document = searchHit.getDocument();
+
+		Collection<String> documentQueryStrings = document.getStrings(
+			RankingFields.QUERY_STRINGS);
+
+		documentQueryStrings.retainAll(queryStrings);
+
+		return documentQueryStrings;
 	}
 
 	protected Query getIndexQuery(Criteria criteria) {
@@ -120,6 +151,9 @@ public class DuplicateQueryStringsDetectorImpl
 	protected Queries queries;
 
 	@Reference
+	protected RankingIndexNameBuilder rankingIndexNameBuilder;
+
+	@Reference
 	protected SearchEngineAdapter searchEngineAdapter;
 
 	protected static class CriteriaImpl implements Criteria {
@@ -135,6 +169,11 @@ public class DuplicateQueryStringsDetectorImpl
 		}
 
 		@Override
+		public RankingIndexName getRankingIndexName() {
+			return _rankingIndexName;
+		}
+
+		@Override
 		public String getUnlessRankingId() {
 			return _unlessRankingId;
 		}
@@ -146,6 +185,7 @@ public class DuplicateQueryStringsDetectorImpl
 
 			_index = criteriaImpl._index;
 			_queryStrings = new HashSet<>(criteriaImpl._queryStrings);
+			_rankingIndexName = criteriaImpl._rankingIndexName;
 			_unlessRankingId = criteriaImpl._unlessRankingId;
 		}
 
@@ -176,6 +216,13 @@ public class DuplicateQueryStringsDetectorImpl
 			}
 
 			@Override
+			public Builder rankingIndexName(RankingIndexName rankingIndexName) {
+				_criteriaImpl._rankingIndexName = rankingIndexName;
+
+				return this;
+			}
+
+			@Override
 			public BuilderImpl unlessRankingId(String unlessRankingId) {
 				_criteriaImpl._unlessRankingId = unlessRankingId;
 
@@ -188,6 +235,7 @@ public class DuplicateQueryStringsDetectorImpl
 
 		private String _index;
 		private Collection<String> _queryStrings = new HashSet<>();
+		private RankingIndexName _rankingIndexName;
 		private String _unlessRankingId;
 
 	}

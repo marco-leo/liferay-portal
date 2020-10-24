@@ -193,7 +193,7 @@ public class SolrIndexingFixture implements IndexingFixture {
 		return digester;
 	}
 
-	protected FacetProcessor createFacetProcessor() {
+	protected FacetProcessor<SolrQuery> createFacetProcessor() {
 		return new DefaultFacetProcessor() {
 			{
 				setJSONFactory(_jsonFactory);
@@ -271,7 +271,7 @@ public class SolrIndexingFixture implements IndexingFixture {
 	protected Map<String, Object> createSolrConfigurationProperties(
 		Map<String, Object> solrConfigurationProperties) {
 
-		Map<String, Object> properties = HashMapBuilder.<String, Object>put(
+		return HashMapBuilder.<String, Object>put(
 			"defaultCollection", "liferay"
 		).put(
 			"logExceptionsOnly", false
@@ -279,11 +279,9 @@ public class SolrIndexingFixture implements IndexingFixture {
 			"readURL", "http://localhost:8983/solr/liferay"
 		).put(
 			"writeURL", "http://localhost:8983/solr/liferay"
+		).putAll(
+			solrConfigurationProperties
 		).build();
-
-		properties.putAll(solrConfigurationProperties);
-
-		return properties;
 	}
 
 	protected SolrQuerySuggester createSolrQuerySuggester(

@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.model.AuditedModel;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
 import java.util.Date;
 
@@ -37,10 +38,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface AssetCategoryPropertyModel
-	extends AuditedModel, BaseModel<AssetCategoryProperty>, MVCCModel,
-			ShardedModel {
+	extends AuditedModel, BaseModel<AssetCategoryProperty>,
+			CTModel<AssetCategoryProperty>, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a asset category property model instance should use the {@link AssetCategoryProperty} interface instead.
@@ -51,6 +52,7 @@ public interface AssetCategoryPropertyModel
 	 *
 	 * @return the primary key of this asset category property
 	 */
+	@Override
 	public long getPrimaryKey();
 
 	/**
@@ -58,6 +60,7 @@ public interface AssetCategoryPropertyModel
 	 *
 	 * @param primaryKey the primary key of this asset category property
 	 */
+	@Override
 	public void setPrimaryKey(long primaryKey);
 
 	/**
@@ -75,6 +78,22 @@ public interface AssetCategoryPropertyModel
 	 */
 	@Override
 	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the ct collection ID of this asset category property.
+	 *
+	 * @return the ct collection ID of this asset category property
+	 */
+	@Override
+	public long getCtCollectionId();
+
+	/**
+	 * Sets the ct collection ID of this asset category property.
+	 *
+	 * @param ctCollectionId the ct collection ID of this asset category property
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId);
 
 	/**
 	 * Returns the category property ID of this asset category property.

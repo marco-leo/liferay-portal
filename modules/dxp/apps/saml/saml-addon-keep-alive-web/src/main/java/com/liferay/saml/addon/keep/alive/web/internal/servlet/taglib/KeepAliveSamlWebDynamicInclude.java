@@ -15,10 +15,10 @@
 package com.liferay.saml.addon.keep.alive.web.internal.servlet.taglib;
 
 import com.liferay.expando.kernel.model.ExpandoBridge;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.servlet.taglib.BaseDynamicInclude;
 import com.liferay.portal.kernel.servlet.taglib.DynamicInclude;
 import com.liferay.portal.kernel.util.PropsUtil;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.saml.addon.keep.alive.web.internal.constants.SamlKeepAliveConstants;
 import com.liferay.saml.constants.SamlWebKeys;
 import com.liferay.saml.persistence.model.SamlIdpSpConnection;
@@ -132,8 +132,9 @@ public class KeepAliveSamlWebDynamicInclude extends BaseDynamicInclude {
 		try {
 			requestDispatcher.include(httpServletRequest, httpServletResponse);
 		}
-		catch (ServletException se) {
-			throw new IOException("Unable to include JSP " + jspPath, se);
+		catch (ServletException servletException) {
+			throw new IOException(
+				"Unable to include JSP " + jspPath, servletException);
 		}
 	}
 

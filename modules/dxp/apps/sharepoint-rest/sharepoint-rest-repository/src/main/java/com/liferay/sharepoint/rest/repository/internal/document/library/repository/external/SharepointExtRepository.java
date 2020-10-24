@@ -98,8 +98,8 @@ public class SharepointExtRepository implements ExtRepository {
 			return _sharepointServerResponseConverter.getExtRepositoryFileEntry(
 				jsonObject);
 		}
-		catch (IOException | UnirestException e) {
-			throw new PortalException(e);
+		catch (IOException | UnirestException exception) {
+			throw new PortalException(exception);
 		}
 	}
 
@@ -113,19 +113,19 @@ public class SharepointExtRepository implements ExtRepository {
 			String url = _sharepointURLHelper.getAddFolderURL(
 				extRepositoryParentFolderKey);
 
-			JSONObject bodyJSONObject = JSONUtil.put(
-				"__metadata", JSONUtil.put("type", "SP.Folder")
-			).put(
-				"ServerRelativeUrl", name
-			);
-
-			JSONObject jsonObject = _post(url, bodyJSONObject);
+			JSONObject jsonObject = _post(
+				url,
+				JSONUtil.put(
+					"__metadata", JSONUtil.put("type", "SP.Folder")
+				).put(
+					"ServerRelativeUrl", name
+				));
 
 			return _sharepointServerResponseConverter.getExtRepositoryFolder(
 				jsonObject);
 		}
-		catch (UnirestException ue) {
-			throw new PortalException(ue);
+		catch (UnirestException unirestException) {
+			throw new PortalException(unirestException);
 		}
 	}
 
@@ -142,8 +142,8 @@ public class SharepointExtRepository implements ExtRepository {
 
 			return null;
 		}
-		catch (UnirestException ue) {
-			throw new PortalException(ue);
+		catch (UnirestException unirestException) {
+			throw new PortalException(unirestException);
 		}
 	}
 
@@ -159,18 +159,18 @@ public class SharepointExtRepository implements ExtRepository {
 
 			_post(url);
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 
 			// See LPS-75604
 
-			String message = pe.getMessage();
+			String message = principalException.getMessage();
 
 			if ((message == null) || !message.endsWith("423 Locked")) {
-				throw pe;
+				throw principalException;
 			}
 		}
-		catch (UnirestException ue) {
-			throw new PortalException(ue);
+		catch (UnirestException unirestException) {
+			throw new PortalException(unirestException);
 		}
 	}
 
@@ -188,21 +188,21 @@ public class SharepointExtRepository implements ExtRepository {
 			return getExtRepositoryObject(
 				ExtRepositoryObjectType.FILE, extRepositoryFileEntryKey);
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 
 			// See LPS-75604
 
-			String message = pe.getMessage();
+			String message = principalException.getMessage();
 
 			if ((message != null) && message.endsWith("423 Locked")) {
 				return getExtRepositoryObject(
 					ExtRepositoryObjectType.FILE, extRepositoryFileEntryKey);
 			}
 
-			throw pe;
+			throw principalException;
 		}
-		catch (UnirestException ue) {
-			throw new PortalException(ue);
+		catch (UnirestException unirestException) {
+			throw new PortalException(unirestException);
 		}
 	}
 
@@ -227,8 +227,8 @@ public class SharepointExtRepository implements ExtRepository {
 				extRepositoryObjectType,
 				newExtRepositoryFolderKey + StringPool.SLASH + newTitle);
 		}
-		catch (UnirestException ue) {
-			throw new PortalException(ue);
+		catch (UnirestException unirestException) {
+			throw new PortalException(unirestException);
 		}
 	}
 
@@ -245,8 +245,8 @@ public class SharepointExtRepository implements ExtRepository {
 
 			_delete(url);
 		}
-		catch (UnirestException ue) {
-			throw new PortalException(ue);
+		catch (UnirestException unirestException) {
+			throw new PortalException(unirestException);
 		}
 	}
 
@@ -263,8 +263,8 @@ public class SharepointExtRepository implements ExtRepository {
 		try {
 			return _getInputStream((SharepointModel)extRepositoryFileEntry);
 		}
-		catch (UnirestException ue) {
-			throw new PortalException(ue);
+		catch (UnirestException unirestException) {
+			throw new PortalException(unirestException);
 		}
 	}
 
@@ -276,8 +276,8 @@ public class SharepointExtRepository implements ExtRepository {
 		try {
 			return _getInputStream((SharepointModel)extRepositoryFileVersion);
 		}
-		catch (UnirestException ue) {
-			throw new PortalException(ue);
+		catch (UnirestException unirestException) {
+			throw new PortalException(unirestException);
 		}
 	}
 
@@ -325,8 +325,8 @@ public class SharepointExtRepository implements ExtRepository {
 				getExtRepositoryFileVersions(
 					(SharepointFileEntry)extRepositoryFileEntry, jsonObject);
 		}
-		catch (UnirestException ue) {
-			throw new PortalException(ue);
+		catch (UnirestException unirestException) {
+			throw new PortalException(unirestException);
 		}
 	}
 
@@ -353,8 +353,8 @@ public class SharepointExtRepository implements ExtRepository {
 			return _sharepointServerResponseConverter.getExtRepositoryObject(
 				extRepositoryObjectType, jsonObject);
 		}
-		catch (UnirestException ue) {
-			throw new PortalException(ue);
+		catch (UnirestException unirestException) {
+			throw new PortalException(unirestException);
 		}
 	}
 
@@ -423,8 +423,8 @@ public class SharepointExtRepository implements ExtRepository {
 
 			return extRepositoryObjects;
 		}
-		catch (UnirestException ue) {
-			throw new PortalException(ue);
+		catch (UnirestException unirestException) {
+			throw new PortalException(unirestException);
 		}
 	}
 
@@ -444,8 +444,8 @@ public class SharepointExtRepository implements ExtRepository {
 			return _sharepointServerResponseConverter.
 				getExtRepositoryObjectsCount(jsonObject);
 		}
-		catch (JSONException | UnirestException e) {
-			throw new PortalException(e);
+		catch (JSONException | UnirestException exception) {
+			throw new PortalException(exception);
 		}
 	}
 
@@ -458,6 +458,16 @@ public class SharepointExtRepository implements ExtRepository {
 			extRepositoryObject.getExtRepositoryModelKey();
 
 		if (extRepositoryModelKey.equals(
+				_rootFolder.getExtRepositoryModelKey())) {
+
+			return null;
+		}
+
+		String parentFolderExtRepositoryModelKey =
+			_getParentFolderExtRepositoryModelKey(extRepositoryModelKey);
+
+		if (Validator.isNull(parentFolderExtRepositoryModelKey) ||
+			parentFolderExtRepositoryModelKey.equals(
 				_rootFolder.getExtRepositoryModelKey())) {
 
 			return null;
@@ -526,18 +536,18 @@ public class SharepointExtRepository implements ExtRepository {
 
 	@Override
 	public void initRepository(
-		UnicodeProperties typeSettingsProperties,
+		UnicodeProperties typeSettingsUnicodeProperties,
 		CredentialsProvider credentialsProvider) {
 
 		_libraryPath = _strip(
 			GetterUtil.getString(
-				typeSettingsProperties.getProperty("library-path")));
+				typeSettingsUnicodeProperties.getProperty("library-path")));
 
 		_rootFolder = new SharepointRootFolder(_libraryPath);
 
 		_siteAbsoluteURL = _strip(
 			GetterUtil.getString(
-				typeSettingsProperties.getProperty("site-absolute-url"),
+				typeSettingsUnicodeProperties.getProperty("site-absolute-url"),
 				StringPool.DASH));
 
 		_sharepointURLHelper = new SharepointURLHelper(
@@ -578,8 +588,8 @@ public class SharepointExtRepository implements ExtRepository {
 				extRepositoryObjectType,
 				newExtRepositoryFolderKey + StringPool.SLASH + newTitle);
 		}
-		catch (UnirestException ue) {
-			throw new PortalException(ue);
+		catch (UnirestException unirestException) {
+			throw new PortalException(unirestException);
 		}
 	}
 
@@ -604,8 +614,8 @@ public class SharepointExtRepository implements ExtRepository {
 			return (List)_sharepointServerResponseConverter.getSearchResults(
 				jsonObject);
 		}
-		catch (UnirestException ue) {
-			throw new PortalException(ue);
+		catch (UnirestException unirestException) {
+			throw new PortalException(unirestException);
 		}
 	}
 
@@ -624,8 +634,8 @@ public class SharepointExtRepository implements ExtRepository {
 			return getExtRepositoryObject(
 				ExtRepositoryObjectType.FILE, extRepositoryFileEntryKey);
 		}
-		catch (IOException | UnirestException e) {
-			throw new PortalException(e);
+		catch (IOException | UnirestException exception) {
+			throw new PortalException(exception);
 		}
 	}
 
@@ -771,6 +781,18 @@ public class SharepointExtRepository implements ExtRepository {
 		_handleHttpResponseError(httpResponse, url);
 
 		return JSONFactoryUtil.createJSONObject(httpResponse.getBody());
+	}
+
+	private String _getParentFolderExtRepositoryModelKey(
+		String extRepositoryModelKey) {
+
+		int pos = extRepositoryModelKey.lastIndexOf(StringPool.SLASH);
+
+		if (pos == -1) {
+			return null;
+		}
+
+		return extRepositoryModelKey.substring(pos + 1);
 	}
 
 	private void _handleHttpResponseError(

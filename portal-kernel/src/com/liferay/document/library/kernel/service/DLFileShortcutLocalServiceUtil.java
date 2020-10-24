@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class DLFileShortcutLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portlet.documentlibrary.service.impl.DLFileShortcutLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -38,6 +38,10 @@ public class DLFileShortcutLocalServiceUtil {
 
 	/**
 	 * Adds the document library file shortcut to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileShortcutLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dlFileShortcut the document library file shortcut
 	 * @return the document library file shortcut that was added
@@ -113,7 +117,21 @@ public class DLFileShortcutLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the document library file shortcut from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileShortcutLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dlFileShortcut the document library file shortcut
 	 * @return the document library file shortcut that was removed
@@ -128,6 +146,10 @@ public class DLFileShortcutLocalServiceUtil {
 
 	/**
 	 * Deletes the document library file shortcut with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileShortcutLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param fileShortcutId the primary key of the document library file shortcut
 	 * @return the document library file shortcut that was removed
@@ -193,6 +215,12 @@ public class DLFileShortcutLocalServiceUtil {
 
 	public static void disableFileShortcuts(long toFileEntryId) {
 		getService().disableFileShortcuts(toFileEntryId);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -457,6 +485,9 @@ public class DLFileShortcutLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -489,6 +520,10 @@ public class DLFileShortcutLocalServiceUtil {
 
 	/**
 	 * Updates the document library file shortcut in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileShortcutLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dlFileShortcut the document library file shortcut
 	 * @return the document library file shortcut that was updated

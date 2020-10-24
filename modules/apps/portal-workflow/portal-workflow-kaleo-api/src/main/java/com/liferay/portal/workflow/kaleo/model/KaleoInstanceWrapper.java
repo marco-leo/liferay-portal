@@ -53,6 +53,7 @@ public class KaleoInstanceWrapper
 		attributes.put("userName", getUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
+		attributes.put("kaleoDefinitionId", getKaleoDefinitionId());
 		attributes.put(
 			"kaleoDefinitionVersionId", getKaleoDefinitionVersionId());
 		attributes.put("kaleoDefinitionName", getKaleoDefinitionName());
@@ -116,6 +117,12 @@ public class KaleoInstanceWrapper
 
 		if (modifiedDate != null) {
 			setModifiedDate(modifiedDate);
+		}
+
+		Long kaleoDefinitionId = (Long)attributes.get("kaleoDefinitionId");
+
+		if (kaleoDefinitionId != null) {
+			setKaleoDefinitionId(kaleoDefinitionId);
 		}
 
 		Long kaleoDefinitionVersionId = (Long)attributes.get(
@@ -245,6 +252,16 @@ public class KaleoInstanceWrapper
 	@Override
 	public long getGroupId() {
 		return model.getGroupId();
+	}
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo instance.
+	 *
+	 * @return the kaleo definition ID of this kaleo instance
+	 */
+	@Override
+	public long getKaleoDefinitionId() {
+		return model.getKaleoDefinitionId();
 	}
 
 	/**
@@ -394,11 +411,6 @@ public class KaleoInstanceWrapper
 		return model.isCompleted();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a kaleo instance model instance should use the <code>KaleoInstance</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -472,6 +484,16 @@ public class KaleoInstanceWrapper
 	@Override
 	public void setGroupId(long groupId) {
 		model.setGroupId(groupId);
+	}
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo instance.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo instance
+	 */
+	@Override
+	public void setKaleoDefinitionId(long kaleoDefinitionId) {
+		model.setKaleoDefinitionId(kaleoDefinitionId);
 	}
 
 	/**

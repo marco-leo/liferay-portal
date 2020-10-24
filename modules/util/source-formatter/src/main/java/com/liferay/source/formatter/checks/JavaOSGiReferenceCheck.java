@@ -106,6 +106,10 @@ public class JavaOSGiReferenceCheck extends BaseFileCheck {
 		while (matcher.find()) {
 			String serviceUtilClassName = matcher.group(2);
 
+			if (serviceUtilClassName.equals("IdentifiableOSGiServiceUtil")) {
+				continue;
+			}
+
 			if (moduleServicePackageName == null) {
 				moduleServicePackageName = _getModuleServicePackageName(
 					fileName);
@@ -124,8 +128,7 @@ public class JavaOSGiReferenceCheck extends BaseFileCheck {
 			addMessage(
 				fileName,
 				"Use @Reference instead of calling " + serviceUtilClassName +
-					" directly",
-				"osgi_components.markdown");
+					" directly");
 		}
 	}
 
@@ -162,8 +165,7 @@ public class JavaOSGiReferenceCheck extends BaseFileCheck {
 					addMessage(
 						fileName,
 						"Use portal service reference instead of '" +
-							serviceReferenceUtilClassName + "' in modules",
-						"osgi_components.markdown");
+							serviceReferenceUtilClassName + "' in modules");
 
 					return;
 				}
@@ -213,8 +215,7 @@ public class JavaOSGiReferenceCheck extends BaseFileCheck {
 
 				String entireMethod = content.substring(x + 1, y);
 
-				content = StringUtil.replace(
-					content, entireMethod, StringPool.BLANK);
+				content = StringUtil.removeSubstring(content, entireMethod);
 
 				bndInheritRequired = true;
 			}
@@ -245,8 +246,7 @@ public class JavaOSGiReferenceCheck extends BaseFileCheck {
 
 					String entireMethod = content.substring(x + 1, y);
 
-					content = StringUtil.replace(
-						content, entireMethod, StringPool.BLANK);
+					content = StringUtil.removeSubstring(content, entireMethod);
 
 					bndInheritRequired = true;
 				}
@@ -265,8 +265,7 @@ public class JavaOSGiReferenceCheck extends BaseFileCheck {
 				addMessage(
 					fileName,
 					"Add '-dsannotations-options: inherit' to '" +
-						bndSettings.getFileName(),
-					"osgi_components_inheritance.markdown");
+						bndSettings.getFileName());
 			}
 		}
 

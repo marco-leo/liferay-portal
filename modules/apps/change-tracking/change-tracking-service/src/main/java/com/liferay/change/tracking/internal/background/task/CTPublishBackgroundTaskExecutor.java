@@ -14,8 +14,10 @@
 
 package com.liferay.change.tracking.internal.background.task;
 
+import com.liferay.change.tracking.conflict.ConflictInfo;
 import com.liferay.change.tracking.constants.CTConstants;
 import com.liferay.change.tracking.internal.CTServiceRegistry;
+import com.liferay.change.tracking.internal.CTTableMapperHelper;
 import com.liferay.change.tracking.internal.background.task.display.CTPublishBackgroundTaskDisplay;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.model.CTEntry;
@@ -23,14 +25,17 @@ import com.liferay.change.tracking.service.CTCollectionLocalService;
 import com.liferay.change.tracking.service.CTEntryLocalService;
 import com.liferay.change.tracking.service.CTMessageLocalService;
 import com.liferay.change.tracking.service.CTProcessLocalService;
+import com.liferay.petra.lang.SafeClosable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTaskConstants;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskExecutor;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskResult;
 import com.liferay.portal.kernel.backgroundtask.BaseBackgroundTaskExecutor;
+import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
 import com.liferay.portal.kernel.backgroundtask.display.BackgroundTaskDisplay;
+import com.liferay.portal.kernel.cache.MultiVMPool;
+import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.service.change.tracking.CTService;
 import com.liferay.portal.kernel.transaction.Propagation;
@@ -40,6 +45,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -82,13 +88,44 @@ public class CTPublishBackgroundTaskExecutor
 		long ctCollectionId = GetterUtil.getLong(
 			taskContextMap.get("ctCollectionId"));
 
+		try (SafeClosable safeClosable =
+				CTCollectionThreadLocal.setCTCollectionId(ctCollectionId)) {
+
+			_ctServiceRegistry.onBeforePublish(ctCollectionId);
+		}
+
 		CTCollection ctCollection = _ctCollectionLocalService.getCTCollection(
 			ctCollectionId);
+
+		Map<Long, List<ConflictInfo>> conflictInfosMap =
+			_ctCollectionLocalService.checkConflicts(ctCollection);
+
+		if (!conflictInfosMap.isEmpty()) {
+			List<ConflictInfo> unresolvedConflictInfos = new ArrayList<>();
+
+			for (Map.Entry<Long, List<ConflictInfo>> entry :
+					conflictInfosMap.entrySet()) {
+
+				for (ConflictInfo conflictInfo : entry.getValue()) {
+					if (!conflictInfo.isResolved()) {
+						unresolvedConflictInfos.add(conflictInfo);
+					}
+				}
+			}
+
+			if (!unresolvedConflictInfos.isEmpty()) {
+				throw new SystemException(
+					StringBundler.concat(
+						"Unable to publish ", ctCollection.getName(),
+						" because of unresolved conflicts: ",
+						unresolvedConflictInfos));
+			}
+		}
 
 		List<CTEntry> ctEntries = _ctEntryLocalService.getCTCollectionCTEntries(
 			ctCollectionId);
 
-		Map<Long, CTServicePublisher> ctServicePublishers = new HashMap<>();
+		Map<Long, CTServicePublisher<?>> ctServicePublishers = new HashMap<>();
 
 		for (CTEntry ctEntry : ctEntries) {
 			CTServicePublisher<?> ctServicePublisher =
@@ -121,7 +158,12 @@ public class CTPublishBackgroundTaskExecutor
 			ctServicePublisher.publish();
 		}
 
-		_ctServiceRegistry.onAfterPublish(ctCollectionId);
+		for (CTTableMapperHelper ctTableMapperHelper :
+				_ctServiceRegistry.getCTTableMapperHelpers()) {
+
+			ctTableMapperHelper.publish(
+				ctCollectionId, _multiVMPool.getPortalCacheManager());
+		}
 
 		Date modifiedDate = new Date();
 
@@ -132,6 +174,8 @@ public class CTPublishBackgroundTaskExecutor
 		ctCollection.setStatusDate(modifiedDate);
 
 		_ctCollectionLocalService.updateCTCollection(ctCollection);
+
+		_ctServiceRegistry.onAfterPublish(ctCollectionId);
 
 		return BackgroundTaskResult.SUCCESS;
 	}
@@ -169,5 +213,8 @@ public class CTPublishBackgroundTaskExecutor
 
 	@Reference
 	private CTServiceRegistry _ctServiceRegistry;
+
+	@Reference
+	private MultiVMPool _multiVMPool;
 
 }

@@ -261,26 +261,27 @@ public class UserGroupServiceImpl extends UserGroupServiceBaseImpl {
 	 * @param  start the lower bound of the range of user groups to return
 	 * @param  end the upper bound of the range of user groups to return (not
 	 *         inclusive)
-	 * @param  obc the comparator to order the user groups (optionally
-	 *         <code>null</code>)
-	 * @return the matching user groups ordered by comparator <code>obc</code>
+	 * @param  orderByComparator the comparator to order the user groups
+	 *         (optionally <code>null</code>)
+	 * @return the matching user groups ordered by comparator
+	 *         <code>orderByComparator</code>
 	 * @see    com.liferay.portal.kernel.service.persistence.UserGroupFinder
 	 */
 	@Override
 	public List<UserGroup> search(
 		long companyId, String keywords, LinkedHashMap<String, Object> params,
-		int start, int end, OrderByComparator<UserGroup> obc) {
+		int start, int end, OrderByComparator<UserGroup> orderByComparator) {
 
 		if (isUseCustomSQL(params)) {
 			return userGroupFinder.filterFindByKeywords(
-				companyId, keywords, params, start, end, obc);
+				companyId, keywords, params, start, end, orderByComparator);
 		}
 
-		String orderByCol = obc.getOrderByFields()[0];
+		String orderByCol = orderByComparator.getOrderByFields()[0];
 
 		String orderByType = "asc";
 
-		if (!obc.isAscending()) {
+		if (!orderByComparator.isAscending()) {
 			orderByType = "desc";
 		}
 
@@ -292,8 +293,8 @@ public class UserGroupServiceImpl extends UserGroupServiceBaseImpl {
 				userGroupLocalService.search(
 					companyId, keywords, params, start, end, sort));
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -322,28 +323,29 @@ public class UserGroupServiceImpl extends UserGroupServiceBaseImpl {
 	 * @param  start the lower bound of the range of user groups to return
 	 * @param  end the upper bound of the range of user groups to return (not
 	 *         inclusive)
-	 * @param  obc the comparator to order the user groups (optionally
-	 *         <code>null</code>)
-	 * @return the matching user groups ordered by comparator <code>obc</code>
+	 * @param  orderByComparator the comparator to order the user groups
+	 *         (optionally <code>null</code>)
+	 * @return the matching user groups ordered by comparator
+	 *         <code>orderByComparator</code>
 	 * @see    com.liferay.portal.kernel.service.persistence.UserGroupFinder
 	 */
 	@Override
 	public List<UserGroup> search(
 		long companyId, String name, String description,
 		LinkedHashMap<String, Object> params, boolean andOperator, int start,
-		int end, OrderByComparator<UserGroup> obc) {
+		int end, OrderByComparator<UserGroup> orderByComparator) {
 
 		if (isUseCustomSQL(params)) {
 			return userGroupFinder.filterFindByC_N_D(
 				companyId, name, description, params, andOperator, start, end,
-				obc);
+				orderByComparator);
 		}
 
-		String orderByCol = obc.getOrderByFields()[0];
+		String orderByCol = orderByComparator.getOrderByFields()[0];
 
 		String orderByType = "asc";
 
-		if (!obc.isAscending()) {
+		if (!orderByComparator.isAscending()) {
 			orderByType = "desc";
 		}
 
@@ -356,8 +358,8 @@ public class UserGroupServiceImpl extends UserGroupServiceBaseImpl {
 					companyId, name, description, params, andOperator, start,
 					end, sort));
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

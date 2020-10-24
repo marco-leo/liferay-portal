@@ -14,8 +14,8 @@
 
 package com.liferay.talend.tliferayoutput;
 
-import com.liferay.talend.LiferayBaseComponentDefinition;
-import com.liferay.talend.resource.LiferayOutputResourceProperties;
+import com.liferay.talend.LiferayDefinition;
+import com.liferay.talend.properties.output.LiferayOutputProperties;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -30,7 +30,7 @@ import org.talend.daikon.runtime.RuntimeInfo;
  * @author Zoltán Takács
  * @author Ivica Cardic
  */
-public class TLiferayOutputDefinition extends LiferayBaseComponentDefinition {
+public class TLiferayOutputDefinition extends LiferayDefinition {
 
 	public static final String COMPONENT_NAME = "tLiferayOutput";
 
@@ -45,7 +45,7 @@ public class TLiferayOutputDefinition extends LiferayBaseComponentDefinition {
 		return concatPropertiesClasses(
 			super.getNestedCompatibleComponentPropertiesClass(),
 			(Class<? extends ComponentProperties>[])new Class<?>[] {
-				LiferayOutputResourceProperties.class
+				LiferayOutputProperties.class
 			});
 	}
 
@@ -70,7 +70,7 @@ public class TLiferayOutputDefinition extends LiferayBaseComponentDefinition {
 
 		assertEngineCompatibility(executionEngine);
 
-		return getCommonRuntimeInfo(RUNTIME_SINK_CLASS_NAME);
+		return getCommonRuntimeInfo(SINK_CLASS_NAME);
 	}
 
 	@Override

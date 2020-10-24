@@ -113,21 +113,21 @@ public class DDMStructureLinkFinderImpl
 
 			sql = _customSQL.replaceAndOperator(sql, andOperator);
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
+			sqlQuery.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(classNameId);
-			qPos.add(classPK);
-			qPos.add(names, 2);
-			qPos.add(descriptions, 2);
+			queryPos.add(classNameId);
+			queryPos.add(classPK);
+			queryPos.add(names, 2);
+			queryPos.add(descriptions, 2);
 
-			Iterator<Long> itr = q.iterate();
+			Iterator<Long> iterator = sqlQuery.iterate();
 
-			if (itr.hasNext()) {
-				Long count = itr.next();
+			if (iterator.hasNext()) {
+				Long count = iterator.next();
 
 				if (count != null) {
 					return count.intValue();
@@ -136,8 +136,8 @@ public class DDMStructureLinkFinderImpl
 
 			return 0;
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -171,22 +171,22 @@ public class DDMStructureLinkFinderImpl
 				sql = _customSQL.replaceOrderBy(sql, orderByComparator);
 			}
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addEntity("DDMStructureLink", DDMStructureLinkImpl.class);
+			sqlQuery.addEntity("DDMStructureLink", DDMStructureLinkImpl.class);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(classNameId);
-			qPos.add(classPK);
-			qPos.add(names, 2);
-			qPos.add(descriptions, 2);
+			queryPos.add(classNameId);
+			queryPos.add(classPK);
+			queryPos.add(names, 2);
+			queryPos.add(descriptions, 2);
 
 			return (List<DDMStructureLink>)QueryUtil.list(
-				q, getDialect(), start, end);
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);

@@ -14,24 +14,19 @@
 
 package com.liferay.portal.service.impl;
 
-import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationConstants;
 import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationSettingsMapFactoryUtil;
+import com.liferay.exportimport.kernel.configuration.constants.ExportImportConfigurationConstants;
 import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
 import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.exportimport.kernel.lar.UserIdStrategy;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.petra.string.CharPool;
-import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
-import com.liferay.portal.kernel.dao.orm.Property;
-import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.DuplicateUserGroupException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.RequiredUserGroupException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.exception.UserGroupNameException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -49,6 +44,7 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.SortFactoryUtil;
+import com.liferay.portal.kernel.search.reindexer.ReindexerBridge;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.exportimport.UserGroupImportTransactionThreadLocal;
@@ -57,10 +53,10 @@ import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -73,11 +69,16 @@ import java.io.File;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 /**
  * Provides the local service for accessing, adding, deleting, and updating user
@@ -100,8 +101,8 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 		try {
 			reindexUsers(userGroupId);
 		}
-		catch (PortalException pe) {
-			throw new SystemException(pe);
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
 		}
 	}
 
@@ -118,8 +119,8 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 		try {
 			reindexUsers(userGroup);
 		}
-		catch (PortalException pe) {
-			throw new SystemException(pe);
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
 		}
 	}
 
@@ -136,8 +137,8 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 		try {
 			reindexUsers(userGroups);
 		}
-		catch (PortalException pe) {
-			throw new SystemException(pe);
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
 		}
 	}
 
@@ -154,8 +155,8 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 		try {
 			reindexUsers(userGroupIds);
 		}
-		catch (PortalException pe) {
-			throw new SystemException(pe);
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
 		}
 	}
 
@@ -209,7 +210,7 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 			UserGroupImportTransactionThreadLocal.isOriginatesFromImport());
 		userGroup.setExpandoBridgeAttributes(serviceContext);
 
-		userGroupPersistence.update(userGroup);
+		userGroup = userGroupPersistence.update(userGroup);
 
 		// Group
 
@@ -235,90 +236,6 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 		indexer.reindex(userGroup);
 
 		return userGroup;
-	}
-
-	/**
-	 * Copies the user group's layout to the user.
-	 *
-	 * @param      userGroupId the primary key of the user group
-	 * @param      userId the primary key of the user
-	 * @deprecated As of Paton (6.1.x)
-	 */
-	@Deprecated
-	@Override
-	public void copyUserGroupLayouts(long userGroupId, long userId)
-		throws PortalException {
-
-		Map<String, String[]> parameterMap = getLayoutTemplatesParameters();
-
-		File[] files = exportLayouts(userGroupId, parameterMap);
-
-		try {
-			importLayouts(userId, parameterMap, files[0], files[1]);
-		}
-		finally {
-			if (files[0] != null) {
-				files[0].delete();
-			}
-
-			if (files[1] != null) {
-				files[1].delete();
-			}
-		}
-	}
-
-	/**
-	 * Copies the user group's layouts to the users who are not already members
-	 * of the user group.
-	 *
-	 * @param      userGroupId the primary key of the user group
-	 * @param      userIds the primary keys of the users
-	 * @deprecated As of Newton (6.2.x)
-	 */
-	@Deprecated
-	@Override
-	public void copyUserGroupLayouts(long userGroupId, long[] userIds)
-		throws PortalException {
-
-		Map<String, String[]> parameterMap = getLayoutTemplatesParameters();
-
-		File[] files = exportLayouts(userGroupId, parameterMap);
-
-		try {
-			for (long userId : userIds) {
-				if (!userGroupPersistence.containsUser(userGroupId, userId)) {
-					importLayouts(userId, parameterMap, files[0], files[1]);
-				}
-			}
-		}
-		finally {
-			if (files[0] != null) {
-				files[0].delete();
-			}
-
-			if (files[1] != null) {
-				files[1].delete();
-			}
-		}
-	}
-
-	/**
-	 * Copies the user groups' layouts to the user.
-	 *
-	 * @param      userGroupIds the primary keys of the user groups
-	 * @param      userId the primary key of the user
-	 * @deprecated As of Newton (6.2.x)
-	 */
-	@Deprecated
-	@Override
-	public void copyUserGroupLayouts(long[] userGroupIds, long userId)
-		throws PortalException {
-
-		for (long userGroupId : userGroupIds) {
-			if (!userGroupPersistence.containsUser(userGroupId, userId)) {
-				copyUserGroupLayouts(userGroupId, userId);
-			}
-		}
 	}
 
 	/**
@@ -350,14 +267,12 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 		throws PortalException {
 
 		if (!CompanyThreadLocal.isDeleteInProcess()) {
-			LinkedHashMap<String, Object> params =
-				LinkedHashMapBuilder.<String, Object>put(
-					"usersUserGroups", Long.valueOf(userGroup.getUserGroupId())
-				).build();
-
 			int count = userFinder.countByKeywords(
 				userGroup.getCompanyId(), null,
-				WorkflowConstants.STATUS_APPROVED, params);
+				WorkflowConstants.STATUS_APPROVED,
+				LinkedHashMapBuilder.<String, Object>put(
+					"usersUserGroups", Long.valueOf(userGroup.getUserGroupId())
+				).build());
 
 			if (count > 0) {
 				throw new RequiredUserGroupException();
@@ -524,26 +439,27 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 	 * @param  start the lower bound of the range of user groups to return
 	 * @param  end the upper bound of the range of user groups to return (not
 	 *         inclusive)
-	 * @param  obc the comparator to order the user groups (optionally
-	 *         <code>null</code>)
-	 * @return the matching user groups ordered by comparator <code>obc</code>
+	 * @param  orderByComparator the comparator to order the user groups
+	 *         (optionally <code>null</code>)
+	 * @return the matching user groups ordered by comparator
+	 *         <code>orderByComparator</code>
 	 * @see    com.liferay.portal.kernel.service.persistence.UserGroupFinder
 	 */
 	@Override
 	public List<UserGroup> search(
 		long companyId, String keywords, LinkedHashMap<String, Object> params,
-		int start, int end, OrderByComparator<UserGroup> obc) {
+		int start, int end, OrderByComparator<UserGroup> orderByComparator) {
 
 		if (isUseCustomSQL(params)) {
 			return userGroupFinder.findByKeywords(
-				companyId, keywords, params, start, end, obc);
+				companyId, keywords, params, start, end, orderByComparator);
 		}
 
-		String orderByCol = obc.getOrderByFields()[0];
+		String orderByCol = orderByComparator.getOrderByFields()[0];
 
 		String orderByType = "asc";
 
-		if (!obc.isAscending()) {
+		if (!orderByComparator.isAscending()) {
 			orderByType = "desc";
 		}
 
@@ -554,8 +470,8 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 			return UsersAdminUtil.getUserGroups(
 				search(companyId, keywords, params, start, end, sort));
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -638,28 +554,29 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 	 * @param  start the lower bound of the range of user groups to return
 	 * @param  end the upper bound of the range of user groups to return (not
 	 *         inclusive)
-	 * @param  obc the comparator to order the user groups (optionally
-	 *         <code>null</code>)
-	 * @return the matching user groups ordered by comparator <code>obc</code>
+	 * @param  orderByComparator the comparator to order the user groups
+	 *         (optionally <code>null</code>)
+	 * @return the matching user groups ordered by comparator
+	 *         <code>orderByComparator</code>
 	 * @see    com.liferay.portal.kernel.service.persistence.UserGroupFinder
 	 */
 	@Override
 	public List<UserGroup> search(
 		long companyId, String name, String description,
 		LinkedHashMap<String, Object> params, boolean andOperator, int start,
-		int end, OrderByComparator<UserGroup> obc) {
+		int end, OrderByComparator<UserGroup> orderByComparator) {
 
 		if (isUseCustomSQL(params)) {
 			return userGroupFinder.findByC_N_D(
 				companyId, name, description, params, andOperator, start, end,
-				obc);
+				orderByComparator);
 		}
 
-		String orderByCol = obc.getOrderByFields()[0];
+		String orderByCol = orderByComparator.getOrderByFields()[0];
 
 		String orderByType = "asc";
 
-		if (!obc.isAscending()) {
+		if (!orderByComparator.isAscending()) {
 			orderByType = "desc";
 		}
 
@@ -672,8 +589,8 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 					companyId, name, description, params, andOperator, start,
 					end, sort));
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -724,8 +641,8 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 
 			return indexer.search(searchContext);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -775,8 +692,8 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 
 			return (int)indexer.searchCount(searchContext);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -815,8 +732,8 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 
 			return (int)indexer.searchCount(searchContext);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -887,10 +804,6 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 	public void setUserUserGroups(long userId, long[] userGroupIds)
 		throws PortalException {
 
-		if (PropsValues.USER_GROUPS_COPY_LAYOUTS_TO_USER_PERSONAL_SITE) {
-			copyUserGroupLayouts(userGroupIds, userId);
-		}
-
 		userPersistence.setUserGroups(userId, userGroupIds);
 
 		Indexer<User> indexer = IndexerRegistryUtil.nullSafeGetIndexer(
@@ -923,8 +836,8 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 		try {
 			reindexUsers(userGroupIds);
 		}
-		catch (PortalException pe) {
-			throw new SystemException(pe);
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
 		}
 	}
 
@@ -968,7 +881,7 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 		userGroup.setDescription(description);
 		userGroup.setExpandoBridgeAttributes(serviceContext);
 
-		userGroupPersistence.update(userGroup);
+		userGroup = userGroupPersistence.update(userGroup);
 
 		// Indexer
 
@@ -989,12 +902,10 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 
 		searchContext.setAndSearch(andSearch);
 
-		Map<String, Serializable> attributes =
-			HashMapBuilder.<String, Serializable>put(
-				"description", description
-			).put(
-				"name", name
-			).build();
+		Map<String, Serializable> attributes = new HashMap<>();
+
+		attributes.put("description", description);
+		attributes.put("name", name);
 
 		searchContext.setAttributes(attributes);
 
@@ -1212,45 +1123,44 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 	protected void reindex(long companyId, long[] userIds)
 		throws PortalException {
 
-		final Indexer<User> indexer = IndexerRegistryUtil.nullSafeGetIndexer(
-			User.class);
-
-		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
-			userLocalService.getIndexableActionableDynamicQuery();
-
-		indexableActionableDynamicQuery.setAddCriteriaMethod(
-			dynamicQuery -> {
-				Property userId = PropertyFactoryUtil.forName("userId");
-
-				dynamicQuery.add(userId.in(userIds));
-			});
-		indexableActionableDynamicQuery.setCompanyId(companyId);
-		indexableActionableDynamicQuery.setPerformActionMethod(
-			(User user) -> {
-				if (!user.isDefaultUser()) {
-					try {
-						indexableActionableDynamicQuery.addDocuments(
-							indexer.getDocument(user));
-					}
-					catch (PortalException pe) {
-						if (_log.isWarnEnabled()) {
-							_log.warn(
-								"Unable to index user " + user.getUserId(), pe);
-						}
-					}
-				}
-			});
-		indexableActionableDynamicQuery.setSearchEngineId(
-			indexer.getSearchEngineId());
-
-		indexableActionableDynamicQuery.performActions();
+		_reindexerBridge.reindex(companyId, User.class.getName(), userIds);
 	}
 
 	protected void reindexUsers(List<UserGroup> userGroups)
 		throws PortalException {
 
-		for (UserGroup userGroup : userGroups) {
-			reindexUsers(userGroup);
+		Stream<UserGroup> stream1 = userGroups.stream();
+
+		Map<Long, List<UserGroup>> map = stream1.collect(
+			Collectors.groupingBy(UserGroup::getCompanyId));
+
+		for (Map.Entry<Long, List<UserGroup>> entry : map.entrySet()) {
+			long companyId = entry.getKey();
+
+			List<UserGroup> list = entry.getValue();
+
+			Stream<UserGroup> stream2 = list.stream();
+
+			final long[] userGroupIds = stream2.mapToLong(
+				UserGroup::getUserGroupId
+			).toArray();
+
+			TransactionCommitCallbackUtil.registerCallback(
+				() -> {
+					LongStream longStream = Arrays.stream(userGroupIds);
+
+					long[] userIds = longStream.flatMap(
+						userGroupId -> Arrays.stream(
+							getUserPrimaryKeys(userGroupId))
+					).distinct(
+					).toArray();
+
+					if (ArrayUtil.isNotEmpty(userIds)) {
+						reindex(companyId, userIds);
+					}
+
+					return null;
+				});
 		}
 	}
 
@@ -1259,24 +1169,29 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 	}
 
 	protected void reindexUsers(long[] userGroupIds) throws PortalException {
+		List<UserGroup> list = new ArrayList<>(userGroupIds.length);
+
 		for (long userGroupId : userGroupIds) {
-			reindexUsers(userGroupId);
+			list.add(getUserGroup(userGroupId));
 		}
+
+		reindexUsers(list);
 	}
 
 	protected void reindexUsers(UserGroup userGroup) throws PortalException {
 		long companyId = userGroup.getCompanyId();
+		long userGroupId = userGroup.getUserGroupId();
 
-		long[] userIds = getUserPrimaryKeys(userGroup.getUserGroupId());
+		TransactionCommitCallbackUtil.registerCallback(
+			() -> {
+				long[] userIds = getUserPrimaryKeys(userGroupId);
 
-		if (ArrayUtil.isNotEmpty(userIds)) {
-			TransactionCommitCallbackUtil.registerCallback(
-				() -> {
+				if (ArrayUtil.isNotEmpty(userIds)) {
 					reindex(companyId, userIds);
+				}
 
-					return null;
-				});
-		}
+				return null;
+			});
 	}
 
 	protected void validate(long userGroupId, long companyId, String name)
@@ -1303,7 +1218,9 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 		}
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		UserGroupLocalServiceImpl.class);
+	private static volatile ReindexerBridge _reindexerBridge =
+		ServiceProxyFactory.newServiceTrackedInstance(
+			ReindexerBridge.class, UserGroupLocalServiceImpl.class,
+			"_reindexerBridge", false);
 
 }

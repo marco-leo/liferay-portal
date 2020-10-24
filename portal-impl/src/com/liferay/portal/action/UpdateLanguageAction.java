@@ -16,16 +16,19 @@ package com.liferay.portal.action;
 
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Contact;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.VirtualLayoutConstants;
 import com.liferay.portal.kernel.portlet.FriendlyURLResolverRegistryUtil;
+import com.liferay.portal.kernel.portlet.LayoutFriendlyURLSeparatorComposite;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -91,36 +94,82 @@ public class UpdateLanguageAction implements Action {
 
 		// Send redirect
 
+		httpServletResponse.sendRedirect(
+			getRedirect(httpServletRequest, themeDisplay, locale));
+
+		return null;
+	}
+
+	public String getRedirect(
+			HttpServletRequest httpServletRequest, ThemeDisplay themeDisplay,
+			Locale locale)
+		throws PortalException {
+
 		String redirect = PortalUtil.escapeRedirect(
 			ParamUtil.getString(httpServletRequest, "redirect"));
 
-		String layoutURL = StringPool.BLANK;
+		String layoutURL = redirect;
+
+		String friendlyURLSeparatorPart = StringPool.BLANK;
 		String queryString = StringPool.BLANK;
 
-		int pos = redirect.indexOf(Portal.FRIENDLY_URL_SEPARATOR);
+		int questionIndex = redirect.indexOf(StringPool.QUESTION);
 
-		if (pos == -1) {
-			pos = redirect.indexOf(StringPool.QUESTION);
+		if (questionIndex != -1) {
+			queryString = redirect.substring(questionIndex);
+			layoutURL = redirect.substring(0, questionIndex);
 		}
 
-		if (pos != -1) {
-			layoutURL = redirect.substring(0, pos);
-			queryString = redirect.substring(pos);
+		int friendlyURLSeparatorIndex = -1;
+
+		for (String urlSeparator :
+				FriendlyURLResolverRegistryUtil.getURLSeparators()) {
+
+			if (VirtualLayoutConstants.CANONICAL_URL_SEPARATOR.equals(
+					urlSeparator)) {
+
+				continue;
+			}
+
+			friendlyURLSeparatorIndex = layoutURL.indexOf(urlSeparator);
+
+			if (friendlyURLSeparatorIndex != -1) {
+				break;
+			}
 		}
-		else {
-			layoutURL = redirect;
+
+		Layout layout = themeDisplay.getLayout();
+
+		if (friendlyURLSeparatorIndex != -1) {
+			friendlyURLSeparatorPart = layoutURL.substring(
+				friendlyURLSeparatorIndex);
+
+			LayoutFriendlyURLSeparatorComposite
+				layoutFriendlyURLSeparatorComposite =
+					PortalUtil.getLayoutFriendlyURLSeparatorComposite(
+						layout.getGroupId(), layout.isPrivateLayout(),
+						friendlyURLSeparatorPart,
+						httpServletRequest.getParameterMap(),
+						HashMapBuilder.<String, Object>put(
+							"request", httpServletRequest
+						).build());
+
+			friendlyURLSeparatorPart =
+				layoutFriendlyURLSeparatorComposite.getFriendlyURL();
+
+			layoutURL = layoutURL.substring(0, friendlyURLSeparatorIndex);
 		}
 
 		if (themeDisplay.isI18n()) {
 			String i18nPath = themeDisplay.getI18nPath();
 
-			layoutURL = redirect.substring(i18nPath.length());
+			if (layoutURL.startsWith(i18nPath)) {
+				layoutURL = layoutURL.substring(i18nPath.length());
+			}
 		}
 
-		Layout layout = themeDisplay.getLayout();
-
-		if (isFriendlyURLResolver(layoutURL)) {
-			redirect = layoutURL;
+		if (isFriendlyURLResolver(layoutURL) || layout.isTypeControlPanel()) {
+			redirect = layoutURL + friendlyURLSeparatorPart;
 		}
 		else if (layoutURL.equals(StringPool.SLASH) ||
 				 isGroupFriendlyURL(
@@ -135,15 +184,14 @@ public class UpdateLanguageAction implements Action {
 			}
 
 			if (!redirect.endsWith(StringPool.SLASH) &&
-				!queryString.startsWith(StringPool.SLASH)) {
+				!friendlyURLSeparatorPart.startsWith(StringPool.SLASH)) {
 
 				redirect += StringPool.SLASH;
 			}
-		}
-		else if (layout.isTypeControlPanel() && themeDisplay.isI18n()) {
-			String i18nPath = themeDisplay.getI18nPath();
 
-			redirect = redirect.substring(i18nPath.length());
+			if (Validator.isNotNull(friendlyURLSeparatorPart)) {
+				redirect += friendlyURLSeparatorPart;
+			}
 		}
 		else {
 			if (PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 0) {
@@ -154,15 +202,17 @@ public class UpdateLanguageAction implements Action {
 				redirect = PortalUtil.getLayoutFriendlyURL(
 					layout, themeDisplay, locale);
 			}
+
+			if (Validator.isNotNull(friendlyURLSeparatorPart)) {
+				redirect += friendlyURLSeparatorPart;
+			}
 		}
 
 		if (Validator.isNotNull(queryString)) {
 			redirect = redirect + queryString;
 		}
 
-		httpServletResponse.sendRedirect(redirect);
-
-		return null;
+		return redirect;
 	}
 
 	protected boolean isFriendlyURLResolver(String layoutURL) {

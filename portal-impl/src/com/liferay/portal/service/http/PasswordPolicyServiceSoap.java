@@ -57,8 +57,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see PasswordPolicyServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class PasswordPolicyServiceSoap {
 
 	public static com.liferay.portal.kernel.model.PasswordPolicySoap
@@ -89,10 +91,10 @@ public class PasswordPolicyServiceSoap {
 			return com.liferay.portal.kernel.model.PasswordPolicySoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -102,10 +104,10 @@ public class PasswordPolicyServiceSoap {
 		try {
 			PasswordPolicyServiceUtil.deletePasswordPolicy(passwordPolicyId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -120,31 +122,32 @@ public class PasswordPolicyServiceSoap {
 			return com.liferay.portal.kernel.model.PasswordPolicySoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
 	public static com.liferay.portal.kernel.model.PasswordPolicySoap[] search(
 			long companyId, String name, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.portal.kernel.model.PasswordPolicy> obc)
+				<com.liferay.portal.kernel.model.PasswordPolicy>
+					orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.portal.kernel.model.PasswordPolicy>
 				returnValue = PasswordPolicyServiceUtil.search(
-					companyId, name, start, end, obc);
+					companyId, name, start, end, orderByComparator);
 
 			return com.liferay.portal.kernel.model.PasswordPolicySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -157,10 +160,10 @@ public class PasswordPolicyServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -192,10 +195,10 @@ public class PasswordPolicyServiceSoap {
 			return com.liferay.portal.kernel.model.PasswordPolicySoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

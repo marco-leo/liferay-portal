@@ -30,11 +30,6 @@ public class SAPEntryServiceWrapper
 		_sapEntryService = sapEntryService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SAPEntryServiceUtil} to access the sap entry remote service. Add custom service methods to <code>com.liferay.portal.security.service.access.policy.service.impl.SAPEntryServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.portal.security.service.access.policy.model.SAPEntry
 			addSAPEntry(
@@ -90,10 +85,10 @@ public class SAPEntryServiceWrapper
 				long companyId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
 					<com.liferay.portal.security.service.access.policy.model.
-						SAPEntry> obc) {
+						SAPEntry> orderByComparator) {
 
 		return _sapEntryService.getCompanySAPEntries(
-			companyId, start, end, obc);
+			companyId, start, end, orderByComparator);
 	}
 
 	@Override

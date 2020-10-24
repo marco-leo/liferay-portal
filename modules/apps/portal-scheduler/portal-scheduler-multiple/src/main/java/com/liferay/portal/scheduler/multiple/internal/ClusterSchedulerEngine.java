@@ -368,13 +368,13 @@ public class ClusterSchedulerEngine
 								addMemoryClusteredJob(schedulerResponse);
 							}
 						}
-						catch (Exception e) {
+						catch (Exception exception) {
 							_log.error(
 								StringBundler.concat(
 									"Unable to get a response from master for ",
 									"memory clustered job ",
 									getFullName(jobName, groupName)),
-								e);
+								exception);
 						}
 					}
 				}
@@ -568,11 +568,7 @@ public class ClusterSchedulerEngine
 	}
 
 	protected String getFullName(String jobName, String groupName) {
-		return groupName.concat(
-			StringPool.PERIOD
-		).concat(
-			jobName
-		);
+		return StringBundler.concat(groupName, StringPool.PERIOD, jobName);
 	}
 
 	protected void initMemoryClusteredJobs() {
@@ -620,17 +616,17 @@ public class ClusterSchedulerEngine
 
 				return;
 			}
-			catch (InterruptedException ie) {
+			catch (InterruptedException interruptedException) {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
 						"Give up the master response waiting due to " +
 							"interruption",
-						ie);
+						interruptedException);
 				}
 
 				return;
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				StringBundler sb = new StringBundler(5);
 
 				sb.append(
@@ -640,7 +636,7 @@ public class ClusterSchedulerEngine
 				sb.append("\"clusterable.advice.call.master.timeout\", will ");
 				sb.append("retry again");
 
-				_log.error(sb.toString(), e);
+				_log.error(sb.toString(), exception);
 			}
 		}
 	}
@@ -662,11 +658,11 @@ public class ClusterSchedulerEngine
 		Iterator
 			<Map.Entry
 				<String, ObjectValuePair<SchedulerResponse, TriggerState>>>
-					itr = memoryClusteredJobs.iterator();
+					iterator = memoryClusteredJobs.iterator();
 
-		while (itr.hasNext()) {
+		while (iterator.hasNext()) {
 			Map.Entry<String, ObjectValuePair<SchedulerResponse, TriggerState>>
-				entry = itr.next();
+				entry = iterator.next();
 
 			ObjectValuePair<SchedulerResponse, TriggerState>
 				memoryClusteredJob = entry.getValue();
@@ -674,7 +670,7 @@ public class ClusterSchedulerEngine
 			SchedulerResponse schedulerResponse = memoryClusteredJob.getKey();
 
 			if (groupName.equals(schedulerResponse.getGroupName())) {
-				itr.remove();
+				iterator.remove();
 			}
 		}
 	}
@@ -833,8 +829,8 @@ public class ClusterSchedulerEngine
 
 			_clusterExecutor.execute(clusterRequest);
 		}
-		catch (Throwable t) {
-			_log.error("Unable to notify slave", t);
+		catch (Throwable throwable) {
+			_log.error("Unable to notify slave", throwable);
 		}
 	}
 

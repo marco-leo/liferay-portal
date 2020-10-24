@@ -57,8 +57,10 @@ import java.rmi.RemoteException;
  *
  * @author Eduardo Garcia
  * @see SegmentsExperimentServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class SegmentsExperimentServiceSoap {
 
 	public static com.liferay.segments.model.SegmentsExperimentSoap
@@ -77,10 +79,10 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -96,10 +98,10 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -115,10 +117,10 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -136,10 +138,10 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -155,10 +157,10 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -179,10 +181,10 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -198,10 +200,29 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
+		}
+	}
+
+	public static com.liferay.segments.model.SegmentsExperimentSoap
+			getSegmentsExperiment(String segmentsExperimentKey)
+		throws RemoteException {
+
+		try {
+			com.liferay.segments.model.SegmentsExperiment returnValue =
+				SegmentsExperimentServiceUtil.getSegmentsExperiment(
+					segmentsExperimentKey);
+
+			return com.liferay.segments.model.SegmentsExperimentSoap.
+				toSoapModel(returnValue);
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -218,10 +239,10 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -244,10 +265,10 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -265,10 +286,10 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -285,10 +306,10 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -306,10 +327,10 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -326,10 +347,10 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -347,10 +368,10 @@ public class SegmentsExperimentServiceSoap {
 			return com.liferay.segments.model.SegmentsExperimentSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

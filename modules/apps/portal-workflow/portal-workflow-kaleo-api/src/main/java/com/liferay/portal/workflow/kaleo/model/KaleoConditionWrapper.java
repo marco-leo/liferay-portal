@@ -50,6 +50,7 @@ public class KaleoConditionWrapper
 		attributes.put("userName", getUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
+		attributes.put("kaleoDefinitionId", getKaleoDefinitionId());
 		attributes.put(
 			"kaleoDefinitionVersionId", getKaleoDefinitionVersionId());
 		attributes.put("kaleoNodeId", getKaleoNodeId());
@@ -108,6 +109,12 @@ public class KaleoConditionWrapper
 
 		if (modifiedDate != null) {
 			setModifiedDate(modifiedDate);
+		}
+
+		Long kaleoDefinitionId = (Long)attributes.get("kaleoDefinitionId");
+
+		if (kaleoDefinitionId != null) {
+			setKaleoDefinitionId(kaleoDefinitionId);
 		}
 
 		Long kaleoDefinitionVersionId = (Long)attributes.get(
@@ -181,6 +188,16 @@ public class KaleoConditionWrapper
 	@Override
 	public long getKaleoConditionId() {
 		return model.getKaleoConditionId();
+	}
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo condition.
+	 *
+	 * @return the kaleo definition ID of this kaleo condition
+	 */
+	@Override
+	public long getKaleoDefinitionId() {
+		return model.getKaleoDefinitionId();
 	}
 
 	/**
@@ -293,11 +310,6 @@ public class KaleoConditionWrapper
 		return model.getUserUuid();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a kaleo condition model instance should use the <code>KaleoCondition</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -341,6 +353,16 @@ public class KaleoConditionWrapper
 	@Override
 	public void setKaleoConditionId(long kaleoConditionId) {
 		model.setKaleoConditionId(kaleoConditionId);
+	}
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo condition.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo condition
+	 */
+	@Override
+	public void setKaleoDefinitionId(long kaleoDefinitionId) {
+		model.setKaleoDefinitionId(kaleoDefinitionId);
 	}
 
 	/**

@@ -19,6 +19,7 @@ import com.liferay.headless.delivery.client.dto.v1_0.WikiPageAttachment;
 import com.liferay.headless.delivery.client.http.HttpInvoker;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.test.constants.TestDataConstants;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -33,8 +34,6 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -52,6 +51,7 @@ public class WikiPageAttachmentResourceTest
 		ServiceContext serviceContext = new ServiceContext();
 
 		serviceContext.setAddGuestPermissions(true);
+		serviceContext.setCommand("update");
 		serviceContext.setScopeGroupId(testGroup.getGroupId());
 
 		WikiNode wikiNode = WikiNodeLocalServiceUtil.addNode(
@@ -64,18 +64,6 @@ public class WikiPageAttachmentResourceTest
 			wikiNode.getNodeId(), RandomTestUtil.randomString(),
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(), false,
 			serviceContext);
-	}
-
-	@Ignore
-	@Override
-	@Test
-	public void testGraphQLDeleteWikiPageAttachment() {
-	}
-
-	@Ignore
-	@Override
-	@Test
-	public void testGraphQLGetWikiPageAttachment() {
 	}
 
 	@Override
@@ -91,15 +79,36 @@ public class WikiPageAttachmentResourceTest
 	}
 
 	@Override
+	protected String[] getAdditionalAssertFieldNames() {
+		return new String[] {"title"};
+	}
+
+	@Override
 	protected Map<String, File> getMultipartFiles() throws Exception {
 		return HashMapBuilder.<String, File>put(
 			"file",
 			() -> {
-				String randomString = RandomTestUtil.randomString();
+				File file = new File(_tempFileName);
 
-				return FileUtil.createTempFile(randomString.getBytes());
+				FileUtil.write(file, TestDataConstants.TEST_BYTE_ARRAY);
+
+				return file;
 			}
 		).build();
+	}
+
+	@Override
+	protected WikiPageAttachment randomWikiPageAttachment() throws Exception {
+		WikiPageAttachment wikiPageAttachment =
+			super.randomWikiPageAttachment();
+
+		_tempFileName = FileUtil.createTempFileName();
+
+		File file = new File(_tempFileName);
+
+		wikiPageAttachment.setTitle(file.getName());
+
+		return wikiPageAttachment;
 	}
 
 	@Override
@@ -127,6 +136,14 @@ public class WikiPageAttachmentResourceTest
 		return _wikiPage.getPageId();
 	}
 
+	@Override
+	protected WikiPageAttachment
+			testGraphQLWikiPageAttachment_addWikiPageAttachment()
+		throws Exception {
+
+		return testDeleteWikiPageAttachment_addWikiPageAttachment();
+	}
+
 	private String _read(String url) throws Exception {
 		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
@@ -139,6 +156,7 @@ public class WikiPageAttachmentResourceTest
 		return httpResponse.getContent();
 	}
 
+	private String _tempFileName;
 	private WikiPage _wikiPage;
 
 }

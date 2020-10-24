@@ -17,11 +17,11 @@
 <%@ include file="/init.jsp" %>
 
 <%
-assetTagsSelectorDisplayContext = new AssetTagsSelectorDisplayContext(renderRequest, renderResponse, request, false);
+assetTagsSelectorDisplayContext = new AssetTagsSelectorDisplayContext(request, renderRequest, renderResponse, false);
 %>
 
 <clay:management-toolbar
-	displayContext="<%= new AssetTagsSelectorManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, assetTagsSelectorDisplayContext) %>"
+	displayContext="<%= new AssetTagsSelectorManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, assetTagsSelectorDisplayContext) %>"
 />
 
 <aui:form action="<%= assetTagsSelectorDisplayContext.getPortletURL() %>" cssClass="container-fluid-1280" method="post" name="selectAssetTagFm">
@@ -36,20 +36,21 @@ assetTagsSelectorDisplayContext = new AssetTagsSelectorDisplayContext(renderRequ
 			rowIdProperty="friendlyURL"
 			rowVar="row"
 		>
-
-			<%
-			Map<String, Object> data = HashMapBuilder.<String, Object>put(
-				"entityid", tag.getTagId()
-			).put(
-				"entityname", tag.getName()
-			).build();
-			%>
-
 			<liferay-ui:search-container-column-text
 				name="name"
 				truncate="<%= true %>"
 			>
-				<aui:a cssClass="selector-button" data="<%= data %>" href="javascript:;">
+				<aui:a
+					cssClass="selector-button"
+					data='<%=
+						HashMapBuilder.<String, Object>put(
+							"entityid", tag.getTagId()
+						).put(
+							"entityname", tag.getName()
+						).build()
+					%>'
+					href="javascript:;"
+				>
 					<%= HtmlUtil.escape(tag.getName()) %>
 				</aui:a>
 			</liferay-ui:search-container-column-text>
@@ -63,9 +64,7 @@ assetTagsSelectorDisplayContext = new AssetTagsSelectorDisplayContext(renderRequ
 </aui:form>
 
 <aui:script>
-	var Util = Liferay.Util;
-
-	Util.selectEntityHandler(
+	Liferay.Util.selectEntityHandler(
 		'#<portlet:namespace />selectAssetTagFm',
 		'<%= HtmlUtil.escapeJS(assetTagsSelectorDisplayContext.getEventName()) %>',
 		true

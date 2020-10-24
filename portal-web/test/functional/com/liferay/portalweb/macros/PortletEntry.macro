@@ -8,13 +8,24 @@ definition {
 				key_fieldName = "${fieldName}",
 				locator1 = "Button#LOCALIZATION");
 		}
+
+		else if (isSet(friendlyURLHistory)) {
+			Click.clickNoMouseOver(locator1 = "Icon#FRIENDLY_URL_HISTORY_LOCALIZATION");
+		}
+
 		else {
 			Click.clickNoMouseOver(locator1 = "Button#LOCALIZATION_GENERIC");
 		}
 
-		Click(
-			key_locale = StringUtil.replace("${locale}", "-", "_"),
-			locator1 = "Translation#LOCALIZATION_NAME");
+		if (isSet(localizedFriendlyURL)) {
+			Click.clickNoMouseOver(locator1 = "Icon#FRIENDLY_URL_HISTORY_SPANISH_LOCALIZATION");
+		}
+
+		else {
+			Click(
+				key_locale = StringUtil.replace("${locale}", "-", "_"),
+				locator1 = "Translation#LOCALIZATION_NAME");
+		}
 	}
 
 	macro clickEditFromEllipsis {
@@ -85,6 +96,14 @@ definition {
 			value1 = "${name}");
 	}
 
+	macro inputStructureKeyTextInput {
+		Click(locator1 = "TextInput#STRUCTURE_KEY_FIELD");
+
+		Type(
+			locator1 = "TextInput#STRUCTURE_KEY_FIELD",
+			value1 = "${structureKey}");
+	}
+
 	macro inputText {
 		Click(
 			key_fieldLabel = "${fieldLabel}",
@@ -133,6 +152,8 @@ definition {
 		Button.clickSave();
 
 		Alert.viewSuccessMessage();
+
+		WaitForLiferayEvent.initializeLiferayEventLog();
 	}
 
 	macro saveAsDraft {
@@ -195,13 +216,6 @@ definition {
 
 	macro viewNoNavItemLink {
 		AssertElementNotPresent(locator1 = "NavBar#NAV_ITEM_LINK");
-	}
-
-	macro viewWorkflowStatus {
-		AssertTextEquals(
-			key_rowEntry = "${rowEntry}",
-			locator1 = "Card#GENERIC_SMALL_TEXT",
-			value1 = "${workflowStatus}");
 	}
 
 }

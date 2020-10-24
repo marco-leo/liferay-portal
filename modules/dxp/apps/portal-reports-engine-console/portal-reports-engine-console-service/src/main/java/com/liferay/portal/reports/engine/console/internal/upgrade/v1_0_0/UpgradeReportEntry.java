@@ -14,13 +14,12 @@
 
 package com.liferay.portal.reports.engine.console.internal.upgrade.v1_0_0;
 
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -61,13 +60,12 @@ public class UpgradeReportEntry extends UpgradeProcess {
 				continue;
 			}
 
-			JSONObject reportParameterJSONObject = JSONUtil.put(
-				"key", keyValuePair.split(StringPool.EQUAL)[0]
-			).put(
-				"value", keyValuePair.split(StringPool.EQUAL)[1]
-			);
-
-			reportParametersJSONArray.put(reportParameterJSONObject);
+			reportParametersJSONArray.put(
+				JSONUtil.put(
+					"key", keyValuePair.split(StringPool.EQUAL)[0]
+				).put(
+					"value", keyValuePair.split(StringPool.EQUAL)[1]
+				));
 		}
 
 		return reportParametersJSONArray.toString();

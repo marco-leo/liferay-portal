@@ -22,6 +22,7 @@ import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.layout.seo.model.LayoutSEOSite;
 import com.liferay.layout.seo.service.LayoutSEOSiteLocalService;
 import com.liferay.layout.seo.service.persistence.LayoutSEOSitePersistence;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -42,6 +43,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -69,7 +71,7 @@ public abstract class LayoutSEOSiteLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements AopService, IdentifiableOSGiService, LayoutSEOSiteLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>LayoutSEOSiteLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.layout.seo.service.LayoutSEOSiteLocalServiceUtil</code>.
@@ -77,6 +79,10 @@ public abstract class LayoutSEOSiteLocalServiceBaseImpl
 
 	/**
 	 * Adds the layout seo site to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutSEOSiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutSEOSite the layout seo site
 	 * @return the layout seo site that was added
@@ -104,6 +110,10 @@ public abstract class LayoutSEOSiteLocalServiceBaseImpl
 	/**
 	 * Deletes the layout seo site with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutSEOSiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param layoutSEOSiteId the primary key of the layout seo site
 	 * @return the layout seo site that was removed
 	 * @throws PortalException if a layout seo site with the primary key could not be found
@@ -119,6 +129,10 @@ public abstract class LayoutSEOSiteLocalServiceBaseImpl
 	/**
 	 * Deletes the layout seo site from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutSEOSiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param layoutSEOSite the layout seo site
 	 * @return the layout seo site that was removed
 	 */
@@ -126,6 +140,11 @@ public abstract class LayoutSEOSiteLocalServiceBaseImpl
 	@Override
 	public LayoutSEOSite deleteLayoutSEOSite(LayoutSEOSite layoutSEOSite) {
 		return layoutSEOSitePersistence.remove(layoutSEOSite);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return layoutSEOSitePersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -360,6 +379,17 @@ public abstract class LayoutSEOSiteLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return layoutSEOSitePersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -367,6 +397,14 @@ public abstract class LayoutSEOSiteLocalServiceBaseImpl
 			(LayoutSEOSite)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<LayoutSEOSite> getBasePersistence() {
+		return layoutSEOSitePersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -452,6 +490,10 @@ public abstract class LayoutSEOSiteLocalServiceBaseImpl
 	/**
 	 * Updates the layout seo site in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutSEOSiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param layoutSEOSite the layout seo site
 	 * @return the layout seo site that was updated
 	 */
@@ -511,8 +553,8 @@ public abstract class LayoutSEOSiteLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

@@ -31,7 +31,6 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.auth.AuthTokenUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.AggregateResourceBundle;
-import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Html;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortletKeys;
@@ -106,10 +105,11 @@ public class DocumentLibraryDDMFormFieldTemplateContextContributor
 				ddmFormFieldRenderingContext.getHttpServletRequest());
 		}
 
-		Map<String, String> stringsMap = HashMapBuilder.put(
+		Map<String, String> stringsMap = new HashMap<>();
+
+		stringsMap.put(
 			"select",
-			LanguageUtil.get(getResourceBundle(displayLocale), "select")
-		).build();
+			LanguageUtil.get(getResourceBundle(displayLocale), "select"));
 
 		parameters.put("strings", stringsMap);
 
@@ -138,8 +138,8 @@ public class DocumentLibraryDDMFormFieldTemplateContextContributor
 				valueJSONObject.getString("uuid"),
 				valueJSONObject.getLong("groupId"));
 		}
-		catch (PortalException pe) {
-			_log.error("Unable to retrieve file entry ", pe);
+		catch (PortalException portalException) {
+			_log.error("Unable to retrieve file entry ", portalException);
 
 			return null;
 		}
@@ -160,11 +160,15 @@ public class DocumentLibraryDDMFormFieldTemplateContextContributor
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler(9);
-
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
+
+		if (themeDisplay == null) {
+			return StringPool.BLANK;
+		}
+
+		StringBundler sb = new StringBundler(9);
 
 		sb.append(themeDisplay.getPathContext());
 
@@ -198,8 +202,10 @@ public class DocumentLibraryDDMFormFieldTemplateContextContributor
 				portal.getControlPanelPlid(themeDisplay.getCompanyId()),
 				PortletKeys.ITEM_SELECTOR);
 		}
-		catch (PortalException pe) {
-			_log.error("Unable to generate item selector auth token ", pe);
+		catch (PortalException portalException) {
+			_log.error(
+				"Unable to generate item selector auth token ",
+				portalException);
 		}
 
 		return StringPool.BLANK;
@@ -212,10 +218,14 @@ public class DocumentLibraryDDMFormFieldTemplateContextContributor
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
+		if (themeDisplay == null) {
+			return StringPool.BLANK;
+		}
+
 		StringBundler sb = new StringBundler(3);
 
 		sb.append(themeDisplay.getPathThemeImages());
-		sb.append("/lexicon/icons.svg");
+		sb.append("/clay/icons.svg");
 		sb.append(StringPool.POUND);
 
 		return sb.toString();
@@ -235,9 +245,9 @@ public class DocumentLibraryDDMFormFieldTemplateContextContributor
 		try {
 			return jsonFactory.createJSONObject(value);
 		}
-		catch (JSONException jsone) {
+		catch (JSONException jsonException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(jsone, jsone);
+				_log.debug(jsonException, jsonException);
 			}
 
 			return null;

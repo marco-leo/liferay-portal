@@ -16,6 +16,7 @@ package com.liferay.portal.workflow.metrics.service.impl;
 
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.workflow.metrics.exception.NoSuchSLADefinitionVersionException;
 import com.liferay.portal.workflow.metrics.model.WorkflowMetricsSLADefinitionVersion;
 import com.liferay.portal.workflow.metrics.service.base.WorkflowMetricsSLADefinitionVersionLocalServiceBaseImpl;
@@ -58,11 +59,24 @@ public class WorkflowMetricsSLADefinitionVersionLocalServiceImpl
 	@Override
 	public List<WorkflowMetricsSLADefinitionVersion>
 		getWorkflowMetricsSLADefinitionVersions(
-			long companyId, Date createDate, int status) {
+			long companyId, Date createDate, Long processId, int status) {
 
-		return workflowMetricsSLADefinitionVersionFinder.findByC_WMSLAD_V(
-			companyId, createDate, status, QueryUtil.ALL_POS,
+		return workflowMetricsSLADefinitionVersionFinder.findByC_CD_P_S(
+			companyId, createDate, processId, status, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS);
+	}
+
+	@Override
+	public List<WorkflowMetricsSLADefinitionVersion>
+		getWorkflowMetricsSLADefinitionVersions(
+			long workflowMetricsSLADefinitionId,
+			OrderByComparator<WorkflowMetricsSLADefinitionVersion>
+				orderByComparator) {
+
+		return workflowMetricsSLADefinitionVersionPersistence.
+			findByWorkflowMetricsSLADefinitionId(
+				workflowMetricsSLADefinitionId, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, orderByComparator);
 	}
 
 }

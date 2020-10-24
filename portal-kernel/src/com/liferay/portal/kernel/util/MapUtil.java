@@ -435,8 +435,8 @@ public class MapUtil {
 
 						map.put(kvp[0], constructor.newInstance(kvp[1]));
 					}
-					catch (Exception e) {
-						_log.error(e.getMessage(), e);
+					catch (Exception exception) {
+						_log.error(exception.getMessage(), exception);
 					}
 				}
 			}
@@ -456,7 +456,7 @@ public class MapUtil {
 			return StringPool.OPEN_CURLY_BRACE + StringPool.CLOSE_CURLY_BRACE;
 		}
 
-		StringBundler sb = new StringBundler(map.size() * 4 + 1);
+		StringBundler sb = new StringBundler((map.size() * 4) + 1);
 
 		sb.append(StringPool.OPEN_CURLY_BRACE);
 
@@ -488,11 +488,9 @@ public class MapUtil {
 					(String[])value, StringPool.COMMA_AND_SPACE);
 
 				sb.append(
-					StringPool.OPEN_BRACKET.concat(
-						valueString
-					).concat(
-						StringPool.CLOSE_BRACKET
-					));
+					StringBundler.concat(
+						StringPool.OPEN_BRACKET, valueString,
+						StringPool.CLOSE_BRACKET));
 			}
 			else {
 				sb.append(value);

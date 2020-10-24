@@ -39,7 +39,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface AccountEntryModel
 	extends AuditedModel, BaseModel<AccountEntry>, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a account entry model instance should use the {@link AccountEntry} interface instead.
@@ -74,6 +74,21 @@ public interface AccountEntryModel
 	 */
 	@Override
 	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the external reference code of this account entry.
+	 *
+	 * @return the external reference code of this account entry
+	 */
+	@AutoEscape
+	public String getExternalReferenceCode();
+
+	/**
+	 * Sets the external reference code of this account entry.
+	 *
+	 * @param externalReferenceCode the external reference code of this account entry
+	 */
+	public void setExternalReferenceCode(String externalReferenceCode);
 
 	/**
 	 * Returns the account entry ID of this account entry.
@@ -258,6 +273,36 @@ public interface AccountEntryModel
 	 * @param logoId the logo ID of this account entry
 	 */
 	public void setLogoId(long logoId);
+
+	/**
+	 * Returns the tax ID number of this account entry.
+	 *
+	 * @return the tax ID number of this account entry
+	 */
+	@AutoEscape
+	public String getTaxIdNumber();
+
+	/**
+	 * Sets the tax ID number of this account entry.
+	 *
+	 * @param taxIdNumber the tax ID number of this account entry
+	 */
+	public void setTaxIdNumber(String taxIdNumber);
+
+	/**
+	 * Returns the type of this account entry.
+	 *
+	 * @return the type of this account entry
+	 */
+	@AutoEscape
+	public String getType();
+
+	/**
+	 * Sets the type of this account entry.
+	 *
+	 * @param type the type of this account entry
+	 */
+	public void setType(String type);
 
 	/**
 	 * Returns the status of this account entry.

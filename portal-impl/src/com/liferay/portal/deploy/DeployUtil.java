@@ -84,7 +84,7 @@ public class DeployUtil {
 
 				@Override
 				public FileVisitResult postVisitDirectory(
-						Path dirPath, IOException ioe)
+						Path dirPath, IOException ioException)
 					throws IOException {
 
 					Files.delete(dirPath);
@@ -134,25 +134,13 @@ public class DeployUtil {
 			destDir = PropsValues.AUTO_DEPLOY_DEFAULT_DEST_DIR;
 		}
 
-		destDir = StringUtil.replace(
-			destDir, CharPool.BACK_SLASH, CharPool.SLASH);
-
-		return destDir;
+		return StringUtil.replace(destDir, CharPool.BACK_SLASH, CharPool.SLASH);
 	}
 
 	public static String getResourcePath(Set<Path> tempPaths, String resource)
 		throws Exception {
 
 		return _deployUtil._getResourcePath(tempPaths, resource);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #getResourcePath(Set, String)}
-	 */
-	@Deprecated
-	public static String getResourcePath(String resource) throws Exception {
-		return _deployUtil._getResourcePath(new HashSet<>(), resource);
 	}
 
 	public static void redeployTomcat(String context) throws Exception {
@@ -260,7 +248,7 @@ public class DeployUtil {
 	}
 
 	private String _getResourcePath(Set<Path> tempDirPaths, String resource)
-		throws IOException {
+		throws Exception {
 
 		Class<?> clazz = getClass();
 

@@ -15,13 +15,13 @@
 package com.liferay.saml.opensaml.integration.internal.servlet.profile;
 
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.saml.constants.SamlWebKeys;
 import com.liferay.saml.opensaml.integration.SamlBinding;
@@ -80,7 +80,7 @@ import org.opensaml.xmlsec.impl.BasicSignatureValidationParametersResolver;
  */
 public abstract class BaseProfile {
 
-	public MessageContext decodeSamlMessage(
+	public MessageContext<?> decodeSamlMessage(
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse, SamlBinding samlBinding,
 			boolean requireSignature)
@@ -170,10 +170,11 @@ public abstract class BaseProfile {
 		samlMetadataContext.setEntityDescriptor(entityDescriptor);
 		samlMetadataContext.setRoleDescriptor(roleDescriptor);
 
-		MessageHandler messageHandler =
-			metadataManager.getSecurityMessageHandler(
-				httpServletRequest, samlBindingContext.getBindingUri(),
-				requireSignature);
+		MessageHandler<SAMLObject> messageHandler =
+			(MessageHandler<SAMLObject>)
+				metadataManager.getSecurityMessageHandler(
+					httpServletRequest, samlBindingContext.getBindingUri(),
+					requireSignature);
 
 		SecurityParametersContext securityParametersContext =
 			inboundMessageContext.getSubcontext(
@@ -455,7 +456,7 @@ public abstract class BaseProfile {
 		try {
 			session.invalidate();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 	}
 
@@ -464,7 +465,7 @@ public abstract class BaseProfile {
 			HttpServletResponse httpServletResponse)
 		throws PortalException {
 
-		InOutOperationContext inOutOperationContext =
+		InOutOperationContext<?, XMLObject> inOutOperationContext =
 			messageContext.getSubcontext(InOutOperationContext.class);
 
 		MessageContext<XMLObject> outboundMessageContext =
@@ -492,7 +493,7 @@ public abstract class BaseProfile {
 						endpoint.getLocation(), " with binding ",
 						endpoint.getBinding()));
 			}
-			catch (MarshallingException me) {
+			catch (MarshallingException marshallingException) {
 			}
 		}
 
@@ -520,12 +521,12 @@ public abstract class BaseProfile {
 
 			httpServletResponseMessageEncoder.encode();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			throw new SamlException(
 				StringBundler.concat(
 					"Unable to send SAML message to ", endpoint.getLocation(),
 					" with binding ", endpoint.getBinding()),
-				e);
+				exception);
 		}
 	}
 

@@ -57,8 +57,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see CountryServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class CountryServiceSoap {
 
 	public static com.liferay.portal.kernel.model.CountrySoap addCountry(
@@ -74,10 +76,10 @@ public class CountryServiceSoap {
 			return com.liferay.portal.kernel.model.CountrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -92,10 +94,10 @@ public class CountryServiceSoap {
 			return com.liferay.portal.kernel.model.CountrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -110,10 +112,10 @@ public class CountryServiceSoap {
 			return com.liferay.portal.kernel.model.CountrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -128,10 +130,10 @@ public class CountryServiceSoap {
 			return com.liferay.portal.kernel.model.CountrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -145,10 +147,10 @@ public class CountryServiceSoap {
 			return com.liferay.portal.kernel.model.CountrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -163,10 +165,10 @@ public class CountryServiceSoap {
 			return com.liferay.portal.kernel.model.CountrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -181,10 +183,10 @@ public class CountryServiceSoap {
 			return com.liferay.portal.kernel.model.CountrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -199,10 +201,10 @@ public class CountryServiceSoap {
 			return com.liferay.portal.kernel.model.CountrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -217,10 +219,10 @@ public class CountryServiceSoap {
 			return com.liferay.portal.kernel.model.CountrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -235,10 +237,10 @@ public class CountryServiceSoap {
 			return com.liferay.portal.kernel.model.CountrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

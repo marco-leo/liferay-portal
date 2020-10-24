@@ -92,8 +92,8 @@ public class JSPortlet extends MVCPortlet implements ManagedService {
 
 			printWriter.flush();
 		}
-		catch (IOException ioe) {
-			_log.error("Unable to render HTML output", ioe);
+		catch (IOException ioException) {
+			_log.error("Unable to render HTML output", ioException);
 		}
 	}
 
@@ -107,10 +107,10 @@ public class JSPortlet extends MVCPortlet implements ManagedService {
 
 		Map<String, Object> configuration = new HashMap<>();
 
-		Enumeration<String> keys = properties.keys();
+		Enumeration<String> enumeration = properties.keys();
 
-		while (keys.hasMoreElements()) {
-			String key = keys.nextElement();
+		while (enumeration.hasMoreElements()) {
+			String key = enumeration.nextElement();
 
 			if (key.equals("service.pid")) {
 				continue;
@@ -137,8 +137,8 @@ public class JSPortlet extends MVCPortlet implements ManagedService {
 
 			return StringUtil.read(inputStream);
 		}
-		catch (Exception e) {
-			_log.error("Unable to read template " + name, e);
+		catch (Exception exception) {
+			_log.error("Unable to read template " + name, exception);
 		}
 
 		return StringPool.BLANK;
@@ -152,11 +152,10 @@ public class JSPortlet extends MVCPortlet implements ManagedService {
 		JSONObject portletPreferencesJSONObject =
 			_jsonFactory.createJSONObject();
 
-		Enumeration<String> portletPreferencesNames =
-			portletPreferences.getNames();
+		Enumeration<String> enumeration = portletPreferences.getNames();
 
-		while (portletPreferencesNames.hasMoreElements()) {
-			String key = portletPreferencesNames.nextElement();
+		while (enumeration.hasMoreElements()) {
+			String key = enumeration.nextElement();
 
 			if (!_portletPreferencesFieldNames.contains(key)) {
 				continue;

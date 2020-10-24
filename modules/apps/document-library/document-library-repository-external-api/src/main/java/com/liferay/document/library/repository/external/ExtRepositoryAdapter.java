@@ -310,15 +310,16 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 	@Override
 	public List<FileEntry> getFileEntries(
 			long folderId, int status, int start, int end,
-			OrderByComparator<FileEntry> obc)
+			OrderByComparator<FileEntry> orderByComparator)
 		throws PortalException {
 
-		return getFileEntries(folderId, start, end, obc);
+		return getFileEntries(folderId, start, end, orderByComparator);
 	}
 
 	@Override
 	public List<FileEntry> getFileEntries(
-			long folderId, int start, int end, OrderByComparator<FileEntry> obc)
+			long folderId, int start, int end,
+			OrderByComparator<FileEntry> orderByComparator)
 		throws PortalException {
 
 		String extRepositoryFolderKey = getExtRepositoryObjectKey(folderId);
@@ -331,19 +332,20 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 			_toExtRepositoryObjectAdapters(
 				ExtRepositoryObjectAdapterType.FILE, extRepositoryFileEntries);
 
-		return _sublist(extRepositoryFileEntryAdapters, start, end, obc);
+		return _sublist(
+			extRepositoryFileEntryAdapters, start, end, orderByComparator);
 	}
 
 	@Override
 	public List<FileEntry> getFileEntries(
 			long folderId, long fileEntryTypeId, int start, int end,
-			OrderByComparator<FileEntry> obc)
+			OrderByComparator<FileEntry> orderByComparator)
 		throws PortalException {
 
 		if (fileEntryTypeId ==
 				DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT) {
 
-			return getFileEntries(folderId, start, end, obc);
+			return getFileEntries(folderId, start, end, orderByComparator);
 		}
 
 		return Collections.emptyList();
@@ -352,7 +354,7 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 	@Override
 	public List<FileEntry> getFileEntries(
 			long folderId, String[] mimeTypes, int start, int end,
-			OrderByComparator<FileEntry> obc)
+			OrderByComparator<FileEntry> orderByComparator)
 		throws PortalException {
 
 		String extRepositoryFolderKey = getExtRepositoryObjectKey(folderId);
@@ -368,7 +370,8 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 		extRepositoryFileEntryAdapters = _filterByMimeType(
 			extRepositoryFileEntryAdapters, mimeTypes);
 
-		return _sublist(extRepositoryFileEntryAdapters, start, end, obc);
+		return _sublist(
+			extRepositoryFileEntryAdapters, start, end, orderByComparator);
 	}
 
 	@Override
@@ -528,7 +531,7 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 	@Override
 	public List<Folder> getFolders(
 			long parentFolderId, boolean includeMountFolders, int start,
-			int end, OrderByComparator<Folder> obc)
+			int end, OrderByComparator<Folder> orderByComparator)
 		throws PortalException {
 
 		String extRepositoryParentFolderKey = getExtRepositoryObjectKey(
@@ -542,12 +545,14 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 			_toExtRepositoryObjectAdapters(
 				ExtRepositoryObjectAdapterType.FOLDER, extRepositoryFolders);
 
-		return _sublist(extRepositoryFolderAdapters, start, end, obc);
+		return _sublist(
+			extRepositoryFolderAdapters, start, end, orderByComparator);
 	}
 
 	@Override
 	public List<Object> getFoldersAndFileEntries(
-		long folderId, int start, int end, OrderByComparator<?> obc) {
+		long folderId, int start, int end,
+		OrderByComparator<?> orderByComparator) {
 
 		try {
 			String extRepositoryFolderKey = getExtRepositoryObjectKey(folderId);
@@ -563,17 +568,17 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 
 			return _sublist(
 				extRepositoryObjectAdapters, start, end,
-				(OrderByComparator<Object>)obc);
+				(OrderByComparator<Object>)orderByComparator);
 		}
-		catch (Exception e) {
-			throw new RepositoryException(e);
+		catch (Exception exception) {
+			throw new RepositoryException(exception);
 		}
 	}
 
 	@Override
 	public List<Object> getFoldersAndFileEntries(
 			long folderId, String[] mimeTypes, int start, int end,
-			OrderByComparator<?> obc)
+			OrderByComparator<?> orderByComparator)
 		throws PortalException {
 
 		String extRepositoryFolderKey = getExtRepositoryObjectKey(folderId);
@@ -591,7 +596,7 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 
 		return _sublist(
 			extRepositoryObjectAdapters, start, end,
-			(OrderByComparator<Object>)obc);
+			(OrderByComparator<Object>)orderByComparator);
 	}
 
 	@Override
@@ -602,8 +607,8 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 			return _extRepository.getExtRepositoryObjectsCount(
 				ExtRepositoryObjectType.OBJECT, extRepositoryFolderKey);
 		}
-		catch (PortalException pe) {
-			throw new SystemException(pe);
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
 		}
 	}
 
@@ -652,7 +657,7 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 	@SuppressWarnings("unused")
 	public List<Folder> getMountFolders(
 			long parentFolderId, int start, int end,
-			OrderByComparator<Folder> obc)
+			OrderByComparator<Folder> orderByComparator)
 		throws PortalException {
 
 		return Collections.emptyList();
@@ -736,13 +741,14 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 			_extRepository.initRepository(
 				getTypeSettingsProperties(), credentialsProvider);
 		}
-		catch (PortalException | SystemException e) {
+		catch (PortalException | SystemException exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
-					"Unable to initialize repository " + _extRepository, e);
+					"Unable to initialize repository " + _extRepository,
+					exception);
 			}
 
-			throw e;
+			throw exception;
 		}
 	}
 
@@ -872,7 +878,8 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 
 					needsCheckIn = true;
 				}
-				catch (UnsupportedOperationException uoe) {
+				catch (UnsupportedOperationException
+							unsupportedOperationException) {
 				}
 			}
 
@@ -880,15 +887,17 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 				extRepositoryFileEntryKey,
 				extRepositoryFileVersion.getMimeType(), inputStream);
 
-			String changeLog = LanguageUtil.format(
-				serviceContext.getLocale(), "reverted-to-x", version, false);
-
 			if (needsCheckIn) {
+				String changeLog = LanguageUtil.format(
+					serviceContext.getLocale(), "reverted-to-x", version,
+					false);
+
 				try {
 					_extRepository.checkInExtRepositoryFileEntry(
 						extRepositoryFileEntryKey, true, changeLog);
 				}
-				catch (UnsupportedOperationException uoe) {
+				catch (UnsupportedOperationException
+							unsupportedOperationException) {
 				}
 			}
 		}
@@ -931,8 +940,8 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 			extRepositorySearchResults = _extRepository.search(
 				searchContext, query, new ExtRepositoryQueryMapperImpl(this));
 		}
-		catch (PortalException | SystemException e) {
-			throw new SearchException("Unable to perform search", e);
+		catch (PortalException | SystemException exception) {
+			throw new SearchException("Unable to perform search", exception);
 		}
 
 		QueryConfig queryConfig = searchContext.getQueryConfig();
@@ -976,9 +985,9 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 
 				total++;
 			}
-			catch (PortalException | SystemException e) {
+			catch (PortalException | SystemException exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn("Invalid entry returned from search", e);
+					_log.warn("Invalid entry returned from search", exception);
 				}
 			}
 		}
@@ -1074,12 +1083,12 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 			return _toExtRepositoryObjectAdapter(
 				ExtRepositoryObjectAdapterType.FILE, extRepositoryFileEntry);
 		}
-		catch (PortalException | SystemException e) {
+		catch (PortalException | SystemException exception) {
 			if (needsCheckIn) {
 				_extRepository.cancelCheckOut(extRepositoryFileEntryKey);
 			}
 
-			throw e;
+			throw exception;
 		}
 	}
 
@@ -1196,9 +1205,10 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 		try {
 			return userLocalService.getDefaultUser(getCompanyId());
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			_log.error(
-				"Unable to get default user for company " + getCompanyId(), pe);
+				"Unable to get default user for company " + getCompanyId(),
+				portalException);
 
 			return null;
 		}
@@ -1274,12 +1284,12 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 				}
 			}
 		}
-		catch (PortalException | SystemException e) {
+		catch (PortalException | SystemException exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					"Unable to get login to connect to external repository " +
 						_extRepository,
-					e);
+					exception);
 			}
 
 			login = null;
@@ -1319,10 +1329,11 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 	}
 
 	private <T, V extends T> List<T> _sublist(
-		List<V> list, int start, int end, OrderByComparator<T> obc) {
+		List<V> list, int start, int end,
+		OrderByComparator<T> orderByComparator) {
 
-		if (obc != null) {
-			list = ListUtil.sort(list, obc);
+		if (orderByComparator != null) {
+			list = ListUtil.sort(list, orderByComparator);
 		}
 
 		return (List<T>)ListUtil.toList(ListUtil.subList(list, start, end));

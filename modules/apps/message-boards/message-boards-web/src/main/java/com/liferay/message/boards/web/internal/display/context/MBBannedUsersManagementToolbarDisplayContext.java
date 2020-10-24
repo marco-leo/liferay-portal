@@ -15,7 +15,7 @@
 package com.liferay.message.boards.web.internal.display.context;
 
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
 import com.liferay.message.boards.constants.MBPortletKeys;
 import com.liferay.message.boards.model.MBBan;
 import com.liferay.message.boards.web.internal.security.permission.MBResourcePermission;
@@ -42,13 +42,13 @@ import javax.servlet.http.HttpServletRequest;
 public class MBBannedUsersManagementToolbarDisplayContext {
 
 	public MBBannedUsersManagementToolbarDisplayContext(
+		HttpServletRequest httpServletRequest,
 		LiferayPortletRequest liferayPortletRequest,
-		LiferayPortletResponse liferayPortletResponse,
-		HttpServletRequest httpServletRequest) {
+		LiferayPortletResponse liferayPortletResponse) {
 
+		_httpServletRequest = httpServletRequest;
 		_liferayPortletRequest = liferayPortletRequest;
 		_liferayPortletResponse = liferayPortletResponse;
-		_httpServletRequest = httpServletRequest;
 
 		_portalPreferences = PortletPreferencesFactoryUtil.getPortalPreferences(
 			liferayPortletRequest);
@@ -58,20 +58,16 @@ public class MBBannedUsersManagementToolbarDisplayContext {
 	}
 
 	public List<DropdownItem> getActionDropdownItems() {
-		return new DropdownItemList() {
-			{
-				add(
-					dropdownItem -> {
-						dropdownItem.putData("action", "unbanUser");
-						dropdownItem.setIcon("unlock");
-						dropdownItem.setLabel(
-							LanguageUtil.get(
-								_httpServletRequest, "unban-user"));
+		return DropdownItemListBuilder.add(
+			dropdownItem -> {
+				dropdownItem.putData("action", "unbanUser");
+				dropdownItem.setIcon("unlock");
+				dropdownItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, "unban-user"));
 
-						dropdownItem.setQuickAction(true);
-					});
+				dropdownItem.setQuickAction(true);
 			}
-		};
+		).build();
 	}
 
 	public List<String> getAvailableActions(MBBan ban) throws PortalException {

@@ -31,11 +31,6 @@ public class PortletItemLocalServiceWrapper
 		_portletItemLocalService = portletItemLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link PortletItemLocalServiceUtil} to access the portlet item local service. Add custom service methods to <code>com.liferay.portal.service.impl.PortletItemLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.portal.kernel.model.PortletItem addPortletItem(
 			long userId, long groupId, java.lang.String name,
@@ -49,6 +44,10 @@ public class PortletItemLocalServiceWrapper
 	/**
 	 * Adds the portlet item to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletItemLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param portletItem the portlet item
 	 * @return the portlet item that was added
 	 */
@@ -57,6 +56,17 @@ public class PortletItemLocalServiceWrapper
 		com.liferay.portal.kernel.model.PortletItem portletItem) {
 
 		return _portletItemLocalService.addPortletItem(portletItem);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _portletItemLocalService.createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -86,6 +96,10 @@ public class PortletItemLocalServiceWrapper
 	/**
 	 * Deletes the portlet item with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletItemLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param portletItemId the primary key of the portlet item
 	 * @return the portlet item that was removed
 	 * @throws PortalException if a portlet item with the primary key could not be found
@@ -101,6 +115,10 @@ public class PortletItemLocalServiceWrapper
 	/**
 	 * Deletes the portlet item from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletItemLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param portletItem the portlet item
 	 * @return the portlet item that was removed
 	 */
@@ -109,6 +127,11 @@ public class PortletItemLocalServiceWrapper
 		com.liferay.portal.kernel.model.PortletItem portletItem) {
 
 		return _portletItemLocalService.deletePortletItem(portletItem);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _portletItemLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -232,6 +255,9 @@ public class PortletItemLocalServiceWrapper
 		return _portletItemLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -322,6 +348,10 @@ public class PortletItemLocalServiceWrapper
 
 	/**
 	 * Updates the portlet item in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletItemLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param portletItem the portlet item
 	 * @return the portlet item that was updated

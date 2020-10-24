@@ -14,11 +14,14 @@
 
 package com.liferay.portal.dependency.manager.component.executor.factory.internal;
 
+import com.liferay.portal.kernel.concurrent.DefaultNoticeableFuture;
 import com.liferay.portal.kernel.dependency.manager.DependencyManagerSync;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.osgi.framework.ServiceRegistration;
@@ -39,6 +42,32 @@ public class DependencyManagerSyncImpl implements DependencyManagerSync {
 		_syncTimeout = syncTimeout;
 	}
 
+	@Override
+	public void registerSyncCallable(Callable<Void> syncCallable) {
+		_syncDefaultNoticeableFuture.addFutureListener(
+			future -> {
+				try {
+					syncCallable.call();
+				}
+				catch (Exception exception) {
+					_log.error("Unable to sync callable", exception);
+				}
+			});
+	}
+
+	@Override
+	public void registerSyncFuture(Future<Void> syncFuture) {
+		_syncDefaultNoticeableFuture.addFutureListener(
+			future -> {
+				try {
+					syncFuture.get(_syncTimeout, TimeUnit.SECONDS);
+				}
+				catch (Exception exception) {
+					_log.error("Unable to sync future", exception);
+				}
+			});
+	}
+
 	public void setDependencyManagerSyncServiceRegistration(
 		ServiceRegistration<?> dependencyManagerSyncServiceRegistration) {
 
@@ -55,7 +84,7 @@ public class DependencyManagerSyncImpl implements DependencyManagerSync {
 			try {
 				dependencyManagerSyncServiceRegistration.unregister();
 			}
-			catch (IllegalStateException ise) {
+			catch (IllegalStateException illegalStateException) {
 
 				// Concurrent unregister, no need to do anything
 
@@ -67,7 +96,7 @@ public class DependencyManagerSyncImpl implements DependencyManagerSync {
 		try {
 			_componentExecutorFactoryRegistration.unregister();
 		}
-		catch (IllegalStateException ise) {
+		catch (IllegalStateException illegalStateException) {
 
 			// Concurrent unregister, no need to do anything
 
@@ -88,9 +117,12 @@ public class DependencyManagerSyncImpl implements DependencyManagerSync {
 				}
 			}
 		}
-		catch (InterruptedException ie) {
-			_log.error("Dependency manager sync interrupted", ie);
+		catch (InterruptedException interruptedException) {
+			_log.error(
+				"Dependency manager sync interrupted", interruptedException);
 		}
+
+		_syncDefaultNoticeableFuture.run();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -100,6 +132,8 @@ public class DependencyManagerSyncImpl implements DependencyManagerSync {
 	private volatile ServiceRegistration<?>
 		_dependencyManagerSyncServiceRegistration;
 	private final ExecutorService _executorService;
+	private final DefaultNoticeableFuture<Void> _syncDefaultNoticeableFuture =
+		new DefaultNoticeableFuture<>();
 	private final long _syncTimeout;
 
 }

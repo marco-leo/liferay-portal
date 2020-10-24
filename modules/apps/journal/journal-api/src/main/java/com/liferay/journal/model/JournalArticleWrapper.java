@@ -495,6 +495,11 @@ public class JournalArticleWrapper
 	}
 
 	@Override
+	public String getDescriptionCurrentValue() {
+		return model.getDescriptionCurrentValue();
+	}
+
+	@Override
 	public Map<java.util.Locale, String> getDescriptionMap() {
 		return model.getDescriptionMap();
 	}
@@ -600,10 +605,12 @@ public class JournalArticleWrapper
 	public java.util.List<com.liferay.portal.kernel.repository.model.FileEntry>
 			getImagesFileEntries(
 				int start, int end,
-				com.liferay.portal.kernel.util.OrderByComparator obc)
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.portal.kernel.repository.model.FileEntry>
+						orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return model.getImagesFileEntries(start, end, obc);
+		return model.getImagesFileEntries(start, end, orderByComparator);
 	}
 
 	@Override
@@ -1128,11 +1135,6 @@ public class JournalArticleWrapper
 		return model.isTemplateDriven();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a journal article model instance should use the <code>JournalArticle</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();

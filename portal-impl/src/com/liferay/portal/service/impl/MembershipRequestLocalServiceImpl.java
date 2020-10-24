@@ -93,7 +93,8 @@ public class MembershipRequestLocalServiceImpl
 		membershipRequest.setStatusId(
 			MembershipRequestConstants.STATUS_PENDING);
 
-		membershipRequestPersistence.update(membershipRequest);
+		membershipRequest = membershipRequestPersistence.update(
+			membershipRequest);
 
 		notifyGroupAdministrators(membershipRequest, serviceContext);
 
@@ -163,10 +164,10 @@ public class MembershipRequestLocalServiceImpl
 	@Override
 	public List<MembershipRequest> search(
 		long groupId, int status, int start, int end,
-		OrderByComparator<MembershipRequest> obc) {
+		OrderByComparator<MembershipRequest> orderByComparator) {
 
 		return membershipRequestPersistence.findByG_S(
-			groupId, status, start, end, obc);
+			groupId, status, start, end, orderByComparator);
 	}
 
 	@Override
@@ -201,15 +202,15 @@ public class MembershipRequestLocalServiceImpl
 
 		membershipRequest.setStatusId(statusId);
 
-		membershipRequestPersistence.update(membershipRequest);
+		membershipRequest = membershipRequestPersistence.update(
+			membershipRequest);
 
 		if ((statusId == MembershipRequestConstants.STATUS_APPROVED) &&
 			addUserToGroup) {
 
-			long[] addUserIds = {membershipRequest.getUserId()};
-
 			userLocalService.addGroupUsers(
-				membershipRequest.getGroupId(), addUserIds);
+				membershipRequest.getGroupId(),
+				new long[] {membershipRequest.getUserId()});
 		}
 
 		if (replierUserId != 0) {
@@ -390,12 +391,9 @@ public class MembershipRequestLocalServiceImpl
 		mailTemplateContextBuilder.put(
 			"[$USER_NAME$]", HtmlUtil.escape(user.getFullName()));
 
-		MailTemplateContext mailTemplateContext =
-			mailTemplateContextBuilder.build();
-
 		_sendNotificationEmail(
 			fromAddress, fromName, toAddress, user, subject, body,
-			membershipRequest, mailTemplateContext);
+			membershipRequest, mailTemplateContextBuilder.build());
 	}
 
 	protected void notifyGroupAdministrators(
@@ -479,8 +477,8 @@ public class MembershipRequestLocalServiceImpl
 
 			mailService.sendEmail(mailMessage);
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 	}
 

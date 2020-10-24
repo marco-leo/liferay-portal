@@ -1,5 +1,25 @@
 definition {
 
+	macro bulkRestoreCP {
+		var browserType = PropsUtil.get("browser.type");
+
+		if ("${browserType}" == "chrome") {
+			MetalComponent.waitForManagementBar();
+		}
+
+		for (var assetName : list "${assetList}") {
+			LexiconTable.viewTableEntryTitle(tableEntry = "${assetName}");
+
+			Check(
+				key_assetName = "${assetName}",
+				locator1 = "RecycleBin#RECYCLE_BIN_ASSET_CHECKBOX");
+		}
+
+		Click(locator1 = "Icon#RESTORE");
+
+		Alert.viewSuccessMessage();
+	}
+
 	macro clickEllipsisItem {
 		LexiconTable.clickEllipsisItem(
 			item = "${item}",
@@ -166,22 +186,6 @@ definition {
 	macro viewCP {
 		var key_assetName = "${assetName}";
 
-		if (IsElementPresent(locator1 = "RecycleBin#EMPTY_RECYCLE_BIN")) {
-			MouseOver(locator1 = "Icon#TOOLTIP");
-
-			var maxAgeField = "1 month";
-
-			if (isSet(customMaxAge)) {
-				var maxAgeField = "${customMaxAge}";
-			}
-
-			RecycleBin.viewRecycleBinMaxAge(maxAgeField = "${maxAgeField}");
-
-			AssertTextEquals.assertPartialText(
-				locator1 = "Message#TOOLTIP",
-				value1 = "The Recycle Bin shows all assets removed by users. Assets can be restored or permanently deleted.");
-		}
-
 		LexiconTable.viewTableEntryTitleLink(tableEntry = "${assetName}");
 
 		LexiconTable.viewTableEntryText(
@@ -236,12 +240,6 @@ definition {
 		MenuItem.viewPresent(menuItem = "Restore");
 
 		MenuItem.viewPresent(menuItem = "Delete");
-	}
-
-	macro viewRecycleBinMaxAge {
-		AssertTextEquals.assertPartialText(
-			locator1 = "Message#TOOLTIP",
-			value1 = "Entries that have been in the Recycle Bin for more than ${maxAgeField} are automatically deleted.");
 	}
 
 }

@@ -32,7 +32,7 @@ import com.liferay.depot.service.DepotEntryGroupRelLocalServiceUtil;
 public abstract class DepotEntryGroupRelBaseImpl
 	extends DepotEntryGroupRelModelImpl implements DepotEntryGroupRel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a depot entry group rel model instance should use the <code>DepotEntryGroupRel</code> interface instead.

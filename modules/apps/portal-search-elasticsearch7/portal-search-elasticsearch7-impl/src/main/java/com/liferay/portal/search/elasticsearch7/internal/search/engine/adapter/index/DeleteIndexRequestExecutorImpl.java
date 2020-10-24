@@ -43,7 +43,7 @@ public class DeleteIndexRequestExecutorImpl
 				deleteIndexRequest);
 
 		AcknowledgedResponse acknowledgedResponse = getAcknowledgedResponse(
-			elasticsearchDeleteIndexRequest);
+			elasticsearchDeleteIndexRequest, deleteIndexRequest);
 
 		return new DeleteIndexResponse(acknowledgedResponse.isAcknowledged());
 	}
@@ -66,10 +66,13 @@ public class DeleteIndexRequestExecutorImpl
 
 	protected AcknowledgedResponse getAcknowledgedResponse(
 		org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest
-			elasticsearchDeleteIndexRequest) {
+			elasticsearchDeleteIndexRequest,
+		DeleteIndexRequest deleteIndexRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				deleteIndexRequest.getConnectionId(),
+				deleteIndexRequest.isPreferLocalCluster());
 
 		IndicesClient indicesClient = restHighLevelClient.indices();
 
@@ -77,8 +80,8 @@ public class DeleteIndexRequestExecutorImpl
 			return indicesClient.delete(
 				elasticsearchDeleteIndexRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

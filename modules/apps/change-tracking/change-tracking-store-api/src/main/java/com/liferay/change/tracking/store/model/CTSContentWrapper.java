@@ -232,11 +232,6 @@ public class CTSContentWrapper
 		return model.getVersion();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a cts content model instance should use the <code>CTSContent</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();

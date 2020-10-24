@@ -113,13 +113,12 @@ public class JournalArticleDDMStructureIndexer implements DDMStructureIndexer {
 						Property statusProperty = PropertyFactoryUtil.forName(
 							"status");
 
-						Integer[] statuses = {
-							WorkflowConstants.STATUS_APPROVED,
-							WorkflowConstants.STATUS_IN_TRASH
-						};
-
 						journalArticleDynamicQuery.add(
-							statusProperty.in(statuses));
+							statusProperty.in(
+								new Integer[] {
+									WorkflowConstants.STATUS_APPROVED,
+									WorkflowConstants.STATUS_IN_TRASH
+								}));
 					}
 
 					Property resourcePrimKeyProperty =
@@ -135,15 +134,15 @@ public class JournalArticleDDMStructureIndexer implements DDMStructureIndexer {
 							indexer.getClassName(),
 							article.getResourcePrimKey());
 					}
-					catch (Exception e) {
-						throw new PortalException(e);
+					catch (Exception exception) {
+						throw new PortalException(exception);
 					}
 				});
 
 			actionableDynamicQuery.performActions();
 		}
-		catch (Exception e) {
-			throw new SearchException(e);
+		catch (Exception exception) {
+			throw new SearchException(exception);
 		}
 	}
 
@@ -158,8 +157,8 @@ public class JournalArticleDDMStructureIndexer implements DDMStructureIndexer {
 
 			return journalServiceConfiguration.indexAllArticleVersionsEnabled();
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 
 		return false;

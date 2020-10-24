@@ -15,6 +15,7 @@
 package com.liferay.segments.service;
 
 import com.liferay.portal.kernel.service.ServiceWrapper;
+import com.liferay.segments.model.SegmentsExperimentRel;
 
 /**
  * Provides a wrapper for {@link SegmentsExperimentRelService}.
@@ -33,16 +34,10 @@ public class SegmentsExperimentRelServiceWrapper
 		_segmentsExperimentRelService = segmentsExperimentRelService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SegmentsExperimentRelServiceUtil} to access the segments experiment rel remote service. Add custom service methods to <code>com.liferay.segments.service.impl.SegmentsExperimentRelServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
-	public com.liferay.segments.model.SegmentsExperimentRel
-			addSegmentsExperimentRel(
-				long segmentsExperimentId, long segmentsExperienceId,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public SegmentsExperimentRel addSegmentsExperimentRel(
+			long segmentsExperimentId, long segmentsExperienceId,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _segmentsExperimentRelService.addSegmentsExperimentRel(
@@ -50,8 +45,8 @@ public class SegmentsExperimentRelServiceWrapper
 	}
 
 	@Override
-	public com.liferay.segments.model.SegmentsExperimentRel
-			deleteSegmentsExperimentRel(long segmentsExperimentRelId)
+	public SegmentsExperimentRel deleteSegmentsExperimentRel(
+			long segmentsExperimentRelId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _segmentsExperimentRelService.deleteSegmentsExperimentRel(
@@ -69,9 +64,8 @@ public class SegmentsExperimentRelServiceWrapper
 	}
 
 	@Override
-	public com.liferay.segments.model.SegmentsExperimentRel
-			getSegmentsExperimentRel(
-				long segmentsExperimentId, long segmentsExperienceId)
+	public SegmentsExperimentRel getSegmentsExperimentRel(
+			long segmentsExperimentId, long segmentsExperienceId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _segmentsExperimentRelService.getSegmentsExperimentRel(
@@ -79,8 +73,8 @@ public class SegmentsExperimentRelServiceWrapper
 	}
 
 	@Override
-	public java.util.List<com.liferay.segments.model.SegmentsExperimentRel>
-			getSegmentsExperimentRels(long segmentsExperimentId)
+	public java.util.List<SegmentsExperimentRel> getSegmentsExperimentRels(
+			long segmentsExperimentId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _segmentsExperimentRelService.getSegmentsExperimentRels(
@@ -88,9 +82,8 @@ public class SegmentsExperimentRelServiceWrapper
 	}
 
 	@Override
-	public com.liferay.segments.model.SegmentsExperimentRel
-			updateSegmentsExperimentRel(
-				long segmentsExperimentRelId, double split)
+	public SegmentsExperimentRel updateSegmentsExperimentRel(
+			long segmentsExperimentRelId, double split)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _segmentsExperimentRelService.updateSegmentsExperimentRel(
@@ -98,10 +91,9 @@ public class SegmentsExperimentRelServiceWrapper
 	}
 
 	@Override
-	public com.liferay.segments.model.SegmentsExperimentRel
-			updateSegmentsExperimentRel(
-				long segmentsExperimentRelId, String name,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public SegmentsExperimentRel updateSegmentsExperimentRel(
+			long segmentsExperimentRelId, String name,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _segmentsExperimentRelService.updateSegmentsExperimentRel(

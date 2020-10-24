@@ -185,11 +185,11 @@ public class WabBundleProcessor {
 
 				Map<String, Object> attributes = new HashMap<>();
 
-				Enumeration<String> attributeNames =
+				Enumeration<String> enumeration =
 					servletContext.getAttributeNames();
 
-				while (attributeNames.hasMoreElements()) {
-					String attributeName = attributeNames.nextElement();
+				while (enumeration.hasMoreElements()) {
+					String attributeName = enumeration.nextElement();
 
 					attributes.put(
 						attributeName,
@@ -240,15 +240,15 @@ public class WabBundleProcessor {
 				webXMLDefinition.getServletDefinitions(),
 				modifiableServletContext);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			_log.error(
 				"Catastrophic initialization failure! Shutting down " +
-					_contextName + " WAB due to: " + e.getMessage(),
-				e);
+					_contextName + " WAB due to: " + exception.getMessage(),
+				exception);
 
 			destroy();
 
-			throw e;
+			throw exception;
 		}
 		finally {
 			currentThread.setContextClassLoader(contextClassLoader);
@@ -283,9 +283,9 @@ public class WabBundleProcessor {
 		try {
 			classAnnotations = annotatedClass.getAnnotations();
 		}
-		catch (Throwable t) {
+		catch (Throwable throwable) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(t.getMessage());
+				_log.debug(throwable.getMessage());
 			}
 		}
 
@@ -306,9 +306,9 @@ public class WabBundleProcessor {
 		try {
 			classMethods = annotatedClass.getDeclaredMethods();
 		}
-		catch (Throwable t) {
+		catch (Throwable throwable) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(t.getMessage());
+				_log.debug(throwable.getMessage());
 			}
 		}
 
@@ -318,9 +318,9 @@ public class WabBundleProcessor {
 			try {
 				methodAnnotations = method.getDeclaredAnnotations();
 			}
-			catch (Throwable t) {
+			catch (Throwable throwable) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(t.getMessage());
+					_log.debug(throwable.getMessage());
 				}
 			}
 
@@ -342,9 +342,9 @@ public class WabBundleProcessor {
 		try {
 			declaredFields = annotatedClass.getDeclaredFields();
 		}
-		catch (Throwable t) {
+		catch (Throwable throwable) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(t.getMessage());
+				_log.debug(throwable.getMessage());
 			}
 		}
 
@@ -354,9 +354,9 @@ public class WabBundleProcessor {
 			try {
 				fieldAnnotations = field.getDeclaredAnnotations();
 			}
-			catch (Throwable t) {
+			catch (Throwable throwable) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(t.getMessage());
+					_log.debug(throwable.getMessage());
 				}
 			}
 
@@ -379,8 +379,8 @@ public class WabBundleProcessor {
 			try {
 				serviceRegistration.unregister();
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 		}
 
@@ -394,8 +394,8 @@ public class WabBundleProcessor {
 			try {
 				serviceRegistration.unregister();
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 		}
 
@@ -409,8 +409,8 @@ public class WabBundleProcessor {
 			try {
 				serviceRegistration.unregister();
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 		}
 
@@ -595,7 +595,7 @@ public class WabBundleProcessor {
 					portletContextLoaderListener.getServiceRegistrations();
 
 				if (exception != null) {
-					for (ServiceRegistration contextServiceRegistration :
+					for (ServiceRegistration<?> contextServiceRegistration :
 							contextServiceRegistrations) {
 
 						contextServiceRegistration.unregister();
@@ -644,17 +644,17 @@ public class WabBundleProcessor {
 			Set<Class<?>> annotatedClasses)
 		throws IOException {
 
-		Enumeration<URL> initializerResources = bundle.getResources(
+		Enumeration<URL> enumeration = bundle.getResources(
 			"META-INF/services/javax.servlet.ServletContainerInitializer");
 
-		if (initializerResources == null) {
+		if (enumeration == null) {
 			return;
 		}
 
 		BundleWiring bundleWiring = bundle.adapt(BundleWiring.class);
 
-		while (initializerResources.hasMoreElements()) {
-			URL url = initializerResources.nextElement();
+		while (enumeration.hasMoreElements()) {
+			URL url = enumeration.nextElement();
 
 			try (InputStream inputStream = url.openStream()) {
 				Collection<String> fqcns = new ArrayList<>();
@@ -681,8 +681,8 @@ public class WabBundleProcessor {
 					}
 				}
 			}
-			catch (IOException ioe) {
-				_log.error(ioe, ioe);
+			catch (IOException ioException) {
+				_log.error(ioException, ioException);
 			}
 		}
 	}
@@ -776,8 +776,8 @@ public class WabBundleProcessor {
 			initializerClass = clazz.asSubclass(
 				ServletContainerInitializer.class);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
 			return;
 		}
@@ -827,8 +827,8 @@ public class WabBundleProcessor {
 			servletContainerInitializer.onStartup(
 				localAnnotatedClasses, servletContext);
 		}
-		catch (Throwable t) {
-			_log.error(t, t);
+		catch (Throwable throwable) {
+			_log.error(throwable, throwable);
 		}
 	}
 
@@ -855,7 +855,7 @@ public class WabBundleProcessor {
 
 				webXMLDefinition.addListenerDefinition(listenerDefinition);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				_log.error(
 					"Bundle " + _bundle + " is unable to load listener " +
 						listenerClassName);
@@ -877,7 +877,7 @@ public class WabBundleProcessor {
 			}
 			else {
 				StringBundler sb = new StringBundler(
-					annotatedClasses.size() * 2 + 1);
+					(annotatedClasses.size() * 2) + 1);
 
 				sb.append("annotated.classes=");
 
@@ -891,7 +891,7 @@ public class WabBundleProcessor {
 				printWriter.println(sb.toString());
 			}
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 		}
 	}
 

@@ -16,9 +16,8 @@ package com.liferay.talend.runtime.reader;
 
 import com.liferay.talend.avro.JsonObjectIndexedRecordConverter;
 import com.liferay.talend.common.util.URIUtil;
-import com.liferay.talend.connection.LiferayConnectionResourceBaseProperties;
+import com.liferay.talend.properties.input.LiferayInputProperties;
 import com.liferay.talend.runtime.LiferaySource;
-import com.liferay.talend.tliferayinput.TLiferayInputProperties;
 
 import java.io.IOException;
 
@@ -27,6 +26,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -54,19 +54,19 @@ public class LiferayReader implements Reader<IndexedRecord> {
 
 	public LiferayReader(
 		LiferaySource liferaySource,
-		TLiferayInputProperties tLiferayInputProperties) {
+		LiferayInputProperties liferayInputProperties) {
 
-		_currentSource = liferaySource;
+		_liferaySource = liferaySource;
 
-		_liferayConnectionResourceBaseProperties = tLiferayInputProperties;
+		_liferayInputProperties = liferayInputProperties;
 
 		_jsonObjectIndexedRecordConverter =
 			new JsonObjectIndexedRecordConverter(
-				tLiferayInputProperties.getSchema());
+				liferayInputProperties.getOutboundSchema());
 	}
 
 	@Override
-	public boolean advance() {
+	public boolean advance() throws IOException {
 		if (!_started) {
 			throw new IllegalStateException("Reader was not started");
 		}
@@ -104,7 +104,7 @@ public class LiferayReader implements Reader<IndexedRecord> {
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() {
 	}
 
 	@Override
@@ -131,8 +131,8 @@ public class LiferayReader implements Reader<IndexedRecord> {
 			return _jsonObjectIndexedRecordConverter.toIndexedRecord(
 				currentJsonValue.asJsonObject());
 		}
-		catch (Exception e) {
-			throw new ComponentException(e);
+		catch (Exception exception) {
+			throw new ComponentException(exception);
 		}
 	}
 
@@ -147,7 +147,7 @@ public class LiferayReader implements Reader<IndexedRecord> {
 
 	@Override
 	public Source getCurrentSource() {
-		return _currentSource;
+		return _liferaySource;
 	}
 
 	@Override
@@ -192,15 +192,14 @@ public class LiferayReader implements Reader<IndexedRecord> {
 		parameters.put("page", String.valueOf(_currentPage));
 		parameters.put(
 			"pageSize",
-			String.valueOf(
-				_liferayConnectionResourceBaseProperties.getItemsPerPage()));
+			String.valueOf(_liferayInputProperties.getItemsPerPage()));
 
 		return parameters;
 	}
 
-	private void _readEndpointJsonObject() {
+	private void _readEndpointJsonObject() throws IOException {
 		URI resourceURI = URIUtil.updateWithQueryParameters(
-			_liferayConnectionResourceBaseProperties.getEndpointURI(),
+			_liferayInputProperties.getEndpointUrl(),
 			_getPageQueryParameters());
 
 		_currentItemIndex = 0;
@@ -215,8 +214,16 @@ public class LiferayReader implements Reader<IndexedRecord> {
 					resourceURI.toString());
 		}
 
-		JsonObject jsonObject = liferaySource.doGetRequest(
+		Optional<JsonObject> jsonObjectOptional = liferaySource.doGetRequest(
 			resourceURI.toString());
+
+		if (!jsonObjectOptional.isPresent()) {
+			throw new IOException(
+				"Unable to get JSON object for resource at " +
+					resourceURI.toASCIIString());
+		}
+
+		JsonObject jsonObject = jsonObjectOptional.get();
 
 		if (jsonObject.containsKey("page")) {
 			if (jsonObject.containsKey("items")) {
@@ -252,7 +259,6 @@ public class LiferayReader implements Reader<IndexedRecord> {
 
 	private transient int _currentItemIndex;
 	private int _currentPage;
-	private final Source _currentSource;
 	private Instant _currentTimestamp = Instant.now();
 	private int _dataCount;
 	private boolean _hasMore;
@@ -260,8 +266,8 @@ public class LiferayReader implements Reader<IndexedRecord> {
 	private final JsonObjectIndexedRecordConverter
 		_jsonObjectIndexedRecordConverter;
 	private int _lastPage;
-	private final LiferayConnectionResourceBaseProperties
-		_liferayConnectionResourceBaseProperties;
+	private final LiferayInputProperties _liferayInputProperties;
+	private final Source _liferaySource;
 	private boolean _started;
 
 }

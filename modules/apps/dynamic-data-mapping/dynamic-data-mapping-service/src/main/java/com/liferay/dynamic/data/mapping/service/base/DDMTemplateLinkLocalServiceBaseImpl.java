@@ -18,6 +18,7 @@ import com.liferay.dynamic.data.mapping.model.DDMTemplateLink;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLinkLocalService;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMTemplateLinkPersistence;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -38,6 +39,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.service.change.tracking.CTService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -67,7 +69,7 @@ public abstract class DDMTemplateLinkLocalServiceBaseImpl
 	implements AopService, DDMTemplateLinkLocalService,
 			   IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>DDMTemplateLinkLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.dynamic.data.mapping.service.DDMTemplateLinkLocalServiceUtil</code>.
@@ -75,6 +77,10 @@ public abstract class DDMTemplateLinkLocalServiceBaseImpl
 
 	/**
 	 * Adds the ddm template link to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMTemplateLinkLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddmTemplateLink the ddm template link
 	 * @return the ddm template link that was added
@@ -102,6 +108,10 @@ public abstract class DDMTemplateLinkLocalServiceBaseImpl
 	/**
 	 * Deletes the ddm template link with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMTemplateLinkLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param templateLinkId the primary key of the ddm template link
 	 * @return the ddm template link that was removed
 	 * @throws PortalException if a ddm template link with the primary key could not be found
@@ -117,6 +127,10 @@ public abstract class DDMTemplateLinkLocalServiceBaseImpl
 	/**
 	 * Deletes the ddm template link from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMTemplateLinkLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param ddmTemplateLink the ddm template link
 	 * @return the ddm template link that was removed
 	 */
@@ -126,6 +140,11 @@ public abstract class DDMTemplateLinkLocalServiceBaseImpl
 		DDMTemplateLink ddmTemplateLink) {
 
 		return ddmTemplateLinkPersistence.remove(ddmTemplateLink);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return ddmTemplateLinkPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -280,6 +299,17 @@ public abstract class DDMTemplateLinkLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return ddmTemplateLinkPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -287,6 +317,14 @@ public abstract class DDMTemplateLinkLocalServiceBaseImpl
 			(DDMTemplateLink)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<DDMTemplateLink> getBasePersistence() {
+		return ddmTemplateLinkPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -322,6 +360,10 @@ public abstract class DDMTemplateLinkLocalServiceBaseImpl
 
 	/**
 	 * Updates the ddm template link in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMTemplateLinkLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddmTemplateLink the ddm template link
 	 * @return the ddm template link that was updated
@@ -399,8 +441,8 @@ public abstract class DDMTemplateLinkLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

@@ -50,7 +50,7 @@ public class JS {
 		try {
 			s = URLDecoder.decode(s, StringPool.UTF8);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		return s;
@@ -63,7 +63,7 @@ public class JS {
 		try {
 			s = URLEncoder.encode(s, StringPool.UTF8);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		// Adjust for JavaScript specific annoyances
@@ -108,7 +108,7 @@ public class JS {
 	}
 
 	public static String toScript(String[] array) {
-		StringBundler sb = new StringBundler(array.length * 4 + 2);
+		StringBundler sb = new StringBundler((array.length * 4) + 2);
 
 		sb.append(StringPool.OPEN_BRACKET);
 

@@ -31,7 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface AccountRole extends AccountRoleModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.account.model.impl.AccountRoleImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.

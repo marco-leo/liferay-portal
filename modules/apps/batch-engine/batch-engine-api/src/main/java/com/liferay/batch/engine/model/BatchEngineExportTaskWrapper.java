@@ -66,7 +66,7 @@ public class BatchEngineExportTaskWrapper
 		attributes.put("executeStatus", getExecuteStatus());
 		attributes.put("parameters", getParameters());
 		attributes.put("startTime", getStartTime());
-		attributes.put("version", getVersion());
+		attributes.put("taskItemDelegateName", getTaskItemDelegateName());
 
 		return attributes;
 	}
@@ -177,10 +177,11 @@ public class BatchEngineExportTaskWrapper
 			setStartTime(startTime);
 		}
 
-		String version = (String)attributes.get("version");
+		String taskItemDelegateName = (String)attributes.get(
+			"taskItemDelegateName");
 
-		if (version != null) {
-			setVersion(version);
+		if (taskItemDelegateName != null) {
+			setTaskItemDelegateName(taskItemDelegateName);
 		}
 	}
 
@@ -350,6 +351,16 @@ public class BatchEngineExportTaskWrapper
 	}
 
 	/**
+	 * Returns the task item delegate name of this batch engine export task.
+	 *
+	 * @return the task item delegate name of this batch engine export task
+	 */
+	@Override
+	public String getTaskItemDelegateName() {
+		return model.getTaskItemDelegateName();
+	}
+
+	/**
 	 * Returns the user ID of this batch engine export task.
 	 *
 	 * @return the user ID of this batch engine export task
@@ -379,21 +390,6 @@ public class BatchEngineExportTaskWrapper
 		return model.getUuid();
 	}
 
-	/**
-	 * Returns the version of this batch engine export task.
-	 *
-	 * @return the version of this batch engine export task
-	 */
-	@Override
-	public String getVersion() {
-		return model.getVersion();
-	}
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a batch engine export task model instance should use the <code>BatchEngineExportTask</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -565,6 +561,16 @@ public class BatchEngineExportTaskWrapper
 	}
 
 	/**
+	 * Sets the task item delegate name of this batch engine export task.
+	 *
+	 * @param taskItemDelegateName the task item delegate name of this batch engine export task
+	 */
+	@Override
+	public void setTaskItemDelegateName(String taskItemDelegateName) {
+		model.setTaskItemDelegateName(taskItemDelegateName);
+	}
+
+	/**
 	 * Sets the user ID of this batch engine export task.
 	 *
 	 * @param userId the user ID of this batch engine export task
@@ -592,16 +598,6 @@ public class BatchEngineExportTaskWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
-	}
-
-	/**
-	 * Sets the version of this batch engine export task.
-	 *
-	 * @param version the version of this batch engine export task
-	 */
-	@Override
-	public void setVersion(String version) {
-		model.setVersion(version);
 	}
 
 	@Override

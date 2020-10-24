@@ -145,29 +145,6 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 			testIntegrationTomcatExtension, startTestableTomcatTask);
 	}
 
-	private static int _updateStartedAppServerStopCounters(
-		File binDir, boolean increment) {
-
-		int originalCounter = 0;
-
-		if (_startedAppServerStopCounters.containsKey(binDir)) {
-			originalCounter = _startedAppServerStopCounters.get(binDir);
-		}
-
-		int counter = originalCounter;
-
-		if (increment) {
-			counter++;
-		}
-		else {
-			counter--;
-		}
-
-		_startedAppServerStopCounters.put(binDir, counter);
-
-		return originalCounter;
-	}
-
 	private Configuration _addConfigurationTestModules(final Project project) {
 		Configuration configuration = GradleUtil.addConfiguration(
 			project, TEST_MODULES_CONFIGURATION_NAME);
@@ -197,9 +174,6 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 		GradleUtil.addDependency(
 			project, TEST_MODULES_CONFIGURATION_NAME, "com.liferay.portal",
 			"com.liferay.portal.test", "3.0.0");
-		GradleUtil.addDependency(
-			project, TEST_MODULES_CONFIGURATION_NAME, "com.liferay.portal",
-			"com.liferay.portal.test.integration", "3.0.0");
 		GradleUtil.addDependency(
 			project, TEST_MODULES_CONFIGURATION_NAME, "org.apache.aries.jmx",
 			"org.apache.aries.jmx.core", "1.1.7");
@@ -396,33 +370,34 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 					_startedAppServersReentrantLock.unlock();
 				}
 
-				if (started) {
-					Logger logger = startTestableTomcatTask.getLogger();
+				if (!started) {
+					return;
+				}
 
+				Logger logger = startTestableTomcatTask.getLogger();
+
+				if (logger.isDebugEnabled()) {
+					logger.debug(
+						"Application server {} is already started", binDir);
+				}
+
+				Project project = startTestableTomcatTask.getProject();
+
+				Gradle gradle = project.getGradle();
+
+				StartParameter startParameter = gradle.getStartParameter();
+
+				if (startParameter.isParallelProjectExecutionEnabled()) {
 					if (logger.isDebugEnabled()) {
 						logger.debug(
-							"Application server {} is already started", binDir);
+							"Waiting for application server {} to be reachable",
+							binDir);
 					}
 
-					Project project = startTestableTomcatTask.getProject();
-
-					Gradle gradle = project.getGradle();
-
-					StartParameter startParameter = gradle.getStartParameter();
-
-					if (startParameter.isParallelProjectExecutionEnabled()) {
-						if (logger.isDebugEnabled()) {
-							logger.debug(
-								"Waiting for application server {} to be " +
-									"reachable",
-								binDir);
-						}
-
-						startTestableTomcatTask.waitForReachable();
-					}
-
-					throw new StopExecutionException();
+					startTestableTomcatTask.waitForReachable();
 				}
+
+				throw new StopExecutionException();
 			}
 
 		};
@@ -815,6 +790,29 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 		}
 
 		return fileName;
+	}
+
+	private int _updateStartedAppServerStopCounters(
+		File binDir, boolean increment) {
+
+		int originalCounter = 0;
+
+		if (_startedAppServerStopCounters.containsKey(binDir)) {
+			originalCounter = _startedAppServerStopCounters.get(binDir);
+		}
+
+		int counter = originalCounter;
+
+		if (increment) {
+			counter++;
+		}
+		else {
+			counter--;
+		}
+
+		_startedAppServerStopCounters.put(binDir, counter);
+
+		return originalCounter;
 	}
 
 	private static final String _SKIP_MANAGED_APP_SERVER_FILE_NAME =

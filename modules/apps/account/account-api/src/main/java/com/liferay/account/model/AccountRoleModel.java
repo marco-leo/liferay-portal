@@ -35,7 +35,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface AccountRoleModel
 	extends BaseModel<AccountRole>, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a account role model instance should use the {@link AccountRole} interface instead.

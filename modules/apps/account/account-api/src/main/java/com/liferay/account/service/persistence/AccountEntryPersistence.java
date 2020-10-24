@@ -34,7 +34,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface AccountEntryPersistence extends BasePersistence<AccountEntry> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link AccountEntryUtil} to access the account entry persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.
@@ -470,6 +470,59 @@ public interface AccountEntryPersistence extends BasePersistence<AccountEntry> {
 	 * @return the number of matching account entries that the user has permission to view
 	 */
 	public int filterCountByC_S(long companyId, int status);
+
+	/**
+	 * Returns the account entry where companyId = &#63; and externalReferenceCode = &#63; or throws a <code>NoSuchEntryException</code> if it could not be found.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching account entry
+	 * @throws NoSuchEntryException if a matching account entry could not be found
+	 */
+	public AccountEntry findByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws NoSuchEntryException;
+
+	/**
+	 * Returns the account entry where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching account entry, or <code>null</code> if a matching account entry could not be found
+	 */
+	public AccountEntry fetchByC_ERC(
+		long companyId, String externalReferenceCode);
+
+	/**
+	 * Returns the account entry where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching account entry, or <code>null</code> if a matching account entry could not be found
+	 */
+	public AccountEntry fetchByC_ERC(
+		long companyId, String externalReferenceCode, boolean useFinderCache);
+
+	/**
+	 * Removes the account entry where companyId = &#63; and externalReferenceCode = &#63; from the database.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the account entry that was removed
+	 */
+	public AccountEntry removeByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws NoSuchEntryException;
+
+	/**
+	 * Returns the number of account entries where companyId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the number of matching account entries
+	 */
+	public int countByC_ERC(long companyId, String externalReferenceCode);
 
 	/**
 	 * Caches the account entry in the entity cache if it is enabled.

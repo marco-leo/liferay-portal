@@ -16,7 +16,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
-			panel = "Site Administration",
 			portlet = "Pages");
 
 		SitePages.addPublicPage(
@@ -54,6 +53,8 @@ definition {
 	@ignore = "true"
 	@priority = "3"
 	test SearchFriendsDirectory {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
 		var pageName = "Friends Directory Page";
 		var userEmailAddress = "userea@liferay.com";
 		var userFirstName = "userfn";
@@ -61,7 +62,7 @@ definition {
 		var userMiddleName = "usermn";
 		var userScreenName = "usersn";
 
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -73,14 +74,10 @@ definition {
 			userMiddleName = "usermn",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.editPasswordCP(
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
 		ProductMenuHelper.openProductMenu();
 
@@ -88,7 +85,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
-			panel = "Site Administration",
 			portlet = "Pages");
 
 		SitePages.addPublicPage(

@@ -30,11 +30,6 @@ public class SourceServiceWrapper
 		_sourceService = sourceService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SourceServiceUtil} to access the source remote service. Add custom service methods to <code>com.liferay.portal.reports.engine.console.service.impl.SourceServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.portal.reports.engine.console.model.Source addSource(
 			long groupId, java.util.Map<java.util.Locale, String> nameMap,
@@ -80,7 +75,8 @@ public class SourceServiceWrapper
 				long groupId, String name, String driverUrl, boolean andSearch,
 				int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					orderByComparator)
+					<com.liferay.portal.reports.engine.console.model.Source>
+						orderByComparator)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _sourceService.getSources(

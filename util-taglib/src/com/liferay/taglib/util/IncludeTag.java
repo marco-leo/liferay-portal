@@ -89,8 +89,8 @@ public class IncludeTag extends AttributesTagSupport {
 
 			return EVAL_PAGE;
 		}
-		catch (Exception e) {
-			throw new JspException(e);
+		catch (Exception exception) {
+			throw new JspException(exception);
 		}
 		finally {
 			doClearTag();
@@ -120,8 +120,8 @@ public class IncludeTag extends AttributesTagSupport {
 
 			return EVAL_BODY_INCLUDE;
 		}
-		catch (Exception e) {
-			throw new JspException(e);
+		catch (Exception exception) {
+			throw new JspException(exception);
 		}
 	}
 
@@ -216,7 +216,7 @@ public class IncludeTag extends AttributesTagSupport {
 		try {
 			include(page, dynamicIncludeAscendingPriority);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			HttpServletRequest httpServletRequest = getRequest();
 
 			String currentURL = (String)httpServletRequest.getAttribute(
@@ -224,12 +224,12 @@ public class IncludeTag extends AttributesTagSupport {
 
 			String message = StringBundler.concat(
 				"Current URL ", currentURL, " generates exception: ",
-				e.getMessage());
+				exception.getMessage());
 
-			LogUtil.log(_log, e, message);
+			LogUtil.log(_log, exception, message);
 
-			if (e instanceof JspException) {
-				throw (JspException)e;
+			if (exception instanceof JspException) {
+				throw (JspException)exception;
 			}
 		}
 	}
@@ -286,11 +286,12 @@ public class IncludeTag extends AttributesTagSupport {
 			group = group.getLiveGroup();
 		}
 
-		UnicodeProperties typeSettingsProperties =
+		UnicodeProperties typeSettingsUnicodeProperties =
 			group.getTypeSettingsProperties();
 
-		String customJspServletContextName = typeSettingsProperties.getProperty(
-			"customJspServletContextName");
+		String customJspServletContextName =
+			typeSettingsUnicodeProperties.getProperty(
+				"customJspServletContextName");
 
 		if (Validator.isNull(customJspServletContextName)) {
 			return null;
@@ -554,10 +555,10 @@ public class IncludeTag extends AttributesTagSupport {
 		extends HttpServletRequestWrapper {
 
 		@Override
-		public void setAttribute(String name, Object obj) {
+		public void setAttribute(String name, Object object) {
 			_setAttributeNames.add(name);
 
-			super.setAttribute(name, obj);
+			super.setAttribute(name, object);
 		}
 
 		private TrackedServletRequest(

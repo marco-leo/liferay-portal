@@ -58,13 +58,13 @@ export function initialContributorsToContributors(
 ) {
 	const DEFAULT_CONTRIBUTOR = {conjunctionId: CONJUNCTIONS.AND};
 	const {conjunctionId: initialConjunction} =
-		initialContributors.find(c => c.conjunctionId) || DEFAULT_CONTRIBUTOR;
+		initialContributors.find((c) => c.conjunctionId) || DEFAULT_CONTRIBUTOR;
 
-	return initialContributors.map(initialContributor => {
+	return initialContributors.map((initialContributor) => {
 		const propertyGroup =
 			propertyGroups &&
 			propertyGroups.find(
-				propertyGroup =>
+				(propertyGroup) =>
 					initialContributor.propertyKey === propertyGroup.propertyKey
 			);
 
@@ -80,7 +80,7 @@ export function initialContributorsToContributors(
 			modelLabel: propertyGroup && propertyGroup.name,
 			properties: propertyGroup && propertyGroup.properties,
 			propertyKey: initialContributor.propertyKey,
-			query: initialContributor.initialQuery
+			query: initialContributor.initialQuery,
 		};
 	});
 }
@@ -96,7 +96,7 @@ export function initialContributorsToContributors(
  * @return {Contributor[]} contributors
  */
 export function applyCriteriaChangeToContributors(contributors, change) {
-	return contributors.map(contributor => {
+	return contributors.map((contributor) => {
 		const {conjunctionId, properties, propertyKey} = contributor;
 
 		return change.propertyKey === propertyKey
@@ -107,7 +107,7 @@ export function applyCriteriaChangeToContributors(contributors, change) {
 						[change.criteriaChange],
 						conjunctionId,
 						properties
-					)
+					),
 			  }
 			: contributor;
 	});
@@ -120,21 +120,22 @@ export function applyCriteriaChangeToContributors(contributors, change) {
  * @param {Contributor[]} contributors
  * @return {Contributor[]} contributors
  */
-export function applyConjunctionChangeToContributor(contributors) {
-	const prevConjunction = contributors[0] && contributors[0].conjunctionId;
-
+export function applyConjunctionChangeToContributor(
+	contributors,
+	conjunctionName
+) {
 	const conjunctionIndex = SUPPORTED_CONJUNCTIONS.findIndex(
-		item => item.name === prevConjunction
+		(item) => item.name === conjunctionName
 	);
 
-	const conjunctionSelected =
-		conjunctionIndex === SUPPORTED_CONJUNCTIONS.length - 1
-			? SUPPORTED_CONJUNCTIONS[0].name
-			: SUPPORTED_CONJUNCTIONS[conjunctionIndex + 1].name;
+	if (conjunctionIndex === -1) {
+		return contributors;
+	}
 
-	const nextContributors = contributors.map(contributor => ({
+	const nextContributors = contributors.map((contributor) => ({
 		...contributor,
-		conjunctionId: conjunctionSelected
+		conjunctionId: conjunctionName,
 	}));
+
 	return nextContributors;
 }

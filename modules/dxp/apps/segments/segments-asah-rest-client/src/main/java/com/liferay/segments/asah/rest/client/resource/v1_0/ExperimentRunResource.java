@@ -16,6 +16,7 @@ package com.liferay.segments.asah.rest.client.resource.v1_0;
 
 import com.liferay.segments.asah.rest.client.dto.v1_0.ExperimentRun;
 import com.liferay.segments.asah.rest.client.http.HttpInvoker;
+import com.liferay.segments.asah.rest.client.problem.Problem;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -89,8 +90,8 @@ public interface ExperimentRunResource {
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
-		private String _login = "test@liferay.com";
-		private String _password = "test";
+		private String _login = "";
+		private String _password = "";
 		private Map<String, String> _parameters = new LinkedHashMap<>();
 		private int _port = 8080;
 		private String _scheme = "http";
@@ -124,7 +125,7 @@ public interface ExperimentRunResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 

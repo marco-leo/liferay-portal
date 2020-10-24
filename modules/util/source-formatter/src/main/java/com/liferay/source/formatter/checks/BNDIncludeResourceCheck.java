@@ -60,8 +60,7 @@ public class BNDIncludeResourceCheck extends BaseFileCheck {
 			addMessage(
 				fileName,
 				"Do not use 'test-classes/integration' in bnd.bnd in test " +
-					"modules",
-				"bnd_include_resources.markdown");
+					"modules");
 		}
 	}
 
@@ -80,19 +79,19 @@ public class BNDIncludeResourceCheck extends BaseFileCheck {
 			}
 		}
 
-		Matcher matcher = _includeResourcePattern.matcher(content);
+		Matcher matcher1 = _includeResourcePattern.matcher(content);
 
-		if (!matcher.find()) {
+		if (!matcher1.find()) {
 			return content;
 		}
 
-		String includeResources = matcher.group();
+		String includeResources = matcher1.group();
 
-		matcher = _includeResourceJarPattern.matcher(includeResources);
+		matcher1 = _includeResourceJarPattern.matcher(includeResources);
 
-		if (matcher.find()) {
+		if (matcher1.find()) {
 			String replacement = StringUtil.replace(
-				includeResources, matcher.group(), "-[0-9]*.jar");
+				includeResources, matcher1.group(), "-[0-9]*.jar");
 
 			return StringUtil.replace(content, includeResources, replacement);
 		}
@@ -111,8 +110,7 @@ public class BNDIncludeResourceCheck extends BaseFileCheck {
 			String beforeIncludeResourceDir = matcher2.group(1);
 
 			if (!beforeIncludeResourceDir.equals("\t")) {
-				return StringUtil.replace(
-					content, includeResources, StringPool.BLANK);
+				return StringUtil.removeSubstring(content, includeResources);
 			}
 
 			String afterIncludeResourceDir = matcher2.group(2);

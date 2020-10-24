@@ -14,12 +14,7 @@
 
 package com.liferay.source.formatter.checkstyle.checks;
 
-import com.liferay.petra.string.CharPool;
-import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.source.formatter.checkstyle.util.DetailASTUtil;
-
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
-import com.puppycrawl.tools.checkstyle.api.FileContents;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
 
 import java.util.Objects;
@@ -36,14 +31,10 @@ public class ThreadLocalUtilCheck extends BaseCheck {
 
 	@Override
 	protected void doVisitToken(DetailAST detailAST) {
-		FileContents fileContents = getFileContents();
+		String absolutePath = getAbsolutePath();
 
-		String fileName = StringUtil.replace(
-			fileContents.getFileName(), CharPool.BACK_SLASH, CharPool.SLASH);
-
-		if (!fileName.contains("/util-taglib/") ||
-			!Objects.equals(
-				DetailASTUtil.getTypeName(detailAST, false), "ThreadLocal")) {
+		if (!absolutePath.contains("/util-taglib/") ||
+			!Objects.equals(getTypeName(detailAST, false), "ThreadLocal")) {
 
 			return;
 		}

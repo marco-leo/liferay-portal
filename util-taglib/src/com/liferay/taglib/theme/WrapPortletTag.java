@@ -14,6 +14,7 @@
 
 package com.liferay.taglib.theme;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.servlet.DirectRequestDispatcherFactoryUtil;
@@ -71,11 +72,8 @@ public class WrapPortletTag
 			servletContext, httpServletRequest, httpServletResponse, wrapPage,
 			theme, false);
 
-		return _CONTENT_WRAPPER_PRE.concat(
-			content
-		).concat(
-			_CONTENT_WRAPPER_POST
-		);
+		return StringBundler.concat(
+			_CONTENT_WRAPPER_PRE, content, _CONTENT_WRAPPER_POST);
 	}
 
 	@Override
@@ -104,8 +102,8 @@ public class WrapPortletTag
 
 			return EVAL_PAGE;
 		}
-		catch (Exception e) {
-			throw new JspException(e);
+		catch (Exception exception) {
+			throw new JspException(exception);
 		}
 		finally {
 			clearParams();

@@ -36,8 +36,9 @@ public class FileEntryInfoDisplayObjectProvider
 	implements InfoDisplayObjectProvider<FileEntry> {
 
 	public FileEntryInfoDisplayObjectProvider(FileEntry fileEntry) {
-		_assetEntry = _getAssetEntry(fileEntry);
 		_fileEntry = fileEntry;
+
+		_assetEntry = _getAssetEntry(fileEntry);
 	}
 
 	@Override
@@ -90,7 +91,7 @@ public class FileEntryInfoDisplayObjectProvider
 	}
 
 	private AssetEntry _getAssetEntry(FileEntry fileEntry) {
-		AssetRendererFactory assetRendererFactory =
+		AssetRendererFactory<?> assetRendererFactory =
 			AssetRendererFactoryRegistryUtil.
 				getAssetRendererFactoryByClassNameId(getClassNameId());
 
@@ -99,16 +100,17 @@ public class FileEntryInfoDisplayObjectProvider
 		}
 
 		try {
-			AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(
-				fileEntry.getFileEntryId());
+			AssetRenderer<?> assetRenderer =
+				assetRendererFactory.getAssetRenderer(
+					fileEntry.getFileEntryId());
 
 			return assetRendererFactory.getAssetEntry(
 				DLFileEntryConstants.getClassName(),
 				assetRenderer.getClassPK());
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(portalException, portalException);
 			}
 
 			return null;

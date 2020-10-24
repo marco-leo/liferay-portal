@@ -32,7 +32,7 @@ import com.liferay.segments.service.SegmentsEntryRoleLocalServiceUtil;
 public abstract class SegmentsEntryRoleBaseImpl
 	extends SegmentsEntryRoleModelImpl implements SegmentsEntryRole {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a segments entry role model instance should use the <code>SegmentsEntryRole</code> interface instead.

@@ -32,7 +32,7 @@ import com.liferay.change.tracking.service.CTMessageLocalServiceUtil;
 public abstract class CTMessageBaseImpl
 	extends CTMessageModelImpl implements CTMessage {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a ct message model instance should use the <code>CTMessage</code> interface instead.

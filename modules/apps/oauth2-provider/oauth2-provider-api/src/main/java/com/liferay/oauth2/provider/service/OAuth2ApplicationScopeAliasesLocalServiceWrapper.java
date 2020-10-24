@@ -35,11 +35,22 @@ public class OAuth2ApplicationScopeAliasesLocalServiceWrapper
 			oAuth2ApplicationScopeAliasesLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link OAuth2ApplicationScopeAliasesLocalServiceUtil} to access the o auth2 application scope aliases local service. Add custom service methods to <code>com.liferay.oauth2.provider.service.impl.OAuth2ApplicationScopeAliasesLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
+	@Override
+	public com.liferay.oauth2.provider.model.OAuth2ApplicationScopeAliases
+			addOAuth2ApplicationScopeAliases(
+				long companyId, long userId, String userName,
+				long oAuth2ApplicationId,
+				java.util.function.Consumer
+					<com.liferay.oauth2.provider.util.builder.
+						OAuth2ScopeBuilder> builderConsumer)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuth2ApplicationScopeAliasesLocalService.
+			addOAuth2ApplicationScopeAliases(
+				companyId, userId, userName, oAuth2ApplicationId,
+				builderConsumer);
+	}
+
 	@Override
 	public com.liferay.oauth2.provider.model.OAuth2ApplicationScopeAliases
 			addOAuth2ApplicationScopeAliases(
@@ -56,6 +67,10 @@ public class OAuth2ApplicationScopeAliasesLocalServiceWrapper
 
 	/**
 	 * Adds the o auth2 application scope aliases to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ApplicationScopeAliasesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2ApplicationScopeAliases the o auth2 application scope aliases
 	 * @return the o auth2 application scope aliases that was added
@@ -87,7 +102,23 @@ public class OAuth2ApplicationScopeAliasesLocalServiceWrapper
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuth2ApplicationScopeAliasesLocalService.createPersistedModel(
+			primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the o auth2 application scope aliases with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ApplicationScopeAliasesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2ApplicationScopeAliasesId the primary key of the o auth2 application scope aliases
 	 * @return the o auth2 application scope aliases that was removed
@@ -106,6 +137,10 @@ public class OAuth2ApplicationScopeAliasesLocalServiceWrapper
 
 	/**
 	 * Deletes the o auth2 application scope aliases from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ApplicationScopeAliasesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2ApplicationScopeAliases the o auth2 application scope aliases
 	 * @return the o auth2 application scope aliases that was removed
@@ -130,6 +165,11 @@ public class OAuth2ApplicationScopeAliasesLocalServiceWrapper
 
 		return _oAuth2ApplicationScopeAliasesLocalService.deletePersistedModel(
 			persistedModel);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _oAuth2ApplicationScopeAliasesLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -333,6 +373,9 @@ public class OAuth2ApplicationScopeAliasesLocalServiceWrapper
 			getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -352,6 +395,10 @@ public class OAuth2ApplicationScopeAliasesLocalServiceWrapper
 
 	/**
 	 * Updates the o auth2 application scope aliases in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ApplicationScopeAliasesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2ApplicationScopeAliases the o auth2 application scope aliases
 	 * @return the o auth2 application scope aliases that was updated

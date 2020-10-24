@@ -14,6 +14,7 @@
 
 package com.liferay.message.boards.service;
 
+import com.liferay.message.boards.model.MBBan;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
 /**
@@ -30,13 +31,8 @@ public class MBBanServiceWrapper
 		_mbBanService = mbBanService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link MBBanServiceUtil} to access the message boards ban remote service. Add custom service methods to <code>com.liferay.message.boards.service.impl.MBBanServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
-	public com.liferay.message.boards.model.MBBan addBan(
+	public MBBan addBan(
 			long banUserId,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {

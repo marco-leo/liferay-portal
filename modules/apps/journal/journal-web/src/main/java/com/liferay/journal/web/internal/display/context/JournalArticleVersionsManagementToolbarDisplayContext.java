@@ -15,7 +15,7 @@
 package com.liferay.journal.web.internal.display.context;
 
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
@@ -32,31 +32,26 @@ public class JournalArticleVersionsManagementToolbarDisplayContext
 	extends JournalManagementToolbarDisplayContext {
 
 	public JournalArticleVersionsManagementToolbarDisplayContext(
+			HttpServletRequest httpServletRequest,
 			LiferayPortletRequest liferayPortletRequest,
 			LiferayPortletResponse liferayPortletResponse,
-			HttpServletRequest httpServletRequest,
 			JournalDisplayContext journalDisplayContext,
 			TrashHelper trashHelper)
 		throws PortalException {
 
 		super(
-			liferayPortletRequest, liferayPortletResponse, httpServletRequest,
+			httpServletRequest, liferayPortletRequest, liferayPortletResponse,
 			journalDisplayContext, trashHelper);
 	}
 
 	@Override
 	public List<DropdownItem> getFilterDropdownItems() {
-		return new DropdownItemList() {
-			{
-				addGroup(
-					dropdownGroupItem -> {
-						dropdownGroupItem.setDropdownItems(
-							getOrderByDropdownItems());
-						dropdownGroupItem.setLabel(
-							getOrderByDropdownItemsLabel());
-					});
+		return DropdownItemListBuilder.addGroup(
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(getOrderByDropdownItems());
+				dropdownGroupItem.setLabel(getOrderByDropdownItemsLabel());
 			}
-		};
+		).build();
 	}
 
 	@Override

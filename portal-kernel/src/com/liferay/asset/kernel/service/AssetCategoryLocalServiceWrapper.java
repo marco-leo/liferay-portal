@@ -39,6 +39,10 @@ public class AssetCategoryLocalServiceWrapper
 	/**
 	 * Adds the asset category to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetCategoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param assetCategory the asset category
 	 * @return the asset category that was added
 	 */
@@ -137,7 +141,22 @@ public class AssetCategoryLocalServiceWrapper
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _assetCategoryLocalService.createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the asset category from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetCategoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetCategory the asset category
 	 * @return the asset category that was removed
@@ -149,6 +168,10 @@ public class AssetCategoryLocalServiceWrapper
 
 	/**
 	 * Deletes the asset category with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetCategoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param categoryId the primary key of the asset category
 	 * @return the asset category that was removed
@@ -244,6 +267,11 @@ public class AssetCategoryLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_assetCategoryLocalService.deleteVocabularyCategories(vocabularyId);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _assetCategoryLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -600,10 +628,11 @@ public class AssetCategoryLocalServiceWrapper
 	@Override
 	public java.util.List<AssetCategory> getChildCategories(
 		long parentCategoryId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<AssetCategory> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<AssetCategory>
+			orderByComparator) {
 
 		return _assetCategoryLocalService.getChildCategories(
-			parentCategoryId, start, end, obc);
+			parentCategoryId, start, end, orderByComparator);
 	}
 
 	@Override
@@ -651,6 +680,9 @@ public class AssetCategoryLocalServiceWrapper
 		return _assetCategoryLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -676,19 +708,21 @@ public class AssetCategoryLocalServiceWrapper
 	@Override
 	public java.util.List<AssetCategory> getVocabularyCategories(
 		long vocabularyId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<AssetCategory> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<AssetCategory>
+			orderByComparator) {
 
 		return _assetCategoryLocalService.getVocabularyCategories(
-			vocabularyId, start, end, obc);
+			vocabularyId, start, end, orderByComparator);
 	}
 
 	@Override
 	public java.util.List<AssetCategory> getVocabularyCategories(
 		long parentCategoryId, long vocabularyId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<AssetCategory> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<AssetCategory>
+			orderByComparator) {
 
 		return _assetCategoryLocalService.getVocabularyCategories(
-			parentCategoryId, vocabularyId, start, end, obc);
+			parentCategoryId, vocabularyId, start, end, orderByComparator);
 	}
 
 	@Override
@@ -700,10 +734,11 @@ public class AssetCategoryLocalServiceWrapper
 	@Override
 	public java.util.List<AssetCategory> getVocabularyRootCategories(
 		long vocabularyId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<AssetCategory> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<AssetCategory>
+			orderByComparator) {
 
 		return _assetCategoryLocalService.getVocabularyRootCategories(
-			vocabularyId, start, end, obc);
+			vocabularyId, start, end, orderByComparator);
 	}
 
 	@Override
@@ -806,6 +841,10 @@ public class AssetCategoryLocalServiceWrapper
 
 	/**
 	 * Updates the asset category in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetCategoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetCategory the asset category
 	 * @return the asset category that was updated

@@ -14,7 +14,7 @@
 
 AUI.add(
 	'liferay-form',
-	A => {
+	(A) => {
 		var AArray = A.Array;
 
 		var Lang = A.Lang;
@@ -29,7 +29,7 @@ AUI.add(
 
 		var REGEX_URL = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(https?:\/\/|www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)((?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))((.*):(\d*)\/?(.*))?)/;
 
-		var acceptFiles = function(val, node, ruleValue) {
+		var acceptFiles = function (val, node, ruleValue) {
 			if (ruleValue && ruleValue.split(',').includes('*')) {
 				return true;
 			}
@@ -37,7 +37,7 @@ AUI.add(
 			return defaultAcceptFiles(val, node, ruleValue);
 		};
 
-		var maxFileSize = function(_val, node, ruleValue) {
+		var maxFileSize = function (_val, node, ruleValue) {
 			var nodeType = node.get('type').toLowerCase();
 
 			if (nodeType === 'file') {
@@ -47,11 +47,11 @@ AUI.add(
 			return true;
 		};
 
-		var number = function(val, _node, _ruleValue) {
+		var number = function (val, _node, _ruleValue) {
 			return REGEX_NUMBER && REGEX_NUMBER.test(val);
 		};
 
-		var url = function(val, _node, _ruleValue) {
+		var url = function (val, _node, _ruleValue) {
 			return REGEX_URL && REGEX_URL.test(val);
 		};
 
@@ -61,7 +61,7 @@ AUI.add(
 				acceptFiles,
 				maxFileSize,
 				number,
-				url
+				url,
 			},
 			true
 		);
@@ -110,7 +110,7 @@ AUI.add(
 					'please-enter-a-value-between-x-and-x-characters-long'
 				),
 				required: Liferay.Language.get('this-field-is-required'),
-				url: Liferay.Language.get('please-enter-a-valid-url')
+				url: Liferay.Language.get('please-enter-a-valid-url'),
 			},
 			true
 		);
@@ -126,7 +126,7 @@ AUI.add(
 						instance._processFieldRules(val);
 
 						return val;
-					}
+					},
 				},
 				id: {},
 				namespace: {},
@@ -135,12 +135,12 @@ AUI.add(
 						var instance = this;
 
 						return instance._onSubmit;
-					}
+					},
 				},
 				validateOnBlur: {
 					validator: Lang.isBoolean,
-					value: true
-				}
+					value: true,
+				},
 			},
 
 			EXTENDS: A.Base,
@@ -239,17 +239,19 @@ AUI.add(
 					);
 
 					if (field) {
-						var fieldWrapper = field.ancestor('form > div');
+						var fieldWrapper = field.ancestor(
+							'form > fieldset > div'
+						);
 
 						var formTabs = formNode.one('.lfr-nav');
 
 						if (fieldWrapper && formTabs) {
-							var tabs = formTabs.all('.tab');
+							var tabs = formTabs.all('.nav-item');
 							var tabsNamespace = formTabs.getAttribute(
 								'data-tabs-namespace'
 							);
 
-							var tabNames = AArray.map(tabs._nodes, tab => {
+							var tabNames = AArray.map(tabs._nodes, (tab) => {
 								return tab.getAttribute('data-tab-name');
 							});
 
@@ -257,7 +259,7 @@ AUI.add(
 								.getAttribute('id')
 								.slice(0, -TABS_SECTION_STR.length);
 
-							var fieldTabId = AArray.find(tabs._nodes, tab => {
+							var fieldTabId = AArray.find(tabs._nodes, (tab) => {
 								return (
 									tab
 										.getAttribute('id')
@@ -310,7 +312,7 @@ AUI.add(
 						'.panel-collapse'
 					);
 
-					collapsiblePanels.each(panel => {
+					collapsiblePanels.each((panel) => {
 						var errorFields = panel
 							.get('children')
 							.all('.has-error');
@@ -318,7 +320,7 @@ AUI.add(
 						if (errorFields.size() > 0 && !panel.hasClass('in')) {
 							var panelNode = panel.getDOM();
 
-							AUI.$(panelNode).collapse('show');
+							Liferay.CollapseProvider.show({panel: panelNode});
 						}
 					});
 				},
@@ -460,7 +462,7 @@ AUI.add(
 							custom: custom || false,
 							errorMessage: errorMessage || '',
 							fieldName,
-							validatorName
+							validatorName,
 						});
 
 						instance._processFieldRules(fieldRules);
@@ -481,7 +483,7 @@ AUI.add(
 					if (formNode) {
 						var formValidator = new A.FormValidator({
 							boundingBox: formNode,
-							validateOnBlur: instance.get('validateOnBlur')
+							validateOnBlur: instance.get('validateOnBlur'),
 						});
 
 						A.Do.before(
@@ -526,11 +528,11 @@ AUI.add(
 
 						instance._processFieldRules(fieldRules);
 					}
-				}
+				},
 			},
 
 			/*
-			 * @deprecated since 7.2, unused
+			 * @deprecated As of Mueller (7.2.x), with no direct replacement
 			 */
 			register(config) {
 				var instance = this;
@@ -543,17 +545,17 @@ AUI.add(
 
 				Liferay.fire('form:registered', {
 					form,
-					formName
+					formName,
 				});
 
 				return form;
-			}
+			},
 		});
 
 		Liferay.Form = Form;
 	},
 	'',
 	{
-		requires: ['aui-base', 'aui-form-validator']
+		requires: ['aui-base', 'aui-form-validator'],
 	}
 );

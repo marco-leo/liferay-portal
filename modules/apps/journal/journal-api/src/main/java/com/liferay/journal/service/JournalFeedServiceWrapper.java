@@ -14,6 +14,7 @@
 
 package com.liferay.journal.service;
 
+import com.liferay.journal.model.JournalFeed;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
 /**
@@ -30,13 +31,8 @@ public class JournalFeedServiceWrapper
 		_journalFeedService = journalFeedService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link JournalFeedServiceUtil} to access the journal feed remote service. Add custom service methods to <code>com.liferay.journal.service.impl.JournalFeedServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
-	public com.liferay.journal.model.JournalFeed addFeed(
+	public JournalFeed addFeed(
 			long groupId, String feedId, boolean autoFeedId, String name,
 			String description, String ddmStructureKey, String ddmTemplateKey,
 			String ddmRendererTemplateKey, int delta, String orderByCol,
@@ -68,15 +64,14 @@ public class JournalFeedServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFeed getFeed(long feedId)
+	public JournalFeed getFeed(long feedId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFeedService.getFeed(feedId);
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFeed getFeed(
-			long groupId, String feedId)
+	public JournalFeed getFeed(long groupId, String feedId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFeedService.getFeed(groupId, feedId);
@@ -93,7 +88,7 @@ public class JournalFeedServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFeed updateFeed(
+	public JournalFeed updateFeed(
 			long groupId, String feedId, String name, String description,
 			String ddmStructureKey, String ddmTemplateKey,
 			String ddmRendererTemplateKey, int delta, String orderByCol,

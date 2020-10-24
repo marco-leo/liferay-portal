@@ -11,7 +11,6 @@ dependencies {
 	compileOnly project(":apps:application-list:application-list-api")
 	compileOnly project(":apps:asset:asset-taglib")
 	compileOnly project(":apps:comment:comment-taglib")
-	compileOnly project(":apps:depot:depot-api")
 	compileOnly project(":apps:frontend-taglib:frontend-taglib")
 	compileOnly project(":apps:frontend-taglib:frontend-taglib-clay")
 	compileOnly project(":apps:frontend-taglib:frontend-taglib-soy")
@@ -21,6 +20,7 @@ dependencies {
 	compileOnly project(":core:osgi-service-tracker-collections")
 	compileOnly project(":core:petra:petra-function")
 	compileOnly project(":core:petra:petra-lang")
+	compileOnly project(":core:petra:petra-sql-dsl-api")
 	compileOnly project(":core:petra:petra-string")
 
 	testCompile group: "junit", name: "junit", version: "4.12"

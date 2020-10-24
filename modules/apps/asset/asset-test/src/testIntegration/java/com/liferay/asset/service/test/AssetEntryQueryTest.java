@@ -40,9 +40,9 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portlet.asset.service.impl.AssetEntryServiceImpl;
 import com.liferay.ratings.kernel.model.RatingsStats;
@@ -75,7 +75,7 @@ public class AssetEntryQueryTest {
 
 	@Before
 	public void setUp() throws Exception {
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		_group = GroupTestUtil.addGroup();
 
@@ -526,18 +526,16 @@ public class AssetEntryQueryTest {
 
 	@Test
 	public void testOrderByRatingsAsc() throws Exception {
-		double[] scores = {0.44, 0.2, 0.6, 0.22, 0.86};
-		double[] orderedScores = {0.2, 0.22, 0.44, 0.6, 0.86};
-
-		testOrderByRatings(scores, orderedScores, "ASC");
+		testOrderByRatings(
+			new double[] {0.44, 0.2, 0.6, 0.22, 0.86},
+			new double[] {0.2, 0.22, 0.44, 0.6, 0.86}, "ASC");
 	}
 
 	@Test
 	public void testOrderByRatingsDesc() throws Exception {
-		double[] scores = {0.44, 0.2, 0.6, 0.22, 0.86};
-		double[] orderedScores = {0.86, 0.6, 0.44, 0.22, 0.2};
-
-		testOrderByRatings(scores, orderedScores, "DESC");
+		testOrderByRatings(
+			new double[] {0.44, 0.2, 0.6, 0.22, 0.86},
+			new double[] {0.86, 0.6, 0.44, 0.22, 0.2}, "DESC");
 	}
 
 	protected AssetEntryQuery buildAssetEntryQuery(

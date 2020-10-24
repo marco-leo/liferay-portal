@@ -44,6 +44,7 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class PageEditorCommentMentionsStrategy implements MentionsStrategy {
 
+	@Override
 	public List<User> getUsers(
 			long companyId, long userId, String query, JSONObject jsonObject)
 		throws PortalException {
@@ -67,8 +68,10 @@ public class PageEditorCommentMentionsStrategy implements MentionsStrategy {
 						_permissionCheckerFactory.create(user), plid,
 						ActionKeys.UPDATE);
 				}
-				catch (PortalException pe) {
-					_log.error("Unable to check permission for " + user, pe);
+				catch (PortalException portalException) {
+					_log.error(
+						"Unable to check permission for " + user,
+						portalException);
 
 					return false;
 				}

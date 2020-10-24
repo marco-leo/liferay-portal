@@ -18,6 +18,8 @@ import com.liferay.asset.category.property.model.AssetCategoryProperty;
 import com.liferay.asset.category.property.service.AssetCategoryPropertyLocalService;
 import com.liferay.asset.category.property.service.persistence.AssetCategoryPropertyFinder;
 import com.liferay.asset.category.property.service.persistence.AssetCategoryPropertyPersistence;
+import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -37,6 +39,9 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.change.tracking.CTService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -65,7 +70,7 @@ public abstract class AssetCategoryPropertyLocalServiceBaseImpl
 	implements AopService, AssetCategoryPropertyLocalService,
 			   IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>AssetCategoryPropertyLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.asset.category.property.service.AssetCategoryPropertyLocalServiceUtil</code>.
@@ -73,6 +78,10 @@ public abstract class AssetCategoryPropertyLocalServiceBaseImpl
 
 	/**
 	 * Adds the asset category property to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetCategoryPropertyLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetCategoryProperty the asset category property
 	 * @return the asset category property that was added
@@ -104,6 +113,10 @@ public abstract class AssetCategoryPropertyLocalServiceBaseImpl
 	/**
 	 * Deletes the asset category property with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetCategoryPropertyLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param categoryPropertyId the primary key of the asset category property
 	 * @return the asset category property that was removed
 	 * @throws PortalException if a asset category property with the primary key could not be found
@@ -120,6 +133,10 @@ public abstract class AssetCategoryPropertyLocalServiceBaseImpl
 	/**
 	 * Deletes the asset category property from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetCategoryPropertyLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param assetCategoryProperty the asset category property
 	 * @return the asset category property that was removed
 	 */
@@ -129,6 +146,11 @@ public abstract class AssetCategoryPropertyLocalServiceBaseImpl
 		AssetCategoryProperty assetCategoryProperty) {
 
 		return assetCategoryPropertyPersistence.remove(assetCategoryProperty);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return assetCategoryPropertyPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -293,6 +315,17 @@ public abstract class AssetCategoryPropertyLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return assetCategoryPropertyPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -300,6 +333,14 @@ public abstract class AssetCategoryPropertyLocalServiceBaseImpl
 			(AssetCategoryProperty)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<AssetCategoryProperty> getBasePersistence() {
+		return assetCategoryPropertyPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -338,6 +379,10 @@ public abstract class AssetCategoryPropertyLocalServiceBaseImpl
 	/**
 	 * Updates the asset category property in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetCategoryPropertyLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param assetCategoryProperty the asset category property
 	 * @return the asset category property that was updated
 	 */
@@ -353,7 +398,8 @@ public abstract class AssetCategoryPropertyLocalServiceBaseImpl
 	public Class<?>[] getAopInterfaces() {
 		return new Class<?>[] {
 			AssetCategoryPropertyLocalService.class,
-			IdentifiableOSGiService.class, PersistedModelLocalService.class
+			IdentifiableOSGiService.class, CTService.class,
+			PersistedModelLocalService.class
 		};
 	}
 
@@ -373,8 +419,23 @@ public abstract class AssetCategoryPropertyLocalServiceBaseImpl
 		return AssetCategoryPropertyLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<AssetCategoryProperty> getCTPersistence() {
+		return assetCategoryPropertyPersistence;
+	}
+
+	@Override
+	public Class<AssetCategoryProperty> getModelClass() {
 		return AssetCategoryProperty.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<AssetCategoryProperty>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(assetCategoryPropertyPersistence);
 	}
 
 	protected String getModelClassName() {
@@ -401,8 +462,8 @@ public abstract class AssetCategoryPropertyLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

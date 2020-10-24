@@ -11,7 +11,7 @@
 
 AUI.add(
 	'liferay-kaleo-designer-editors',
-	A => {
+	(A) => {
 		var AArray = A.Array;
 		var AObject = A.Object;
 		var getClassName = A.getClassName;
@@ -67,12 +67,12 @@ AUI.add(
 				editorFormClass: {},
 
 				strings: {
-					value: KaleoDesignerStrings
+					value: KaleoDesignerStrings,
 				},
 
 				viewTemplate: {
-					setter: '_setViewTemplate'
-				}
+					setter: '_setViewTemplate',
+				},
 			},
 
 			EXTENDS: A.BaseCellEditor,
@@ -219,14 +219,14 @@ AUI.add(
 						'destroyPortlet',
 						A.bind(instance._onDestroyPortlet, instance)
 					);
-				}
-			}
+				},
+			},
 		});
 
 		var BaseAbstractEditorForm = A.Component.create({
 			ATTRS: {
 				addSectionButton: {
-					valueFn: '_valueAddSectionButton'
+					valueFn: '_valueAddSectionButton',
 				},
 
 				bodyNode: {
@@ -244,7 +244,7 @@ AUI.add(
 						}
 
 						return instance.bodyNode;
-					}
+					},
 				},
 
 				bodyNodeTemplate: {
@@ -252,8 +252,8 @@ AUI.add(
 						'<div class="celleditor-view-full-view">',
 						'<div class="celleditor-view-static-view"></div>',
 						'<div class="celleditor-view-dynamic-views"></div>',
-						'</div>'
-					].join(STR_BLANK)
+						'</div>',
+					].join(STR_BLANK),
 				},
 
 				builder: {},
@@ -261,18 +261,18 @@ AUI.add(
 				dynamicViewSingleton: {
 					validator: isBoolean,
 					value: false,
-					writeOnce: 'initOnly'
+					writeOnce: 'initOnly',
 				},
 
 				strings: {
-					value: KaleoDesignerStrings
+					value: KaleoDesignerStrings,
 				},
 
 				value: {},
 
 				viewTemplate: {
-					setter: '_setViewTemplate'
-				}
+					setter: '_setViewTemplate',
+				},
 			},
 
 			EXTENDS: A.Component,
@@ -344,11 +344,12 @@ AUI.add(
 											: true
 									)
 								);
-							} else if (
+							}
+							else if (
 								item2.test('select[multiple]') &&
 								Lang.isArray(value)
 							) {
-								value.forEach(option => {
+								value.forEach((option) => {
 									for (var key in option) {
 										item2
 											.one(
@@ -359,7 +360,8 @@ AUI.add(
 											.set('selected', true);
 									}
 								});
-							} else {
+							}
+							else {
 								item2.val(value);
 							}
 						});
@@ -371,10 +373,12 @@ AUI.add(
 
 					if (instance.get('dynamicViewSingleton')) {
 						instance._addSectionButton = null;
-					} else if (!instance._addSectionButton) {
+					}
+					else if (!instance._addSectionButton) {
 						var strings = instance.get('strings');
 
 						var addSectionButton = new A.Button({
+							cssClass: 'btn-secondary',
 							disabled: true,
 							id: 'addSectionButton',
 							label: strings.addSection,
@@ -382,8 +386,8 @@ AUI.add(
 								click: A.bind(
 									instance._onClickAddSectionButton,
 									instance
-								)
-							}
+								),
+							},
 						}).render();
 
 						var bodyNode = instance.get('bodyNode');
@@ -450,11 +454,11 @@ AUI.add(
 
 					var strings = instance.getStrings();
 
-					scriptLanguages.forEach(item => {
+					scriptLanguages.forEach((item) => {
 						if (item) {
 							scriptLanguagesJSONArray.push({
 								label: strings[item],
-								value: item
+								value: item,
 							});
 						}
 					});
@@ -481,8 +485,8 @@ AUI.add(
 				},
 
 				getScriptLanguages(scriptLanguages) {
-					KaleoDesignerRemoteServices.getScriptLanguages(data => {
-						AArray.each(data, item => {
+					KaleoDesignerRemoteServices.getScriptLanguages((data) => {
+						AArray.each(data, (item) => {
 							if (item) {
 								scriptLanguages.push(item.scriptLanguage);
 							}
@@ -538,11 +542,11 @@ AUI.add(
 					var instance = this;
 
 					instance._uiSetValue(instance.get('value'));
-				}
-			}
+				},
+			},
 		});
 
-		var CompositeEditorFormBase = function() {};
+		var CompositeEditorFormBase = function () {};
 
 		CompositeEditorFormBase.prototype = {
 			getEmbeddedEditorForm(editorFormClass, container, config) {
@@ -559,7 +563,7 @@ AUI.add(
 						{
 							builder: instance.get('builder'),
 							parentEditor: instance,
-							render: false
+							render: false,
 						},
 						config
 					);
@@ -578,7 +582,7 @@ AUI.add(
 				config = A.merge(
 					{
 						render: container,
-						value
+						value,
 					},
 					config
 				);
@@ -594,13 +598,13 @@ AUI.add(
 				container.append(bodyNode);
 
 				editor.show();
-			}
+			},
 		};
 
 		var AssignmentsEditorForm = A.Component.create({
 			ATTRS: {
 				assignmentsType: {
-					valueFn: '_valueAssignmentsType'
+					valueFn: '_valueAssignmentsType',
 				},
 
 				roleTypes: {
@@ -611,19 +615,23 @@ AUI.add(
 
 						return [
 							{
-								label: strings.site,
-								value: 'site'
-							},
-							{
-								label: strings.regular,
-								value: 'regular'
+								label: strings.depot,
+								value: 'depot',
 							},
 							{
 								label: strings.organization,
-								value: 'organization'
-							}
+								value: 'organization',
+							},
+							{
+								label: strings.regular,
+								value: 'regular',
+							},
+							{
+								label: strings.site,
+								value: 'site',
+							},
 						];
-					}
+					},
 				},
 
 				scriptLanguages: {
@@ -639,7 +647,7 @@ AUI.add(
 						);
 
 						return scriptLanguagesJSONArray;
-					}
+					},
 				},
 
 				strings: {
@@ -648,9 +656,9 @@ AUI.add(
 							assignmentTypeLabel:
 								KaleoDesignerStrings.assignmentType,
 							defaultAssignmentLabel:
-								KaleoDesignerStrings.assetCreator
+								KaleoDesignerStrings.assetCreator,
 						});
-					}
+					},
 				},
 
 				typeSelect: {},
@@ -659,9 +667,9 @@ AUI.add(
 					value: [
 						'<div class="{$ans}celleditor-assignment-view {$ans}celleditor-view {$ans}celleditor-view-type-{viewId} {$ans}hide">',
 						'{content}',
-						'</div>'
-					]
-				}
+						'</div>',
+					],
+				},
 			},
 
 			EXTENDS: BaseAbstractEditorForm,
@@ -713,28 +721,28 @@ AUI.add(
 					return [
 						{
 							label: strings.defaultAssignmentLabel,
-							value: STR_BLANK
+							value: STR_BLANK,
 						},
 						{
 							label: strings.resourceActions,
-							value: 'resourceActions'
+							value: 'resourceActions',
 						},
 						{
 							label: strings.role,
-							value: 'roleId'
+							value: 'roleId',
 						},
 						{
 							label: strings.roleType,
-							value: 'roleType'
+							value: 'roleType',
 						},
 						{
 							label: strings.scriptedAssignment,
-							value: 'scriptedAssignment'
+							value: 'scriptedAssignment',
 						},
 						{
 							label: strings.user,
-							value: 'user'
-						}
+							value: 'user',
+						},
 					];
 				},
 
@@ -771,7 +779,7 @@ AUI.add(
 						auiLabelCssClass: 'celleditor-label',
 						label: strings.assignmentTypeLabel,
 						name: 'assignmentType',
-						options: instance.get('assignmentsType')
+						options: instance.get('assignmentsType'),
 					});
 
 					var selectWrapper = A.Node.create('<div/>').append(select);
@@ -795,13 +803,13 @@ AUI.add(
 						auiLabelCssClass: 'celleditor-label',
 						id: A.guid(),
 						label: strings.resourceActions,
-						name: 'resourceAction'
+						name: 'resourceAction',
 					});
 
 					buffer.push(
 						assignmentsViewTpl.parse({
 							content: resourceActionContent,
-							viewId: 'resourceActions'
+							viewId: 'resourceActions',
 						})
 					);
 
@@ -815,7 +823,7 @@ AUI.add(
 							name: 'roleNameAC',
 							placeholder: KaleoDesignerStrings.search,
 							size: 35,
-							type: 'text'
+							type: 'text',
 						}),
 
 						inputTpl.parse({
@@ -827,14 +835,14 @@ AUI.add(
 							label: strings.roleId,
 							name: 'roleId',
 							size: 35,
-							type: 'text'
-						})
+							type: 'text',
+						}),
 					].join(STR_BLANK);
 
 					buffer.push(
 						assignmentsViewTpl.parse({
 							content: roleIdContent,
-							viewId: 'roleId'
+							viewId: 'roleId',
 						})
 					);
 
@@ -845,7 +853,7 @@ AUI.add(
 							auiLabelCssClass: 'celleditor-label',
 							id: A.guid(),
 							label: strings.script,
-							name: 'script'
+							name: 'script',
 						}),
 
 						selectTpl.parse({
@@ -854,14 +862,14 @@ AUI.add(
 							id: A.guid(),
 							label: strings.scriptLanguage,
 							name: 'scriptLanguage',
-							options: instance.get('scriptLanguages')
-						})
+							options: instance.get('scriptLanguages'),
+						}),
 					].join(STR_BLANK);
 
 					buffer.push(
 						assignmentsViewTpl.parse({
 							content: scriptedAssignmentContent,
-							viewId: 'scriptedAssignment'
+							viewId: 'scriptedAssignment',
 						})
 					);
 
@@ -892,7 +900,7 @@ AUI.add(
 								id: A.guid(),
 								label: strings.roleType,
 								name: 'roleType',
-								options: instance.get('roleTypes')
+								options: instance.get('roleTypes'),
 							}),
 
 							inputTpl.parse({
@@ -903,7 +911,7 @@ AUI.add(
 								label: strings.roleName,
 								name: 'roleName',
 								size: 35,
-								type: 'text'
+								type: 'text',
 							}),
 
 							'<div class="checkbox">',
@@ -915,17 +923,17 @@ AUI.add(
 								id: A.guid(),
 								label: strings.autoCreate,
 								name: 'autoCreate',
-								type: 'checkbox'
+								type: 'checkbox',
 							}),
 
-							'</div>'
+							'</div>',
 						].join(STR_BLANK);
 
 						buffer.push(
 							assignmentsViewTpl.parse({
 								content: roleTypeContent,
 								showMenu: true,
-								viewId: 'roleType'
+								viewId: 'roleType',
 							})
 						);
 					}
@@ -957,7 +965,7 @@ AUI.add(
 								name: 'fullName',
 								placeholder: KaleoDesignerStrings.search,
 								size: 35,
-								type: 'text'
+								type: 'text',
 							}),
 
 							inputTpl.parse({
@@ -969,7 +977,7 @@ AUI.add(
 								label: strings.screenName,
 								name: 'screenName',
 								size: 35,
-								type: 'text'
+								type: 'text',
 							}),
 
 							inputTpl.parse({
@@ -981,7 +989,7 @@ AUI.add(
 								label: strings.emailAddress,
 								name: 'emailAddress',
 								size: 35,
-								type: 'text'
+								type: 'text',
 							}),
 
 							inputTpl.parse({
@@ -993,15 +1001,15 @@ AUI.add(
 								label: strings.userId,
 								name: 'userId',
 								size: 35,
-								type: 'text'
-							})
+								type: 'text',
+							}),
 						].join(STR_BLANK);
 
 						buffer.push(
 							assignmentsViewTpl.parse({
 								content: userContent,
 								showMenu: true,
-								viewId: 'user'
+								viewId: 'user',
 							})
 						);
 					}
@@ -1029,7 +1037,8 @@ AUI.add(
 
 						if (viewId === 'user') {
 							instance.addViewUser();
-						} else if (viewId === 'roleType') {
+						}
+						else if (viewId === 'roleType') {
 							instance.addViewRoleType();
 						}
 
@@ -1086,29 +1095,29 @@ AUI.add(
 					var typeSelect = instance.get('typeSelect');
 
 					instance.showView(typeSelect.val());
-				}
-			}
+				},
+			},
 		});
 
 		var AssignmentsEditor = A.Component.create({
 			ATTRS: {
 				editorFormClass: {
-					value: AssignmentsEditorForm
-				}
+					value: AssignmentsEditorForm,
+				},
 			},
 
 			EXTENDS: BaseAbstractEditor,
 
-			NAME: 'assignments-cell-editor'
+			NAME: 'assignments-cell-editor',
 		});
 
 		var FormsEditorForm = A.Component.create({
 			ATTRS: {
 				viewTemplate: {
 					value: [
-						'<div class="{$ans}celleditor-forms-view {$ans}celleditor-view {$ans}celleditor-view-type-{viewId}">{content}</div>'
-					]
-				}
+						'<div class="{$ans}celleditor-forms-view {$ans}celleditor-view {$ans}celleditor-view-type-{viewId}">{content}</div>',
+					],
+				},
 			},
 
 			EXTENDS: BaseAbstractEditorForm,
@@ -1137,7 +1146,7 @@ AUI.add(
 							name: 'templateName',
 							placeholder: KaleoDesignerStrings.search,
 							size: 35,
-							type: 'text'
+							type: 'text',
 						}),
 
 						inputTpl.parse({
@@ -1147,35 +1156,35 @@ AUI.add(
 							id: A.guid(),
 							name: 'templateId',
 							size: 35,
-							type: 'hidden'
-						})
+							type: 'hidden',
+						}),
 					].join(STR_BLANK);
 
 					buffer.push(
 						formsViewTpl.parse({
 							content: formsContent,
-							viewId: 'formTemplateId'
+							viewId: 'formTemplateId',
 						})
 					);
 
 					instance.appendToStaticView(buffer.join(STR_BLANK));
-				}
-			}
+				},
+			},
 		});
 
 		var FormsEditor = A.Component.create({
 			ATTRS: {
 				editorFormClass: {
-					value: FormsEditorForm
-				}
+					value: FormsEditorForm,
+				},
 			},
 
 			EXTENDS: BaseAbstractEditor,
 
-			NAME: 'forms-cell-editor'
+			NAME: 'forms-cell-editor',
 		});
 
-		var ExecutionTypesEditorFormBase = function() {};
+		var ExecutionTypesEditorFormBase = function () {};
 
 		ExecutionTypesEditorFormBase.prototype = {
 			_executionTypesSetter(val) {
@@ -1189,36 +1198,36 @@ AUI.add(
 				if (type === 'task') {
 					val.push({
 						label: strings.onAssignment,
-						value: 'onAssignment'
+						value: 'onAssignment',
 					});
 				}
 
 				val.push(
 					{
 						label: strings.onEntry,
-						value: 'onEntry'
+						value: 'onEntry',
 					},
 					{
 						label: strings.onExit,
-						value: 'onExit'
+						value: 'onExit',
 					}
 				);
 
 				return val;
-			}
+			},
 		};
 
 		ExecutionTypesEditorFormBase.ATTRS = {
 			executionTypes: {
 				setter: '_executionTypesSetter',
-				value: []
-			}
+				value: [],
+			},
 		};
 
 		var NotificationRecipientsEditorFormConfig = {
 			ATTRS: {
 				executionTypeSelect: {
-					value: null
+					value: null,
 				},
 
 				strings: {
@@ -1227,10 +1236,10 @@ AUI.add(
 							assignmentTypeLabel:
 								KaleoDesignerStrings.recipientType,
 							defaultAssignmentLabel:
-								KaleoDesignerStrings.assetCreator
+								KaleoDesignerStrings.assetCreator,
 						});
-					}
-				}
+					},
+				},
 			},
 
 			EXTENDS: AssignmentsEditorForm,
@@ -1246,24 +1255,24 @@ AUI.add(
 					var assignmentsTypes = [
 						{
 							label: strings.defaultAssignmentLabel,
-							value: STR_BLANK
+							value: STR_BLANK,
 						},
 						{
 							label: strings.role,
-							value: 'roleId'
+							value: 'roleId',
 						},
 						{
 							label: strings.roleType,
-							value: 'roleType'
+							value: 'roleType',
 						},
 						{
 							label: strings.scriptedRecipient,
-							value: 'scriptedRecipient'
+							value: 'scriptedRecipient',
 						},
 						{
 							label: strings.user,
-							value: 'user'
-						}
+							value: 'user',
+						},
 					];
 
 					var executionTypeSelect = instance.get(
@@ -1275,7 +1284,7 @@ AUI.add(
 					if (executionType === 'onAssignment') {
 						assignmentsTypes.push({
 							label: KaleoDesignerStrings.taskAssignees,
-							value: 'taskAssignees'
+							value: 'taskAssignees',
 						});
 					}
 
@@ -1298,7 +1307,7 @@ AUI.add(
 						auiLabelCssClass: 'celleditor-label',
 						label: strings.assignmentTypeLabel,
 						name: 'assignmentType',
-						options: instance.get('assignmentsType')
+						options: instance.get('assignmentsType'),
 					});
 
 					var selectWrapper = A.Node.create('<div/>').append(select);
@@ -1317,7 +1326,7 @@ AUI.add(
 					var receptionType = inputTpl.parse({
 						id: A.guid(),
 						name: 'receptionType',
-						type: 'hidden'
+						type: 'hidden',
 					});
 
 					instance.appendToStaticView(receptionType);
@@ -1334,7 +1343,7 @@ AUI.add(
 							name: 'roleNameAC',
 							placeholder: KaleoDesignerStrings.search,
 							size: 35,
-							type: 'text'
+							type: 'text',
 						}),
 
 						inputTpl.parse({
@@ -1346,14 +1355,14 @@ AUI.add(
 							label: strings.roleId,
 							name: 'roleId',
 							size: 35,
-							type: 'text'
-						})
+							type: 'text',
+						}),
 					].join(STR_BLANK);
 
 					buffer.push(
 						assignmentsViewTpl.parse({
 							content: roleIdContent,
-							viewId: 'roleId'
+							viewId: 'roleId',
 						})
 					);
 
@@ -1364,7 +1373,7 @@ AUI.add(
 							auiLabelCssClass: 'celleditor-label',
 							id: A.guid(),
 							label: strings.script,
-							name: 'script'
+							name: 'script',
 						}),
 
 						selectTpl.parse({
@@ -1373,27 +1382,27 @@ AUI.add(
 							id: A.guid(),
 							label: strings.scriptLanguage,
 							name: 'scriptLanguage',
-							options: instance.get('scriptLanguages')
-						})
+							options: instance.get('scriptLanguages'),
+						}),
 					].join(STR_BLANK);
 
 					buffer.push(
 						assignmentsViewTpl.parse({
 							content: scriptedRecipientContent,
-							viewId: 'scriptedRecipient'
+							viewId: 'scriptedRecipient',
 						})
 					);
 
 					instance.appendToStaticView(buffer.join(STR_BLANK));
-				}
-			}
+				},
+			},
 		};
 
 		var NotificationRecipientsEditorForm = A.Component.create(
 			NotificationRecipientsEditorFormConfig
 		);
 
-		NotificationRecipientsEditorFormConfig.prototype._valueAssignmentsType = function() {
+		NotificationRecipientsEditorFormConfig.prototype._valueAssignmentsType = function () {
 			var instance = this;
 
 			var strings = instance.getStrings();
@@ -1401,24 +1410,24 @@ AUI.add(
 			var assignmentsTypes = [
 				{
 					label: strings.defaultAssignmentLabel,
-					value: STR_BLANK
+					value: STR_BLANK,
 				},
 				{
 					label: strings.role,
-					value: 'roleId'
+					value: 'roleId',
 				},
 				{
 					label: strings.roleType,
-					value: 'roleType'
+					value: 'roleType',
 				},
 				{
 					label: strings.scriptedRecipient,
-					value: 'scriptedRecipient'
+					value: 'scriptedRecipient',
 				},
 				{
 					label: strings.user,
-					value: 'user'
-				}
+					value: 'user',
+				},
 			];
 
 			return assignmentsTypes;
@@ -1439,27 +1448,27 @@ AUI.add(
 						return [
 							{
 								label: strings.email,
-								value: 'email'
+								value: 'email',
 							},
 							{
 								label: strings.im,
-								value: 'im'
+								value: 'im',
 							},
 							{
 								label: strings.privateMessage,
-								value: 'private-message'
+								value: 'private-message',
 							},
 							{
 								label: strings.userNotification,
-								value: 'user-notification'
-							}
+								value: 'user-notification',
+							},
 						];
-					}
+					},
 				},
 
 				recipients: {
 					getter: '_getRecipients',
-					value: []
+					value: [],
 				},
 
 				templateLanguages: {
@@ -1471,18 +1480,18 @@ AUI.add(
 						return [
 							{
 								label: strings.freemarker,
-								value: 'freemarker'
+								value: 'freemarker',
 							},
 							{
 								label: strings.text,
-								value: 'text'
+								value: 'text',
 							},
 							{
 								label: strings.velocity,
-								value: 'velocity'
-							}
+								value: 'velocity',
+							},
 						];
-					}
+					},
 				},
 
 				viewTemplate: {
@@ -1490,9 +1499,9 @@ AUI.add(
 						'<div class="{$ans}celleditor-notifications-view {$ans}celleditor-view {$ans}celleditor-view-type-{viewId}">',
 						'{content}',
 						'<div class="recipients-editor-container"></div>',
-						'</div>'
-					]
-				}
+						'</div>',
+					],
+				},
 			},
 
 			AUGMENTS: [CompositeEditorFormBase, ExecutionTypesEditorFormBase],
@@ -1576,7 +1585,7 @@ AUI.add(
 						editorContainer,
 						value,
 						{
-							executionTypeSelect
+							executionTypeSelect,
 						}
 					);
 				},
@@ -1617,7 +1626,7 @@ AUI.add(
 								label: strings.name,
 								name: 'name',
 								size: 35,
-								type: 'text'
+								type: 'text',
 							}),
 
 							textareaTpl.parse({
@@ -1626,7 +1635,7 @@ AUI.add(
 								auiLabelCssClass: 'celleditor-label',
 								id: A.guid(),
 								label: strings.description,
-								name: 'description'
+								name: 'description',
 							}),
 
 							selectTpl.parse({
@@ -1635,7 +1644,7 @@ AUI.add(
 								id: A.guid(),
 								label: strings.templateLanguage,
 								name: 'templateLanguage',
-								options: instance.get('templateLanguages')
+								options: instance.get('templateLanguages'),
 							}),
 
 							textareaTpl.parse({
@@ -1644,7 +1653,7 @@ AUI.add(
 								auiLabelCssClass: 'celleditor-label',
 								id: A.guid(),
 								label: strings.template,
-								name: 'template'
+								name: 'template',
 							}),
 
 							selectMultipleTpl.parse({
@@ -1654,7 +1663,7 @@ AUI.add(
 								label: strings.notificationType,
 								multiple: true,
 								name: 'notificationTypes',
-								options: instance.get('notificationTypes')
+								options: instance.get('notificationTypes'),
 							}),
 
 							selectTpl.parse({
@@ -1664,14 +1673,14 @@ AUI.add(
 								id: A.guid(),
 								label: strings.executionType,
 								name: 'executionType',
-								options: instance.get('executionTypes')
-							})
+								options: instance.get('executionTypes'),
+							}),
 						].join(STR_BLANK);
 
 						buffer.push(
 							notificationsViewTpl.parse({
 								content: notificationContent,
-								viewId: 'notification'
+								viewId: 'notification',
 							})
 						);
 					}
@@ -1711,7 +1720,7 @@ AUI.add(
 							arguments
 						),
 						{
-							recipients
+							recipients,
 						}
 					);
 				},
@@ -1755,8 +1764,8 @@ AUI.add(
 					);
 
 					instance._renderRecipientsEditor();
-				}
-			}
+				},
+			},
 		};
 
 		var NotificationsEditorForm = A.Component.create(
@@ -1766,22 +1775,22 @@ AUI.add(
 		var NotificationsEditor = A.Component.create({
 			ATTRS: {
 				cssClass: {
-					value: 'tall-editor'
+					value: 'tall-editor',
 				},
 
 				editorFormClass: {
-					value: NotificationsEditorForm
-				}
+					value: NotificationsEditorForm,
+				},
 			},
 
 			AUGMENTS: [A.WidgetCssClass],
 
 			EXTENDS: BaseAbstractEditor,
 
-			NAME: 'notifications-cell-editor'
+			NAME: 'notifications-cell-editor',
 		});
 
-		NotificationsEditorFormConfig.prototype.addNotificationView = function(
+		NotificationsEditorFormConfig.prototype.addNotificationView = function (
 			num
 		) {
 			var instance = this;
@@ -1809,7 +1818,7 @@ AUI.add(
 						label: strings.name,
 						name: 'name',
 						size: 35,
-						type: 'text'
+						type: 'text',
 					}),
 
 					textareaTpl.parse({
@@ -1818,7 +1827,7 @@ AUI.add(
 						auiLabelCssClass: 'celleditor-label',
 						id: A.guid(),
 						label: strings.description,
-						name: 'description'
+						name: 'description',
 					}),
 
 					selectTpl.parse({
@@ -1827,7 +1836,7 @@ AUI.add(
 						id: A.guid(),
 						label: strings.templateLanguage,
 						name: 'templateLanguage',
-						options: instance.get('templateLanguages')
+						options: instance.get('templateLanguages'),
 					}),
 
 					textareaTpl.parse({
@@ -1836,7 +1845,7 @@ AUI.add(
 						auiLabelCssClass: 'celleditor-label',
 						id: A.guid(),
 						label: strings.template,
-						name: 'template'
+						name: 'template',
 					}),
 
 					selectMultipleTpl.parse({
@@ -1846,14 +1855,14 @@ AUI.add(
 						label: strings.notificationType,
 						multiple: true,
 						name: 'notificationTypes',
-						options: instance.get('notificationTypes')
-					})
+						options: instance.get('notificationTypes'),
+					}),
 				].join(STR_BLANK);
 
 				buffer.push(
 					notificationsViewTpl.parse({
 						content: notificationContent,
-						viewId: 'notification'
+						viewId: 'notification',
 					})
 				);
 			}
@@ -1861,7 +1870,7 @@ AUI.add(
 			instance.appendToDynamicView(buffer.join(STR_BLANK));
 		};
 
-		NotificationsEditorFormConfig.prototype.getValue = function() {
+		NotificationsEditorFormConfig.prototype.getValue = function () {
 			var instance = this;
 
 			var localRecipients = instance.get('recipients');
@@ -1891,12 +1900,12 @@ AUI.add(
 					arguments
 				),
 				{
-					recipients
+					recipients,
 				}
 			);
 		};
 
-		NotificationsEditorFormConfig.prototype._showRecipientsEditor = function(
+		NotificationsEditorFormConfig.prototype._showRecipientsEditor = function (
 			bodyContentNode,
 			index
 		) {
@@ -1919,7 +1928,7 @@ AUI.add(
 				editorContainer,
 				value,
 				{
-					executionTypeSelect
+					executionTypeSelect,
 				}
 			);
 		};
@@ -1943,16 +1952,16 @@ AUI.add(
 						);
 
 						return scriptLanguagesJSONArray;
-					}
+					},
 				},
 
 				viewTemplate: {
 					value: [
 						'<div class="{$ans}celleditor-actions-view {$ans}celleditor-view {$ans}celleditor-view-type-{viewId}">',
 						'{content}',
-						'</div>'
-					]
-				}
+						'</div>',
+					],
+				},
 			},
 
 			AUGMENTS: [ExecutionTypesEditorFormBase],
@@ -1997,7 +2006,7 @@ AUI.add(
 								label: strings.name,
 								name: 'name',
 								size: 35,
-								type: 'text'
+								type: 'text',
 							}),
 
 							textareaTpl.parse({
@@ -2006,7 +2015,7 @@ AUI.add(
 								auiLabelCssClass: 'celleditor-label',
 								id: A.guid(),
 								label: strings.description,
-								name: 'description'
+								name: 'description',
 							}),
 
 							textareaTpl.parse({
@@ -2015,7 +2024,7 @@ AUI.add(
 								auiLabelCssClass: 'celleditor-label',
 								id: A.guid(),
 								label: strings.script,
-								name: 'script'
+								name: 'script',
 							}),
 
 							selectTpl.parse({
@@ -2024,7 +2033,7 @@ AUI.add(
 								id: A.guid(),
 								label: strings.scriptLanguage,
 								name: 'scriptLanguage',
-								options: instance.get('scriptLanguages')
+								options: instance.get('scriptLanguages'),
 							}),
 
 							selectTpl.parse({
@@ -2033,7 +2042,7 @@ AUI.add(
 								id: A.guid(),
 								label: strings.executionType,
 								name: 'executionType',
-								options: instance.get('executionTypes')
+								options: instance.get('executionTypes'),
 							}),
 
 							inputTpl.parse({
@@ -2044,14 +2053,14 @@ AUI.add(
 								label: strings.priority,
 								name: 'priority',
 								size: 35,
-								type: 'text'
-							})
+								type: 'text',
+							}),
 						].join(STR_BLANK);
 
 						buffer.push(
 							actionsViewTpl.parse({
 								content: actionContent,
-								viewId: 'action'
+								viewId: 'action',
 							})
 						);
 					}
@@ -2093,8 +2102,8 @@ AUI.add(
 					if (addSectionButton) {
 						addSectionButton.set('disabled', false);
 					}
-				}
-			}
+				},
+			},
 		};
 
 		var ActionsEditorForm = A.Component.create(ActionsEditorFormConfig);
@@ -2102,22 +2111,22 @@ AUI.add(
 		var ActionsEditor = A.Component.create({
 			ATTRS: {
 				cssClass: {
-					value: 'tall-editor'
+					value: 'tall-editor',
 				},
 
 				editorFormClass: {
-					value: ActionsEditorForm
-				}
+					value: ActionsEditorForm,
+				},
 			},
 
 			AUGMENTS: [A.WidgetCssClass],
 
 			EXTENDS: BaseAbstractEditor,
 
-			NAME: 'actions-cell-editor'
+			NAME: 'actions-cell-editor',
 		});
 
-		ActionsEditorFormConfig.prototype.addActionView = function(num) {
+		ActionsEditorFormConfig.prototype.addActionView = function (num) {
 			var instance = this;
 
 			num = num || 1;
@@ -2142,7 +2151,7 @@ AUI.add(
 						label: strings.name,
 						name: 'name',
 						size: 35,
-						type: 'text'
+						type: 'text',
 					}),
 
 					textareaTpl.parse({
@@ -2151,7 +2160,7 @@ AUI.add(
 						auiLabelCssClass: 'celleditor-label',
 						id: A.guid(),
 						label: strings.description,
-						name: 'description'
+						name: 'description',
 					}),
 
 					textareaTpl.parse({
@@ -2160,7 +2169,7 @@ AUI.add(
 						auiLabelCssClass: 'celleditor-label',
 						id: A.guid(),
 						label: strings.script,
-						name: 'script'
+						name: 'script',
 					}),
 
 					selectTpl.parse({
@@ -2169,7 +2178,7 @@ AUI.add(
 						id: A.guid(),
 						label: strings.scriptLanguage,
 						name: 'scriptLanguage',
-						options: instance.get('scriptLanguages')
+						options: instance.get('scriptLanguages'),
 					}),
 
 					inputTpl.parse({
@@ -2180,14 +2189,14 @@ AUI.add(
 						label: strings.priority,
 						name: 'priority',
 						size: 35,
-						type: 'text'
-					})
+						type: 'text',
+					}),
 				].join(STR_BLANK);
 
 				buffer.push(
 					actionsViewTpl.parse({
 						content: actionContent,
-						viewId: 'action'
+						viewId: 'action',
 					})
 				);
 			}
@@ -2210,28 +2219,28 @@ AUI.add(
 						return [
 							{
 								label: strings.action,
-								value: 'action'
+								value: 'action',
 							},
 
 							{
 								label: strings.notification,
-								value: 'notification'
+								value: 'notification',
 							},
 
 							{
 								label: strings.reassignment,
-								value: 'reassignment'
-							}
+								value: 'reassignment',
+							},
 						];
-					}
+					},
 				},
 
 				editorFormClasses: {
 					value: {
 						action: TimerActionsEditorForm,
 						notification: TimerNotificationsEditorForm,
-						reassignment: AssignmentsEditorForm
-					}
+						reassignment: AssignmentsEditorForm,
+					},
 				},
 
 				viewTemplate: {
@@ -2241,9 +2250,9 @@ AUI.add(
 						'<div class="editor-container editor-container-action"></div>',
 						'<div class="editor-container editor-container-notification"></div>',
 						'<div class="editor-container editor-container-reassignment"></div>',
-						'</div>'
-					]
-				}
+						'</div>',
+					],
+				},
 			},
 
 			AUGMENTS: [CompositeEditorFormBase],
@@ -2347,7 +2356,8 @@ AUI.add(
 					if (value && value.actionType && value.actionType[index]) {
 						actionType = value.actionType[index];
 						timerAction = value.timerAction[index];
-					} else {
+					}
+					else {
 						var actionTypeSelect = bodyContentNode.one(
 							'.select-action-type'
 						);
@@ -2402,14 +2412,14 @@ AUI.add(
 								id: A.guid(),
 								label: strings.type,
 								name: 'actionType',
-								options: instance.get('actionTypes')
-							})
+								options: instance.get('actionTypes'),
+							}),
 						].join(STR_BLANK);
 
 						buffer.push(
 							timerActionViewTpl.parse({
 								content: timerActionContent,
-								viewId: 'timerAction'
+								viewId: 'timerAction',
 							})
 						);
 					}
@@ -2422,12 +2432,12 @@ AUI.add(
 
 					var value = {
 						actionType: [],
-						timerAction: []
+						timerAction: [],
 					};
 
 					var dynamicViews = instance.getDynamicViews();
 
-					dynamicViews.each(item => {
+					dynamicViews.each((item) => {
 						var actionTypeSelect = item.one('.select-action-type');
 
 						var actionType = actionTypeSelect.val();
@@ -2500,8 +2510,8 @@ AUI.add(
 					instance._renderEditor();
 
 					instance._displayEditors();
-				}
-			}
+				},
+			},
 		});
 
 		var TaskTimerDelaysEditorForm = A.Component.create({
@@ -2515,49 +2525,49 @@ AUI.add(
 						return [
 							{
 								label: strings.second,
-								value: 'second'
+								value: 'second',
 							},
 
 							{
 								label: strings.minute,
-								value: 'minute'
+								value: 'minute',
 							},
 
 							{
 								label: strings.hour,
-								value: 'hour'
+								value: 'hour',
 							},
 
 							{
 								label: strings.day,
-								value: 'day'
+								value: 'day',
 							},
 
 							{
 								label: strings.week,
-								value: 'week'
+								value: 'week',
 							},
 
 							{
 								label: strings.month,
-								value: 'month'
+								value: 'month',
 							},
 
 							{
 								label: strings.year,
-								value: 'year'
-							}
+								value: 'year',
+							},
 						];
-					}
+					},
 				},
 
 				viewTemplate: {
 					value: [
 						'<div class="{$ans}celleditor-task-timer-delays-view {$ans}celleditor-view {$ans}celleditor-view-type-{viewId}">',
 						'{content}',
-						'</div>'
-					]
-				}
+						'</div>',
+					],
+				},
 			},
 
 			EXTENDS: BaseAbstractEditorForm,
@@ -2565,57 +2575,16 @@ AUI.add(
 			NAME: 'task-timer-delays-editor-form',
 
 			prototype: {
-				_countRecurrenceViews(val) {
-					var count = 0;
-
-					if (val) {
-						count = val.duration
-							? val.duration.filter(isValue).length - 1
-							: 0;
-					}
-
-					return count;
-				},
-
-				addDynamicViews(val) {
-					var instance = this;
-
-					instance.removeAllViews('recurrence');
-
-					instance.addRecurrenceView(
-						instance._countRecurrenceViews(val)
-					);
-				},
-
-				addRecurrenceView(num) {
-					var instance = this;
-
-					num = num || 0;
-
-					var timersViewTpl = instance.get('viewTemplate');
-
-					var buffer = [];
-
-					for (var i = 0; i < num; i++) {
-						var delayContent = instance.getDelayContent();
-
-						buffer.push(
-							timersViewTpl.parse({
-								content: delayContent,
-								viewId: 'recurrence'
-							})
-						);
-					}
-
-					instance.appendToDynamicView(buffer.join(STR_BLANK));
-				},
-
 				addStaticViews() {
 					var instance = this;
 
 					var delayContent = instance.getDelayContent();
 
 					instance.appendToStaticView(delayContent);
+
+					var recurrenceContent = instance.getRecurrenceContent();
+
+					instance.appendToStaticView(recurrenceContent);
 				},
 
 				getDelayContent() {
@@ -2632,7 +2601,7 @@ AUI.add(
 							auiLabelCssClass: 'celleditor-label',
 							id: A.guid(),
 							label: strings.duration,
-							name: 'duration'
+							name: 'duration',
 						}),
 
 						selectTpl.parse({
@@ -2641,52 +2610,47 @@ AUI.add(
 							id: A.guid(),
 							label: strings.scale,
 							name: 'scale',
-							options: instance.get('scales')
-						})
+							options: instance.get('scales'),
+						}),
 					].join(STR_BLANK);
 				},
 
-				handleAddViewSection(event) {
+				getRecurrenceContent() {
 					var instance = this;
 
-					var button = event.target;
+					var timersViewTpl = instance.get('viewTemplate');
 
-					if (!button.get('disabled')) {
-						instance.addRecurrenceView(1);
-					}
+					var delayContent = instance.getDelayContent();
+
+					return [
+						timersViewTpl.parse({
+							content: delayContent,
+							viewId: 'recurrence',
+						}),
+					].join(STR_BLANK);
 				},
-
-				syncToolbarUI() {
-					var instance = this;
-
-					var addSectionButton = instance.get('addSectionButton');
-
-					if (addSectionButton) {
-						addSectionButton.set('disabled', false);
-					}
-				}
-			}
+			},
 		});
 
 		var TaskTimersEditorForm = A.Component.create({
 			ATTRS: {
 				delays: {
 					getter: '_getDelays',
-					value: []
+					value: [],
 				},
 
 				timerActions: {
 					getter: '_getTimerActions',
-					value: []
+					value: [],
 				},
 
 				viewTemplate: {
 					value: [
 						'<div class="{$ans}celleditor-task-timers-view {$ans}celleditor-view {$ans}celleditor-view-type-{viewId}">',
 						'{content}',
-						'</div>'
-					]
-				}
+						'</div>',
+					],
+				},
 			},
 
 			AUGMENTS: [CompositeEditorFormBase],
@@ -2820,7 +2784,7 @@ AUI.add(
 
 						timerActions.push({
 							actionType,
-							timerAction
+							timerAction,
 						});
 					}
 
@@ -2962,7 +2926,7 @@ AUI.add(
 								label: strings.name,
 								name: 'name',
 								size: 35,
-								type: 'text'
+								type: 'text',
 							}),
 
 							textareaTpl.parse({
@@ -2971,7 +2935,7 @@ AUI.add(
 								auiLabelCssClass: 'celleditor-label',
 								id: A.guid(),
 								label: strings.description,
-								name: 'description'
+								name: 'description',
 							}),
 
 							'<div class="delays-editor-container"></div>',
@@ -2983,16 +2947,16 @@ AUI.add(
 								id: A.guid(),
 								label: strings.blocking,
 								name: 'blocking',
-								type: 'checkbox'
+								type: 'checkbox',
 							}),
 
-							'<div class="timer-actions-editor-container"></div>'
+							'<div class="timer-actions-editor-container"></div>',
 						].join(STR_BLANK);
 
 						buffer.push(
 							timersViewTpl.parse({
 								content: taskTimerContent,
-								viewId: 'timer'
+								viewId: 'timer',
 							})
 						);
 					}
@@ -3010,7 +2974,7 @@ AUI.add(
 						name: [],
 						reassignments: [],
 						timerActions: [],
-						timerNotifications: []
+						timerNotifications: [],
 					};
 
 					var bodyNode = instance.get('bodyNode');
@@ -3019,13 +2983,14 @@ AUI.add(
 						'.task-timers-cell-editor-input'
 					);
 
-					taskTimerInputs.each(item => {
+					taskTimerInputs.each((item) => {
 						if (
 							item.get('type') &&
 							item.get('type') === 'checkbox'
 						) {
 							value[item.get('name')].push(item.get('checked'));
-						} else {
+						}
+						else {
 							value[item.get('name')].push(item.val());
 						}
 					});
@@ -3070,9 +3035,11 @@ AUI.add(
 
 								if (actionType === 'action') {
 									object = value.timerActions[index1];
-								} else if (actionType === 'notification') {
+								}
+								else if (actionType === 'notification') {
 									object = value.timerNotifications[index1];
-								} else if (actionType === 'reassignment') {
+								}
+								else if (actionType === 'reassignment') {
 									object = value.reassignments[index1];
 								}
 
@@ -3129,26 +3096,26 @@ AUI.add(
 					instance._renderDelaysEditor();
 
 					instance._renderTimerActionsEditor();
-				}
-			}
+				},
+			},
 		});
 
 		var TaskTimersEditor = A.Component.create({
 			ATTRS: {
 				cssClass: {
-					value: 'tall-editor'
+					value: 'tall-editor',
 				},
 
 				editorFormClass: {
-					value: TaskTimersEditorForm
-				}
+					value: TaskTimersEditorForm,
+				},
 			},
 
 			AUGMENTS: [A.WidgetCssClass],
 
 			EXTENDS: BaseAbstractEditor,
 
-			NAME: 'task-timers-cell-editor'
+			NAME: 'task-timers-cell-editor',
 		});
 
 		var ScriptEditor = A.Component.create({
@@ -3156,8 +3123,8 @@ AUI.add(
 				inputFormatter: {
 					value(val) {
 						return val;
-					}
-				}
+					},
+				},
 			},
 
 			EXTENDS: A.BaseCellEditor,
@@ -3206,10 +3173,10 @@ AUI.add(
 
 					instance.editor = new A.AceEditor({
 						height: 300,
-						width: 550
+						width: 550,
 					});
-				}
-			}
+				},
+			},
 		});
 
 		Liferay.KaleoDesignerEditors = {
@@ -3221,7 +3188,7 @@ AUI.add(
 			FormsEditor,
 			NotificationsEditor,
 			ScriptEditor,
-			TaskTimersEditor
+			TaskTimersEditor,
 		};
 	},
 	'',
@@ -3235,7 +3202,7 @@ AUI.add(
 			'liferay-kaleo-designer-autocomplete-util',
 			'liferay-kaleo-designer-remote-services',
 			'liferay-kaleo-designer-templates',
-			'liferay-kaleo-designer-utils'
-		]
+			'liferay-kaleo-designer-utils',
+		],
 	}
 );

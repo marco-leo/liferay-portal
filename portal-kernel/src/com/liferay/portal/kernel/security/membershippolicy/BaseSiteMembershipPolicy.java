@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalServiceUtil;
-import com.liferay.portal.kernel.service.persistence.UserGroupRolePK;
 
 import java.io.Serializable;
 
@@ -54,7 +53,7 @@ public abstract class BaseSiteMembershipPolicy implements SiteMembershipPolicy {
 		try {
 			checkMembership(new long[] {userId}, new long[] {groupId}, null);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return false;
 		}
 
@@ -98,7 +97,7 @@ public abstract class BaseSiteMembershipPolicy implements SiteMembershipPolicy {
 		try {
 			checkMembership(new long[] {userId}, null, new long[] {groupId});
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return true;
 		}
 
@@ -111,18 +110,19 @@ public abstract class BaseSiteMembershipPolicy implements SiteMembershipPolicy {
 
 		List<UserGroupRole> userGroupRoles = new ArrayList<>();
 
-		UserGroupRolePK userGroupRolePK = new UserGroupRolePK(
-			userId, groupId, roleId);
-
 		UserGroupRole userGroupRole =
-			UserGroupRoleLocalServiceUtil.createUserGroupRole(userGroupRolePK);
+			UserGroupRoleLocalServiceUtil.createUserGroupRole(0);
+
+		userGroupRole.setUserId(userId);
+		userGroupRole.setGroupId(groupId);
+		userGroupRole.setRoleId(roleId);
 
 		userGroupRoles.add(userGroupRole);
 
 		try {
 			checkRoles(userGroupRoles, null);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return false;
 		}
 
@@ -162,18 +162,19 @@ public abstract class BaseSiteMembershipPolicy implements SiteMembershipPolicy {
 	public boolean isRoleRequired(long userId, long groupId, long roleId) {
 		List<UserGroupRole> userGroupRoles = new ArrayList<>();
 
-		UserGroupRolePK userGroupRolePK = new UserGroupRolePK(
-			userId, groupId, roleId);
-
 		UserGroupRole userGroupRole =
-			UserGroupRoleLocalServiceUtil.createUserGroupRole(userGroupRolePK);
+			UserGroupRoleLocalServiceUtil.createUserGroupRole(0);
+
+		userGroupRole.setUserId(userId);
+		userGroupRole.setGroupId(groupId);
+		userGroupRole.setRoleId(roleId);
 
 		userGroupRoles.add(userGroupRole);
 
 		try {
 			checkRoles(null, userGroupRoles);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return true;
 		}
 

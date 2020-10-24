@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -54,18 +55,70 @@ public class FunctionalBatchTestClassGroup extends BatchTestClassGroup {
 	}
 
 	protected FunctionalBatchTestClassGroup(
-		String batchName, PortalTestClassJob portalTestClassJob) {
+		String batchName, BuildProfile buildProfile,
+		PortalTestClassJob portalTestClassJob) {
 
-		super(batchName, portalTestClassJob);
+		super(batchName, buildProfile, portalTestClassJob);
 
 		axisTestClassGroups.put(0, new AxisTestClassGroup(this, 0));
 
 		_setRelevantTestBatchRunPropertyQuery();
 	}
 
+	private String _getDefaultTestBatchRunPropertyGlobalQuery(
+		String testSuiteName) {
+
+		return getFirstPropertyValue(
+			"test.batch.run.property.global.query", batchName, testSuiteName);
+	}
+
 	private String _getDefaultTestBatchRunPropertyQuery(String testSuiteName) {
 		return getFirstPropertyValue(
 			"test.batch.run.property.query", batchName, testSuiteName);
+	}
+
+	private List<File> _getFunctionalRequiredModuleDirs(List<File> moduleDirs) {
+		List<File> functionalRequiredModuleDirs = Lists.newArrayList(
+			moduleDirs);
+
+		File modulesBaseDir = new File(
+			portalGitWorkingDirectory.getWorkingDirectory(), "modules");
+
+		for (File moduleDir : moduleDirs) {
+			Properties moduleDirTestProperties =
+				JenkinsResultsParserUtil.getProperties(
+					new File(moduleDir, "test.properties"));
+
+			String functionalRequiredModuleDirPaths =
+				moduleDirTestProperties.getProperty(
+					"modules.includes.required.functional[" + testSuiteName +
+						"]");
+
+			if (functionalRequiredModuleDirPaths == null) {
+				continue;
+			}
+
+			for (String functionalRequiredModuleDirPath :
+					functionalRequiredModuleDirPaths.split(",")) {
+
+				File functionalRequiredModuleDir = new File(
+					modulesBaseDir, functionalRequiredModuleDirPath);
+
+				if (!functionalRequiredModuleDir.exists()) {
+					continue;
+				}
+
+				if (functionalRequiredModuleDirs.contains(
+						functionalRequiredModuleDir)) {
+
+					continue;
+				}
+
+				functionalRequiredModuleDirs.add(functionalRequiredModuleDir);
+			}
+		}
+
+		return Lists.newArrayList(functionalRequiredModuleDirs);
 	}
 
 	private void _setRelevantTestBatchRunPropertyQuery() {
@@ -82,7 +135,7 @@ public class FunctionalBatchTestClassGroup extends BatchTestClassGroup {
 			modifiedDirsList.addAll(
 				portalGitWorkingDirectory.getModifiedModuleDirsList());
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 			File workingDirectory =
 				portalGitWorkingDirectory.getWorkingDirectory();
 
@@ -90,7 +143,7 @@ public class FunctionalBatchTestClassGroup extends BatchTestClassGroup {
 				JenkinsResultsParserUtil.combine(
 					"Unable to get module directories in ",
 					workingDirectory.getPath()),
-				ioe);
+				ioException);
 		}
 
 		File modulesDir = new File(
@@ -106,6 +159,10 @@ public class FunctionalBatchTestClassGroup extends BatchTestClassGroup {
 
 		modifiedDirsList.addAll(
 			getRequiredModuleDirs(Lists.newArrayList(modifiedDirsList)));
+
+		modifiedDirsList.addAll(
+			_getFunctionalRequiredModuleDirs(
+				Lists.newArrayList(modifiedDirsList)));
 
 		StringBuilder sb = new StringBuilder();
 
@@ -171,6 +228,16 @@ public class FunctionalBatchTestClassGroup extends BatchTestClassGroup {
 		}
 
 		_relevantTestBatchRunPropertyQuery = sb.toString();
+
+		String defaultGlobalQuery = _getDefaultTestBatchRunPropertyGlobalQuery(
+			testSuiteName);
+
+		if ((defaultGlobalQuery != null) && !defaultGlobalQuery.isEmpty()) {
+			_relevantTestBatchRunPropertyQuery =
+				JenkinsResultsParserUtil.combine(
+					"(", defaultGlobalQuery, ") AND (",
+					_relevantTestBatchRunPropertyQuery, ")");
+		}
 	}
 
 	private String _relevantTestBatchRunPropertyQuery;

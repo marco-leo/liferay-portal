@@ -19,10 +19,10 @@ import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.PortletDataException;
 import com.liferay.exportimport.kernel.lar.PortletDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
-import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleConstants;
 import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleEvent;
 import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleEventListenerRegistryUtil;
 import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleListener;
+import com.liferay.exportimport.kernel.lifecycle.constants.ExportImportLifecycleConstants;
 import com.liferay.exportimport.test.util.constants.DummyFolderPortletKeys;
 import com.liferay.exportimport.test.util.exportimport.data.handler.DummyFolderWithMissingDummyPortletDataHandler;
 import com.liferay.petra.string.CharPool;
@@ -104,14 +104,14 @@ public class ExportedMissingReferenceBackwardCompatbilityExportImportTest
 		try {
 			exportImportLayouts(layoutIds, getExportParameterMap());
 		}
-		catch (PortletDataException pde) {
-			Throwable cause = pde.getCause();
+		catch (PortletDataException portletDataException) {
+			Throwable throwable = portletDataException.getCause();
 
-			if (!(cause instanceof NullPointerException)) {
-				throw pde;
+			if (!(throwable instanceof NullPointerException)) {
+				throw portletDataException;
 			}
 
-			StackTraceElement[] stackTrace = cause.getStackTrace();
+			StackTraceElement[] stackTrace = throwable.getStackTrace();
 
 			if (Objects.equals(
 					stackTrace[0].getClassName(),
@@ -120,7 +120,7 @@ public class ExportedMissingReferenceBackwardCompatbilityExportImportTest
 					stackTrace[0].getMethodName(),
 					"doImportReferenceStagedModel")) {
 
-				throw pde;
+				throw portletDataException;
 			}
 		}
 
@@ -250,12 +250,10 @@ public class ExportedMissingReferenceBackwardCompatbilityExportImportTest
 								zipReader.getEntryAsInputStream(zipEntry));
 						}
 					}
-					catch (Exception e) {
-						throw new RuntimeException(e);
+					catch (Exception exception) {
+						throw new RuntimeException(exception);
 					}
 				});
-
-			zipWriter.finish();
 
 			FileUtil.delete(file);
 		}

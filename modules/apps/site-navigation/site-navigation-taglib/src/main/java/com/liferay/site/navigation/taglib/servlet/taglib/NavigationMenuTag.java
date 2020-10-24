@@ -40,7 +40,6 @@ import com.liferay.taglib.util.IncludeTag;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
@@ -125,30 +124,28 @@ public class NavigationMenuTag extends IncludeTag {
 					branchNavItems);
 			}
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 
 		HttpServletResponse httpServletResponse =
 			(HttpServletResponse)pageContext.getResponse();
 
-		Map<String, Object> contextObjects = HashMapBuilder.<String, Object>put(
-			"branchNavItems", branchNavItems
-		).put(
-			"displayDepth", _displayDepth
-		).put(
-			"includedLayouts", _expandedLevels
-		).put(
-			"preview", _preview
-		).put(
-			"rootLayoutLevel", _rootItemLevel
-		).put(
-			"rootLayoutType", _rootItemType
-		).build();
-
 		String result = portletDisplayTemplate.renderDDMTemplate(
 			request, httpServletResponse, portletDisplayDDMTemplate, navItems,
-			contextObjects);
+			HashMapBuilder.<String, Object>put(
+				"branchNavItems", branchNavItems
+			).put(
+				"displayDepth", _displayDepth
+			).put(
+				"includedLayouts", _expandedLevels
+			).put(
+				"preview", _preview
+			).put(
+				"rootLayoutLevel", _rootItemLevel
+			).put(
+				"rootLayoutType", _rootItemType
+			).build());
 
 		JspWriter jspWriter = pageContext.getOut();
 

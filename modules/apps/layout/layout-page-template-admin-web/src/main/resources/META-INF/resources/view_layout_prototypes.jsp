@@ -17,7 +17,7 @@
 <%@ include file="/init.jsp" %>
 
 <%
-LayoutPrototypeDisplayContext layoutPrototypeDisplayContext = new LayoutPrototypeDisplayContext(renderRequest, renderResponse, request);
+LayoutPrototypeDisplayContext layoutPrototypeDisplayContext = new LayoutPrototypeDisplayContext(request, renderRequest, renderResponse);
 %>
 
 <clay:navigation-bar
@@ -26,7 +26,7 @@ LayoutPrototypeDisplayContext layoutPrototypeDisplayContext = new LayoutPrototyp
 />
 
 <%
-LayoutPrototypeManagementToolbarDisplayContext layoutPrototypeManagementToolbarDisplayContext = new LayoutPrototypeManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, layoutPrototypeDisplayContext);
+LayoutPrototypeManagementToolbarDisplayContext layoutPrototypeManagementToolbarDisplayContext = new LayoutPrototypeManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, layoutPrototypeDisplayContext);
 %>
 
 <clay:management-toolbar
@@ -56,9 +56,9 @@ LayoutPrototypeManagementToolbarDisplayContext layoutPrototypeManagementToolbarD
 
 			row.setCssClass("entry-card lfr-asset-item");
 
-			Map<String, Object> rowData = new HashMap<>();
-
-			rowData.put("actions", layoutPrototypeManagementToolbarDisplayContext.getAvailableActions(layoutPrototype));
+			Map<String, Object> rowData = HashMapBuilder.<String, Object>put(
+				"actions", layoutPrototypeManagementToolbarDisplayContext.getAvailableActions(layoutPrototype)
+			).build();
 
 			row.setData(rowData);
 			%>

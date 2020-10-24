@@ -61,7 +61,7 @@ public class UserPortraitTag extends IncludeTag {
 			sb.append("<svg class=\"lexicon-icon\">");
 			sb.append("<use href=\"");
 			sb.append(themeDisplay.getPathThemeImages());
-			sb.append("/lexicon/icons.svg#user\" /></svg>");
+			sb.append("/clay/icons.svg#user\" /></svg>");
 			sb.append("</span></span>");
 
 			return sb.toString();
@@ -231,8 +231,8 @@ public class UserPortraitTag extends IncludeTag {
 
 			return user.getPortraitURL(themeDisplay);
 		}
-		catch (PortalException pe) {
-			_log.error(pe, pe);
+		catch (PortalException portalException) {
+			_log.error(portalException, portalException);
 
 			return null;
 		}

@@ -15,6 +15,7 @@
 package com.liferay.portal.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
@@ -27,13 +28,16 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.NoSuchPasswordPolicyException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.PasswordPolicy;
+import com.liferay.portal.kernel.model.PasswordPolicyTable;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.PasswordPolicyPersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -42,6 +46,9 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.model.impl.PasswordPolicyImpl;
 import com.liferay.portal.model.impl.PasswordPolicyModelImpl;
+import com.liferay.registry.Registry;
+import com.liferay.registry.RegistryUtil;
+import com.liferay.registry.ServiceRegistration;
 
 import java.io.Serializable;
 
@@ -50,10 +57,12 @@ import java.lang.reflect.InvocationHandler;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The persistence implementation for the password policy service.
@@ -69,7 +78,7 @@ public class PasswordPolicyPersistenceImpl
 	extends BasePersistenceImpl<PasswordPolicy>
 	implements PasswordPolicyPersistence {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>PasswordPolicyUtil</code> to access the password policy persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -195,54 +204,54 @@ public class PasswordPolicyPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
+			sb.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_UUID_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
 				list = (List<PasswordPolicy>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -250,12 +259,8 @@ public class PasswordPolicyPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -285,16 +290,16 @@ public class PasswordPolicyPersistenceImpl
 			return passwordPolicy;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchPasswordPolicyException(msg.toString());
+		throw new NoSuchPasswordPolicyException(sb.toString());
 	}
 
 	/**
@@ -337,16 +342,16 @@ public class PasswordPolicyPersistenceImpl
 			return passwordPolicy;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchPasswordPolicyException(msg.toString());
+		throw new NoSuchPasswordPolicyException(sb.toString());
 	}
 
 	/**
@@ -412,8 +417,8 @@ public class PasswordPolicyPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -424,28 +429,28 @@ public class PasswordPolicyPersistenceImpl
 		Session session, PasswordPolicy passwordPolicy, String uuid,
 		OrderByComparator<PasswordPolicy> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
+		sb.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_UUID_3);
+			sb.append(_FINDER_COLUMN_UUID_UUID_3);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_UUID_2);
+			sb.append(_FINDER_COLUMN_UUID_UUID_2);
 		}
 
 		if (orderByComparator != null) {
@@ -453,72 +458,72 @@ public class PasswordPolicyPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
+			sb.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
 		if (orderByComparator != null) {
@@ -526,11 +531,11 @@ public class PasswordPolicyPersistenceImpl
 					orderByComparator.getOrderByConditionValues(
 						passwordPolicy)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<PasswordPolicy> list = q.list();
+		List<PasswordPolicy> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -595,61 +600,61 @@ public class PasswordPolicyPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				3 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_PASSWORDPOLICY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_PASSWORDPOLICY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_PASSWORDPOLICY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_UUID_3_SQL);
+			sb.append(_FINDER_COLUMN_UUID_UUID_3_SQL);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_UUID_2_SQL);
+			sb.append(_FINDER_COLUMN_UUID_UUID_2_SQL);
 		}
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_PASSWORDPOLICY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_SQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), PasswordPolicy.class.getName(),
+			sb.toString(), PasswordPolicy.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -657,26 +662,28 @@ public class PasswordPolicyPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, PasswordPolicyImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, PasswordPolicyImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 			if (bindUuid) {
-				qPos.add(uuid);
+				queryPos.add(uuid);
 			}
 
 			return (List<PasswordPolicy>)QueryUtil.list(
-				q, getDialect(), start, end);
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -724,8 +731,8 @@ public class PasswordPolicyPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -736,38 +743,38 @@ public class PasswordPolicyPersistenceImpl
 		Session session, PasswordPolicy passwordPolicy, String uuid,
 		OrderByComparator<PasswordPolicy> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_PASSWORDPOLICY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_PASSWORDPOLICY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_PASSWORDPOLICY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_UUID_3_SQL);
+			sb.append(_FINDER_COLUMN_UUID_UUID_3_SQL);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_UUID_2_SQL);
+			sb.append(_FINDER_COLUMN_UUID_UUID_2_SQL);
 		}
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_PASSWORDPOLICY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
@@ -776,18 +783,18 @@ public class PasswordPolicyPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -795,85 +802,85 @@ public class PasswordPolicyPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_SQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), PasswordPolicy.class.getName(),
+			sb.toString(), PasswordPolicy.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, PasswordPolicyImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, PasswordPolicyImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
 		if (orderByComparator != null) {
@@ -881,11 +888,11 @@ public class PasswordPolicyPersistenceImpl
 					orderByComparator.getOrderByConditionValues(
 						passwordPolicy)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<PasswordPolicy> list = q.list();
+		List<PasswordPolicy> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -927,44 +934,42 @@ public class PasswordPolicyPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_PASSWORDPOLICY_WHERE);
+			sb.append(_SQL_COUNT_PASSWORDPOLICY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_UUID_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -988,23 +993,23 @@ public class PasswordPolicyPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
-		StringBundler query = new StringBundler(2);
+		StringBundler sb = new StringBundler(2);
 
-		query.append(_FILTER_SQL_COUNT_PASSWORDPOLICY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_PASSWORDPOLICY_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_UUID_3_SQL);
+			sb.append(_FINDER_COLUMN_UUID_UUID_3_SQL);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_UUID_2_SQL);
+			sb.append(_FINDER_COLUMN_UUID_UUID_2_SQL);
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), PasswordPolicy.class.getName(),
+			sb.toString(), PasswordPolicy.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -1012,23 +1017,23 @@ public class PasswordPolicyPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 			if (bindUuid) {
-				qPos.add(uuid);
+				queryPos.add(uuid);
 			}
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1168,58 +1173,58 @@ public class PasswordPolicyPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
+			sb.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				list = (List<PasswordPolicy>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -1227,12 +1232,8 @@ public class PasswordPolicyPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1264,19 +1265,19 @@ public class PasswordPolicyPersistenceImpl
 			return passwordPolicy;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append(", companyId=");
-		msg.append(companyId);
+		sb.append(", companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchPasswordPolicyException(msg.toString());
+		throw new NoSuchPasswordPolicyException(sb.toString());
 	}
 
 	/**
@@ -1324,19 +1325,19 @@ public class PasswordPolicyPersistenceImpl
 			return passwordPolicy;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append(", companyId=");
-		msg.append(companyId);
+		sb.append(", companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchPasswordPolicyException(msg.toString());
+		throw new NoSuchPasswordPolicyException(sb.toString());
 	}
 
 	/**
@@ -1407,8 +1408,8 @@ public class PasswordPolicyPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1420,117 +1421,117 @@ public class PasswordPolicyPersistenceImpl
 		long companyId, OrderByComparator<PasswordPolicy> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
+		sb.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 		}
 
-		query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
+			sb.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						passwordPolicy)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<PasswordPolicy> list = q.list();
+		List<PasswordPolicy> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1600,63 +1601,63 @@ public class PasswordPolicyPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_PASSWORDPOLICY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_PASSWORDPOLICY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_PASSWORDPOLICY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_C_UUID_3_SQL);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_3_SQL);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_C_UUID_2_SQL);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_2_SQL);
 		}
 
-		query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_PASSWORDPOLICY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_SQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), PasswordPolicy.class.getName(),
+			sb.toString(), PasswordPolicy.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -1664,28 +1665,30 @@ public class PasswordPolicyPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, PasswordPolicyImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, PasswordPolicyImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 			if (bindUuid) {
-				qPos.add(uuid);
+				queryPos.add(uuid);
 			}
 
-			qPos.add(companyId);
+			queryPos.add(companyId);
 
 			return (List<PasswordPolicy>)QueryUtil.list(
-				q, getDialect(), start, end);
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1736,8 +1739,8 @@ public class PasswordPolicyPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1749,40 +1752,40 @@ public class PasswordPolicyPersistenceImpl
 		long companyId, OrderByComparator<PasswordPolicy> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_PASSWORDPOLICY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_PASSWORDPOLICY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_PASSWORDPOLICY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_C_UUID_3_SQL);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_3_SQL);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_C_UUID_2_SQL);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_2_SQL);
 		}
 
-		query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_PASSWORDPOLICY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
@@ -1791,18 +1794,18 @@ public class PasswordPolicyPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -1810,99 +1813,99 @@ public class PasswordPolicyPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_SQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), PasswordPolicy.class.getName(),
+			sb.toString(), PasswordPolicy.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, PasswordPolicyImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, PasswordPolicyImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						passwordPolicy)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<PasswordPolicy> list = q.list();
+		List<PasswordPolicy> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1948,48 +1951,46 @@ public class PasswordPolicyPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_PASSWORDPOLICY_WHERE);
+			sb.append(_SQL_COUNT_PASSWORDPOLICY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2014,25 +2015,25 @@ public class PasswordPolicyPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
-		StringBundler query = new StringBundler(3);
+		StringBundler sb = new StringBundler(3);
 
-		query.append(_FILTER_SQL_COUNT_PASSWORDPOLICY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_PASSWORDPOLICY_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_C_UUID_3_SQL);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_3_SQL);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_C_UUID_2_SQL);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_2_SQL);
 		}
 
-		query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), PasswordPolicy.class.getName(),
+			sb.toString(), PasswordPolicy.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -2040,25 +2041,25 @@ public class PasswordPolicyPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 			if (bindUuid) {
-				qPos.add(uuid);
+				queryPos.add(uuid);
 			}
 
-			qPos.add(companyId);
+			queryPos.add(companyId);
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2192,43 +2193,43 @@ public class PasswordPolicyPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
+			sb.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
 
-			query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				list = (List<PasswordPolicy>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -2236,12 +2237,8 @@ public class PasswordPolicyPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2271,16 +2268,16 @@ public class PasswordPolicyPersistenceImpl
 			return passwordPolicy;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("companyId=");
-		msg.append(companyId);
+		sb.append("companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchPasswordPolicyException(msg.toString());
+		throw new NoSuchPasswordPolicyException(sb.toString());
 	}
 
 	/**
@@ -2324,16 +2321,16 @@ public class PasswordPolicyPersistenceImpl
 			return passwordPolicy;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("companyId=");
-		msg.append(companyId);
+		sb.append("companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchPasswordPolicyException(msg.toString());
+		throw new NoSuchPasswordPolicyException(sb.toString());
 	}
 
 	/**
@@ -2397,8 +2394,8 @@ public class PasswordPolicyPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2409,102 +2406,102 @@ public class PasswordPolicyPersistenceImpl
 		Session session, PasswordPolicy passwordPolicy, long companyId,
 		OrderByComparator<PasswordPolicy> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
+		sb.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
 
-		query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
+			sb.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						passwordPolicy)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<PasswordPolicy> list = q.list();
+		List<PasswordPolicy> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -2567,52 +2564,52 @@ public class PasswordPolicyPersistenceImpl
 			return findByCompanyId(companyId, start, end, orderByComparator);
 		}
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				3 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_PASSWORDPOLICY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_PASSWORDPOLICY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_PASSWORDPOLICY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_PASSWORDPOLICY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_SQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), PasswordPolicy.class.getName(),
+			sb.toString(), PasswordPolicy.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -2620,24 +2617,26 @@ public class PasswordPolicyPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, PasswordPolicyImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, PasswordPolicyImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(companyId);
+			queryPos.add(companyId);
 
 			return (List<PasswordPolicy>)QueryUtil.list(
-				q, getDialect(), start, end);
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2683,8 +2682,8 @@ public class PasswordPolicyPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2695,29 +2694,29 @@ public class PasswordPolicyPersistenceImpl
 		Session session, PasswordPolicy passwordPolicy, long companyId,
 		OrderByComparator<PasswordPolicy> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_PASSWORDPOLICY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_PASSWORDPOLICY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_PASSWORDPOLICY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_PASSWORDPOLICY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
@@ -2726,18 +2725,18 @@ public class PasswordPolicyPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -2745,95 +2744,95 @@ public class PasswordPolicyPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(PasswordPolicyModelImpl.ORDER_BY_SQL);
+				sb.append(PasswordPolicyModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), PasswordPolicy.class.getName(),
+			sb.toString(), PasswordPolicy.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, PasswordPolicyImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, PasswordPolicyImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						passwordPolicy)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<PasswordPolicy> list = q.list();
+		List<PasswordPolicy> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -2874,33 +2873,31 @@ public class PasswordPolicyPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_PASSWORDPOLICY_WHERE);
+			sb.append(_SQL_COUNT_PASSWORDPOLICY_WHERE);
 
-			query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2922,14 +2919,14 @@ public class PasswordPolicyPersistenceImpl
 			return countByCompanyId(companyId);
 		}
 
-		StringBundler query = new StringBundler(2);
+		StringBundler sb = new StringBundler(2);
 
-		query.append(_FILTER_SQL_COUNT_PASSWORDPOLICY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_PASSWORDPOLICY_WHERE);
 
-		query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), PasswordPolicy.class.getName(),
+			sb.toString(), PasswordPolicy.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -2937,21 +2934,21 @@ public class PasswordPolicyPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(companyId);
+			queryPos.add(companyId);
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2979,23 +2976,23 @@ public class PasswordPolicyPersistenceImpl
 		PasswordPolicy passwordPolicy = fetchByC_DP(companyId, defaultPolicy);
 
 		if (passwordPolicy == null) {
-			StringBundler msg = new StringBundler(6);
+			StringBundler sb = new StringBundler(6);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("companyId=");
-			msg.append(companyId);
+			sb.append("companyId=");
+			sb.append(companyId);
 
-			msg.append(", defaultPolicy=");
-			msg.append(defaultPolicy);
+			sb.append(", defaultPolicy=");
+			sb.append(defaultPolicy);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchPasswordPolicyException(msg.toString());
+			throw new NoSuchPasswordPolicyException(sb.toString());
 		}
 
 		return passwordPolicy;
@@ -3049,30 +3046,30 @@ public class PasswordPolicyPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
+			sb.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
 
-			query.append(_FINDER_COLUMN_C_DP_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_C_DP_COMPANYID_2);
 
-			query.append(_FINDER_COLUMN_C_DP_DEFAULTPOLICY_2);
+			sb.append(_FINDER_COLUMN_C_DP_DEFAULTPOLICY_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
-				qPos.add(defaultPolicy);
+				queryPos.add(defaultPolicy);
 
-				List<PasswordPolicy> list = q.list();
+				List<PasswordPolicy> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
@@ -3105,13 +3102,8 @@ public class PasswordPolicyPersistenceImpl
 					cacheResult(passwordPolicy);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(
-						_finderPathFetchByC_DP, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3159,37 +3151,35 @@ public class PasswordPolicyPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_PASSWORDPOLICY_WHERE);
+			sb.append(_SQL_COUNT_PASSWORDPOLICY_WHERE);
 
-			query.append(_FINDER_COLUMN_C_DP_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_C_DP_COMPANYID_2);
 
-			query.append(_FINDER_COLUMN_C_DP_DEFAULTPOLICY_2);
+			sb.append(_FINDER_COLUMN_C_DP_DEFAULTPOLICY_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
-				qPos.add(defaultPolicy);
+				queryPos.add(defaultPolicy);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3223,23 +3213,23 @@ public class PasswordPolicyPersistenceImpl
 		PasswordPolicy passwordPolicy = fetchByC_N(companyId, name);
 
 		if (passwordPolicy == null) {
-			StringBundler msg = new StringBundler(6);
+			StringBundler sb = new StringBundler(6);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("companyId=");
-			msg.append(companyId);
+			sb.append("companyId=");
+			sb.append(companyId);
 
-			msg.append(", name=");
-			msg.append(name);
+			sb.append(", name=");
+			sb.append(name);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchPasswordPolicyException(msg.toString());
+			throw new NoSuchPasswordPolicyException(sb.toString());
 		}
 
 		return passwordPolicy;
@@ -3295,41 +3285,41 @@ public class PasswordPolicyPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
+			sb.append(_SQL_SELECT_PASSWORDPOLICY_WHERE);
 
-			query.append(_FINDER_COLUMN_C_N_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_C_N_COMPANYID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_C_N_NAME_3);
+				sb.append(_FINDER_COLUMN_C_N_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_C_N_NAME_2);
+				sb.append(_FINDER_COLUMN_C_N_NAME_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				if (bindName) {
-					qPos.add(name);
+					queryPos.add(name);
 				}
 
-				List<PasswordPolicy> list = q.list();
+				List<PasswordPolicy> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
@@ -3345,13 +3335,8 @@ public class PasswordPolicyPersistenceImpl
 					cacheResult(passwordPolicy);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(
-						_finderPathFetchByC_N, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3401,48 +3386,46 @@ public class PasswordPolicyPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_PASSWORDPOLICY_WHERE);
+			sb.append(_SQL_COUNT_PASSWORDPOLICY_WHERE);
 
-			query.append(_FINDER_COLUMN_C_N_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_C_N_COMPANYID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_C_N_NAME_3);
+				sb.append(_FINDER_COLUMN_C_N_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_C_N_NAME_2);
+				sb.append(_FINDER_COLUMN_C_N_NAME_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				if (bindName) {
-					qPos.add(name);
+					queryPos.add(name);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3462,17 +3445,18 @@ public class PasswordPolicyPersistenceImpl
 		"(passwordPolicy.name IS NULL OR passwordPolicy.name = '')";
 
 	public PasswordPolicyPersistenceImpl() {
-		setModelClass(PasswordPolicy.class);
-
-		setModelImplClass(PasswordPolicyImpl.class);
-		setModelPKClass(long.class);
-		setEntityCacheEnabled(PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED);
-
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
 		dbColumnNames.put("uuid", "uuid_");
 
 		setDBColumnNames(dbColumnNames);
+
+		setModelClass(PasswordPolicy.class);
+
+		setModelImplClass(PasswordPolicyImpl.class);
+		setModelPKClass(long.class);
+
+		setTable(PasswordPolicyTable.INSTANCE);
 	}
 
 	/**
@@ -3483,7 +3467,6 @@ public class PasswordPolicyPersistenceImpl
 	@Override
 	public void cacheResult(PasswordPolicy passwordPolicy) {
 		EntityCacheUtil.putResult(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
 			PasswordPolicyImpl.class, passwordPolicy.getPrimaryKey(),
 			passwordPolicy);
 
@@ -3500,8 +3483,6 @@ public class PasswordPolicyPersistenceImpl
 				passwordPolicy.getCompanyId(), passwordPolicy.getName()
 			},
 			passwordPolicy);
-
-		passwordPolicy.resetOriginalValues();
 	}
 
 	/**
@@ -3513,14 +3494,10 @@ public class PasswordPolicyPersistenceImpl
 	public void cacheResult(List<PasswordPolicy> passwordPolicies) {
 		for (PasswordPolicy passwordPolicy : passwordPolicies) {
 			if (EntityCacheUtil.getResult(
-					PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
 					PasswordPolicyImpl.class, passwordPolicy.getPrimaryKey()) ==
 						null) {
 
 				cacheResult(passwordPolicy);
-			}
-			else {
-				passwordPolicy.resetOriginalValues();
 			}
 		}
 	}
@@ -3550,28 +3527,14 @@ public class PasswordPolicyPersistenceImpl
 	 */
 	@Override
 	public void clearCache(PasswordPolicy passwordPolicy) {
-		EntityCacheUtil.removeResult(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyImpl.class, passwordPolicy.getPrimaryKey());
-
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
-		clearUniqueFindersCache((PasswordPolicyModelImpl)passwordPolicy, true);
+		EntityCacheUtil.removeResult(PasswordPolicyImpl.class, passwordPolicy);
 	}
 
 	@Override
 	public void clearCache(List<PasswordPolicy> passwordPolicies) {
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
 		for (PasswordPolicy passwordPolicy : passwordPolicies) {
 			EntityCacheUtil.removeResult(
-				PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-				PasswordPolicyImpl.class, passwordPolicy.getPrimaryKey());
-
-			clearUniqueFindersCache(
-				(PasswordPolicyModelImpl)passwordPolicy, true);
+				PasswordPolicyImpl.class, passwordPolicy);
 		}
 	}
 
@@ -3582,9 +3545,7 @@ public class PasswordPolicyPersistenceImpl
 		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
 		for (Serializable primaryKey : primaryKeys) {
-			EntityCacheUtil.removeResult(
-				PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-				PasswordPolicyImpl.class, primaryKey);
+			EntityCacheUtil.removeResult(PasswordPolicyImpl.class, primaryKey);
 		}
 	}
 
@@ -3610,54 +3571,6 @@ public class PasswordPolicyPersistenceImpl
 			_finderPathCountByC_N, args, Long.valueOf(1), false);
 		FinderCacheUtil.putResult(
 			_finderPathFetchByC_N, args, passwordPolicyModelImpl, false);
-	}
-
-	protected void clearUniqueFindersCache(
-		PasswordPolicyModelImpl passwordPolicyModelImpl, boolean clearCurrent) {
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				passwordPolicyModelImpl.getCompanyId(),
-				passwordPolicyModelImpl.isDefaultPolicy()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByC_DP, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByC_DP, args);
-		}
-
-		if ((passwordPolicyModelImpl.getColumnBitmask() &
-			 _finderPathFetchByC_DP.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				passwordPolicyModelImpl.getOriginalCompanyId(),
-				passwordPolicyModelImpl.getOriginalDefaultPolicy()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByC_DP, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByC_DP, args);
-		}
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				passwordPolicyModelImpl.getCompanyId(),
-				passwordPolicyModelImpl.getName()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByC_N, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByC_N, args);
-		}
-
-		if ((passwordPolicyModelImpl.getColumnBitmask() &
-			 _finderPathFetchByC_N.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				passwordPolicyModelImpl.getOriginalCompanyId(),
-				passwordPolicyModelImpl.getOriginalName()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByC_N, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByC_N, args);
-		}
 	}
 
 	/**
@@ -3726,11 +3639,11 @@ public class PasswordPolicyPersistenceImpl
 
 			return remove(passwordPolicy);
 		}
-		catch (NoSuchPasswordPolicyException nsee) {
-			throw nsee;
+		catch (NoSuchPasswordPolicyException noSuchEntityException) {
+			throw noSuchEntityException;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -3754,8 +3667,8 @@ public class PasswordPolicyPersistenceImpl
 				session.delete(passwordPolicy);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -3827,125 +3740,28 @@ public class PasswordPolicyPersistenceImpl
 		try {
 			session = openSession();
 
-			if (passwordPolicy.isNew()) {
+			if (isNew) {
 				session.save(passwordPolicy);
-
-				passwordPolicy.setNew(false);
 			}
 			else {
 				passwordPolicy = (PasswordPolicy)session.merge(passwordPolicy);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
 		}
 
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-
-		if (!PasswordPolicyModelImpl.COLUMN_BITMASK_ENABLED) {
-			FinderCacheUtil.clearCache(
-				FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-		}
-		else if (isNew) {
-			Object[] args = new Object[] {passwordPolicyModelImpl.getUuid()};
-
-			FinderCacheUtil.removeResult(_finderPathCountByUuid, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByUuid, args);
-
-			args = new Object[] {
-				passwordPolicyModelImpl.getUuid(),
-				passwordPolicyModelImpl.getCompanyId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByUuid_C, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByUuid_C, args);
-
-			args = new Object[] {passwordPolicyModelImpl.getCompanyId()};
-
-			FinderCacheUtil.removeResult(_finderPathCountByCompanyId, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByCompanyId, args);
-
-			FinderCacheUtil.removeResult(
-				_finderPathCountAll, FINDER_ARGS_EMPTY);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindAll, FINDER_ARGS_EMPTY);
-		}
-		else {
-			if ((passwordPolicyModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByUuid.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					passwordPolicyModelImpl.getOriginalUuid()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByUuid, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByUuid, args);
-
-				args = new Object[] {passwordPolicyModelImpl.getUuid()};
-
-				FinderCacheUtil.removeResult(_finderPathCountByUuid, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByUuid, args);
-			}
-
-			if ((passwordPolicyModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByUuid_C.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					passwordPolicyModelImpl.getOriginalUuid(),
-					passwordPolicyModelImpl.getOriginalCompanyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByUuid_C, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByUuid_C, args);
-
-				args = new Object[] {
-					passwordPolicyModelImpl.getUuid(),
-					passwordPolicyModelImpl.getCompanyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByUuid_C, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByUuid_C, args);
-			}
-
-			if ((passwordPolicyModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByCompanyId.
-					 getColumnBitmask()) != 0) {
-
-				Object[] args = new Object[] {
-					passwordPolicyModelImpl.getOriginalCompanyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByCompanyId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByCompanyId, args);
-
-				args = new Object[] {passwordPolicyModelImpl.getCompanyId()};
-
-				FinderCacheUtil.removeResult(_finderPathCountByCompanyId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByCompanyId, args);
-			}
-		}
-
 		EntityCacheUtil.putResult(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyImpl.class, passwordPolicy.getPrimaryKey(),
-			passwordPolicy, false);
+			PasswordPolicyImpl.class, passwordPolicyModelImpl, false, true);
 
-		clearUniqueFindersCache(passwordPolicyModelImpl, false);
 		cacheUniqueFindersCache(passwordPolicyModelImpl);
+
+		if (isNew) {
+			passwordPolicy.setNew(false);
+		}
 
 		passwordPolicy.resetOriginalValues();
 
@@ -4090,19 +3906,19 @@ public class PasswordPolicyPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 			String sql = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					2 + (orderByComparator.getOrderByFields().length * 2));
 
-				query.append(_SQL_SELECT_PASSWORDPOLICY);
+				sb.append(_SQL_SELECT_PASSWORDPOLICY);
 
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 
-				sql = query.toString();
+				sql = sb.toString();
 			}
 			else {
 				sql = _SQL_SELECT_PASSWORDPOLICY;
@@ -4115,10 +3931,10 @@ public class PasswordPolicyPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
 				list = (List<PasswordPolicy>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -4126,12 +3942,8 @@ public class PasswordPolicyPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -4168,18 +3980,15 @@ public class PasswordPolicyPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(_SQL_COUNT_PASSWORDPOLICY);
+				Query query = session.createQuery(_SQL_COUNT_PASSWORDPOLICY);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(
 					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -4218,130 +4027,112 @@ public class PasswordPolicyPersistenceImpl
 	 * Initializes the password policy persistence.
 	 */
 	public void afterPropertiesSet() {
-		_finderPathWithPaginationFindAll = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED,
-			PasswordPolicyImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findAll", new String[0]);
+		Registry registry = RegistryUtil.getRegistry();
 
-		_finderPathWithoutPaginationFindAll = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED,
-			PasswordPolicyImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findAll", new String[0]);
+		_argumentsResolverServiceRegistration = registry.registerService(
+			ArgumentsResolver.class, new PasswordPolicyModelArgumentsResolver(),
+			HashMapBuilder.<String, Object>put(
+				"model.class.name", PasswordPolicy.class.getName()
+			).build());
 
-		_finderPathCountAll = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathWithPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathWithoutPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathCountAll = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
-			new String[0]);
+			new String[0], new String[0], false);
 
-		_finderPathWithPaginationFindByUuid = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED,
-			PasswordPolicyImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByUuid",
+		_finderPathWithPaginationFindByUuid = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid",
 			new String[] {
 				String.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"uuid_"}, true);
 
-		_finderPathWithoutPaginationFindByUuid = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED,
-			PasswordPolicyImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByUuid", new String[] {String.class.getName()},
-			PasswordPolicyModelImpl.UUID_COLUMN_BITMASK);
+		_finderPathWithoutPaginationFindByUuid = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid",
+			new String[] {String.class.getName()}, new String[] {"uuid_"},
+			true);
 
-		_finderPathCountByUuid = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid",
-			new String[] {String.class.getName()});
+			new String[] {String.class.getName()}, new String[] {"uuid_"},
+			false);
 
-		_finderPathWithPaginationFindByUuid_C = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED,
-			PasswordPolicyImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByUuid_C",
+		_finderPathWithPaginationFindByUuid_C = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid_C",
 			new String[] {
 				String.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"uuid_", "companyId"}, true);
 
-		_finderPathWithoutPaginationFindByUuid_C = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED,
-			PasswordPolicyImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByUuid_C",
+		_finderPathWithoutPaginationFindByUuid_C = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid_C",
 			new String[] {String.class.getName(), Long.class.getName()},
-			PasswordPolicyModelImpl.UUID_COLUMN_BITMASK |
-			PasswordPolicyModelImpl.COMPANYID_COLUMN_BITMASK);
+			new String[] {"uuid_", "companyId"}, true);
 
-		_finderPathCountByUuid_C = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid_C",
-			new String[] {String.class.getName(), Long.class.getName()});
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"uuid_", "companyId"}, false);
 
-		_finderPathWithPaginationFindByCompanyId = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED,
-			PasswordPolicyImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByCompanyId",
+		_finderPathWithPaginationFindByCompanyId = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByCompanyId",
 			new String[] {
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"companyId"}, true);
 
-		_finderPathWithoutPaginationFindByCompanyId = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED,
-			PasswordPolicyImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByCompanyId", new String[] {Long.class.getName()},
-			PasswordPolicyModelImpl.COMPANYID_COLUMN_BITMASK);
+		_finderPathWithoutPaginationFindByCompanyId = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByCompanyId",
+			new String[] {Long.class.getName()}, new String[] {"companyId"},
+			true);
 
-		_finderPathCountByCompanyId = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByCompanyId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByCompanyId",
-			new String[] {Long.class.getName()});
+			new String[] {Long.class.getName()}, new String[] {"companyId"},
+			false);
 
-		_finderPathFetchByC_DP = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED,
-			PasswordPolicyImpl.class, FINDER_CLASS_NAME_ENTITY, "fetchByC_DP",
+		_finderPathFetchByC_DP = _createFinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByC_DP",
 			new String[] {Long.class.getName(), Boolean.class.getName()},
-			PasswordPolicyModelImpl.COMPANYID_COLUMN_BITMASK |
-			PasswordPolicyModelImpl.DEFAULTPOLICY_COLUMN_BITMASK);
+			new String[] {"companyId", "defaultPolicy"}, true);
 
-		_finderPathCountByC_DP = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByC_DP = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_DP",
-			new String[] {Long.class.getName(), Boolean.class.getName()});
+			new String[] {Long.class.getName(), Boolean.class.getName()},
+			new String[] {"companyId", "defaultPolicy"}, false);
 
-		_finderPathFetchByC_N = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED,
-			PasswordPolicyImpl.class, FINDER_CLASS_NAME_ENTITY, "fetchByC_N",
+		_finderPathFetchByC_N = _createFinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByC_N",
 			new String[] {Long.class.getName(), String.class.getName()},
-			PasswordPolicyModelImpl.COMPANYID_COLUMN_BITMASK |
-			PasswordPolicyModelImpl.NAME_COLUMN_BITMASK);
+			new String[] {"companyId", "name"}, true);
 
-		_finderPathCountByC_N = new FinderPath(
-			PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
-			PasswordPolicyModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByC_N = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_N",
-			new String[] {Long.class.getName(), String.class.getName()});
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"companyId", "name"}, false);
 	}
 
 	public void destroy() {
 		EntityCacheUtil.removeCache(PasswordPolicyImpl.class.getName());
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_ENTITY);
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		_argumentsResolverServiceRegistration.unregister();
+
+		for (ServiceRegistration<FinderPath> serviceRegistration :
+				_serviceRegistrations) {
+
+			serviceRegistration.unregister();
+		}
 	}
 
 	private static final String _SQL_SELECT_PASSWORDPOLICY =
@@ -4392,5 +4183,110 @@ public class PasswordPolicyPersistenceImpl
 
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid"});
+
+	private FinderPath _createFinderPath(
+		String cacheName, String methodName, String[] params,
+		String[] columnNames, boolean baseModelResult) {
+
+		FinderPath finderPath = new FinderPath(
+			cacheName, methodName, params, columnNames, baseModelResult);
+
+		if (!cacheName.equals(FINDER_CLASS_NAME_LIST_WITH_PAGINATION)) {
+			Registry registry = RegistryUtil.getRegistry();
+
+			_serviceRegistrations.add(
+				registry.registerService(
+					FinderPath.class, finderPath,
+					HashMapBuilder.<String, Object>put(
+						"cache.name", cacheName
+					).build()));
+		}
+
+		return finderPath;
+	}
+
+	private ServiceRegistration<ArgumentsResolver>
+		_argumentsResolverServiceRegistration;
+	private Set<ServiceRegistration<FinderPath>> _serviceRegistrations =
+		new HashSet<>();
+
+	private static class PasswordPolicyModelArgumentsResolver
+		implements ArgumentsResolver {
+
+		@Override
+		public Object[] getArguments(
+			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
+			boolean original) {
+
+			String[] columnNames = finderPath.getColumnNames();
+
+			if ((columnNames == null) || (columnNames.length == 0)) {
+				if (baseModel.isNew()) {
+					return FINDER_ARGS_EMPTY;
+				}
+
+				return null;
+			}
+
+			PasswordPolicyModelImpl passwordPolicyModelImpl =
+				(PasswordPolicyModelImpl)baseModel;
+
+			long columnBitmask = passwordPolicyModelImpl.getColumnBitmask();
+
+			if (!checkColumn || (columnBitmask == 0)) {
+				return _getValue(
+					passwordPolicyModelImpl, columnNames, original);
+			}
+
+			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
+				finderPath);
+
+			if (finderPathColumnBitmask == null) {
+				finderPathColumnBitmask = 0L;
+
+				for (String columnName : columnNames) {
+					finderPathColumnBitmask |=
+						passwordPolicyModelImpl.getColumnBitmask(columnName);
+				}
+
+				_finderPathColumnBitmasksCache.put(
+					finderPath, finderPathColumnBitmask);
+			}
+
+			if ((columnBitmask & finderPathColumnBitmask) != 0) {
+				return _getValue(
+					passwordPolicyModelImpl, columnNames, original);
+			}
+
+			return null;
+		}
+
+		private Object[] _getValue(
+			PasswordPolicyModelImpl passwordPolicyModelImpl,
+			String[] columnNames, boolean original) {
+
+			Object[] arguments = new Object[columnNames.length];
+
+			for (int i = 0; i < arguments.length; i++) {
+				String columnName = columnNames[i];
+
+				if (original) {
+					arguments[i] =
+						passwordPolicyModelImpl.getColumnOriginalValue(
+							columnName);
+				}
+				else {
+					arguments[i] = passwordPolicyModelImpl.getColumnValue(
+						columnName);
+				}
+			}
+
+			return arguments;
+		}
+
+		private static Map<FinderPath, Long> _finderPathColumnBitmasksCache =
+			new ConcurrentHashMap<>();
+
+	}
 
 }

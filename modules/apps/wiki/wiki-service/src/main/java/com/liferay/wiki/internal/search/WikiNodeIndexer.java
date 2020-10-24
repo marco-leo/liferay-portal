@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.search.model.uid.UIDFactory;
 import com.liferay.trash.TrashHelper;
 import com.liferay.wiki.model.WikiNode;
 import com.liferay.wiki.service.WikiNodeLocalService;
@@ -77,12 +78,15 @@ public class WikiNodeIndexer extends BaseIndexer<WikiNode> {
 
 	@Override
 	protected void doDelete(WikiNode wikiNode) throws Exception {
-		deleteDocument(wikiNode.getCompanyId(), wikiNode.getNodeId());
+		deleteDocument(
+			wikiNode.getCompanyId(), "UID=" + uidFactory.getUID(wikiNode));
 	}
 
 	@Override
 	protected Document doGetDocument(WikiNode wikiNode) throws Exception {
 		Document document = getBaseModelDocument(CLASS_NAME, wikiNode);
+
+		uidFactory.setUID(wikiNode, document);
 
 		document.addText(Field.DESCRIPTION, wikiNode.getDescription());
 
@@ -123,9 +127,7 @@ public class WikiNodeIndexer extends BaseIndexer<WikiNode> {
 		Document document = getDocument(wikiNode);
 
 		if (wikiNode.isInTrash()) {
-			_indexWriterHelper.deleteDocument(
-				getSearchEngineId(), wikiNode.getCompanyId(),
-				document.get(Field.UID), isCommitImmediately());
+			_deleteDocument(wikiNode);
 
 			return;
 		}
@@ -153,11 +155,11 @@ public class WikiNodeIndexer extends BaseIndexer<WikiNode> {
 					indexableActionableDynamicQuery.addDocuments(
 						getDocument(node));
 				}
-				catch (PortalException pe) {
+				catch (PortalException portalException) {
 					if (_log.isWarnEnabled()) {
 						_log.warn(
 							"Unable to index wiki node " + node.getNodeId(),
-							pe);
+							portalException);
 					}
 				}
 			});
@@ -171,6 +173,15 @@ public class WikiNodeIndexer extends BaseIndexer<WikiNode> {
 		WikiNodeLocalService wikiNodeLocalService) {
 
 		_wikiNodeLocalService = wikiNodeLocalService;
+	}
+
+	@Reference
+	protected UIDFactory uidFactory;
+
+	private void _deleteDocument(WikiNode wikiNode) throws Exception {
+		_indexWriterHelper.deleteDocument(
+			getSearchEngineId(), wikiNode.getCompanyId(),
+			uidFactory.getUID(wikiNode), isCommitImmediately());
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

@@ -14,6 +14,7 @@
 
 package com.liferay.portal.util;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.security.auth.AlwaysAllowDoAsUser;
 import com.liferay.portal.kernel.servlet.PersistentHttpServletRequestWrapper;
@@ -48,6 +49,10 @@ public class PortalImplUnitTest {
 	@BeforeClass
 	public static void setUpClass() {
 		RegistryUtil.setRegistry(new BasicRegistryImpl());
+
+		HttpUtil httpUtil = new HttpUtil();
+
+		httpUtil.setHttp(new HttpImpl());
 	}
 
 	@Test
@@ -246,6 +251,18 @@ public class PortalImplUnitTest {
 				"WEB_SERVER_FORWARDED_PORT_ENABLED",
 				webServerForwardedPortEnabled);
 		}
+	}
+
+	@Test
+	public void testGetHost() {
+		_assertGetHost("123.1.1.1", "123.1.1.1");
+		_assertGetHost("123.1.1.1:80", "123.1.1.1");
+		_assertGetHost("[0:0:0:0:0:0:0:1]", "0:0:0:0:0:0:0:1");
+		_assertGetHost("[0:0:0:0:0:0:0:1]:80", "0:0:0:0:0:0:0:1");
+		_assertGetHost("[::1]", "::1");
+		_assertGetHost("[::1]:80", "::1");
+		_assertGetHost("abc.com", "abc.com");
+		_assertGetHost("abc.com:80", "abc.com");
 	}
 
 	@Test
@@ -563,18 +580,76 @@ public class PortalImplUnitTest {
 	@Test
 	public void testIsValidResourceId() {
 		Assert.assertTrue(_portalImpl.isValidResourceId("/view.jsp"));
+		Assert.assertTrue(_portalImpl.isValidResourceId("%2fview.jsp"));
+		Assert.assertTrue(_portalImpl.isValidResourceId("%252fview.jsp"));
+
 		Assert.assertFalse(
 			_portalImpl.isValidResourceId("/META-INF/MANIFEST.MF"));
 		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%2fMETA-INF%2fMANIFEST.MF"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%252fMETA-INF%252fMANIFEST.MF"));
+
+		Assert.assertFalse(
 			_portalImpl.isValidResourceId("/META-INF\\MANIFEST.MF"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%2fMETA-INF%5cMANIFEST.MF"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%252fMETA-INF%255cMANIFEST.MF"));
+
 		Assert.assertFalse(
 			_portalImpl.isValidResourceId("\\META-INF/MANIFEST.MF"));
 		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%5cMETA-INF%2fMANIFEST.MF"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%255cMETA-INF%252fMANIFEST.MF"));
+
+		Assert.assertFalse(
 			_portalImpl.isValidResourceId("\\META-INF\\MANIFEST.MF"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%5cMETA-INF%5cMANIFEST.MF"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%255cMETA-INF%255cMANIFEST.MF"));
+
 		Assert.assertFalse(_portalImpl.isValidResourceId("/WEB-INF/web.xml"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%2fWEB-INF%2fweb.xml"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%252fWEB-INF%252fweb.xml"));
+
 		Assert.assertFalse(_portalImpl.isValidResourceId("/WEB-INF\\web.xml"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%2fWEB-INF%5cweb.xml"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%252fWEB-INF%255cweb.xml"));
+
 		Assert.assertFalse(_portalImpl.isValidResourceId("\\WEB-INF/web.xml"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%5cWEB-INF%2fweb.xml"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%255cWEB-INF%252fweb.xml"));
+
 		Assert.assertFalse(_portalImpl.isValidResourceId("\\WEB-INF\\web.xml"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%5cWEB-INF%5cweb.xml"));
+		Assert.assertFalse(
+			_portalImpl.isValidResourceId("%255cWEB-INF%255cweb.xml"));
+
+		Assert.assertTrue(_portalImpl.isValidResourceId("%25252525252525252f"));
+
+		StringBundler sb = new StringBundler();
+
+		sb.append("%");
+
+		for (int i = 0; i < 100000; i++) {
+			sb.append("25");
+		}
+
+		sb.append("2f");
+
+		Assert.assertFalse(_portalImpl.isValidResourceId(sb.toString()));
+
+		Assert.assertFalse(_portalImpl.isValidResourceId("%view.jsp"));
 	}
 
 	@Test
@@ -622,6 +697,15 @@ public class PortalImplUnitTest {
 		throws Exception {
 
 		ReflectionTestUtil.setFieldValue(PropsValues.class, fieldName, value);
+	}
+
+	private void _assertGetHost(String httpHostHeader, String host) {
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest();
+
+		mockHttpServletRequest.addHeader("Host", httpHostHeader);
+
+		Assert.assertEquals(host, _portalImpl.getHost(mockHttpServletRequest));
 	}
 
 	private final PortalImpl _portalImpl = new PortalImpl();

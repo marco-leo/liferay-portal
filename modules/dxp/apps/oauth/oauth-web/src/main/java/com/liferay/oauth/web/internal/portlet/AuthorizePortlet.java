@@ -14,10 +14,10 @@
 
 package com.liferay.oauth.web.internal.portlet;
 
+import com.liferay.oauth.util.OAuth;
 import com.liferay.oauth.util.OAuthAccessor;
 import com.liferay.oauth.util.OAuthConsumer;
 import com.liferay.oauth.util.OAuthMessage;
-import com.liferay.oauth.util.OAuthUtil;
 import com.liferay.oauth.util.OAuthWebKeys;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -35,9 +35,8 @@ import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.Portlet;
 
-import net.oauth.OAuth;
-
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Ivica Cardic
@@ -70,35 +69,36 @@ public class AuthorizePortlet extends MVCPortlet {
 		throws Exception {
 
 		String oAuthCallbackURL = ParamUtil.getString(
-			actionRequest, OAuth.OAUTH_CALLBACK);
+			actionRequest, net.oauth.OAuth.OAUTH_CALLBACK);
 
 		if (_OAUTH_CALLBACK_OOB.equals(oAuthCallbackURL)) {
 			oAuthCallbackURL = null;
 		}
 
-		OAuthMessage oAuthMessage = OAuthUtil.getOAuthMessage(
-			actionRequest, null);
+		OAuthMessage oAuthMessage = _oAuth.getOAuthMessage(actionRequest, null);
 
 		OAuthAccessor oAuthAccessor = null;
 
 		try {
-			oAuthAccessor = OAuthUtil.getOAuthAccessor(oAuthMessage);
+			oAuthAccessor = _oAuth.getOAuthAccessor(oAuthMessage);
 		}
-		catch (OAuthException oae) {
+		catch (OAuthException oAuthException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn("OAuth authorisation failed", oae);
+				_log.warn("OAuth authorisation failed", oAuthException);
 			}
 
 			if (Validator.isNotNull(oAuthCallbackURL)) {
-				oAuthCallbackURL = OAuthUtil.addParameters(
-					oAuthCallbackURL, "oauth_problem", oae.getMessage());
+				oAuthCallbackURL = _oAuth.addParameters(
+					oAuthCallbackURL, "oauth_problem",
+					oAuthException.getMessage());
 
 				actionResponse.sendRedirect(oAuthCallbackURL);
 
 				return;
 			}
 
-			SessionErrors.add(actionRequest, OAuthException.class, oae);
+			SessionErrors.add(
+				actionRequest, OAuthException.class, oAuthException);
 
 			return;
 		}
@@ -106,7 +106,7 @@ public class AuthorizePortlet extends MVCPortlet {
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			actionRequest);
 
-		OAuthUtil.authorize(
+		_oAuth.authorize(
 			oAuthAccessor, serviceContext.getUserId(), serviceContext);
 
 		OAuthConsumer oAuthConsumer = oAuthAccessor.getOAuthConsumer();
@@ -133,9 +133,9 @@ public class AuthorizePortlet extends MVCPortlet {
 		}
 		else {
 			if (requestToken != null) {
-				oAuthCallbackURL = OAuthUtil.addParameters(
-					oAuthCallbackURL, OAuth.OAUTH_TOKEN, requestToken,
-					OAuth.OAUTH_VERIFIER, oAuthVerifier);
+				oAuthCallbackURL = _oAuth.addParameters(
+					oAuthCallbackURL, net.oauth.OAuth.OAUTH_TOKEN, requestToken,
+					net.oauth.OAuth.OAUTH_VERIFIER, oAuthVerifier);
 			}
 
 			actionResponse.sendRedirect(oAuthCallbackURL);
@@ -146,5 +146,8 @@ public class AuthorizePortlet extends MVCPortlet {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		AuthorizePortlet.class);
+
+	@Reference
+	private OAuth _oAuth;
 
 }

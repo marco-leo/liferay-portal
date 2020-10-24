@@ -34,7 +34,7 @@ import com.liferay.portal.tools.service.builder.test.service.VersionedEntryLocal
 public abstract class VersionedEntryBaseImpl
 	extends VersionedEntryModelImpl implements VersionedEntry {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a versioned entry model instance should use the <code>VersionedEntry</code> interface instead.
@@ -48,8 +48,8 @@ public abstract class VersionedEntryBaseImpl
 			try {
 				VersionedEntryLocalServiceUtil.updateVersionedEntry(this);
 			}
-			catch (PortalException pe) {
-				throw new SystemException(pe);
+			catch (PortalException portalException) {
+				throw new SystemException(portalException);
 			}
 		}
 	}

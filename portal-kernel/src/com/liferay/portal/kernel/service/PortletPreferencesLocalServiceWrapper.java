@@ -35,11 +35,6 @@ public class PortletPreferencesLocalServiceWrapper
 		_portletPreferencesLocalService = portletPreferencesLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link PortletPreferencesLocalServiceUtil} to access the portlet preferences local service. Add custom service methods to <code>com.liferay.portal.service.impl.PortletPreferencesLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public PortletPreferences addPortletPreferences(
 		long companyId, long ownerId, int ownerType, long plid,
@@ -54,6 +49,10 @@ public class PortletPreferencesLocalServiceWrapper
 	/**
 	 * Adds the portlet preferences to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletPreferencesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param portletPreferences the portlet preferences
 	 * @return the portlet preferences that was added
 	 */
@@ -63,6 +62,18 @@ public class PortletPreferencesLocalServiceWrapper
 
 		return _portletPreferencesLocalService.addPortletPreferences(
 			portletPreferences);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _portletPreferencesLocalService.createPersistedModel(
+			primaryKeyObj);
 	}
 
 	/**
@@ -93,6 +104,10 @@ public class PortletPreferencesLocalServiceWrapper
 
 	/**
 	 * Deletes the portlet preferences with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletPreferencesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param portletPreferencesId the primary key of the portlet preferences
 	 * @return the portlet preferences that was removed
@@ -127,6 +142,10 @@ public class PortletPreferencesLocalServiceWrapper
 	/**
 	 * Deletes the portlet preferences from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletPreferencesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param portletPreferences the portlet preferences
 	 * @return the portlet preferences that was removed
 	 */
@@ -147,6 +166,11 @@ public class PortletPreferencesLocalServiceWrapper
 	@Override
 	public void deletePortletPreferencesByPlid(long plid) {
 		_portletPreferencesLocalService.deletePortletPreferencesByPlid(plid);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _portletPreferencesLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -307,6 +331,9 @@ public class PortletPreferencesLocalServiceWrapper
 		return _portletPreferencesLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -535,6 +562,10 @@ public class PortletPreferencesLocalServiceWrapper
 
 	/**
 	 * Updates the portlet preferences in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletPreferencesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param portletPreferences the portlet preferences
 	 * @return the portlet preferences that was updated

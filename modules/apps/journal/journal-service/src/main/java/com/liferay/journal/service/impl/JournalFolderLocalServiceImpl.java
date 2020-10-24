@@ -20,13 +20,13 @@ import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMStructureLink;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLinkLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
+import com.liferay.journal.constants.JournalArticleConstants;
+import com.liferay.journal.constants.JournalFolderConstants;
 import com.liferay.journal.exception.NoSuchFolderException;
 import com.liferay.journal.internal.util.JournalTreePathUtil;
 import com.liferay.journal.internal.validation.JournalFolderModelValidator;
 import com.liferay.journal.model.JournalArticle;
-import com.liferay.journal.model.JournalArticleConstants;
 import com.liferay.journal.model.JournalFolder;
-import com.liferay.journal.model.JournalFolderConstants;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.service.base.JournalFolderLocalServiceBaseImpl;
 import com.liferay.journal.util.JournalValidator;
@@ -44,6 +44,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
@@ -64,14 +65,17 @@ import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.TrashHelper;
 import com.liferay.trash.exception.RestoreEntryException;
 import com.liferay.trash.exception.TrashEntryException;
-import com.liferay.trash.kernel.model.TrashEntry;
-import com.liferay.trash.kernel.model.TrashVersion;
+import com.liferay.trash.model.TrashEntry;
+import com.liferay.trash.model.TrashVersion;
+import com.liferay.trash.service.TrashEntryLocalService;
+import com.liferay.trash.service.TrashVersionLocalService;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -115,7 +119,7 @@ public class JournalFolderLocalServiceImpl
 		folder.setDescription(description);
 		folder.setExpandoBridgeAttributes(serviceContext);
 
-		journalFolderPersistence.update(folder);
+		folder = journalFolderPersistence.update(folder);
 
 		// Resources
 
@@ -198,11 +202,11 @@ public class JournalFolderLocalServiceImpl
 		// Trash
 
 		if (folder.isInTrashExplicitly()) {
-			trashEntryLocalService.deleteEntry(
+			_trashEntryLocalService.deleteEntry(
 				JournalFolder.class.getName(), folder.getFolderId());
 		}
 		else {
-			trashVersionLocalService.deleteTrashVersion(
+			_trashVersionLocalService.deleteTrashVersion(
 				JournalFolder.class.getName(), folder.getFolderId());
 		}
 
@@ -398,10 +402,10 @@ public class JournalFolderLocalServiceImpl
 	@Override
 	public List<Object> getFoldersAndArticles(
 		long groupId, long folderId, int status, int start, int end,
-		OrderByComparator<?> obc) {
+		OrderByComparator<?> orderByComparator) {
 
 		QueryDefinition<?> queryDefinition = new QueryDefinition<>(
-			status, start, end, (OrderByComparator<Object>)obc);
+			status, start, end, (OrderByComparator<Object>)orderByComparator);
 
 		return journalFolderFinder.findF_A_ByG_F(
 			groupId, folderId, queryDefinition);
@@ -410,10 +414,11 @@ public class JournalFolderLocalServiceImpl
 	@Override
 	public List<Object> getFoldersAndArticles(
 		long groupId, long folderId, int start, int end,
-		OrderByComparator<?> obc) {
+		OrderByComparator<?> orderByComparator) {
 
 		return getFoldersAndArticles(
-			groupId, folderId, WorkflowConstants.STATUS_ANY, start, end, obc);
+			groupId, folderId, WorkflowConstants.STATUS_ANY, start, end,
+			orderByComparator);
 	}
 
 	@Override
@@ -585,7 +590,7 @@ public class JournalFolderLocalServiceImpl
 		folder.setTreePath(folder.buildTreePath());
 		folder.setExpandoBridgeAttributes(serviceContext);
 
-		journalFolderPersistence.update(folder);
+		folder = journalFolderPersistence.update(folder);
 
 		rebuildTree(
 			folder.getCompanyId(), folderId, folder.getTreePath(), true);
@@ -614,7 +619,7 @@ public class JournalFolderLocalServiceImpl
 
 			// Folder
 
-			TrashVersion trashVersion = trashVersionLocalService.fetchVersion(
+			TrashVersion trashVersion = _trashVersionLocalService.fetchVersion(
 				JournalFolder.class.getName(), folderId);
 
 			int status = WorkflowConstants.STATUS_APPROVED;
@@ -628,7 +633,7 @@ public class JournalFolderLocalServiceImpl
 			// Trash
 
 			if (trashVersion != null) {
-				trashVersionLocalService.deleteTrashVersion(trashVersion);
+				_trashVersionLocalService.deleteTrashVersion(trashVersion);
 			}
 
 			// Folders and articles
@@ -666,18 +671,20 @@ public class JournalFolderLocalServiceImpl
 
 		// Trash
 
-		UnicodeProperties typeSettingsProperties = new UnicodeProperties();
+		UnicodeProperties typeSettingsUnicodeProperties =
+			new UnicodeProperties();
 
-		typeSettingsProperties.put("title", folder.getName());
+		typeSettingsUnicodeProperties.put("title", folder.getName());
 
-		TrashEntry trashEntry = trashEntryLocalService.addTrashEntry(
+		TrashEntry trashEntry = _trashEntryLocalService.addTrashEntry(
 			userId, folder.getGroupId(), JournalFolder.class.getName(),
 			folder.getFolderId(), folder.getUuid(), null,
-			WorkflowConstants.STATUS_APPROVED, null, typeSettingsProperties);
+			WorkflowConstants.STATUS_APPROVED, null,
+			typeSettingsUnicodeProperties);
 
 		folder.setName(_trashHelper.getTrashTitle(trashEntry.getEntryId()));
 
-		journalFolderPersistence.update(folder);
+		folder = journalFolderPersistence.update(folder);
 
 		// Folders and articles
 
@@ -737,9 +744,9 @@ public class JournalFolderLocalServiceImpl
 				folder.getUuid(), folder.getGroupId(),
 				folder.getParentFolderId(), originalName, 2));
 
-		journalFolderPersistence.update(folder);
+		folder = journalFolderPersistence.update(folder);
 
-		TrashEntry trashEntry = trashEntryLocalService.getEntry(
+		TrashEntry trashEntry = _trashEntryLocalService.getEntry(
 			JournalFolder.class.getName(), folderId);
 
 		updateStatus(userId, folder, trashEntry.getStatus());
@@ -755,7 +762,7 @@ public class JournalFolderLocalServiceImpl
 
 		// Trash
 
-		trashEntryLocalService.deleteEntry(
+		_trashEntryLocalService.deleteEntry(
 			JournalFolder.class.getName(), folder.getFolderId());
 
 		// Social
@@ -772,7 +779,7 @@ public class JournalFolderLocalServiceImpl
 	public List<DDMStructure> searchDDMStructures(
 			long companyId, long[] groupIds, long folderId, int restrictionType,
 			String keywords, int start, int end,
-			OrderByComparator<DDMStructure> obc)
+			OrderByComparator<DDMStructure> orderByComparator)
 		throws PortalException {
 
 		if (restrictionType ==
@@ -782,7 +789,7 @@ public class JournalFolderLocalServiceImpl
 			return _ddmStructureLocalService.search(
 				companyId, groupIds,
 				classNameLocalService.getClassNameId(JournalFolder.class),
-				folderId, keywords, start, end, obc);
+				folderId, keywords, start, end, orderByComparator);
 		}
 
 		folderId = getOverridedDDMStructuresFolderId(folderId);
@@ -791,13 +798,14 @@ public class JournalFolderLocalServiceImpl
 			return _ddmStructureLocalService.search(
 				companyId, groupIds,
 				classNameLocalService.getClassNameId(JournalFolder.class),
-				folderId, keywords, start, end, obc);
+				folderId, keywords, start, end, orderByComparator);
 		}
 
 		return _ddmStructureLocalService.search(
 			companyId, groupIds,
 			classNameLocalService.getClassNameId(JournalArticle.class),
-			keywords, WorkflowConstants.STATUS_ANY, start, end, obc);
+			keywords, WorkflowConstants.STATUS_ANY, start, end,
+			orderByComparator);
 	}
 
 	@Override
@@ -994,7 +1002,7 @@ public class JournalFolderLocalServiceImpl
 		folder.setStatusByUserName(user.getFullName());
 		folder.setStatusDate(new Date());
 
-		journalFolderPersistence.update(folder);
+		folder = journalFolderPersistence.update(folder);
 
 		// Asset
 
@@ -1036,11 +1044,32 @@ public class JournalFolderLocalServiceImpl
 
 		// Merge folders
 
-		if (restrictionType !=
+		if ((restrictionType !=
 				JournalFolderConstants.
-					RESTRICTION_TYPE_DDM_STRUCTURES_AND_WORKFLOW) {
+					RESTRICTION_TYPE_DDM_STRUCTURES_AND_WORKFLOW) &&
+			(parentFolderId !=
+				JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
 
-			ddmStructureIds = new long[0];
+			JournalFolder restrictedAncestorFolder =
+				_getRestrictedAncestorFolder(getFolder(parentFolderId));
+
+			if (restrictedAncestorFolder != null) {
+				List<DDMStructureLink> ancestorDDMStructureLinks =
+					_ddmStructureLinkLocalService.getStructureLinks(
+						_classNameLocalService.getClassNameId(
+							JournalFolder.class),
+						restrictedAncestorFolder.getFolderId());
+
+				Stream<DDMStructureLink> ancestorDDMStructureLinksStream =
+					ancestorDDMStructureLinks.stream();
+
+				long[] ancestorDDMStructureIds =
+					ancestorDDMStructureLinksStream.mapToLong(
+						DDMStructureLink::getStructureId
+					).toArray();
+
+				validateArticleDDMStructures(folderId, ancestorDDMStructureIds);
+			}
 		}
 
 		validateArticleDDMStructures(folderId, ddmStructureIds);
@@ -1176,7 +1205,7 @@ public class JournalFolderLocalServiceImpl
 			article.setFolderId(toFolderId);
 			article.setTreePath(article.buildTreePath());
 
-			journalArticlePersistence.update(article);
+			article = journalArticlePersistence.update(article);
 
 			Indexer<JournalArticle> indexer =
 				IndexerRegistryUtil.nullSafeGetIndexer(JournalArticle.class);
@@ -1216,7 +1245,7 @@ public class JournalFolderLocalServiceImpl
 
 					curArticle.setStatus(WorkflowConstants.STATUS_IN_TRASH);
 
-					journalArticlePersistence.update(curArticle);
+					curArticle = journalArticlePersistence.update(curArticle);
 
 					// Trash
 
@@ -1231,7 +1260,7 @@ public class JournalFolderLocalServiceImpl
 					if (curArticleOldStatus !=
 							WorkflowConstants.STATUS_APPROVED) {
 
-						trashVersionLocalService.addTrashVersion(
+						_trashVersionLocalService.addTrashVersion(
 							trashEntryId, JournalArticle.class.getName(),
 							curArticle.getId(), status, null);
 					}
@@ -1278,12 +1307,12 @@ public class JournalFolderLocalServiceImpl
 
 				folder.setStatus(WorkflowConstants.STATUS_IN_TRASH);
 
-				journalFolderPersistence.update(folder);
+				folder = journalFolderPersistence.update(folder);
 
 				// Trash
 
 				if (oldStatus != WorkflowConstants.STATUS_APPROVED) {
-					trashVersionLocalService.addTrashVersion(
+					_trashVersionLocalService.addTrashVersion(
 						trashEntryId, JournalFolder.class.getName(),
 						folder.getFolderId(), oldStatus, null);
 				}
@@ -1325,7 +1354,7 @@ public class JournalFolderLocalServiceImpl
 				}
 
 				TrashVersion trashVersion =
-					trashVersionLocalService.fetchVersion(
+					_trashVersionLocalService.fetchVersion(
 						JournalArticle.class.getName(), article.getId());
 
 				int oldStatus = WorkflowConstants.STATUS_APPROVED;
@@ -1344,7 +1373,7 @@ public class JournalFolderLocalServiceImpl
 
 					// Article
 
-					trashVersion = trashVersionLocalService.fetchVersion(
+					trashVersion = _trashVersionLocalService.fetchVersion(
 						JournalArticle.class.getName(), curArticle.getId());
 
 					int curArticleOldStatus = WorkflowConstants.STATUS_APPROVED;
@@ -1360,7 +1389,7 @@ public class JournalFolderLocalServiceImpl
 					// Trash
 
 					if (trashVersion != null) {
-						trashVersionLocalService.deleteTrashVersion(
+						_trashVersionLocalService.deleteTrashVersion(
 							trashVersion);
 					}
 				}
@@ -1392,7 +1421,7 @@ public class JournalFolderLocalServiceImpl
 				}
 
 				TrashVersion trashVersion =
-					trashVersionLocalService.fetchVersion(
+					_trashVersionLocalService.fetchVersion(
 						JournalFolder.class.getName(), folder.getFolderId());
 
 				int oldStatus = WorkflowConstants.STATUS_APPROVED;
@@ -1403,7 +1432,7 @@ public class JournalFolderLocalServiceImpl
 
 				folder.setStatus(oldStatus);
 
-				journalFolderPersistence.update(folder);
+				folder = journalFolderPersistence.update(folder);
 
 				// Folders and articles
 
@@ -1416,7 +1445,7 @@ public class JournalFolderLocalServiceImpl
 				// Trash
 
 				if (trashVersion != null) {
-					trashVersionLocalService.deleteTrashVersion(trashVersion);
+					_trashVersionLocalService.deleteTrashVersion(trashVersion);
 				}
 
 				// Asset
@@ -1474,6 +1503,26 @@ public class JournalFolderLocalServiceImpl
 		return (JournalFolderModelValidator)modelValidator;
 	}
 
+	private JournalFolder _getRestrictedAncestorFolder(JournalFolder folder)
+		throws PortalException {
+
+		if (folder.getRestrictionType() ==
+				JournalFolderConstants.
+					RESTRICTION_TYPE_DDM_STRUCTURES_AND_WORKFLOW) {
+
+			return folder;
+		}
+
+		if (folder.isRoot()) {
+			return null;
+		}
+
+		return _getRestrictedAncestorFolder(folder.getParentFolder());
+	}
+
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
+
 	@Reference
 	private DDMStructureLinkLocalService _ddmStructureLinkLocalService;
 
@@ -1490,6 +1539,12 @@ public class JournalFolderLocalServiceImpl
 	private SubscriptionLocalService _subscriptionLocalService;
 
 	@Reference
+	private TrashEntryLocalService _trashEntryLocalService;
+
+	@Reference
 	private TrashHelper _trashHelper;
+
+	@Reference
+	private TrashVersionLocalService _trashVersionLocalService;
 
 }

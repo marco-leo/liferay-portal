@@ -17,7 +17,7 @@
 <%@ include file="/init.jsp" %>
 
 <%
-DisplayPageDisplayContext displayPageDisplayContext = new DisplayPageDisplayContext(renderRequest, renderResponse, request);
+DisplayPageDisplayContext displayPageDisplayContext = new DisplayPageDisplayContext(request, renderRequest, renderResponse);
 %>
 
 <clay:navigation-bar
@@ -28,7 +28,7 @@ DisplayPageDisplayContext displayPageDisplayContext = new DisplayPageDisplayCont
 <liferay-ui:success key="displayPagePublished" message="the-display-page-template-was-published-succesfully" />
 
 <%
-DisplayPageManagementToolbarDisplayContext displayPageManagementToolbarDisplayContext = new DisplayPageManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, displayPageDisplayContext);
+DisplayPageManagementToolbarDisplayContext displayPageManagementToolbarDisplayContext = new DisplayPageManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, displayPageDisplayContext);
 %>
 
 <clay:management-toolbar
@@ -56,9 +56,9 @@ DisplayPageManagementToolbarDisplayContext displayPageManagementToolbarDisplayCo
 			<%
 			row.setCssClass("entry-card lfr-asset-item " + row.getCssClass());
 
-			Map<String, Object> rowData = new HashMap<>();
-
-			rowData.put("actions", displayPageManagementToolbarDisplayContext.getAvailableActions(layoutPageTemplateEntry));
+			Map<String, Object> rowData = HashMapBuilder.<String, Object>put(
+				"actions", displayPageManagementToolbarDisplayContext.getAvailableActions(layoutPageTemplateEntry)
+			).build();
 
 			row.setData(rowData);
 			%>

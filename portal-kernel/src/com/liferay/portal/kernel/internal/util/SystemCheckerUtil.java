@@ -14,8 +14,8 @@
 
 package com.liferay.portal.kernel.internal.util;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
@@ -75,8 +75,8 @@ public class SystemCheckerUtil {
 				registry.ungetService(serviceReference);
 			}
 		}
-		catch (Exception e) {
-			log.error(e, e);
+		catch (Exception exception) {
+			log.error(exception, exception);
 		}
 	}
 

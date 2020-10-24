@@ -820,11 +820,6 @@ public class AssetEntryWrapper
 		return model.isVisible();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a asset entry model instance should use the <code>AssetEntry</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();

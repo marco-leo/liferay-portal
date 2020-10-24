@@ -36,7 +36,7 @@ definition {
 				coverImageName = "Document_${i}",
 				entryContent = "Blogs Entry Content",
 				entryTitle = "Blogs Entry Title ${i}",
-				navTab = "Upload Image",
+				navTab = "Blog Images",
 				uploadFileName = "Document_${i}.jpg");
 
 			Button.clickPublish();
@@ -45,6 +45,10 @@ definition {
 		}
 
 		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		BlogsNavigator.gotoAddEntry();
+
+		BlogsNavigator.gotoSelectFile();
 
 		ItemSelector.gotoPreviewViaSelectFile(navTab = "Blog Images");
 
@@ -74,7 +78,9 @@ definition {
 
 		SelectFrame(value1 = "relative=top");
 
-		IFrame.closeFrame();
+		Click(
+			key_modalTitle = "Select File",
+			locator1 = "Button#CLOSE_MODAL");
 
 		for (var coverImageName : list "Document_1,Document_2,Document_3") {
 			AssertElementNotPresent(
@@ -91,6 +97,12 @@ definition {
 		DMDocument.addMultipleCP(dmDocumentFileList = "Document_1.jpg,Document_2.jpg,Document_3.jpg");
 
 		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		BlogsNavigator.gotoAddEntry();
+
+		Pause(locator1 = "3000");
+
+		BlogsNavigator.gotoSelectFile();
 
 		ItemSelector.gotoPreviewViaSelectFile(navTab = "Documents and Media");
 
@@ -124,7 +136,9 @@ definition {
 
 		SelectFrame(value1 = "relative=top");
 
-		IFrame.closeFrame();
+		Click(
+			key_modalTitle = "Select File",
+			locator1 = "Button#CLOSE_MODAL");
 
 		for (var coverImageName : list "Document_1,Document_2,Document_3") {
 			AssertElementNotPresent(
@@ -136,13 +150,15 @@ definition {
 	@description = "This ensures that navigation arrows do not appear in image preview when there is only one image in the library."
 	@priority = "5"
 	test PreviewSingleImage {
+		property portal.acceptance = "true";
+
 		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
 
 		Blogs.addEntryWithUploadedCoverImage(
 			coverImageName = "Document_1",
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title 1",
-			navTab = "Upload Image",
+			navTab = "Blog Images",
 			uploadFileName = "Document_1.jpg");
 
 		Button.clickPublish();
@@ -150,6 +166,10 @@ definition {
 		Pause(locator1 = "10000");
 
 		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		BlogsNavigator.gotoAddEntry();
+
+		BlogsNavigator.gotoSelectFile();
 
 		ItemSelector.gotoPreviewViaSelectFile(navTab = "Blog Images");
 
@@ -160,6 +180,55 @@ definition {
 		AssertElementNotPresent(locator1 = "ItemSelector#VIEWER_LEFT");
 
 		AssertElementNotPresent(locator1 = "ItemSelector#VIEWER_RIGHT");
+	}
+
+	@priority = "4"
+	test RotateImageViaDMSiteAdmin {
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_2.jpg",
+			groupName = "Guest",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_2.jpg");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		AssertVisible(
+			locator1 = "Portlet#HEADER",
+			value1 = "Documents and Media");
+
+		ImageEditor.gotoImageEditorViaDM(dmDocumentTitle = "Document_2.jpg");
+
+		ImageEditor.rotateImage(rotateDirection = "left");
+
+		Pause(locator1 = "3000");
+
+		ImageEditor.applyChangesAndSaveFile();
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMNavigator.gotoDocumentCP(dmDocumentTitle = "Document_2.jpg");
+
+		DMDocument.viewDocumentVersionNumberCmdPG(dmDocumentVersionNumber = "1.1");
+	}
+
+	@priority = "5"
+	test ViewImageEditorControls {
+		property environment.acceptance = "true";
+		property portal.acceptance = "true";
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "Document_1.jpg",
+			groupName = "Guest",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_1.jpg");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		ImageEditor.gotoImageEditorViaDM(dmDocumentTitle = "Document_1.jpg");
+
+		ImageEditor.viewBaseControls();
 	}
 
 }

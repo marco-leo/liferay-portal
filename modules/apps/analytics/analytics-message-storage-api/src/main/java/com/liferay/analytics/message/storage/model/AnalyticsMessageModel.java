@@ -40,7 +40,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface AnalyticsMessageModel
 	extends BaseModel<AnalyticsMessage>, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a analytics message model instance should use the {@link AnalyticsMessage} interface instead.

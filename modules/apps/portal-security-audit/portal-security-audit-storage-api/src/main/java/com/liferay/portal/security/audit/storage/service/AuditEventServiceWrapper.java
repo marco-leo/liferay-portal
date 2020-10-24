@@ -30,11 +30,6 @@ public class AuditEventServiceWrapper
 		_auditEventService = auditEventService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link AuditEventServiceUtil} to access the audit event remote service. Add custom service methods to <code>com.liferay.portal.security.audit.storage.service.impl.AuditEventServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public java.util.List
 		<com.liferay.portal.security.audit.storage.model.AuditEvent>
@@ -50,7 +45,8 @@ public class AuditEventServiceWrapper
 				getAuditEvents(
 					long companyId, int start, int end,
 					com.liferay.portal.kernel.util.OrderByComparator
-						orderByComparator)
+						<com.liferay.portal.security.audit.storage.model.
+							AuditEvent> orderByComparator)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _auditEventService.getAuditEvents(
@@ -86,7 +82,8 @@ public class AuditEventServiceWrapper
 					int serverPort, String sessionID, boolean andSearch,
 					int start, int end,
 					com.liferay.portal.kernel.util.OrderByComparator
-						orderByComparator)
+						<com.liferay.portal.security.audit.storage.model.
+							AuditEvent> orderByComparator)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _auditEventService.getAuditEvents(

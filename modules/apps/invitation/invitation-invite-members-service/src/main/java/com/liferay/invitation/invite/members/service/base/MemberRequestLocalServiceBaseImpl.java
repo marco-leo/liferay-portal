@@ -17,6 +17,7 @@ package com.liferay.invitation.invite.members.service.base;
 import com.liferay.invitation.invite.members.model.MemberRequest;
 import com.liferay.invitation.invite.members.service.MemberRequestLocalService;
 import com.liferay.invitation.invite.members.service.persistence.MemberRequestPersistence;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -36,6 +37,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -63,7 +65,7 @@ public abstract class MemberRequestLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements AopService, IdentifiableOSGiService, MemberRequestLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>MemberRequestLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.invitation.invite.members.service.MemberRequestLocalServiceUtil</code>.
@@ -71,6 +73,10 @@ public abstract class MemberRequestLocalServiceBaseImpl
 
 	/**
 	 * Adds the member request to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MemberRequestLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param memberRequest the member request
 	 * @return the member request that was added
@@ -98,6 +104,10 @@ public abstract class MemberRequestLocalServiceBaseImpl
 	/**
 	 * Deletes the member request with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MemberRequestLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param memberRequestId the primary key of the member request
 	 * @return the member request that was removed
 	 * @throws PortalException if a member request with the primary key could not be found
@@ -113,6 +123,10 @@ public abstract class MemberRequestLocalServiceBaseImpl
 	/**
 	 * Deletes the member request from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MemberRequestLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param memberRequest the member request
 	 * @return the member request that was removed
 	 */
@@ -120,6 +134,11 @@ public abstract class MemberRequestLocalServiceBaseImpl
 	@Override
 	public MemberRequest deleteMemberRequest(MemberRequest memberRequest) {
 		return memberRequestPersistence.remove(memberRequest);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return memberRequestPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -274,6 +293,17 @@ public abstract class MemberRequestLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return memberRequestPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -281,6 +311,14 @@ public abstract class MemberRequestLocalServiceBaseImpl
 			(MemberRequest)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<MemberRequest> getBasePersistence() {
+		return memberRequestPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -316,6 +354,10 @@ public abstract class MemberRequestLocalServiceBaseImpl
 
 	/**
 	 * Updates the member request in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MemberRequestLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param memberRequest the member request
 	 * @return the member request that was updated
@@ -376,8 +418,8 @@ public abstract class MemberRequestLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

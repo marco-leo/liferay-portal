@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class PushNotificationsDeviceLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.push.notifications.service.impl.PushNotificationsDeviceLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link PushNotificationsDeviceLocalServiceUtil} to access the push notifications device local service. Add custom service methods to <code>com.liferay.push.notifications.service.impl.PushNotificationsDeviceLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.push.notifications.model.PushNotificationsDevice
 			addPushNotificationsDevice(
@@ -54,6 +48,10 @@ public class PushNotificationsDeviceLocalServiceUtil {
 	/**
 	 * Adds the push notifications device to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PushNotificationsDeviceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param pushNotificationsDevice the push notifications device
 	 * @return the push notifications device that was added
 	 */
@@ -63,6 +61,16 @@ public class PushNotificationsDeviceLocalServiceUtil {
 				pushNotificationsDevice) {
 
 		return getService().addPushNotificationsDevice(pushNotificationsDevice);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -92,6 +100,10 @@ public class PushNotificationsDeviceLocalServiceUtil {
 	/**
 	 * Deletes the push notifications device with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PushNotificationsDeviceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param pushNotificationsDeviceId the primary key of the push notifications device
 	 * @return the push notifications device that was removed
 	 * @throws PortalException if a push notifications device with the primary key could not be found
@@ -106,6 +118,10 @@ public class PushNotificationsDeviceLocalServiceUtil {
 
 	/**
 	 * Deletes the push notifications device from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PushNotificationsDeviceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param pushNotificationsDevice the push notifications device
 	 * @return the push notifications device that was removed
@@ -124,6 +140,12 @@ public class PushNotificationsDeviceLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePushNotificationsDevice(token);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -240,6 +262,9 @@ public class PushNotificationsDeviceLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -319,6 +344,10 @@ public class PushNotificationsDeviceLocalServiceUtil {
 
 	/**
 	 * Updates the push notifications device in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PushNotificationsDeviceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param pushNotificationsDevice the push notifications device
 	 * @return the push notifications device that was updated

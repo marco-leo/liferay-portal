@@ -93,7 +93,7 @@ public class LiferayBatchFileWriter
 				BatchSchemaConstants.asBatchSchemaIndexedRecord(
 					_liferayBatchFileProperties.getBatchFilePath(),
 					_liferayBatchFileProperties.getEntityClassName(),
-					_liferayBatchFileProperties.getEntityVersion())));
+					"unavailable")));
 	}
 
 	@Override
@@ -143,8 +143,9 @@ public class LiferayBatchFileWriter
 				_outputStreamWriter.flush();
 			}
 		}
-		catch (ConverterException ce) {
-			_indexedRecordJsonObjectConverter.reject(indexedRecord, ce);
+		catch (ConverterException converterException) {
+			_indexedRecordJsonObjectConverter.reject(
+				indexedRecord, converterException);
 		}
 
 		_result.totalCount++;

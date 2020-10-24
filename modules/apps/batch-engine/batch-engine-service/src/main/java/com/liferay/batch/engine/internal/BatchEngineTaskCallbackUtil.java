@@ -43,7 +43,8 @@ public class BatchEngineTaskCallbackUtil {
 		HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
 
 		try (CloseableHttpClient closeableHttpClient =
-				httpClientBuilder.build()) {
+				httpClientBuilder.useSystemProperties(
+				).build()) {
 
 			HttpPost httpPost = new HttpPost(callbackURL);
 
@@ -55,8 +56,8 @@ public class BatchEngineTaskCallbackUtil {
 
 			closeableHttpClient.execute(httpPost);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 	}
 

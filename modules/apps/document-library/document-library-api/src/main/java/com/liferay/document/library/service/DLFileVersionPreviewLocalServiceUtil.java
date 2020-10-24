@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class DLFileVersionPreviewLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.document.library.service.impl.DLFileVersionPreviewLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class DLFileVersionPreviewLocalServiceUtil {
 
 	/**
 	 * Adds the dl file version preview to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileVersionPreviewLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dlFileVersionPreview the dl file version preview
 	 * @return the dl file version preview that was added
@@ -72,12 +76,26 @@ public class DLFileVersionPreviewLocalServiceUtil {
 		return getService().createDLFileVersionPreview(dlFileVersionPreviewId);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
 	public static void deleteDLFileEntryFileVersionPreviews(long fileEntryId) {
 		getService().deleteDLFileEntryFileVersionPreviews(fileEntryId);
 	}
 
 	/**
 	 * Deletes the dl file version preview from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileVersionPreviewLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dlFileVersionPreview the dl file version preview
 	 * @return the dl file version preview that was removed
@@ -92,6 +110,10 @@ public class DLFileVersionPreviewLocalServiceUtil {
 
 	/**
 	 * Deletes the dl file version preview with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileVersionPreviewLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dlFileVersionPreviewId the primary key of the dl file version preview
 	 * @return the dl file version preview that was removed
@@ -113,6 +135,12 @@ public class DLFileVersionPreviewLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -307,6 +335,9 @@ public class DLFileVersionPreviewLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -323,6 +354,10 @@ public class DLFileVersionPreviewLocalServiceUtil {
 
 	/**
 	 * Updates the dl file version preview in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileVersionPreviewLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dlFileVersionPreview the dl file version preview
 	 * @return the dl file version preview that was updated

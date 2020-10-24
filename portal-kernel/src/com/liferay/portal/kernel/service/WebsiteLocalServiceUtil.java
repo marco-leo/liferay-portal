@@ -30,16 +30,10 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class WebsiteLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.WebsiteLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link WebsiteLocalServiceUtil} to access the website local service. Add custom service methods to <code>com.liferay.portal.service.impl.WebsiteLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.portal.kernel.model.Website addWebsite(
 			long userId, String className, long classPK, String url,
@@ -53,6 +47,10 @@ public class WebsiteLocalServiceUtil {
 	/**
 	 * Adds the website to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WebsiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param website the website
 	 * @return the website that was added
 	 */
@@ -60,6 +58,16 @@ public class WebsiteLocalServiceUtil {
 		com.liferay.portal.kernel.model.Website website) {
 
 		return getService().addWebsite(website);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -88,6 +96,10 @@ public class WebsiteLocalServiceUtil {
 	/**
 	 * Deletes the website with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WebsiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param websiteId the primary key of the website
 	 * @return the website that was removed
 	 * @throws PortalException if a website with the primary key could not be found
@@ -102,6 +114,10 @@ public class WebsiteLocalServiceUtil {
 	/**
 	 * Deletes the website from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WebsiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param website the website
 	 * @return the website that was removed
 	 */
@@ -115,6 +131,12 @@ public class WebsiteLocalServiceUtil {
 		long companyId, String className, long classPK) {
 
 		getService().deleteWebsites(companyId, className, classPK);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -251,6 +273,9 @@ public class WebsiteLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -334,6 +359,10 @@ public class WebsiteLocalServiceUtil {
 
 	/**
 	 * Updates the website in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WebsiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param website the website
 	 * @return the website that was updated

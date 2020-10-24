@@ -99,16 +99,16 @@ public class LiferayJSONSerializer extends JSONSerializer {
 					}
 				}
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				throw new UnmarshallException(
-					"Unable to get class " + className, e);
+					"Unable to get class " + className, exception);
 			}
 		}
 
 		return super.getClassFromHint(object);
 	}
 
-	private static String[] _toClassNames(Class<?>[] classes) {
+	private String[] _toClassNames(Class<?>[] classes) {
 		String[] classNames = new String[classes.length];
 
 		for (int i = 0; i < classes.length; i++) {

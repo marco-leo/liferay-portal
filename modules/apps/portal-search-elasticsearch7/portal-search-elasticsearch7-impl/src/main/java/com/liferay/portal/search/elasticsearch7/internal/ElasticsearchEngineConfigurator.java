@@ -16,7 +16,6 @@ package com.liferay.portal.search.elasticsearch7.internal;
 
 import com.liferay.portal.kernel.messaging.DestinationFactory;
 import com.liferay.portal.kernel.messaging.MessageBus;
-import com.liferay.portal.kernel.search.BaseSearchEngineConfigurator;
 import com.liferay.portal.kernel.search.IndexSearcher;
 import com.liferay.portal.kernel.search.IndexWriter;
 import com.liferay.portal.kernel.search.SearchEngine;
@@ -24,13 +23,12 @@ import com.liferay.portal.kernel.search.SearchEngineConfigurator;
 import com.liferay.portal.kernel.search.SearchEngineHelper;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.search.elasticsearch7.internal.connection.ElasticsearchConnection;
-import com.liferay.portal.search.elasticsearch7.internal.connection.ElasticsearchConnectionManager;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.FutureTask;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -45,24 +43,28 @@ import org.osgi.service.component.annotations.Reference;
 public class ElasticsearchEngineConfigurator
 	extends BaseSearchEngineConfigurator {
 
-	@Override
-	public void destroy() {
-		ElasticsearchConnection elasticsearchConnection =
-			_elasticsearchConnectionManager.getElasticsearchConnection();
+	@Activate
+	protected void activate(ComponentContext componentContext) {
+		_bundleContext = componentContext.getBundleContext();
 
-		elasticsearchConnection.close();
+		setSearchEngines(_searchEngines);
 
-		super.destroy();
+		initialize();
 	}
 
-	@Activate
-	protected void activate() {
-		setSearchEngines(_searchEngines);
+	@Override
+	protected BundleContext getBundleContext() {
+		return _bundleContext;
 	}
 
 	@Override
 	protected String getDefaultSearchEngineId() {
 		return SearchEngineHelper.SYSTEM_ENGINE_ID;
+	}
+
+	@Override
+	protected DestinationFactory getDestinationFactory() {
+		return _destinationFactory;
 	}
 
 	@Override
@@ -76,7 +78,12 @@ public class ElasticsearchEngineConfigurator
 	}
 
 	@Override
-	protected ClassLoader getOperatingClassloader() {
+	protected MessageBus getMessageBus() {
+		return _messageBus;
+	}
+
+	@Override
+	protected ClassLoader getOperatingClassLoader() {
 		Class<?> clazz = getClass();
 
 		return clazz.getClassLoader();
@@ -84,34 +91,29 @@ public class ElasticsearchEngineConfigurator
 
 	@Override
 	protected SearchEngineHelper getSearchEngineHelper() {
-		return searchEngineHelper;
+		return _searchEngineHelper;
 	}
 
-	@Override
-	protected void initialize() {
-		FutureTask<Void> futureTask = new FutureTask<Void>(
-			() -> {
-				_elasticsearchConnectionManager.connect();
+	@Reference(unbind = "-")
+	protected void setDestinationFactory(
+		DestinationFactory destinationFactory) {
 
-				return null;
-			});
+		_destinationFactory = destinationFactory;
+	}
 
-		Thread thread = new Thread(
-			futureTask, "Elasticsearch Initialization Thread");
+	@Reference(target = "(!(search.engine.impl=*))", unbind = "-")
+	protected void setIndexSearcher(IndexSearcher indexSearcher) {
+		_indexSearcher = indexSearcher;
+	}
 
-		thread.setDaemon(true);
+	@Reference(target = "(!(search.engine.impl=*))", unbind = "-")
+	protected void setIndexWriter(IndexWriter indexWriter) {
+		_indexWriter = indexWriter;
+	}
 
-		thread.start();
-
-		try {
-			futureTask.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(
-				"Unable to initialize Elasticsearch engine", e);
-		}
-
-		super.initialize();
+	@Reference(unbind = "-")
+	protected void setMessageBus(MessageBus messageBus) {
+		_messageBus = messageBus;
 	}
 
 	@Reference(
@@ -124,6 +126,13 @@ public class ElasticsearchEngineConfigurator
 			properties, "search.engine.id");
 
 		_searchEngines.put(searchEngineId, searchEngine);
+	}
+
+	@Reference(unbind = "-")
+	protected void setSearchEngineHelper(
+		SearchEngineHelper searchEngineHelper) {
+
+		_searchEngineHelper = searchEngineHelper;
 	}
 
 	protected void unsetSearchEngine(
@@ -139,24 +148,12 @@ public class ElasticsearchEngineConfigurator
 		_searchEngines.remove(searchEngineId);
 	}
 
-	@Reference
-	protected SearchEngineHelper searchEngineHelper;
-
-	@Reference
+	private BundleContext _bundleContext;
 	private DestinationFactory _destinationFactory;
-
-	@Reference
-	private ElasticsearchConnectionManager _elasticsearchConnectionManager;
-
-	@Reference(target = "(!(search.engine.impl=*))")
 	private IndexSearcher _indexSearcher;
-
-	@Reference(target = "(!(search.engine.impl=*))")
 	private IndexWriter _indexWriter;
-
-	@Reference
 	private MessageBus _messageBus;
-
+	private SearchEngineHelper _searchEngineHelper;
 	private final Map<String, SearchEngine> _searchEngines =
 		new ConcurrentHashMap<>();
 

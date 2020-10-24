@@ -51,8 +51,8 @@ public class AssetRendererSharingEntryInterpreter
 	public String getAssetTypeTitle(SharingEntry sharingEntry, Locale locale)
 		throws PortalException {
 
-		AssetRenderer assetRenderer = AssetRendererSharingUtil.getAssetRenderer(
-			sharingEntry);
+		AssetRenderer<?> assetRenderer =
+			AssetRendererSharingUtil.getAssetRenderer(sharingEntry);
 
 		if (assetRenderer == null) {
 			return StringPool.BLANK;
@@ -77,14 +77,14 @@ public class AssetRendererSharingEntryInterpreter
 	@Override
 	public String getTitle(SharingEntry sharingEntry) {
 		try {
-			AssetRenderer assetRenderer =
+			AssetRenderer<?> assetRenderer =
 				AssetRendererSharingUtil.getAssetRenderer(sharingEntry);
 
 			if (assetRenderer == null) {
 				return StringPool.BLANK;
 			}
 
-			AssetRendererFactory assetRendererFactory =
+			AssetRendererFactory<?> assetRendererFactory =
 				assetRenderer.getAssetRendererFactory();
 
 			AssetEntry assetEntry = assetRendererFactory.getAssetEntry(
@@ -93,8 +93,8 @@ public class AssetRendererSharingEntryInterpreter
 
 			return assetEntry.getTitle();
 		}
-		catch (PortalException pe) {
-			_log.error(pe, pe);
+		catch (PortalException portalException) {
+			_log.error(portalException, portalException);
 		}
 
 		return StringPool.BLANK;
@@ -102,8 +102,8 @@ public class AssetRendererSharingEntryInterpreter
 
 	@Override
 	public boolean isVisible(SharingEntry sharingEntry) throws PortalException {
-		AssetRenderer assetRenderer = AssetRendererSharingUtil.getAssetRenderer(
-			sharingEntry);
+		AssetRenderer<?> assetRenderer =
+			AssetRendererSharingUtil.getAssetRenderer(sharingEntry);
 
 		if (assetRenderer == null) {
 			return false;

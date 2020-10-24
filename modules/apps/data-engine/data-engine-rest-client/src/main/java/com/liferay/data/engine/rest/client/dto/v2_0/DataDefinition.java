@@ -28,7 +28,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class DataDefinition {
+public class DataDefinition implements Cloneable {
+
+	public static DataDefinition toDTO(String json) {
+		return DataDefinitionSerDes.toDTO(json);
+	}
 
 	public String[] getAvailableLanguageIds() {
 		return availableLanguageIds;
@@ -52,26 +56,26 @@ public class DataDefinition {
 
 	protected String[] availableLanguageIds;
 
-	public Long getClassNameId() {
-		return classNameId;
+	public String getContentType() {
+		return contentType;
 	}
 
-	public void setClassNameId(Long classNameId) {
-		this.classNameId = classNameId;
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
 	}
 
-	public void setClassNameId(
-		UnsafeSupplier<Long, Exception> classNameIdUnsafeSupplier) {
+	public void setContentType(
+		UnsafeSupplier<String, Exception> contentTypeUnsafeSupplier) {
 
 		try {
-			classNameId = classNameIdUnsafeSupplier.get();
+			contentType = contentTypeUnsafeSupplier.get();
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	protected Long classNameId;
+	protected String contentType;
 
 	public DataDefinitionField[] getDataDefinitionFields() {
 		return dataDefinitionFields;
@@ -118,29 +122,26 @@ public class DataDefinition {
 
 	protected String dataDefinitionKey;
 
-	public DataDefinitionRule[] getDataDefinitionRules() {
-		return dataDefinitionRules;
+	public DataRule[] getDataRules() {
+		return dataRules;
 	}
 
-	public void setDataDefinitionRules(
-		DataDefinitionRule[] dataDefinitionRules) {
-
-		this.dataDefinitionRules = dataDefinitionRules;
+	public void setDataRules(DataRule[] dataRules) {
+		this.dataRules = dataRules;
 	}
 
-	public void setDataDefinitionRules(
-		UnsafeSupplier<DataDefinitionRule[], Exception>
-			dataDefinitionRulesUnsafeSupplier) {
+	public void setDataRules(
+		UnsafeSupplier<DataRule[], Exception> dataRulesUnsafeSupplier) {
 
 		try {
-			dataDefinitionRules = dataDefinitionRulesUnsafeSupplier.get();
+			dataRules = dataRulesUnsafeSupplier.get();
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	protected DataDefinitionRule[] dataDefinitionRules;
+	protected DataRule[] dataRules;
 
 	public Date getDateCreated() {
 		return dateCreated;
@@ -183,6 +184,27 @@ public class DataDefinition {
 	}
 
 	protected Date dateModified;
+
+	public DataLayout getDefaultDataLayout() {
+		return defaultDataLayout;
+	}
+
+	public void setDefaultDataLayout(DataLayout defaultDataLayout) {
+		this.defaultDataLayout = defaultDataLayout;
+	}
+
+	public void setDefaultDataLayout(
+		UnsafeSupplier<DataLayout, Exception> defaultDataLayoutUnsafeSupplier) {
+
+		try {
+			defaultDataLayout = defaultDataLayoutUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected DataLayout defaultDataLayout;
 
 	public String getDefaultLanguageId() {
 		return defaultLanguageId;
@@ -329,6 +351,11 @@ public class DataDefinition {
 	}
 
 	protected Long userId;
+
+	@Override
+	public DataDefinition clone() throws CloneNotSupportedException {
+		return (DataDefinition)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

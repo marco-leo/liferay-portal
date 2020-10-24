@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class DDMFormInstanceRecordLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.dynamic.data.mapping.service.impl.DDMFormInstanceRecordLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class DDMFormInstanceRecordLocalServiceUtil {
 
 	/**
 	 * Adds the ddm form instance record to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMFormInstanceRecordLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddmFormInstanceRecord the ddm form instance record
 	 * @return the ddm form instance record that was added
@@ -77,7 +81,21 @@ public class DDMFormInstanceRecordLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the ddm form instance record from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMFormInstanceRecordLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddmFormInstanceRecord the ddm form instance record
 	 * @return the ddm form instance record that was removed
@@ -92,6 +110,10 @@ public class DDMFormInstanceRecordLocalServiceUtil {
 
 	/**
 	 * Deletes the ddm form instance record with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMFormInstanceRecordLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param formInstanceRecordId the primary key of the ddm form instance record
 	 * @return the ddm form instance record that was removed
@@ -135,6 +157,12 @@ public class DDMFormInstanceRecordLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -351,6 +379,20 @@ public class DDMFormInstanceRecordLocalServiceUtil {
 
 	public static com.liferay.dynamic.data.mapping.storage.DDMFormValues
 			getDDMFormValues(
+				com.liferay.dynamic.data.mapping.model.DDMForm ddmForm,
+				long storageId, String storageType)
+		throws com.liferay.dynamic.data.mapping.exception.StorageException {
+
+		return getService().getDDMFormValues(ddmForm, storageId, storageType);
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 #getDDMFormValues(DDMForm, long, String)}
+	 */
+	@Deprecated
+	public static com.liferay.dynamic.data.mapping.storage.DDMFormValues
+			getDDMFormValues(
 				long storageId,
 				com.liferay.dynamic.data.mapping.model.DDMForm ddmForm)
 		throws com.liferay.dynamic.data.mapping.exception.StorageException {
@@ -367,10 +409,10 @@ public class DDMFormInstanceRecordLocalServiceUtil {
 	}
 
 	public static com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecord
-			getFormInstanceRecord(long ddmFormInstanceRecordId)
+			getFormInstanceRecord(long formInstanceRecordId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return getService().getFormInstanceRecord(ddmFormInstanceRecordId);
+		return getService().getFormInstanceRecord(formInstanceRecordId);
 	}
 
 	public static java.util.List
@@ -438,6 +480,9 @@ public class DDMFormInstanceRecordLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -456,6 +501,18 @@ public class DDMFormInstanceRecordLocalServiceUtil {
 
 	public static com.liferay.portal.kernel.search.BaseModelSearchResult
 		<com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecord>
+				searchFormInstanceRecords(
+					long formInstanceId, String[] notEmptyFields, int status,
+					int start, int end,
+					com.liferay.portal.kernel.search.Sort sort)
+			throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().searchFormInstanceRecords(
+			formInstanceId, notEmptyFields, status, start, end, sort);
+	}
+
+	public static com.liferay.portal.kernel.search.BaseModelSearchResult
+		<com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecord>
 			searchFormInstanceRecords(
 				com.liferay.portal.kernel.search.SearchContext searchContext) {
 
@@ -464,6 +521,10 @@ public class DDMFormInstanceRecordLocalServiceUtil {
 
 	/**
 	 * Updates the ddm form instance record in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMFormInstanceRecordLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddmFormInstanceRecord the ddm form instance record
 	 * @return the ddm form instance record that was updated

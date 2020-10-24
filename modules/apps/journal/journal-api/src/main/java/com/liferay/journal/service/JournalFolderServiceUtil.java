@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class JournalFolderServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.journal.service.impl.JournalFolderServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link JournalFolderServiceUtil} to access the journal folder remote service. Add custom service methods to <code>com.liferay.journal.service.impl.JournalFolderServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.journal.model.JournalFolder addFolder(
 			long groupId, long parentFolderId, String name, String description,
@@ -128,35 +122,37 @@ public class JournalFolderServiceUtil {
 
 	public static java.util.List<Object> getFoldersAndArticles(
 		long groupId, long folderId, int status, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<?> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<?> orderByComparator) {
 
 		return getService().getFoldersAndArticles(
-			groupId, folderId, status, start, end, obc);
+			groupId, folderId, status, start, end, orderByComparator);
 	}
 
 	public static java.util.List<Object> getFoldersAndArticles(
 		long groupId, long folderId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<?> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<?> orderByComparator) {
 
 		return getService().getFoldersAndArticles(
-			groupId, folderId, start, end, obc);
+			groupId, folderId, start, end, orderByComparator);
 	}
 
 	public static java.util.List<Object> getFoldersAndArticles(
 		long groupId, long userId, long folderId, int status, int start,
-		int end, com.liferay.portal.kernel.util.OrderByComparator<?> obc) {
+		int end,
+		com.liferay.portal.kernel.util.OrderByComparator<?> orderByComparator) {
 
 		return getService().getFoldersAndArticles(
-			groupId, userId, folderId, status, start, end, obc);
+			groupId, userId, folderId, status, start, end, orderByComparator);
 	}
 
 	public static java.util.List<Object> getFoldersAndArticles(
 		long groupId, long userId, long folderId, int status,
 		java.util.Locale locale, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<?> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<?> orderByComparator) {
 
 		return getService().getFoldersAndArticles(
-			groupId, userId, folderId, status, locale, start, end, obc);
+			groupId, userId, folderId, status, locale, start, end,
+			orderByComparator);
 	}
 
 	public static int getFoldersAndArticlesCount(
@@ -254,12 +250,12 @@ public class JournalFolderServiceUtil {
 					int restrictionType, String keywords, int start, int end,
 					com.liferay.portal.kernel.util.OrderByComparator
 						<com.liferay.dynamic.data.mapping.model.DDMStructure>
-							obc)
+							orderByComparator)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().searchDDMStructures(
 			companyId, groupIds, folderId, restrictionType, keywords, start,
-			end, obc);
+			end, orderByComparator);
 	}
 
 	public static void subscribe(long groupId, long folderId)

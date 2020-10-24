@@ -64,11 +64,11 @@ public class Log4jExtenderBundleActivator implements BundleActivator {
 					_configureLog4j(bundle, "module-log4j-ext.xml");
 					_configureLog4j(bundle.getSymbolicName());
 				}
-				catch (IOException ioe) {
+				catch (IOException ioException) {
 					_logger.error(
 						"Unable to configure Log4j for bundle " +
 							bundle.getSymbolicName(),
-						ioe);
+						ioException);
 				}
 
 				return bundle;
@@ -80,67 +80,8 @@ public class Log4jExtenderBundleActivator implements BundleActivator {
 	}
 
 	@Override
-	public void stop(BundleContext context) {
+	public void stop(BundleContext bundleContext) {
 		_bundleTracker.close();
-	}
-
-	private static String _escapeXMLAttribute(String s) {
-		return StringUtil.replace(
-			s,
-			new char[] {
-				CharPool.AMPERSAND, CharPool.APOSTROPHE, CharPool.LESS_THAN,
-				CharPool.QUOTE
-			},
-			new String[] {"&amp;", "&apos;", "&lt;", "&quot;"});
-	}
-
-	private static String _getLiferayHome() {
-		if (_liferayHome == null) {
-			_liferayHome = _escapeXMLAttribute(
-				PropsUtil.get(PropsKeys.LIFERAY_HOME));
-		}
-
-		return _liferayHome;
-	}
-
-	private static String _getURLContent(URL url) {
-		String spiId = System.getProperty("spi.id");
-
-		if (spiId == null) {
-			spiId = StringPool.BLANK;
-		}
-
-		Map<String, String> variables = HashMapBuilder.put(
-			"@liferay.home@", _getLiferayHome()
-		).put(
-			"@spi.id@", spiId
-		).build();
-
-		String urlContent = null;
-
-		try (InputStream inputStream = url.openStream()) {
-			UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
-				new UnsyncByteArrayOutputStream();
-
-			StreamUtil.transfer(
-				inputStream, unsyncByteArrayOutputStream, -1, true);
-
-			byte[] bytes = unsyncByteArrayOutputStream.toByteArray();
-
-			urlContent = new String(bytes, StringPool.UTF8);
-		}
-		catch (Exception e) {
-			_logger.error(e, e);
-
-			return null;
-		}
-
-		for (Map.Entry<String, String> variable : variables.entrySet()) {
-			urlContent = StringUtil.replace(
-				urlContent, variable.getKey(), variable.getValue());
-		}
-
-		return urlContent;
 	}
 
 	private void _configureLog4j(Bundle bundle, String resourcePath)
@@ -179,6 +120,68 @@ public class Log4jExtenderBundleActivator implements BundleActivator {
 
 		domConfigurator.doConfigure(
 			uri.toURL(), LogManager.getLoggerRepository());
+	}
+
+	private String _escapeXMLAttribute(String s) {
+		return StringUtil.replace(
+			s,
+			new char[] {
+				CharPool.AMPERSAND, CharPool.APOSTROPHE, CharPool.LESS_THAN,
+				CharPool.QUOTE
+			},
+			new String[] {"&amp;", "&apos;", "&lt;", "&quot;"});
+	}
+
+	private String _getLiferayHome() {
+		if (_liferayHome == null) {
+			_liferayHome = _escapeXMLAttribute(
+				PropsUtil.get(PropsKeys.LIFERAY_HOME));
+		}
+
+		return _liferayHome;
+	}
+
+	private String _getURLContent(URL url) {
+		Map<String, String> variables = HashMapBuilder.put(
+			"@liferay.home@", _getLiferayHome()
+		).put(
+			"@spi.id@",
+			() -> {
+				String spiId = System.getProperty("spi.id");
+
+				if (spiId != null) {
+					return spiId;
+				}
+
+				return StringPool.BLANK;
+			}
+		).build();
+
+		String urlContent = null;
+
+		try (InputStream inputStream = url.openStream()) {
+			UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
+				new UnsyncByteArrayOutputStream();
+
+			StreamUtil.transfer(
+				inputStream, unsyncByteArrayOutputStream, -1, true);
+
+			byte[] bytes = unsyncByteArrayOutputStream.toByteArray();
+
+			urlContent = new String(bytes, StringPool.UTF8);
+		}
+		catch (Exception exception) {
+			_logger.error(exception, exception);
+
+			return null;
+		}
+
+		for (Map.Entry<String, String> variable : variables.entrySet()) {
+			urlContent = StringUtil.replace(
+				urlContent, variable.getKey(), variable.getValue());
+		}
+
+		return urlContent;
 	}
 
 	private static final Logger _logger = Logger.getLogger(

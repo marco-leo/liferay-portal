@@ -36,7 +36,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface LVEntryVersionModel
 	extends BaseModel<LVEntryVersion>, ShardedModel, VersionModel<LVEntry> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a lv entry version model instance should use the {@link LVEntryVersion} interface instead.

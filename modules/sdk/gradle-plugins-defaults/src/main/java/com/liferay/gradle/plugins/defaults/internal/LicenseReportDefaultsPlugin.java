@@ -28,14 +28,14 @@ import com.liferay.gradle.plugins.defaults.internal.util.GradlePluginsDefaultsUt
 import com.liferay.gradle.plugins.defaults.internal.util.GradleUtil;
 import com.liferay.gradle.plugins.defaults.internal.util.VersionsXmlReportRenderer;
 import com.liferay.gradle.plugins.defaults.internal.util.XMLUtil;
-import com.liferay.gradle.plugins.util.BndBuilderUtil;
+import com.liferay.gradle.plugins.extensions.BundleExtension;
+import com.liferay.gradle.plugins.util.BndUtil;
 import com.liferay.gradle.util.Validator;
 
 import java.io.File;
 import java.io.IOException;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -163,12 +163,13 @@ public class LicenseReportDefaultsPlugin implements Plugin<Project> {
 			try {
 				licenseReportExtension.configurations = addConfigurations();
 			}
-			catch (IOException ioe) {
-				throw new UncheckedIOException(ioe);
+			catch (IOException ioException) {
+				throw new UncheckedIOException(ioException);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				throw new GradleException(
-					"Unable to configure license report for " + project, e);
+					"Unable to configure license report for " + project,
+					exception);
 			}
 
 			licenseReportExtension.excludeOwnGroup = false;
@@ -263,16 +264,15 @@ public class LicenseReportDefaultsPlugin implements Plugin<Project> {
 		protected String[] addConfigurations() throws Exception {
 			super.addConfigurations();
 
+			BundleExtension bundleExtension = BndUtil.getBundleExtension(
+				project.getExtensions());
+
 			final Set<String> dependencyNames = new HashSet<>();
 
-			Map<String, Object> bundleInstructions =
-				BndBuilderUtil.getInstructions(project);
-
 			_addBundleDependencyNames(
-				dependencyNames, bundleInstructions, Constants.INCLUDERESOURCE);
+				bundleExtension, dependencyNames, Constants.INCLUDERESOURCE);
 			_addBundleDependencyNames(
-				dependencyNames, bundleInstructions,
-				Constants.INCLUDE_RESOURCE);
+				bundleExtension, dependencyNames, Constants.INCLUDE_RESOURCE);
 
 			_addDependenciesLicenseReport(
 				JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME, dependencyNames);
@@ -292,10 +292,10 @@ public class LicenseReportDefaultsPlugin implements Plugin<Project> {
 		}
 
 		private void _addBundleDependencyNames(
-			Set<String> dependencyNames, Map<String, Object> bundleInstructions,
+			BundleExtension bundleExtension, Set<String> dependencyNames,
 			String key) {
 
-			String value = GradleUtil.toString(bundleInstructions.get(key));
+			String value = bundleExtension.getInstruction(key);
 
 			if (Validator.isNull(value)) {
 				return;

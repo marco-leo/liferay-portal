@@ -17,6 +17,7 @@ package com.liferay.layout.page.template.service.persistence;
 import com.liferay.layout.page.template.exception.NoSuchPageTemplateStructureException;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -33,9 +34,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface LayoutPageTemplateStructurePersistence
-	extends BasePersistence<LayoutPageTemplateStructure> {
+	extends BasePersistence<LayoutPageTemplateStructure>,
+			CTPersistence<LayoutPageTemplateStructure> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link LayoutPageTemplateStructureUtil} to access the layout page template structure persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

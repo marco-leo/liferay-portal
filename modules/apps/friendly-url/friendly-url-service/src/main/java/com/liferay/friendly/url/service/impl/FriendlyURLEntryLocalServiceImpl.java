@@ -34,6 +34,8 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Collections;
@@ -100,7 +102,11 @@ public class FriendlyURLEntryLocalServiceImpl
 			friendlyURLEntryMapping.setClassNameId(classNameId);
 			friendlyURLEntryMapping.setClassPK(classPK);
 		}
-		else if (_containsAllURLTitles(friendlyURLEntryMapping, urlTitleMap)) {
+
+		Map<String, String> existingUrlTitleMap = _getURLTitleMap(
+			friendlyURLEntryMapping);
+
+		if (_containsAllURLTitles(existingUrlTitleMap, urlTitleMap)) {
 			return friendlyURLEntryPersistence.fetchByPrimaryKey(
 				friendlyURLEntryMapping.getFriendlyURLEntryId());
 		}
@@ -125,10 +131,11 @@ public class FriendlyURLEntryLocalServiceImpl
 
 		friendlyURLEntryMappingPersistence.update(friendlyURLEntryMapping);
 
-		friendlyURLEntryPersistence.update(friendlyURLEntry);
+		friendlyURLEntry = friendlyURLEntryPersistence.update(friendlyURLEntry);
 
 		_updateFriendlyURLEntryLocalizations(
-			friendlyURLEntry, classNameId, classPK, urlTitleMap);
+			friendlyURLEntry, classNameId, classPK,
+			_merge(urlTitleMap, existingUrlTitleMap));
 
 		return friendlyURLEntry;
 	}
@@ -199,10 +206,22 @@ public class FriendlyURLEntryLocalServiceImpl
 
 	@Override
 	public void deleteFriendlyURLEntry(
-			long groupId, Class<?> clazz, long classPK)
-		throws PortalException {
+		long groupId, Class<?> clazz, long classPK) {
 
-		long classNameId = classNameLocalService.getClassNameId(clazz);
+		deleteFriendlyURLEntry(
+			groupId, classNameLocalService.getClassNameId(clazz), classPK);
+	}
+
+	@Override
+	public void deleteFriendlyURLEntry(
+		long groupId, long classNameId, long classPK) {
+
+		FriendlyURLEntryMapping friendlyURLEntryMapping =
+			friendlyURLEntryMappingPersistence.fetchByC_C(classNameId, classPK);
+
+		if (friendlyURLEntryMapping == null) {
+			return;
+		}
 
 		List<FriendlyURLEntry> friendlyURLEntries =
 			friendlyURLEntryPersistence.findByG_C_C(
@@ -215,7 +234,17 @@ public class FriendlyURLEntryLocalServiceImpl
 			friendlyURLEntryPersistence.remove(friendlyURLEntry);
 		}
 
-		friendlyURLEntryMappingPersistence.removeByC_C(classNameId, classPK);
+		friendlyURLEntryMappingPersistence.remove(friendlyURLEntryMapping);
+	}
+
+	@Override
+	public void deleteFriendlyURLLocalizationEntry(
+			long friendlyURLEntryId, String languageId)
+		throws PortalException {
+
+		friendlyURLEntryLocalizationPersistence.
+			removeByFriendlyURLEntryId_LanguageId(
+				friendlyURLEntryId, languageId);
 	}
 
 	@Override
@@ -256,8 +285,8 @@ public class FriendlyURLEntryLocalServiceImpl
 		try {
 			actionableDynamicQuery.performActions();
 		}
-		catch (PortalException pe) {
-			throw new SystemException(pe);
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
 		}
 	}
 
@@ -301,6 +330,17 @@ public class FriendlyURLEntryLocalServiceImpl
 
 		return friendlyURLEntryPersistence.findByG_C_C(
 			groupId, classNameId, classPK);
+	}
+
+	@Override
+	public List<FriendlyURLEntryLocalization> getFriendlyURLEntryLocalizations(
+		long groupId, long classNameId, long classPK, String languageId,
+		int start, int end,
+		OrderByComparator<FriendlyURLEntryLocalization> orderByComparator) {
+
+		return friendlyURLEntryLocalizationPersistence.findByG_C_C_L(
+			groupId, classNameId, classPK, languageId, start, end,
+			orderByComparator);
 	}
 
 	@Override
@@ -355,7 +395,8 @@ public class FriendlyURLEntryLocalServiceImpl
 			prefix = _getURLEncodedSubstring(
 				urlTitle, prefix, maxLength - suffix.length());
 
-			curUrlTitle = prefix + suffix;
+			curUrlTitle = FriendlyURLNormalizerUtil.normalizeWithEncoding(
+				prefix + suffix);
 		}
 
 		return curUrlTitle;
@@ -401,7 +442,7 @@ public class FriendlyURLEntryLocalServiceImpl
 		friendlyURLEntry.setClassPK(classPK);
 		friendlyURLEntry.setDefaultLanguageId(defaultLanguageId);
 
-		friendlyURLEntryPersistence.update(friendlyURLEntry);
+		friendlyURLEntry = friendlyURLEntryPersistence.update(friendlyURLEntry);
 
 		_updateFriendlyURLEntryLocalizations(
 			friendlyURLEntry, classNameId, classPK, urlTitleMap);
@@ -487,26 +528,14 @@ public class FriendlyURLEntryLocalServiceImpl
 	}
 
 	private boolean _containsAllURLTitles(
-		FriendlyURLEntryMapping friendlyURLEntryMapping,
+		Map<String, String> existingUrlTitleMap,
 		Map<String, String> urlTitleMap) {
-
-		Map<String, String> existUrlTitleMap = new HashMap<>();
-
-		for (FriendlyURLEntryLocalization friendlyURLEntryLocalization :
-				friendlyURLEntryLocalizationPersistence.
-					findByFriendlyURLEntryId(
-						friendlyURLEntryMapping.getFriendlyURLEntryId())) {
-
-			existUrlTitleMap.put(
-				friendlyURLEntryLocalization.getLanguageId(),
-				friendlyURLEntryLocalization.getUrlTitle());
-		}
 
 		for (Map.Entry<String, String> entry : urlTitleMap.entrySet()) {
 			String urlTitle = FriendlyURLNormalizerUtil.normalizeWithEncoding(
 				entry.getValue());
 
-			if (!urlTitle.equals(existUrlTitleMap.get(entry.getKey()))) {
+			if (!urlTitle.equals(existingUrlTitleMap.get(entry.getKey()))) {
 				return false;
 			}
 		}
@@ -533,6 +562,34 @@ public class FriendlyURLEntryLocalServiceImpl
 		}
 
 		return encodedString;
+	}
+
+	private Map<String, String> _getURLTitleMap(
+		FriendlyURLEntryMapping friendlyURLEntryMapping) {
+
+		Map<String, String> urlTitleMap = new HashMap<>();
+
+		for (FriendlyURLEntryLocalization friendlyURLEntryLocalization :
+				friendlyURLEntryLocalizationPersistence.
+					findByFriendlyURLEntryId(
+						friendlyURLEntryMapping.getFriendlyURLEntryId())) {
+
+			urlTitleMap.put(
+				friendlyURLEntryLocalization.getLanguageId(),
+				friendlyURLEntryLocalization.getUrlTitle());
+		}
+
+		return urlTitleMap;
+	}
+
+	private Map<String, String> _merge(
+		Map<String, String> masterMap, Map<String, String> copyMap) {
+
+		Map<String, String> map = new HashMap<>(copyMap);
+
+		MapUtil.merge(masterMap, map);
+
+		return map;
 	}
 
 	private void _updateFriendlyURLEntryLocalizations(

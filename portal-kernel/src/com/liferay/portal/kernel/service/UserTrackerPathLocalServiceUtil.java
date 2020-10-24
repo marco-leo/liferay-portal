@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class UserTrackerPathLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.UserTrackerPathLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -38,6 +38,10 @@ public class UserTrackerPathLocalServiceUtil {
 
 	/**
 	 * Adds the user tracker path to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserTrackerPathLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param userTrackerPath the user tracker path
 	 * @return the user tracker path that was added
@@ -47,6 +51,16 @@ public class UserTrackerPathLocalServiceUtil {
 			com.liferay.portal.kernel.model.UserTrackerPath userTrackerPath) {
 
 		return getService().addUserTrackerPath(userTrackerPath);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -75,6 +89,10 @@ public class UserTrackerPathLocalServiceUtil {
 	/**
 	 * Deletes the user tracker path with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserTrackerPathLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param userTrackerPathId the primary key of the user tracker path
 	 * @return the user tracker path that was removed
 	 * @throws PortalException if a user tracker path with the primary key could not be found
@@ -89,6 +107,10 @@ public class UserTrackerPathLocalServiceUtil {
 	/**
 	 * Deletes the user tracker path from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserTrackerPathLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param userTrackerPath the user tracker path
 	 * @return the user tracker path that was removed
 	 */
@@ -97,6 +119,12 @@ public class UserTrackerPathLocalServiceUtil {
 			com.liferay.portal.kernel.model.UserTrackerPath userTrackerPath) {
 
 		return getService().deleteUserTrackerPath(userTrackerPath);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -212,6 +240,9 @@ public class UserTrackerPathLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -269,6 +300,10 @@ public class UserTrackerPathLocalServiceUtil {
 
 	/**
 	 * Updates the user tracker path in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserTrackerPathLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param userTrackerPath the user tracker path
 	 * @return the user tracker path that was updated

@@ -9,20 +9,19 @@
  * distribution rights of the Software.
  */
 
-import React from 'react';
+import ClayLayout from '@clayui/layout';
+import React, {useMemo} from 'react';
 
 import Panel from '../../../shared/components/Panel.es';
-import {getFiltersParam} from '../../../shared/components/filter/util/filterUtil.es';
-import PromisesResolver from '../../../shared/components/request/PromisesResolver.es';
-import Request from '../../../shared/components/request/Request.es';
-import {ProcessStepProvider} from '../filter/store/ProcessStepStore.es';
-import {TimeRangeProvider} from '../filter/store/TimeRangeStore.es';
+import PromisesResolver from '../../../shared/components/promises-resolver/PromisesResolver.es';
+import {useFilter} from '../../../shared/hooks/useFilter.es';
+import {usePost} from '../../../shared/hooks/usePost.es';
+import ProcessStepFilter from '../../filter/ProcessStepFilter.es';
+import TimeRangeFilter from '../../filter/TimeRangeFilter.es';
+import {getTimeRangeParams} from '../../filter/util/timeRangeUtil.es';
 import {Body, Footer} from './PerformanceByAssigneeCardBody.es';
-import {Container} from './PerformanceByAssigneeCardContainer.es';
-import {Filter} from './PerformanceByAssigneeCardFilter.es';
-import {Item, Table} from './PerformanceByAssigneeCardTable.es';
 
-const Header = ({processId, query}) => {
+const Header = ({disableFilters, prefixKey, processId}) => {
 	return (
 		<Panel.HeaderWithOptions
 			description={Liferay.Language.get(
@@ -31,47 +30,107 @@ const Header = ({processId, query}) => {
 			elementClasses="dashboard-panel-header"
 			title={Liferay.Language.get('performance-by-assignee')}
 		>
-			<PromisesResolver.Resolved>
-				<PerformanceByAssigneeCard.Filter
-					processId={processId}
-					query={query}
-				></PerformanceByAssigneeCard.Filter>
-			</PromisesResolver.Resolved>
+			<ClayLayout.ContentCol className="m-0 management-bar management-bar-light navbar">
+				<ul className="navbar-nav">
+					<ProcessStepFilter
+						disabled={disableFilters}
+						options={{
+							hideControl: true,
+							multiple: false,
+							position: 'right',
+							withAllSteps: true,
+							withSelectionTitle: true,
+						}}
+						prefixKey={prefixKey}
+						processId={processId}
+					/>
+
+					<TimeRangeFilter
+						className={'pl-3'}
+						disabled={disableFilters}
+						options={{position: 'right'}}
+						prefixKey={prefixKey}
+					/>
+				</ul>
+			</ClayLayout.ContentCol>
 		</Panel.HeaderWithOptions>
 	);
 };
 
-const PerformanceByAssigneeCard = ({processId, query}) => {
-	const {assigneeProcessStep = [], assigneeTimeRange = []} = getFiltersParam(
-		query
+const PerformanceByAssigneeCard = ({routeParams}) => {
+	const {processId} = routeParams;
+	const filterKeys = ['processStep', 'timeRange'];
+	const prefixKey = 'assignee';
+	const prefixKeys = [prefixKey];
+
+	const {
+		filterValues: {
+			assigneeDateEnd,
+			assigneeDateStart,
+			assigneeTaskNames: [taskName] = ['allSteps'],
+			assigneeTimeRange: [key] = [],
+		},
+		filtersError,
+	} = useFilter({
+		filterKeys,
+		prefixKeys,
+	});
+
+	const taskNames = taskName !== 'allSteps' ? [taskName] : undefined;
+	const timeRange = useMemo(
+		() => getTimeRangeParams(assigneeDateStart, assigneeDateEnd),
+		[assigneeDateEnd, assigneeDateStart]
 	);
+
+	const {data, postData} = usePost({
+		body: {
+			completed: true,
+			taskNames,
+			...timeRange,
+		},
+		params: {
+			page: 1,
+			pageSize: 10,
+			sort: 'durationTaskAvg:desc',
+		},
+		url: `/processes/${processId}/assignees/metrics`,
+	});
+
+	const promises = useMemo(() => {
+		if (timeRange.dateEnd && timeRange.dateStart) {
+			return [postData()];
+		}
+
+		return [new Promise((_, reject) => reject(filtersError))];
+	}, [filtersError, postData, timeRange.dateEnd, timeRange.dateStart]);
 
 	return (
 		<Panel elementClasses="dashboard-card">
-			<Request>
-				<ProcessStepProvider
-					processId={processId}
-					processStepKeys={assigneeProcessStep}
-					withAllSteps={true}
-				>
-					<TimeRangeProvider timeRangeKeys={assigneeTimeRange}>
-						<PerformanceByAssigneeCard.Container
-							processId={processId}
-							query={query}
-						/>
-					</TimeRangeProvider>
-				</ProcessStepProvider>
-			</Request>
+			<PromisesResolver promises={promises}>
+				<PerformanceByAssigneeCard.Header
+					disableFilters={filtersError}
+					prefixKey={prefixKey}
+					{...routeParams}
+				/>
+
+				<PerformanceByAssigneeCard.Body
+					{...data}
+					filtered={!!taskNames}
+				/>
+
+				<PerformanceByAssigneeCard.Footer
+					processStep={taskName}
+					timeRange={{key, ...timeRange}}
+					totalCount={data.totalCount}
+					{...routeParams}
+				/>
+			</PromisesResolver>
 		</Panel>
 	);
 };
 
 PerformanceByAssigneeCard.Body = Body;
-PerformanceByAssigneeCard.Container = Container;
-PerformanceByAssigneeCard.Filter = Filter;
 PerformanceByAssigneeCard.Footer = Footer;
 PerformanceByAssigneeCard.Header = Header;
-PerformanceByAssigneeCard.Item = Item;
-PerformanceByAssigneeCard.Table = Table;
 
 export default PerformanceByAssigneeCard;

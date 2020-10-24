@@ -16,6 +16,7 @@ package com.liferay.site.browser.web.internal.display.context;
 
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemList;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemListBuilder;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -236,18 +237,15 @@ public class SiteBrowserDisplayContext {
 		String[] types = _getTypes();
 
 		if (types.length == 1) {
-			return new NavigationItemList() {
-				{
-					add(
-						navigationItem -> {
-							navigationItem.setActive(true);
-							navigationItem.setHref(
-								_liferayPortletResponse.createRenderURL());
-							navigationItem.setLabel(
-								LanguageUtil.get(_httpServletRequest, "sites"));
-						});
+			return NavigationItemListBuilder.add(
+				navigationItem -> {
+					navigationItem.setActive(true);
+					navigationItem.setHref(
+						_liferayPortletResponse.createRenderURL());
+					navigationItem.setLabel(
+						LanguageUtil.get(_httpServletRequest, "sites"));
 				}
-			};
+			).build();
 		}
 		else if (types.length > 1) {
 			return new NavigationItemList() {
@@ -288,9 +286,9 @@ public class SiteBrowserDisplayContext {
 		try {
 			selUser = PortalUtil.getSelectedUser(_httpServletRequest);
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(portalException, portalException);
 			}
 		}
 
@@ -380,7 +378,7 @@ public class SiteBrowserDisplayContext {
 				return true;
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		return false;
@@ -388,7 +386,7 @@ public class SiteBrowserDisplayContext {
 
 	private List<Group> _filterGroups(
 			List<Group> groups, PermissionChecker permissionChecker)
-		throws PortalException {
+		throws Exception {
 
 		boolean filterManageableGroups = ParamUtil.getBoolean(
 			_httpServletRequest, "filterManageableGroups", true);
@@ -469,9 +467,7 @@ public class SiteBrowserDisplayContext {
 		return _groupId;
 	}
 
-	private LinkedHashMap<String, Object> _getGroupParams()
-		throws PortalException {
-
+	private LinkedHashMap<String, Object> _getGroupParams() throws Exception {
 		if (_groupParams != null) {
 			return _groupParams;
 		}

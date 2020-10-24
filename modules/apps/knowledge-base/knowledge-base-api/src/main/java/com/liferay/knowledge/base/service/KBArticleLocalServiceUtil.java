@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class KBArticleLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.knowledge.base.service.impl.KBArticleLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link KBArticleLocalServiceUtil} to access the kb article local service. Add custom service methods to <code>com.liferay.knowledge.base.service.impl.KBArticleLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.portal.kernel.repository.model.FileEntry
 			addAttachment(
@@ -55,6 +49,10 @@ public class KBArticleLocalServiceUtil {
 
 	/**
 	 * Adds the kb article to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KBArticleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kbArticle the kb article
 	 * @return the kb article that was added
@@ -139,6 +137,16 @@ public class KBArticleLocalServiceUtil {
 		return getService().createKBArticle(kbArticleId);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
 	public static void deleteGroupKBArticles(long groupId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -147,6 +155,10 @@ public class KBArticleLocalServiceUtil {
 
 	/**
 	 * Deletes the kb article from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KBArticleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kbArticle the kb article
 	 * @return the kb article that was removed
@@ -161,6 +173,10 @@ public class KBArticleLocalServiceUtil {
 
 	/**
 	 * Deletes the kb article with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KBArticleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kbArticleId the primary key of the kb article
 	 * @return the kb article that was removed
@@ -203,6 +219,12 @@ public class KBArticleLocalServiceUtil {
 
 		getService().deleteTempAttachment(
 			groupId, userId, fileName, tempFolderName);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -639,6 +661,9 @@ public class KBArticleLocalServiceUtil {
 		return getService().getPersistedModel(resourcePrimKey);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -746,6 +771,10 @@ public class KBArticleLocalServiceUtil {
 
 	/**
 	 * Updates the kb article in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KBArticleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kbArticle the kb article
 	 * @return the kb article that was updated

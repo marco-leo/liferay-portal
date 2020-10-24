@@ -17,26 +17,80 @@
 <%@ include file="/init.jsp" %>
 
 <%
+PortletURL portletURL = renderResponse.createRenderURL();
+
+portletURL.setParameter("mvcRenderCommandName", "/view_configuration_screen");
+
+boolean includeSyncContactsFields = ParamUtil.getBoolean(request, "includeSyncContactsFields");
+
+if (includeSyncContactsFields) {
+	portletURL.setParameter("configurationScreenKey", "2-synced-contact-data");
+}
+else {
+	portletURL.setParameter("configurationScreenKey", "2-synced-contacts");
+}
+
+String redirect = portletURL.toString();
+
 AnalyticsConfiguration analyticsConfiguration = (AnalyticsConfiguration)request.getAttribute(AnalyticsSettingsWebKeys.ANALYTICS_CONFIGURATION);
+AnalyticsUsersManager analyticsUsersManager = (AnalyticsUsersManager)request.getAttribute(AnalyticsSettingsWebKeys.ANALYTICS_USERS_MANAGER);
+
+boolean connected = false;
+
+if (!Validator.isBlank(analyticsConfiguration.token())) {
+	connected = true;
+}
 
 boolean syncAllContacts = analyticsConfiguration.syncAllContacts();
 Set<String> syncedOrganizationIds = SetUtil.fromArray(analyticsConfiguration.syncedOrganizationIds());
 Set<String> syncedUserGroupIds = SetUtil.fromArray(analyticsConfiguration.syncedUserGroupIds());
+
+if (includeSyncContactsFields) {
+	portletDisplay.setShowBackIcon(true);
+	portletDisplay.setURLBack(ParamUtil.getString(request, "backURL", redirect));
+
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(resourceBundle, "select-contact-data"), redirect);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(resourceBundle, "select-contacts"), currentURL);
+}
 %>
 
-<portlet:actionURL name="/analytics/edit_synced_contacts" var="editSyncedContactsURL" />
+<portlet:actionURL name="/analytics_settings/edit_synced_contacts" var="editSyncedContactsURL" />
 
-<div class="sheet sheet-lg">
-	<h2 class="autofit-row">
-		<span class="autofit-col autofit-col-expand">
-			<liferay-ui:message key="contact-data" />
-		</span>
+<portlet:renderURL var="editSyncedContactsFieldsURL">
+	<portlet:param name="mvcRenderCommandName" value="/analytics_settings/edit_synced_contacts_fields" />
+</portlet:renderURL>
+
+<c:if test="<%= includeSyncContactsFields %>">
+	<clay:container-fluid>
+		<clay:row>
+			<clay:col
+				size="12"
+			>
+				<div id="breadcrumb">
+					<liferay-ui:breadcrumb
+						showCurrentGroup="<%= false %>"
+						showGuestGroup="<%= false %>"
+						showLayout="<%= false %>"
+						showPortletBreadcrumb="<%= true %>"
+					/>
+				</div>
+			</clay:col>
+		</clay:row>
+	</clay:container-fluid>
+</c:if>
+
+<clay:sheet
+	cssClass="portlet-analytics-settings"
+>
+	<h2>
+		<liferay-ui:message key="contact-data" />
 	</h2>
 
-	<aui:form action="<%= editSyncedContactsURL %>" method="post" name="fm">
+	<aui:form action="<%= includeSyncContactsFields ? editSyncedContactsFieldsURL : editSyncedContactsURL %>" method="post" name="fm">
 		<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
+		<aui:input name="includeSyncContactsFields" type="hidden" value="<%= String.valueOf(includeSyncContactsFields) %>" />
 
-		<aui:fieldset>
+		<fieldset <%= connected ? "" : "disabled" %>>
 			<label class="control-label">
 				<liferay-ui:message key="sync-all-contacts" />
 			</label>
@@ -45,19 +99,19 @@ Set<String> syncedUserGroupIds = SetUtil.fromArray(analyticsConfiguration.synced
 				<liferay-ui:message key="sync-all-contacts-help" />
 			</div>
 
-			<label class="mb-4 mt-3 toggle-switch">
+			<label class="mb-5 mt-3 toggle-switch">
 				<input class="toggle-switch-check" name="<portlet:namespace />syncAllContacts" type="checkbox" <%= syncAllContacts ? "checked" : "" %> />
 
 				<span aria-hidden="true" class="toggle-switch-bar">
 					<span class="toggle-switch-handle" />
 				</span>
 				<span class="toggle-switch-text toggle-switch-text-right">
-					<liferay-ui:message arguments="<%= UserServiceUtil.getCompanyUsersCount(themeDisplay.getCompanyId()) %>" key="sync-all-x-contacts" />
+					<liferay-ui:message arguments="<%= analyticsUsersManager.getCompanyUsersCount(themeDisplay.getCompanyId()) %>" key="sync-all-x-contacts" />
 				</span>
 			</label>
-		</aui:fieldset>
+		</fieldset>
 
-		<aui:fieldset>
+		<fieldset <%= connected ? "" : "disabled" %>>
 			<label class="control-label">
 				<liferay-ui:message key="sync-by-user-groups-and-organizations" />
 			</label>
@@ -66,112 +120,93 @@ Set<String> syncedUserGroupIds = SetUtil.fromArray(analyticsConfiguration.synced
 				<liferay-ui:message key="sync-by-user-groups-and-organizations-help" />
 			</div>
 
-			<ul class="list-group mt-4">
-				<li class="list-group-item list-group-item-flex">
-					<div class="autofit-col">
-						<div class="sticker sticker-light sticker-rounded">
-							<liferay-ui:icon
-								icon="user"
-								markupView="lexicon"
-							/>
-						</div>
-					</div>
+			<c:choose>
+				<c:when test="<%= connected %>">
+					<portlet:renderURL var="createUserGroupURL">
+						<portlet:param name="mvcRenderCommandName" value="/analytics_settings/edit_synced_contacts_groups" />
+						<portlet:param name="redirect" value="<%= currentURL %>" />
+						<portlet:param name="includeSyncContactsFields" value="<%= String.valueOf(includeSyncContactsFields) %>" />
+					</portlet:renderURL>
 
-					<div class="autofit-col">
-						<h4 class="list-group-title">
-							<liferay-ui:message key="sync-by-user-groups" />
-						</h4>
+					<a class="d-flex m-4 p-2 text-decoration-none" href=<%= createUserGroupURL %>>
+				</c:when>
+				<c:otherwise>
+					<span class="contacts-link-disabled d-flex m-4 p-2">
+				</c:otherwise>
+			</c:choose>
 
-						<p class="list-group-subtext">
-							<liferay-ui:message arguments='<%= syncAllContacts ? "all" : syncedUserGroupIds.size() %>' key="x-user-groups-selected" />
-						</p>
-					</div>
-				</li>
-				<li class="list-group-item list-group-item-flex">
-					<div class="autofit-col">
-						<div class="sticker sticker-light sticker-rounded">
-							<liferay-ui:icon
-								icon="organizations"
-								markupView="lexicon"
-							/>
-						</div>
-					</div>
+				<div class="pr-3">
+					<clay:sticker
+						cssClass="sticker-light"
+						displayType="light"
+						icon="users"
+					/>
+				</div>
 
-					<div class="autofit-col">
-						<h4 class="list-group-title">
-							<liferay-ui:message key="sync-by-organizations" />
-						</h4>
+				<div>
+					<p class="list-group-title">
+						<liferay-ui:message key="sync-by-user-groups" />
+					</p>
 
-						<p class="list-group-subtext">
-							<liferay-ui:message arguments='<%= syncAllContacts ? "all" : syncedOrganizationIds.size() %>' key="x-organizations-selected" />
-						</p>
-					</div>
-				</li>
-			</ul>
-		</aui:fieldset>
+					<small class="list-group-subtext">
+						<liferay-ui:message arguments='<%= syncAllContacts ? "all" : syncedUserGroupIds.size() %>' key="x-user-groups-selected" />
+					</small>
+				</div>
 
-		<liferay-ui:search-container
-			curParam="inheritedUserGroupsCur"
-			headerNames="name"
-			iteratorURL="<%= currentURLObj %>"
-			rowChecker="<%= new UserGroupChecker(renderResponse, syncedUserGroupIds) %>"
-			total="<%= UserGroupServiceUtil.getUserGroupsCount(themeDisplay.getCompanyId(), null) %>"
-		>
-			<liferay-ui:search-container-results
-				results="<%= UserGroupServiceUtil.getUserGroups(themeDisplay.getCompanyId(), null, searchContainer.getStart(), searchContainer.getEnd()) %>"
-			/>
+			<c:choose>
+				<c:when test="<%= connected %>">
+					</a>
+				</c:when>
+				<c:otherwise>
+					</span>
+				</c:otherwise>
+			</c:choose>
 
-			<liferay-ui:search-container-row
-				className="com.liferay.portal.kernel.model.UserGroup"
-				escapedModel="<%= true %>"
-				keyProperty="userGroupId"
-				modelVar="userGroup"
-			>
-				<liferay-ui:search-container-column-text
-					cssClass="table-cell-expand"
-					name="user-group-name"
-					value="<%= HtmlUtil.escape(userGroup.getName()) %>"
-				/>
-			</liferay-ui:search-container-row>
+			<c:choose>
+				<c:when test="<%= connected %>">
+					<portlet:renderURL var="createOrganizationsURL">
+						<portlet:param name="mvcRenderCommandName" value="/analytics_settings/edit_synced_contacts_organizations" />
+						<portlet:param name="redirect" value="<%= currentURL %>" />
+						<portlet:param name="includeSyncContactsFields" value="<%= String.valueOf(includeSyncContactsFields) %>" />
+					</portlet:renderURL>
 
-			<liferay-ui:search-iterator
-				markupView="lexicon"
-				searchResultCssClass="show-quick-actions-on-hover table table-autofit"
-			/>
-		</liferay-ui:search-container>
+					<a class="d-flex m-4 p-2 text-decoration-none" href=<%= createOrganizationsURL %>>
+				</c:when>
+				<c:otherwise>
+					<span class="contacts-link-disabled d-flex m-4 p-2">
+				</c:otherwise>
+			</c:choose>
 
-		<liferay-ui:search-container
-			curParam="inheritedOrganizationsCur"
-			headerNames="name"
-			iteratorURL="<%= currentURLObj %>"
-			rowChecker="<%= new OrganizationChecker(renderResponse, syncedOrganizationIds) %>"
-			total="<%= OrganizationServiceUtil.getOrganizationsCount(themeDisplay.getCompanyId(), OrganizationConstants.ANY_PARENT_ORGANIZATION_ID) %>"
-		>
-			<liferay-ui:search-container-results
-				results="<%= OrganizationServiceUtil.getOrganizations(themeDisplay.getCompanyId(), OrganizationConstants.ANY_PARENT_ORGANIZATION_ID, searchContainer.getStart(), searchContainer.getEnd()) %>"
-			/>
+				<div class="pr-3">
+					<clay:sticker
+						cssClass="sticker-light"
+						displayType="light"
+						icon="organizations"
+					/>
+				</div>
 
-			<liferay-ui:search-container-row
-				className="com.liferay.portal.kernel.model.Organization"
-				escapedModel="<%= true %>"
-				keyProperty="organizationId"
-				modelVar="organization"
-			>
-				<liferay-ui:search-container-column-text
-					cssClass="table-cell-expand"
-					name="organization-name"
-					value="<%= HtmlUtil.escape(organization.getName()) %>"
-				/>
-			</liferay-ui:search-container-row>
+				<div>
+					<p class="list-group-title">
+						<liferay-ui:message key="sync-by-organizations" />
+					</p>
 
-			<liferay-ui:search-iterator
-				markupView="lexicon"
-				searchResultCssClass="show-quick-actions-on-hover table table-autofit"
-			/>
-		</liferay-ui:search-container>
+					<small class="list-group-subtext">
+						<liferay-ui:message arguments='<%= syncAllContacts ? "all" : syncedOrganizationIds.size() %>' key="x-organizations-selected" />
+					</small>
+				</div>
+
+			<c:choose>
+				<c:when test="<%= connected %>">
+					</a>
+				</c:when>
+				<c:otherwise>
+					</span>
+				</c:otherwise>
+			</c:choose>
+		<fieldset>
 
 		<aui:button-row>
-			<aui:button type="submit" value="save" />
+			<aui:button disabled="<%= !connected %>" type="submit" value='<%= includeSyncContactsFields ? "save-and-next" : "save" %>' />
 		</aui:button-row>
 	</aui:form>
-</div>
+</clay:sheet>

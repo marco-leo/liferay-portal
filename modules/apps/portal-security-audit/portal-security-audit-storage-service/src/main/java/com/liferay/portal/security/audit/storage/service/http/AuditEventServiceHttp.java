@@ -71,26 +71,28 @@ public class AuditEventServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.portal.security.audit.storage.model.AuditEvent>)
 					returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -100,7 +102,8 @@ public class AuditEventServiceHttp {
 					HttpPrincipal httpPrincipal, long companyId, int start,
 					int end,
 					com.liferay.portal.kernel.util.OrderByComparator
-						orderByComparator)
+						<com.liferay.portal.security.audit.storage.model.
+							AuditEvent> orderByComparator)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -116,26 +119,28 @@ public class AuditEventServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.portal.security.audit.storage.model.AuditEvent>)
 					returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -166,26 +171,28 @@ public class AuditEventServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.portal.security.audit.storage.model.AuditEvent>)
 					returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -199,7 +206,8 @@ public class AuditEventServiceHttp {
 					String clientIP, String serverName, int serverPort,
 					String sessionID, boolean andSearch, int start, int end,
 					com.liferay.portal.kernel.util.OrderByComparator
-						orderByComparator)
+						<com.liferay.portal.security.audit.storage.model.
+							AuditEvent> orderByComparator)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -218,26 +226,28 @@ public class AuditEventServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.portal.security.audit.storage.model.AuditEvent>)
 					returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -258,24 +268,26 @@ public class AuditEventServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return ((Integer)returnObj).intValue();
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -303,24 +315,26 @@ public class AuditEventServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return ((Integer)returnObj).intValue();
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 

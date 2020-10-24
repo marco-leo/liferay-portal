@@ -21,16 +21,17 @@ import React, {useContext, useState} from 'react';
 
 import SegmentsExperimentsContext from '../context.es';
 import {archiveExperiment} from '../state/actions.es';
-import {StateContext, DispatchContext} from '../state/context.es';
+import {DispatchContext, StateContext} from '../state/context.es';
 import {SegmentsExperienceType} from '../types.es';
 import {NO_EXPERIMENT_ILLUSTRATION_FILE_NAME} from '../util/contants.es';
+import {navigateToExperience} from '../util/navigation.es';
 import {
-	statusToLabelDisplayType,
+	STATUS_COMPLETED,
 	STATUS_DRAFT,
 	STATUS_FINISHED_WINNER,
-	STATUS_COMPLETED
+	statusToLabelDisplayType,
 } from '../util/statuses.es';
-import {openSuccessToast, openErrorToast} from '../util/toasts.es';
+import {openErrorToast, openSuccessToast} from '../util/toasts.es';
 import ClickGoalPicker from './ClickGoalPicker/ClickGoalPicker.es';
 import ExperimentsHistory from './ExperimentsHistory.es';
 import SegmentsExperimentsActions from './SegmentsExperimentsActions.es';
@@ -39,7 +40,7 @@ import Variants from './Variants/Variants.es';
 
 const TABS_STATES = {
 	ACTIVE: 0,
-	HISTORY: 1
+	HISTORY: 1,
 };
 
 function SegmentsExperiments({
@@ -49,7 +50,7 @@ function SegmentsExperiments({
 	onEditSegmentsExperimentStatus,
 	onSelectSegmentsExperienceChange,
 	onTargetChange,
-	segmentsExperiences = []
+	segmentsExperiences = [],
 }) {
 	const [dropdown, setDropdown] = useState(false);
 	const [activeTab, setActiveTab] = useState(TABS_STATES.ACTIVE);
@@ -57,7 +58,7 @@ function SegmentsExperiments({
 		experiment,
 		experimentHistory,
 		selectedExperienceId,
-		variants
+		variants,
 	} = useContext(StateContext);
 	const {APIService, assetsPath} = useContext(SegmentsExperimentsContext);
 	const dispatch = useContext(DispatchContext);
@@ -66,7 +67,7 @@ function SegmentsExperiments({
 		? experiment.segmentsExperienceId
 		: selectedExperienceId;
 	const noExperimentIllustration = `${assetsPath}${NO_EXPERIMENT_ILLUSTRATION_FILE_NAME}`;
-	const winnerVariant = variants.filter(variant => variant.winner === true);
+	const winnerVariant = variants.find((variant) => variant.winner === true);
 
 	return (
 		<>
@@ -80,7 +81,7 @@ function SegmentsExperiments({
 							defaultValue={_selectedExperienceId}
 							onChange={_handleExperienceSelection}
 						>
-							{segmentsExperiences.map(segmentsExperience => {
+							{segmentsExperiences.map((segmentsExperience) => {
 								return (
 									<ClaySelect.Option
 										key={
@@ -186,9 +187,9 @@ function SegmentsExperiments({
 													'x-is-the-winner-variant'
 												),
 												'<strong>',
-												winnerVariant[0].name,
+												winnerVariant.name,
 												'</strong>'
-											)
+											),
 										}}
 									/>
 
@@ -197,8 +198,7 @@ function SegmentsExperiments({
 											className="btn-success"
 											onClick={() =>
 												_handlePublishVariant(
-													winnerVariant[0]
-														.segmentsExperienceId
+													winnerVariant.segmentsExperienceId
 												)
 											}
 										>
@@ -219,7 +219,7 @@ function SegmentsExperiments({
 									allowEdit={
 										experiment.status.value === STATUS_DRAFT
 									}
-									onSelectClickGoalTarget={selector => {
+									onSelectClickGoalTarget={(selector) => {
 										onTargetChange(selector);
 									}}
 									target={experiment.goal.target}
@@ -287,8 +287,9 @@ function SegmentsExperiments({
 			Liferay.Language.get('are-you-sure-you-want-to-delete-this')
 		);
 
-		if (confirmed)
+		if (confirmed) {
 			return onDeleteSegmentsExperiment(experiment.segmentsExperimentId);
+		}
 	}
 
 	function _handleExperienceSelection(event) {
@@ -305,7 +306,7 @@ function SegmentsExperiments({
 		const body = {
 			segmentsExperimentId: experiment.segmentsExperimentId,
 			status: STATUS_COMPLETED,
-			winnerSegmentsExperienceId: experienceId
+			winnerSegmentsExperienceId: experienceId,
 		};
 
 		const confirmed = confirm(
@@ -321,11 +322,12 @@ function SegmentsExperiments({
 
 					dispatch(
 						archiveExperiment({
-							status: segmentsExperiment.status
+							status: segmentsExperiment.status,
 						})
 					);
+					navigateToExperience(experienceId);
 				})
-				.catch(_error => {
+				.catch((_error) => {
 					openErrorToast();
 				});
 		}
@@ -339,7 +341,7 @@ SegmentsExperiments.propTypes = {
 	onEditSegmentsExperimentStatus: PropTypes.func.isRequired,
 	onSelectSegmentsExperienceChange: PropTypes.func.isRequired,
 	onTargetChange: PropTypes.func.isRequired,
-	segmentsExperiences: PropTypes.arrayOf(SegmentsExperienceType)
+	segmentsExperiences: PropTypes.arrayOf(SegmentsExperienceType),
 };
 
 export default SegmentsExperiments;

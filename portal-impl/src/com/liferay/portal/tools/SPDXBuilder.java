@@ -137,8 +137,8 @@ public class SPDXBuilder {
 				new DocumentSource(document),
 				new StreamResult(new FileOutputStream(versionHtmlFile)));
 		}
-		catch (Exception e) {
-			e.printStackTrace();
+		catch (Exception exception) {
+			exception.printStackTrace();
 		}
 	}
 
@@ -287,13 +287,13 @@ public class SPDXBuilder {
 
 		Document document = DocumentHelper.createDocument();
 
-		Map<String, String> args = HashMapBuilder.put(
-			"href", "versions.xsl"
-		).put(
-			"type", "text/xsl"
-		).build();
-
-		document.addProcessingInstruction("xml-stylesheet", args);
+		document.addProcessingInstruction(
+			"xml-stylesheet",
+			HashMapBuilder.put(
+				"href", "versions.xsl"
+			).put(
+				"type", "text/xsl"
+			).build());
 
 		Element versionsElement = document.addElement("versions");
 

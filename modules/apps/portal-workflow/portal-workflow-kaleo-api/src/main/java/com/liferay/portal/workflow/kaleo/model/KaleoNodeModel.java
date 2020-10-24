@@ -39,7 +39,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface KaleoNodeModel
 	extends BaseModel<KaleoNode>, GroupedModel, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo node model instance should use the {@link KaleoNode} interface instead.
@@ -201,6 +201,20 @@ public interface KaleoNodeModel
 	 */
 	@Override
 	public void setModifiedDate(Date modifiedDate);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo node.
+	 *
+	 * @return the kaleo definition ID of this kaleo node
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo node.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo node
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo node.

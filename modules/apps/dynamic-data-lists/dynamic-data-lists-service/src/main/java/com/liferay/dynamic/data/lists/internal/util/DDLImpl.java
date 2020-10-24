@@ -15,8 +15,8 @@
 package com.liferay.dynamic.data.lists.internal.util;
 
 import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.dynamic.data.lists.constants.DDLRecordConstants;
 import com.liferay.dynamic.data.lists.model.DDLRecord;
-import com.liferay.dynamic.data.lists.model.DDLRecordConstants;
 import com.liferay.dynamic.data.lists.model.DDLRecordSet;
 import com.liferay.dynamic.data.lists.model.DDLRecordVersion;
 import com.liferay.dynamic.data.lists.service.DDLRecordLocalService;
@@ -135,10 +135,10 @@ public class DDLImpl implements DDL {
 
 				fieldValuesStream.forEach(
 					fieldValue -> {
-						JSONArray jsonArrayValue = getJSONArrayValue(
+						JSONArray valueJSONArray = getJSONArrayValue(
 							fieldValue);
 
-						fieldJSONArray.put(jsonArrayValue.get(0));
+						fieldJSONArray.put(valueJSONArray.get(0));
 					});
 
 				jsonObject.put(fieldName, fieldJSONArray);
@@ -307,7 +307,7 @@ public class DDLImpl implements DDL {
 
 			return getFileEntryTitle(uuid, groupId);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return StringPool.BLANK;
 		}
 	}
@@ -333,7 +333,7 @@ public class DDLImpl implements DDL {
 
 			return fileEntry.getTitle();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return LanguageUtil.format(
 				LocaleUtil.getSiteDefault(), "is-temporarily-unavailable",
 				"content");
@@ -344,7 +344,7 @@ public class DDLImpl implements DDL {
 		try {
 			return JSONFactoryUtil.createJSONArray(String.valueOf(fieldValue));
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return JSONFactoryUtil.createJSONArray();
 		}
 	}
@@ -356,7 +356,7 @@ public class DDLImpl implements DDL {
 			return _layoutService.getLayoutName(
 				groupId, privateLayout, layoutId, languageId);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return LanguageUtil.format(
 				LocaleUtil.getSiteDefault(), "is-temporarily-unavailable",
 				"content");
@@ -377,7 +377,7 @@ public class DDLImpl implements DDL {
 				groupId, privateLayout, layoutId,
 				LanguageUtil.getLanguageId(locale));
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return StringPool.BLANK;
 		}
 	}

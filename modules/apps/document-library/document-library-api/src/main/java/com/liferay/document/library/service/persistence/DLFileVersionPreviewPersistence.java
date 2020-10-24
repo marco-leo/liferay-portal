@@ -17,6 +17,7 @@ package com.liferay.document.library.service.persistence;
 import com.liferay.document.library.exception.NoSuchFileVersionPreviewException;
 import com.liferay.document.library.model.DLFileVersionPreview;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -33,9 +34,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface DLFileVersionPreviewPersistence
-	extends BasePersistence<DLFileVersionPreview> {
+	extends BasePersistence<DLFileVersionPreview>,
+			CTPersistence<DLFileVersionPreview> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link DLFileVersionPreviewUtil} to access the dl file version preview persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

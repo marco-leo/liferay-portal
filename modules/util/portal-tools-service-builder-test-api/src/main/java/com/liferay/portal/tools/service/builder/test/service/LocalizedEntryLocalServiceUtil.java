@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class LocalizedEntryLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.tools.service.builder.test.service.impl.LocalizedEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class LocalizedEntryLocalServiceUtil {
 
 	/**
 	 * Adds the localized entry to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LocalizedEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param localizedEntry the localized entry
 	 * @return the localized entry that was added
@@ -67,7 +71,21 @@ public class LocalizedEntryLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the localized entry from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LocalizedEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param localizedEntry the localized entry
 	 * @return the localized entry that was removed
@@ -83,6 +101,10 @@ public class LocalizedEntryLocalServiceUtil {
 
 	/**
 	 * Deletes the localized entry with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LocalizedEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param localizedEntryId the primary key of the localized entry
 	 * @return the localized entry that was removed
@@ -105,6 +127,12 @@ public class LocalizedEntryLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -288,6 +316,9 @@ public class LocalizedEntryLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -297,6 +328,10 @@ public class LocalizedEntryLocalServiceUtil {
 
 	/**
 	 * Updates the localized entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LocalizedEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param localizedEntry the localized entry
 	 * @return the localized entry that was updated

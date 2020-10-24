@@ -34,7 +34,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portlet.rolesadmin.search.RoleSearch;
 import com.liferay.portlet.rolesadmin.search.RoleSearchTerms;
-import com.liferay.roles.admin.web.internal.role.type.contributor.RoleTypeContributor;
+import com.liferay.roles.admin.role.type.contributor.RoleTypeContributor;
 import com.liferay.roles.admin.web.internal.role.type.contributor.util.RoleTypeContributorRetrieverUtil;
 import com.liferay.users.admin.kernel.util.UsersAdminUtil;
 
@@ -76,17 +76,16 @@ public class SelectRoleManagementToolbarDisplayContext {
 	public PortletURL getPortletURL() {
 		PortletURL portletURL = _renderResponse.createRenderURL();
 
-		portletURL.setParameter("mvcPath", "/select_role.jsp");
-
-		portletURL.setParameter(
-			"roleType", String.valueOf(_currentRoleTypeContributor.getType()));
-
 		User selUser = _getSelectedUser();
 
 		if (selUser != null) {
 			portletURL.setParameter(
 				"p_u_i_d", String.valueOf(selUser.getUserId()));
 		}
+
+		portletURL.setParameter("mvcPath", "/select_role.jsp");
+		portletURL.setParameter(
+			"roleType", String.valueOf(_currentRoleTypeContributor.getType()));
 
 		portletURL.setParameter("eventName", _eventName);
 
@@ -124,13 +123,14 @@ public class SelectRoleManagementToolbarDisplayContext {
 		return portletURL;
 	}
 
-	public SearchContainer getRoleSearchContainer(boolean filterManageableRoles)
+	public SearchContainer<Role> getRoleSearchContainer(
+			boolean filterManageableRoles)
 		throws Exception {
 
 		return getRoleSearchContainer(filterManageableRoles, 0);
 	}
 
-	public SearchContainer getRoleSearchContainer(
+	public SearchContainer<Role> getRoleSearchContainer(
 			boolean filterManageableRoles, long groupId)
 		throws Exception {
 
@@ -209,8 +209,8 @@ public class SelectRoleManagementToolbarDisplayContext {
 		try {
 			return PortalUtil.getSelectedUser(_httpServletRequest);
 		}
-		catch (PortalException pe) {
-			_log.error(pe, pe);
+		catch (PortalException portalException) {
+			_log.error(portalException, portalException);
 
 			return null;
 		}

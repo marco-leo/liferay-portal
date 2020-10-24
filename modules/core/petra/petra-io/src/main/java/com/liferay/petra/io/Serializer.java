@@ -14,6 +14,7 @@
 
 package com.liferay.petra.io;
 
+import com.liferay.petra.io.constants.SerializationConstants;
 import com.liferay.petra.lang.CentralizedThreadLocal;
 import com.liferay.petra.lang.ClassLoaderPool;
 
@@ -241,10 +242,10 @@ public class Serializer {
 
 			objectOutputStream.flush();
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 			throw new RuntimeException(
 				"Unable to write ordinary serializable object " + serializable,
-				ioe);
+				ioException);
 		}
 	}
 
@@ -285,7 +286,7 @@ public class Serializer {
 			}
 		}
 		else {
-			byte[] buffer = _getBuffer(length * 2 + 5);
+			byte[] buffer = _getBuffer((length * 2) + 5);
 
 			BigEndianCodec.putBoolean(buffer, _index++, asciiCode);
 

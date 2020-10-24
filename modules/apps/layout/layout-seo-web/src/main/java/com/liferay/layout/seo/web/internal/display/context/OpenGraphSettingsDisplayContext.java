@@ -14,7 +14,7 @@
 
 package com.liferay.layout.seo.web.internal.display.context;
 
-import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
+import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.item.selector.ItemSelectorCriterion;
@@ -23,7 +23,8 @@ import com.liferay.item.selector.criteria.URLItemSelectorReturnType;
 import com.liferay.item.selector.criteria.image.criterion.ImageItemSelectorCriterion;
 import com.liferay.layout.seo.model.LayoutSEOSite;
 import com.liferay.layout.seo.open.graph.OpenGraphConfiguration;
-import com.liferay.layout.seo.service.LayoutSEOSiteLocalServiceUtil;
+import com.liferay.layout.seo.service.LayoutSEOSiteLocalService;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -31,8 +32,11 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
+
+import java.util.Optional;
 
 import javax.portlet.PortletURL;
 
@@ -44,14 +48,18 @@ import javax.servlet.http.HttpServletRequest;
 public class OpenGraphSettingsDisplayContext {
 
 	public OpenGraphSettingsDisplayContext(
-		DLURLHelper dlurlHelper, HttpServletRequest httpServletRequest,
-		ItemSelector itemSelector, LiferayPortletRequest liferayPortletRequest,
+		DLAppService dlAppService, DLURLHelper dlurlHelper,
+		HttpServletRequest httpServletRequest, ItemSelector itemSelector,
+		LayoutSEOSiteLocalService layoutSEOSiteLocalService,
+		LiferayPortletRequest liferayPortletRequest,
 		LiferayPortletResponse liferayPortletResponse,
 		OpenGraphConfiguration openGraphConfiguration) {
 
+		_dlAppService = dlAppService;
 		_dlurlHelper = dlurlHelper;
 		_httpServletRequest = httpServletRequest;
 		_itemSelector = itemSelector;
+		_layoutSEOSiteLocalService = layoutSEOSiteLocalService;
 		_liferayPortletResponse = liferayPortletResponse;
 		_openGraphConfiguration = openGraphConfiguration;
 
@@ -76,29 +84,68 @@ public class OpenGraphSettingsDisplayContext {
 		return itemSelectorURL.toString();
 	}
 
-	public String getOpenGraphImageURL() {
+	public LayoutSEOSite getLayoutSEOSite() {
 		Group group = _getGroup();
 
-		LayoutSEOSite layoutSEOSite =
-			LayoutSEOSiteLocalServiceUtil.fetchLayoutSEOSiteByGroupId(
-				group.getGroupId());
+		return _layoutSEOSiteLocalService.fetchLayoutSEOSiteByGroupId(
+			group.getGroupId());
+	}
 
-		if ((layoutSEOSite == null) ||
-			(layoutSEOSite.getOpenGraphImageFileEntryId() == 0)) {
+	public long getOpenGraphImageFileEntryId() {
+		return Optional.ofNullable(
+			getLayoutSEOSite()
+		).map(
+			LayoutSEOSite::getOpenGraphImageFileEntryId
+		).orElse(
+			0L
+		);
+	}
 
-			return null;
+	public String getOpenGraphImageTitle() {
+		long openGraphImageFileEntryId = getOpenGraphImageFileEntryId();
+
+		if (openGraphImageFileEntryId == 0) {
+			return StringPool.BLANK;
 		}
 
 		try {
-			return _dlurlHelper.getImagePreviewURL(
-				DLAppLocalServiceUtil.getFileEntry(
-					layoutSEOSite.getOpenGraphImageFileEntryId()),
-				_themeDisplay);
-		}
-		catch (Exception e) {
-			_log.error(e, e);
+			FileEntry fileEntry = _dlAppService.getFileEntry(
+				openGraphImageFileEntryId);
 
-			return null;
+			if (fileEntry.isInTrash()) {
+				return StringPool.BLANK;
+			}
+
+			return fileEntry.getTitle();
+		}
+		catch (PortalException portalException) {
+			_log.error(portalException, portalException);
+
+			return StringPool.BLANK;
+		}
+	}
+
+	public String getOpenGraphImageURL() throws Exception {
+		long openGraphImageFileEntryId = getOpenGraphImageFileEntryId();
+
+		if (openGraphImageFileEntryId == 0) {
+			return StringPool.BLANK;
+		}
+
+		try {
+			FileEntry fileEntry = _dlAppService.getFileEntry(
+				openGraphImageFileEntryId);
+
+			if (fileEntry.isInTrash()) {
+				return StringPool.BLANK;
+			}
+
+			return _dlurlHelper.getImagePreviewURL(fileEntry, _themeDisplay);
+		}
+		catch (PortalException portalException) {
+			_log.error(portalException, portalException);
+
+			return StringPool.BLANK;
 		}
 	}
 
@@ -107,22 +154,21 @@ public class OpenGraphSettingsDisplayContext {
 	}
 
 	private Group _getGroup() {
-		Group liveGroup = (Group)_httpServletRequest.getAttribute(
-			"site.liveGroup");
-
-		if (liveGroup != null) {
-			return liveGroup;
-		}
-
-		return (Group)_httpServletRequest.getAttribute("site.group");
+		return Optional.ofNullable(
+			(Group)_httpServletRequest.getAttribute("site.liveGroup")
+		).orElseGet(
+			() -> (Group)_httpServletRequest.getAttribute("site.group")
+		);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		OpenGraphSettingsDisplayContext.class);
 
+	private final DLAppService _dlAppService;
 	private final DLURLHelper _dlurlHelper;
 	private final HttpServletRequest _httpServletRequest;
 	private final ItemSelector _itemSelector;
+	private final LayoutSEOSiteLocalService _layoutSEOSiteLocalService;
 	private final LiferayPortletResponse _liferayPortletResponse;
 	private final OpenGraphConfiguration _openGraphConfiguration;
 	private final ThemeDisplay _themeDisplay;

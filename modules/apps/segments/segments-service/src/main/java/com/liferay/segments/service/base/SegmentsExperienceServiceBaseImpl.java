@@ -52,7 +52,7 @@ public abstract class SegmentsExperienceServiceBaseImpl
 	extends BaseServiceImpl
 	implements AopService, IdentifiableOSGiService, SegmentsExperienceService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>SegmentsExperienceService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.segments.service.SegmentsExperienceServiceUtil</code>.
@@ -107,8 +107,8 @@ public abstract class SegmentsExperienceServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

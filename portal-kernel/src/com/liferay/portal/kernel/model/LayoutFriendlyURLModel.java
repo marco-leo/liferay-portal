@@ -37,7 +37,7 @@ public interface LayoutFriendlyURLModel
 	extends BaseModel<LayoutFriendlyURL>, CTModel<LayoutFriendlyURL>, MVCCModel,
 			ShardedModel, StagedGroupedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a layout friendly url model instance should use the {@link LayoutFriendlyURL} interface instead.

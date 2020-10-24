@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class SyncDLObjectLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.sync.service.impl.SyncDLObjectLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SyncDLObjectLocalServiceUtil} to access the sync dl object local service. Add custom service methods to <code>com.liferay.sync.service.impl.SyncDLObjectLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.sync.model.SyncDLObject addSyncDLObject(
 			long companyId, long userId, String userName, long modifiedTime,
@@ -65,6 +59,10 @@ public class SyncDLObjectLocalServiceUtil {
 	/**
 	 * Adds the sync dl object to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SyncDLObjectLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param syncDLObject the sync dl object
 	 * @return the sync dl object that was added
 	 */
@@ -72,6 +70,16 @@ public class SyncDLObjectLocalServiceUtil {
 		com.liferay.sync.model.SyncDLObject syncDLObject) {
 
 		return getService().addSyncDLObject(syncDLObject);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -100,6 +108,10 @@ public class SyncDLObjectLocalServiceUtil {
 	/**
 	 * Deletes the sync dl object with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SyncDLObjectLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param syncDLObjectId the primary key of the sync dl object
 	 * @return the sync dl object that was removed
 	 * @throws PortalException if a sync dl object with the primary key could not be found
@@ -114,6 +126,10 @@ public class SyncDLObjectLocalServiceUtil {
 	/**
 	 * Deletes the sync dl object from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SyncDLObjectLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param syncDLObject the sync dl object
 	 * @return the sync dl object that was removed
 	 */
@@ -125,6 +141,12 @@ public class SyncDLObjectLocalServiceUtil {
 
 	public static void deleteSyncDLObjects(String version, String type) {
 		getService().deleteSyncDLObjects(version, type);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -250,6 +272,9 @@ public class SyncDLObjectLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -326,6 +351,10 @@ public class SyncDLObjectLocalServiceUtil {
 
 	/**
 	 * Updates the sync dl object in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SyncDLObjectLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param syncDLObject the sync dl object
 	 * @return the sync dl object that was updated

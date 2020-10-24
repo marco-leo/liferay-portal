@@ -33,11 +33,6 @@ public class SamlIdpSpSessionLocalServiceWrapper
 		_samlIdpSpSessionLocalService = samlIdpSpSessionLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SamlIdpSpSessionLocalServiceUtil} to access the saml idp sp session local service. Add custom service methods to <code>com.liferay.saml.persistence.service.impl.SamlIdpSpSessionLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.saml.persistence.model.SamlIdpSpSession
 			addSamlIdpSpSession(
@@ -54,6 +49,10 @@ public class SamlIdpSpSessionLocalServiceWrapper
 	/**
 	 * Adds the saml idp sp session to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSpSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param samlIdpSpSession the saml idp sp session
 	 * @return the saml idp sp session that was added
 	 */
@@ -65,6 +64,18 @@ public class SamlIdpSpSessionLocalServiceWrapper
 
 		return _samlIdpSpSessionLocalService.addSamlIdpSpSession(
 			samlIdpSpSession);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _samlIdpSpSessionLocalService.createPersistedModel(
+			primaryKeyObj);
 	}
 
 	/**
@@ -96,6 +107,10 @@ public class SamlIdpSpSessionLocalServiceWrapper
 	/**
 	 * Deletes the saml idp sp session with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSpSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param samlIdpSpSessionId the primary key of the saml idp sp session
 	 * @return the saml idp sp session that was removed
 	 * @throws PortalException if a saml idp sp session with the primary key could not be found
@@ -112,6 +127,10 @@ public class SamlIdpSpSessionLocalServiceWrapper
 	/**
 	 * Deletes the saml idp sp session from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSpSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param samlIdpSpSession the saml idp sp session
 	 * @return the saml idp sp session that was removed
 	 */
@@ -123,6 +142,11 @@ public class SamlIdpSpSessionLocalServiceWrapper
 
 		return _samlIdpSpSessionLocalService.deleteSamlIdpSpSession(
 			samlIdpSpSession);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _samlIdpSpSessionLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -249,6 +273,9 @@ public class SamlIdpSpSessionLocalServiceWrapper
 		return _samlIdpSpSessionLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -329,6 +356,10 @@ public class SamlIdpSpSessionLocalServiceWrapper
 
 	/**
 	 * Updates the saml idp sp session in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSpSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param samlIdpSpSession the saml idp sp session
 	 * @return the saml idp sp session that was updated

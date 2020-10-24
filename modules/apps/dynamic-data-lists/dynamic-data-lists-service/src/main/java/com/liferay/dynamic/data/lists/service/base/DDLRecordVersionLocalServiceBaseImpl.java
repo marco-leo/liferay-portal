@@ -19,6 +19,7 @@ import com.liferay.dynamic.data.lists.service.DDLRecordVersionLocalService;
 import com.liferay.dynamic.data.lists.service.persistence.DDLRecordFinder;
 import com.liferay.dynamic.data.lists.service.persistence.DDLRecordPersistence;
 import com.liferay.dynamic.data.lists.service.persistence.DDLRecordVersionPersistence;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -38,6 +39,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -66,7 +68,7 @@ public abstract class DDLRecordVersionLocalServiceBaseImpl
 	implements AopService, DDLRecordVersionLocalService,
 			   IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>DDLRecordVersionLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.dynamic.data.lists.service.DDLRecordVersionLocalServiceUtil</code>.
@@ -74,6 +76,10 @@ public abstract class DDLRecordVersionLocalServiceBaseImpl
 
 	/**
 	 * Adds the ddl record version to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDLRecordVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddlRecordVersion the ddl record version
 	 * @return the ddl record version that was added
@@ -103,6 +109,10 @@ public abstract class DDLRecordVersionLocalServiceBaseImpl
 	/**
 	 * Deletes the ddl record version with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDLRecordVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param recordVersionId the primary key of the ddl record version
 	 * @return the ddl record version that was removed
 	 * @throws PortalException if a ddl record version with the primary key could not be found
@@ -118,6 +128,10 @@ public abstract class DDLRecordVersionLocalServiceBaseImpl
 	/**
 	 * Deletes the ddl record version from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDLRecordVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param ddlRecordVersion the ddl record version
 	 * @return the ddl record version that was removed
 	 */
@@ -127,6 +141,11 @@ public abstract class DDLRecordVersionLocalServiceBaseImpl
 		DDLRecordVersion ddlRecordVersion) {
 
 		return ddlRecordVersionPersistence.remove(ddlRecordVersion);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return ddlRecordVersionPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -283,6 +302,17 @@ public abstract class DDLRecordVersionLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return ddlRecordVersionPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -290,6 +320,14 @@ public abstract class DDLRecordVersionLocalServiceBaseImpl
 			(DDLRecordVersion)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<DDLRecordVersion> getBasePersistence() {
+		return ddlRecordVersionPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -325,6 +363,10 @@ public abstract class DDLRecordVersionLocalServiceBaseImpl
 
 	/**
 	 * Updates the ddl record version in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDLRecordVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddlRecordVersion the ddl record version
 	 * @return the ddl record version that was updated
@@ -387,8 +429,8 @@ public abstract class DDLRecordVersionLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

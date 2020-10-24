@@ -27,7 +27,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class Subscription {
+public class Subscription implements Cloneable {
+
+	public static Subscription toDTO(String json) {
+		return SubscriptionSerDes.toDTO(json);
+	}
 
 	public Object getContentId() {
 		return contentId;
@@ -173,6 +177,11 @@ public class Subscription {
 	}
 
 	protected Long siteId;
+
+	@Override
+	public Subscription clone() throws CloneNotSupportedException {
+		return (Subscription)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

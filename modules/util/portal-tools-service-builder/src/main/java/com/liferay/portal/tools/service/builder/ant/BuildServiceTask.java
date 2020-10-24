@@ -39,8 +39,8 @@ public class BuildServiceTask extends Task {
 				ServiceBuilderArgs.OUTPUT_KEY_MODIFIED_FILES,
 				serviceBuilder.getModifiedFileNames());
 		}
-		catch (Exception e) {
-			throw new BuildException(e);
+		catch (Exception exception) {
+			throw new BuildException(exception);
 		}
 	}
 
@@ -81,6 +81,10 @@ public class BuildServiceTask extends Task {
 
 	public void setImplDirName(String implDirName) {
 		_serviceBuilderArgs.setImplDirName(implDirName);
+	}
+
+	public void setIncubationFeatures(String incubationFeatures) {
+		_serviceBuilderArgs.setIncubationFeatures(incubationFeatures);
 	}
 
 	public void setInputFileName(String inputFileName) {

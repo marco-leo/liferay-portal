@@ -13,60 +13,59 @@
  */
 
 import {cleanup, fireEvent, render} from '@testing-library/react';
-import React, {useContext} from 'react';
+import React from 'react';
 
 import '@testing-library/jest-dom/extend-expect';
 
 import Treeview from '../../src/main/resources/META-INF/resources/treeview/Treeview';
-import TreeviewContext from '../../src/main/resources/META-INF/resources/treeview/TreeviewContext';
 
 const nodes = [
 	{
 		children: [
 			{
 				id: '1.1',
-				name: 'Pablictor'
+				name: 'Pablictor',
 			},
 			{
 				children: [
 					{
 						id: '1.2.1',
-						name: 'Eudaldo'
-					}
+						name: 'Eudaldo',
+					},
 				],
 				id: '1.2',
-				name: 'Pabla'
-			}
+				name: 'Pabla',
+			},
 		],
 		id: '1',
-		name: 'Sandro'
+		name: 'Sandro',
 	},
 	{
 		id: '2',
-		name: 'Victor'
+		name: 'Victor',
 	},
 	{
 		children: [
 			{
 				id: '3.1',
-				name: 'Straight line'
-			}
+				name: 'Straight line',
+			},
 		],
 		expanded: true,
 		id: '3',
-		name: 'Juan'
+		name: 'Juan',
 	},
 	{
 		children: [
 			{
 				expanded: true,
 				id: '4.1',
-				name: 'Victor Son'
-			}
+				name: 'Victor Son',
+			},
 		],
 		id: '4',
-		name: 'Victor Father'
-	}
+		name: 'Victor Father',
+	},
 ];
 
 describe('Treeview', () => {
@@ -192,32 +191,24 @@ describe('Treeview', () => {
 			icon: 'cog',
 			id: '1',
 			name: 'Sandro',
-			size: 'sm'
+			size: 'sm',
 		};
 
 		const {getByText} = render(
 			<Treeview
-				initialSelectedNodeIds={[]}
 				NodeComponent={({node}) => {
-					const {dispatch} = useContext(TreeviewContext);
-
 					return (
 						<button
 							data-icon={node.icon}
 							data-selected={node.selected}
 							data-size={node.size}
-							onClick={() =>
-								dispatch({
-									nodeId: node.id,
-									type: 'TOGGLE_SELECT'
-								})
-							}
 							type="button"
 						>
 							Super {node.name}
 						</button>
 					);
 				}}
+				initialSelectedNodeIds={[]}
 				nodes={[node]}
 			/>
 		);
@@ -229,5 +220,60 @@ describe('Treeview', () => {
 		expect(button.dataset.selected).toBe('true');
 		expect(button.dataset.icon).toBe('cog');
 		expect(button.dataset.size).toBe('sm');
+	});
+
+	describe('Treeview with inheritedSelection option enabled', () => {
+		it('selects children when selecting parent', () => {
+			const onSelectedNodesChange = jest.fn();
+			const {getByText} = render(
+				<Treeview
+					inheritSelection
+					nodes={nodes}
+					onSelectedNodesChange={onSelectedNodesChange}
+				/>
+			);
+
+			fireEvent.click(getByText('Sandro'));
+
+			expect(onSelectedNodesChange).toBeCalledWith(
+				new Set(['1', '1.1', '1.2', '1.2.1'])
+			);
+		});
+
+		it('enables parent when all of its children are selected', () => {
+			const onSelectedNodesChange = jest.fn();
+			const {getByText} = render(
+				<Treeview
+					inheritSelection
+					initialSelectedNodeIds={['1.2', '1.2.1']}
+					nodes={nodes}
+					onSelectedNodesChange={onSelectedNodesChange}
+				/>
+			);
+
+			fireEvent.click(getByText('Pablictor'));
+
+			expect(onSelectedNodesChange).toBeCalledWith(
+				new Set(['1', '1.1', '1.2', '1.2.1'])
+			);
+		});
+
+		it('disables parent when deselecting on of its children', () => {
+			const onSelectedNodesChange = jest.fn();
+			const {getByText} = render(
+				<Treeview
+					inheritSelection
+					initialSelectedNodeIds={['1', '1.1', '1.2', '1.2.1']}
+					nodes={nodes}
+					onSelectedNodesChange={onSelectedNodesChange}
+				/>
+			);
+
+			fireEvent.click(getByText('Pablictor'));
+
+			expect(onSelectedNodesChange).toBeCalledWith(
+				new Set(['1.2', '1.2.1'])
+			);
+		});
 	});
 });

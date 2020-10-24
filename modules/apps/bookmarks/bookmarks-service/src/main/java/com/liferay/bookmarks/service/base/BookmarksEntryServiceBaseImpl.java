@@ -48,7 +48,7 @@ public abstract class BookmarksEntryServiceBaseImpl
 	extends BaseServiceImpl
 	implements AopService, BookmarksEntryService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>BookmarksEntryService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.bookmarks.service.BookmarksEntryServiceUtil</code>.
@@ -102,8 +102,8 @@ public abstract class BookmarksEntryServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

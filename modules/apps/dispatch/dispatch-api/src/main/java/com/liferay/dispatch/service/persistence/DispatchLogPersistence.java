@@ -27,14 +27,14 @@ import org.osgi.annotation.versioning.ProviderType;
  * Caching information and settings can be found in <code>portal.properties</code>
  * </p>
  *
- * @author Alessio Antonio Rendina
+ * @author Matija Petanjek
  * @see DispatchLogUtil
  * @generated
  */
 @ProviderType
 public interface DispatchLogPersistence extends BasePersistence<DispatchLog> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link DispatchLogUtil} to access the dispatch log persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

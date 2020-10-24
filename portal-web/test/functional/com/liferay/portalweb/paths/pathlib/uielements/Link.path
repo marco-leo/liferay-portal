@@ -19,6 +19,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ANY</td>
+	<td>//a[contains(.,'${key_text}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>BACK</td>
 	<td>//a[contains(.,'Back')]</td>
 	<td></td>
@@ -135,7 +140,7 @@
 </tr>
 <tr>
 	<td>STAGING</td>
-	<td>//li[contains(@class,'control-menu-link')]//a[contains(.,'Staging')]</td>
+	<td>//li[contains(@class,'nav-item')]//a[contains(.,'Staging')]</td>
 	<td></td>
 </tr>
 <tr>

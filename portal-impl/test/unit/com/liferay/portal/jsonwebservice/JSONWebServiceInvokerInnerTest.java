@@ -43,7 +43,9 @@ public class JSONWebServiceInvokerInnerTest extends BaseJSONWebServiceTestCase {
 
 	@Test
 	public void testAddVariableToInnerProperty() throws Exception {
-		Map<String, Object> commandMap =
+		Map<String, Object> expectedMap = prepareExpectedMap(
+			false, false, false);
+		Map<String, Object> actualMap = invokeAndReturnMap(
 			LinkedHashMapBuilder.<String, Object>put(
 				"$p = /foo/get-foo-data-page",
 				LinkedHashMapBuilder.<String, Object>put(
@@ -54,11 +56,7 @@ public class JSONWebServiceInvokerInnerTest extends BaseJSONWebServiceTestCase {
 						"worldName", "star"
 					).build()
 				).build()
-			).build();
-
-		Map<String, Object> expectedMap = prepareExpectedMap(
-			false, false, false);
-		Map<String, Object> actualMap = invokeAndReturnMap(commandMap);
+			).build());
 
 		Assert.assertEquals(expectedMap, actualMap);
 	}
@@ -189,14 +187,17 @@ public class JSONWebServiceInvokerInnerTest extends BaseJSONWebServiceTestCase {
 
 		expectedMap.put("page", 3);
 
-		List<Integer> list = new ArrayList<>();
-
-		list.add(9);
-		list.add(5);
-		list.add(7);
-
 		Map<String, Object> data = LinkedHashMapBuilder.<String, Object>put(
-			"array", list
+			"array",
+			() -> {
+				List<Integer> list = new ArrayList<>();
+
+				list.add(9);
+				list.add(5);
+				list.add(7);
+
+				return list;
+			}
 		).put(
 			"id", 2
 		).put(

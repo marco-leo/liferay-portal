@@ -19,14 +19,15 @@ import com.liferay.asset.list.asset.entry.provider.AssetListAssetEntryProvider;
 import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.list.service.AssetListEntryService;
 import com.liferay.headless.delivery.dto.v1_0.ContentSetElement;
-import com.liferay.headless.delivery.dto.v1_0.converter.DTOConverter;
-import com.liferay.headless.delivery.dto.v1_0.converter.DefaultDTOConverterContext;
-import com.liferay.headless.delivery.internal.dto.v1_0.converter.DTOConverterRegistry;
 import com.liferay.headless.delivery.resource.v1_0.ContentSetElementResource;
 import com.liferay.portal.kernel.util.CamelCaseUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.vulcan.dto.converter.DTOConverter;
+import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
+import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
+import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 import com.liferay.segments.context.Context;
 import com.liferay.segments.provider.SegmentsEntryProviderRegistry;
 
@@ -34,6 +35,7 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
 import java.util.Enumeration;
+import java.util.HashMap;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -50,6 +52,26 @@ public class ContentSetElementResourceImpl
 	extends BaseContentSetElementResourceImpl {
 
 	@Override
+	public Page<ContentSetElement>
+			getAssetLibraryContentSetByKeyContentSetElementsPage(
+				Long assetLibraryId, String key, Pagination pagination)
+		throws Exception {
+
+		return getSiteContentSetByKeyContentSetElementsPage(
+			assetLibraryId, key, pagination);
+	}
+
+	@Override
+	public Page<ContentSetElement>
+			getAssetLibraryContentSetByUuidContentSetElementsPage(
+				Long assetLibraryId, String uuid, Pagination pagination)
+		throws Exception {
+
+		return getSiteContentSetByUuidContentSetElementsPage(
+			assetLibraryId, uuid, pagination);
+	}
+
+	@Override
 	public Page<ContentSetElement> getContentSetContentSetElementsPage(
 			Long contentSetId, Pagination pagination)
 		throws Exception {
@@ -63,10 +85,8 @@ public class ContentSetElementResourceImpl
 			Long siteId, String key, Pagination pagination)
 		throws Exception {
 
-		AssetListEntry assetListEntry =
-			_assetListEntryService.getAssetListEntry(siteId, key);
-
-		return _getContentSetContentSetElementsPage(assetListEntry, pagination);
+		return _getContentSetContentSetElementsPage(
+			_assetListEntryService.getAssetListEntry(siteId, key), pagination);
 	}
 
 	@Override
@@ -85,11 +105,11 @@ public class ContentSetElementResourceImpl
 	private Context _createSegmentsContext() {
 		Context context = new Context();
 
-		Enumeration<String> headerNames =
+		Enumeration<String> enumeration =
 			contextHttpServletRequest.getHeaderNames();
 
-		while (headerNames.hasMoreElements()) {
-			String key = headerNames.nextElement();
+		while (enumeration.hasMoreElements()) {
+			String key = enumeration.nextElement();
 
 			String value = contextHttpServletRequest.getHeader(key);
 
@@ -109,7 +129,7 @@ public class ContentSetElementResourceImpl
 			else if (key.startsWith("x-")) {
 				context.put(
 					CamelCaseUtil.toCamelCase(
-						StringUtil.replace(key, "x-", "")),
+						StringUtil.removeSubstring(key, "x-")),
 					value);
 			}
 			else {
@@ -143,7 +163,7 @@ public class ContentSetElementResourceImpl
 	}
 
 	private ContentSetElement _toContentSetElement(AssetEntry assetEntry) {
-		DTOConverter dtoConverter = DTOConverterRegistry.getDTOConverter(
+		DTOConverter<?, ?> dtoConverter = _dtoConverterRegistry.getDTOConverter(
 			assetEntry.getClassName());
 
 		return new ContentSetElement() {
@@ -151,6 +171,9 @@ public class ContentSetElementResourceImpl
 				id = assetEntry.getClassPK();
 				title = assetEntry.getTitle(
 					contextAcceptLanguage.getPreferredLocale());
+				title_i18n = LocalizedMapUtil.getI18nMap(
+					contextAcceptLanguage.isAcceptAllLanguages(),
+					assetEntry.getTitleMap());
 
 				setContent(
 					() -> {
@@ -160,9 +183,12 @@ public class ContentSetElementResourceImpl
 
 						return dtoConverter.toDTO(
 							new DefaultDTOConverterContext(
+								contextAcceptLanguage.isAcceptAllLanguages(),
+								new HashMap<>(), _dtoConverterRegistry,
+								contextHttpServletRequest,
+								assetEntry.getClassPK(),
 								contextAcceptLanguage.getPreferredLocale(),
-								assetEntry.getClassPK(), contextUriInfo,
-								contextUser));
+								contextUriInfo, contextUser));
 					});
 				setContentType(
 					() -> {
@@ -181,6 +207,9 @@ public class ContentSetElementResourceImpl
 
 	@Reference
 	private AssetListEntryService _assetListEntryService;
+
+	@Reference
+	private DTOConverterRegistry _dtoConverterRegistry;
 
 	@Reference
 	private SegmentsEntryProviderRegistry _segmentsEntryProviderRegistry;

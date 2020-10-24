@@ -26,13 +26,13 @@ import org.osgi.util.tracker.ServiceTracker;
  * based on the propagated JAAS credentials because this service can only be
  * accessed from within the same VM.
  *
- * @author Alessio Antonio Rendina
+ * @author Matija Petanjek
  * @see DispatchLogLocalService
  * @generated
  */
 public class DispatchLogLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.dispatch.service.impl.DispatchLogLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -41,6 +41,10 @@ public class DispatchLogLocalServiceUtil {
 	/**
 	 * Adds the dispatch log to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DispatchLogLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param dispatchLog the dispatch log
 	 * @return the dispatch log that was added
 	 */
@@ -48,6 +52,16 @@ public class DispatchLogLocalServiceUtil {
 		com.liferay.dispatch.model.DispatchLog dispatchLog) {
 
 		return getService().addDispatchLog(dispatchLog);
+	}
+
+	public static com.liferay.dispatch.model.DispatchLog addDispatchLog(
+			long userId, long dispatchTriggerId, java.util.Date endDate,
+			String error, String output, java.util.Date startDate, int status)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().addDispatchLog(
+			userId, dispatchTriggerId, endDate, error, output, startDate,
+			status);
 	}
 
 	/**
@@ -63,7 +77,21 @@ public class DispatchLogLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the dispatch log from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DispatchLogLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dispatchLog the dispatch log
 	 * @return the dispatch log that was removed
@@ -77,6 +105,10 @@ public class DispatchLogLocalServiceUtil {
 	/**
 	 * Deletes the dispatch log with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DispatchLogLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param dispatchLogId the primary key of the dispatch log
 	 * @return the dispatch log that was removed
 	 * @throws PortalException if a dispatch log with the primary key could not be found
@@ -88,6 +120,10 @@ public class DispatchLogLocalServiceUtil {
 		return getService().deleteDispatchLog(dispatchLogId);
 	}
 
+	public static void deleteDispatchLogs(long dispatchTriggerId) {
+		getService().deleteDispatchLogs(dispatchTriggerId);
+	}
+
 	/**
 	 * @throws PortalException
 	 */
@@ -97,6 +133,12 @@ public class DispatchLogLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -190,6 +232,12 @@ public class DispatchLogLocalServiceUtil {
 		return getService().fetchDispatchLog(dispatchLogId);
 	}
 
+	public static com.liferay.dispatch.model.DispatchLog fetchLatestDispatchLog(
+		long dispatchTriggerId) {
+
+		return getService().fetchLatestDispatchLog(dispatchTriggerId);
+	}
+
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
 		getActionableDynamicQuery() {
 
@@ -227,6 +275,12 @@ public class DispatchLogLocalServiceUtil {
 		return getService().getDispatchLogs(start, end);
 	}
 
+	public static java.util.List<com.liferay.dispatch.model.DispatchLog>
+		getDispatchLogs(long dispatchTriggerId, int start, int end) {
+
+		return getService().getDispatchLogs(dispatchTriggerId, start, end);
+	}
+
 	/**
 	 * Returns the number of dispatch logs.
 	 *
@@ -234,6 +288,10 @@ public class DispatchLogLocalServiceUtil {
 	 */
 	public static int getDispatchLogsCount() {
 		return getService().getDispatchLogsCount();
+	}
+
+	public static int getDispatchLogsCount(long dispatchTriggerId) {
+		return getService().getDispatchLogsCount(dispatchTriggerId);
 	}
 
 	public static
@@ -252,6 +310,9 @@ public class DispatchLogLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -262,6 +323,10 @@ public class DispatchLogLocalServiceUtil {
 	/**
 	 * Updates the dispatch log in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DispatchLogLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param dispatchLog the dispatch log
 	 * @return the dispatch log that was updated
 	 */
@@ -269,6 +334,15 @@ public class DispatchLogLocalServiceUtil {
 		com.liferay.dispatch.model.DispatchLog dispatchLog) {
 
 		return getService().updateDispatchLog(dispatchLog);
+	}
+
+	public static com.liferay.dispatch.model.DispatchLog updateDispatchLog(
+			long dispatchLogId, java.util.Date endDate, String error,
+			String output, int status)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().updateDispatchLog(
+			dispatchLogId, endDate, error, output, status);
 	}
 
 	public static DispatchLogLocalService getService() {

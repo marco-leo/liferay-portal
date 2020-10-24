@@ -73,8 +73,15 @@ public class MySitesItemSelectorView
 	}
 
 	@Override
-	public boolean isVisible(ThemeDisplay themeDisplay) {
-		return true;
+	public boolean isVisible(
+		SiteItemSelectorCriterion siteItemSelectorCriterion,
+		ThemeDisplay themeDisplay) {
+
+		if (siteItemSelectorCriterion.isIncludeMySites()) {
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override

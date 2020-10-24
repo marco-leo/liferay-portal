@@ -27,7 +27,6 @@ import com.puppycrawl.tools.checkstyle.api.FileText;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.StringReader;
 
 import java.util.ArrayList;
@@ -126,22 +125,6 @@ public class PropertiesVerifyPropertiesCheck extends BaseFileCheck {
 		}
 
 		return content;
-	}
-
-	private static List<String> _getLines(String s) throws IOException {
-		List<String> lines = new ArrayList<>();
-
-		try (UnsyncBufferedReader unsyncBufferedReader =
-				new UnsyncBufferedReader(new UnsyncStringReader(s))) {
-
-			String line = null;
-
-			while ((line = unsyncBufferedReader.readLine()) != null) {
-				lines.add(line);
-			}
-		}
-
-		return lines;
 	}
 
 	private void _addLegacyProperties(DetailAST variableDefinitionDetailAST) {
@@ -308,6 +291,22 @@ public class PropertiesVerifyPropertiesCheck extends BaseFileCheck {
 
 			return _legacyProperties;
 		}
+	}
+
+	private List<String> _getLines(String s) throws Exception {
+		List<String> lines = new ArrayList<>();
+
+		try (UnsyncBufferedReader unsyncBufferedReader =
+				new UnsyncBufferedReader(new UnsyncStringReader(s))) {
+
+			String line = null;
+
+			while ((line = unsyncBufferedReader.readLine()) != null) {
+				lines.add(line);
+			}
+		}
+
+		return lines;
 	}
 
 	private String _getStringValue(DetailAST detailAST) {

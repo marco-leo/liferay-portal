@@ -48,7 +48,9 @@ public class StatsClusterRequestExecutorImpl
 		StatsClusterRequest statsClusterRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				statsClusterRequest.getConnectionId(),
+				statsClusterRequest.isPreferLocalCluster());
 
 		RestClient restClient = restHighLevelClient.getLowLevelClient();
 
@@ -83,8 +85,8 @@ public class StatsClusterRequestExecutorImpl
 
 			return new StatsClusterResponse(clusterHealthStatus, responseBody);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

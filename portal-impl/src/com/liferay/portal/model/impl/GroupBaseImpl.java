@@ -36,7 +36,7 @@ import java.util.List;
  */
 public abstract class GroupBaseImpl extends GroupModelImpl implements Group {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a group model instance should use the <code>Group</code> interface instead.
@@ -64,7 +64,7 @@ public abstract class GroupBaseImpl extends GroupModelImpl implements Group {
 			group = GroupLocalServiceUtil.fetchGroup(group.getParentGroupId());
 		}
 
-		StringBundler sb = new StringBundler(groups.size() * 2 + 1);
+		StringBundler sb = new StringBundler((groups.size() * 2) + 1);
 
 		sb.append("/");
 

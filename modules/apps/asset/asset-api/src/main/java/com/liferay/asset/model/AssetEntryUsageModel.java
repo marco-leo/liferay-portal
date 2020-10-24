@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
 import java.util.Date;
 
@@ -40,9 +41,10 @@ import org.osgi.annotation.versioning.ProviderType;
 @Deprecated
 @ProviderType
 public interface AssetEntryUsageModel
-	extends BaseModel<AssetEntryUsage>, MVCCModel, ShardedModel, StagedModel {
+	extends BaseModel<AssetEntryUsage>, CTModel<AssetEntryUsage>, MVCCModel,
+			ShardedModel, StagedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a asset entry usage model instance should use the {@link AssetEntryUsage} interface instead.
@@ -53,6 +55,7 @@ public interface AssetEntryUsageModel
 	 *
 	 * @return the primary key of this asset entry usage
 	 */
+	@Override
 	public long getPrimaryKey();
 
 	/**
@@ -60,6 +63,7 @@ public interface AssetEntryUsageModel
 	 *
 	 * @param primaryKey the primary key of this asset entry usage
 	 */
+	@Override
 	public void setPrimaryKey(long primaryKey);
 
 	/**
@@ -77,6 +81,22 @@ public interface AssetEntryUsageModel
 	 */
 	@Override
 	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the ct collection ID of this asset entry usage.
+	 *
+	 * @return the ct collection ID of this asset entry usage
+	 */
+	@Override
+	public long getCtCollectionId();
+
+	/**
+	 * Sets the ct collection ID of this asset entry usage.
+	 *
+	 * @param ctCollectionId the ct collection ID of this asset entry usage
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId);
 
 	/**
 	 * Returns the uuid of this asset entry usage.

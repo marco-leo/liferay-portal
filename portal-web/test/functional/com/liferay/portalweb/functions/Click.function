@@ -23,6 +23,20 @@ definition {
 
 		selenium.mouseOver();
 
+		selenium.clickAt("${locator1}", "${value1}");
+
+		selenium.assertJavaScriptErrors();
+
+		selenium.assertLiferayErrors();
+	}
+
+	function clickAtNotVisible {
+		WaitForSPARefresh();
+
+		selenium.waitForElementPresent();
+
+		selenium.mouseOver();
+
 		selenium.clickAt();
 
 		selenium.assertJavaScriptErrors();
@@ -176,12 +190,28 @@ definition {
 		selenium.selectFrame("relative=top");
 
 		selenium.waitForElementPresent(
-			"//script[contains(@src,'/o/frontend-js-web/liferay/menu_toggle.js')]"
+			"//script[contains(@src,'/o/frontend-js-aui-web/liferay/menu_toggle.js')]"
 		);
 
-		if (selenium.isElementPresent("//iframe")) {
-			selenium.selectFrame("//iframe");
+		if (selenium.isElementPresent("//*[contains(@class,'modal-body')]/iframe[not(contains(@class,'hidden'))]")) {
+			selenium.selectFrame("//*[contains(@class,'modal-body')]/iframe[not(contains(@class,'hidden'))]");
 		}
+
+		selenium.pause("3000");
+
+		Click();
+
+		selenium.assertJavaScriptErrors();
+
+		selenium.assertLiferayErrors();
+	}
+
+	function waitForPersonalMenuJSClick {
+		WaitForSPARefresh();
+
+		selenium.waitForElementPresent(
+			"//script[contains(@src,'personal_menu/js/PersonalMenu.es.js')]"
+		);
 
 		selenium.pause("3000");
 

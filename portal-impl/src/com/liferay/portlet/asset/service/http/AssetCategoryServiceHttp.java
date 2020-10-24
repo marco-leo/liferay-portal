@@ -73,24 +73,26 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategory)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -113,24 +115,26 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategory)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -149,22 +153,24 @@ public class AssetCategoryServiceHttp {
 			try {
 				TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -183,22 +189,24 @@ public class AssetCategoryServiceHttp {
 			try {
 				TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -219,24 +227,26 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategory)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -258,18 +268,20 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.asset.kernel.model.AssetCategory>)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -291,25 +303,27 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.asset.kernel.model.AssetCategory>)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -329,17 +343,19 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return ((Integer)returnObj).intValue();
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -360,24 +376,26 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategory)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -398,24 +416,26 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (String)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -437,25 +457,27 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.asset.kernel.model.AssetCategory>)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -464,7 +486,8 @@ public class AssetCategoryServiceHttp {
 				HttpPrincipal httpPrincipal, long parentCategoryId, int start,
 				int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.asset.kernel.model.AssetCategory> obc)
+					<com.liferay.asset.kernel.model.AssetCategory>
+						orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -473,32 +496,34 @@ public class AssetCategoryServiceHttp {
 				_getChildCategoriesParameterTypes11);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, parentCategoryId, start, end, obc);
+				methodKey, parentCategoryId, start, end, orderByComparator);
 
 			Object returnObj = null;
 
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.asset.kernel.model.AssetCategory>)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -519,24 +544,26 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return ((Integer)returnObj).intValue();
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -545,7 +572,8 @@ public class AssetCategoryServiceHttp {
 				HttpPrincipal httpPrincipal, long vocabularyId, int start,
 				int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.asset.kernel.model.AssetCategory> obc)
+					<com.liferay.asset.kernel.model.AssetCategory>
+						orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -554,32 +582,34 @@ public class AssetCategoryServiceHttp {
 				_getVocabularyCategoriesParameterTypes13);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, vocabularyId, start, end, obc);
+				methodKey, vocabularyId, start, end, orderByComparator);
 
 			Object returnObj = null;
 
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.asset.kernel.model.AssetCategory>)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -588,7 +618,8 @@ public class AssetCategoryServiceHttp {
 				HttpPrincipal httpPrincipal, long parentCategoryId,
 				long vocabularyId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.asset.kernel.model.AssetCategory> obc)
+					<com.liferay.asset.kernel.model.AssetCategory>
+						orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -597,32 +628,35 @@ public class AssetCategoryServiceHttp {
 				_getVocabularyCategoriesParameterTypes14);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, parentCategoryId, vocabularyId, start, end, obc);
+				methodKey, parentCategoryId, vocabularyId, start, end,
+				orderByComparator);
 
 			Object returnObj = null;
 
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.asset.kernel.model.AssetCategory>)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -631,7 +665,8 @@ public class AssetCategoryServiceHttp {
 			HttpPrincipal httpPrincipal, long groupId, long parentCategoryId,
 			long vocabularyId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.asset.kernel.model.AssetCategory> obc) {
+				<com.liferay.asset.kernel.model.AssetCategory>
+					orderByComparator) {
 
 		try {
 			MethodKey methodKey = new MethodKey(
@@ -640,25 +675,27 @@ public class AssetCategoryServiceHttp {
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, groupId, parentCategoryId, vocabularyId, start, end,
-				obc);
+				orderByComparator);
 
 			Object returnObj = null;
 
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.asset.kernel.model.AssetCategory>)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -667,7 +704,8 @@ public class AssetCategoryServiceHttp {
 			HttpPrincipal httpPrincipal, long groupId, String name,
 			long vocabularyId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.asset.kernel.model.AssetCategory> obc) {
+				<com.liferay.asset.kernel.model.AssetCategory>
+					orderByComparator) {
 
 		try {
 			MethodKey methodKey = new MethodKey(
@@ -675,25 +713,28 @@ public class AssetCategoryServiceHttp {
 				_getVocabularyCategoriesParameterTypes16);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, groupId, name, vocabularyId, start, end, obc);
+				methodKey, groupId, name, vocabularyId, start, end,
+				orderByComparator);
 
 			Object returnObj = null;
 
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.asset.kernel.model.AssetCategory>)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -713,17 +754,19 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return ((Integer)returnObj).intValue();
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -744,17 +787,19 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return ((Integer)returnObj).intValue();
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -775,17 +820,19 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return ((Integer)returnObj).intValue();
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -794,7 +841,8 @@ public class AssetCategoryServiceHttp {
 				HttpPrincipal httpPrincipal, long vocabularyId, int start,
 				int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.asset.kernel.model.AssetCategory> obc)
+					<com.liferay.asset.kernel.model.AssetCategory>
+						orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -804,32 +852,34 @@ public class AssetCategoryServiceHttp {
 				_getVocabularyCategoriesDisplayParameterTypes20);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, vocabularyId, start, end, obc);
+				methodKey, vocabularyId, start, end, orderByComparator);
 
 			Object returnObj = null;
 
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategoryDisplay)
 				returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -838,7 +888,8 @@ public class AssetCategoryServiceHttp {
 				HttpPrincipal httpPrincipal, long groupId, String name,
 				long vocabularyId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.asset.kernel.model.AssetCategory> obc)
+					<com.liferay.asset.kernel.model.AssetCategory>
+						orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -848,32 +899,35 @@ public class AssetCategoryServiceHttp {
 				_getVocabularyCategoriesDisplayParameterTypes21);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, groupId, name, vocabularyId, start, end, obc);
+				methodKey, groupId, name, vocabularyId, start, end,
+				orderByComparator);
 
 			Object returnObj = null;
 
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategoryDisplay)
 				returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -882,7 +936,8 @@ public class AssetCategoryServiceHttp {
 			HttpPrincipal httpPrincipal, long groupId, long vocabularyId,
 			int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.asset.kernel.model.AssetCategory> obc) {
+				<com.liferay.asset.kernel.model.AssetCategory>
+					orderByComparator) {
 
 		try {
 			MethodKey methodKey = new MethodKey(
@@ -890,25 +945,28 @@ public class AssetCategoryServiceHttp {
 				_getVocabularyRootCategoriesParameterTypes22);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, groupId, vocabularyId, start, end, obc);
+				methodKey, groupId, vocabularyId, start, end,
+				orderByComparator);
 
 			Object returnObj = null;
 
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.asset.kernel.model.AssetCategory>)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -929,17 +987,19 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return ((Integer)returnObj).intValue();
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -963,24 +1023,26 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategory)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -989,7 +1051,8 @@ public class AssetCategoryServiceHttp {
 			HttpPrincipal httpPrincipal, long groupId, String keywords,
 			long vocabularyId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.asset.kernel.model.AssetCategory> obc) {
+				<com.liferay.asset.kernel.model.AssetCategory>
+					orderByComparator) {
 
 		try {
 			MethodKey methodKey = new MethodKey(
@@ -997,25 +1060,28 @@ public class AssetCategoryServiceHttp {
 				_searchParameterTypes25);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, groupId, keywords, vocabularyId, start, end, obc);
+				methodKey, groupId, keywords, vocabularyId, start, end,
+				orderByComparator);
 
 			Object returnObj = null;
 
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List
 				<com.liferay.asset.kernel.model.AssetCategory>)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -1037,24 +1103,26 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.portal.kernel.json.JSONArray)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -1076,24 +1144,26 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.portal.kernel.json.JSONArray)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -1116,25 +1186,27 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategoryDisplay)
 				returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -1158,25 +1230,27 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategoryDisplay)
 				returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -1201,25 +1275,27 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategoryDisplay)
 				returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -1242,25 +1318,27 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategoryDisplay)
 				returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -1285,25 +1363,27 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategoryDisplay)
 				returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -1328,25 +1408,27 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategoryDisplay)
 				returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -1373,24 +1455,26 @@ public class AssetCategoryServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (com.liferay.asset.kernel.model.AssetCategory)returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 

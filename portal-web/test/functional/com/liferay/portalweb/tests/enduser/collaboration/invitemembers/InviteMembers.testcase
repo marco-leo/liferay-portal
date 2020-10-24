@@ -1,6 +1,7 @@
 @component-name = "portal-collaboration"
 definition {
 
+	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Invite Members";
@@ -16,15 +17,10 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.editPasswordCP(
-			password = "password",
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 	}
 
 	tearDown {
@@ -43,12 +39,11 @@ definition {
 	}
 
 	@description = "This test is skipping portal instance setup due to LPS-75168"
-	@ignore = "true"
 	@priority = "4"
 	test ViewNewSiteMember {
 		property test.name.skip.portal.instance = "InviteMembers#ViewNewSiteMember";
 
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Sites",
 			panel = "Control Panel",
 			portlet = "Sites");
@@ -57,7 +52,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
-			panel = "Site Administration",
 			portlet = "Pages");
 
 		SitePages.addPublicPage(pageName = "Site Page 1");
@@ -70,10 +64,9 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "People",
-			panel = "Site Administration",
 			portlet = "Memberships");
 
-		AssertElementNotPresent(locator1 = "Card#SPECIFIC_TEXT");
+		LexiconCard.viewCardNotPresent(card = "userfn userln");
 
 		Navigator.gotoSitePage(
 			pageName = "Site Page 1",
@@ -115,7 +108,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "People",
-			panel = "Site Administration",
 			portlet = "Memberships");
 
 		Site.viewMemberCP(

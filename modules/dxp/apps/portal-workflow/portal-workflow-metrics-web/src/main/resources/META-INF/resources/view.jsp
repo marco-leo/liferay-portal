@@ -16,16 +16,25 @@
 
 <%@ include file="/init.jsp" %>
 
-<div id="<portlet:namespace />root">
+<div>
 	<span aria-hidden="true" class="loading-animation"></span>
-</div>
 
-<aui:script require='<%= npmResolvedPackageName + " as bootstrapRequire" %>'>
-	bootstrapRequire.default(
-		<%= PropsValues.SEARCH_CONTAINER_PAGE_DEFAULT_DELTA %>,
-		<%= Arrays.toString(PropsValues.SEARCH_CONTAINER_PAGE_DELTA_VALUES) %>,
-		<%= DateUtil.isFormatAmPm(locale) %>,
-		<%= PropsValues.SEARCH_CONTAINER_PAGE_ITERATOR_MAX_PAGES %>,
-		'<portlet:namespace />'
-	);
-</aui:script>
+	<react:component
+		module="js/index.es"
+		props='<%=
+			HashMapBuilder.<String, Object>put(
+				"defaultDelta", PropsValues.SEARCH_CONTAINER_PAGE_DEFAULT_DELTA
+			).put(
+				"deltaValues", PropsValues.SEARCH_CONTAINER_PAGE_DELTA_VALUES
+			).put(
+				"isAmPm", DateUtil.isFormatAmPm(locale)
+			).put(
+				"maxPages", PropsValues.SEARCH_CONTAINER_PAGE_ITERATOR_MAX_PAGES
+			).put(
+				"userId", themeDisplay.getUserId()
+			).put(
+				"userName", PortalUtil.getUserName(themeDisplay.getUserId(), String.valueOf(themeDisplay.getUserId()))
+			).build()
+		%>'
+	/>
+</div>

@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -43,6 +45,8 @@ public class MBMailingListWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
 		attributes.put("mailingListId", getMailingListId());
 		attributes.put("groupId", getGroupId());
@@ -75,6 +79,18 @@ public class MBMailingListWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -283,6 +299,16 @@ public class MBMailingListWrapper
 	}
 
 	/**
+	 * Returns the ct collection ID of this message boards mailing list.
+	 *
+	 * @return the ct collection ID of this message boards mailing list
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
+	}
+
+	/**
 	 * Returns the email address of this message boards mailing list.
 	 *
 	 * @return the email address of this message boards mailing list
@@ -390,6 +416,16 @@ public class MBMailingListWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this message boards mailing list.
+	 *
+	 * @return the mvcc version of this message boards mailing list
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -562,11 +598,6 @@ public class MBMailingListWrapper
 		return model.isOutUseSSL();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a message boards mailing list model instance should use the <code>MBMailingList</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -620,6 +651,16 @@ public class MBMailingListWrapper
 	@Override
 	public void setCreateDate(Date createDate) {
 		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets the ct collection ID of this message boards mailing list.
+	 *
+	 * @param ctCollectionId the ct collection ID of this message boards mailing list
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -730,6 +771,16 @@ public class MBMailingListWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this message boards mailing list.
+	 *
+	 * @param mvccVersion the mvcc version of this message boards mailing list
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -850,6 +901,20 @@ public class MBMailingListWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
+	}
+
+	@Override
+	public Map<String, Function<MBMailingList, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<MBMailingList, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

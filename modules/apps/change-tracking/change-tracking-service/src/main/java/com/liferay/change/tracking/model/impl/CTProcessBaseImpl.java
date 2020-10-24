@@ -32,7 +32,7 @@ import com.liferay.change.tracking.service.CTProcessLocalServiceUtil;
 public abstract class CTProcessBaseImpl
 	extends CTProcessModelImpl implements CTProcess {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a ct process model instance should use the <code>CTProcess</code> interface instead.

@@ -27,7 +27,6 @@ import com.liferay.portal.search.test.util.indexing.DocumentCreationHelpers;
 import com.liferay.portal.search.test.util.indexing.IndexingFixture;
 
 import java.util.Collections;
-import java.util.Map;
 
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 
@@ -42,6 +41,7 @@ import org.junit.rules.ExpectedException;
 public class SolrIndexWriterExceptionsTest extends BaseIndexingTestCase {
 
 	@After
+	@Override
 	public void tearDown() throws Exception {
 	}
 
@@ -68,7 +68,7 @@ public class SolrIndexWriterExceptionsTest extends BaseIndexingTestCase {
 				createSearchContext(),
 				Collections.singletonList(getTestDocument()));
 		}
-		catch (SearchException se) {
+		catch (SearchException searchException) {
 		}
 	}
 
@@ -83,7 +83,7 @@ public class SolrIndexWriterExceptionsTest extends BaseIndexingTestCase {
 		try {
 			indexWriter.commit(createSearchContext());
 		}
-		catch (SearchException se) {
+		catch (SearchException searchException) {
 		}
 	}
 
@@ -98,7 +98,7 @@ public class SolrIndexWriterExceptionsTest extends BaseIndexingTestCase {
 		try {
 			indexWriter.deleteDocument(createSearchContext(), null);
 		}
-		catch (SearchException se) {
+		catch (SearchException searchException) {
 		}
 	}
 
@@ -113,7 +113,7 @@ public class SolrIndexWriterExceptionsTest extends BaseIndexingTestCase {
 			indexWriter.deleteDocuments(
 				createSearchContext(), Collections.singletonList(null));
 		}
-		catch (SearchException se) {
+		catch (SearchException searchException) {
 		}
 	}
 
@@ -126,9 +126,10 @@ public class SolrIndexWriterExceptionsTest extends BaseIndexingTestCase {
 		IndexWriter indexWriter = getIndexWriter();
 
 		try {
-			indexWriter.deleteEntityDocuments(createSearchContext(), null);
+			indexWriter.deleteEntityDocuments(
+				createSearchContext(), "className");
 		}
-		catch (SearchException se) {
+		catch (SearchException searchException) {
 		}
 	}
 
@@ -144,7 +145,7 @@ public class SolrIndexWriterExceptionsTest extends BaseIndexingTestCase {
 			indexWriter.partiallyUpdateDocument(
 				createSearchContext(), getTestDocument());
 		}
-		catch (SearchException se) {
+		catch (SearchException searchException) {
 		}
 	}
 
@@ -160,7 +161,7 @@ public class SolrIndexWriterExceptionsTest extends BaseIndexingTestCase {
 				createSearchContext(),
 				Collections.singletonList(getTestDocument()));
 		}
-		catch (SearchException se) {
+		catch (SearchException searchException) {
 		}
 	}
 
@@ -175,7 +176,7 @@ public class SolrIndexWriterExceptionsTest extends BaseIndexingTestCase {
 			indexWriter.updateDocument(
 				createSearchContext(), getTestDocument());
 		}
-		catch (SearchException se) {
+		catch (SearchException searchException) {
 		}
 	}
 
@@ -191,7 +192,7 @@ public class SolrIndexWriterExceptionsTest extends BaseIndexingTestCase {
 				createSearchContext(),
 				Collections.singletonList(getTestDocument()));
 		}
-		catch (SearchException se) {
+		catch (SearchException searchException) {
 		}
 	}
 
@@ -200,12 +201,10 @@ public class SolrIndexWriterExceptionsTest extends BaseIndexingTestCase {
 
 	@Override
 	protected IndexingFixture createIndexingFixture() throws Exception {
-		Map<String, Object> solrConfigurationProperties =
+		return new SolrIndexingFixture(
 			HashMapBuilder.<String, Object>put(
 				"defaultCollection", _COLLECTION_NAME
-			).build();
-
-		return new SolrIndexingFixture(solrConfigurationProperties);
+			).build());
 	}
 
 	protected Document getTestDocument() {

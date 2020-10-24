@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class DDMDataProviderInstanceLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.dynamic.data.mapping.service.impl.DDMDataProviderInstanceLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link DDMDataProviderInstanceLocalServiceUtil} to access the ddm data provider instance local service. Add custom service methods to <code>com.liferay.dynamic.data.mapping.service.impl.DDMDataProviderInstanceLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.dynamic.data.mapping.model.DDMDataProviderInstance
 			addDataProviderInstance(
@@ -61,6 +55,10 @@ public class DDMDataProviderInstanceLocalServiceUtil {
 
 	/**
 	 * Adds the ddm data provider instance to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMDataProviderInstanceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddmDataProviderInstance the ddm data provider instance
 	 * @return the ddm data provider instance that was added
@@ -86,6 +84,16 @@ public class DDMDataProviderInstanceLocalServiceUtil {
 			dataProviderInstanceId);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
 	public static void deleteDataProviderInstance(
 			com.liferay.dynamic.data.mapping.model.DDMDataProviderInstance
 				dataProviderInstance)
@@ -109,6 +117,10 @@ public class DDMDataProviderInstanceLocalServiceUtil {
 	/**
 	 * Deletes the ddm data provider instance from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMDataProviderInstanceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param ddmDataProviderInstance the ddm data provider instance
 	 * @return the ddm data provider instance that was removed
 	 */
@@ -123,6 +135,10 @@ public class DDMDataProviderInstanceLocalServiceUtil {
 
 	/**
 	 * Deletes the ddm data provider instance with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMDataProviderInstanceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dataProviderInstanceId the primary key of the ddm data provider instance
 	 * @return the ddm data provider instance that was removed
@@ -145,6 +161,12 @@ public class DDMDataProviderInstanceLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -432,6 +454,9 @@ public class DDMDataProviderInstanceLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -495,6 +520,10 @@ public class DDMDataProviderInstanceLocalServiceUtil {
 
 	/**
 	 * Updates the ddm data provider instance in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMDataProviderInstanceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddmDataProviderInstance the ddm data provider instance
 	 * @return the ddm data provider instance that was updated

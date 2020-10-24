@@ -15,7 +15,7 @@
 package com.liferay.depot.web.internal.portlet.action;
 
 import com.liferay.depot.model.DepotEntry;
-import com.liferay.depot.service.DepotEntryLocalService;
+import com.liferay.depot.service.DepotEntryService;
 import com.liferay.depot.web.internal.constants.DepotAdminWebKeys;
 import com.liferay.depot.web.internal.constants.DepotPortletKeys;
 import com.liferay.item.selector.ItemSelector;
@@ -37,7 +37,7 @@ import org.osgi.service.component.annotations.Reference;
 	property = {
 		"javax.portlet.name=" + DepotPortletKeys.DEPOT_ADMIN,
 		"javax.portlet.name=" + DepotPortletKeys.DEPOT_SETTINGS,
-		"mvc.command.name=/depot_entry/edit"
+		"mvc.command.name=/depot/edit_depot_entry"
 	},
 	service = MVCRenderCommand.class
 )
@@ -49,7 +49,7 @@ public class EditDepotEntryMVCRenderCommand implements MVCRenderCommand {
 		throws PortletException {
 
 		try {
-			DepotEntry depotEntry = _depotEntryLocalService.getDepotEntry(
+			DepotEntry depotEntry = _depotEntryService.getDepotEntry(
 				ParamUtil.getLong(renderRequest, "depotEntryId"));
 
 			renderRequest.setAttribute(
@@ -60,13 +60,13 @@ public class EditDepotEntryMVCRenderCommand implements MVCRenderCommand {
 
 			return "/edit_depot_entry.jsp";
 		}
-		catch (PortalException pe) {
-			throw new PortletException(pe);
+		catch (PortalException portalException) {
+			throw new PortletException(portalException);
 		}
 	}
 
 	@Reference
-	private DepotEntryLocalService _depotEntryLocalService;
+	private DepotEntryService _depotEntryService;
 
 	@Reference
 	private ItemSelector _itemSelector;

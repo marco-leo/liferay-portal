@@ -15,6 +15,7 @@
 package com.liferay.portal.service.base;
 
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -36,6 +37,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.ResourceActionPersistence;
 import com.liferay.portal.kernel.service.persistence.ResourcePermissionFinder;
 import com.liferay.portal.kernel.service.persistence.ResourcePermissionPersistence;
@@ -67,7 +69,7 @@ public abstract class ResourcePermissionLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements IdentifiableOSGiService, ResourcePermissionLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>ResourcePermissionLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil</code>.
@@ -75,6 +77,10 @@ public abstract class ResourcePermissionLocalServiceBaseImpl
 
 	/**
 	 * Adds the resource permission to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ResourcePermissionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param resourcePermission the resource permission
 	 * @return the resource permission that was added
@@ -106,6 +112,10 @@ public abstract class ResourcePermissionLocalServiceBaseImpl
 	/**
 	 * Deletes the resource permission with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ResourcePermissionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param resourcePermissionId the primary key of the resource permission
 	 * @return the resource permission that was removed
 	 * @throws PortalException if a resource permission with the primary key could not be found
@@ -122,6 +132,10 @@ public abstract class ResourcePermissionLocalServiceBaseImpl
 	/**
 	 * Deletes the resource permission from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ResourcePermissionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param resourcePermission the resource permission
 	 * @return the resource permission that was removed
 	 */
@@ -131,6 +145,11 @@ public abstract class ResourcePermissionLocalServiceBaseImpl
 		ResourcePermission resourcePermission) {
 
 		return resourcePermissionPersistence.remove(resourcePermission);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return resourcePermissionPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -294,6 +313,17 @@ public abstract class ResourcePermissionLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return resourcePermissionPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -301,6 +331,14 @@ public abstract class ResourcePermissionLocalServiceBaseImpl
 			(ResourcePermission)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<ResourcePermission> getBasePersistence() {
+		return resourcePermissionPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -336,6 +374,10 @@ public abstract class ResourcePermissionLocalServiceBaseImpl
 
 	/**
 	 * Updates the resource permission in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ResourcePermissionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param resourcePermission the resource permission
 	 * @return the resource permission that was updated
@@ -596,8 +638,8 @@ public abstract class ResourcePermissionLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

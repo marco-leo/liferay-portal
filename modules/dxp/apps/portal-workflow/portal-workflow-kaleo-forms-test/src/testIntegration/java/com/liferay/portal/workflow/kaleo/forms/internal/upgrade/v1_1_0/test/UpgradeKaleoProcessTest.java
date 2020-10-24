@@ -98,21 +98,12 @@ public class UpgradeKaleoProcessTest {
 		Registry registry = RegistryUtil.getRegistry();
 
 		UpgradeStepRegistrator upgradeStepRegistror = registry.getService(
-			"com.liferay.portal.workflow.kaleo.forms.internal.upgrade." +
-				"KaleoFormsServiceUpgrade");
+			registry.getServiceReference(
+				"com.liferay.portal.workflow.kaleo.forms.internal.upgrade." +
+					"KaleoFormsServiceUpgrade"));
 
 		upgradeStepRegistror.register(
 			new UpgradeStepRegistrator.Registry() {
-
-				@Override
-				public void register(
-					String bundleSymbolicName, String fromSchemaVersionString,
-					String toSchemaVersionString, UpgradeStep... upgradeSteps) {
-
-					register(
-						fromSchemaVersionString, toSchemaVersionString,
-						upgradeSteps);
-				}
 
 				@Override
 				public void register(

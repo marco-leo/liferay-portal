@@ -16,7 +16,7 @@ package com.liferay.document.library.web.internal.portlet.action;
 
 import com.liferay.document.library.kernel.exception.NoSuchFolderException;
 import com.liferay.document.library.web.internal.constants.DLWebKeys;
-import com.liferay.document.library.web.internal.util.DLTrashUtil;
+import com.liferay.document.library.web.internal.helper.DLTrashHelper;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
 import com.liferay.portal.kernel.repository.model.Folder;
@@ -54,17 +54,17 @@ public abstract class GetFolderMVCRenderCommand implements MVCRenderCommand {
 			renderRequest.setAttribute(WebKeys.DOCUMENT_LIBRARY_FOLDER, folder);
 
 			renderRequest.setAttribute(
-				DLWebKeys.DOCUMENT_LIBRARY_TRASH_UTIL, getDLTrashUtil());
+				DLWebKeys.DOCUMENT_LIBRARY_TRASH_HELPER, getDLTrashHelper());
 
 			return getPath();
 		}
-		catch (NoSuchFolderException | PrincipalException e) {
-			SessionErrors.add(renderRequest, e.getClass());
+		catch (NoSuchFolderException | PrincipalException exception) {
+			SessionErrors.add(renderRequest, exception.getClass());
 
 			return "/document_library/error.jsp";
 		}
-		catch (PortalException pe) {
-			throw new PortletException(pe);
+		catch (PortalException portalException) {
+			throw new PortletException(portalException);
 		}
 	}
 
@@ -73,7 +73,7 @@ public abstract class GetFolderMVCRenderCommand implements MVCRenderCommand {
 		throws PortalException {
 	}
 
-	protected abstract DLTrashUtil getDLTrashUtil();
+	protected abstract DLTrashHelper getDLTrashHelper();
 
 	protected abstract String getPath();
 

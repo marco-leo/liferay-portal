@@ -23,6 +23,8 @@ import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
 import com.liferay.dynamic.data.mapping.model.DDMFormRule;
 import com.liferay.dynamic.data.mapping.service.DDMDataProviderInstanceService;
+import com.liferay.dynamic.data.mapping.service.DDMStructureLayoutLocalService;
+import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.util.DDM;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactory;
@@ -30,16 +32,17 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.AggregateResourceBundle;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.template.soy.util.SoyHTMLSanitizer;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -101,7 +104,13 @@ public class DDMFormTemplateContextFactoryImpl
 			DDMFormRenderingContext ddmFormRenderingContext)
 		throws PortalException {
 
-		setDDMFormFieldsEvaluableProperty(ddmForm);
+		String containerId = ddmFormRenderingContext.getContainerId();
+
+		if (Validator.isNull(containerId)) {
+			containerId = StringUtil.randomId();
+		}
+
+		setDDMFormFieldsEvaluableProperty(ddmForm, ddmFormLayout);
 
 		Locale locale = ddmFormRenderingContext.getLocale();
 
@@ -109,46 +118,63 @@ public class DDMFormTemplateContextFactoryImpl
 			locale = LocaleThreadLocal.getSiteDefaultLocale();
 		}
 
-		Map<String, Object> templateContext =
-			HashMapBuilder.<String, Object>put(
-				"containerId",
-				() -> {
-					String containerId =
-						ddmFormRenderingContext.getContainerId();
+		Map<String, Object> templateContext = new HashMap<>();
 
-					if (Validator.isNull(containerId)) {
-						containerId = StringUtil.randomId();
-					}
+		ResourceBundle resourceBundle = getResourceBundle(locale);
 
-					return containerId;
-				}
-			).put(
-				"currentPage",
-				ParamUtil.getString(
-					ddmFormRenderingContext.getHttpServletRequest(),
-					"currentPage", "1")
-			).put(
-				"editingLanguageId", LanguageUtil.getLanguageId(locale)
-			).put(
-				"evaluatorURL", getDDMFormContextProviderServletURL()
-			).put(
-				"groupId", ddmFormRenderingContext.getGroupId()
-			).put(
-				"pages",
-				getPages(ddmForm, ddmFormLayout, ddmFormRenderingContext)
-			).put(
-				"paginationMode", ddmFormLayout.getPaginationMode()
-			).put(
-				"portletNamespace",
-				ddmFormRenderingContext.getPortletNamespace()
-			).put(
-				"readOnly", ddmFormRenderingContext.isReadOnly()
-			).put(
-				"rules", toObjectList(ddmForm.getDDMFormRules())
-			).put(
-				"showRequiredFieldsWarning",
-				ddmFormRenderingContext.isShowRequiredFieldsWarning()
-			).build();
+		String cancelLabel = GetterUtil.getString(
+			ddmFormRenderingContext.getCancelLabel(),
+			LanguageUtil.get(resourceBundle, "cancel"));
+
+		templateContext.put("cancelLabel", cancelLabel);
+
+		templateContext.put("containerId", containerId);
+		templateContext.put(
+			"currentPage",
+			ParamUtil.getString(
+				ddmFormRenderingContext.getHttpServletRequest(), "currentPage",
+				"1"));
+		templateContext.put(
+			"ddmStructureLayoutId",
+			ddmFormRenderingContext.getDDMStructureLayoutId());
+		templateContext.put(
+			"editingLanguageId", LanguageUtil.getLanguageId(locale));
+		templateContext.put(
+			"evaluatorURL", getDDMFormContextProviderServletURL());
+		templateContext.put("groupId", ddmFormRenderingContext.getGroupId());
+		templateContext.put(
+			"pages", getPages(ddmForm, ddmFormLayout, ddmFormRenderingContext));
+		templateContext.put(
+			"paginationMode", ddmFormLayout.getPaginationMode());
+		templateContext.put(
+			"portletNamespace", ddmFormRenderingContext.getPortletNamespace());
+		templateContext.put("readOnly", ddmFormRenderingContext.isReadOnly());
+
+		String redirectURL = ddmFormRenderingContext.getRedirectURL();
+
+		templateContext.put("redirectURL", redirectURL);
+
+		List<DDMFormRule> ddmFormRules = ddmFormLayout.getDDMFormRules();
+
+		if (ListUtil.isEmpty(ddmFormRules)) {
+			ddmFormRules = ddmForm.getDDMFormRules();
+		}
+
+		templateContext.put("rules", toObjectList(ddmFormRules));
+
+		boolean showCancelButton = ddmFormRenderingContext.isShowCancelButton();
+
+		if (ddmFormRenderingContext.isReadOnly() ||
+			Validator.isNull(redirectURL)) {
+
+			showCancelButton = false;
+		}
+
+		templateContext.put("showCancelButton", showCancelButton);
+
+		templateContext.put(
+			"showRequiredFieldsWarning",
+			ddmFormRenderingContext.isShowRequiredFieldsWarning());
 
 		boolean showSubmitButton = ddmFormRenderingContext.isShowSubmitButton();
 
@@ -157,8 +183,6 @@ public class DDMFormTemplateContextFactoryImpl
 		}
 
 		templateContext.put("showSubmitButton", showSubmitButton);
-
-		ResourceBundle resourceBundle = getResourceBundle(locale);
 
 		templateContext.put("strings", getLanguageStringsMap(resourceBundle));
 
@@ -198,7 +222,9 @@ public class DDMFormTemplateContextFactoryImpl
 
 		DDMFormPagesTemplateContextFactory ddmFormPagesTemplateContextFactory =
 			new DDMFormPagesTemplateContextFactory(
-				ddmForm, ddmFormLayout, ddmFormRenderingContext);
+				ddmForm, ddmFormLayout, ddmFormRenderingContext,
+				_ddmStructureLayoutLocalService, _ddmStructureLocalService,
+				_jsonFactory);
 
 		ddmFormPagesTemplateContextFactory.setDDMFormEvaluator(
 			_ddmFormEvaluator);
@@ -254,13 +280,15 @@ public class DDMFormTemplateContextFactoryImpl
 		return "ddm.paginated_form";
 	}
 
-	protected void setDDMFormFieldsEvaluableProperty(DDMForm ddmForm) {
+	protected void setDDMFormFieldsEvaluableProperty(
+		DDMForm ddmForm, DDMFormLayout ddmFormLayout) {
+
 		Map<String, DDMFormField> ddmFormFieldsMap =
 			ddmForm.getDDMFormFieldsMap(true);
 
 		for (String evaluableDDMFormFieldName :
 				_ddmFormTemplateContextFactoryHelper.
-					getEvaluableDDMFormFieldNames(ddmForm)) {
+					getEvaluableDDMFormFieldNames(ddmForm, ddmFormLayout)) {
 
 			DDMFormField ddmFormField = ddmFormFieldsMap.get(
 				evaluableDDMFormFieldName);
@@ -315,12 +343,15 @@ public class DDMFormTemplateContextFactoryImpl
 			new DDMFormTemplateContextFactoryHelper();
 
 	@Reference
+	private DDMStructureLayoutLocalService _ddmStructureLayoutLocalService;
+
+	@Reference
+	private DDMStructureLocalService _ddmStructureLocalService;
+
+	@Reference
 	private JSONFactory _jsonFactory;
 
 	@Reference
 	private Portal _portal;
-
-	@Reference
-	private SoyHTMLSanitizer _soyHTMLSanitizer;
 
 }

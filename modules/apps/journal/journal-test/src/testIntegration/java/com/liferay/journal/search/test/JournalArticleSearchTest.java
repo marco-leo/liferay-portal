@@ -26,10 +26,10 @@ import com.liferay.dynamic.data.mapping.test.util.search.TestOrderHelper;
 import com.liferay.dynamic.data.mapping.util.DDMIndexer;
 import com.liferay.dynamic.data.mapping.util.DDMUtil;
 import com.liferay.journal.configuration.JournalServiceConfiguration;
+import com.liferay.journal.constants.JournalArticleConstants;
+import com.liferay.journal.constants.JournalFolderConstants;
 import com.liferay.journal.model.JournalArticle;
-import com.liferay.journal.model.JournalArticleConstants;
 import com.liferay.journal.model.JournalFolder;
-import com.liferay.journal.model.JournalFolderConstants;
 import com.liferay.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.journal.service.JournalArticleServiceUtil;
 import com.liferay.journal.service.JournalFolderServiceUtil;
@@ -59,13 +59,13 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.SearchContextTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.search.test.util.BaseSearchTestCase;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
@@ -98,7 +98,7 @@ public class JournalArticleSearchTest extends BaseSearchTestCase {
 	@Before
 	@Override
 	public void setUp() throws Exception {
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		super.setUp();
 
@@ -158,7 +158,7 @@ public class JournalArticleSearchTest extends BaseSearchTestCase {
 
 		JournalArticle article = JournalTestUtil.addArticle(
 			group.getGroupId(), JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			JournalArticleConstants.CLASSNAME_ID_DEFAULT, articleId, false,
+			JournalArticleConstants.CLASS_NAME_ID_DEFAULT, articleId, false,
 			keywordsMap, keywordsMap, keywordsMap, null,
 			LocaleUtil.getDefault(), null, true, true, serviceContext);
 
@@ -238,6 +238,7 @@ public class JournalArticleSearchTest extends BaseSearchTestCase {
 		testOrderHelper.testOrderByDDMNumberField();
 	}
 
+	@Ignore
 	@Test
 	public void testOrderByDDMNumberFieldRepeatable() throws Exception {
 		TestOrderHelper testOrderHelper =
@@ -304,7 +305,8 @@ public class JournalArticleSearchTest extends BaseSearchTestCase {
 
 		searchContext.setSorts(sort);
 
-		Indexer indexer = IndexerRegistryUtil.getIndexer(JournalArticle.class);
+		Indexer<JournalArticle> indexer = IndexerRegistryUtil.getIndexer(
+			JournalArticle.class);
 
 		searchContext.setAttribute(Field.CONTENT, "some test");
 
@@ -334,7 +336,8 @@ public class JournalArticleSearchTest extends BaseSearchTestCase {
 
 		searchContext.setSorts(sort);
 
-		Indexer indexer = IndexerRegistryUtil.getIndexer(JournalArticle.class);
+		Indexer<JournalArticle> indexer = IndexerRegistryUtil.getIndexer(
+			JournalArticle.class);
 
 		searchContext.setAttribute(Field.CONTENT, "test");
 
@@ -357,7 +360,6 @@ public class JournalArticleSearchTest extends BaseSearchTestCase {
 			String.valueOf(article2.getResourcePrimKey()));
 	}
 
-	@Ignore
 	@Override
 	@Test
 	public void testSearchAttachments() throws Exception {
@@ -560,7 +562,8 @@ public class JournalArticleSearchTest extends BaseSearchTestCase {
 	protected void setUpDDMIndexer() {
 		Registry registry = RegistryUtil.getRegistry();
 
-		_ddmIndexer = registry.getService(DDMIndexer.class);
+		_ddmIndexer = registry.getService(
+			registry.getServiceReference(DDMIndexer.class));
 	}
 
 	@Override
@@ -627,11 +630,10 @@ public class JournalArticleSearchTest extends BaseSearchTestCase {
 				fieldValues.length);
 
 			for (String fieldValue : fieldValues) {
-				Map<Locale, String> map = HashMapBuilder.put(
-					LocaleUtil.US, fieldValue
-				).build();
-
-				contents.add(map);
+				contents.add(
+					HashMapBuilder.put(
+						LocaleUtil.US, fieldValue
+					).build());
 			}
 
 			String content = DDMStructureTestUtil.getSampleStructuredContent(

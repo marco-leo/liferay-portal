@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class JournalFeedLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.journal.service.impl.JournalFeedLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link JournalFeedLocalServiceUtil} to access the journal feed local service. Add custom service methods to <code>com.liferay.journal.service.impl.JournalFeedLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.journal.model.JournalFeed addFeed(
 			long userId, long groupId, String feedId, boolean autoFeedId,
@@ -90,6 +84,10 @@ public class JournalFeedLocalServiceUtil {
 	/**
 	 * Adds the journal feed to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalFeedLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param journalFeed the journal feed
 	 * @return the journal feed that was added
 	 */
@@ -109,6 +107,16 @@ public class JournalFeedLocalServiceUtil {
 		long id) {
 
 		return getService().createJournalFeed(id);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	public static void deleteFeed(com.liferay.journal.model.JournalFeed feed)
@@ -132,6 +140,10 @@ public class JournalFeedLocalServiceUtil {
 	/**
 	 * Deletes the journal feed from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalFeedLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param journalFeed the journal feed
 	 * @return the journal feed that was removed
 	 */
@@ -143,6 +155,10 @@ public class JournalFeedLocalServiceUtil {
 
 	/**
 	 * Deletes the journal feed with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalFeedLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param id the primary key of the journal feed
 	 * @return the journal feed that was removed
@@ -164,6 +180,12 @@ public class JournalFeedLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -428,6 +450,9 @@ public class JournalFeedLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -438,21 +463,21 @@ public class JournalFeedLocalServiceUtil {
 	public static java.util.List<com.liferay.journal.model.JournalFeed> search(
 		long companyId, long groupId, String keywords, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.journal.model.JournalFeed> obc) {
+			<com.liferay.journal.model.JournalFeed> orderByComparator) {
 
 		return getService().search(
-			companyId, groupId, keywords, start, end, obc);
+			companyId, groupId, keywords, start, end, orderByComparator);
 	}
 
 	public static java.util.List<com.liferay.journal.model.JournalFeed> search(
 		long companyId, long groupId, String feedId, String name,
 		String description, boolean andOperator, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.journal.model.JournalFeed> obc) {
+			<com.liferay.journal.model.JournalFeed> orderByComparator) {
 
 		return getService().search(
 			companyId, groupId, feedId, name, description, andOperator, start,
-			end, obc);
+			end, orderByComparator);
 	}
 
 	public static int searchCount(
@@ -488,6 +513,10 @@ public class JournalFeedLocalServiceUtil {
 
 	/**
 	 * Updates the journal feed in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalFeedLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param journalFeed the journal feed
 	 * @return the journal feed that was updated

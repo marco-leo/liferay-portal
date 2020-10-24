@@ -101,7 +101,7 @@ public class LayoutRevisionLocalServiceImpl
 		layoutRevision.setStatus(WorkflowConstants.STATUS_DRAFT);
 		layoutRevision.setStatusDate(serviceContext.getModifiedDate(now));
 
-		layoutRevisionPersistence.update(layoutRevision);
+		layoutRevision = layoutRevisionPersistence.update(layoutRevision);
 
 		_layoutRevisionId.set(layoutRevision.getLayoutRevisionId());
 
@@ -172,12 +172,15 @@ public class LayoutRevisionLocalServiceImpl
 				portletPreferencesLocalService.deletePortletPreferences(
 					portletPreferences.getPortletPreferencesId());
 			}
-			catch (NoSuchPortletPreferencesException nsppe) {
+			catch (NoSuchPortletPreferencesException
+						noSuchPortletPreferencesException) {
 
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(nsppe, nsppe);
+					_log.debug(
+						noSuchPortletPreferencesException,
+						noSuchPortletPreferencesException);
 				}
 			}
 		}
@@ -247,12 +250,14 @@ public class LayoutRevisionLocalServiceImpl
 			return layoutRevisionPersistence.findByH_P_Last(
 				head, plid, new LayoutRevisionCreateDateComparator(true));
 		}
-		catch (NoSuchLayoutRevisionException nslre) {
+		catch (NoSuchLayoutRevisionException noSuchLayoutRevisionException) {
 
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(nslre, nslre);
+				_log.debug(
+					noSuchLayoutRevisionException,
+					noSuchLayoutRevisionException);
 			}
 
 			return null;
@@ -487,7 +492,7 @@ public class LayoutRevisionLocalServiceImpl
 			layoutRevision.setStatusDate(
 				serviceContext.getModifiedDate(new Date()));
 
-			layoutRevisionPersistence.update(layoutRevision);
+			layoutRevision = layoutRevisionPersistence.update(layoutRevision);
 
 			_layoutRevisionId.set(layoutRevision.getLayoutRevisionId());
 
@@ -520,7 +525,7 @@ public class LayoutRevisionLocalServiceImpl
 			layoutRevision.setColorSchemeId(colorSchemeId);
 			layoutRevision.setCss(css);
 
-			layoutRevisionPersistence.update(layoutRevision);
+			layoutRevision = layoutRevisionPersistence.update(layoutRevision);
 
 			_layoutRevisionId.set(layoutRevision.getLayoutRevisionId());
 		}
@@ -575,7 +580,7 @@ public class LayoutRevisionLocalServiceImpl
 			layoutRevision.setMajor(false);
 		}
 
-		layoutRevisionPersistence.update(layoutRevision);
+		layoutRevision = layoutRevisionPersistence.update(layoutRevision);
 
 		if (status == WorkflowConstants.STATUS_APPROVED) {
 			List<LayoutRevision> layoutRevisions =
@@ -703,7 +708,7 @@ public class LayoutRevisionLocalServiceImpl
 		layoutRevision.setParentLayoutRevisionId(parentLayoutRevisionId);
 		layoutRevision.setMajor(true);
 
-		layoutRevisionPersistence.update(layoutRevision);
+		layoutRevision = layoutRevisionPersistence.update(layoutRevision);
 
 		for (LayoutRevision parentLayoutRevision : parentLayoutRevisions) {
 			List<LayoutRevision> childrenLayoutRevisions =

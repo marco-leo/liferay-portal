@@ -18,11 +18,11 @@ import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.workflow.configuration.WorkflowDefinitionConfiguration;
@@ -87,8 +87,8 @@ public class KaleoDesignerWorkflowPortletTab extends BaseWorkflowPortletTab {
 
 				setKaleoDesignerServletContextRequestAttribute(renderRequest);
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 		}
 	}
@@ -175,6 +175,7 @@ public class KaleoDesignerWorkflowPortletTab extends BaseWorkflowPortletTab {
 			"portletTabServletContext", getServletContext());
 	}
 
+	@Override
 	@Reference(
 		target = "(osgi.web.symbolicname=com.liferay.portal.workflow.kaleo.designer.web)",
 		unbind = "-"

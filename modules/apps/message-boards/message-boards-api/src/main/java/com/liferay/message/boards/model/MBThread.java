@@ -31,7 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface MBThread extends MBThreadModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.message.boards.model.impl.MBThreadImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -66,6 +66,8 @@ public interface MBThread extends MBThreadModel, PersistedModel {
 		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public com.liferay.portal.kernel.lock.Lock getLock();
+
+	public int getMessageCount();
 
 	public long[] getParticipantUserIds();
 

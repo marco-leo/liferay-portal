@@ -33,7 +33,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface ExpandoValue extends ExpandoValueModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.portlet.expando.model.impl.ExpandoValueImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -166,7 +166,7 @@ public interface ExpandoValue extends ExpandoValueModel, PersistedModel {
 		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public void setGeolocationJSONObject(
-			com.liferay.portal.kernel.json.JSONObject data)
+			com.liferay.portal.kernel.json.JSONObject dataJSONObject)
 		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public void setInteger(int data)

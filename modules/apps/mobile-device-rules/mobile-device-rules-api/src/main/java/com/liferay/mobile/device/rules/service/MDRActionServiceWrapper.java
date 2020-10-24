@@ -30,11 +30,6 @@ public class MDRActionServiceWrapper
 		_mdrActionService = mdrActionService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link MDRActionServiceUtil} to access the mdr action remote service. Add custom service methods to <code>com.liferay.mobile.device.rules.service.impl.MDRActionServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.mobile.device.rules.model.MDRAction addAction(
 			long ruleGroupInstanceId,
@@ -55,13 +50,13 @@ public class MDRActionServiceWrapper
 			java.util.Map<java.util.Locale, String> nameMap,
 			java.util.Map<java.util.Locale, String> descriptionMap, String type,
 			com.liferay.portal.kernel.util.UnicodeProperties
-				typeSettingsProperties,
+				typeSettingsUnicodeProperties,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _mdrActionService.addAction(
 			ruleGroupInstanceId, nameMap, descriptionMap, type,
-			typeSettingsProperties, serviceContext);
+			typeSettingsUnicodeProperties, serviceContext);
 	}
 
 	@Override
@@ -115,13 +110,13 @@ public class MDRActionServiceWrapper
 			long actionId, java.util.Map<java.util.Locale, String> nameMap,
 			java.util.Map<java.util.Locale, String> descriptionMap, String type,
 			com.liferay.portal.kernel.util.UnicodeProperties
-				typeSettingsProperties,
+				typeSettingsUnicodeProperties,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _mdrActionService.updateAction(
-			actionId, nameMap, descriptionMap, type, typeSettingsProperties,
-			serviceContext);
+			actionId, nameMap, descriptionMap, type,
+			typeSettingsUnicodeProperties, serviceContext);
 	}
 
 	@Override

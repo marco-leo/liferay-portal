@@ -33,11 +33,6 @@ public class OAuth2ScopeGrantLocalServiceWrapper
 		_oAuth2ScopeGrantLocalService = oAuth2ScopeGrantLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link OAuth2ScopeGrantLocalServiceUtil} to access the o auth2 scope grant local service. Add custom service methods to <code>com.liferay.oauth2.provider.service.impl.OAuth2ScopeGrantLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public void addOAuth2AuthorizationOAuth2ScopeGrant(
 		long oAuth2AuthorizationId, long oAuth2ScopeGrantId) {
@@ -75,6 +70,10 @@ public class OAuth2ScopeGrantLocalServiceWrapper
 
 	/**
 	 * Adds the o auth2 scope grant to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ScopeGrantLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2ScopeGrant the o auth2 scope grant
 	 * @return the o auth2 scope grant that was added
@@ -138,6 +137,18 @@ public class OAuth2ScopeGrantLocalServiceWrapper
 			bundleSymbolicName, scope, scopeAliases);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuth2ScopeGrantLocalService.createPersistedModel(
+			primaryKeyObj);
+	}
+
 	@Override
 	public void deleteOAuth2AuthorizationOAuth2ScopeGrant(
 		long oAuth2AuthorizationId, long oAuth2ScopeGrantId) {
@@ -178,6 +189,10 @@ public class OAuth2ScopeGrantLocalServiceWrapper
 	/**
 	 * Deletes the o auth2 scope grant with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ScopeGrantLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param oAuth2ScopeGrantId the primary key of the o auth2 scope grant
 	 * @return the o auth2 scope grant that was removed
 	 * @throws PortalException if a o auth2 scope grant with the primary key could not be found
@@ -193,6 +208,10 @@ public class OAuth2ScopeGrantLocalServiceWrapper
 
 	/**
 	 * Deletes the o auth2 scope grant from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ScopeGrantLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2ScopeGrant the o auth2 scope grant
 	 * @return the o auth2 scope grant that was removed
@@ -217,6 +236,11 @@ public class OAuth2ScopeGrantLocalServiceWrapper
 
 		return _oAuth2ScopeGrantLocalService.deletePersistedModel(
 			persistedModel);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _oAuth2ScopeGrantLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -475,6 +499,9 @@ public class OAuth2ScopeGrantLocalServiceWrapper
 		return _oAuth2ScopeGrantLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -524,6 +551,10 @@ public class OAuth2ScopeGrantLocalServiceWrapper
 
 	/**
 	 * Updates the o auth2 scope grant in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ScopeGrantLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2ScopeGrant the o auth2 scope grant
 	 * @return the o auth2 scope grant that was updated

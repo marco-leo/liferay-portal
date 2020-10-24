@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.workflow.metrics.model.WorkflowMetricsSLADefinitionVersion;
 import com.liferay.portal.workflow.metrics.model.impl.WorkflowMetricsSLADefinitionVersionImpl;
 import com.liferay.portal.workflow.metrics.service.persistence.WorkflowMetricsSLADefinitionVersionFinder;
@@ -38,37 +39,49 @@ public class WorkflowMetricsSLADefinitionVersionFinderImpl
 	extends WorkflowMetricsSLADefinitionVersionFinderBaseImpl
 	implements WorkflowMetricsSLADefinitionVersionFinder {
 
-	public static final String FIND_BY_C_WMSLAD_V =
+	public static final String FIND_BY_C_CD_P_S =
 		WorkflowMetricsSLADefinitionVersionFinder.class.getName() +
-			".findByC_WMSLAD_V";
+			".findByC_CD_P_S";
 
 	@Override
-	public List<WorkflowMetricsSLADefinitionVersion> findByC_WMSLAD_V(
-		long companyId, Date createDate, int status, int start, int end) {
+	public List<WorkflowMetricsSLADefinitionVersion> findByC_CD_P_S(
+		long companyId, Date createDate, Long processId, int status, int start,
+		int end) {
 
 		Session session = null;
 
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(
-				_customSQL.get(getClass(), FIND_BY_C_WMSLAD_V));
+			String sql = _customSQL.get(getClass(), FIND_BY_C_CD_P_S);
 
-			q.addEntity(
+			if (processId == null) {
+				sql = StringUtil.removeSubstring(
+					sql, "(WMSLADefinitionVersion.processId = ? ) AND");
+			}
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			sqlQuery.addEntity(
 				"WorkflowMetricsSLADefinitionVersion",
 				WorkflowMetricsSLADefinitionVersionImpl.class);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(companyId);
-			qPos.add(createDate);
-			qPos.add(status);
+			queryPos.add(companyId);
+			queryPos.add(createDate);
+
+			if (processId != null) {
+				queryPos.add(processId);
+			}
+
+			queryPos.add(status);
 
 			return (List<WorkflowMetricsSLADefinitionVersion>)QueryUtil.list(
-				q, getDialect(), start, end);
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);

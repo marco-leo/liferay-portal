@@ -59,23 +59,24 @@ public class MetaTypeVirtualBundleRegistrator implements Closeable {
 		mainAttributes.put(new Attributes.Name("Bundle-Version"), "1.0.0");
 	}
 
+	@Override
 	public void close() {
 		try {
 			_servicesDropDownMetaTypeProvider.close();
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 		}
 
 		try {
 			_serviceRegistration.unregister();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		try {
 			_bundle.uninstall();
 		}
-		catch (BundleException be) {
+		catch (BundleException bundleException) {
 		}
 	}
 

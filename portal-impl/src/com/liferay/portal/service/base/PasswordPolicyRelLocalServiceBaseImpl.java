@@ -14,6 +14,7 @@
 
 package com.liferay.portal.service.base;
 
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -35,6 +36,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PasswordPolicyRelLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
 import com.liferay.portal.kernel.service.persistence.PasswordPolicyRelPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -62,7 +64,7 @@ public abstract class PasswordPolicyRelLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements IdentifiableOSGiService, PasswordPolicyRelLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>PasswordPolicyRelLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.PasswordPolicyRelLocalServiceUtil</code>.
@@ -70,6 +72,10 @@ public abstract class PasswordPolicyRelLocalServiceBaseImpl
 
 	/**
 	 * Adds the password policy rel to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PasswordPolicyRelLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param passwordPolicyRel the password policy rel
 	 * @return the password policy rel that was added
@@ -99,6 +105,10 @@ public abstract class PasswordPolicyRelLocalServiceBaseImpl
 	/**
 	 * Deletes the password policy rel with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PasswordPolicyRelLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param passwordPolicyRelId the primary key of the password policy rel
 	 * @return the password policy rel that was removed
 	 * @throws PortalException if a password policy rel with the primary key could not be found
@@ -114,6 +124,10 @@ public abstract class PasswordPolicyRelLocalServiceBaseImpl
 	/**
 	 * Deletes the password policy rel from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PasswordPolicyRelLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param passwordPolicyRel the password policy rel
 	 * @return the password policy rel that was removed
 	 */
@@ -123,6 +137,11 @@ public abstract class PasswordPolicyRelLocalServiceBaseImpl
 		PasswordPolicyRel passwordPolicyRel) {
 
 		return passwordPolicyRelPersistence.remove(passwordPolicyRel);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return passwordPolicyRelPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -281,6 +300,17 @@ public abstract class PasswordPolicyRelLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return passwordPolicyRelPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -288,6 +318,14 @@ public abstract class PasswordPolicyRelLocalServiceBaseImpl
 			(PasswordPolicyRel)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<PasswordPolicyRel> getBasePersistence() {
+		return passwordPolicyRelPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -323,6 +361,10 @@ public abstract class PasswordPolicyRelLocalServiceBaseImpl
 
 	/**
 	 * Updates the password policy rel in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PasswordPolicyRelLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param passwordPolicyRel the password policy rel
 	 * @return the password policy rel that was updated
@@ -490,8 +532,8 @@ public abstract class PasswordPolicyRelLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

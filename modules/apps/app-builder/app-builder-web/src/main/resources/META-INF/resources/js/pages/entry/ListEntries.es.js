@@ -12,182 +12,103 @@
  * details.
  */
 
-import openToast from 'frontend-js-web/liferay/toast/commands/OpenToast.es';
-import React, {useContext, useEffect, useState} from 'react';
-import {Link, withRouter} from 'react-router-dom';
+import React, {useContext} from 'react';
 
 import {AppContext} from '../../AppContext.es';
 import Button from '../../components/button/Button.es';
 import ListView from '../../components/list-view/ListView.es';
 import {Loading} from '../../components/loading/Loading.es';
-import {toQuery, toQueryString} from '../../hooks/useQuery.es';
-import {confirmDelete, getItem} from '../../utils/client.es';
-import {getFieldLabel} from '../../utils/dataDefinition.es';
-import {FieldValuePreview} from './FieldPreview.es';
+import useDataListView from '../../hooks/useDataListView.es';
+import useEntriesActions from '../../hooks/useEntriesActions.es';
+import usePermissions from '../../hooks/usePermissions.es';
+import {getLocalizedUserPreferenceValue} from '../../utils/lang.es';
+import {buildEntries, navigateToEditPage} from './utils.es';
 
-const ListEntries = withRouter(({history, location}) => {
-	const [state, setState] = useState({
-		dataDefinition: null,
-		dataListView: {
-			fieldNames: []
-		},
-		isLoading: true
-	});
-
+export default function ListEntries() {
 	const {
+		appId,
 		basePortletURL,
 		dataDefinitionId,
 		dataListViewId,
-		showFormView
+		showFormView,
+		userLanguageId,
 	} = useContext(AppContext);
 
-	useEffect(() => {
-		Promise.all([
-			getItem(`/o/data-engine/v2.0/data-definitions/${dataDefinitionId}`),
-			getItem(`/o/data-engine/v2.0/data-list-views/${dataListViewId}`)
-		]).then(([dataDefinition, dataListView]) => {
-			setState(prevState => ({
-				...prevState,
-				dataDefinition: {
-					...prevState.dataDefinition,
-					...dataDefinition
-				},
-				dataListView: {
-					...prevState.dataListView,
-					...dataListView
-				},
-				isLoading: false
-			}));
-		});
-	}, [dataDefinitionId, dataListViewId]);
+	const {
+		columns,
+		dataDefinition,
+		dataListView: {fieldNames},
+		isLoading,
+	} = useDataListView(dataListViewId, dataDefinitionId);
 
-	const {dataDefinition, dataListView, isLoading} = state;
-	const {fieldNames: columns} = dataListView;
+	const permissions = usePermissions();
 
-	const getEditURL = (dataRecordId = 0) =>
-		Liferay.Util.PortletURL.createRenderURL(basePortletURL, {
-			dataRecordId,
-			mvcPath: '/edit_entry.jsp'
-		});
+	const formColumns = columns.map(({value, ...column}) => ({
+		...column,
+		value: getLocalizedUserPreferenceValue(
+			value,
+			userLanguageId,
+			dataDefinition.defaultLanguageId
+		),
+	}));
 
-	const handleEditItem = dataRecordId => {
-		Liferay.Util.navigate(getEditURL(dataRecordId));
+	const portletParams = {
+		languageId: userLanguageId,
 	};
-
-	let actions = [];
-
-	if (showFormView) {
-		actions = [
-			{
-				action: ({viewURL}) => Promise.resolve(history.push(viewURL)),
-				name: Liferay.Language.get('view')
-			},
-			{
-				action: ({id}) => Promise.resolve(handleEditItem(id)),
-				name: Liferay.Language.get('edit')
-			},
-			{
-				action: item =>
-					confirmDelete('/o/data-engine/v2.0/data-records/')(
-						item
-					).then(confirmed => {
-						if (confirmed) {
-							openToast({
-								message: Liferay.Language.get(
-									'an-entry-was-deleted'
-								),
-								title: Liferay.Language.get('success'),
-								type: 'success'
-							});
-						}
-
-						return Promise.resolve(confirmed);
-					}),
-				name: Liferay.Language.get('delete')
-			}
-		];
-	}
 
 	return (
 		<Loading isLoading={isLoading}>
 			<ListView
-				actions={actions}
+				actions={useEntriesActions()}
 				addButton={() =>
-					showFormView && (
+					showFormView &&
+					permissions.add && (
 						<Button
-							className="nav-btn nav-btn-monospaced navbar-breakpoint-down-d-none"
-							onClick={() => handleEditItem(0)}
+							className="nav-btn nav-btn-monospaced"
+							onClick={() =>
+								navigateToEditPage(
+									basePortletURL,
+									portletParams
+								)
+							}
 							symbol="plus"
 							tooltip={Liferay.Language.get('new-entry')}
 						/>
 					)
 				}
-				columns={columns.map(column => ({
-					key: column,
-					value: getFieldLabel(dataDefinition, column)
-				}))}
+				columns={formColumns}
 				emptyState={{
 					button: () =>
-						showFormView && (
+						showFormView &&
+						permissions.add && (
 							<Button
 								displayType="secondary"
-								onClick={() => handleEditItem(0)}
+								onClick={() =>
+									navigateToEditPage(
+										basePortletURL,
+										portletParams
+									)
+								}
 							>
 								{Liferay.Language.get('new-entry')}
 							</Button>
 						),
-					title: Liferay.Language.get('there-are-no-entries-yet')
+					title: Liferay.Language.get('there-are-no-entries-yet'),
 				}}
 				endpoint={`/o/data-engine/v2.0/data-definitions/${dataDefinitionId}/data-records`}
+				noActionsMessage={Liferay.Language.get(
+					'you-do-not-have-the-permission-to-manage-this-entry'
+				)}
+				queryParams={{dataListViewId}}
+				scope={appId}
 			>
-				{(item, index) => {
-					const {dataRecordValues = {}, id} = item;
-					const query = toQuery(location.search, {
-						keywords: '',
-						page: 1,
-						pageSize: 20,
-						sort: ''
-					});
-
-					const entryIndex =
-						query.pageSize * (query.page - 1) + index + 1;
-
-					const viewURL = `/entries/${entryIndex}?${toQueryString(
-						query
-					)}`;
-
-					const displayedDataRecordValues = {};
-
-					columns.forEach((fieldName, columnIndex) => {
-						let fieldValuePreview = (
-							<FieldValuePreview
-								dataDefinition={dataDefinition}
-								dataRecordValues={dataRecordValues}
-								displayType="list"
-								fieldName={fieldName}
-							/>
-						);
-
-						if (columnIndex === 0) {
-							fieldValuePreview = (
-								<Link to={viewURL}>{fieldValuePreview}</Link>
-							);
-						}
-
-						displayedDataRecordValues[
-							fieldName
-						] = fieldValuePreview;
-					});
-
-					return {
-						...displayedDataRecordValues,
-						id,
-						viewURL
-					};
-				}}
+				{buildEntries({
+					dataDefinition,
+					fieldNames,
+					permissions,
+					scope: appId,
+				})}
 			</ListView>
 		</Loading>
 	);
-});
-
-export default ListEntries;
+}

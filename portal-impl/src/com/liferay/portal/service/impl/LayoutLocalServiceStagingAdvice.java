@@ -21,7 +21,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutRevision;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutStagingHandler;
@@ -156,7 +155,8 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			Map<Locale, String> descriptionMap, Map<Locale, String> keywordsMap,
 			Map<Locale, String> robotsMap, String type, boolean hidden,
 			Map<Locale, String> friendlyURLMap, boolean hasIconImage,
-			byte[] iconBytes, ServiceContext serviceContext)
+			byte[] iconBytes, long masterLayoutPlid, long styleBookEntryId,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		// Layout
@@ -194,7 +194,8 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			return layoutLocalService.updateLayout(
 				groupId, privateLayout, layoutId, parentLayoutId, nameMap,
 				titleMap, descriptionMap, keywordsMap, robotsMap, type, hidden,
-				friendlyURLMap, hasIconImage, iconBytes, serviceContext);
+				friendlyURLMap, hasIconImage, iconBytes, masterLayoutPlid,
+				styleBookEntryId, serviceContext);
 		}
 
 		layoutLocalService.updateAsset(
@@ -277,6 +278,14 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			boolean privateLayout, long layoutId, String typeSettings)
 		throws PortalException {
 
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.getServiceContext();
+
+		if (serviceContext == null) {
+			return layoutLocalService.updateLayout(
+				groupId, privateLayout, layoutId, typeSettings);
+		}
+
 		Layout layout = LayoutUtil.findByG_P_L(
 			groupId, privateLayout, layoutId);
 
@@ -293,9 +302,6 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 		}
 
 		layout.setTypeSettings(typeSettings);
-
-		ServiceContext serviceContext =
-			ServiceContextThreadLocal.getServiceContext();
 
 		boolean hasWorkflowTask = StagingUtil.hasWorkflowTask(
 			serviceContext.getUserId(), layoutRevision);
@@ -326,6 +332,14 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			String colorSchemeId, String css)
 		throws PortalException {
 
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.getServiceContext();
+
+		if (serviceContext == null) {
+			return layoutLocalService.updateLookAndFeel(
+				groupId, privateLayout, layoutId, themeId, colorSchemeId, css);
+		}
+
 		Layout layout = LayoutUtil.findByG_P_L(
 			groupId, privateLayout, layoutId);
 
@@ -344,9 +358,6 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 		layout.setThemeId(themeId);
 		layout.setColorSchemeId(colorSchemeId);
 		layout.setCss(css);
-
-		ServiceContext serviceContext =
-			ServiceContextThreadLocal.getServiceContext();
 
 		boolean hasWorkflowTask = StagingUtil.hasWorkflowTask(
 			serviceContext.getUserId(), layoutRevision);
@@ -376,6 +387,13 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			String languageId)
 		throws PortalException {
 
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.getServiceContext();
+
+		if (serviceContext == null) {
+			return layoutLocalService.updateName(layout, name, languageId);
+		}
+
 		layout = wrapLayout(layout);
 
 		LayoutRevision layoutRevision = LayoutStagingUtil.getLayoutRevision(
@@ -388,9 +406,6 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 		layoutLocalServiceHelper.validateName(name, languageId);
 
 		layout.setName(name, LocaleUtil.fromLanguageId(languageId));
-
-		ServiceContext serviceContext =
-			ServiceContextThreadLocal.getServiceContext();
 
 		boolean hasWorkflowTask = StagingUtil.hasWorkflowTask(
 			serviceContext.getUserId(), layoutRevision);
@@ -500,12 +515,12 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			new Class<?>[] {Layout.class, ModelWrapper.class},
 			new LayoutStagingHandler(layout));
 
-		Map<Layout, Object> proxiedLayouts = HashMapBuilder.<Layout, Object>put(
-			layout, proxiedLayout
-		).build();
-
 		ProxiedLayoutsThreadLocal.setProxiedLayouts(
-			new ObjectValuePair<>(currentServiceContext, proxiedLayouts));
+			new ObjectValuePair<>(
+				currentServiceContext,
+				HashMapBuilder.<Layout, Object>put(
+					layout, proxiedLayout
+				).build()));
 
 		return (Layout)proxiedLayout;
 	}
@@ -545,10 +560,11 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 
 		Layout firstLayout = layouts.get(0);
 
-		Layout wrappedFirstLayout = wrapLayout(firstLayout);
-
-		if ((wrappedFirstLayout == firstLayout) &&
-			!LayoutConstants.TYPE_CONTENT.equals(firstLayout.getType())) {
+		if ((!firstLayout.isTypeContent() &&
+			 (wrapLayout(firstLayout) == firstLayout)) ||
+			(firstLayout.isTypeContent() &&
+			 !LayoutStagingUtil.isBranchingLayoutSet(
+				 firstLayout.getGroup(), firstLayout.isPrivateLayout()))) {
 
 			return layouts;
 		}
@@ -570,7 +586,7 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 						user, layoutSet.getLayoutSetId());
 				}
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
 					_log.debug("No layout set branch found for user " + userId);
 				}
@@ -580,13 +596,16 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 		List<Layout> wrappedLayouts = new ArrayList<>(layouts.size());
 
 		for (Layout layout : layouts) {
+			if (layout.isTypeContent()) {
+				wrappedLayouts.add(layout);
+
+				continue;
+			}
+
 			Layout wrappedLayout = wrapLayout(layout);
 
-			String layoutType = wrappedLayout.getType();
-
 			if (showIncomplete ||
-				!StagingUtil.isIncomplete(wrappedLayout, layoutSetBranchId) ||
-				LayoutConstants.TYPE_CONTENT.equals(layoutType)) {
+				!StagingUtil.isIncomplete(wrappedLayout, layoutSetBranchId)) {
 
 				wrappedLayouts.add(wrappedLayout);
 			}
@@ -722,7 +741,8 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 					_invoke(method, arguments), showIncomplete);
 			}
 			else if (methodName.equals("updateLayout") &&
-					 (arguments.length == 15)) {
+					 ((arguments.length == 15) || (arguments.length == 16) ||
+					  (arguments.length == 17))) {
 
 				Map<Locale, String> friendlyURLMap = null;
 
@@ -737,6 +757,26 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 					friendlyURLMap = (Map<Locale, String>)arguments[11];
 				}
 
+				long masterLayoutPlid = 0;
+				long styleBookEntryId = 0;
+
+				ServiceContext serviceContext = null;
+
+				if (arguments.length == 15) {
+					serviceContext = (ServiceContext)arguments[14];
+				}
+				else if (arguments.length == 16) {
+					masterLayoutPlid = (Long)arguments[14];
+
+					serviceContext = (ServiceContext)arguments[15];
+				}
+				else if (arguments.length == 17) {
+					masterLayoutPlid = (Long)arguments[14];
+					styleBookEntryId = (Long)arguments[15];
+
+					serviceContext = (ServiceContext)arguments[16];
+				}
+
 				returnValue = updateLayout(
 					(LayoutLocalService)_targetObject, (Long)arguments[0],
 					(Boolean)arguments[1], (Long)arguments[2],
@@ -747,7 +787,7 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 					(Map<Locale, String>)arguments[8], (String)arguments[9],
 					(Boolean)arguments[10], friendlyURLMap,
 					(Boolean)arguments[12], (byte[])arguments[13],
-					(ServiceContext)arguments[14]);
+					masterLayoutPlid, styleBookEntryId, serviceContext);
 			}
 			else {
 				try {
@@ -766,17 +806,15 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 					returnValue = layoutLocalServiceStagingAdviceMethod.invoke(
 						_layoutLocalServiceStagingAdvice, arguments);
 				}
-				catch (InvocationTargetException ite) {
-					throw ite.getTargetException();
+				catch (InvocationTargetException invocationTargetException) {
+					throw invocationTargetException.getTargetException();
 				}
-				catch (NoSuchMethodException nsme) {
+				catch (NoSuchMethodException noSuchMethodException) {
 					returnValue = _invoke(method, arguments);
 				}
 			}
 
-			returnValue = wrapReturnValue(returnValue, false);
-
-			return returnValue;
+			return wrapReturnValue(returnValue, false);
 		}
 
 		private LayoutLocalServiceStagingInvocationHandler(
@@ -793,8 +831,8 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			try {
 				return method.invoke(_targetObject, arguments);
 			}
-			catch (InvocationTargetException ite) {
-				throw ite.getCause();
+			catch (InvocationTargetException invocationTargetException) {
+				throw invocationTargetException.getCause();
 			}
 		}
 

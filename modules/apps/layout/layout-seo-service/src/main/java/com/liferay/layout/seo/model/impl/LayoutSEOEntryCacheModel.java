@@ -37,17 +37,17 @@ public class LayoutSEOEntryCacheModel
 	implements CacheModel<LayoutSEOEntry>, Externalizable, MVCCModel {
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+	public boolean equals(Object object) {
+		if (this == object) {
 			return true;
 		}
 
-		if (!(obj instanceof LayoutSEOEntryCacheModel)) {
+		if (!(object instanceof LayoutSEOEntryCacheModel)) {
 			return false;
 		}
 
 		LayoutSEOEntryCacheModel layoutSEOEntryCacheModel =
-			(LayoutSEOEntryCacheModel)obj;
+			(LayoutSEOEntryCacheModel)object;
 
 		if ((layoutSEOEntryId == layoutSEOEntryCacheModel.layoutSEOEntryId) &&
 			(mvccVersion == layoutSEOEntryCacheModel.mvccVersion)) {
@@ -77,7 +77,7 @@ public class LayoutSEOEntryCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(41);
+		StringBundler sb = new StringBundler(43);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -111,6 +111,8 @@ public class LayoutSEOEntryCacheModel
 		sb.append(openGraphDescription);
 		sb.append(", openGraphDescriptionEnabled=");
 		sb.append(openGraphDescriptionEnabled);
+		sb.append(", openGraphImageAlt=");
+		sb.append(openGraphImageAlt);
 		sb.append(", openGraphImageFileEntryId=");
 		sb.append(openGraphImageFileEntryId);
 		sb.append(", openGraphTitle=");
@@ -185,6 +187,14 @@ public class LayoutSEOEntryCacheModel
 
 		layoutSEOEntryImpl.setOpenGraphDescriptionEnabled(
 			openGraphDescriptionEnabled);
+
+		if (openGraphImageAlt == null) {
+			layoutSEOEntryImpl.setOpenGraphImageAlt("");
+		}
+		else {
+			layoutSEOEntryImpl.setOpenGraphImageAlt(openGraphImageAlt);
+		}
+
 		layoutSEOEntryImpl.setOpenGraphImageFileEntryId(
 			openGraphImageFileEntryId);
 
@@ -236,6 +246,7 @@ public class LayoutSEOEntryCacheModel
 		openGraphDescription = objectInput.readUTF();
 
 		openGraphDescriptionEnabled = objectInput.readBoolean();
+		openGraphImageAlt = objectInput.readUTF();
 
 		openGraphImageFileEntryId = objectInput.readLong();
 		openGraphTitle = objectInput.readUTF();
@@ -297,6 +308,13 @@ public class LayoutSEOEntryCacheModel
 
 		objectOutput.writeBoolean(openGraphDescriptionEnabled);
 
+		if (openGraphImageAlt == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(openGraphImageAlt);
+		}
+
 		objectOutput.writeLong(openGraphImageFileEntryId);
 
 		if (openGraphTitle == null) {
@@ -326,6 +344,7 @@ public class LayoutSEOEntryCacheModel
 	public long DDMStorageId;
 	public String openGraphDescription;
 	public boolean openGraphDescriptionEnabled;
+	public String openGraphImageAlt;
 	public long openGraphImageFileEntryId;
 	public String openGraphTitle;
 	public boolean openGraphTitleEnabled;

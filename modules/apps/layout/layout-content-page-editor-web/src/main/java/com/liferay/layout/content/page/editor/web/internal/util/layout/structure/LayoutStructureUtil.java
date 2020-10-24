@@ -14,106 +14,161 @@
 
 package com.liferay.layout.content.page.editor.web.internal.util.layout.structure;
 
+import com.liferay.fragment.processor.PortletRegistry;
+import com.liferay.layout.content.page.editor.listener.ContentPageEditorListenerTracker;
+import com.liferay.layout.content.page.editor.web.internal.util.FragmentEntryLinkUtil;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
+import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalServiceUtil;
+import com.liferay.layout.page.template.service.LayoutPageTemplateStructureRelLocalServiceUtil;
+import com.liferay.layout.page.template.service.LayoutPageTemplateStructureServiceUtil;
+import com.liferay.layout.util.structure.DeletedLayoutStructureItem;
+import com.liferay.layout.util.structure.FragmentStyledLayoutStructureItem;
+import com.liferay.layout.util.structure.LayoutStructure;
+import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONException;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
+import com.liferay.portal.kernel.util.ArrayUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.portlet.ActionRequest;
+import java.util.List;
 
 /**
  * @author Víctor Galán
  */
 public class LayoutStructureUtil {
 
-	public static JSONObject updateLayoutPageTemplateData(
-			ActionRequest actionRequest,
-			UnsafeConsumer<LayoutStructure, PortalException> unsafeConsumer)
+	public static void deleteMarkedForDeletionItems(
+			long companyId,
+			ContentPageEditorListenerTracker contentPageEditorListenerTracker,
+			long groupId, long plid, PortletRegistry portletRegistry)
 		throws PortalException {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		long segmentsExperienceId = ParamUtil.getLong(
-			actionRequest, "segmentsExperienceId",
-			SegmentsExperienceConstants.ID_DEFAULT);
-		long classNameId = ParamUtil.getLong(actionRequest, "classNameId");
-		long classPK = ParamUtil.getLong(actionRequest, "classPK");
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			LayoutPageTemplateStructureLocalServiceUtil.
-				fetchLayoutPageTemplateStructure(
-					themeDisplay.getScopeGroupId(),
-					PortalUtil.getClassNameId(Layout.class.getName()),
-					themeDisplay.getPlid(), true);
+				fetchLayoutPageTemplateStructure(groupId, plid, true);
 
-		LayoutStructure layoutStructure = _parse(
+		if (layoutPageTemplateStructure == null) {
+			return;
+		}
+
+		List<LayoutPageTemplateStructureRel> layoutPageTemplateStructureRels =
+			LayoutPageTemplateStructureRelLocalServiceUtil.
+				getLayoutPageTemplateStructureRels(
+					layoutPageTemplateStructure.
+						getLayoutPageTemplateStructureId());
+
+		for (LayoutPageTemplateStructureRel layoutPageTemplateStructureRel :
+				layoutPageTemplateStructureRels) {
+
+			LayoutStructure layoutStructure = LayoutStructure.of(
+				layoutPageTemplateStructureRel.getData());
+
+			for (DeletedLayoutStructureItem deletedLayoutStructureItem :
+					layoutStructure.getDeletedLayoutStructureItems()) {
+
+				List<LayoutStructureItem> deletedLayoutStructureItems =
+					layoutStructure.deleteLayoutStructureItem(
+						deletedLayoutStructureItem.getItemId());
+
+				for (long fragmentEntryLinkId :
+						getFragmentEntryLinkIds(deletedLayoutStructureItems)) {
+
+					FragmentEntryLinkUtil.deleteFragmentEntryLink(
+						companyId, contentPageEditorListenerTracker,
+						fragmentEntryLinkId, plid, portletRegistry);
+				}
+			}
+
+			LayoutPageTemplateStructureLocalServiceUtil.
+				updateLayoutPageTemplateStructureData(
+					groupId, plid,
+					layoutPageTemplateStructureRel.getSegmentsExperienceId(),
+					layoutStructure.toString());
+		}
+	}
+
+	public static long[] getFragmentEntryLinkIds(
+		List<LayoutStructureItem> layoutStructureItems) {
+
+		List<Long> fragmentEntryLinkIds = new ArrayList<>();
+
+		for (LayoutStructureItem layoutStructureItem : layoutStructureItems) {
+			if (!(layoutStructureItem instanceof
+					FragmentStyledLayoutStructureItem)) {
+
+				continue;
+			}
+
+			FragmentStyledLayoutStructureItem
+				fragmentStyledLayoutStructureItem =
+					(FragmentStyledLayoutStructureItem)layoutStructureItem;
+
+			if (fragmentStyledLayoutStructureItem.getFragmentEntryLinkId() <=
+					0) {
+
+				continue;
+			}
+
+			fragmentEntryLinkIds.add(
+				fragmentStyledLayoutStructureItem.getFragmentEntryLinkId());
+		}
+
+		return ArrayUtil.toLongArray(fragmentEntryLinkIds);
+	}
+
+	public static LayoutStructure getLayoutStructure(
+			long groupId, long plid, long segmentsExperienceId)
+		throws PortalException {
+
+		LayoutPageTemplateStructure layoutPageTemplateStructure =
+			LayoutPageTemplateStructureLocalServiceUtil.
+				fetchLayoutPageTemplateStructure(groupId, plid, true);
+
+		return LayoutStructure.of(
 			layoutPageTemplateStructure.getData(segmentsExperienceId));
+	}
+
+	public static boolean isPortletMarkedForDeletion(
+			long groupId, long plid, String portletId,
+			long segmentsExperienceId)
+		throws PortalException {
+
+		LayoutStructure layoutStructure = getLayoutStructure(
+			groupId, plid, segmentsExperienceId);
+
+		List<DeletedLayoutStructureItem> deletedLayoutStructureItems =
+			layoutStructure.getDeletedLayoutStructureItems();
+
+		for (DeletedLayoutStructureItem deletedLayoutStructureItem :
+				deletedLayoutStructureItems) {
+
+			if (deletedLayoutStructureItem.contains(portletId)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public static JSONObject updateLayoutPageTemplateData(
+			long groupId, long segmentsExperienceId, long plid,
+			UnsafeConsumer<LayoutStructure, PortalException> unsafeConsumer)
+		throws PortalException {
+
+		LayoutStructure layoutStructure = getLayoutStructure(
+			groupId, plid, segmentsExperienceId);
 
 		unsafeConsumer.accept(layoutStructure);
 
 		JSONObject dataJSONObject = layoutStructure.toJSONObject();
 
-		LayoutPageTemplateStructureLocalServiceUtil.
-			updateLayoutPageTemplateStructure(
-				themeDisplay.getScopeGroupId(), classNameId, classPK,
-				segmentsExperienceId, dataJSONObject.toString());
+		LayoutPageTemplateStructureServiceUtil.
+			updateLayoutPageTemplateStructureData(
+				groupId, plid, segmentsExperienceId, dataJSONObject.toString());
 
 		return dataJSONObject;
-	}
-
-	private static LayoutStructure _parse(String layoutStructure)
-		throws JSONException {
-
-		JSONObject layoutStructureJSONObject = JSONFactoryUtil.createJSONObject(
-			layoutStructure);
-
-		JSONObject rootItemsJSONObject =
-			layoutStructureJSONObject.getJSONObject("rootItems");
-
-		LayoutStructure.RootItem layoutStructureRootItem =
-			new LayoutStructure.RootItem(rootItemsJSONObject.getString("main"));
-
-		JSONObject itemsJSONObject = layoutStructureJSONObject.getJSONObject(
-			"items");
-
-		Map<String, LayoutStructure.Item> items = new HashMap<>(
-			itemsJSONObject.length());
-
-		for (String key : itemsJSONObject.keySet()) {
-			items.put(key, _toItem(itemsJSONObject.getJSONObject(key)));
-		}
-
-		return new LayoutStructure(items, layoutStructureRootItem);
-	}
-
-	private static LayoutStructure.Item _toItem(JSONObject jsonObject) {
-		JSONObject configJSONObject = jsonObject.getJSONObject("config");
-		String itemId = jsonObject.getString("itemId");
-		String parentId = jsonObject.getString("parentId");
-		String type = jsonObject.getString("type");
-
-		ArrayList<String> childrenItemIds = new ArrayList<>();
-
-		JSONUtil.addToStringCollection(
-			childrenItemIds, jsonObject.getJSONArray("children"));
-
-		return new LayoutStructure.Item(
-			childrenItemIds, configJSONObject, itemId, parentId, type);
 	}
 
 }

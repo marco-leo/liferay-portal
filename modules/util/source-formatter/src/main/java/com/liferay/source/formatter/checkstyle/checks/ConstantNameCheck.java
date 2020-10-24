@@ -15,7 +15,6 @@
 package com.liferay.source.formatter.checkstyle.checks;
 
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.source.formatter.checkstyle.util.DetailASTUtil;
 import com.liferay.source.formatter.parser.JavaTerm;
 
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
@@ -62,23 +61,27 @@ public class ConstantNameCheck extends BaseCheck {
 
 		String regex = null;
 
-		String typeName = DetailASTUtil.getTypeName(detailAST, false);
+		String typeName = getTypeName(detailAST, false);
 
 		List<String> camelCaseTypeNames = getAttributeValues(
 			_CAMEL_CASE_TYPE_NAMES_KEY);
 
-		if (camelCaseTypeNames.contains(typeName) ||
-			DetailASTUtil.isCollection(
-				detailAST.findFirstToken(TokenTypes.TYPE))) {
+		for (String camelCaseTypeName : camelCaseTypeNames) {
+			if (typeName.matches(camelCaseTypeName) ||
+				isCollection(detailAST.findFirstToken(TokenTypes.TYPE))) {
 
-			regex = _CAMEL_CASE_REGEX;
+				regex = _CAMEL_CASE_REGEX;
+			}
 		}
-		else if (_isImmutableFieldType(typeName)) {
-			regex = _UPPER_CASE_REGEX;
-		}
-		else {
-			regex = _CONSTANT_NAME_REGEX;
-			typeName = null;
+
+		if (regex == null) {
+			if (_isImmutableFieldType(typeName)) {
+				regex = _UPPER_CASE_REGEX;
+			}
+			else {
+				regex = _CONSTANT_NAME_REGEX;
+				typeName = null;
+			}
 		}
 
 		String accessLevel = null;

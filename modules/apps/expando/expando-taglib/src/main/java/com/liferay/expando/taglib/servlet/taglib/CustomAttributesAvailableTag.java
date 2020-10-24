@@ -97,14 +97,15 @@ public class CustomAttributesAvailableTag extends TagSupport {
 					continue;
 				}
 
-				UnicodeProperties properties =
+				UnicodeProperties unicodeProperties =
 					expandoBridge.getAttributeProperties(attributeName);
 
 				boolean propertyHidden = GetterUtil.getBoolean(
-					properties.get(ExpandoColumnConstants.PROPERTY_HIDDEN));
+					unicodeProperties.get(
+						ExpandoColumnConstants.PROPERTY_HIDDEN));
 				boolean propertyVisibleWithUpdatePermission =
 					GetterUtil.getBoolean(
-						properties.get(
+						unicodeProperties.get(
 							ExpandoColumnConstants.
 								PROPERTY_VISIBLE_WITH_UPDATE_PERMISSION));
 
@@ -133,8 +134,8 @@ public class CustomAttributesAvailableTag extends TagSupport {
 
 			return SKIP_BODY;
 		}
-		catch (Exception e) {
-			throw new JspException(e);
+		catch (Exception exception) {
+			throw new JspException(exception);
 		}
 		finally {
 			_className = null;

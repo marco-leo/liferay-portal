@@ -34,7 +34,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface AccountEntryUserRel
 	extends AccountEntryUserRelModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.account.model.impl.AccountEntryUserRelImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.

@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class SyncDeviceLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.sync.service.impl.SyncDeviceLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SyncDeviceLocalServiceUtil} to access the sync device local service. Add custom service methods to <code>com.liferay.sync.service.impl.SyncDeviceLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.sync.model.SyncDevice addSyncDevice(
 			long userId, String type, long buildNumber, String hostname,
@@ -55,6 +49,10 @@ public class SyncDeviceLocalServiceUtil {
 	/**
 	 * Adds the sync device to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SyncDeviceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param syncDevice the sync device
 	 * @return the sync device that was added
 	 */
@@ -62,6 +60,16 @@ public class SyncDeviceLocalServiceUtil {
 		com.liferay.sync.model.SyncDevice syncDevice) {
 
 		return getService().addSyncDevice(syncDevice);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -90,6 +98,10 @@ public class SyncDeviceLocalServiceUtil {
 	/**
 	 * Deletes the sync device with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SyncDeviceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param syncDeviceId the primary key of the sync device
 	 * @return the sync device that was removed
 	 * @throws PortalException if a sync device with the primary key could not be found
@@ -104,6 +116,10 @@ public class SyncDeviceLocalServiceUtil {
 	/**
 	 * Deletes the sync device from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SyncDeviceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param syncDevice the sync device
 	 * @return the sync device that was removed
 	 */
@@ -111,6 +127,12 @@ public class SyncDeviceLocalServiceUtil {
 		com.liferay.sync.model.SyncDevice syncDevice) {
 
 		return getService().deleteSyncDevice(syncDevice);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -247,6 +269,9 @@ public class SyncDeviceLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -304,7 +329,7 @@ public class SyncDeviceLocalServiceUtil {
 			getSyncDevices(
 				long userId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					orderByComparator)
+					<com.liferay.sync.model.SyncDevice> orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().getSyncDevices(
@@ -346,6 +371,10 @@ public class SyncDeviceLocalServiceUtil {
 
 	/**
 	 * Updates the sync device in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SyncDeviceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param syncDevice the sync device
 	 * @return the sync device that was updated

@@ -33,7 +33,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface NestedSetsTreeEntryModel
 	extends BaseModel<NestedSetsTreeEntry> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a nested sets tree entry model instance should use the {@link NestedSetsTreeEntry} interface instead.

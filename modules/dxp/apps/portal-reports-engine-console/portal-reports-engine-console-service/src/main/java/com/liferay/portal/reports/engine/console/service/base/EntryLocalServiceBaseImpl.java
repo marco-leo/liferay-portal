@@ -14,6 +14,7 @@
 
 package com.liferay.portal.reports.engine.console.service.base;
 
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -33,6 +34,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -68,7 +70,7 @@ public abstract class EntryLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements AopService, EntryLocalService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>EntryLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.reports.engine.console.service.EntryLocalServiceUtil</code>.
@@ -76,6 +78,10 @@ public abstract class EntryLocalServiceBaseImpl
 
 	/**
 	 * Adds the entry to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect EntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param entry the entry
 	 * @return the entry that was added
@@ -103,6 +109,10 @@ public abstract class EntryLocalServiceBaseImpl
 	/**
 	 * Deletes the entry with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect EntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param entryId the primary key of the entry
 	 * @return the entry that was removed
 	 * @throws PortalException if a entry with the primary key could not be found
@@ -116,6 +126,10 @@ public abstract class EntryLocalServiceBaseImpl
 	/**
 	 * Deletes the entry from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect EntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param entry the entry
 	 * @return the entry that was removed
 	 * @throws PortalException
@@ -124,6 +138,11 @@ public abstract class EntryLocalServiceBaseImpl
 	@Override
 	public Entry deleteEntry(Entry entry) throws PortalException {
 		return entryPersistence.remove(entry);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return entryPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -272,12 +291,30 @@ public abstract class EntryLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return entryPersistence.create(((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
 		return entryLocalService.deleteEntry((Entry)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<Entry> getBasePersistence() {
+		return entryPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -313,6 +350,10 @@ public abstract class EntryLocalServiceBaseImpl
 
 	/**
 	 * Updates the entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect EntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param entry the entry
 	 * @return the entry that was updated
@@ -373,8 +414,8 @@ public abstract class EntryLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

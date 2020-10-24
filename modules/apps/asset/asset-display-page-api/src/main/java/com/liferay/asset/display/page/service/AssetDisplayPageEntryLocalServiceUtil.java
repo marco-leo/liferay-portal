@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class AssetDisplayPageEntryLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.asset.display.page.service.impl.AssetDisplayPageEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class AssetDisplayPageEntryLocalServiceUtil {
 
 	/**
 	 * Adds the asset display page entry to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetDisplayPageEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetDisplayPageEntry the asset display page entry
 	 * @return the asset display page entry that was added
@@ -90,7 +94,21 @@ public class AssetDisplayPageEntryLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the asset display page entry from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetDisplayPageEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetDisplayPageEntry the asset display page entry
 	 * @return the asset display page entry that was removed
@@ -105,6 +123,10 @@ public class AssetDisplayPageEntryLocalServiceUtil {
 
 	/**
 	 * Deletes the asset display page entry with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetDisplayPageEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetDisplayPageEntryId the primary key of the asset display page entry
 	 * @return the asset display page entry that was removed
@@ -134,6 +156,12 @@ public class AssetDisplayPageEntryLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -283,6 +311,19 @@ public class AssetDisplayPageEntryLocalServiceUtil {
 				layoutPageTemplateEntryId);
 	}
 
+	public static java.util.List
+		<com.liferay.asset.display.page.model.AssetDisplayPageEntry>
+			getAssetDisplayPageEntriesByLayoutPageTemplateEntryId(
+				long layoutPageTemplateEntryId, int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.asset.display.page.model.AssetDisplayPageEntry>
+						orderByComparator) {
+
+		return getService().
+			getAssetDisplayPageEntriesByLayoutPageTemplateEntryId(
+				layoutPageTemplateEntryId, start, end, orderByComparator);
+	}
+
 	/**
 	 * Returns all the asset display page entries matching the UUID and company.
 	 *
@@ -393,6 +434,9 @@ public class AssetDisplayPageEntryLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -402,6 +446,10 @@ public class AssetDisplayPageEntryLocalServiceUtil {
 
 	/**
 	 * Updates the asset display page entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetDisplayPageEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetDisplayPageEntry the asset display page entry
 	 * @return the asset display page entry that was updated

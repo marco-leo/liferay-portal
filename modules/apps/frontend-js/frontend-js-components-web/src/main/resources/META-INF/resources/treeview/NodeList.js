@@ -13,12 +13,9 @@
  */
 
 import PropTypes from 'prop-types';
-import React, {useContext} from 'react';
+import React from 'react';
 
 import NodeListItem from './NodeListItem';
-import TreeviewContext from './TreeviewContext';
-import useFocus from './useFocus';
-import useKeyboardNavigation from './useKeyboardNavigation';
 
 export default function NodeList({
 	NodeComponent,
@@ -26,18 +23,14 @@ export default function NodeList({
 	onBlur,
 	onFocus,
 	role = 'group',
-	tabIndex = -1
+	tabIndex = -1,
 }) {
-	const {dispatch} = useContext(TreeviewContext);
-
 	const rootNodeId = nodes[0] && nodes[0].id;
 
-	const focusable = useFocus(rootNodeId);
-
-	const handleKeyDown = useKeyboardNavigation(rootNodeId);
-
 	if (!rootNodeId) {
+
 		// All nodes have been filtered.
+
 		return null;
 	}
 
@@ -49,24 +42,19 @@ export default function NodeList({
 					onBlur();
 				}
 			}}
-			onDoubleClick={() => {
-				dispatch({nodeId: rootNodeId, type: 'TOGGLE_EXPANDED'});
-			}}
-			onFocus={event => {
+			onFocus={(event) => {
 				if (onFocus) {
 					onFocus(event);
 				}
 			}}
-			onKeyDown={handleKeyDown}
-			ref={focusable}
 			role={role}
 			tabIndex={tabIndex}
 		>
-			{nodes.map(node => (
+			{nodes.map((node) => (
 				<NodeListItem
+					NodeComponent={NodeComponent}
 					key={node.id}
 					node={node}
-					NodeComponent={NodeComponent}
 				/>
 			))}
 		</div>
@@ -79,10 +67,10 @@ NodeList.propTypes = {
 		PropTypes.shape({
 			children: PropTypes.array,
 			id: PropTypes.string.isRequired,
-			name: PropTypes.string.isRequired
+			name: PropTypes.string.isRequired,
 		})
 	).isRequired,
 	onBlur: PropTypes.func,
 	onFocus: PropTypes.func,
-	tabIndex: PropTypes.number
+	tabIndex: PropTypes.number,
 };

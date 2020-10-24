@@ -76,10 +76,10 @@ public class LiferaySecureUberspector extends SecureUberspector {
 				_restrictedClasses.add(
 					aggregateClassLoader.loadClass(restrictedClassName));
 			}
-			catch (ClassNotFoundException cnfe) {
+			catch (ClassNotFoundException classNotFoundException) {
 				super.log.error(
 					"Unable to find restricted class " + restrictedClassName,
-					cnfe);
+					classNotFoundException);
 			}
 		}
 
@@ -195,7 +195,7 @@ public class LiferaySecureUberspector extends SecureUberspector {
 		}
 	}
 
-	private void _checkMethodIsRestricted(Class clazz, String methodName) {
+	private void _checkMethodIsRestricted(Class<?> clazz, String methodName) {
 		String className = clazz.getName();
 
 		if (_restrictedMethodNames.containsKey(className)) {

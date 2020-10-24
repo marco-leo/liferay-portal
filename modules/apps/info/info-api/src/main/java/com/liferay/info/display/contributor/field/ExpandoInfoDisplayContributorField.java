@@ -42,7 +42,7 @@ import java.util.Map;
  * @author Pavel Savinov
  */
 public class ExpandoInfoDisplayContributorField
-	implements InfoDisplayContributorField {
+	implements InfoDisplayContributorField<Object> {
 
 	public ExpandoInfoDisplayContributorField(
 		String attributeName, ExpandoBridge expandoBridge) {
@@ -121,8 +121,8 @@ public class ExpandoInfoDisplayContributorField
 
 				attributeValue = sb.toString();
 			}
-			catch (JSONException jsone) {
-				_log.error("Unable to parse geolocation JSON", jsone);
+			catch (JSONException jsonException) {
+				_log.error("Unable to parse geolocation JSON", jsonException);
 			}
 		}
 		else if (attributeType == ExpandoColumnConstants.INTEGER_ARRAY) {

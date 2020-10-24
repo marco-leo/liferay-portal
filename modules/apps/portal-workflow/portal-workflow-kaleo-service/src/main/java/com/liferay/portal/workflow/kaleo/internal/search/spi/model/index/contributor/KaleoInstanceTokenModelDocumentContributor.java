@@ -34,6 +34,7 @@ import com.liferay.portal.search.spi.model.index.contributor.ModelDocumentContri
 import com.liferay.portal.workflow.kaleo.internal.search.KaleoInstanceTokenField;
 import com.liferay.portal.workflow.kaleo.model.KaleoInstance;
 import com.liferay.portal.workflow.kaleo.model.KaleoInstanceToken;
+import com.liferay.portal.workflow.kaleo.service.KaleoInstanceLocalService;
 
 import java.util.Locale;
 
@@ -83,15 +84,17 @@ public class KaleoInstanceTokenModelDocumentContributor
 			kaleoInstanceToken.getParentKaleoInstanceTokenId());
 
 		try {
-			KaleoInstance kaleoInstance = kaleoInstanceToken.getKaleoInstance();
+			KaleoInstance kaleoInstance =
+				kaleoInstanceLocalService.getKaleoInstance(
+					kaleoInstanceToken.getKaleoInstanceId());
 
 			document.addKeyword(
 				KaleoInstanceTokenField.KALEO_DEFINITION_NAME,
 				kaleoInstance.getKaleoDefinitionName());
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(pe, pe);
+				_log.warn(portalException, portalException);
 			}
 		}
 
@@ -140,9 +143,9 @@ public class KaleoInstanceTokenModelDocumentContributor
 					assetRenderer.getClassName(), assetRenderer.getClassPK());
 			}
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(portalException, portalException);
 			}
 		}
 
@@ -187,6 +190,9 @@ public class KaleoInstanceTokenModelDocumentContributor
 
 	@Reference
 	protected ClassNameLocalService classNameLocalService;
+
+	@Reference
+	protected KaleoInstanceLocalService kaleoInstanceLocalService;
 
 	@Reference
 	protected Portal portal;

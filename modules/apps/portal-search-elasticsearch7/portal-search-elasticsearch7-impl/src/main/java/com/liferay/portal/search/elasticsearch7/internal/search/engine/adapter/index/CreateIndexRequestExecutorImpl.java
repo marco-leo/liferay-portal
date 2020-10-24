@@ -18,7 +18,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.search.elasticsearch7.internal.connection.ElasticsearchClientResolver;
 import com.liferay.portal.search.elasticsearch7.internal.util.ClassLoaderUtil;
-import com.liferay.portal.search.elasticsearch7.internal.util.LogUtil;
+import com.liferay.portal.search.elasticsearch7.internal.util.SearchLogHelperUtil;
 import com.liferay.portal.search.engine.adapter.index.CreateIndexRequest;
 import com.liferay.portal.search.engine.adapter.index.CreateIndexResponse;
 
@@ -47,9 +47,10 @@ public class CreateIndexRequestExecutorImpl
 
 		org.elasticsearch.action.admin.indices.create.CreateIndexResponse
 			elasticsearchCreateIndexResponse = getCreateIndexResponse(
-				elasticsearchCreateIndexRequest);
+				elasticsearchCreateIndexRequest, createIndexRequest);
 
-		LogUtil.logActionResponse(_log, elasticsearchCreateIndexResponse);
+		SearchLogHelperUtil.logActionResponse(
+			_log, elasticsearchCreateIndexResponse);
 
 		return new CreateIndexResponse(
 			elasticsearchCreateIndexResponse.isAcknowledged(),
@@ -64,13 +65,11 @@ public class CreateIndexRequestExecutorImpl
 				new org.elasticsearch.action.admin.indices.create.
 					CreateIndexRequest(createIndexRequest.getIndexName());
 
-		Class<? extends CreateIndexRequestExecutorImpl> clazz = getClass();
-
 		if (createIndexRequest.getSource() != null) {
 			ClassLoaderUtil.getWithContextClassLoader(
 				() -> elasticsearchCreateIndexRequest.source(
 					createIndexRequest.getSource(), XContentType.JSON),
-				clazz);
+				getClass());
 		}
 
 		return elasticsearchCreateIndexRequest;
@@ -79,10 +78,13 @@ public class CreateIndexRequestExecutorImpl
 	protected org.elasticsearch.action.admin.indices.create.CreateIndexResponse
 		getCreateIndexResponse(
 			org.elasticsearch.action.admin.indices.create.CreateIndexRequest
-				elasticsearchCreateIndexRequest) {
+				elasticsearchCreateIndexRequest,
+			CreateIndexRequest createIndexRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				createIndexRequest.getConnectionId(),
+				createIndexRequest.isPreferLocalCluster());
 
 		IndicesClient indicesClient = restHighLevelClient.indices();
 
@@ -90,8 +92,8 @@ public class CreateIndexRequestExecutorImpl
 			return indicesClient.create(
 				elasticsearchCreateIndexRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

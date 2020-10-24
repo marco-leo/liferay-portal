@@ -58,8 +58,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see MBCategoryServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class MBCategoryServiceSoap {
 
 	public static com.liferay.message.boards.model.MBCategorySoap addCategory(
@@ -76,10 +78,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -108,10 +110,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -123,10 +125,10 @@ public class MBCategoryServiceSoap {
 			MBCategoryServiceUtil.deleteCategory(
 				categoryId, includeTrashedEntries);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -136,10 +138,10 @@ public class MBCategoryServiceSoap {
 		try {
 			MBCategoryServiceUtil.deleteCategory(groupId, categoryId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -154,10 +156,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -173,10 +175,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -193,10 +195,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -214,10 +216,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -236,10 +238,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -259,10 +261,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -279,10 +281,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -300,10 +302,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -322,10 +324,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -340,10 +342,10 @@ public class MBCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -358,10 +360,10 @@ public class MBCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -378,10 +380,10 @@ public class MBCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -394,10 +396,10 @@ public class MBCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -411,10 +413,10 @@ public class MBCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -429,10 +431,10 @@ public class MBCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -448,10 +450,10 @@ public class MBCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -464,10 +466,10 @@ public class MBCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -481,10 +483,10 @@ public class MBCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -499,10 +501,10 @@ public class MBCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -517,10 +519,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -533,10 +535,10 @@ public class MBCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -551,10 +553,10 @@ public class MBCategoryServiceSoap {
 
 			return returnValue.toArray(new Long[returnValue.size()]);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -571,10 +573,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -588,10 +590,10 @@ public class MBCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -608,10 +610,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -627,10 +629,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -645,10 +647,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -658,10 +660,10 @@ public class MBCategoryServiceSoap {
 		try {
 			MBCategoryServiceUtil.restoreCategoryFromTrash(categoryId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -671,10 +673,10 @@ public class MBCategoryServiceSoap {
 		try {
 			MBCategoryServiceUtil.subscribeCategory(groupId, categoryId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -684,10 +686,10 @@ public class MBCategoryServiceSoap {
 		try {
 			MBCategoryServiceUtil.unsubscribeCategory(groupId, categoryId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -719,10 +721,10 @@ public class MBCategoryServiceSoap {
 			return com.liferay.message.boards.model.MBCategorySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

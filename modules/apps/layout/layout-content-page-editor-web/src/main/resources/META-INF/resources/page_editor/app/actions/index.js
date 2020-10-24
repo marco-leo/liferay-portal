@@ -12,21 +12,20 @@
  * details.
  */
 
-/**
- * Action creators.
- */
-
-export {default as discard} from './discard';
+export {default as addFragmentComposition} from './addFragmentComposition';
+export {default as addFragmentEntryLinks} from './addFragmentEntryLinks';
+export {default as addFragmentEntryLinkComment} from './addFragmentEntryLinkComment';
+export {default as addMappedInfoItem} from './addMappedInfoItem';
+export {default as deleteFragmentEntryLinkComment} from './deleteFragmentEntryLinkComment';
+export {default as editFragmentEntryLinkComment} from './editFragmentEntryLinkComment';
 export {default as loadReducer} from './loadReducer';
-export {default as moveItem} from './moveItem';
-export {default as updateLanguageId} from './updateLanguageId';
-export {default as publish} from './publish';
-export {default as removeItem} from './removeItem';
+export {default as switchSidebarPanel} from './switchSidebarPanel';
+export {default as switchViewportSize} from './switchViewportSize';
+export {default as toggleShowResolvedComments} from './toggleShowResolvedComments';
 export {default as unloadReducer} from './unloadReducer';
-export {default as updateItemConfig} from './updateItemConfig';
-
-/**
- * Action types.
- */
-
-export * as TYPES from './types';
+export {default as updateColSize} from './updateColSize';
+export {default as updateEditableValues} from './updateEditableValues';
+export {default as updateFragmentEntryLinkContent} from './updateFragmentEntryLinkContent';
+export {default as updateLanguageId} from './updateLanguageId';
+export {default as updateLayoutData} from './updateLayoutData';
+export {default as updateNetwork} from './updateNetwork';

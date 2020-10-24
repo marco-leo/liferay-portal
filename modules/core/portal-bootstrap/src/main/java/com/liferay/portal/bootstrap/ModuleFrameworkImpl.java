@@ -59,9 +59,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -86,10 +84,12 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -179,8 +179,8 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 
 			return null;
 		}
-		catch (IOException ioe) {
-			throw new PortalException(ioe);
+		catch (IOException ioException) {
+			throw new PortalException(ioException);
 		}
 	}
 
@@ -366,10 +366,10 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		try {
 			bundle.start(options);
 		}
-		catch (BundleException be) {
-			_log.error(be, be);
+		catch (BundleException bundleException) {
+			_log.error(bundleException, bundleException);
 
-			throw new PortalException(be);
+			throw new PortalException(bundleException);
 		}
 	}
 
@@ -453,10 +453,10 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		try {
 			bundle.stop(options);
 		}
-		catch (BundleException be) {
-			_log.error(be, be);
+		catch (BundleException bundleException) {
+			_log.error(bundleException, bundleException);
 
-			throw new PortalException(be);
+			throw new PortalException(bundleException);
 		}
 	}
 
@@ -543,10 +543,10 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		try {
 			bundle.uninstall();
 		}
-		catch (BundleException be) {
-			_log.error(be, be);
+		catch (BundleException bundleException) {
+			_log.error(bundleException, bundleException);
 
-			throw new PortalException(be);
+			throw new PortalException(bundleException);
 		}
 	}
 
@@ -591,41 +591,11 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		try {
 			bundle.update(inputStream);
 		}
-		catch (BundleException be) {
-			_log.error(be, be);
+		catch (BundleException bundleException) {
+			_log.error(bundleException, bundleException);
 
-			throw new PortalException(be);
+			throw new PortalException(bundleException);
 		}
-	}
-
-	private static URL[] _getClassPathURLs() throws IOException {
-		File coreDir = new File(PropsValues.MODULE_FRAMEWORK_BASE_DIR, "core");
-
-		File[] files = coreDir.listFiles();
-
-		if (files == null) {
-			throw new IllegalStateException(
-				"Missing " + coreDir.getCanonicalPath());
-		}
-
-		URL[] urls = new URL[files.length];
-
-		for (int i = 0; i < urls.length; i++) {
-			URI uri = files[i].toURI();
-
-			urls[i] = uri.toURL();
-		}
-
-		return urls;
-	}
-
-	private static String _getLPKGLocation(File lpkgFile) {
-		URI uri = lpkgFile.toURI();
-
-		String uriString = uri.toString();
-
-		return StringUtil.replace(
-			uriString, CharPool.BACK_SLASH, CharPool.FORWARD_SLASH);
 	}
 
 	private Bundle _addBundle(
@@ -662,8 +632,8 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			try {
 				unsyncBufferedInputStream.reset();
 			}
-			catch (IOException ioe) {
-				throw new PortalException(ioe);
+			catch (IOException ioException) {
+				throw new PortalException(ioException);
 			}
 
 			if (bundle != null) {
@@ -676,15 +646,15 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		try {
 			return bundleContext.installBundle(location, inputStream);
 		}
-		catch (BundleException be) {
-			_log.error(be, be);
+		catch (BundleException bundleException) {
+			_log.error(bundleException, bundleException);
 
-			throw new PortalException(be);
+			throw new PortalException(bundleException);
 		}
 	}
 
 	private Map<String, String> _buildFrameworkProperties(Class<?> clazz)
-		throws URISyntaxException {
+		throws Exception {
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Building OSGi framework properties");
@@ -703,20 +673,19 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		// Fileinstall. See LPS-56385.
 
 		properties.put(
-			FrameworkPropsKeys.FELIX_FILEINSTALL_DIR,
-			_getFelixFileInstallDir());
+			FrameworkPropsKeys.FILE_INSTALL_DIR, _getFileInstallDir());
 		properties.put(
-			FrameworkPropsKeys.FELIX_FILEINSTALL_POLL,
+			FrameworkPropsKeys.FILE_INSTALL_POLL,
 			String.valueOf(PropsValues.MODULE_FRAMEWORK_AUTO_DEPLOY_INTERVAL));
 		properties.put(
-			FrameworkPropsKeys.FELIX_FILEINSTALL_START_LEVEL,
+			FrameworkPropsKeys.FILE_INSTALL_START_LEVEL,
 			String.valueOf(
 				PropsValues.MODULE_FRAMEWORK_DYNAMIC_INSTALL_START_LEVEL));
 		properties.put(
-			FrameworkPropsKeys.FELIX_FILEINSTALL_TMPDIR,
+			FrameworkPropsKeys.FILE_INSTALL_TMPDIR,
 			SystemProperties.get(SystemProperties.TMP_DIR));
 		properties.put(
-			FrameworkPropsKeys.FELIX_FILEINSTALL_WEB_START_LEVEL,
+			FrameworkPropsKeys.FILE_INSTALL_WEB_START_LEVEL,
 			String.valueOf(PropsValues.MODULE_FRAMEWORK_WEB_START_LEVEL));
 
 		// Framework
@@ -848,14 +817,14 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		}
 	}
 
-	private void _cleanOSGiStateFolder() throws IOException {
+	private void _cleanOSGiStateFolder() throws Exception {
 		Files.walkFileTree(
 			Paths.get(PropsValues.MODULE_FRAMEWORK_STATE_DIR),
 			new SimpleFileVisitor<Path>() {
 
 				@Override
 				public FileVisitResult postVisitDirectory(
-						Path dirPath, IOException ioe)
+						Path dirPath, IOException ioException)
 					throws IOException {
 
 					String name = dirPath.toString();
@@ -924,7 +893,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 
 	private Set<Bundle> _deployStaticBundlesFromFile(
 			File file, Set<String> overrideStaticFileNames)
-		throws IOException {
+		throws Exception {
 
 		Set<Bundle> bundles = new HashSet<>();
 
@@ -1024,6 +993,27 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		return string.substring(beginIndex, endIndex);
 	}
 
+	private URL[] _getClassPathURLs() throws Exception {
+		File coreDir = new File(PropsValues.MODULE_FRAMEWORK_BASE_DIR, "core");
+
+		File[] files = coreDir.listFiles();
+
+		if (files == null) {
+			throw new IllegalStateException(
+				"Missing " + coreDir.getCanonicalPath());
+		}
+
+		URL[] urls = new URL[files.length];
+
+		for (int i = 0; i < urls.length; i++) {
+			URI uri = files[i].toURI();
+
+			urls[i] = uri.toURL();
+		}
+
+		return urls;
+	}
+
 	private Attributes _getExtraManifestAttributes() {
 		try (InputStream inputStream =
 				ModuleFrameworkImpl.class.getResourceAsStream(
@@ -1033,14 +1023,40 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 
 			return manifest.getMainAttributes();
 		}
-		catch (IOException ioe) {
-			return ReflectionUtil.throwException(ioe);
+		catch (IOException ioException) {
+			return ReflectionUtil.throwException(ioException);
 		}
 	}
 
-	private String _getFelixFileInstallDir() {
+	private String _getFileInstallDir() {
 		return PropsValues.MODULE_FRAMEWORK_PORTAL_DIR + StringPool.COMMA +
 			StringUtil.merge(PropsValues.MODULE_FRAMEWORK_AUTO_DEPLOY_DIRS);
+	}
+
+	private String _getFragmentHost(Bundle bundle) {
+		Dictionary<String, String> dictionary = bundle.getHeaders(
+			StringPool.BLANK);
+
+		String fragmentHost = dictionary.get(Constants.FRAGMENT_HOST);
+
+		if (fragmentHost == null) {
+			return null;
+		}
+
+		int index = fragmentHost.indexOf(CharPool.SEMICOLON);
+
+		if (index != -1) {
+			fragmentHost = fragmentHost.substring(0, index);
+		}
+
+		return fragmentHost;
+	}
+
+	private String _getLPKGLocation(File lpkgFile) {
+		String uriString = String.valueOf(lpkgFile.toURI());
+
+		return StringUtil.replace(
+			uriString, CharPool.BACK_SLASH, CharPool.FORWARD_SLASH);
 	}
 
 	private Dictionary<String, Object> _getProperties(
@@ -1113,8 +1129,8 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 
 			return null;
 		}
-		catch (Exception e) {
-			throw new PortalException(e);
+		catch (Exception exception) {
+			throw new PortalException(exception);
 		}
 	}
 
@@ -1149,7 +1165,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			_log.debug("Initializing required startup directories");
 		}
 
-		String[] dirNames = StringUtil.split(_getFelixFileInstallDir());
+		String[] dirNames = StringUtil.split(_getFileInstallDir());
 
 		for (String dirName : dirNames) {
 			FileUtil.mkdirs(dirName);
@@ -1161,12 +1177,15 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 	}
 
 	private void _installBundlesFromDir(
-			String dirPath, Map<String, Long> checksums)
-		throws IOException {
+			String dirPath, Map<String, Long> checksums,
+			Set<String> fragmentHosts)
+		throws Exception {
 
 		BundleContext bundleContext = _framework.getBundleContext();
 
 		File dir = new File(dirPath);
+
+		dir = dir.getCanonicalFile();
 
 		for (File file :
 				dir.listFiles((folder, name) -> name.endsWith(".jar"))) {
@@ -1215,12 +1234,16 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 						PropsValues.MODULE_FRAMEWORK_WEB_START_LEVEL);
 				}
 
-				if (!_isFragmentBundle(bundle)) {
+				if (_isFragmentBundle(bundle)) {
+					fragmentHosts.add(_getFragmentHost(bundle));
+				}
+				else {
 					bundle.start();
 				}
 			}
-			catch (BundleException be) {
-				_log.error("Unable to install bundle at " + location, be);
+			catch (BundleException bundleException) {
+				_log.error(
+					"Unable to install bundle at " + location, bundleException);
 			}
 		}
 	}
@@ -1228,42 +1251,77 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 	private void _installConfigs(ClassLoader classLoader) throws Exception {
 		BundleContext bundleContext = _framework.getBundleContext();
 
-		Class<?> configInstallerClass = classLoader.loadClass(
-			"org.apache.felix.fileinstall.internal.ConfigInstaller");
-
-		Method method = configInstallerClass.getDeclaredMethod(
-			"install", File.class);
+		Class<?> configurationFileInstallerClass = classLoader.loadClass(
+			"com.liferay.portal.file.install.internal.configuration." +
+				"ConfigurationFileInstaller");
 
 		Constructor<?> constructor =
-			configInstallerClass.getDeclaredConstructor(
-				BundleContext.class,
+			configurationFileInstallerClass.getDeclaredConstructor(
 				classLoader.loadClass("org.osgi.service.cm.ConfigurationAdmin"),
-				classLoader.loadClass(
-					"org.apache.felix.fileinstall.internal.FileInstall"));
+				String.class);
 
 		constructor.setAccessible(true);
 
-		Object configInstaller = constructor.newInstance(
-			bundleContext,
+		Method canTransformURLMethod =
+			configurationFileInstallerClass.getDeclaredMethod(
+				"canTransformURL", File.class);
+		Method transformURLMethod =
+			configurationFileInstallerClass.getDeclaredMethod(
+				"transformURL", File.class);
+
+		String encoding = bundleContext.getProperty(
+			"file.install.configEncoding");
+
+		if (encoding == null) {
+			encoding = StringPool.UTF8;
+		}
+
+		Object configurationFileInstaller = constructor.newInstance(
 			bundleContext.getService(
 				bundleContext.getServiceReference(
 					"org.osgi.service.cm.ConfigurationAdmin")),
-			null);
+			encoding);
 
 		File dir = new File(PropsValues.MODULE_FRAMEWORK_CONFIGS_DIR);
 
-		for (File file : dir.listFiles()) {
-			method.invoke(configInstaller, file);
+		dir = dir.getCanonicalFile();
+
+		for (File file : _listConfigs(dir)) {
+			if ((boolean)canTransformURLMethod.invoke(
+					configurationFileInstaller, file)) {
+
+				transformURLMethod.invoke(configurationFileInstaller, file);
+			}
 		}
 	}
 
-	private Map<String, Long> _installDynamicBundles() throws IOException {
+	private Map<String, Long> _installDynamicBundles() throws Exception {
 		Map<String, Long> checksums = new HashMap<>();
 
+		Set<String> fragmentHosts = new HashSet<>();
+
 		_installBundlesFromDir(
-			PropsValues.MODULE_FRAMEWORK_PORTAL_DIR, checksums);
+			PropsValues.MODULE_FRAMEWORK_PORTAL_DIR, checksums, fragmentHosts);
 		_installBundlesFromDir(
-			PropsValues.MODULE_FRAMEWORK_MODULES_DIR, checksums);
+			PropsValues.MODULE_FRAMEWORK_MODULES_DIR, checksums, fragmentHosts);
+
+		if (!fragmentHosts.isEmpty()) {
+			List<Bundle> refreshBundles = new ArrayList<>();
+
+			BundleContext bundleContext = _framework.getBundleContext();
+
+			for (Bundle bundle : bundleContext.getBundles()) {
+				if (fragmentHosts.remove(bundle.getSymbolicName())) {
+					refreshBundles.add(bundle);
+
+					if (fragmentHosts.isEmpty()) {
+						break;
+					}
+				}
+			}
+
+			_refreshBundles(refreshBundles);
+		}
 
 		return checksums;
 	}
@@ -1301,8 +1359,8 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 
 			return bundle;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
 			return null;
 		}
@@ -1336,6 +1394,58 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		return true;
 	}
 
+	private List<File> _listConfigs(File dir) {
+		if (!dir.isDirectory()) {
+			return Collections.<File>emptyList();
+		}
+
+		BundleContext bundleContext = _framework.getBundleContext();
+
+		String subdirMode = bundleContext.getProperty(
+			"file.install.subdir.mode");
+
+		if (Objects.equals(subdirMode, "recurse")) {
+			Queue<File> queue = new LinkedList<>();
+
+			queue.add(dir);
+
+			List<File> files = new ArrayList<>();
+
+			File curDir = null;
+
+			while ((curDir = queue.poll()) != null) {
+				for (File file : curDir.listFiles()) {
+					if (file.isDirectory()) {
+						queue.add(file);
+					}
+					else {
+						String name = file.getName();
+
+						if (name.endsWith(".cfg") || name.endsWith(".config")) {
+							files.add(file);
+						}
+					}
+				}
+			}
+
+			return files;
+		}
+
+		return Arrays.asList(
+			dir.listFiles(
+				file -> {
+					if (file.isFile()) {
+						String name = file.getName();
+
+						if (name.endsWith(".cfg") || name.endsWith(".config")) {
+							return true;
+						}
+					}
+
+					return false;
+				}));
+	}
+
 	private String _parseBundleSymbolicName(Attributes attributes) {
 		String bundleSymbolicName = attributes.getValue(
 			Constants.BUNDLE_SYMBOLICNAME);
@@ -1367,8 +1477,8 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 				throw frameworkEvent.getThrowable();
 			}
 		}
-		catch (Throwable t) {
-			ReflectionUtil.throwException(t);
+		catch (Throwable throwable) {
+			ReflectionUtil.throwException(throwable);
 		}
 	}
 
@@ -1394,10 +1504,10 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 				try {
 					bean = configurableApplicationContext.getBean(beanName);
 				}
-				catch (BeanIsAbstractException biae) {
+				catch (BeanIsAbstractException beanIsAbstractException) {
 				}
-				catch (Exception e) {
-					_log.error(e, e);
+				catch (Exception exception) {
+					_log.error(exception, exception);
 				}
 
 				if (bean != null) {
@@ -1538,14 +1648,14 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		for (String staticJarFileName :
 				PropsValues.MODULE_FRAMEWORK_STATIC_JARS) {
 
-			File staticJarFile = new File(
+			Path staticJarPath = Paths.get(
 				PropsValues.LIFERAY_LIB_PORTAL_DIR, staticJarFileName);
 
-			if (staticJarFile.exists()) {
-				jarPaths.add(staticJarFile.toPath());
+			if (Files.exists(staticJarPath)) {
+				jarPaths.add(staticJarPath);
 			}
 			else {
-				_log.error("Missing " + staticJarFile);
+				_log.error("Missing " + staticJarPath);
 			}
 		}
 
@@ -1594,9 +1704,9 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			try (InputStream inputStream = Files.newInputStream(jarPath)) {
 				File file = jarPath.toFile();
 
-				URI uri = file.toURI();
+				file = file.getCanonicalFile();
 
-				String uriString = uri.toString();
+				String uriString = String.valueOf(file.toURI());
 
 				String location = uriString.concat("?protocol=jar&static=true");
 
@@ -1618,6 +1728,8 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 				StaticLPKGResolver.getStaticLPKGFileNames()) {
 
 			File file = new File(deployDir + StringPool.SLASH + staticFileName);
+
+			file = file.getCanonicalFile();
 
 			if (file.exists()) {
 				bundles.addAll(
@@ -1664,7 +1776,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			if (!_isFragmentBundle(bundle)) {
 				if (Objects.equals(
 						bundle.getSymbolicName(),
-						"org.apache.felix.fileinstall")) {
+						"com.liferay.portal.file.install.impl")) {
 
 					fileInstallBundle = bundle;
 				}
@@ -1731,11 +1843,11 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 				try {
 					future.get();
 				}
-				catch (ExecutionException ee) {
-					throwableCollector.collect(ee.getCause());
+				catch (ExecutionException executionException) {
+					throwableCollector.collect(executionException.getCause());
 				}
-				catch (InterruptedException ie) {
-					throwableCollector.collect(ie);
+				catch (InterruptedException interruptedException) {
+					throwableCollector.collect(interruptedException);
 				}
 			}
 		}
@@ -1796,7 +1908,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 	}
 
 	private void _startConfigurationBundles(Collection<Bundle> bundles)
-		throws BundleException {
+		throws Exception {
 
 		Iterator<Bundle> iterator = bundles.iterator();
 
@@ -1880,9 +1992,10 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 						dynamicBundleChecksums,
 						currentBundle.getBundleContext());
 				}
-				catch (Exception e) {
+				catch (Exception exception) {
 					_log.error(
-						"Unable to register dynamic bundle checksums", e);
+						"Unable to register dynamic bundle checksums",
+						exception);
 				}
 			};
 
@@ -1919,7 +2032,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			try {
 				serviceRegistration.unregister();
 			}
-			catch (IllegalStateException ise) {
+			catch (IllegalStateException illegalStateException) {
 				if (_log.isDebugEnabled()) {
 					_log.debug(
 						"Service registration " + serviceRegistration +
@@ -1930,9 +2043,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 	}
 
 	@SuppressWarnings("deprecation")
-	private void _validateModuleFrameworkBaseDirForEquinox()
-		throws MalformedURLException {
-
+	private void _validateModuleFrameworkBaseDirForEquinox() throws Exception {
 		File baseDir = new File(PropsValues.MODULE_FRAMEWORK_BASE_DIR);
 
 		baseDir = baseDir.getAbsoluteFile();

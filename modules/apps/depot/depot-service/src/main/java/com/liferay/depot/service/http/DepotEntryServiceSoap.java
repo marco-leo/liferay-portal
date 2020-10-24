@@ -14,9 +14,19 @@
 
 package com.liferay.depot.service.http;
 
+import com.liferay.depot.service.DepotEntryServiceUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
+
+import java.rmi.RemoteException;
+
+import java.util.Locale;
+import java.util.Map;
+
 /**
  * Provides the SOAP utility for the
- * <code>com.liferay.depot.service.DepotEntryServiceUtil</code> service
+ * <code>DepotEntryServiceUtil</code> service
  * utility. The static methods of this class call the same methods of the
  * service utility. However, the signatures are different because it is
  * difficult for SOAP to support certain types.
@@ -51,7 +61,151 @@ package com.liferay.depot.service.http;
  *
  * @author Brian Wing Shun Chan
  * @see DepotEntryServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class DepotEntryServiceSoap {
+
+	public static com.liferay.depot.model.DepotEntrySoap addDepotEntry(
+			String[] nameMapLanguageIds, String[] nameMapValues,
+			String[] descriptionMapLanguageIds, String[] descriptionMapValues,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws RemoteException {
+
+		try {
+			Map<Locale, String> nameMap = LocalizationUtil.getLocalizationMap(
+				nameMapLanguageIds, nameMapValues);
+			Map<Locale, String> descriptionMap =
+				LocalizationUtil.getLocalizationMap(
+					descriptionMapLanguageIds, descriptionMapValues);
+
+			com.liferay.depot.model.DepotEntry returnValue =
+				DepotEntryServiceUtil.addDepotEntry(
+					nameMap, descriptionMap, serviceContext);
+
+			return com.liferay.depot.model.DepotEntrySoap.toSoapModel(
+				returnValue);
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
+		}
+	}
+
+	public static com.liferay.depot.model.DepotEntrySoap deleteDepotEntry(
+			long depotEntryId)
+		throws RemoteException {
+
+		try {
+			com.liferay.depot.model.DepotEntry returnValue =
+				DepotEntryServiceUtil.deleteDepotEntry(depotEntryId);
+
+			return com.liferay.depot.model.DepotEntrySoap.toSoapModel(
+				returnValue);
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
+		}
+	}
+
+	public static com.liferay.depot.model.DepotEntrySoap getDepotEntry(
+			long depotEntryId)
+		throws RemoteException {
+
+		try {
+			com.liferay.depot.model.DepotEntry returnValue =
+				DepotEntryServiceUtil.getDepotEntry(depotEntryId);
+
+			return com.liferay.depot.model.DepotEntrySoap.toSoapModel(
+				returnValue);
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
+		}
+	}
+
+	public static com.liferay.depot.model.DepotEntrySoap[]
+			getGroupConnectedDepotEntries(
+				long groupId, boolean ddmStructuresAvailable, int start,
+				int end)
+		throws RemoteException {
+
+		try {
+			java.util.List<com.liferay.depot.model.DepotEntry> returnValue =
+				DepotEntryServiceUtil.getGroupConnectedDepotEntries(
+					groupId, ddmStructuresAvailable, start, end);
+
+			return com.liferay.depot.model.DepotEntrySoap.toSoapModels(
+				returnValue);
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
+		}
+	}
+
+	public static com.liferay.depot.model.DepotEntrySoap[]
+			getGroupConnectedDepotEntries(long groupId, int start, int end)
+		throws RemoteException {
+
+		try {
+			java.util.List<com.liferay.depot.model.DepotEntry> returnValue =
+				DepotEntryServiceUtil.getGroupConnectedDepotEntries(
+					groupId, start, end);
+
+			return com.liferay.depot.model.DepotEntrySoap.toSoapModels(
+				returnValue);
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
+		}
+	}
+
+	public static int getGroupConnectedDepotEntriesCount(long groupId)
+		throws RemoteException {
+
+		try {
+			int returnValue =
+				DepotEntryServiceUtil.getGroupConnectedDepotEntriesCount(
+					groupId);
+
+			return returnValue;
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
+		}
+	}
+
+	public static com.liferay.depot.model.DepotEntrySoap getGroupDepotEntry(
+			long groupId)
+		throws RemoteException {
+
+		try {
+			com.liferay.depot.model.DepotEntry returnValue =
+				DepotEntryServiceUtil.getGroupDepotEntry(groupId);
+
+			return com.liferay.depot.model.DepotEntrySoap.toSoapModel(
+				returnValue);
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
+		}
+	}
+
+	private static Log _log = LogFactoryUtil.getLog(
+		DepotEntryServiceSoap.class);
+
 }

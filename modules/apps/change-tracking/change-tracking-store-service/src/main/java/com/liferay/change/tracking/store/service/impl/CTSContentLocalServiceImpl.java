@@ -160,8 +160,16 @@ public class CTSContentLocalServiceImpl extends CTSContentLocalServiceBaseImpl {
 		long companyId, long repositoryId, String path, String version,
 		String storeType) {
 
-		int count = ctsContentPersistence.countByC_R_P_V_S(
-			companyId, repositoryId, path, version, storeType);
+		int count = 0;
+
+		if (version.isEmpty()) {
+			count = ctsContentPersistence.countByC_R_P_S(
+				companyId, repositoryId, path, storeType);
+		}
+		else {
+			count = ctsContentPersistence.countByC_R_P_V_S(
+				companyId, repositoryId, path, version, storeType);
+		}
 
 		if (count > 0) {
 			return true;
@@ -209,10 +217,11 @@ public class CTSContentLocalServiceImpl extends CTSContentLocalServiceBaseImpl {
 			try {
 				return new OutputBlob(inputStream, fileChannel.size());
 			}
-			catch (IOException ioe) {
+			catch (IOException ioException) {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
-						"Unable to detect file size from file channel", ioe);
+						"Unable to detect file size from file channel",
+						ioException);
 				}
 			}
 		}
@@ -225,8 +234,8 @@ public class CTSContentLocalServiceImpl extends CTSContentLocalServiceBaseImpl {
 
 			return new OutputBlob(unsyncByteArrayInputStream, bytes.length);
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 	}
 

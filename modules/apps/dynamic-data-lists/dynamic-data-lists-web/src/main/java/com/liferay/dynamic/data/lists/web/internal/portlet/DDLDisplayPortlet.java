@@ -108,18 +108,18 @@ public class DDLDisplayPortlet extends MVCPortlet {
 			renderRequest.setAttribute(
 				WebKeys.PORTLET_DISPLAY_CONTEXT, ddlDisplayContext);
 		}
-		catch (Exception e) {
-			if (isSessionErrorException(e)) {
+		catch (Exception exception) {
+			if (isSessionErrorException(exception)) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(e, e);
+					_log.warn(exception, exception);
 				}
 
 				hideDefaultErrorMessage(renderRequest);
 
-				SessionErrors.add(renderRequest, e.getClass());
+				SessionErrors.add(renderRequest, exception.getClass());
 			}
 			else {
-				throw new PortletException(e);
+				throw new PortletException(exception);
 			}
 		}
 
@@ -188,10 +188,10 @@ public class DDLDisplayPortlet extends MVCPortlet {
 	}
 
 	@Override
-	protected boolean isSessionErrorException(Throwable cause) {
-		if (cause instanceof NoSuchRecordSetException ||
-			cause instanceof PortletPreferencesException ||
-			cause instanceof PrincipalException) {
+	protected boolean isSessionErrorException(Throwable throwable) {
+		if (throwable instanceof NoSuchRecordSetException ||
+			throwable instanceof PortletPreferencesException ||
+			throwable instanceof PrincipalException) {
 
 			return true;
 		}

@@ -12,30 +12,44 @@
  * details.
  */
 
+import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import classNames from 'classnames';
-import React, {useContext, useRef, useState} from 'react';
-import {useDrag, useDrop} from 'react-dnd';
+import PropTypes from 'prop-types';
+import React, {useEffect, useState} from 'react';
 
-import useOnClickOutside from '../../core/hooks/useOnClickOutside';
-import {moveItem, removeItem} from '../actions/index';
+import {getLayoutDataItemPropTypes} from '../../prop-types/index';
+import {switchSidebarPanel} from '../actions/index';
 import {LAYOUT_DATA_ITEM_TYPES} from '../config/constants/layoutDataItemTypes';
-import {DispatchContext} from '../reducers/index';
+import {config} from '../config/index';
+import selectCanUpdateItemConfiguration from '../selectors/selectCanUpdateItemConfiguration';
+import selectCanUpdatePageStructure from '../selectors/selectCanUpdatePageStructure';
+import {useDispatch, useSelector} from '../store/index';
+import moveItem from '../thunks/moveItem';
+import {TARGET_POSITION} from '../utils/dragAndDrop/constants/targetPosition';
+import {useDragItem, useDropTarget} from '../utils/dragAndDrop/useDragAndDrop';
+import getLayoutDataItemLabel from '../utils/getLayoutDataItemLabel';
 import {
-	useCurrentFloatingToolbar,
-	useIsSelected,
+	useHoverItem,
+	useIsActive,
 	useIsHovered,
 	useSelectItem,
-	useHoverItem
 } from './Controls';
+import ItemActions from './ItemActions';
+
+const TOPPER_BAR_HEIGHT = 24;
+
+const itemIsMappedCollection = (item) =>
+	item.type === LAYOUT_DATA_ITEM_TYPES.collection &&
+	'collection' in item.config;
 
 const TopperListItem = React.forwardRef(
 	({children, className, expand, ...props}, ref) => (
 		<li
 			{...props}
 			className={classNames(
-				'page-editor-topper__item',
+				'page-editor__topper__item',
 				'tbar-item',
 				{'tbar-item-expand': expand},
 				className
@@ -47,261 +61,298 @@ const TopperListItem = React.forwardRef(
 	)
 );
 
-export default function Topper({
-	acceptDrop,
-	active: activeTopper,
-	children,
-	item,
-	layoutData,
-	name
-}) {
-	const [edge, setEdge] = useState(null);
-	const containerRef = useRef(null);
-	const dispatch = useContext(DispatchContext);
-	const hoverItem = useHoverItem();
+TopperListItem.displayName = 'TopperListItem';
+
+TopperListItem.propTypes = {
+	expand: PropTypes.bool,
+};
+
+const MemoizedTopperContent = React.memo(TopperContent);
+
+export default function Topper({children, item, ...props}) {
+	const canUpdatePageStructure = useSelector(selectCanUpdatePageStructure);
+	const canUpdateItemConfiguration = useSelector(
+		selectCanUpdateItemConfiguration
+	);
 	const isHovered = useIsHovered();
-	const isSelected = useIsSelected();
+	const isActive = useIsActive();
+
+	if (canUpdatePageStructure || canUpdateItemConfiguration) {
+		return (
+			<MemoizedTopperContent
+				isActive={isActive(item.itemId)}
+				isHovered={isHovered(item.itemId)}
+				item={item}
+				{...props}
+			>
+				{children}
+			</MemoizedTopperContent>
+		);
+	}
+
+	return children;
+}
+
+function TopperContent({
+	children,
+	className,
+	isActive,
+	isHovered,
+	item,
+	itemElement,
+	style,
+}) {
+	const canUpdatePageStructure = useSelector(selectCanUpdatePageStructure);
+	const dispatch = useDispatch();
+	const segmentsExperienceId = useSelector(
+		(state) => state.segmentsExperienceId
+	);
+	const hoverItem = useHoverItem();
+	const fragmentEntryLinks = useSelector((state) => state.fragmentEntryLinks);
+
 	const selectItem = useSelectItem();
 
-	const floatingToolbarRef = useCurrentFloatingToolbar();
+	const {
+		canDropOverTarget,
+		isOverTarget,
+		sourceItem,
+		targetPosition,
+		targetRef,
+	} = useDropTarget(item);
 
-	const [{isDragging}, drag] = useDrag({
-		collect: monitor => ({
-			isDragging: monitor.isDragging()
-		}),
-		end(_item, _monitor) {
-			const result = _monitor.getDropResult();
-
-			if (!result) {
-				return;
-			}
-
-			const {itemId, position, siblingId} = result;
-
-			if (itemId !== siblingId) {
-				dispatch(moveItem({itemId, position, siblingId}));
-			}
-		},
-		item: {
-			...item,
-			type: LAYOUT_DATA_ITEM_TYPES[item.type]
-		}
-	});
-
-	const [{canDrop, isOver}, drop] = useDrop({
-		accept: acceptDrop,
-		collect(_monitor) {
-			return {
-				canDrop: _monitor.canDrop(),
-				isOver: _monitor.isOver({shallow: true})
-			};
-		},
-		drop(_item, _monitor) {
-			if (!_monitor.didDrop()) {
-				return {
-					itemId: _item.itemId,
-					itemType: _monitor.getItemType(),
-					position: edge,
-					siblingId: item.itemId
-				};
-			}
-		},
-		hover(_item, _monitor) {
-			const dragId = _item.itemId;
-			const dragParentId = _item.parentId;
-			const hoverId = item.itemId;
-
-			// Don't replace items with themselves
-			if (dragId === hoverId) {
-				setEdge(null);
-
-				return;
-			}
-
-			// Determine rectangle on screen
-			const hoverBoundingRect = containerRef.current.getBoundingClientRect();
-
-			// Get vertical middle
-			const hoverMiddleY =
-				(hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-
-			// Determine mouse position
-			const clientOffset = _monitor.getClientOffset();
-
-			// Get pixels to the top
-			const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-			if (dragParentId) {
-				const parentChildren = layoutData.items[dragParentId].children;
-
-				const dragIndex = parentChildren.findIndex(
-					child => child === dragId
-				);
-
-				// When dragging downwards, only move when the cursor is below 50%
-				// When dragging upwards, only move when the cursor is above 50%
-				// Dragging downwards
-				if (
-					parentChildren[dragIndex + 1] !== hoverId &&
-					hoverClientY < hoverMiddleY
-				) {
-					setEdge(0);
-					return;
-				}
-
-				// Dragging upwards
-				if (
-					parentChildren[dragIndex - 1] !== hoverId &&
-					hoverClientY > hoverMiddleY
-				) {
-					setEdge(1);
-					return;
-				}
-			} else {
-				if (hoverClientY < hoverMiddleY) {
-					setEdge(0);
-					return;
-				}
-
-				if (hoverClientY > hoverMiddleY) {
-					setEdge(1);
-					return;
-				}
-			}
-
-			setEdge(null);
-		}
-	});
-
-	useOnClickOutside(
-		[containerRef.current, floatingToolbarRef.current],
-		event => {
-			if (!event.shiftKey) {
-				selectItem(null);
-			}
-		}
+	const {handlerRef, isDraggingSource} = useDragItem(
+		item,
+		(parentItemId, position) =>
+			dispatch(
+				moveItem({
+					itemId: item.itemId,
+					parentItemId,
+					position,
+					segmentsExperienceId,
+				})
+			)
 	);
 
-	const styles = {
-		active: isSelected(item.itemId),
-		'drag-over-bottom': edge === 1 && isOver,
-		'drag-over-top': edge === 0 && isOver,
-		dragged: isDragging,
-		hovered: isHovered(item.itemId),
-		'page-editor-topper': true
-	};
+	const commentsPanelId = config.sidebarPanels?.comments?.sidebarPanelId;
 
-	const childrenElement = children({canDrop, isOver});
-
-	if (!activeTopper) {
-		const isFragment = childrenElement.type === React.Fragment;
-		const realChildren = isFragment
-			? childrenElement.props.children
-			: childrenElement;
-
-		return React.Children.map(realChildren, child => {
-			if (!child) {
-				return child;
-			}
-
-			return React.cloneElement(child, {
-				className: classNames(child.className, styles),
-				ref: node => {
-					containerRef.current = node;
-					drop(node);
-
-					// Call the original ref, if any.
-					const {ref} = child;
-					if (typeof ref === 'function') {
-						ref(node);
-					}
-				}
-			});
-		});
-	}
+	const notDroppableMessage =
+		isOverTarget && !canDropOverTarget
+			? Liferay.Util.sub(
+					Liferay.Language.get('a-x-cannot-be-dropped-inside-a-x'),
+					[
+						getLayoutDataItemLabel(sourceItem, fragmentEntryLinks),
+						getLayoutDataItemLabel(item, fragmentEntryLinks),
+					]
+			  )
+			: null;
 
 	return (
 		<div
-			className={classNames(styles)}
-			onClick={event => {
+			className={classNames(className, 'page-editor__topper', {
+				active: isActive,
+				'drag-over-bottom':
+					isOverTarget && targetPosition === TARGET_POSITION.BOTTOM,
+				'drag-over-middle':
+					isOverTarget && targetPosition === TARGET_POSITION.MIDDLE,
+				'drag-over-top':
+					isOverTarget && targetPosition === TARGET_POSITION.TOP,
+				dragged: isDraggingSource,
+				hovered: isHovered,
+				'not-droppable': !!notDroppableMessage,
+				'page-editor__topper--mapped': itemIsMappedCollection(item),
+			})}
+			onClick={(event) => {
 				event.stopPropagation();
 
-				if (!acceptDrop.length || isDragging) {
+				if (isDraggingSource) {
 					return;
 				}
 
-				const multiSelect = event.shiftKey;
-
-				selectItem(item.itemId, {multiSelect});
+				selectItem(item.itemId);
 			}}
-			onMouseLeave={event => {
+			onMouseLeave={(event) => {
 				event.stopPropagation();
 
-				if (!acceptDrop.length || isDragging) {
+				if (isDraggingSource) {
 					return;
 				}
 
-				if (isHovered(item.itemId)) {
+				if (isHovered) {
 					hoverItem(null);
 				}
 			}}
-			onMouseOver={event => {
+			onMouseOver={(event) => {
 				event.stopPropagation();
 
-				if (!acceptDrop.length || isDragging) {
+				if (isDraggingSource) {
 					return;
 				}
 
 				hoverItem(item.itemId);
 			}}
-			ref={containerRef}
+			style={style}
 		>
-			<div className="page-editor-topper__bar tbar">
+			<TopperLabel
+				isActive={isActive}
+				item={item}
+				itemElement={itemElement}
+			>
 				<ul className="tbar-nav">
-					<TopperListItem
-						className="page-editor-topper__drag-handler"
-						ref={drag}
-					>
-						<ClayIcon
-							className="page-editor-topper__drag-icon page-editor-topper__icon"
-							symbol="drag"
-						/>
-					</TopperListItem>
-					<TopperListItem
-						className="page-editor-topper__title"
-						expand
-					>
-						{name || Liferay.Language.get('Element')}
-					</TopperListItem>
-					<TopperListItem>
-						<ClayButton displayType="unstyled" small>
-							<ClayIcon
-								className="page-editor-topper__icon"
-								symbol="comments"
-							/>
-						</ClayButton>
-					</TopperListItem>
-					<TopperListItem>
-						<ClayButton
-							displayType="unstyled"
-							onClick={event => {
-								event.stopPropagation();
-								dispatch(removeItem({itemId: item.itemId}));
-							}}
-							small
+					{canUpdatePageStructure && (
+						<TopperListItem
+							className="page-editor__topper__drag-handler"
+							ref={handlerRef}
 						>
 							<ClayIcon
-								className="page-editor-topper__icon"
-								symbol="times-circle"
+								className="page-editor__topper__drag-icon page-editor__topper__icon"
+								symbol="drag"
 							/>
-						</ClayButton>
-					</TopperListItem>
-				</ul>
-			</div>
+						</TopperListItem>
+					)}
 
-			<div className="page-editor-topper__content" ref={drop}>
-				{childrenElement}
+					<TopperListItem
+						className="page-editor__topper__title"
+						expand
+					>
+						{getLayoutDataItemLabel(item, fragmentEntryLinks) ||
+							Liferay.Language.get('element')}
+					</TopperListItem>
+					{item.type === LAYOUT_DATA_ITEM_TYPES.fragment && (
+						<TopperListItem>
+							<ClayButton
+								displayType="unstyled"
+								small
+								title={Liferay.Language.get('comments')}
+							>
+								<ClayIcon
+									className="page-editor__topper__icon"
+									onClick={() => {
+										dispatch(
+											switchSidebarPanel({
+												sidebarOpen: true,
+												sidebarPanelId: commentsPanelId,
+											})
+										);
+									}}
+									symbol="comments"
+								/>
+							</ClayButton>
+						</TopperListItem>
+					)}
+					{canUpdatePageStructure && (
+						<TopperListItem>
+							<ItemActions item={item} />
+						</TopperListItem>
+					)}
+				</ul>
+			</TopperLabel>
+
+			<div className="page-editor__topper__content" ref={targetRef}>
+				<TopperErrorBoundary>
+					{React.cloneElement(children, {
+						data: notDroppableMessage
+							? {
+									'data-not-droppable-message': notDroppableMessage,
+							  }
+							: null,
+						withinTopper: true,
+					})}
+				</TopperErrorBoundary>
 			</div>
 		</div>
 	);
 }
+
+TopperContent.propTypes = {
+	item: getLayoutDataItemPropTypes().isRequired,
+	itemElement: PropTypes.object,
+};
+
+class TopperErrorBoundary extends React.Component {
+	static getDerivedStateFromError(error) {
+		if (process.env.NODE_ENV === 'development') {
+			console.error(error);
+		}
+
+		return {error};
+	}
+
+	constructor(props) {
+		super(props);
+
+		this.state = {
+			error: null,
+		};
+	}
+
+	render() {
+		return this.state.error ? (
+			<ClayAlert
+				displayType="danger"
+				title={Liferay.Language.get('error')}
+			>
+				{Liferay.Language.get(
+					'an-unexpected-error-occurred-while-rendering-this-item'
+				)}
+			</ClayAlert>
+		) : (
+			this.props.children
+		);
+	}
+}
+
+function TopperLabel({children, isActive, item, itemElement}) {
+	const [isInset, setIsInset] = useState(false);
+	const [windowScrollPosition, setWindowScrollPosition] = useState(0);
+
+	useEffect(() => {
+		if (isActive) {
+			const handleWindowScroll = () => {
+				setWindowScrollPosition(window.scrollY);
+			};
+
+			window.addEventListener('scroll', handleWindowScroll);
+
+			return () => {
+				window.removeEventListener('scroll', handleWindowScroll);
+			};
+		}
+	}, [isActive]);
+
+	useEffect(() => {
+		if (itemElement && isActive) {
+			const itemTop =
+				itemElement.getBoundingClientRect().top - TOPPER_BAR_HEIGHT;
+
+			const controlMenuContainerHeight =
+				document.querySelector('.control-menu-container')
+					?.offsetHeight ?? 0;
+
+			if (itemTop < controlMenuContainerHeight) {
+				setIsInset(true);
+			}
+			else {
+				setIsInset(false);
+			}
+		}
+	}, [isActive, itemElement, windowScrollPosition]);
+
+	return (
+		<div
+			className={classNames('page-editor__topper__bar', 'tbar', {
+				'page-editor__topper__bar--inset': isInset,
+				'page-editor__topper__bar--mapped': itemIsMappedCollection(
+					item
+				),
+			})}
+		>
+			{children}
+		</div>
+	);
+}
+
+TopperLabel.propTypes = {
+	isActive: PropTypes.bool,
+	item: getLayoutDataItemPropTypes().isRequired,
+	itemElement: PropTypes.object,
+};

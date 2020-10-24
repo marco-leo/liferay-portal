@@ -16,17 +16,18 @@ package com.liferay.fragment.internal.deploy.auto;
 
 import com.liferay.fragment.importer.FragmentsImporter;
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.deploy.auto.AutoDeployException;
 import com.liferay.portal.kernel.deploy.auto.AutoDeployListener;
 import com.liferay.portal.kernel.deploy.auto.AutoDeployer;
 import com.liferay.portal.kernel.deploy.auto.context.AutoDeploymentContext;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
@@ -41,12 +42,16 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.staging.StagingGroupHelper;
 
 import java.io.File;
 import java.io.IOException;
 
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -73,13 +78,13 @@ public class FragmentAutoDeployListener implements AutoDeployListener {
 		try {
 			_deploy(autoDeploymentContext.getFile());
 		}
-		catch (AutoDeployException ade) {
-			_log.error(ade, ade);
+		catch (AutoDeployException autoDeployException) {
+			_log.error(autoDeployException, autoDeployException);
 
-			throw ade;
+			throw autoDeployException;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 		finally {
 			PermissionThreadLocal.setPermissionChecker(
@@ -106,15 +111,13 @@ public class FragmentAutoDeployListener implements AutoDeployListener {
 		try {
 			JSONObject deployJSONObject = _getDeployJSONObject(file);
 
-			if ((deployJSONObject != null) &&
-				deployJSONObject.has("companyWebId")) {
-
+			if (deployJSONObject != null) {
 				return true;
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
+				_log.debug(exception, exception);
 			}
 		}
 
@@ -124,27 +127,39 @@ public class FragmentAutoDeployListener implements AutoDeployListener {
 	private void _deploy(File file) throws Exception {
 		JSONObject deployJSONObject = _getDeployJSONObject(file);
 
-		if ((deployJSONObject == null) ||
-			!deployJSONObject.has("companyWebId")) {
-
+		if (deployJSONObject == null) {
 			throw new AutoDeployException();
 		}
 
-		String webId = deployJSONObject.getString("companyWebId");
-
-		Company company = _companyLocalService.getCompanyByWebId(webId);
-
+		Company company = null;
 		Group group = null;
 
-		if (deployJSONObject.has("groupKey")) {
-			group = _groupLocalService.getGroup(
-				company.getCompanyId(), deployJSONObject.getString("groupKey"));
-		}
-		else {
-			group = _groupLocalService.getCompanyGroup(company.getCompanyId());
+		String companyWebId = deployJSONObject.getString("companyWebId");
+
+		if (Validator.isNotNull(companyWebId) &&
+			!Objects.equals(companyWebId, StringPool.STAR)) {
+
+			company = _companyLocalService.getCompanyByWebId(companyWebId);
 		}
 
-		User user = _getUser(group);
+		if ((company != null) && deployJSONObject.has("groupKey")) {
+			group = _getDeploymentGroup(
+				company.getCompanyId(), deployJSONObject.getString("groupKey"));
+		}
+		else if (company != null) {
+			group = _groupLocalService.getCompanyGroup(company.getCompanyId());
+		}
+		else {
+			List<Company> companies = _companyLocalService.getCompanies(0, 1);
+
+			if (ListUtil.isEmpty(companies)) {
+				throw new AutoDeployException();
+			}
+
+			company = companies.get(0);
+		}
+
+		User user = _getUser(company, group);
 
 		if (user == null) {
 			throw new AutoDeployException();
@@ -159,34 +174,64 @@ public class FragmentAutoDeployListener implements AutoDeployListener {
 
 		ServiceContext serviceContext = new ServiceContext();
 
+		if (company != null) {
+			serviceContext.setCompanyId(company.getCompanyId());
+		}
+		else {
+			serviceContext.setCompanyId(CompanyConstants.SYSTEM);
+		}
+
 		serviceContext.setUserId(user.getUserId());
 
 		ServiceContextThreadLocal.pushServiceContext(serviceContext);
 
-		_fragmentsImporter.importFile(
-			user.getUserId(), group.getGroupId(), 0, file, true);
+		long groupId = 0;
+
+		if (group != null) {
+			groupId = group.getGroupId();
+		}
+
+		_fragmentsImporter.importFile(user.getUserId(), groupId, 0, file, true);
 	}
 
 	private JSONObject _getDeployJSONObject(File file)
 		throws IOException, JSONException {
 
-		ZipFile zipFile = new ZipFile(file);
+		try (ZipFile zipFile = new ZipFile(file)) {
+			ZipEntry zipEntry = _getDeployZipEntry(zipFile);
 
-		ZipEntry zipEntry = _getDeployZipEntry(zipFile);
+			if (zipEntry == null) {
+				return null;
+			}
 
-		if (zipEntry == null) {
+			return JSONFactoryUtil.createJSONObject(
+				StringUtil.read(zipFile.getInputStream(zipEntry)));
+		}
+	}
+
+	private Group _getDeploymentGroup(long companyId, String groupKey)
+		throws Exception {
+
+		Group group = _groupLocalService.getGroup(companyId, groupKey);
+
+		if (group == null) {
 			return null;
 		}
 
-		return JSONFactoryUtil.createJSONObject(
-			StringUtil.read(zipFile.getInputStream(zipEntry)));
+		if (_stagingGroupHelper.isLocalLiveGroup(group) ||
+			_stagingGroupHelper.isRemoteLiveGroup(group)) {
+
+			return group.getStagingGroup();
+		}
+
+		return group;
 	}
 
 	private ZipEntry _getDeployZipEntry(ZipFile zipFile) {
-		Enumeration<? extends ZipEntry> iterator = zipFile.entries();
+		Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
 
-		while (iterator.hasMoreElements()) {
-			ZipEntry zipEntry = iterator.nextElement();
+		while (enumeration.hasMoreElements()) {
+			ZipEntry zipEntry = enumeration.nextElement();
 
 			if (Objects.equals(
 					_getFileName(zipEntry.getName()),
@@ -209,14 +254,23 @@ public class FragmentAutoDeployListener implements AutoDeployListener {
 		return path;
 	}
 
-	private User _getUser(Group group) throws PortalException {
-		long userId = group.getCreatorUserId();
+	private User _getUser(Company company, Group group) throws Exception {
+		long companyId = CompanyConstants.SYSTEM;
+		long userId = 0;
+
+		if (group != null) {
+			companyId = group.getCompanyId();
+			userId = group.getCreatorUserId();
+		}
+		else if (company != null) {
+			companyId = company.getCompanyId();
+		}
 
 		User user = _userLocalService.fetchUserById(userId);
 
 		if ((user == null) || user.isDefaultUser()) {
 			Role role = _roleLocalService.getRole(
-				group.getCompanyId(), RoleConstants.ADMINISTRATOR);
+				companyId, RoleConstants.ADMINISTRATOR);
 
 			long[] userIds = _userLocalService.getRoleUserIds(role.getRoleId());
 
@@ -240,6 +294,9 @@ public class FragmentAutoDeployListener implements AutoDeployListener {
 
 	@Reference
 	private RoleLocalService _roleLocalService;
+
+	@Reference
+	private StagingGroupHelper _stagingGroupHelper;
 
 	@Reference
 	private UserLocalService _userLocalService;

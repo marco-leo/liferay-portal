@@ -31,11 +31,6 @@ public class PortalPreferencesLocalServiceWrapper
 		_portalPreferencesLocalService = portalPreferencesLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link PortalPreferencesLocalServiceUtil} to access the portal preferences local service. Add custom service methods to <code>com.liferay.portal.service.impl.PortalPreferencesLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.portal.kernel.model.PortalPreferences
 		addPortalPreferences(
@@ -48,6 +43,10 @@ public class PortalPreferencesLocalServiceWrapper
 	/**
 	 * Adds the portal preferences to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortalPreferencesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param portalPreferences the portal preferences
 	 * @return the portal preferences that was added
 	 */
@@ -59,6 +58,18 @@ public class PortalPreferencesLocalServiceWrapper
 
 		return _portalPreferencesLocalService.addPortalPreferences(
 			portalPreferences);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _portalPreferencesLocalService.createPersistedModel(
+			primaryKeyObj);
 	}
 
 	/**
@@ -90,6 +101,10 @@ public class PortalPreferencesLocalServiceWrapper
 	/**
 	 * Deletes the portal preferences with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortalPreferencesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param portalPreferencesId the primary key of the portal preferences
 	 * @return the portal preferences that was removed
 	 * @throws PortalException if a portal preferences with the primary key could not be found
@@ -106,6 +121,10 @@ public class PortalPreferencesLocalServiceWrapper
 	/**
 	 * Deletes the portal preferences from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortalPreferencesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param portalPreferences the portal preferences
 	 * @return the portal preferences that was removed
 	 */
@@ -117,6 +136,11 @@ public class PortalPreferencesLocalServiceWrapper
 
 		return _portalPreferencesLocalService.deletePortalPreferences(
 			portalPreferences);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _portalPreferencesLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -251,6 +275,9 @@ public class PortalPreferencesLocalServiceWrapper
 		return _portalPreferencesLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -322,6 +349,10 @@ public class PortalPreferencesLocalServiceWrapper
 
 	/**
 	 * Updates the portal preferences in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortalPreferencesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param portalPreferences the portal preferences
 	 * @return the portal preferences that was updated

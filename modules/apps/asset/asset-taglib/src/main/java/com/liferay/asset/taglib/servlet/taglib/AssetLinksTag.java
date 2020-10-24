@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.taglib.util.IncludeTag;
 
 import java.util.ArrayList;
@@ -144,12 +145,12 @@ public class AssetLinksTag extends IncludeTag {
 					_assetEntryId = assetEntry.getEntryId();
 				}
 			}
-			catch (SystemException se) {
+			catch (SystemException systemException) {
 
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(se, se);
+					_log.debug(systemException, systemException);
 				}
 			}
 		}
@@ -165,7 +166,7 @@ public class AssetLinksTag extends IncludeTag {
 		try {
 			assetLinkEntries = _getAssetLinkEntries();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		if (ListUtil.isEmpty(assetLinkEntries)) {
@@ -197,7 +198,7 @@ public class AssetLinksTag extends IncludeTag {
 		List<Tuple> assetLinkEntries = new ArrayList<>();
 
 		List<AssetLink> assetLinks = AssetLinkLocalServiceUtil.getDirectLinks(
-			_assetEntryId);
+			_assetEntryId, false);
 
 		for (AssetLink assetLink : assetLinks) {
 			AssetEntry assetLinkEntry = null;
@@ -209,10 +210,6 @@ public class AssetLinksTag extends IncludeTag {
 			else {
 				assetLinkEntry = AssetEntryLocalServiceUtil.getEntry(
 					assetLink.getEntryId1());
-			}
-
-			if (!assetLinkEntry.isVisible()) {
-				continue;
 			}
 
 			AssetRendererFactory<?> assetRendererFactory =
@@ -247,6 +244,13 @@ public class AssetLinksTag extends IncludeTag {
 				continue;
 			}
 
+			if (!(assetLinkEntry.isVisible() ||
+				  (assetRenderer.getStatus() ==
+					  WorkflowConstants.STATUS_SCHEDULED))) {
+
+				continue;
+			}
+
 			Group group = GroupLocalServiceUtil.getGroup(
 				assetLinkEntry.getGroupId());
 
@@ -269,8 +273,8 @@ public class AssetLinksTag extends IncludeTag {
 	}
 
 	private String _getViewURL(
-			AssetEntry assetLinkEntry, AssetRenderer assetRenderer, String type,
-			LiferayPortletRequest liferayPortletRequest,
+			AssetEntry assetLinkEntry, AssetRenderer<?> assetRenderer,
+			String type, LiferayPortletRequest liferayPortletRequest,
 			LiferayPortletResponse liferayPortletResponse,
 			ThemeDisplay themeDisplay)
 		throws Exception {
@@ -292,6 +296,7 @@ public class AssetLinksTag extends IncludeTag {
 
 		viewAssetURL.setParameter(
 			"assetEntryId", String.valueOf(assetLinkEntry.getEntryId()));
+		viewAssetURL.setParameter("showRelatedAssets", Boolean.TRUE.toString());
 		viewAssetURL.setParameter("type", type);
 
 		String urlTitle = assetRenderer.getUrlTitle(themeDisplay.getLocale());

@@ -33,11 +33,6 @@ public class PollsChoiceLocalServiceWrapper
 		_pollsChoiceLocalService = pollsChoiceLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link PollsChoiceLocalServiceUtil} to access the polls choice local service. Add custom service methods to <code>com.liferay.polls.service.impl.PollsChoiceLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.polls.model.PollsChoice addChoice(
 			long userId, long questionId, String name, String description,
@@ -51,6 +46,10 @@ public class PollsChoiceLocalServiceWrapper
 	/**
 	 * Adds the polls choice to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PollsChoiceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param pollsChoice the polls choice
 	 * @return the polls choice that was added
 	 */
@@ -59,6 +58,17 @@ public class PollsChoiceLocalServiceWrapper
 		com.liferay.polls.model.PollsChoice pollsChoice) {
 
 		return _pollsChoiceLocalService.addPollsChoice(pollsChoice);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _pollsChoiceLocalService.createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -88,6 +98,10 @@ public class PollsChoiceLocalServiceWrapper
 	/**
 	 * Deletes the polls choice with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PollsChoiceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param choiceId the primary key of the polls choice
 	 * @return the polls choice that was removed
 	 * @throws PortalException if a polls choice with the primary key could not be found
@@ -102,6 +116,10 @@ public class PollsChoiceLocalServiceWrapper
 	/**
 	 * Deletes the polls choice from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PollsChoiceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param pollsChoice the polls choice
 	 * @return the polls choice that was removed
 	 */
@@ -110,6 +128,11 @@ public class PollsChoiceLocalServiceWrapper
 		com.liferay.polls.model.PollsChoice pollsChoice) {
 
 		return _pollsChoiceLocalService.deletePollsChoice(pollsChoice);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _pollsChoiceLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -275,6 +298,9 @@ public class PollsChoiceLocalServiceWrapper
 		return _pollsChoiceLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -390,6 +416,10 @@ public class PollsChoiceLocalServiceWrapper
 
 	/**
 	 * Updates the polls choice in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PollsChoiceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param pollsChoice the polls choice
 	 * @return the polls choice that was updated

@@ -24,6 +24,7 @@ import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
+import com.liferay.portal.vulcan.util.ObjectMapperUtil;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -53,73 +54,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "ImportTask")
 public class ImportTask {
 
-	@GraphQLName("ExecuteStatus")
-	public static enum ExecuteStatus {
-
-		COMPLETED("COMPLETED"), FAILED("FAILED"), INITIAL("INITIAL"),
-		STARTED("STARTED");
-
-		@JsonCreator
-		public static ExecuteStatus create(String value) {
-			for (ExecuteStatus executeStatus : values()) {
-				if (Objects.equals(executeStatus.getValue(), value)) {
-					return executeStatus;
-				}
-			}
-
-			return null;
-		}
-
-		@JsonValue
-		public String getValue() {
-			return _value;
-		}
-
-		@Override
-		public String toString() {
-			return _value;
-		}
-
-		private ExecuteStatus(String value) {
-			_value = value;
-		}
-
-		private final String _value;
-
-	}
-
-	@GraphQLName("Operation")
-	public static enum Operation {
-
-		CREATE("CREATE"), DELETE("DELETE"), UPDATE("UPDATE");
-
-		@JsonCreator
-		public static Operation create(String value) {
-			for (Operation operation : values()) {
-				if (Objects.equals(operation.getValue(), value)) {
-					return operation;
-				}
-			}
-
-			return null;
-		}
-
-		@JsonValue
-		public String getValue() {
-			return _value;
-		}
-
-		@Override
-		public String toString() {
-			return _value;
-		}
-
-		private Operation(String value) {
-			_value = value;
-		}
-
-		private final String _value;
-
+	public static ImportTask toDTO(String json) {
+		return ObjectMapperUtil.readValue(ImportTask.class, json);
 	}
 
 	@Schema(
@@ -373,34 +309,6 @@ public class ImportTask {
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Date startTime;
 
-	@Schema(description = "The version of item class.")
-	public String getVersion() {
-		return version;
-	}
-
-	public void setVersion(String version) {
-		this.version = version;
-	}
-
-	@JsonIgnore
-	public void setVersion(
-		UnsafeSupplier<String, Exception> versionUnsafeSupplier) {
-
-		try {
-			version = versionUnsafeSupplier.get();
-		}
-		catch (RuntimeException re) {
-			throw re;
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@GraphQLField(description = "The version of item class.")
-	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected String version;
-
 	@Override
 	public boolean equals(Object object) {
 		if (this == object) {
@@ -539,20 +447,6 @@ public class ImportTask {
 			sb.append("\"");
 		}
 
-		if (version != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"version\": ");
-
-			sb.append("\"");
-
-			sb.append(_escape(version));
-
-			sb.append("\"");
-		}
-
 		sb.append("}");
 
 		return sb.toString();
@@ -564,10 +458,89 @@ public class ImportTask {
 	)
 	public String xClassName;
 
+	@GraphQLName("ExecuteStatus")
+	public static enum ExecuteStatus {
+
+		COMPLETED("COMPLETED"), FAILED("FAILED"), INITIAL("INITIAL"),
+		STARTED("STARTED");
+
+		@JsonCreator
+		public static ExecuteStatus create(String value) {
+			for (ExecuteStatus executeStatus : values()) {
+				if (Objects.equals(executeStatus.getValue(), value)) {
+					return executeStatus;
+				}
+			}
+
+			return null;
+		}
+
+		@JsonValue
+		public String getValue() {
+			return _value;
+		}
+
+		@Override
+		public String toString() {
+			return _value;
+		}
+
+		private ExecuteStatus(String value) {
+			_value = value;
+		}
+
+		private final String _value;
+
+	}
+
+	@GraphQLName("Operation")
+	public static enum Operation {
+
+		CREATE("CREATE"), DELETE("DELETE"), UPDATE("UPDATE");
+
+		@JsonCreator
+		public static Operation create(String value) {
+			for (Operation operation : values()) {
+				if (Objects.equals(operation.getValue(), value)) {
+					return operation;
+				}
+			}
+
+			return null;
+		}
+
+		@JsonValue
+		public String getValue() {
+			return _value;
+		}
+
+		@Override
+		public String toString() {
+			return _value;
+		}
+
+		private Operation(String value) {
+			_value = value;
+		}
+
+		private final String _value;
+
+	}
+
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
 		return string.replaceAll("\"", "\\\\\"");
+	}
+
+	private static boolean _isArray(Object value) {
+		if (value == null) {
+			return false;
+		}
+
+		Class<?> clazz = value.getClass();
+
+		return clazz.isArray();
 	}
 
 	private static String _toJSON(Map<String, ?> map) {
@@ -585,9 +558,42 @@ public class ImportTask {
 			sb.append("\"");
 			sb.append(entry.getKey());
 			sb.append("\":");
-			sb.append("\"");
-			sb.append(entry.getValue());
-			sb.append("\"");
+
+			Object value = entry.getValue();
+
+			if (_isArray(value)) {
+				sb.append("[");
+
+				Object[] valueArray = (Object[])value;
+
+				for (int i = 0; i < valueArray.length; i++) {
+					if (valueArray[i] instanceof String) {
+						sb.append("\"");
+						sb.append(valueArray[i]);
+						sb.append("\"");
+					}
+					else {
+						sb.append(valueArray[i]);
+					}
+
+					if ((i + 1) < valueArray.length) {
+						sb.append(", ");
+					}
+				}
+
+				sb.append("]");
+			}
+			else if (value instanceof Map) {
+				sb.append(_toJSON((Map<String, ?>)value));
+			}
+			else if (value instanceof String) {
+				sb.append("\"");
+				sb.append(value);
+				sb.append("\"");
+			}
+			else {
+				sb.append(value);
+			}
 
 			if (iterator.hasNext()) {
 				sb.append(",");

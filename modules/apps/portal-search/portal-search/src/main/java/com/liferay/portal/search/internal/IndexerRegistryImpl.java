@@ -23,14 +23,13 @@ import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerPostProcessor;
 import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.dummy.DummyIndexer;
-import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
-import com.liferay.portal.search.buffer.IndexerRequestBuffer;
-import com.liferay.portal.search.buffer.IndexerRequestBufferOverflowHandler;
 import com.liferay.portal.search.configuration.IndexerRegistryConfiguration;
 import com.liferay.portal.search.index.IndexStatusManager;
 import com.liferay.portal.search.internal.buffer.BufferedIndexerInvocationHandler;
+import com.liferay.portal.search.internal.buffer.IndexerRequestBuffer;
+import com.liferay.portal.search.internal.buffer.IndexerRequestBufferOverflowHandler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -272,8 +271,8 @@ public class IndexerRegistryImpl implements IndexerRegistry {
 
 			BufferedIndexerInvocationHandler bufferedIndexerInvocationHandler =
 				new BufferedIndexerInvocationHandler(
-					indexer, _indexStatusManager, _indexerRegistryConfiguration,
-					_persistedModelLocalServiceRegistry);
+					indexer, _indexStatusManager,
+					_indexerRegistryConfiguration);
 
 			if (_indexerRequestBufferOverflowHandler == null) {
 				bufferedIndexerInvocationHandler.
@@ -390,10 +389,6 @@ public class IndexerRegistryImpl implements IndexerRegistry {
 
 	@Reference
 	private IndexStatusManager _indexStatusManager;
-
-	@Reference
-	private PersistedModelLocalServiceRegistry
-		_persistedModelLocalServiceRegistry;
 
 	private final Map<String, Indexer<? extends Object>> _proxiedIndexers =
 		new ConcurrentHashMap<>();

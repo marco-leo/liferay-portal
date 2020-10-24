@@ -14,8 +14,8 @@
 
 package com.liferay.exportimport.resources.importer.internal.util;
 
-import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationConstants;
 import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationSettingsMapFactoryUtil;
+import com.liferay.exportimport.kernel.configuration.constants.ExportImportConfigurationConstants;
 import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
 import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.exportimport.kernel.lar.UserIdStrategy;
@@ -95,8 +95,8 @@ public class LARImporter extends BaseImporter {
 			setPublicLARInputStream(
 				new BufferedInputStream(new FileInputStream(file)));
 		}
-		catch (FileNotFoundException fnfe) {
-			_log.error(fnfe, fnfe);
+		catch (FileNotFoundException fileNotFoundException) {
+			_log.error(fileNotFoundException, fileNotFoundException);
 		}
 	}
 

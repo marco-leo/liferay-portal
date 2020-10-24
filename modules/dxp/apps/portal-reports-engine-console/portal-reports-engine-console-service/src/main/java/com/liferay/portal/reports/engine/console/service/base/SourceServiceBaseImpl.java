@@ -51,7 +51,7 @@ public abstract class SourceServiceBaseImpl
 	extends BaseServiceImpl
 	implements AopService, IdentifiableOSGiService, SourceService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>SourceService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.reports.engine.console.service.SourceServiceUtil</code>.
@@ -105,8 +105,8 @@ public abstract class SourceServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

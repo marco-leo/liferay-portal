@@ -25,6 +25,7 @@ import com.liferay.asset.kernel.service.persistence.AssetLinkPersistence;
 import com.liferay.asset.kernel.service.persistence.AssetTagFinder;
 import com.liferay.asset.kernel.service.persistence.AssetTagPersistence;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -44,6 +45,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
 import com.liferay.portal.kernel.service.persistence.GroupFinder;
 import com.liferay.portal.kernel.service.persistence.GroupPersistence;
@@ -77,7 +79,7 @@ public abstract class AssetEntryLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements AssetEntryLocalService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>AssetEntryLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil</code>.
@@ -85,6 +87,10 @@ public abstract class AssetEntryLocalServiceBaseImpl
 
 	/**
 	 * Adds the asset entry to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetEntry the asset entry
 	 * @return the asset entry that was added
@@ -112,6 +118,10 @@ public abstract class AssetEntryLocalServiceBaseImpl
 	/**
 	 * Deletes the asset entry with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param entryId the primary key of the asset entry
 	 * @return the asset entry that was removed
 	 * @throws PortalException if a asset entry with the primary key could not be found
@@ -125,6 +135,10 @@ public abstract class AssetEntryLocalServiceBaseImpl
 	/**
 	 * Deletes the asset entry from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param assetEntry the asset entry
 	 * @return the asset entry that was removed
 	 */
@@ -132,6 +146,11 @@ public abstract class AssetEntryLocalServiceBaseImpl
 	@Override
 	public AssetEntry deleteAssetEntry(AssetEntry assetEntry) {
 		return assetEntryPersistence.remove(assetEntry);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return assetEntryPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -283,6 +302,16 @@ public abstract class AssetEntryLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return assetEntryPersistence.create(((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -290,6 +319,14 @@ public abstract class AssetEntryLocalServiceBaseImpl
 			(AssetEntry)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<AssetEntry> getBasePersistence() {
+		return assetEntryPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -325,6 +362,10 @@ public abstract class AssetEntryLocalServiceBaseImpl
 
 	/**
 	 * Updates the asset entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetEntry the asset entry
 	 * @return the asset entry that was updated
@@ -1162,8 +1203,8 @@ public abstract class AssetEntryLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

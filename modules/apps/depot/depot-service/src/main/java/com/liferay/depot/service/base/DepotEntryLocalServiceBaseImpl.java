@@ -22,6 +22,7 @@ import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -42,6 +43,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -69,7 +71,7 @@ public abstract class DepotEntryLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements AopService, DepotEntryLocalService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>DepotEntryLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.depot.service.DepotEntryLocalServiceUtil</code>.
@@ -77,6 +79,10 @@ public abstract class DepotEntryLocalServiceBaseImpl
 
 	/**
 	 * Adds the depot entry to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DepotEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param depotEntry the depot entry
 	 * @return the depot entry that was added
@@ -104,6 +110,10 @@ public abstract class DepotEntryLocalServiceBaseImpl
 	/**
 	 * Deletes the depot entry with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DepotEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param depotEntryId the primary key of the depot entry
 	 * @return the depot entry that was removed
 	 * @throws PortalException if a depot entry with the primary key could not be found
@@ -119,6 +129,10 @@ public abstract class DepotEntryLocalServiceBaseImpl
 	/**
 	 * Deletes the depot entry from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DepotEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param depotEntry the depot entry
 	 * @return the depot entry that was removed
 	 */
@@ -126,6 +140,11 @@ public abstract class DepotEntryLocalServiceBaseImpl
 	@Override
 	public DepotEntry deleteDepotEntry(DepotEntry depotEntry) {
 		return depotEntryPersistence.remove(depotEntry);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return depotEntryPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -358,6 +377,16 @@ public abstract class DepotEntryLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return depotEntryPersistence.create(((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -365,6 +394,14 @@ public abstract class DepotEntryLocalServiceBaseImpl
 			(DepotEntry)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<DepotEntry> getBasePersistence() {
+		return depotEntryPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -449,6 +486,10 @@ public abstract class DepotEntryLocalServiceBaseImpl
 	/**
 	 * Updates the depot entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DepotEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param depotEntry the depot entry
 	 * @return the depot entry that was updated
 	 */
@@ -508,8 +549,8 @@ public abstract class DepotEntryLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -521,5 +562,9 @@ public abstract class DepotEntryLocalServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
+
+	@Reference
+	protected com.liferay.portal.kernel.service.ResourceLocalService
+		resourceLocalService;
 
 }

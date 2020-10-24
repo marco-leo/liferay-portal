@@ -131,7 +131,7 @@ public interface PortletDataContext extends Serializable {
 
 	public void addZipEntry(String path, byte[] bytes);
 
-	public void addZipEntry(String path, InputStream is);
+	public void addZipEntry(String path, InputStream inputStream);
 
 	public void addZipEntry(String path, Object object);
 
@@ -238,12 +238,6 @@ public interface PortletDataContext extends Serializable {
 	public Map<?, ?> getNewPrimaryKeysMap(String className);
 
 	public Map<String, Map<?, ?>> getNewPrimaryKeysMaps();
-
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), with no direct replacement
-	 */
-	@Deprecated
-	public long getOldPlid();
 
 	public Map<String, String[]> getParameterMap();
 
@@ -427,8 +421,6 @@ public interface PortletDataContext extends Serializable {
 	public void setMissingReferencesElement(Element missingReferencesElement);
 
 	public void setNewLayouts(List<Layout> newLayouts);
-
-	public void setOldPlid(long oldPlid);
 
 	public void setParameterMap(Map<String, String[]> parameterMap);
 

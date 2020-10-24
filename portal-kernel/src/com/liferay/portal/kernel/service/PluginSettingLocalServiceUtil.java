@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class PluginSettingLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.PluginSettingLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -38,6 +38,10 @@ public class PluginSettingLocalServiceUtil {
 
 	/**
 	 * Adds the plugin setting to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PluginSettingLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param pluginSetting the plugin setting
 	 * @return the plugin setting that was added
@@ -54,6 +58,16 @@ public class PluginSettingLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		getService().checkPermission(userId, pluginId, pluginType);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -82,6 +96,10 @@ public class PluginSettingLocalServiceUtil {
 	/**
 	 * Deletes the plugin setting with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PluginSettingLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param pluginSettingId the primary key of the plugin setting
 	 * @return the plugin setting that was removed
 	 * @throws PortalException if a plugin setting with the primary key could not be found
@@ -96,6 +114,10 @@ public class PluginSettingLocalServiceUtil {
 	/**
 	 * Deletes the plugin setting from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PluginSettingLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param pluginSetting the plugin setting
 	 * @return the plugin setting that was removed
 	 */
@@ -104,6 +126,12 @@ public class PluginSettingLocalServiceUtil {
 			com.liferay.portal.kernel.model.PluginSetting pluginSetting) {
 
 		return getService().deletePluginSetting(pluginSetting);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -225,6 +253,9 @@ public class PluginSettingLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -295,6 +326,10 @@ public class PluginSettingLocalServiceUtil {
 
 	/**
 	 * Updates the plugin setting in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PluginSettingLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param pluginSetting the plugin setting
 	 * @return the plugin setting that was updated

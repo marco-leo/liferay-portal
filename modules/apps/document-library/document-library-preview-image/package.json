@@ -1,11 +1,11 @@
 {
 	"dependencies": {
-		"@clayui/button": "3.0.3",
-		"@clayui/icon": "3.0.1",
+		"@clayui/button": "3.4.0",
+		"@clayui/icon": "3.0.5",
 		"frontend-js-react-web": "*",
 		"frontend-js-web": "*",
 		"prop-types": "15.7.2",
-		"react": "16.9.0"
+		"react": "16.12.0"
 	},
 	"name": "document-library-preview-image",
 	"private": true,
@@ -15,5 +15,5 @@
 		"format": "liferay-npm-scripts fix",
 		"test": "liferay-npm-scripts test"
 	},
-	"version": "2.0.0"
+	"version": "3.0.0"
 }

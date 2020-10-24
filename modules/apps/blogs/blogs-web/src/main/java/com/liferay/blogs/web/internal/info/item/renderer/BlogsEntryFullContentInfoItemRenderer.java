@@ -32,7 +32,9 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Eudaldo Alonso
  */
-@Component(service = InfoItemRenderer.class)
+@Component(
+	property = "service.ranking:Integer=300", service = InfoItemRenderer.class
+)
 public class BlogsEntryFullContentInfoItemRenderer
 	implements InfoItemRenderer<BlogsEntry> {
 
@@ -55,8 +57,8 @@ public class BlogsEntryFullContentInfoItemRenderer
 		try {
 			requestDispatcher.include(httpServletRequest, httpServletResponse);
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
 		}
 	}
 

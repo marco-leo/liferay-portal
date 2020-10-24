@@ -24,21 +24,19 @@ import com.liferay.document.library.kernel.service.DLAppServiceUtil;
 import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.portal.configuration.test.util.ConfigurationTemporarySwapper;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
 import com.liferay.registry.ServiceRegistration;
@@ -46,7 +44,6 @@ import com.liferay.registry.ServiceRegistration;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -63,21 +60,19 @@ public abstract class BaseAssetAutoTaggerTestCase {
 
 	@Before
 	public void setUp() throws Exception {
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
-
-		company = CompanyTestUtil.addCompany();
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		group = GroupTestUtil.addGroup();
 
 		Registry registry = RegistryUtil.getRegistry();
 
-		Map<String, Object> properties = HashMapBuilder.<String, Object>put(
-			"model.class.name", DLFileEntryConstants.getClassName()
-		).build();
-
 		_assetAutoTagProviderServiceRegistration = registry.registerService(
-			AssetAutoTagProvider.class,
-			model -> Arrays.asList(ASSET_TAG_NAME_AUTO), properties);
+			(Class<AssetAutoTagProvider<?>>)
+				(Class<?>)AssetAutoTagProvider.class,
+			model -> Arrays.asList(ASSET_TAG_NAME_AUTO),
+			HashMapBuilder.<String, Object>put(
+				"model.class.name", DLFileEntryConstants.getClassName()
+			).build());
 	}
 
 	@After
@@ -156,8 +151,6 @@ public abstract class BaseAssetAutoTaggerTestCase {
 	}
 
 	@DeleteAfterTestRun
-	protected Company company;
-
 	protected Group group;
 
 	private void _withAutoTagger(
@@ -178,7 +171,7 @@ public abstract class BaseAssetAutoTaggerTestCase {
 		}
 	}
 
-	private ServiceRegistration<AssetAutoTagProvider>
+	private ServiceRegistration<AssetAutoTagProvider<?>>
 		_assetAutoTagProviderServiceRegistration;
 
 }

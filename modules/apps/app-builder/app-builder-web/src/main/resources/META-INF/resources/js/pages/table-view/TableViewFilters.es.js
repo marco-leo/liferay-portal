@@ -16,49 +16,53 @@ import ClayButton from '@clayui/button';
 import ClayDropDown, {Align} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
 import classNames from 'classnames';
+import {DataDefinitionUtils, SearchInput} from 'data-engine-taglib';
 import React, {useContext, useRef, useState} from 'react';
 
-import SearchInput from '../../components/management-toolbar/search/SearchInput.es';
-import {
-	getDataDefinitionField,
-	getOptionLabel
-} from '../../utils/dataDefinition.es';
 import EditTableViewContext, {
-	UPDATE_FILTER_VALUE
+	REMOVE_FILTER_VALUE,
+	UPDATE_FILTER_VALUE,
 } from './EditTableViewContext.es';
 
 export const MultipleSelectFilter = ({dataDefinitionField, useFieldLabel}) => {
-	const [{dataListViewFilters}, dispatch] = useContext(EditTableViewContext);
+	const [{dataListView, editingLanguageId}, dispatch] = useContext(
+		EditTableViewContext
+	);
 
 	const {
 		customProperties: {options = {}},
 		label: fieldLabel,
-		name: fieldName
+		name: fieldName,
 	} = dataDefinitionField;
-	const localizedOptions = options[themeDisplay.getLanguageId()] || [];
+	const localizedOptions = options[editingLanguageId] || [];
 
-	const values = dataListViewFilters[fieldName] || [];
+	const values = dataListView.appliedFilters[fieldName] || [];
 
 	const [active, setActive] = useState(false);
 
-	const onClickItem = optionValue => {
+	const onClickItem = (optionValue) => {
 		let newValue;
 
 		if (values.includes(optionValue)) {
-			newValue = values.filter(item => item !== optionValue);
-		} else {
+			newValue = values.filter((item) => item !== optionValue);
+		}
+		else {
 			newValue = [...values, optionValue];
 		}
 
-		dispatch({
-			payload: {fieldName, value: newValue},
-			type: UPDATE_FILTER_VALUE
-		});
+		if (newValue.length) {
+			dispatch({
+				payload: {fieldName, value: newValue},
+				type: UPDATE_FILTER_VALUE,
+			});
+		}
+		else {
+			dispatch({
+				payload: {fieldName},
+				type: REMOVE_FILTER_VALUE,
+			});
+		}
 	};
-
-	const labels = values.filter(optionValue =>
-		getOptionLabel(localizedOptions, optionValue)
-	);
 
 	const alignElementRef = useRef();
 	const dropdownMenuRef = useRef();
@@ -68,11 +72,8 @@ export const MultipleSelectFilter = ({dataDefinitionField, useFieldLabel}) => {
 
 	const onClickClear = () => {
 		dispatch({
-			payload: {
-				fieldName,
-				value: []
-			},
-			type: UPDATE_FILTER_VALUE
+			payload: {fieldName},
+			type: REMOVE_FILTER_VALUE,
 		});
 	};
 
@@ -80,18 +81,16 @@ export const MultipleSelectFilter = ({dataDefinitionField, useFieldLabel}) => {
 		dispatch({
 			payload: {
 				fieldName,
-				value: localizedOptions.map(({value}) => value)
+				value: localizedOptions.map(({value}) => value),
 			},
-			type: UPDATE_FILTER_VALUE
+			type: UPDATE_FILTER_VALUE,
 		});
 	};
 
 	return (
 		<div className="multiple-select-filter table-view-filter">
 			{useFieldLabel ? (
-				<label>
-					{fieldLabel[themeDisplay.getLanguageId()] || fieldName}
-				</label>
+				<label>{fieldLabel[editingLanguageId] || fieldName}</label>
 			) : (
 				<label>
 					{Liferay.Language.get('filter-entries')}
@@ -109,7 +108,7 @@ export const MultipleSelectFilter = ({dataDefinitionField, useFieldLabel}) => {
 
 			<ClayButton
 				className={classNames('multiple-select-filter-trigger', {
-					empty: values.length === 0
+					empty: values.length === 0,
 				})}
 				displayType="secondary"
 				onClick={() => setActive(!active)}
@@ -118,7 +117,10 @@ export const MultipleSelectFilter = ({dataDefinitionField, useFieldLabel}) => {
 				<span className="multiple-select-filter-values">
 					{values.length === 0
 						? Liferay.Language.get('choose-options')
-						: labels.join(', ')}
+						: localizedOptions
+								.filter(({value}) => values.includes(value))
+								.map(({label, value}) => label || value)
+								.join(', ')}
 				</span>
 
 				<ClayIcon symbol="caret-bottom" />
@@ -131,7 +133,7 @@ export const MultipleSelectFilter = ({dataDefinitionField, useFieldLabel}) => {
 				autoBestAlign={true}
 				className="multiple-select-filter-dropdown"
 				hasRightSymbols
-				onSetActive={newVal => setActive(newVal)}
+				onSetActive={(newVal) => setActive(newVal)}
 				ref={dropdownMenuRef}
 			>
 				<ClayDropDown.ItemList className="multiple-select-filter-dropdown-items">
@@ -144,7 +146,7 @@ export const MultipleSelectFilter = ({dataDefinitionField, useFieldLabel}) => {
 
 					<ClayDropDown.Item
 						className={classNames('dropdown-select-all', {
-							clearable: values.length > 0
+							clearable: values.length > 0,
 						})}
 						key="all"
 					>
@@ -174,7 +176,7 @@ export const MultipleSelectFilter = ({dataDefinitionField, useFieldLabel}) => {
 						.map(({label, value}, index) => (
 							<ClayDropDown.Item
 								key={index}
-								onClick={event => {
+								onClick={(event) => {
 									event.preventDefault();
 
 									onClickItem(value);
@@ -194,13 +196,13 @@ export const MultipleSelectFilter = ({dataDefinitionField, useFieldLabel}) => {
 
 const RENDERERS = {
 	radio: MultipleSelectFilter,
-	select: MultipleSelectFilter
+	select: MultipleSelectFilter,
 };
 
 export const FilterRenderer = ({fieldName, useFieldLabel}) => {
 	const [{dataDefinition}] = useContext(EditTableViewContext);
 
-	const dataDefinitionField = getDataDefinitionField(
+	const dataDefinitionField = DataDefinitionUtils.getDataDefinitionField(
 		dataDefinition,
 		fieldName
 	);
@@ -223,18 +225,18 @@ export const TableViewFiltersList = () => {
 	const [
 		{
 			dataListView: {fieldNames},
-			focusedColumn
-		}
+			focusedColumn,
+		},
 	] = useContext(EditTableViewContext);
 
 	const filteredFieldNames = focusedColumn
-		? fieldNames.filter(fieldName => fieldName === focusedColumn)
+		? fieldNames.filter((fieldName) => fieldName === focusedColumn)
 		: fieldNames;
 
 	return (
 		<div
 			className={classNames('table-view-filters-list', {
-				'single-field': !!focusedColumn
+				'single-field': !!focusedColumn,
 			})}
 		>
 			{!focusedColumn && (
@@ -252,7 +254,7 @@ export const TableViewFiltersList = () => {
 				</h4>
 			)}
 
-			{filteredFieldNames.map(fieldName => (
+			{filteredFieldNames.map((fieldName) => (
 				<FilterRenderer
 					fieldName={fieldName}
 					key={fieldName}

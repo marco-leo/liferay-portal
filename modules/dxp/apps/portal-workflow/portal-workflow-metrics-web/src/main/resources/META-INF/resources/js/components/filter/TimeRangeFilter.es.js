@@ -9,89 +9,141 @@
  * distribution rights of the Software.
  */
 
-import React, {useContext} from 'react';
+import React, {useContext, useMemo} from 'react';
 
-import Filter from '../../../shared/components/filter/Filter.es';
+import Filter from '../../shared/components/filter/Filter.es';
+import {useFilterName} from '../../shared/components/filter/hooks/useFilterName.es';
+import {useFilterStatic} from '../../shared/components/filter/hooks/useFilterStatic.es';
 import filterConstants from '../../shared/components/filter/util/filterConstants.es';
-import {CustomTimeRangeForm} from './CustomTimeRangeForm.es';
 import {
-	getCustomTimeRangeName,
-	TimeRangeContext
-} from './store/TimeRangeStore.es';
+	getCapitalizedFilterKey,
+	mergeItemsArray,
+	replaceHistory,
+} from '../../shared/components/filter/util/filterUtil.es';
+import {parse, stringify} from '../../shared/components/router/queryString.es';
+import {useFilter} from '../../shared/hooks/useFilter.es';
+import {useRouter} from '../../shared/hooks/useRouter.es';
+import {useRouterParams} from '../../shared/hooks/useRouterParams.es';
+import {useSessionStorage} from '../../shared/hooks/useStorage.es';
+import {AppContext} from '../AppContext.es';
+import {CustomTimeRangeForm} from './CustomTimeRangeForm.es';
+import {useCustomFormState} from './hooks/useCustomFormState.es';
+import {getCustomTimeRange, parseDateItems} from './util/timeRangeUtil.es';
 
 const TimeRangeFilter = ({
 	buttonClassName,
 	className,
+	disabled,
 	filterKey = filterConstants.timeRange.key,
-	hideControl = false,
-	position = 'left',
-	showFilterName = true
+	options = {},
+	prefixKey = '',
 }) => {
-	const {
-		defaultTimeRange,
-		getSelectedTimeRange,
-		setShowCustomForm,
-		showCustomForm,
-		timeRanges
-	} = useContext(TimeRangeContext);
-
-	const isCustomFilter = currentFilter => currentFilter.key === 'custom';
-
-	const onChangeFilter = selectedFilter => {
-		const preventDefault = isCustomFilter(selectedFilter);
-
-		return preventDefault;
+	options = {
+		hideControl: true,
+		multiple: false,
+		position: 'left',
+		withSelectionTitle: true,
+		withoutRouteParams: false,
+		...options,
 	};
 
-	const onClickFilter = clickedFilter => {
-		if (isCustomFilter(clickedFilter)) {
-			setShowCustomForm(true);
+	const {isAmPm} = useContext(AppContext);
+	const {filters} = useRouterParams();
+	const {formVisible, onClickFilter, setFormVisible} = useCustomFormState();
 
-			if (clickedFilter.active) {
-				document.dispatchEvent(new Event('mousedown'));
-			}
-		} else {
-			setShowCustomForm(false);
+	const [storedTimeRanges = {}] = useSessionStorage('timeRanges');
+
+	const {dispatch} = useFilter(options);
+
+	const dateEndKey = getCapitalizedFilterKey(prefixKey, 'dateEnd');
+	const dateStartKey = getCapitalizedFilterKey(prefixKey, 'dateStart');
+	const prefixedFilterKey = getCapitalizedFilterKey(prefixKey, filterKey);
+	const routerProps = useRouter();
+
+	const dateEnd = filters[dateEndKey];
+	const dateStart = filters[dateStartKey];
+
+	const customRange = useMemo(() => getCustomTimeRange(dateEnd, dateStart), [
+		dateEnd,
+		dateStart,
+	]);
+
+	const staticItems = useMemo(
+		() =>
+			parseDateItems(isAmPm)(
+				mergeItemsArray([customRange], storedTimeRanges.items)
+			),
+		[customRange, storedTimeRanges.items, isAmPm]
+	);
+
+	const {items, selectedItems} = useFilterStatic({
+		filterKey,
+		prefixKey,
+		propertyKey: 'id',
+		staticItems,
+		withoutRouteParams: options.withoutRouteParams,
+	});
+
+	const defaultItem = useMemo(
+		() => items.find((timeRange) => timeRange.defaultTimeRange),
+		[items]
+	);
+
+	if (defaultItem && options.withSelectionTitle && !selectedItems.length) {
+		selectedItems[0] = defaultItem;
+	}
+
+	const filterName = useFilterName(
+		options.multiple,
+		selectedItems,
+		Liferay.Language.get('completion-period'),
+		options.withSelectionTitle
+	);
+
+	const handleSelectFilter = (filter) => {
+		const filterValue = {[prefixedFilterKey]: [filter.key]};
+		const query = parse(routerProps.location.search);
+
+		if (!options.withoutRouteParams) {
+			query.filters = {
+				...query.filters,
+				[dateEndKey]: filter.dateEnd,
+				[dateStartKey]: filter.dateStart,
+				...filterValue,
+			};
+
+			replaceHistory(stringify(query), routerProps);
 		}
-
-		return true;
+		else {
+			dispatch(filterValue);
+		}
 	};
-
-	const selectedTimeRange = getSelectedTimeRange();
 
 	return (
 		<Filter
 			buttonClassName={buttonClassName}
-			defaultItem={defaultTimeRange}
+			defaultItem={defaultItem}
+			disabled={disabled}
 			elementClasses={className}
 			filterKey={filterKey}
-			hideControl={hideControl}
-			items={[...timeRanges]}
-			multiple={false}
-			name={getFilterName(selectedTimeRange, showFilterName)}
-			onChangeFilter={onChangeFilter}
-			onClickFilter={onClickFilter}
-			position={position}
+			items={items}
+			name={filterName}
+			onClickFilter={onClickFilter(handleSelectFilter)}
+			prefixKey={prefixKey}
+			preventClick
+			{...options}
 		>
-			{showCustomForm && <CustomTimeRangeForm filterKey={filterKey} />}
+			{formVisible && (
+				<CustomTimeRangeForm
+					handleSelectFilter={handleSelectFilter}
+					items={items}
+					prefixKey={prefixKey}
+					setFormVisible={setFormVisible}
+					withoutRouteParams={options.withoutRouteParams}
+				/>
+			)}
 		</Filter>
 	);
 };
 
-const getFilterName = (selectedTimeRange, showFilterName) => {
-	if (showFilterName) {
-		return Liferay.Language.get('completion-period');
-	}
-
-	if (!selectedTimeRange) {
-		return '';
-	}
-
-	if (selectedTimeRange.key === 'custom') {
-		return getCustomTimeRangeName(selectedTimeRange);
-	}
-
-	return selectedTimeRange.name;
-};
-
-export {TimeRangeFilter};
+export default TimeRangeFilter;

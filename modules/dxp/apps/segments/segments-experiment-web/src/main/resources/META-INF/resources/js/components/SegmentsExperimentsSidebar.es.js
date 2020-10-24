@@ -26,19 +26,19 @@ import {
 	openEditionModal,
 	reviewClickTargetElement,
 	updateSegmentsExperimentStatus,
-	updateSegmentsExperimentTarget
+	updateSegmentsExperimentTarget,
 } from '../state/actions.es';
 import {
-	getInitialState,
 	DispatchContext,
-	StateContext
+	StateContext,
+	getInitialState,
 } from '../state/context.es';
 import {reducer} from '../state/reducer.es';
 import {
 	SegmentsExperienceType,
 	SegmentsExperimentGoal,
 	SegmentsExperimentType,
-	SegmentsVariantType
+	SegmentsVariantType,
 } from '../types.es';
 import {navigateToExperience} from '../util/navigation.es';
 import {STATUS_COMPLETED, STATUS_TERMINATED} from '../util/statuses.es';
@@ -55,7 +55,7 @@ function SegmentsExperimentsSidebar({
 	initialSegmentsVariants,
 	initialSelectedSegmentsExperienceId = '0',
 	viewSegmentsExperimentDetailsURL,
-	winnerSegmentsVariantId
+	winnerSegmentsVariantId,
 }) {
 	const {APIService, page} = useContext(SegmentsExperimentsContext);
 	const [state, dispatch] = useReducer(
@@ -66,7 +66,7 @@ function SegmentsExperimentsSidebar({
 			initialSegmentsVariants,
 			initialSelectedSegmentsExperienceId,
 			viewSegmentsExperimentDetailsURL,
-			winnerSegmentsVariantId
+			winnerSegmentsVariantId,
 		},
 		getInitialState
 	);
@@ -75,15 +75,15 @@ function SegmentsExperimentsSidebar({
 
 	const {
 		observer: creationModalObserver,
-		onClose: onCreationModalClose
+		onClose: onCreationModalClose,
 	} = useModal({
-		onClose: () => dispatch(closeCreationModal())
+		onClose: () => dispatch(closeCreationModal()),
 	});
 	const {
 		observer: editionModalObserver,
-		onClose: onEditionModalClose
+		onClose: onEditionModalClose,
 	} = useModal({
-		onClose: () => dispatch(closeEditionModal())
+		onClose: () => dispatch(closeEditionModal()),
 	});
 
 	return page.type === 'content' ? (
@@ -156,7 +156,7 @@ function SegmentsExperimentsSidebar({
 
 	function _handleDeleteSegmentsExperiment(experimentId) {
 		const body = {
-			segmentsExperimentId: experimentId
+			segmentsExperimentId: experimentId,
 		};
 
 		APIService.deleteExperiment(body)
@@ -168,11 +168,12 @@ function SegmentsExperimentsSidebar({
 					experiment.segmentsExperimentId === experimentId
 				) {
 					navigateToExperience(experiment.segmentsExperienceId);
-				} else {
+				}
+				else {
 					dispatch(deleteArchivedExperiment(experimentId));
 				}
 			})
-			.catch(_error => {
+			.catch((_error) => {
 				openErrorToast();
 			});
 	}
@@ -183,7 +184,7 @@ function SegmentsExperimentsSidebar({
 			goal,
 			goalTarget,
 			name,
-			segmentsExperienceId
+			segmentsExperienceId,
 		} = experimentData;
 
 		const body = {
@@ -193,14 +194,14 @@ function SegmentsExperimentsSidebar({
 			goal,
 			goalTarget,
 			name,
-			segmentsExperienceId
+			segmentsExperienceId,
 		};
 
 		return APIService.createExperiment(body)
 			.then(function _successCallback(objectResponse) {
 				const {
 					segmentsExperiment,
-					segmentsExperimentRel
+					segmentsExperimentRel,
 				} = objectResponse;
 
 				const {
@@ -212,7 +213,7 @@ function SegmentsExperimentsSidebar({
 					segmentsEntryName,
 					segmentsExperienceId,
 					segmentsExperimentId,
-					status
+					status,
 				} = segmentsExperiment;
 
 				openSuccessToast();
@@ -231,7 +232,7 @@ function SegmentsExperimentsSidebar({
 						segmentsEntryName,
 						segmentsExperienceId,
 						segmentsExperimentId,
-						status
+						status,
 					})
 				);
 			})
@@ -241,7 +242,7 @@ function SegmentsExperimentsSidebar({
 						description,
 						error: Liferay.Language.get('create-test-error'),
 						name,
-						segmentsExperienceId
+						segmentsExperienceId,
 					})
 				);
 			});
@@ -250,7 +251,7 @@ function SegmentsExperimentsSidebar({
 	function _handleEditSegmentExperimentStatus(experimentData, status) {
 		const body = {
 			segmentsExperimentId: experimentData.segmentsExperimentId,
-			status
+			status,
 		};
 
 		return APIService.editExperimentStatus(body)
@@ -263,14 +264,15 @@ function SegmentsExperimentsSidebar({
 				) {
 					dispatch(
 						archiveExperiment({
-							status
+							status,
 						})
 					);
-				} else {
+				}
+				else {
 					dispatch(
 						updateSegmentsExperimentStatus({
 							editable,
-							status
+							status,
 						})
 					);
 				}
@@ -280,8 +282,7 @@ function SegmentsExperimentsSidebar({
 					message: Liferay.Language.get(
 						'an-unexpected-error-occurred'
 					),
-					title: Liferay.Language.get('error'),
-					type: 'danger'
+					type: 'danger',
 				});
 			});
 	}
@@ -296,7 +297,7 @@ function SegmentsExperimentsSidebar({
 			goal,
 			goalTarget,
 			name,
-			segmentsExperimentId
+			segmentsExperimentId,
 		} = experimentData;
 
 		const body = {
@@ -304,10 +305,10 @@ function SegmentsExperimentsSidebar({
 			goal,
 			goalTarget,
 			name,
-			segmentsExperimentId
+			segmentsExperimentId,
 		};
 
-		APIService.editExperiment(body)
+		return APIService.editExperiment(body)
 			.then(function _successCallback(objectResponse) {
 				const {
 					confidenceLevel,
@@ -318,7 +319,7 @@ function SegmentsExperimentsSidebar({
 					segmentsEntryName,
 					segmentsExperienceId,
 					segmentsExperimentId,
-					status
+					status,
 				} = objectResponse.segmentsExperiment;
 
 				dispatch(closeEditionModal());
@@ -333,7 +334,7 @@ function SegmentsExperimentsSidebar({
 						segmentsEntryName,
 						segmentsExperienceId,
 						segmentsExperimentId,
-						status
+						status,
 					})
 				);
 			})
@@ -349,7 +350,7 @@ function SegmentsExperimentsSidebar({
 							experimentData.segmentsExperienceId,
 						segmentsExperimentId:
 							experimentData.segmentsExperimentId,
-						status: experimentData.status
+						status: experimentData.status,
 					})
 				);
 			});
@@ -365,7 +366,7 @@ function SegmentsExperimentsSidebar({
 			goal: experiment.goal.value,
 			goalTarget: selector,
 			name: experiment.name,
-			segmentsExperimentId: experiment.segmentsExperimentId
+			segmentsExperimentId: experiment.segmentsExperimentId,
 		};
 
 		APIService.editExperiment(body)
@@ -374,12 +375,12 @@ function SegmentsExperimentsSidebar({
 
 				dispatch(
 					updateSegmentsExperimentTarget({
-						goal: {...experiment.goal, target: selector}
+						goal: {...experiment.goal, target: selector},
 					})
 				);
 				dispatch(reviewClickTargetElement());
 			})
-			.catch(_error => {
+			.catch((_error) => {
 				openErrorToast();
 			});
 	}
@@ -393,7 +394,7 @@ SegmentsExperimentsSidebar.propTypes = {
 	initialSegmentsExperiment: SegmentsExperimentType,
 	initialSegmentsVariants: PropTypes.arrayOf(SegmentsVariantType).isRequired,
 	initialSelectedSegmentsExperienceId: PropTypes.string,
-	winnerSegmentsVariantId: PropTypes.string
+	winnerSegmentsVariantId: PropTypes.string,
 };
 
 export default SegmentsExperimentsSidebar;

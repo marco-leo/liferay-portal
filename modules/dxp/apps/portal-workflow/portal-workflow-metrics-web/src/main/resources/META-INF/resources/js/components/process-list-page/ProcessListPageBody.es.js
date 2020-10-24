@@ -9,81 +9,55 @@
  * distribution rights of the Software.
  */
 
-import React from 'react';
+import ClayLayout from '@clayui/layout';
+import React, {useMemo} from 'react';
 
-import EmptyState from '../../shared/components/list/EmptyState.es';
+import ContentView from '../../shared/components/content-view/ContentView.es';
 import ReloadButton from '../../shared/components/list/ReloadButton.es';
-import LoadingState from '../../shared/components/loading/LoadingState.es';
-import PaginationBar from '../../shared/components/pagination/PaginationBar.es';
-import PromisesResolver from '../../shared/components/request/PromisesResolver.es';
-import ProcessListPage from './ProcessListPage.es';
+import PaginationBar from '../../shared/components/pagination-bar/PaginationBar.es';
+import {Table} from './ProcessListPageTable.es';
 
-const Body = ({data, search}) => {
+const Body = ({filtered, items, page, pageSize, totalCount}) => {
+	const statesProps = useMemo(
+		() => ({
+			emptyProps: {
+				filtered,
+				message: Liferay.Language.get(
+					'once-there-are-active-processes-metrics-will-appear-here'
+				),
+				title: !filtered && Liferay.Language.get('no-current-metrics'),
+			},
+			errorProps: {
+				actionButton: <ReloadButton />,
+				hideAnimation: true,
+				message: Liferay.Language.get(
+					'there-was-a-problem-retrieving-data-please-try-reloading-the-page'
+				),
+			},
+			loadingProps: {className: 'py-6 sheet'},
+		}),
+		[filtered]
+	);
+
 	return (
-		<>
-			<PromisesResolver.Pending>
-				<ProcessListPage.Loading />
-			</PromisesResolver.Pending>
-
-			<PromisesResolver.Resolved>
-				{data.totalCount ? (
+		<ClayLayout.ContainerFluid className="mt-4">
+			<ContentView {...statesProps}>
+				{totalCount > 0 && (
 					<>
-						<ProcessListPage.Table items={data.items} />
+						<Body.Table items={items} />
 
 						<PaginationBar
-							page={data.page}
-							pageCount={data.items.length}
-							pageSize={data.pageSize}
-							totalCount={data.totalCount}
+							page={page}
+							pageSize={pageSize}
+							totalCount={totalCount}
 						/>
 					</>
-				) : (
-					<ProcessListPage.Empty search={search} />
 				)}
-			</PromisesResolver.Resolved>
-
-			<PromisesResolver.Rejected>
-				<ProcessListPage.Error />
-			</PromisesResolver.Rejected>
-		</>
+			</ContentView>
+		</ClayLayout.ContainerFluid>
 	);
 };
 
-const EmptyView = ({search}) => {
-	const message = search
-		? Liferay.Language.get('no-results-were-found')
-		: Liferay.Language.get(
-				'once-there-are-active-processes-metrics-will-appear-here'
-		  );
+Body.Table = Table;
 
-	return (
-		<EmptyState
-			className="border-1"
-			hideAnimation={false}
-			message={message}
-			title={!search && Liferay.Language.get('no-current-metrics')}
-			type={search && 'not-found'}
-		/>
-	);
-};
-
-const ErrorView = () => {
-	return (
-		<EmptyState
-			actionButton={<ReloadButton />}
-			className="border-1"
-			hideAnimation={true}
-			message={Liferay.Language.get(
-				'there-was-a-problem-retrieving-data-please-try-reloading-the-page'
-			)}
-			messageClassName="small"
-			type="error"
-		/>
-	);
-};
-
-const LoadingView = () => {
-	return <LoadingState />;
-};
-
-export {Body, EmptyView, ErrorView, LoadingView};
+export {Body};

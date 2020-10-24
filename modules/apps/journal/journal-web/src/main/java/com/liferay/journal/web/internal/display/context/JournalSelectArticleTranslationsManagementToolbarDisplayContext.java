@@ -34,14 +34,14 @@ public class JournalSelectArticleTranslationsManagementToolbarDisplayContext
 	extends SearchContainerManagementToolbarDisplayContext {
 
 	public JournalSelectArticleTranslationsManagementToolbarDisplayContext(
+			HttpServletRequest httpServletRequest,
 			LiferayPortletRequest liferayPortletRequest,
 			LiferayPortletResponse liferayPortletResponse,
-			HttpServletRequest httpServletRequest,
 			JournalDisplayContext journalDisplayContext)
 		throws Exception {
 
 		super(
-			liferayPortletRequest, liferayPortletResponse, httpServletRequest,
+			httpServletRequest, liferayPortletRequest, liferayPortletResponse,
 			journalDisplayContext.getArticleTranslationsSearchContainer());
 
 		_journalDisplayContext = journalDisplayContext;
@@ -71,11 +71,16 @@ public class JournalSelectArticleTranslationsManagementToolbarDisplayContext
 			portletURL.setParameter(
 				"status", String.valueOf(article.getStatus()));
 		}
-		catch (PortalException pe) {
-			_log.error("Unable to get the article", pe);
+		catch (PortalException portalException) {
+			_log.error("Unable to get the article", portalException);
 		}
 
 		return portletURL.toString();
+	}
+
+	@Override
+	public String getSearchContainerId() {
+		return "articleTranslations";
 	}
 
 	@Override

@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -47,6 +49,7 @@ public class AssetEntryUsageWrapper
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
 		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
 		attributes.put("assetEntryUsageId", getAssetEntryUsageId());
 		attributes.put("groupId", getGroupId());
@@ -69,6 +72,12 @@ public class AssetEntryUsageWrapper
 
 		if (mvccVersion != null) {
 			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
 		}
 
 		String uuid = (String)attributes.get("uuid");
@@ -205,6 +214,16 @@ public class AssetEntryUsageWrapper
 	}
 
 	/**
+	 * Returns the ct collection ID of this asset entry usage.
+	 *
+	 * @return the ct collection ID of this asset entry usage
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
+	}
+
+	/**
 	 * Returns the group ID of this asset entry usage.
 	 *
 	 * @return the group ID of this asset entry usage
@@ -284,11 +303,6 @@ public class AssetEntryUsageWrapper
 		return model.getUuid();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a asset entry usage model instance should use the <code>AssetEntryUsage</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -352,6 +366,16 @@ public class AssetEntryUsageWrapper
 	@Override
 	public void setCreateDate(Date createDate) {
 		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets the ct collection ID of this asset entry usage.
+	 *
+	 * @param ctCollectionId the ct collection ID of this asset entry usage
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -432,6 +456,20 @@ public class AssetEntryUsageWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
+	}
+
+	@Override
+	public Map<String, Function<AssetEntryUsage, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<AssetEntryUsage, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

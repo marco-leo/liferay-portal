@@ -79,6 +79,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -158,12 +159,12 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			Assert.assertEquals(
 				StringBundler.concat(
 					"Field ", fields[0], " is expected to be of type ",
 					Object.class, " and not static"),
-				iae.getMessage());
+				illegalArgumentException.getMessage());
 		}
 
 		try {
@@ -172,12 +173,12 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			Assert.assertEquals(
 				StringBundler.concat(
 					"Field ", fields[0], " is expected to be of type ",
 					String.class, " and static"),
-				iae.getMessage());
+				illegalArgumentException.getMessage());
 		}
 	}
 
@@ -260,12 +261,12 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			Assert.assertEquals(
 				"The @Id annotated method " +
 					TestExtractMethodsClass1.class.getMethod("getId") +
 						" must not be static",
-				iae.getMessage());
+				illegalArgumentException.getMessage());
 		}
 
 		try {
@@ -273,14 +274,14 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			Method method = TestExtractMethodsClass2.class.getMethod(
 				"getId", Object.class);
 
 			Assert.assertEquals(
 				"The @Id annotated method " + method +
 					" must not have parameters",
-				iae.getMessage());
+				illegalArgumentException.getMessage());
 		}
 
 		try {
@@ -288,12 +289,12 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			Assert.assertEquals(
 				"The @Id annotated method " +
 					TestExtractMethodsClass3.class.getMethod("getId") +
 						" must not return String",
-				iae.getMessage());
+				illegalArgumentException.getMessage());
 		}
 
 		try {
@@ -301,11 +302,11 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			Assert.assertEquals(
 				"Static proxy method violation for " +
 					TestExtractMethodsClass4.class.getMethod("doStuff"),
-				iae.getMessage());
+				illegalArgumentException.getMessage());
 		}
 
 		IntrabandProxyUtil.MethodsBag methodsBag =
@@ -606,8 +607,8 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (RuntimeException re) {
-			Throwable throwable = re.getCause();
+		catch (RuntimeException runtimeException) {
+			Throwable throwable = runtimeException.getCause();
 
 			throwable = throwable.getCause();
 
@@ -625,8 +626,8 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (RuntimeException re) {
-			Throwable throwable = re.getCause();
+		catch (RuntimeException runtimeException) {
+			Throwable throwable = runtimeException.getCause();
 
 			throwable = throwable.getCause();
 
@@ -779,8 +780,9 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (NullPointerException npe) {
-			Assert.assertEquals("Target locator is null", npe.getMessage());
+		catch (NullPointerException nullPointerException) {
+			Assert.assertEquals(
+				"Target locator is null", nullPointerException.getMessage());
 		}
 
 		TestGenerateTargetLocator testGenerateTargetLocator =
@@ -865,8 +867,9 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (NullPointerException npe) {
-			Assert.assertEquals("Id is null", npe.getMessage());
+		catch (NullPointerException nullPointerException) {
+			Assert.assertEquals(
+				"Id is null", nullPointerException.getMessage());
 		}
 
 		try {
@@ -874,9 +877,10 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (NullPointerException npe) {
+		catch (NullPointerException nullPointerException) {
 			Assert.assertEquals(
-				"Registration reference is null", npe.getMessage());
+				"Registration reference is null",
+				nullPointerException.getMessage());
 		}
 
 		final AtomicReference<RPCResponse> rpcResponseReference =
@@ -1091,8 +1095,8 @@ public class IntrabandProxyUtilTest {
 			try {
 				return deserializer.readObject();
 			}
-			catch (ClassNotFoundException cnfe) {
-				throw new RuntimeException(cnfe);
+			catch (ClassNotFoundException classNotFoundException) {
+				throw new RuntimeException(classNotFoundException);
 			}
 		}
 	}
@@ -1199,13 +1203,13 @@ public class IntrabandProxyUtilTest {
 	}
 
 	private void _assertLdcInsnNode(
-		AbstractInsnNode abstractInsnNode, int opcode, Object obj) {
+		AbstractInsnNode abstractInsnNode, int opcode, Object object) {
 
 		Assert.assertEquals(opcode, abstractInsnNode.getOpcode());
 
 		LdcInsnNode ldcInsnNode = (LdcInsnNode)abstractInsnNode;
 
-		Assert.assertEquals(obj, ldcInsnNode.cst);
+		Assert.assertEquals(object, ldcInsnNode.cst);
 	}
 
 	private void _assertMethodInsnNode(
@@ -1279,13 +1283,9 @@ public class IntrabandProxyUtilTest {
 		for (int i = 0; i < proxyMethodSignatures.length; i++) {
 			Method proxyMethod = proxyMethods.get(i);
 
-			String name = proxyMethod.getName();
-
-			proxyMethodSignatures[i] = name.concat(
-				StringPool.DASH
-			).concat(
-				Type.getMethodDescriptor(proxyMethod)
-			);
+			proxyMethodSignatures[i] = StringBundler.concat(
+				proxyMethod.getName(), StringPool.DASH,
+				Type.getMethodDescriptor(proxyMethod));
 		}
 
 		return proxyMethodSignatures;
@@ -1754,7 +1754,7 @@ public class IntrabandProxyUtilTest {
 			_buildProxyMethodSignatures(clazz), proxyMethodSignatures);
 
 		StringBundler sb = new StringBundler(
-			proxyMethodSignatures.length * 4 + 1);
+			(proxyMethodSignatures.length * 4) + 1);
 
 		sb.append(StringPool.OPEN_CURLY_BRACE);
 
@@ -2082,8 +2082,8 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (RuntimeException re) {
-			Throwable throwable = re.getCause();
+		catch (RuntimeException runtimeException) {
+			Throwable throwable = runtimeException.getCause();
 
 			Assert.assertSame(
 				InvocationTargetException.class, throwable.getClass());
@@ -2108,9 +2108,10 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			Assert.assertEquals(
-				Id.class + " is an annotation", iae.getMessage());
+				Id.class + " is an annotation",
+				illegalArgumentException.getMessage());
 		}
 
 		try {
@@ -2119,8 +2120,10 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
-			Assert.assertEquals(int[].class + " is an array", iae.getMessage());
+		catch (IllegalArgumentException illegalArgumentException) {
+			Assert.assertEquals(
+				int[].class + " is an array",
+				illegalArgumentException.getMessage());
 		}
 
 		try {
@@ -2129,9 +2132,10 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			Assert.assertEquals(
-				SystemDataType.class + " is an enum", iae.getMessage());
+				SystemDataType.class + " is an enum",
+				illegalArgumentException.getMessage());
 		}
 
 		try {
@@ -2140,9 +2144,10 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			Assert.assertEquals(
-				int.class + " is a primitive", iae.getMessage());
+				int.class + " is a primitive",
+				illegalArgumentException.getMessage());
 		}
 
 		ClassLoader classLoader = new URLClassLoader(new URL[0], null);
@@ -2153,11 +2158,11 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			Assert.assertEquals(
 				IntrabandProxyUtilTest.class +
 					" is not visible from class loader " + classLoader,
-				iae.getMessage());
+				illegalArgumentException.getMessage());
 		}
 
 		class TestValidateClass1 {
@@ -2173,7 +2178,7 @@ public class IntrabandProxyUtilTest {
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			Field field = TestValidateClass1.class.getDeclaredField(
 				"PROXY_METHOD_SIGNATURES");
 
@@ -2181,7 +2186,7 @@ public class IntrabandProxyUtilTest {
 				StringBundler.concat(
 					"Field ", field, " is expected to be of type ",
 					String[].class, " and static"),
-				iae.getMessage());
+				illegalArgumentException.getMessage());
 		}
 
 		if (skeletonOrStub) {
@@ -2198,7 +2203,7 @@ public class IntrabandProxyUtilTest {
 
 				Assert.fail();
 			}
-			catch (IllegalArgumentException iae) {
+			catch (IllegalArgumentException illegalArgumentException) {
 				Field field = TestValidateClass2.class.getDeclaredField(
 					"_PROXY_METHODS_MAPPING");
 
@@ -2206,7 +2211,7 @@ public class IntrabandProxyUtilTest {
 					StringBundler.concat(
 						"Field ", field, " is expected to be of type ",
 						String.class, " and static"),
-					iae.getMessage());
+					illegalArgumentException.getMessage());
 			}
 
 			class TestValidateClass3 {
@@ -2222,14 +2227,14 @@ public class IntrabandProxyUtilTest {
 
 				Assert.fail();
 			}
-			catch (IllegalArgumentException iae) {
+			catch (IllegalArgumentException illegalArgumentException) {
 				Field field = TestValidateClass3.class.getDeclaredField("_log");
 
 				Assert.assertEquals(
 					StringBundler.concat(
 						"Field ", field, " is expected to be of type ",
 						Log.class, " and static"),
-					iae.getMessage());
+					illegalArgumentException.getMessage());
 			}
 
 			class TestValidateClass4 {
@@ -2245,7 +2250,7 @@ public class IntrabandProxyUtilTest {
 
 				Assert.fail();
 			}
-			catch (IllegalArgumentException iae) {
+			catch (IllegalArgumentException illegalArgumentException) {
 				Field field = TestValidateClass4.class.getDeclaredField(
 					"_targetLocator");
 
@@ -2253,7 +2258,7 @@ public class IntrabandProxyUtilTest {
 					StringBundler.concat(
 						"Field ", field, " is expected to be of type ",
 						TargetLocator.class, " and not static"),
-					iae.getMessage());
+					illegalArgumentException.getMessage());
 			}
 		}
 		else {
@@ -2270,7 +2275,7 @@ public class IntrabandProxyUtilTest {
 
 				Assert.fail();
 			}
-			catch (IllegalArgumentException iae) {
+			catch (IllegalArgumentException illegalArgumentException) {
 				Field field = TestValidateClass5.class.getDeclaredField(
 					"_proxyType");
 
@@ -2278,7 +2283,7 @@ public class IntrabandProxyUtilTest {
 					StringBundler.concat(
 						"Field ", field, " is expected to be of type ",
 						byte.class, " and static"),
-					iae.getMessage());
+					illegalArgumentException.getMessage());
 			}
 
 			class TestValidateClass6 {
@@ -2294,14 +2299,14 @@ public class IntrabandProxyUtilTest {
 
 				Assert.fail();
 			}
-			catch (IllegalArgumentException iae) {
+			catch (IllegalArgumentException illegalArgumentException) {
 				Field field = TestValidateClass6.class.getDeclaredField("_id");
 
 				Assert.assertEquals(
 					StringBundler.concat(
 						"Field ", field, " is expected to be of type ",
 						String.class, " and not static"),
-					iae.getMessage());
+					illegalArgumentException.getMessage());
 			}
 
 			class TestValidateClass7 {
@@ -2317,7 +2322,7 @@ public class IntrabandProxyUtilTest {
 
 				Assert.fail();
 			}
-			catch (IllegalArgumentException iae) {
+			catch (IllegalArgumentException illegalArgumentException) {
 				Field field = TestValidateClass7.class.getDeclaredField(
 					"_intraband");
 
@@ -2325,7 +2330,7 @@ public class IntrabandProxyUtilTest {
 					StringBundler.concat(
 						"Field ", field, " is expected to be of type ",
 						Intraband.class, " and not static"),
-					iae.getMessage());
+					illegalArgumentException.getMessage());
 			}
 
 			class TestValidateClass8 {
@@ -2341,7 +2346,7 @@ public class IntrabandProxyUtilTest {
 
 				Assert.fail();
 			}
-			catch (IllegalArgumentException iae) {
+			catch (IllegalArgumentException illegalArgumentException) {
 				Field field = TestValidateClass8.class.getDeclaredField(
 					"_registrationReference");
 
@@ -2349,7 +2354,7 @@ public class IntrabandProxyUtilTest {
 					StringBundler.concat(
 						"Field ", field, " is expected to be of type ",
 						RegistrationReference.class, " and not static"),
-					iae.getMessage());
+					illegalArgumentException.getMessage());
 			}
 
 			class TestValidateClass9 {
@@ -2365,7 +2370,7 @@ public class IntrabandProxyUtilTest {
 
 				Assert.fail();
 			}
-			catch (IllegalArgumentException iae) {
+			catch (IllegalArgumentException illegalArgumentException) {
 				Field field = TestValidateClass9.class.getDeclaredField(
 					"_exceptionHandler");
 
@@ -2373,7 +2378,7 @@ public class IntrabandProxyUtilTest {
 					StringBundler.concat(
 						"Field ", field, " is expected to be of type ",
 						ExceptionHandler.class, " and not static"),
-					iae.getMessage());
+					illegalArgumentException.getMessage());
 			}
 		}
 
@@ -2456,14 +2461,14 @@ public class IntrabandProxyUtilTest {
 			classLoader.getResourceAsStream(name.concat(".class")));
 	}
 
-	private ClassNode _loadClass(InputStream is) {
+	private ClassNode _loadClass(InputStream inputStream) {
 		ClassReader classReader = null;
 
 		try {
-			classReader = new ClassReader(is);
+			classReader = new ClassReader(inputStream);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 
 		ClassNode classNode = new ClassNode();
@@ -2494,58 +2499,40 @@ public class IntrabandProxyUtilTest {
 	private static final ClassLoader _classLoader =
 		IntrabandProxyUtilTest.class.getClassLoader();
 	private static final Map<Class<?>, Object> _defaultValueMap =
-		HashMapBuilder.<Class<?>, Object>put(
-			boolean.class, Boolean.FALSE
-		).put(
-			byte.class, (byte)0
-		).put(
-			char.class, (char)0
-		).put(
-			Date.class, (Object)null
-		).put(
-			double.class, (double)0
-		).put(
-			float.class, (float)0
-		).put(
-			int.class, 0
-		).put(
-			long.class, (long)0
-		).put(
-			Object.class, (Object)null
-		).put(
-			short.class, (short)0
-		).put(
-			String.class, (Object)null
-		).put(
-			void.class, (Object)null
-		).build();
+		new HashMap<Class<?>, Object>() {
+			{
+				put(boolean.class, Boolean.FALSE);
+				put(byte.class, (byte)0);
+				put(char.class, (char)0);
+				put(Date.class, null);
+				put(double.class, (double)0);
+				put(float.class, (float)0);
+				put(int.class, 0);
+				put(long.class, (long)0);
+				put(Object.class, null);
+				put(short.class, (short)0);
+				put(String.class, null);
+				put(void.class, null);
+			}
+		};
 	private static final Method _getVisibleMethodsMethod;
 	private static final Map<Class<?>, Object> _sampleValueMap =
-		HashMapBuilder.<Class<?>, Object>put(
-			boolean.class, Boolean.TRUE
-		).put(
-			byte.class, (byte)11
-		).put(
-			char.class, 'X'
-		).put(
-			Date.class, new Date()
-		).put(
-			double.class, 12.345
-		).put(
-			float.class, 5.325F
-		).put(
-			int.class, 127
-		).put(
-			long.class, (long)82465
-		).put(
-			Object.class, new Locale("en")
-		).put(
-			short.class, (short)-35
-		).put(
-			String.class, "Hello"
-		).put(
-			void.class, (Object)null
-		).build();
+		new HashMap<Class<?>, Object>() {
+			{
+				put(boolean.class, Boolean.TRUE);
+				put(byte.class, (byte)11);
+				put(char.class, 'X');
+				put(Date.class, new Date());
+				put(double.class, 12.345);
+				put(float.class, 5.325F);
+				put(int.class, 127);
+				put(long.class, (long)82465);
+				put(Object.class, new Locale("en"));
+				put(short.class, (short)-35);
+				put(String.class, "Hello");
+				put(void.class, null);
+			}
+		};
 	private static final Type[] _types = {
 		Type.BOOLEAN_TYPE, Type.BYTE_TYPE, Type.CHAR_TYPE, Type.DOUBLE_TYPE,
 		Type.FLOAT_TYPE, Type.INT_TYPE, Type.LONG_TYPE, Type.SHORT_TYPE,
@@ -2557,8 +2544,8 @@ public class IntrabandProxyUtilTest {
 			_getVisibleMethodsMethod = ReflectionUtil.getDeclaredMethod(
 				IntrabandProxyUtil.class, "_getVisibleMethods", Class.class);
 		}
-		catch (Exception e) {
-			throw new ExceptionInInitializerError(e);
+		catch (Exception exception) {
+			throw new ExceptionInInitializerError(exception);
 		}
 	}
 
@@ -2623,7 +2610,7 @@ public class IntrabandProxyUtilTest {
 	private static class TestExtractMethodsClass2 {
 
 		@Id
-		public String getId(Object obj) {
+		public String getId(Object object) {
 			return null;
 		}
 
@@ -2748,9 +2735,9 @@ public class IntrabandProxyUtilTest {
 		}
 
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(Object object) {
 			TestGenerateTargetLocator testGenerateTargetLocator =
-				(TestGenerateTargetLocator)obj;
+				(TestGenerateTargetLocator)object;
 
 			return _clazz.equals(testGenerateTargetLocator._clazz);
 		}
@@ -2802,19 +2789,19 @@ public class IntrabandProxyUtilTest {
 		@Proxy
 		protected abstract short syncCallShort(
 				boolean z, byte b, char c, double d, float f, int i, long j,
-				short s, String string, Date date, Object obj)
+				short s, String string, Date date, Object object)
 			throws InterruptedException, IOException;
 
 		@Proxy
 		abstract Object syncCallObject(
 				boolean z, byte b, char c, double d, float f, int i, long j,
-				short s, String string, Date date, Object obj)
+				short s, String string, Date date, Object object)
 			throws InterruptedException, IOException;
 
 		@Proxy
 		abstract String syncCallString(
 				boolean z, byte b, char c, double d, float f, int i, long j,
-				short s, String string, Date date, Object obj)
+				short s, String string, Date date, Object object)
 			throws InterruptedException, IOException;
 
 	}
@@ -2898,49 +2885,49 @@ public class IntrabandProxyUtilTest {
 		@Proxy
 		public void asyncCall(
 				boolean z, byte b, char c, double d, float f, int i, long j,
-				short s, String string, Date date, Object obj)
+				short s, String string, Date date, Object object)
 			throws InterruptedException, IOException;
 
 		@Proxy
 		public boolean syncCallBoolean(
 				boolean z, byte b, char c, double d, float f, int i, long j,
-				short s, String string, Date date, Object obj)
+				short s, String string, Date date, Object object)
 			throws InterruptedException, IOException;
 
 		@Proxy
 		public byte syncCallByte(
 				boolean z, byte b, char c, double d, float f, int i, long j,
-				short s, String string, Date date, Object obj)
+				short s, String string, Date date, Object object)
 			throws InterruptedException, IOException;
 
 		@Proxy
 		public char syncCallChar(
 				boolean z, byte b, char c, double d, float f, int i, long j,
-				short s, String string, Date date, Object obj)
+				short s, String string, Date date, Object object)
 			throws InterruptedException, IOException;
 
 		@Proxy
 		public double syncCallDouble(
 				boolean z, byte b, char c, double d, float f, int i, long j,
-				short s, String string, Date date, Object obj)
+				short s, String string, Date date, Object object)
 			throws InterruptedException, IOException;
 
 		@Proxy
 		public float syncCallFloat(
 				boolean z, byte b, char c, double d, float f, int i, long j,
-				short s, String string, Date date, Object obj)
+				short s, String string, Date date, Object object)
 			throws InterruptedException, IOException;
 
 		@Proxy
 		public int syncCallInt(
 				boolean z, byte b, char c, double d, float f, int i, long j,
-				short s, String string, Date date, Object obj)
+				short s, String string, Date date, Object object)
 			throws InterruptedException, IOException;
 
 		@Proxy
 		public long syncCallLong(
 				boolean z, byte b, char c, double d, float f, int i, long j,
-				short s, String string, Date date, Object obj)
+				short s, String string, Date date, Object object)
 			throws InterruptedException, IOException;
 
 	}

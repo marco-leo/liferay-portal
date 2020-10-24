@@ -35,7 +35,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface CTPreferencesModel
 	extends BaseModel<CTPreferences>, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a ct preferences model instance should use the {@link CTPreferences} interface instead.
@@ -142,6 +142,20 @@ public interface CTPreferencesModel
 	 * @param ctCollectionId the ct collection ID of this ct preferences
 	 */
 	public void setCtCollectionId(long ctCollectionId);
+
+	/**
+	 * Returns the previous ct collection ID of this ct preferences.
+	 *
+	 * @return the previous ct collection ID of this ct preferences
+	 */
+	public long getPreviousCtCollectionId();
+
+	/**
+	 * Sets the previous ct collection ID of this ct preferences.
+	 *
+	 * @param previousCtCollectionId the previous ct collection ID of this ct preferences
+	 */
+	public void setPreviousCtCollectionId(long previousCtCollectionId);
 
 	/**
 	 * Returns the confirmation enabled of this ct preferences.

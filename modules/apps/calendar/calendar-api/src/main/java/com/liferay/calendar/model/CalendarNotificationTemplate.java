@@ -34,7 +34,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface CalendarNotificationTemplate
 	extends CalendarNotificationTemplateModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.calendar.model.impl.CalendarNotificationTemplateImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -68,6 +68,6 @@ public interface CalendarNotificationTemplate
 
 	public void setTypeSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties
-			notificationTypeSettingsProperties);
+			notificationTypeSettingsUnicodeProperties);
 
 }

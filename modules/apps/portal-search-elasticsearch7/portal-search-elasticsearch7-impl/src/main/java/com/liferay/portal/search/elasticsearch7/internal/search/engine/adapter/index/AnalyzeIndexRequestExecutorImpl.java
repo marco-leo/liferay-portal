@@ -50,7 +50,8 @@ public class AnalyzeIndexRequestExecutorImpl
 		AnalyzeRequest analyzeRequest = createAnalyzeRequest(
 			analyzeIndexRequest);
 
-		AnalyzeResponse analyzeResponse = getAnalyzeResponse(analyzeRequest);
+		AnalyzeResponse analyzeResponse = getAnalyzeResponse(
+			analyzeRequest, analyzeIndexRequest);
 
 		AnalyzeIndexResponse analyzeIndexResponse = new AnalyzeIndexResponse();
 
@@ -131,10 +132,13 @@ public class AnalyzeIndexRequestExecutorImpl
 	}
 
 	protected AnalyzeResponse getAnalyzeResponse(
-		AnalyzeRequest analyzeRequest) {
+		AnalyzeRequest analyzeRequest,
+		AnalyzeIndexRequest analyzeIndexRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				analyzeIndexRequest.getConnectionId(),
+				analyzeIndexRequest.isPreferLocalCluster());
 
 		IndicesClient indicesClient = restHighLevelClient.indices();
 
@@ -142,8 +146,8 @@ public class AnalyzeIndexRequestExecutorImpl
 			return indicesClient.analyze(
 				analyzeRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

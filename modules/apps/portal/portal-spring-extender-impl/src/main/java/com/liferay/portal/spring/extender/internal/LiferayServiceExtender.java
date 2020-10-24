@@ -82,8 +82,8 @@ public class LiferayServiceExtender
 
 			return liferayServiceExtension;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 
 		return null;
@@ -177,8 +177,8 @@ public class LiferayServiceExtender
 						_extendeeBundle.getSymbolicName())));
 		}
 
-		private LiferayServiceExtension(Bundle bundle) {
-			_extendeeBundle = bundle;
+		private LiferayServiceExtension(Bundle extendeeBundle) {
+			_extendeeBundle = extendeeBundle;
 		}
 
 		private DefaultTransactionExecutor _getTransactionExecutor(

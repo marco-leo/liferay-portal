@@ -155,7 +155,7 @@ else {
 
 	<li class="control-menu-nav-item">
 		<div class="d-none d-sm-block dropdown">
-			<a class="dropdown-toggle taglib-icon" data-toggle="dropdown" href="javascript:;">
+			<a class="dropdown-toggle taglib-icon" data-toggle="liferay-dropdown" href="javascript:;">
 				<aui:icon cssClass="icon-monospaced" image="ellipsis-v" markupView="lexicon" />
 
 				<span class="sr-only">
@@ -165,14 +165,14 @@ else {
 
 			<ul class="dropdown-menu dropdown-menu-right" role="menu">
 				<li>
-					<a class="dropdown-item" href="javascript:;" id="manageLayoutSetRevisions" onclick="<%= renderResponse.getNamespace() + "openSitePagesVariationsDialog();" %>">
+					<a class="dropdown-item" href="javascript:;" id="manageLayoutSetRevisions" onclick="<%= liferayPortletResponse.getNamespace() + "openSitePagesVariationsDialog();" %>">
 						<liferay-ui:message key="site-pages-variation" />
 					</a>
 				</li>
 
 				<c:if test="<%= !layoutRevision.isIncomplete() %>">
 					<li>
-						<a class="dropdown-item" href="javascript:;" id="manageLayoutRevisions" onclick="<%= renderResponse.getNamespace() + "openPageVariationsDialog();" %>">
+						<a class="dropdown-item" href="javascript:;" id="manageLayoutRevisions" onclick="<%= liferayPortletResponse.getNamespace() + "openPageVariationsDialog();" %>">
 							<liferay-ui:message key="page-variations" />
 						</a>
 					</li>
@@ -240,7 +240,7 @@ else {
 		markAsReadyForPublicationURL: '<%= markAsReadyForPublicationURL %>',
 		namespace: '<portlet:namespace />',
 		portletId: '<%= portletDisplay.getId() %>',
-		viewHistoryURL: '<%= viewHistoryURL %>'
+		viewHistoryURL: '<%= viewHistoryURL %>',
 	});
 </aui:script>
 
@@ -261,11 +261,11 @@ else {
 		Liferay.Util.openWindow({
 			dialog: {
 				after: {
-					destroy: function(event) {
+					destroy: function (event) {
 						window.location.reload();
-					}
+					},
 				},
-				destroyOnHide: true
+				destroyOnHide: true,
 			},
 			id: 'pagesVariationsDialog',
 			title:
@@ -276,7 +276,7 @@ else {
 				<portlet:param name="layoutSetBranchId" value="<%= String.valueOf(layoutSetBranch.getLayoutSetBranchId()) %>" />
 			</liferay-portlet:renderURL>
 
-			uri: '<%= HtmlUtil.escapeJS(layoutBranchesURL) %>'
+			uri: '<%= HtmlUtil.escapeJS(layoutBranchesURL) %>',
 		});
 	}
 
@@ -284,11 +284,11 @@ else {
 		Liferay.Util.openWindow({
 			dialog: {
 				after: {
-					destroy: function(event) {
+					destroy: function (event) {
 						window.location.reload();
-					}
+					},
 				},
-				destroyOnHide: true
+				destroyOnHide: true,
 			},
 			id: 'sitePagesVariationDialog',
 			title:
@@ -298,7 +298,7 @@ else {
 				<portlet:param name="mvcRenderCommandName" value="viewLayoutSetBranches" />
 			</liferay-portlet:renderURL>
 
-			uri: '<%= HtmlUtil.escapeJS(layoutSetBranchesURL) %>'
+			uri: '<%= HtmlUtil.escapeJS(layoutSetBranchesURL) %>',
 		});
 	}
 
@@ -306,7 +306,7 @@ else {
 		Liferay.fire('<portlet:namespace />submit', {
 			currentURL: '<%= currentURL %>',
 			incomplete: <%= layoutRevision.isIncomplete() %>,
-			publishURL: publishURL
+			publishURL: publishURL,
 		});
 
 		Liferay.Util.toggleDisabled('#<portlet:namespace />readyToggle', true);

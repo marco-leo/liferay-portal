@@ -14,7 +14,7 @@
 
 package com.liferay.talend.wizard;
 
-import com.liferay.talend.connection.LiferayConnectionProperties;
+import com.liferay.talend.properties.connection.LiferayConnectionProperties;
 
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.api.wizard.ComponentWizard;
@@ -46,7 +46,11 @@ public class LiferaySchemaWizard extends ComponentWizard {
 	}
 
 	public boolean supportsProperties(ComponentProperties componentProperties) {
-		return componentProperties instanceof LiferaySchemaListProperties;
+		if (componentProperties instanceof LiferaySchemaListProperties) {
+			return true;
+		}
+
+		return false;
 	}
 
 	public final LiferaySchemaListProperties schemaList;

@@ -15,10 +15,10 @@
 package com.liferay.portal.tools;
 
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.util.FileComparator;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
@@ -58,8 +58,8 @@ public class PluginsEnvironmentBuilder {
 
 			new PluginsEnvironmentBuilder(dir);
 		}
-		catch (Exception e) {
-			e.printStackTrace();
+		catch (Exception exception) {
+			exception.printStackTrace();
 		}
 	}
 
@@ -129,6 +129,29 @@ public class PluginsEnvironmentBuilder {
 		}
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #addClasspathEntry(StringBundler, String)}
+	 */
+	@Deprecated
+	protected void addClasspathEntry(
+		com.liferay.portal.kernel.util.StringBundler sb, String jar) {
+
+		addClasspathEntry(new StringBundler(sb.getStrings()), jar);
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #addClasspathEntry(StringBundler, String, Map)}
+	 */
+	@Deprecated
+	protected void addClasspathEntry(
+		com.liferay.portal.kernel.util.StringBundler sb, String jar,
+		Map<String, String> attributes) {
+
+		addClasspathEntry(new StringBundler(sb.getStrings()), jar, attributes);
+	}
+
 	protected void addClasspathEntry(StringBundler sb, String jar) {
 		addClasspathEntry(sb, jar, null);
 	}
@@ -156,6 +179,21 @@ public class PluginsEnvironmentBuilder {
 		}
 
 		sb.append("\t\t</attributes>\n\t</classpathentry>\n");
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #addIvyCacheJar(StringBundler, String, String, String)}
+	 */
+	@Deprecated
+	protected void addIvyCacheJar(
+			com.liferay.portal.kernel.util.StringBundler sb, String ivyDirName,
+			String dependencyName, String version)
+		throws Exception {
+
+		addIvyCacheJar(
+			new StringBundler(sb.getStrings()), ivyDirName, dependencyName,
+			version);
 	}
 
 	protected void addIvyCacheJar(
@@ -286,6 +324,20 @@ public class PluginsEnvironmentBuilder {
 		System.out.println(
 			StringBundler.concat(
 				"Unable to find jars in ", dirName, " for ", version));
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #addIvyCacheJars(StringBundler, String, String)}
+	 */
+	@Deprecated
+	protected void addIvyCacheJars(
+			com.liferay.portal.kernel.util.StringBundler sb, String content,
+			String ivyDirName)
+		throws Exception {
+
+		addIvyCacheJars(
+			new StringBundler(sb.getStrings()), content, ivyDirName);
 	}
 
 	protected void addIvyCacheJars(
@@ -789,45 +841,46 @@ public class PluginsEnvironmentBuilder {
 			libDir, dependencyJars, projectDirName, projectName, javaProject);
 
 		for (String sourceDirName : _SOURCE_DIR_NAMES) {
-			if (_fileImpl.exists(projectDirName + "/" + sourceDirName)) {
-				List<String> gitIgnores = new ArrayList<>();
+			if (!_fileImpl.exists(projectDirName + "/" + sourceDirName)) {
+				continue;
+			}
 
-				if (sourceDirName.endsWith("ext-impl/src")) {
-					gitIgnores.add("/classes");
-					gitIgnores.add("/ext-impl.jar");
-				}
-				else if (sourceDirName.endsWith("ext-kernel/src")) {
-					gitIgnores.add("/classes");
-					gitIgnores.add("/ext-kernel.jar");
-				}
-				else if (sourceDirName.endsWith("ext-util-bridges/src")) {
-					gitIgnores.add("/classes");
-					gitIgnores.add("/ext-util-bridges.jar");
-				}
-				else if (sourceDirName.endsWith("ext-util-java/src")) {
-					gitIgnores.add("/classes");
-					gitIgnores.add("/ext-util-java.jar");
-				}
-				else if (sourceDirName.endsWith("ext-util-taglib/src")) {
-					gitIgnores.add("/classes");
-					gitIgnores.add("/ext-util-taglib.jar");
-				}
-				else {
-					continue;
-				}
+			List<String> gitIgnores = new ArrayList<>();
 
-				String dirName = StringBundler.concat(
-					projectDirName, "/", sourceDirName, "/../");
+			if (sourceDirName.endsWith("ext-impl/src")) {
+				gitIgnores.add("/classes");
+				gitIgnores.add("/ext-impl.jar");
+			}
+			else if (sourceDirName.endsWith("ext-kernel/src")) {
+				gitIgnores.add("/classes");
+				gitIgnores.add("/ext-kernel.jar");
+			}
+			else if (sourceDirName.endsWith("ext-util-bridges/src")) {
+				gitIgnores.add("/classes");
+				gitIgnores.add("/ext-util-bridges.jar");
+			}
+			else if (sourceDirName.endsWith("ext-util-java/src")) {
+				gitIgnores.add("/classes");
+				gitIgnores.add("/ext-util-java.jar");
+			}
+			else if (sourceDirName.endsWith("ext-util-taglib/src")) {
+				gitIgnores.add("/classes");
+				gitIgnores.add("/ext-util-taglib.jar");
+			}
+			else {
+				continue;
+			}
 
-				if (gitIgnores.isEmpty()) {
-					_fileImpl.delete(dirName + ".gitignore");
-				}
-				else {
-					String gitIgnoresString = StringUtil.merge(
-						gitIgnores, "\n");
+			String dirName = StringBundler.concat(
+				projectDirName, "/", sourceDirName, "/../");
 
-					_fileImpl.write(dirName + ".gitignore", gitIgnoresString);
-				}
+			if (gitIgnores.isEmpty()) {
+				_fileImpl.delete(dirName + ".gitignore");
+			}
+			else {
+				String gitIgnoresString = StringUtil.merge(gitIgnores, "\n");
+
+				_fileImpl.write(dirName + ".gitignore", gitIgnoresString);
 			}
 		}
 

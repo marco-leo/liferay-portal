@@ -39,7 +39,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface KaleoLogModel
 	extends BaseModel<KaleoLog>, GroupedModel, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo log model instance should use the {@link KaleoLog} interface instead.
@@ -230,6 +230,20 @@ public interface KaleoLogModel
 	 * @param kaleoClassPK the kaleo class pk of this kaleo log
 	 */
 	public void setKaleoClassPK(long kaleoClassPK);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo log.
+	 *
+	 * @return the kaleo definition ID of this kaleo log
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo log.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo log
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo log.

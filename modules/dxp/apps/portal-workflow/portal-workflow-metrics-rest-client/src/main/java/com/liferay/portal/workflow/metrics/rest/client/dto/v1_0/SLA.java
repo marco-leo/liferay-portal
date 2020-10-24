@@ -27,7 +27,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class SLA {
+public class SLA implements Cloneable {
+
+	public static SLA toDTO(String json) {
+		return SLASerDes.toDTO(json);
+	}
 
 	public String getCalendarKey() {
 		return calendarKey;
@@ -255,6 +259,11 @@ public class SLA {
 	}
 
 	protected StopNodeKeys stopNodeKeys;
+
+	@Override
+	public SLA clone() throws CloneNotSupportedException {
+		return (SLA)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

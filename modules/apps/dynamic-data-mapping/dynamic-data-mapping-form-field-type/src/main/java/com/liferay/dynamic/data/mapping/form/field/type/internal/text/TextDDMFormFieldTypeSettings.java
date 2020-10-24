@@ -54,6 +54,13 @@ import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 				"setVisible('options', contains(getValue('dataSourceType'), \"manual\") and getValue('autocomplete'))"
 			},
 			condition = "TRUE"
+		),
+		@DDMFormRule(
+			actions = {
+				"setValue('ddmDataProviderInstanceId', '')",
+				"setValue('ddmDataProviderInstanceOutput', '')"
+			},
+			condition = "not(equals(getValue('dataSourceType'), \"data-provider\")) or not(getValue('autocomplete'))"
 		)
 	}
 )
@@ -86,9 +93,9 @@ import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 							value = {
 								"name", "predefinedValue",
 								"visibilityExpression", "fieldNamespace",
-								"indexType", "localizable", "readOnly",
-								"dataType", "type", "showLabel", "repeatable",
-								"validation", "tooltip"
+								"indexType", "localizable", "nativeField",
+								"readOnly", "dataType", "type", "showLabel",
+								"repeatable", "validation", "tooltip"
 							}
 						)
 					}
@@ -171,10 +178,7 @@ public interface TextDDMFormFieldTypeSettings
 
 	@DDMFormField(
 		dataType = "string", label = "%placeholder-text",
-		properties = {
-			"placeholder=%enter-placeholder-text",
-			"tooltip=%enter-text-that-assists-the-user-but-is-not-submitted-as-a-field-value"
-		},
+		properties = "tooltip=%enter-text-that-assists-the-user-but-is-not-submitted-as-a-field-value",
 		type = "text"
 	)
 	public LocalizedValue placeholder();

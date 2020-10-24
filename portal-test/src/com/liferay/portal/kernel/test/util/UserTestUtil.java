@@ -23,6 +23,10 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroupRole;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -69,15 +73,21 @@ public class UserTestUtil {
 	public static User addGroupUser(Group group, String roleName)
 		throws Exception {
 
-		User groupUser = addUser(group.getGroupId());
+		User groupUser = addUser(
+			group.getCompanyId(), TestPropsValues.getUserId(),
+			RandomTestUtil.randomString(
+				NumericStringRandomizerBumper.INSTANCE,
+				UniqueStringRandomizerBumper.INSTANCE),
+			LocaleUtil.getDefault(), RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), new long[] {group.getGroupId()},
+			ServiceContextTestUtil.getServiceContext());
 
 		Role role = RoleLocalServiceUtil.getRole(
 			group.getCompanyId(), roleName);
 
-		long[] userIds = {groupUser.getUserId()};
-
 		UserGroupRoleLocalServiceUtil.addUserGroupRoles(
-			userIds, group.getGroupId(), role.getRoleId());
+			new long[] {groupUser.getUserId()}, group.getGroupId(),
+			role.getRoleId());
 
 		return groupUser;
 	}
@@ -244,7 +254,12 @@ public class UserTestUtil {
 			return user;
 		}
 
-		boolean autoPassword = true;
+		boolean autoPassword = false;
+
+		if ((password == null) || password.equals(StringPool.BLANK)) {
+			autoPassword = true;
+		}
+
 		String password1 = password;
 		String password2 = password;
 		long facebookId = 0;
@@ -314,6 +329,19 @@ public class UserTestUtil {
 		}
 
 		return null;
+	}
+
+	public static void setUser(User user) {
+		if (user == null) {
+			return;
+		}
+
+		PrincipalThreadLocal.setName(user.getUserId());
+
+		PermissionChecker permissionChecker =
+			PermissionCheckerFactoryUtil.create(user);
+
+		PermissionThreadLocal.setPermissionChecker(permissionChecker);
 	}
 
 	public static User updateUser(User user) throws Exception {

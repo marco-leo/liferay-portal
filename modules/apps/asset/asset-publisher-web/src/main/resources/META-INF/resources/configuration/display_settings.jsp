@@ -83,7 +83,7 @@ PortletURL configurationRenderURL = (PortletURL)request.getAttribute("configurat
 
 		var hiddenFields = document.querySelectorAll('.hidden-field');
 
-		Array.prototype.forEach.call(hiddenFields, function(field) {
+		Array.prototype.forEach.call(hiddenFields, function (field) {
 			var fieldContainer = dom.closest(field, '.form-group');
 
 			if (fieldContainer) {
@@ -97,12 +97,14 @@ PortletURL configurationRenderURL = (PortletURL)request.getAttribute("configurat
 						fieldClassList.contains('show-extra-info'))
 				) {
 					fieldContainerClassList.remove('hide');
-				} else if (
+				}
+				else if (
 					displayStyle === 'abstracts' &&
 					fieldClassList.contains('abstract-length')
 				) {
 					fieldContainerClassList.remove('hide');
-				} else {
+				}
+				else {
 					fieldContainerClassList.add('hide');
 				}
 			}

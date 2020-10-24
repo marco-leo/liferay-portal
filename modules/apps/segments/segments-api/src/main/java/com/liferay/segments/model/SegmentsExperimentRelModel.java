@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
 import java.util.Date;
 
@@ -37,10 +38,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface SegmentsExperimentRelModel
-	extends BaseModel<SegmentsExperimentRel>, GroupedModel, MVCCModel,
-			ShardedModel {
+	extends BaseModel<SegmentsExperimentRel>, CTModel<SegmentsExperimentRel>,
+			GroupedModel, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a segments experiment rel model instance should use the {@link SegmentsExperimentRel} interface instead.
@@ -51,6 +52,7 @@ public interface SegmentsExperimentRelModel
 	 *
 	 * @return the primary key of this segments experiment rel
 	 */
+	@Override
 	public long getPrimaryKey();
 
 	/**
@@ -58,6 +60,7 @@ public interface SegmentsExperimentRelModel
 	 *
 	 * @param primaryKey the primary key of this segments experiment rel
 	 */
+	@Override
 	public void setPrimaryKey(long primaryKey);
 
 	/**
@@ -75,6 +78,22 @@ public interface SegmentsExperimentRelModel
 	 */
 	@Override
 	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the ct collection ID of this segments experiment rel.
+	 *
+	 * @return the ct collection ID of this segments experiment rel
+	 */
+	@Override
+	public long getCtCollectionId();
+
+	/**
+	 * Sets the ct collection ID of this segments experiment rel.
+	 *
+	 * @param ctCollectionId the ct collection ID of this segments experiment rel
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId);
 
 	/**
 	 * Returns the segments experiment rel ID of this segments experiment rel.

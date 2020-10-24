@@ -68,14 +68,16 @@ public class DEDataListViewLocalServiceImpl
 		deDataListView.setNameMap(name);
 		deDataListView.setSortField(sortField);
 
-		deDataListViewPersistence.update(deDataListView);
-
-		return deDataListView;
+		return deDataListViewPersistence.update(deDataListView);
 	}
 
 	@Override
 	public void deleteDEDataListViews(long ddmStructureId) {
-		deDataListViewPersistence.removeByDDMStructureId(ddmStructureId);
+		for (DEDataListView deDataListView :
+				getDEDataListViews(ddmStructureId)) {
+
+			deDataListViewLocalService.deleteDEDataListView(deDataListView);
+		}
 	}
 
 	@Override
@@ -100,6 +102,7 @@ public class DEDataListViewLocalServiceImpl
 			groupId, companyId, ddmStructureId);
 	}
 
+	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public DEDataListView updateDEDataListView(
 			long deDataListViewId, String appliedFilters, String fieldNames,

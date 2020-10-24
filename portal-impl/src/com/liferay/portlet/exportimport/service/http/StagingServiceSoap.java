@@ -46,8 +46,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see StagingServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class StagingServiceSoap {
 
 	public static void cleanUpStagingRequest(long stagingRequestId)
@@ -56,10 +58,10 @@ public class StagingServiceSoap {
 		try {
 			StagingServiceUtil.cleanUpStagingRequest(stagingRequestId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -72,10 +74,10 @@ public class StagingServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -89,10 +91,10 @@ public class StagingServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -105,10 +107,10 @@ public class StagingServiceSoap {
 			StagingServiceUtil.propagateExportImportLifecycleEvent(
 				code, processFlag, processId, arguments);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -129,10 +131,10 @@ public class StagingServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -144,10 +146,10 @@ public class StagingServiceSoap {
 			StagingServiceUtil.updateStagingRequest(
 				stagingRequestId, fileName, bytes);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

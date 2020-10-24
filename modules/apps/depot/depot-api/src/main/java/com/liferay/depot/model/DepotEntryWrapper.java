@@ -49,6 +49,7 @@ public class DepotEntryWrapper
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
+		attributes.put("userName", getUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
 
@@ -93,6 +94,12 @@ public class DepotEntryWrapper
 			setUserId(userId);
 		}
 
+		String userName = (String)attributes.get("userName");
+
+		if (userName != null) {
+			setUserName(userName);
+		}
+
 		Date createDate = (Date)attributes.get("createDate");
 
 		if (createDate != null) {
@@ -134,6 +141,13 @@ public class DepotEntryWrapper
 	@Override
 	public long getDepotEntryId() {
 		return model.getDepotEntryId();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.model.Group getGroup()
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return model.getGroup();
 	}
 
 	/**
@@ -187,6 +201,16 @@ public class DepotEntryWrapper
 	}
 
 	/**
+	 * Returns the user name of this depot entry.
+	 *
+	 * @return the user name of this depot entry
+	 */
+	@Override
+	public String getUserName() {
+		return model.getUserName();
+	}
+
+	/**
 	 * Returns the user uuid of this depot entry.
 	 *
 	 * @return the user uuid of this depot entry
@@ -206,11 +230,6 @@ public class DepotEntryWrapper
 		return model.getUuid();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a depot entry model instance should use the <code>DepotEntry</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -294,6 +313,16 @@ public class DepotEntryWrapper
 	@Override
 	public void setUserId(long userId) {
 		model.setUserId(userId);
+	}
+
+	/**
+	 * Sets the user name of this depot entry.
+	 *
+	 * @param userName the user name of this depot entry
+	 */
+	@Override
+	public void setUserName(String userName) {
+		model.setUserName(userName);
 	}
 
 	/**

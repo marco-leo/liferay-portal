@@ -120,7 +120,8 @@ public class UpdatePasswordMVCActionCommand extends BaseMVCActionCommand {
 				user.getUserId(), passwordReset);
 
 			if (Validator.isNotNull(reminderQueryQuestion) &&
-				Validator.isNotNull(reminderQueryAnswer)) {
+				Validator.isNotNull(reminderQueryAnswer) &&
+				!reminderQueryAnswer.equals(Portal.TEMP_OBFUSCATION_VALUE)) {
 
 				_userLocalService.updateReminderQuery(
 					user.getUserId(), reminderQueryQuestion,
@@ -153,16 +154,17 @@ public class UpdatePasswordMVCActionCommand extends BaseMVCActionCommand {
 					newPassword1, false, null);
 			}
 		}
-		catch (Exception e) {
-			if (e instanceof NoSuchUserException ||
-				e instanceof PrincipalException) {
+		catch (Exception exception) {
+			if (exception instanceof NoSuchUserException ||
+				exception instanceof PrincipalException) {
 
-				SessionErrors.add(actionRequest, e.getClass());
+				SessionErrors.add(actionRequest, exception.getClass());
 
 				actionResponse.setRenderParameter("mvcPath", "/error.jsp");
 			}
-			else if (e instanceof UserPasswordException) {
-				SessionErrors.add(actionRequest, e.getClass(), e);
+			else if (exception instanceof UserPasswordException) {
+				SessionErrors.add(
+					actionRequest, exception.getClass(), exception);
 
 				String redirect = _portal.escapeRedirect(
 					ParamUtil.getString(actionRequest, "redirect"));
@@ -172,7 +174,7 @@ public class UpdatePasswordMVCActionCommand extends BaseMVCActionCommand {
 				}
 			}
 			else {
-				throw e;
+				throw exception;
 			}
 		}
 	}

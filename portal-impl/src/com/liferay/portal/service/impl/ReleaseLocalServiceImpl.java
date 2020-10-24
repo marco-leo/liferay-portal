@@ -29,7 +29,6 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.service.base.ReleaseLocalServiceBaseImpl;
-import com.liferay.portal.util.PropsValues;
 
 import java.util.Date;
 import java.util.List;
@@ -69,9 +68,7 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 			release.setTestString(ReleaseConstants.TEST_STRING);
 		}
 
-		releasePersistence.update(release);
-
-		return release;
+		return releasePersistence.update(release);
 	}
 
 	@Override
@@ -103,9 +100,7 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 			release.setTestString(ReleaseConstants.TEST_STRING);
 		}
 
-		releasePersistence.update(release);
-
-		return release;
+		return releasePersistence.update(release);
 	}
 
 	/**
@@ -169,15 +164,13 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 		release.setBuildDate(buildDate);
 		release.setVerified(verified);
 
-		releasePersistence.update(release);
-
-		return release;
+		return releasePersistence.update(release);
 	}
 
 	@Override
 	public void updateRelease(
 			String servletContextName, List<UpgradeProcess> upgradeProcesses,
-			int buildNumber, int previousBuildNumber, boolean indexOnUpgrade)
+			int buildNumber, int previousBuildNumber)
 		throws PortalException {
 
 		if (buildNumber <= 0) {
@@ -209,12 +202,28 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 		}
 		else {
 			UpgradeProcessUtil.upgradeProcess(
-				release.getBuildNumber(), upgradeProcesses, indexOnUpgrade);
+				release.getBuildNumber(), upgradeProcesses);
 		}
 
 		releaseLocalService.updateRelease(
 			release.getReleaseId(), release.getSchemaVersion(), buildNumber,
 			null, true);
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #updateRelease(String, List, int, int)}
+	 */
+	@Deprecated
+	@Override
+	public void updateRelease(
+			String servletContextName, List<UpgradeProcess> upgradeProcesses,
+			int buildNumber, int previousBuildNumber, boolean indexOnUpgrade)
+		throws PortalException {
+
+		updateRelease(
+			servletContextName, upgradeProcesses, buildNumber,
+			previousBuildNumber);
 	}
 
 	@Override
@@ -232,13 +241,9 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 				PropsKeys.RELEASE_INFO_PREVIOUS_BUILD_NUMBER),
 			buildNumber);
 
-		boolean indexOnUpgrade = GetterUtil.getBoolean(
-			unfilteredPortalProperties.getProperty(PropsKeys.INDEX_ON_UPGRADE),
-			PropsValues.INDEX_ON_UPGRADE);
-
 		updateRelease(
 			servletContextName, upgradeProcesses, buildNumber,
-			previousBuildNumber, indexOnUpgrade);
+			previousBuildNumber);
 	}
 
 	@Override

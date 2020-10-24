@@ -14,8 +14,11 @@
 
 package com.liferay.portal.service.base;
 
+import com.liferay.document.library.kernel.service.persistence.DLFileEntryTypeFinder;
+import com.liferay.document.library.kernel.service.persistence.DLFileEntryTypePersistence;
 import com.liferay.expando.kernel.service.persistence.ExpandoColumnPersistence;
 import com.liferay.expando.kernel.service.persistence.ExpandoTablePersistence;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -38,6 +41,8 @@ import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.service.persistence.AccountPersistence;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.CompanyInfoPersistence;
 import com.liferay.portal.kernel.service.persistence.CompanyPersistence;
 import com.liferay.portal.kernel.service.persistence.ContactPersistence;
 import com.liferay.portal.kernel.service.persistence.GroupFinder;
@@ -84,7 +89,7 @@ public abstract class CompanyLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements CompanyLocalService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>CompanyLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.CompanyLocalServiceUtil</code>.
@@ -92,6 +97,10 @@ public abstract class CompanyLocalServiceBaseImpl
 
 	/**
 	 * Adds the company to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect CompanyLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param company the company
 	 * @return the company that was added
@@ -119,6 +128,10 @@ public abstract class CompanyLocalServiceBaseImpl
 	/**
 	 * Deletes the company with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect CompanyLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param companyId the primary key of the company
 	 * @return the company that was removed
 	 * @throws PortalException if a company with the primary key could not be found
@@ -132,6 +145,10 @@ public abstract class CompanyLocalServiceBaseImpl
 	/**
 	 * Deletes the company from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect CompanyLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param company the company
 	 * @return the company that was removed
 	 * @throws PortalException
@@ -140,6 +157,11 @@ public abstract class CompanyLocalServiceBaseImpl
 	@Override
 	public Company deleteCompany(Company company) throws PortalException {
 		return companyPersistence.remove(company);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return companyPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -291,12 +313,30 @@ public abstract class CompanyLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return companyPersistence.create(((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
 		return companyLocalService.deleteCompany((Company)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<Company> getBasePersistence() {
+		return companyPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -332,6 +372,10 @@ public abstract class CompanyLocalServiceBaseImpl
 
 	/**
 	 * Updates the company in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect CompanyLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param company the company
 	 * @return the company that was updated
@@ -445,6 +489,70 @@ public abstract class CompanyLocalServiceBaseImpl
 	}
 
 	/**
+	 * Returns the document library file entry type local service.
+	 *
+	 * @return the document library file entry type local service
+	 */
+	public
+		com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService
+			getDLFileEntryTypeLocalService() {
+
+		return dlFileEntryTypeLocalService;
+	}
+
+	/**
+	 * Sets the document library file entry type local service.
+	 *
+	 * @param dlFileEntryTypeLocalService the document library file entry type local service
+	 */
+	public void setDLFileEntryTypeLocalService(
+		com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService
+			dlFileEntryTypeLocalService) {
+
+		this.dlFileEntryTypeLocalService = dlFileEntryTypeLocalService;
+	}
+
+	/**
+	 * Returns the document library file entry type persistence.
+	 *
+	 * @return the document library file entry type persistence
+	 */
+	public DLFileEntryTypePersistence getDLFileEntryTypePersistence() {
+		return dlFileEntryTypePersistence;
+	}
+
+	/**
+	 * Sets the document library file entry type persistence.
+	 *
+	 * @param dlFileEntryTypePersistence the document library file entry type persistence
+	 */
+	public void setDLFileEntryTypePersistence(
+		DLFileEntryTypePersistence dlFileEntryTypePersistence) {
+
+		this.dlFileEntryTypePersistence = dlFileEntryTypePersistence;
+	}
+
+	/**
+	 * Returns the document library file entry type finder.
+	 *
+	 * @return the document library file entry type finder
+	 */
+	public DLFileEntryTypeFinder getDLFileEntryTypeFinder() {
+		return dlFileEntryTypeFinder;
+	}
+
+	/**
+	 * Sets the document library file entry type finder.
+	 *
+	 * @param dlFileEntryTypeFinder the document library file entry type finder
+	 */
+	public void setDLFileEntryTypeFinder(
+		DLFileEntryTypeFinder dlFileEntryTypeFinder) {
+
+		this.dlFileEntryTypeFinder = dlFileEntryTypeFinder;
+	}
+
+	/**
 	 * Returns the expando column local service.
 	 *
 	 * @return the expando column local service
@@ -528,6 +636,49 @@ public abstract class CompanyLocalServiceBaseImpl
 		ExpandoTablePersistence expandoTablePersistence) {
 
 		this.expandoTablePersistence = expandoTablePersistence;
+	}
+
+	/**
+	 * Returns the company info local service.
+	 *
+	 * @return the company info local service
+	 */
+	public com.liferay.portal.kernel.service.CompanyInfoLocalService
+		getCompanyInfoLocalService() {
+
+		return companyInfoLocalService;
+	}
+
+	/**
+	 * Sets the company info local service.
+	 *
+	 * @param companyInfoLocalService the company info local service
+	 */
+	public void setCompanyInfoLocalService(
+		com.liferay.portal.kernel.service.CompanyInfoLocalService
+			companyInfoLocalService) {
+
+		this.companyInfoLocalService = companyInfoLocalService;
+	}
+
+	/**
+	 * Returns the company info persistence.
+	 *
+	 * @return the company info persistence
+	 */
+	public CompanyInfoPersistence getCompanyInfoPersistence() {
+		return companyInfoPersistence;
+	}
+
+	/**
+	 * Sets the company info persistence.
+	 *
+	 * @param companyInfoPersistence the company info persistence
+	 */
+	public void setCompanyInfoPersistence(
+		CompanyInfoPersistence companyInfoPersistence) {
+
+		this.companyInfoPersistence = companyInfoPersistence;
 	}
 
 	/**
@@ -1273,8 +1424,8 @@ public abstract class CompanyLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -1300,6 +1451,19 @@ public abstract class CompanyLocalServiceBaseImpl
 	protected AccountPersistence accountPersistence;
 
 	@BeanReference(
+		type = com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService.class
+	)
+	protected
+		com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService
+			dlFileEntryTypeLocalService;
+
+	@BeanReference(type = DLFileEntryTypePersistence.class)
+	protected DLFileEntryTypePersistence dlFileEntryTypePersistence;
+
+	@BeanReference(type = DLFileEntryTypeFinder.class)
+	protected DLFileEntryTypeFinder dlFileEntryTypeFinder;
+
+	@BeanReference(
 		type = com.liferay.expando.kernel.service.ExpandoColumnLocalService.class
 	)
 	protected com.liferay.expando.kernel.service.ExpandoColumnLocalService
@@ -1316,6 +1480,15 @@ public abstract class CompanyLocalServiceBaseImpl
 
 	@BeanReference(type = ExpandoTablePersistence.class)
 	protected ExpandoTablePersistence expandoTablePersistence;
+
+	@BeanReference(
+		type = com.liferay.portal.kernel.service.CompanyInfoLocalService.class
+	)
+	protected com.liferay.portal.kernel.service.CompanyInfoLocalService
+		companyInfoLocalService;
+
+	@BeanReference(type = CompanyInfoPersistence.class)
+	protected CompanyInfoPersistence companyInfoPersistence;
 
 	@BeanReference(
 		type = com.liferay.portal.kernel.service.ContactLocalService.class

@@ -45,12 +45,13 @@ public class SharepointRepositoryAuthorizationCapability
 
 	public SharepointRepositoryAuthorizationCapability(
 		TokenStore tokenStore,
-		SharepointRepositoryConfiguration sharepointRepositoryConfiguration,
+		SharepointRepositoryConfiguration
+			sharepointRepositoryOAuth2Configuration,
 		SharepointRepositoryTokenBroker sharepointOAuth2AuthorizationServer) {
 
 		_tokenStore = tokenStore;
 		_sharepointRepositoryOAuth2Configuration =
-			sharepointRepositoryConfiguration;
+			sharepointRepositoryOAuth2Configuration;
 		_sharepointOAuth2AuthorizationServer =
 			sharepointOAuth2AuthorizationServer;
 	}
@@ -190,11 +191,11 @@ public class SharepointRepositoryAuthorizationCapability
 				_sharepointRepositoryOAuth2Configuration.name(), userId,
 				freshToken);
 		}
-		catch (AuthorizationException ae) {
+		catch (AuthorizationException authorizationException) {
 			_tokenStore.delete(
 				_sharepointRepositoryOAuth2Configuration.name(), userId);
 
-			throw ae;
+			throw authorizationException;
 		}
 	}
 

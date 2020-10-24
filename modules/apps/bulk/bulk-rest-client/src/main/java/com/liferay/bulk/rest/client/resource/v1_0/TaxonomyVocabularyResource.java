@@ -14,14 +14,17 @@
 
 package com.liferay.bulk.rest.client.resource.v1_0;
 
+import com.liferay.bulk.rest.client.dto.v1_0.DocumentBulkSelection;
 import com.liferay.bulk.rest.client.dto.v1_0.TaxonomyVocabulary;
 import com.liferay.bulk.rest.client.http.HttpInvoker;
 import com.liferay.bulk.rest.client.pagination.Page;
+import com.liferay.bulk.rest.client.problem.Problem;
 import com.liferay.bulk.rest.client.serdes.v1_0.TaxonomyVocabularySerDes;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Generated;
@@ -38,16 +41,12 @@ public interface TaxonomyVocabularyResource {
 	}
 
 	public Page<TaxonomyVocabulary> postSiteTaxonomyVocabulariesCommonPage(
-			Long siteId,
-			com.liferay.bulk.rest.client.dto.v1_0.DocumentBulkSelection
-				documentBulkSelection)
+			Long siteId, DocumentBulkSelection documentBulkSelection)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
 			postSiteTaxonomyVocabulariesCommonPageHttpResponse(
-				Long siteId,
-				com.liferay.bulk.rest.client.dto.v1_0.DocumentBulkSelection
-					documentBulkSelection)
+				Long siteId, DocumentBulkSelection documentBulkSelection)
 		throws Exception;
 
 	public static class Builder {
@@ -95,8 +94,8 @@ public interface TaxonomyVocabularyResource {
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
-		private String _login = "test@liferay.com";
-		private String _password = "test";
+		private String _login = "";
+		private String _password = "";
 		private Map<String, String> _parameters = new LinkedHashMap<>();
 		private int _port = 8080;
 		private String _scheme = "http";
@@ -107,9 +106,7 @@ public interface TaxonomyVocabularyResource {
 		implements TaxonomyVocabularyResource {
 
 		public Page<TaxonomyVocabulary> postSiteTaxonomyVocabulariesCommonPage(
-				Long siteId,
-				com.liferay.bulk.rest.client.dto.v1_0.DocumentBulkSelection
-					documentBulkSelection)
+				Long siteId, DocumentBulkSelection documentBulkSelection)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -124,14 +121,21 @@ public interface TaxonomyVocabularyResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return Page.of(content, TaxonomyVocabularySerDes::toDTO);
+			try {
+				return Page.of(content, TaxonomyVocabularySerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse
 				postSiteTaxonomyVocabulariesCommonPageHttpResponse(
-					Long siteId,
-					com.liferay.bulk.rest.client.dto.v1_0.DocumentBulkSelection
-						documentBulkSelection)
+					Long siteId, DocumentBulkSelection documentBulkSelection)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();

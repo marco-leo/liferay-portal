@@ -28,6 +28,7 @@ import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -50,6 +51,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -78,7 +80,7 @@ public abstract class CalendarResourceLocalServiceBaseImpl
 	implements AopService, CalendarResourceLocalService,
 			   IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>CalendarResourceLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.calendar.service.CalendarResourceLocalServiceUtil</code>.
@@ -86,6 +88,10 @@ public abstract class CalendarResourceLocalServiceBaseImpl
 
 	/**
 	 * Adds the calendar resource to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect CalendarResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param calendarResource the calendar resource
 	 * @return the calendar resource that was added
@@ -115,6 +121,10 @@ public abstract class CalendarResourceLocalServiceBaseImpl
 	/**
 	 * Deletes the calendar resource with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect CalendarResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param calendarResourceId the primary key of the calendar resource
 	 * @return the calendar resource that was removed
 	 * @throws PortalException if a calendar resource with the primary key could not be found
@@ -130,6 +140,10 @@ public abstract class CalendarResourceLocalServiceBaseImpl
 	/**
 	 * Deletes the calendar resource from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect CalendarResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param calendarResource the calendar resource
 	 * @return the calendar resource that was removed
 	 * @throws PortalException
@@ -141,6 +155,11 @@ public abstract class CalendarResourceLocalServiceBaseImpl
 		throws PortalException {
 
 		return calendarResourcePersistence.remove(calendarResource);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return calendarResourcePersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -406,6 +425,17 @@ public abstract class CalendarResourceLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return calendarResourcePersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -413,6 +443,14 @@ public abstract class CalendarResourceLocalServiceBaseImpl
 			(CalendarResource)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<CalendarResource> getBasePersistence() {
+		return calendarResourcePersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -498,6 +536,10 @@ public abstract class CalendarResourceLocalServiceBaseImpl
 	/**
 	 * Updates the calendar resource in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect CalendarResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param calendarResource the calendar resource
 	 * @return the calendar resource that was updated
 	 */
@@ -559,8 +601,8 @@ public abstract class CalendarResourceLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

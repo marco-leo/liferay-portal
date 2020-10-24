@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import java.util.Collections;
+import java.util.HashMap;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -114,15 +115,14 @@ public class JSONBatchEngineImportTaskItemReaderTest
 
 			validate(
 				createDateString, "sample description", 1L,
-				HashMapBuilder.put(
-					"createDate1", "createDate"
-				).put(
-					"description1", "description"
-				).put(
-					"id1", "id"
-				).put(
-					"name1", (String)null
-				).build(),
+				new HashMap<String, String>() {
+					{
+						put("createDate1", "createDate");
+						put("description1", "description");
+						put("id1", "id");
+						put("name1", null);
+					}
+				},
 				jsonBatchEngineImportTaskItemReader.read(), null);
 		}
 	}
@@ -164,7 +164,7 @@ public class JSONBatchEngineImportTaskItemReaderTest
 
 				Assert.fail();
 			}
-			catch (IllegalArgumentException iae) {
+			catch (IllegalArgumentException illegalArgumentException) {
 			}
 		}
 	}
@@ -196,7 +196,7 @@ public class JSONBatchEngineImportTaskItemReaderTest
 
 				Assert.fail();
 			}
-			catch (NoSuchFieldException nsfe) {
+			catch (NoSuchFieldException noSuchFieldException) {
 			}
 		}
 	}

@@ -23,6 +23,8 @@ import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -43,6 +45,9 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.change.tracking.CTService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -74,7 +79,7 @@ public abstract class AssetEntryUsageLocalServiceBaseImpl
 	implements AopService, AssetEntryUsageLocalService,
 			   IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>AssetEntryUsageLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.asset.service.AssetEntryUsageLocalServiceUtil</code>.
@@ -82,6 +87,10 @@ public abstract class AssetEntryUsageLocalServiceBaseImpl
 
 	/**
 	 * Adds the asset entry usage to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetEntryUsageLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetEntryUsage the asset entry usage
 	 * @return the asset entry usage that was added
@@ -109,6 +118,10 @@ public abstract class AssetEntryUsageLocalServiceBaseImpl
 	/**
 	 * Deletes the asset entry usage with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetEntryUsageLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param assetEntryUsageId the primary key of the asset entry usage
 	 * @return the asset entry usage that was removed
 	 * @throws PortalException if a asset entry usage with the primary key could not be found
@@ -124,6 +137,10 @@ public abstract class AssetEntryUsageLocalServiceBaseImpl
 	/**
 	 * Deletes the asset entry usage from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetEntryUsageLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param assetEntryUsage the asset entry usage
 	 * @return the asset entry usage that was removed
 	 */
@@ -133,6 +150,11 @@ public abstract class AssetEntryUsageLocalServiceBaseImpl
 		AssetEntryUsage assetEntryUsage) {
 
 		return assetEntryUsagePersistence.remove(assetEntryUsage);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return assetEntryUsagePersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -367,6 +389,17 @@ public abstract class AssetEntryUsageLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return assetEntryUsagePersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -374,6 +407,14 @@ public abstract class AssetEntryUsageLocalServiceBaseImpl
 			(AssetEntryUsage)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<AssetEntryUsage> getBasePersistence() {
+		return assetEntryUsagePersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -459,6 +500,10 @@ public abstract class AssetEntryUsageLocalServiceBaseImpl
 	/**
 	 * Updates the asset entry usage in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetEntryUsageLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param assetEntryUsage the asset entry usage
 	 * @return the asset entry usage that was updated
 	 */
@@ -474,7 +519,7 @@ public abstract class AssetEntryUsageLocalServiceBaseImpl
 	public Class<?>[] getAopInterfaces() {
 		return new Class<?>[] {
 			AssetEntryUsageLocalService.class, IdentifiableOSGiService.class,
-			PersistedModelLocalService.class
+			CTService.class, PersistedModelLocalService.class
 		};
 	}
 
@@ -493,8 +538,23 @@ public abstract class AssetEntryUsageLocalServiceBaseImpl
 		return AssetEntryUsageLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<AssetEntryUsage> getCTPersistence() {
+		return assetEntryUsagePersistence;
+	}
+
+	@Override
+	public Class<AssetEntryUsage> getModelClass() {
 		return AssetEntryUsage.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<AssetEntryUsage>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(assetEntryUsagePersistence);
 	}
 
 	protected String getModelClassName() {
@@ -520,8 +580,8 @@ public abstract class AssetEntryUsageLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

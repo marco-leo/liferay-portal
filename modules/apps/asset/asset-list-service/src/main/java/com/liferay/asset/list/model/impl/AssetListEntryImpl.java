@@ -21,8 +21,13 @@ import com.liferay.asset.list.constants.AssetListEntryTypeConstants;
 import com.liferay.asset.list.model.AssetListEntrySegmentsEntryRel;
 import com.liferay.asset.list.service.AssetListEntrySegmentsEntryRelLocalServiceUtil;
 import com.liferay.asset.util.AssetHelper;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
@@ -54,6 +59,7 @@ public class AssetListEntryImpl extends AssetListEntryBaseImpl {
 	 *             long, int, int)}
 	 */
 	@Deprecated
+	@Override
 	public List<AssetEntry> getAssetEntries(
 		long segmentsEntryId, int start, int end) {
 
@@ -70,6 +76,7 @@ public class AssetListEntryImpl extends AssetListEntryBaseImpl {
 	 *             long[])}
 	 */
 	@Deprecated
+	@Override
 	public List<AssetEntry> getAssetEntries(long[] segmentsEntryIds) {
 		AssetListAssetEntryProvider assetListAssetEntryProvider =
 			_getAssetListAssetEntryProvider();
@@ -84,6 +91,7 @@ public class AssetListEntryImpl extends AssetListEntryBaseImpl {
 	 *             long[], int, int)}
 	 */
 	@Deprecated
+	@Override
 	public List<AssetEntry> getAssetEntries(
 		long[] segmentsEntryIds, int start, int end) {
 
@@ -100,6 +108,7 @@ public class AssetListEntryImpl extends AssetListEntryBaseImpl {
 	 *             AssetListEntry, long)}
 	 */
 	@Deprecated
+	@Override
 	public int getAssetEntriesCount(long segmentsEntryId) {
 		AssetListAssetEntryProvider assetListAssetEntryProvider =
 			_getAssetListAssetEntryProvider();
@@ -114,6 +123,7 @@ public class AssetListEntryImpl extends AssetListEntryBaseImpl {
 	 *             AssetListEntry, long[])}
 	 */
 	@Deprecated
+	@Override
 	public int getAssetEntriesCount(long[] segmentsEntryIds) {
 		AssetListAssetEntryProvider assetListAssetEntryProvider =
 			_getAssetListAssetEntryProvider();
@@ -128,6 +138,7 @@ public class AssetListEntryImpl extends AssetListEntryBaseImpl {
 	 *             AssetListEntry, long)}
 	 */
 	@Deprecated
+	@Override
 	public AssetEntryQuery getAssetEntryQuery(long segmentsEntryId) {
 		AssetListAssetEntryProvider assetListAssetEntryProvider =
 			_getAssetListAssetEntryProvider();
@@ -142,6 +153,7 @@ public class AssetListEntryImpl extends AssetListEntryBaseImpl {
 	 *             AssetListEntry, long[])}
 	 */
 	@Deprecated
+	@Override
 	public AssetEntryQuery getAssetEntryQuery(long[] segmentsEntryIds) {
 		AssetListAssetEntryProvider assetListAssetEntryProvider =
 			_getAssetListAssetEntryProvider();
@@ -167,6 +179,14 @@ public class AssetListEntryImpl extends AssetListEntryBaseImpl {
 		}
 
 		return null;
+	}
+
+	@Override
+	public String getUnambiguousTitle(Locale locale) throws PortalException {
+		Group group = GroupLocalServiceUtil.getGroup(getGroupId());
+
+		return StringUtil.appendParentheticalSuffix(
+			getTitle(), group.getName(locale));
 	}
 
 	private AssetListAssetEntryProvider _getAssetListAssetEntryProvider() {

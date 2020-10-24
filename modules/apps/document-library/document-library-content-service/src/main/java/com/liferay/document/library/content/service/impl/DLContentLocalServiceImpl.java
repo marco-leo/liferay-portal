@@ -78,9 +78,7 @@ public class DLContentLocalServiceImpl extends DLContentLocalServiceBaseImpl {
 
 		dlContent.setSize(bytes.length);
 
-		dlContentPersistence.update(dlContent);
-
-		return dlContent;
+		return dlContentPersistence.update(dlContent);
 	}
 
 	@Override
@@ -137,11 +135,11 @@ public class DLContentLocalServiceImpl extends DLContentLocalServiceBaseImpl {
 
 			dlContent.setSize(size);
 
-			dlContentPersistence.update(dlContent);
+			dlContent = dlContentPersistence.update(dlContent);
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(ioe, ioe);
+				_log.warn(ioException, ioException);
 			}
 		}
 
@@ -342,10 +340,11 @@ public class DLContentLocalServiceImpl extends DLContentLocalServiceBaseImpl {
 			try {
 				return new OutputBlob(inputStream, fileChannel.size());
 			}
-			catch (IOException ioe) {
+			catch (IOException ioException) {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
-						"Unable to detect file size from file channel", ioe);
+						"Unable to detect file size from file channel",
+						ioException);
 				}
 			}
 		}
@@ -358,8 +357,8 @@ public class DLContentLocalServiceImpl extends DLContentLocalServiceBaseImpl {
 
 			return new OutputBlob(unsyncByteArrayInputStream, bytes.length);
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 	}
 

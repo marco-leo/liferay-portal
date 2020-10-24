@@ -38,7 +38,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface CTCollectionModel
 	extends BaseModel<CTCollection>, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a ct collection model instance should use the {@link CTCollection} interface instead.

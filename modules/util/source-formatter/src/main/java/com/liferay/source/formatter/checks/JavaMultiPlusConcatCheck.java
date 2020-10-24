@@ -43,9 +43,7 @@ public class JavaMultiPlusConcatCheck extends BaseJavaTermCheck {
 			String fileContent)
 		throws IOException {
 
-		if (isExcludedPath(RUN_OUTSIDE_PORTAL_EXCLUDES, absolutePath) ||
-			isModulesApp(absolutePath, true)) {
-
+		if (isExcludedPath(RUN_OUTSIDE_PORTAL_EXCLUDES, absolutePath)) {
 			return javaTerm.getContent();
 		}
 
@@ -126,7 +124,7 @@ public class JavaMultiPlusConcatCheck extends BaseJavaTermCheck {
 					fileName,
 					"Use method 'StringBundler.concat' when concatenating " +
 						"more than 3 strings",
-					"concat.markdown", javaTerm.getLineNumber(startPos));
+					javaTerm.getLineNumber(startPos));
 			}
 
 			x = endPos;
@@ -267,9 +265,7 @@ public class JavaMultiPlusConcatCheck extends BaseJavaTermCheck {
 				continue;
 			}
 
-			int lineNumber = getLineNumber(content, start);
-
-			String line = getLine(content, lineNumber);
+			String line = getLine(content, getLineNumber(content, start));
 
 			if (!line.contains(StringPool.OPEN_PARENTHESIS)) {
 				return false;

@@ -23,7 +23,6 @@ import com.liferay.asset.auto.tagger.service.AssetAutoTaggerEntryLocalService;
 import com.liferay.asset.kernel.exception.AssetTagException;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetRenderer;
-import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -32,9 +31,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.service.GroupLocalService;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.transaction.Transactional;
-import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,41 +69,23 @@ public class AssetAutoTaggerImpl implements AopService, AssetAutoTagger {
 			return;
 		}
 
-		ServiceContext serviceContext = new ServiceContext();
-
 		for (String assetTagName : assetTagNames) {
 			try {
-				AssetTag assetTag = _assetTagLocalService.fetchTag(
-					assetEntry.getGroupId(),
-					StringUtil.toLowerCase(assetTagName));
-
-				if (assetTag == null) {
-					assetTag = _assetTagLocalService.addTag(
-						assetEntry.getUserId(), assetEntry.getGroupId(),
-						assetTagName, serviceContext);
-				}
-
-				_assetTagLocalService.addAssetEntryAssetTag(
-					assetEntry.getEntryId(), assetTag);
-
 				_assetAutoTaggerEntryLocalService.addAssetAutoTaggerEntry(
-					assetEntry, assetTag);
-
-				_assetTagLocalService.incrementAssetCount(
-					assetTag.getTagId(), assetEntry.getClassNameId());
+					assetEntry, assetTagName);
 			}
-			catch (AssetTagException ate) {
+			catch (AssetTagException assetTagException) {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
 						String.format(
 							"Unable to add auto tag: %s", assetTagName),
-						ate);
+						assetTagException);
 				}
 			}
-			catch (PortalException pe) {
+			catch (PortalException portalException) {
 				_log.error(
 					String.format("Unable to add auto tag: %s", assetTagName),
-					pe);
+					portalException);
 			}
 		}
 
@@ -155,8 +134,11 @@ public class AssetAutoTaggerImpl implements AopService, AssetAutoTagger {
 
 		Set<String> assetTagNamesSet = new LinkedHashSet<>();
 
-		for (AssetAutoTagProvider assetEntryAssetAutoTagProvider :
+		for (AssetAutoTagProvider<?> assetAutoTagProvider :
 				_assetAutoTaggerHelper.getAssetEntryAssetAutoTagProviders()) {
+
+			AssetAutoTagProvider<AssetEntry> assetEntryAssetAutoTagProvider =
+				(AssetAutoTagProvider<AssetEntry>)assetAutoTagProvider;
 
 			assetTagNamesSet.addAll(
 				assetEntryAssetAutoTagProvider.getTagNames(assetEntry));
@@ -167,11 +149,14 @@ public class AssetAutoTaggerImpl implements AopService, AssetAutoTagger {
 				_assetAutoTaggerHelper.getAssetAutoTagProviders(
 					assetEntry.getClassName());
 
-			for (AssetAutoTagProvider assetAutoTagProvider :
+			for (AssetAutoTagProvider<?> assetAutoTagProvider :
 					assetAutoTagProviders) {
 
+				AssetAutoTagProvider<Object> objectAssetAutoTagProvider =
+					(AssetAutoTagProvider<Object>)assetAutoTagProvider;
+
 				assetTagNamesSet.addAll(
-					assetAutoTagProvider.getTagNames(
+					objectAssetAutoTagProvider.getTagNames(
 						assetRenderer.getAssetObject()));
 			}
 		}

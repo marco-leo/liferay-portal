@@ -54,12 +54,13 @@ import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RepositoryLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.test.constants.TestDataConstants;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
-import com.liferay.portal.kernel.test.util.TestDataConstants;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.LongWrapper;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -67,7 +68,6 @@ import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.repository.liferayrepository.LiferayRepository;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -89,6 +89,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -111,7 +112,7 @@ public class DLPortletDataHandlerTest extends BasePortletDataHandlerTestCase {
 	@Before
 	@Override
 	public void setUp() throws Exception {
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		super.setUp();
 	}
@@ -241,6 +242,12 @@ public class DLPortletDataHandlerTest extends BasePortletDataHandlerTestCase {
 		portletDataHandler.prepareManifestSummary(portletDataContext);
 
 		Assert.assertTrue(atomicInteger.get() >= 1);
+	}
+
+	@Ignore
+	@Override
+	@Test
+	public void testGetExportConfigurationControls() throws Exception {
 	}
 
 	@Test

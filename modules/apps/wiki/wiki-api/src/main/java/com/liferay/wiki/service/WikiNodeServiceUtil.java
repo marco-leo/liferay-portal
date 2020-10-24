@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class WikiNodeServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.wiki.service.impl.WikiNodeServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link WikiNodeServiceUtil} to access the wiki node remote service. Add custom service methods to <code>com.liferay.wiki.service.impl.WikiNodeServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.wiki.model.WikiNode addNode(
 			String name, String description,
@@ -99,9 +93,10 @@ public class WikiNodeServiceUtil {
 	public static java.util.List<com.liferay.wiki.model.WikiNode> getNodes(
 		long groupId, int status, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.wiki.model.WikiNode> obc) {
+			<com.liferay.wiki.model.WikiNode> orderByComparator) {
 
-		return getService().getNodes(groupId, status, start, end, obc);
+		return getService().getNodes(
+			groupId, status, start, end, orderByComparator);
 	}
 
 	public static int getNodesCount(long groupId) {

@@ -27,6 +27,7 @@ import com.liferay.document.library.kernel.util.DLUtil;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.change.tracking.store.CTStoreFactory;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Criterion;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
@@ -161,16 +162,16 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 								dlFileEntry);
 						}
 					}
-					catch (PortalException pe) {
+					catch (PortalException portalException) {
 						if (_log.isWarnEnabled()) {
 							_log.warn(
 								"Unable to get file entry " +
 									dlFileVersion.getFileEntryId(),
-								pe);
+								portalException);
 						}
 					}
 				}
-				catch (Exception e) {
+				catch (Exception exception) {
 					if (_log.isWarnEnabled()) {
 						DLFileEntry dlFileEntry =
 							_dlFileEntryLocalService.fetchDLFileEntry(
@@ -181,7 +182,7 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 								"Unable to find file entry associated with " +
 									"file version " +
 										dlFileVersion.getFileVersionId(),
-								e);
+								exception);
 						}
 						else {
 							StringBundler sb = new StringBundler(4);
@@ -191,7 +192,7 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 							sb.append(" for file entry ");
 							sb.append(dlFileEntry.getName());
 
-							_log.warn(sb.toString(), e);
+							_log.warn(sb.toString(), exception);
 						}
 					}
 				}
@@ -211,12 +212,11 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 
 	protected void checkMimeTypes() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			String[] mimeTypes = {
-				ContentTypes.APPLICATION_OCTET_STREAM,
-				_MS_OFFICE_2010_TEXT_XML_UTF8
-			};
-
-			checkFileVersionMimeTypes(mimeTypes);
+			checkFileVersionMimeTypes(
+				new String[] {
+					ContentTypes.APPLICATION_OCTET_STREAM,
+					_MS_OFFICE_2010_TEXT_XML_UTF8
+				});
 
 			if (_log.isDebugEnabled()) {
 				_log.debug("Fixed file entries with invalid mime types");
@@ -289,11 +289,11 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 				"update DLFileEntry set classNameId = 0 where classNameId is " +
 					"null");
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					"Unable to fix file entries where class name ID is null",
-					e);
+					exception);
 			}
 		}
 	}
@@ -319,13 +319,13 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 						dlFileEntry.getUserId(), fileEntry, fileVersion, null,
 						null, null);
 				}
-				catch (Exception e) {
+				catch (Exception exception) {
 					if (_log.isWarnEnabled()) {
 						_log.warn(
 							StringBundler.concat(
 								"Unable to update asset for file entry ",
 								dlFileEntry.getFileEntryId(), ": ",
-								e.getMessage()));
+								exception.getMessage()));
 					}
 				}
 			}
@@ -354,12 +354,13 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 					_dlAppHelperLocalService.updateAsset(
 						dlFolder.getUserId(), folder, null, null, null);
 				}
-				catch (Exception e) {
+				catch (Exception exception) {
 					if (_log.isWarnEnabled()) {
 						_log.warn(
 							StringBundler.concat(
 								"Unable to update asset for folder ",
-								dlFolder.getFolderId(), ": ", e.getMessage()));
+								dlFolder.getFolderId(), ": ",
+								exception.getMessage()));
 					}
 				}
 			}
@@ -375,6 +376,9 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DLServiceVerifyProcess.class);
+
+	@Reference
+	private CTStoreFactory _ctStoreFactory;
 
 	@Reference
 	private DDMStructureLocalService _ddmStructureLocalService;

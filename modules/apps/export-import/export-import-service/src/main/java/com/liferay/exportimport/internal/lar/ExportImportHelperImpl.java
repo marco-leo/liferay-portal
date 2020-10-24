@@ -33,6 +33,7 @@ import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerRegistryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.exportimport.kernel.lar.UserIdStrategy;
 import com.liferay.exportimport.portlet.data.handler.provider.PortletDataHandlerProvider;
+import com.liferay.exportimport.portlet.data.handler.util.ExportImportGroupedModelUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
@@ -244,16 +245,13 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 			Map<String, String[]> parameterMap, String type)
 		throws Exception {
 
-		Map<String, Boolean> exportPortletControlsMap = HashMapBuilder.put(
+		return HashMapBuilder.put(
 			PortletDataHandlerKeys.PORTLET_DATA,
 			getExportPortletData(companyId, portletId, parameterMap)
-		).build();
-
-		exportPortletControlsMap.putAll(
+		).putAll(
 			getExportPortletSetupControlsMap(
-				companyId, portletId, parameterMap, type));
-
-		return exportPortletControlsMap;
+				companyId, portletId, parameterMap, type)
+		).build();
 	}
 
 	@Override
@@ -263,17 +261,14 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 			ManifestSummary manifestSummary)
 		throws Exception {
 
-		Map<String, Boolean> importPortletControlsMap = HashMapBuilder.put(
+		return HashMapBuilder.put(
 			PortletDataHandlerKeys.PORTLET_DATA,
 			getImportPortletData(
 				companyId, portletId, parameterMap, portletDataElement)
-		).build();
-
-		importPortletControlsMap.putAll(
+		).putAll(
 			getImportPortletSetupControlsMap(
-				companyId, portletId, parameterMap, manifestSummary));
-
-		return importPortletControlsMap;
+				companyId, portletId, parameterMap, manifestSummary)
+		).build();
 	}
 
 	@Override
@@ -344,7 +339,7 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 			try {
 				layout = getLayoutOrCreateDummyRootLayout(plid);
 			}
-			catch (NoSuchLayoutException nsle) {
+			catch (NoSuchLayoutException noSuchLayoutException) {
 				if (_log.isWarnEnabled()) {
 					_log.warn("Unable to publish deleted layout " + plid);
 				}
@@ -352,7 +347,7 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 				// See LPS-36174
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(nsle, nsle);
+					_log.debug(noSuchLayoutException, noSuchLayoutException);
 				}
 
 				entrySet.remove(plid);
@@ -611,13 +606,12 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 		}
 
 		if (ArrayUtil.contains(selectedPlids, 0)) {
-			JSONObject layoutJSONObject = JSONUtil.put(
-				"includeChildren", true
-			).put(
-				"plid", 0
-			);
-
-			jsonArray.put(layoutJSONObject);
+			jsonArray.put(
+				JSONUtil.put(
+					"includeChildren", true
+				).put(
+					"plid", 0
+				));
 		}
 
 		return jsonArray.toString();
@@ -664,6 +658,15 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 		if (Validator.isBlank(rootPortletId)) {
 			return true;
 		}
+
+		return isAlwaysIncludeReference(
+			portletDataContext, referenceStagedModel, rootPortletId);
+	}
+
+	@Override
+	public boolean isAlwaysIncludeReference(
+		PortletDataContext portletDataContext, StagedModel referenceStagedModel,
+		String rootPortletId) {
 
 		Portlet portlet = _portletLocalService.getPortletById(rootPortletId);
 
@@ -714,6 +717,7 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 		return true;
 	}
 
+	@Override
 	public boolean isLayoutRevisionInReview(Layout layout) {
 		List<LayoutRevision> layoutRevisions =
 			_layoutRevisionLocalService.getLayoutRevisions(layout.getPlid());
@@ -745,33 +749,9 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 			return true;
 		}
 
-		Group group = null;
-
-		try {
-			group = _groupLocalService.getGroup(groupedModel.getGroupId());
-		}
-		catch (Exception e) {
-			return false;
-		}
-
-		String className = group.getClassName();
-
-		if (className.equals(Layout.class.getName())) {
-			Layout scopeLayout = null;
-
-			try {
-				scopeLayout = _layoutLocalService.getLayout(group.getClassPK());
-			}
-			catch (Exception e) {
-				return false;
-			}
-
-			if (scopeLayout.getGroupId() == portletDataContext.getGroupId()) {
-				return true;
-			}
-		}
-
-		return false;
+		return ExportImportGroupedModelUtil.
+			isReferenceInLayoutGroupWithinExportScope(
+				portletDataContext, groupedModel);
 	}
 
 	@Override
@@ -817,7 +797,7 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 					MANIFEST_SUMMARY_KEYS,
 				manifestSummaryKeys);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					"Unable to process manifest for the process summary " +
@@ -892,9 +872,10 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 							_groupLocalService.updateGroup(oldScopeGroup);
 						}
 					}
-					catch (NoSuchLayoutException nsle) {
+					catch (NoSuchLayoutException noSuchLayoutException) {
 						if (_log.isWarnEnabled()) {
-							_log.warn(nsle, nsle);
+							_log.warn(
+								noSuchLayoutException, noSuchLayoutException);
 						}
 					}
 				}
@@ -948,16 +929,16 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 				groupIds.put(oldScopeGroupId, scopeGroup.getGroupId());
 			}
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(portalException, portalException);
 			}
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 	}
 
@@ -1266,9 +1247,9 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 				_configurationProvider.getCompanyConfiguration(
 					ExportImportServiceConfiguration.class, companyId);
 		}
-		catch (ConfigurationException ce) {
+		catch (ConfigurationException configurationException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(ce.getMessage());
+				_log.warn(configurationException.getMessage());
 			}
 		}
 
@@ -1311,13 +1292,12 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 			selectedLayoutIds, layout.getLayoutId());
 
 		if (checked) {
-			JSONObject layoutJSONObject = JSONUtil.put(
-				"includeChildren", includeChildren
-			).put(
-				"plid", layout.getPlid()
-			);
-
-			layoutsJSONArray.put(layoutJSONObject);
+			layoutsJSONArray.put(
+				JSONUtil.put(
+					"includeChildren", includeChildren
+				).put(
+					"plid", layout.getPlid()
+				));
 		}
 
 		if (checked && includeChildren) {
@@ -1570,7 +1550,7 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 					portlet = _portletLocalService.getPortletById(
 						_group.getCompanyId(), portletId);
 				}
-				catch (Exception e) {
+				catch (Exception exception) {
 					return;
 				}
 

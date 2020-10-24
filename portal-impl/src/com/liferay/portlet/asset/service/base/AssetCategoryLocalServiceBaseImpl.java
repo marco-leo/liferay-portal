@@ -28,6 +28,7 @@ import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -48,6 +49,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
 import com.liferay.portal.kernel.service.persistence.UserFinder;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
@@ -77,7 +79,7 @@ public abstract class AssetCategoryLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements AssetCategoryLocalService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>AssetCategoryLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.asset.kernel.service.AssetCategoryLocalServiceUtil</code>.
@@ -85,6 +87,10 @@ public abstract class AssetCategoryLocalServiceBaseImpl
 
 	/**
 	 * Adds the asset category to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetCategoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetCategory the asset category
 	 * @return the asset category that was added
@@ -112,6 +118,10 @@ public abstract class AssetCategoryLocalServiceBaseImpl
 	/**
 	 * Deletes the asset category with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetCategoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param categoryId the primary key of the asset category
 	 * @return the asset category that was removed
 	 * @throws PortalException if a asset category with the primary key could not be found
@@ -127,6 +137,10 @@ public abstract class AssetCategoryLocalServiceBaseImpl
 	/**
 	 * Deletes the asset category from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetCategoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param assetCategory the asset category
 	 * @return the asset category that was removed
 	 */
@@ -134,6 +148,11 @@ public abstract class AssetCategoryLocalServiceBaseImpl
 	@Override
 	public AssetCategory deleteAssetCategory(AssetCategory assetCategory) {
 		return assetCategoryPersistence.remove(assetCategory);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return assetCategoryPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -385,6 +404,17 @@ public abstract class AssetCategoryLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return assetCategoryPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -392,6 +422,14 @@ public abstract class AssetCategoryLocalServiceBaseImpl
 			(AssetCategory)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<AssetCategory> getBasePersistence() {
+		return assetCategoryPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -476,6 +514,10 @@ public abstract class AssetCategoryLocalServiceBaseImpl
 
 	/**
 	 * Updates the asset category in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetCategoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetCategory the asset category
 	 * @return the asset category that was updated
@@ -1019,8 +1061,8 @@ public abstract class AssetCategoryLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

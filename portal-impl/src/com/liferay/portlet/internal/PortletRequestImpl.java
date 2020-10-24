@@ -158,15 +158,16 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 	public Enumeration<String> getAttributeNames() {
 		Set<String> names = new HashSet<>();
 
-		Enumeration<String> enu = _httpServletRequest.getAttributeNames();
+		Enumeration<String> enumeration =
+			_httpServletRequest.getAttributeNames();
 
-		_copyAttributeNames(names, enu);
+		_copyAttributeNames(names, enumeration);
 
 		if (_portletRequestDispatcherHttpServletRequest != null) {
-			enu =
+			enumeration =
 				_portletRequestDispatcherHttpServletRequest.getAttributeNames();
 
-			_copyAttributeNames(names, enu);
+			_copyAttributeNames(names, enumeration);
 		}
 
 		return Collections.enumeration(names);
@@ -582,11 +583,8 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 
 	@Override
 	public String getWindowID() {
-		return _portletName.concat(
-			LiferayPortletSession.LAYOUT_SEPARATOR
-		).concat(
-			String.valueOf(_plid)
-		);
+		return StringBundler.concat(
+			_portletName, LiferayPortletSession.LAYOUT_SEPARATOR, _plid);
 	}
 
 	@Override
@@ -629,7 +627,7 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 					resourcePortlet = PortletLocalServiceUtil.getPortletById(
 						themeDisplay.getCompanyId(), portletResource);
 				}
-				catch (Exception e) {
+				catch (Exception exception) {
 				}
 
 				if (resourcePortlet != null) {
@@ -860,8 +858,8 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 					_userPrincipal = new ProtectedPrincipal(_remoteUser);
 				}
 			}
-			catch (Exception e) {
-				_log.error("Unable to get user", e);
+			catch (Exception exception) {
+				_log.error("Unable to get user", exception);
 			}
 		}
 		else {
@@ -1069,8 +1067,9 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 			return RoleLocalServiceUtil.hasUserRole(
 				_remoteUserId, companyId, role, true);
 		}
-		catch (Exception e) {
-			_log.error("Unable to check if a user is in role " + role, e);
+		catch (Exception exception) {
+			_log.error(
+				"Unable to check if a user is in role " + role, exception);
 		}
 
 		return _httpServletRequest.isUserInRole(role);
@@ -1091,16 +1090,16 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 	}
 
 	@Override
-	public void setAttribute(String name, Object obj) {
+	public void setAttribute(String name, Object object) {
 		if (name == null) {
 			throw new IllegalArgumentException();
 		}
 
-		if (obj == null) {
+		if (object == null) {
 			_httpServletRequest.removeAttribute(name);
 		}
 		else {
-			_httpServletRequest.setAttribute(name, obj);
+			_httpServletRequest.setAttribute(name, object);
 		}
 	}
 

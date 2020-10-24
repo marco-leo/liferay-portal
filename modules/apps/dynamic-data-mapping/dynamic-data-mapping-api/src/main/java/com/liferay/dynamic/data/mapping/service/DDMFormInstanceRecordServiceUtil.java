@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class DDMFormInstanceRecordServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.dynamic.data.mapping.service.impl.DDMFormInstanceRecordServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link DDMFormInstanceRecordServiceUtil} to access the ddm form instance record remote service. Add custom service methods to <code>com.liferay.dynamic.data.mapping.service.impl.DDMFormInstanceRecordServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecord
 			addFormInstanceRecord(
@@ -111,6 +105,18 @@ public class DDMFormInstanceRecordServiceUtil {
 
 		getService().revertFormInstanceRecord(
 			ddmFormInstanceRecordId, version, serviceContext);
+	}
+
+	public static com.liferay.portal.kernel.search.BaseModelSearchResult
+		<com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecord>
+				searchFormInstanceRecords(
+					long ddmFormInstanceId, String[] notEmptyFields, int status,
+					int start, int end,
+					com.liferay.portal.kernel.search.Sort sort)
+			throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().searchFormInstanceRecords(
+			ddmFormInstanceId, notEmptyFields, status, start, end, sort);
 	}
 
 	public static com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecord

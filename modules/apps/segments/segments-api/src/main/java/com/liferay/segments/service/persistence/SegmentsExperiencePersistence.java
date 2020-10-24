@@ -15,6 +15,7 @@
 package com.liferay.segments.service.persistence;
 
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.segments.exception.NoSuchExperienceException;
 import com.liferay.segments.model.SegmentsExperience;
 
@@ -33,9 +34,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface SegmentsExperiencePersistence
-	extends BasePersistence<SegmentsExperience> {
+	extends BasePersistence<SegmentsExperience>,
+			CTPersistence<SegmentsExperience> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link SegmentsExperienceUtil} to access the segments experience persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

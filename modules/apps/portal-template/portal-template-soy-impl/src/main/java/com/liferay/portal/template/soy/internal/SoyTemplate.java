@@ -24,15 +24,15 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.resource.bundle.AggregateResourceBundleLoader;
+import com.liferay.portal.kernel.resource.bundle.ClassResourceBundleLoader;
+import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.template.StringTemplateResource;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.template.TemplateException;
 import com.liferay.portal.kernel.template.TemplateResource;
-import com.liferay.portal.kernel.util.AggregateResourceBundleLoader;
-import com.liferay.portal.kernel.util.ClassResourceBundleLoader;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.ResourceBundleLoader;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.template.BaseTemplate;
@@ -79,11 +79,11 @@ public class SoyTemplate extends BaseTemplate {
 		}
 
 		_templateContextHelper = templateContextHelper;
+		_soyTofuCacheHandler = soyTofuCacheHandler;
+		_soyTemplateResourceFactory = soyTemplateResourceFactory;
 
 		_soyContextImpl = new SoyContextImpl(
 			context, templateContextHelper.getRestrictedVariables());
-		_soyTofuCacheHandler = soyTofuCacheHandler;
-		_soyTemplateResourceFactory = soyTemplateResourceFactory;
 
 		_setBaseContext();
 	}
@@ -254,11 +254,11 @@ public class SoyTemplate extends BaseTemplate {
 	@Override
 	protected void handleException(
 			TemplateResource templateResource,
-			TemplateResource errorTemplateResource, Exception exception,
+			TemplateResource errorTemplateResource, Exception exception1,
 			Writer writer)
 		throws TemplateException {
 
-		put("exception", exception.getMessage());
+		put("exception", exception1.getMessage());
 
 		SoyTemplateResource soyTemplateResource =
 			(SoyTemplateResource)templateResource;
@@ -281,11 +281,11 @@ public class SoyTemplate extends BaseTemplate {
 		try {
 			processTemplate(errorTemplateResource, writer);
 		}
-		catch (Exception e) {
+		catch (Exception exception2) {
 			throw new TemplateException(
 				"Unable to process Soy template " +
 					errorTemplateResource.getTemplateId(),
-				e);
+				exception2);
 		}
 	}
 
@@ -356,12 +356,12 @@ public class SoyTemplate extends BaseTemplate {
 
 				templateResourceBundles.add(templateResourceBundle);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
 					_log.debug(
 						"Unable to get language resource bundle for template " +
 							StringUtil.quote(templateResource.getTemplateId()),
-						e);
+						exception);
 				}
 			}
 		}
@@ -378,7 +378,7 @@ public class SoyTemplate extends BaseTemplate {
 					"content.Language", bundleWiring.getClassLoader()));
 		}
 
-		resourceBundleLoaders.add(LanguageUtil.getPortalResourceBundleLoader());
+		resourceBundleLoaders.add(LanguageUtil.getResourceBundleLoader());
 
 		AggregateResourceBundleLoader aggregateResourceBundleLoader =
 			new AggregateResourceBundleLoader(

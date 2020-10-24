@@ -63,6 +63,16 @@ public class WebUrlSerDes {
 			sb.append(webUrl.getId());
 		}
 
+		if (webUrl.getPrimary() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"primary\": ");
+
+			sb.append(webUrl.getPrimary());
+		}
+
 		if (webUrl.getUrl() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -116,6 +126,13 @@ public class WebUrlSerDes {
 			map.put("id", String.valueOf(webUrl.getId()));
 		}
 
+		if (webUrl.getPrimary() == null) {
+			map.put("primary", null);
+		}
+		else {
+			map.put("primary", String.valueOf(webUrl.getPrimary()));
+		}
+
 		if (webUrl.getUrl() == null) {
 			map.put("url", null);
 		}
@@ -155,6 +172,11 @@ public class WebUrlSerDes {
 					webUrl.setId(Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "primary")) {
+				if (jsonParserFieldValue != null) {
+					webUrl.setPrimary((Boolean)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "url")) {
 				if (jsonParserFieldValue != null) {
 					webUrl.setUrl((String)jsonParserFieldValue);
@@ -165,9 +187,8 @@ public class WebUrlSerDes {
 					webUrl.setUrlType((String)jsonParserFieldValue);
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -223,10 +244,13 @@ public class WebUrlSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

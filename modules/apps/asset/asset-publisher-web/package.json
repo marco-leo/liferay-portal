@@ -1,10 +1,6 @@
 {
 	"dependencies": {
-		"clay-multi-select": "2.19.0",
-		"metal": "2.16.8",
-		"metal-dom": "2.16.8",
-		"metal-soy": "2.16.8",
-		"metal-state": "2.16.8"
+		"metal-dom": "2.16.8"
 	},
 	"name": "asset-publisher-web",
 	"scripts": {
@@ -12,5 +8,5 @@
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "4.0.0"
+	"version": "5.0.0"
 }

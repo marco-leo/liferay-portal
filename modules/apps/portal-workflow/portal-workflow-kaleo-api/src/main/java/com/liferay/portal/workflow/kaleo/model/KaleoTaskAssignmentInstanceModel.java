@@ -40,7 +40,7 @@ public interface KaleoTaskAssignmentInstanceModel
 	extends BaseModel<KaleoTaskAssignmentInstance>, GroupedModel, MVCCModel,
 			ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo task assignment instance model instance should use the {@link KaleoTaskAssignmentInstance} interface instead.
@@ -203,6 +203,20 @@ public interface KaleoTaskAssignmentInstanceModel
 	 */
 	@Override
 	public void setModifiedDate(Date modifiedDate);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo task assignment instance.
+	 *
+	 * @return the kaleo definition ID of this kaleo task assignment instance
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo task assignment instance.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo task assignment instance
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo task assignment instance.

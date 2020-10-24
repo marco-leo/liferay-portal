@@ -105,15 +105,13 @@ public class DisplayPortlet extends BaseKBPortlet {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws IOException, PortalException {
 
-		KBFolder kbFolder = null;
-
 		long kbFolderId = ParamUtil.getLong(actionRequest, "rootKBFolderId");
 
 		long kbFolderGroupId = _portal.getScopeGroupId(actionRequest);
 		String kbFolderURLTitle = StringPool.BLANK;
 
 		if (kbFolderId != KBFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			kbFolder = kbFolderService.getKBFolder(kbFolderId);
+			KBFolder kbFolder = kbFolderService.getKBFolder(kbFolderId);
 
 			kbFolderGroupId = kbFolder.getGroupId();
 			kbFolderURLTitle = kbFolder.getUrlTitle();
@@ -288,11 +286,11 @@ public class DisplayPortlet extends BaseKBPortlet {
 				httpServletResponse.setStatus(404);
 			}
 		}
-		catch (Exception e) {
-			if (e instanceof NoSuchArticleException ||
-				e instanceof PrincipalException) {
+		catch (Exception exception) {
+			if (exception instanceof NoSuchArticleException ||
+				exception instanceof PrincipalException) {
 
-				SessionErrors.add(renderRequest, e.getClass());
+				SessionErrors.add(renderRequest, exception.getClass());
 
 				SessionMessages.add(
 					renderRequest,
@@ -300,7 +298,7 @@ public class DisplayPortlet extends BaseKBPortlet {
 						SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_ERROR_MESSAGE);
 			}
 			else {
-				throw new PortletException(e);
+				throw new PortletException(exception);
 			}
 		}
 	}

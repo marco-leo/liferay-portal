@@ -32,8 +32,8 @@ public class OrganizationChecker extends EmptyOnClickRowChecker {
 	}
 
 	@Override
-	public boolean isDisabled(Object obj) {
-		Organization organization = (Organization)obj;
+	public boolean isDisabled(Object object) {
+		Organization organization = (Organization)object;
 
 		try {
 			if (!OrganizationPermissionUtil.contains(
@@ -43,10 +43,10 @@ public class OrganizationChecker extends EmptyOnClickRowChecker {
 				return true;
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
-		return super.isDisabled(obj);
+		return super.isDisabled(object);
 	}
 
 }

@@ -20,8 +20,8 @@ const properties = [
 	{
 		label: 'Cookies',
 		name: 'cookies',
-		type: 'collection'
-	}
+		type: 'collection',
+	},
 ];
 
 function testConversionToAndFrom(testQuery, {properties, queryConjunction}) {
@@ -38,7 +38,9 @@ function testConversionToAndFrom(testQuery, {properties, queryConjunction}) {
 
 describe('odata-util', () => {
 	beforeAll(() => {
-		Utils.generateGroupId = jest.fn(() => 'group_01');
+		jest.spyOn(Utils, 'generateGroupId').mockImplementation(
+			() => 'group_01'
+		);
 	});
 
 	describe('buildQueryString', () => {
@@ -69,9 +71,9 @@ describe('odata-util', () => {
 					{
 						operatorName: 'eq',
 						propertyName: 'firstName',
-						value: 'test'
-					}
-				]
+						value: 'test',
+					},
+				],
 			});
 		});
 
@@ -85,9 +87,9 @@ describe('odata-util', () => {
 					{
 						operatorName: 'eq',
 						propertyName: 'firstName',
-						value: 'test'
-					}
-				]
+						value: 'test',
+					},
+				],
 			});
 		});
 
@@ -103,9 +105,9 @@ describe('odata-util', () => {
 					{
 						operatorName: 'not-eq',
 						propertyName: 'firstName',
-						value: 'test'
-					}
-				]
+						value: 'test',
+					},
+				],
 			});
 		});
 
@@ -121,9 +123,9 @@ describe('odata-util', () => {
 					{
 						operatorName: 'contains',
 						propertyName: 'firstName',
-						value: 'test'
-					}
-				]
+						value: 'test',
+					},
+				],
 			});
 		});
 
@@ -148,6 +150,18 @@ describe('odata-util', () => {
 			testConversionToAndFrom(testQuery, {properties});
 		});
 
+		it('is able to translate a query string with special characters to map and back to string', () => {
+			const testQuery = "(firstName eq 'test+/?%#&')";
+
+			testConversionToAndFrom(testQuery, {properties});
+		});
+
+		test.skip('is able to translate a query string with special characters and spaces to map and back to string', () => {
+			const testQuery = "(firstName eq 'test +/?%#&')";
+
+			testConversionToAndFrom(testQuery, {properties});
+		});
+
 		it('is able to translate a complex query string to map and back to string', () => {
 			const testQuery =
 				"((firstName eq 'test' or firstName eq 'test') and firstName eq 'test')";
@@ -161,7 +175,7 @@ describe('odata-util', () => {
 			const translatedMap = ODataUtil.translateQueryToCriteria(testQuery);
 
 			const translatedString = ODataUtil.buildQueryString([
-				translatedMap
+				translatedMap,
 			]);
 
 			expect(translatedString).toEqual(testQuery);

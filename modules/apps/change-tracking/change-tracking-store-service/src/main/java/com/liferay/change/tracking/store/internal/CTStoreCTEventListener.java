@@ -15,10 +15,10 @@
 package com.liferay.change.tracking.store.internal;
 
 import com.liferay.change.tracking.constants.CTConstants;
-import com.liferay.change.tracking.exception.CTEventException;
-import com.liferay.change.tracking.listener.CTEventListener;
 import com.liferay.change.tracking.model.CTEntry;
 import com.liferay.change.tracking.service.CTEntryLocalService;
+import com.liferay.change.tracking.spi.exception.CTEventException;
+import com.liferay.change.tracking.spi.listener.CTEventListener;
 import com.liferay.change.tracking.store.model.CTSContent;
 import com.liferay.change.tracking.store.service.CTSContentLocalService;
 import com.liferay.document.library.kernel.store.Store;
@@ -89,8 +89,8 @@ public class CTStoreCTEventListener implements CTEventListener {
 						ctsContent.getPath(), ctsContent.getVersion());
 				}
 			}
-			catch (PortalException pe) {
-				throw new CTEventException(pe);
+			catch (PortalException portalException) {
+				throw new CTEventException(portalException);
 			}
 		}
 
@@ -116,8 +116,8 @@ public class CTStoreCTEventListener implements CTEventListener {
 							ctsContent.getCtsContentId()));
 				}
 			}
-			catch (PortalException pe) {
-				throw new CTEventException(pe);
+			catch (PortalException portalException) {
+				throw new CTEventException(portalException);
 			}
 		}
 	}

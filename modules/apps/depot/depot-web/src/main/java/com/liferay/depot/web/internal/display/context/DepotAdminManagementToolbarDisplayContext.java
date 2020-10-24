@@ -14,20 +14,22 @@
 
 package com.liferay.depot.web.internal.display.context;
 
+import com.liferay.depot.constants.DepotActionKeys;
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.web.internal.roles.admin.group.type.contributor.DepotEntryPermission;
+import com.liferay.depot.web.internal.security.permission.resource.DepotPermission;
 import com.liferay.depot.web.internal.util.DepotEntryURLUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.display.context.SearchContainerManagementToolbarDisplayContext;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
-import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -49,33 +51,29 @@ public class DepotAdminManagementToolbarDisplayContext
 	extends SearchContainerManagementToolbarDisplayContext {
 
 	public DepotAdminManagementToolbarDisplayContext(
-		LiferayPortletRequest liferayPortletRequest,
-		LiferayPortletResponse liferayPortletResponse,
-		HttpServletRequest httpServletRequest,
-		DepotAdminDisplayContext depotAdminDisplayContext) {
+			HttpServletRequest httpServletRequest,
+			LiferayPortletRequest liferayPortletRequest,
+			LiferayPortletResponse liferayPortletResponse,
+			DepotAdminDisplayContext depotAdminDisplayContext)
+		throws PortalException {
 
 		super(
-			liferayPortletRequest, liferayPortletResponse, httpServletRequest,
-			depotAdminDisplayContext.getGroupSearch());
+			httpServletRequest, liferayPortletRequest, liferayPortletResponse,
+			depotAdminDisplayContext.searchContainer());
 
 		_depotAdminDisplayContext = depotAdminDisplayContext;
 	}
 
 	@Override
 	public List<DropdownItem> getActionDropdownItems() {
-		return new DropdownItemList() {
-			{
-				add(
-					dropdownItem -> {
-						dropdownItem.putData(
-							"action", "deleteSelectedDepotEntries");
-						dropdownItem.setIcon("times-circle");
-						dropdownItem.setLabel(
-							LanguageUtil.get(request, "delete"));
-						dropdownItem.setQuickAction(true);
-					});
+		return DropdownItemListBuilder.add(
+			dropdownItem -> {
+				dropdownItem.putData("action", "deleteSelectedDepotEntries");
+				dropdownItem.setIcon("times-circle");
+				dropdownItem.setLabel(LanguageUtil.get(request, "delete"));
+				dropdownItem.setQuickAction(true);
 			}
-		};
+		).build();
 	}
 
 	@Override
@@ -97,7 +95,7 @@ public class DepotAdminManagementToolbarDisplayContext
 					liferayPortletResponse.createActionURL();
 
 				deleteDepotEntries.setParameter(
-					ActionRequest.ACTION_NAME, "/depot_entry/delete");
+					ActionRequest.ACTION_NAME, "/depot/delete_depot_entry");
 
 				return deleteDepotEntries.toString();
 			}
@@ -111,36 +109,28 @@ public class DepotAdminManagementToolbarDisplayContext
 
 	@Override
 	public CreationMenu getCreationMenu() {
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		if (!PortalPermissionUtil.contains(
-				themeDisplay.getPermissionChecker(),
-				ActionKeys.ADD_COMMUNITY)) {
-
-			return null;
-		}
-
 		try {
-			PortletURL addDepotEntryURL =
-				DepotEntryURLUtil.getAddDepotEntryActionURL(
-					themeDisplay.getURLCurrent(), liferayPortletResponse);
+			return CreationMenuBuilder.addPrimaryDropdownItem(
+				dropdownItem -> {
+					dropdownItem.putData("action", "addDepotEntry");
 
-			return new CreationMenu() {
-				{
-					addPrimaryDropdownItem(
-						dropdownItem -> {
-							dropdownItem.putData("action", "addDepotEntry");
-							dropdownItem.putData(
-								"addDepotEntryURL",
-								addDepotEntryURL.toString());
-							dropdownItem.setLabel(
-								LanguageUtil.get(request, "add"));
-						});
+					ThemeDisplay themeDisplay =
+						(ThemeDisplay)request.getAttribute(
+							WebKeys.THEME_DISPLAY);
+
+					PortletURL addDepotEntryURL =
+						DepotEntryURLUtil.getAddDepotEntryActionURL(
+							themeDisplay.getURLCurrent(),
+							liferayPortletResponse);
+
+					dropdownItem.putData(
+						"addDepotEntryURL", addDepotEntryURL.toString());
+
+					dropdownItem.setLabel(LanguageUtil.get(request, "add"));
 				}
-			};
+			).build();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		return null;
@@ -151,11 +141,11 @@ public class DepotAdminManagementToolbarDisplayContext
 		return "depotAdminManagementToolbarDefaultEventHandler";
 	}
 
-	public Map<String, Object> getRowData(Group curGroup)
+	public Map<String, Object> getRowData(DepotEntry depotEntry)
 		throws PortalException {
 
 		return HashMapBuilder.<String, Object>put(
-			"actions", StringUtil.merge(_getAvailableActions(curGroup))
+			"actions", StringUtil.merge(_getAvailableActions(depotEntry))
 		).build();
 	}
 
@@ -174,14 +164,9 @@ public class DepotAdminManagementToolbarDisplayContext
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (PortalPermissionUtil.contains(
-				themeDisplay.getPermissionChecker(),
-				ActionKeys.ADD_COMMUNITY)) {
-
-			return true;
-		}
-
-		return false;
+		return DepotPermission.contains(
+			themeDisplay.getPermissionChecker(), themeDisplay.getScopeGroupId(),
+			DepotActionKeys.ADD_DEPOT_ENTRY);
 	}
 
 	@Override
@@ -204,27 +189,27 @@ public class DepotAdminManagementToolbarDisplayContext
 		return new String[] {"descriptive-name"};
 	}
 
-	private List<String> _getAvailableActions(Group group)
+	private List<String> _getAvailableActions(DepotEntry depotEntry)
 		throws PortalException {
 
 		List<String> availableActions = new ArrayList<>();
 
-		if (_hasDeleteGroupPermission(group)) {
+		if (_hasDeleteDepotEntryPermission(depotEntry)) {
 			availableActions.add("deleteSelectedDepotEntries");
 		}
 
 		return availableActions;
 	}
 
-	private boolean _hasDeleteGroupPermission(Group group)
+	private boolean _hasDeleteDepotEntryPermission(DepotEntry depotEntry)
 		throws PortalException {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (!GroupPermissionUtil.contains(
-				themeDisplay.getPermissionChecker(), group,
-				ActionKeys.DELETE)) {
+		if (!DepotEntryPermission.contains(
+				themeDisplay.getPermissionChecker(),
+				depotEntry.getDepotEntryId(), ActionKeys.DELETE)) {
 
 			return false;
 		}

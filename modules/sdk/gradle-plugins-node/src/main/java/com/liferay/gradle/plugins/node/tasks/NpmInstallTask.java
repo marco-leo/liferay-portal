@@ -40,14 +40,18 @@ import org.gradle.api.Task;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 
 /**
  * @author Andrea Di Giorgi
  */
+@CacheableTask
 public class NpmInstallTask extends ExecutePackageManagerTask {
 
 	public NpmInstallTask() {
@@ -130,6 +134,7 @@ public class NpmInstallTask extends ExecutePackageManagerTask {
 	}
 
 	@InputFile
+	@PathSensitive(PathSensitivity.RELATIVE)
 	public File getPackageJsonFile() {
 		Project project = getProject();
 
@@ -138,12 +143,14 @@ public class NpmInstallTask extends ExecutePackageManagerTask {
 
 	@InputFile
 	@Optional
+	@PathSensitive(PathSensitivity.RELATIVE)
 	public File getPackageLockJsonFile() {
 		return _getExistentFile("package-lock.json");
 	}
 
 	@InputFile
 	@Optional
+	@PathSensitive(PathSensitivity.RELATIVE)
 	public File getShrinkwrapJsonFile() {
 		return _getExistentFile("npm-shrinkwrap.json");
 	}
@@ -277,9 +284,19 @@ public class NpmInstallTask extends ExecutePackageManagerTask {
 		return completeArgs;
 	}
 
-	private static String _getNodeModulesCacheDigest(
-		NpmInstallTask npmInstallTask) {
+	private File _getExistentFile(String fileName) {
+		Project project = getProject();
 
+		File file = project.file(fileName);
+
+		if (!file.exists()) {
+			file = null;
+		}
+
+		return file;
+	}
+
+	private String _getNodeModulesCacheDigest(NpmInstallTask npmInstallTask) {
 		Logger logger = npmInstallTask.getLogger();
 
 		JsonSlurper jsonSlurper = new JsonSlurper();
@@ -317,7 +334,76 @@ public class NpmInstallTask extends ExecutePackageManagerTask {
 		return String.valueOf(map.hashCode());
 	}
 
-	private static synchronized void _npmInstallCached(
+	private boolean _isCacheEnabled() {
+		Project project = getProject();
+
+		PluginContainer pluginContainer = project.getPlugins();
+
+		if (!pluginContainer.hasPlugin("com.liferay.cache") &&
+			(getNodeModulesCacheDir() != null)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private void _npmCacheVerify() {
+		Logger logger = getLogger();
+
+		try {
+			_npmCacheVerify = true;
+
+			super.executeNode();
+		}
+		catch (Exception exception) {
+			if (logger.isWarnEnabled()) {
+				String message = "Unable to run \"npm cache verify\"";
+
+				if (Validator.isNotNull(exception.getMessage())) {
+					message = exception.getMessage() + ". " + message;
+				}
+
+				logger.warn(message);
+			}
+		}
+		finally {
+			_npmCacheVerify = false;
+		}
+	}
+
+	private void _npmInstall(boolean reset) throws Exception {
+		Logger logger = getLogger();
+		int npmInstallRetries = getNpmInstallRetries();
+		Project project = getProject();
+
+		for (int i = 0; i < (npmInstallRetries + 1); i++) {
+			if (reset || (i > 0)) {
+				project.delete(getNodeModulesDir());
+			}
+
+			try {
+				super.executeNode();
+
+				break;
+			}
+			catch (IOException ioException) {
+				if (i == npmInstallRetries) {
+					throw ioException;
+				}
+
+				if (logger.isWarnEnabled()) {
+					logger.warn(
+						ioException.getMessage() +
+							". Running \"npm install\" again");
+				}
+
+				_npmCacheVerify();
+			}
+		}
+	}
+
+	private synchronized void _npmInstallCached(
 			NpmInstallTask npmInstallTask, boolean reset)
 		throws Exception {
 
@@ -384,86 +470,6 @@ public class NpmInstallTask extends ExecutePackageManagerTask {
 			}
 
 			FileUtil.createBinDirLinks(logger, nodeModulesDir);
-		}
-	}
-
-	private File _getExistentFile(String fileName) {
-		Project project = getProject();
-
-		File file = project.file(fileName);
-
-		if (!file.exists()) {
-			file = null;
-		}
-
-		return file;
-	}
-
-	private boolean _isCacheEnabled() {
-		Project project = getProject();
-
-		PluginContainer pluginContainer = project.getPlugins();
-
-		if (!pluginContainer.hasPlugin("com.liferay.cache") &&
-			(getNodeModulesCacheDir() != null)) {
-
-			return true;
-		}
-
-		return false;
-	}
-
-	private void _npmCacheVerify() {
-		Logger logger = getLogger();
-
-		try {
-			_npmCacheVerify = true;
-
-			super.executeNode();
-		}
-		catch (Exception e) {
-			if (logger.isWarnEnabled()) {
-				String message = "Unable to run \"npm cache verify\"";
-
-				if (Validator.isNotNull(e.getMessage())) {
-					message = e.getMessage() + ". " + message;
-				}
-
-				logger.warn(message);
-			}
-		}
-		finally {
-			_npmCacheVerify = false;
-		}
-	}
-
-	private void _npmInstall(boolean reset) throws Exception {
-		Logger logger = getLogger();
-		int npmInstallRetries = getNpmInstallRetries();
-		Project project = getProject();
-
-		for (int i = 0; i < (npmInstallRetries + 1); i++) {
-			if (reset || (i > 0)) {
-				project.delete(getNodeModulesDir());
-			}
-
-			try {
-				super.executeNode();
-
-				break;
-			}
-			catch (IOException ioe) {
-				if (i == npmInstallRetries) {
-					throw ioe;
-				}
-
-				if (logger.isWarnEnabled()) {
-					logger.warn(
-						ioe.getMessage() + ". Running \"npm install\" again");
-				}
-
-				_npmCacheVerify();
-			}
 		}
 	}
 

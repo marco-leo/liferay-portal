@@ -55,6 +55,8 @@ definition {
 
 	@priority = "5"
 	test AddBlogsEntry {
+		property testray.component.names = "WYSIWYG";
+
 		Blogs.addEntry(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
@@ -63,7 +65,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 	}
@@ -140,7 +142,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "|||||||||1|||||||||2|||||||||3|||||||||4|||||||||5|||||||||6|||||||||7|||||||||8|||||||||9||||||||10||||||||11||||||||12||||||||13||||||||14||||||||15");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "|||||||||1|||||||||2|||||||||3|||||||||4|||||||||5|||||||||6|||||||||7|||||||||8|||||||||9||||||||10||||||||11||||||||12||||||||13||||||||14||||||||15");
 	}
@@ -149,17 +151,17 @@ definition {
 	test AddBlogsEntryTitle151Characters {
 		Blogs.addWithInvalidTitleLength(
 			entryContent = "Blogs Entry Content",
-			entryInvalidTitleLength = "|||||||||1|||||||||2|||||||||3|||||||||4|||||||||5|||||||||6|||||||||7|||||||||8|||||||||9||||||||10||||||||11||||||||12||||||||13||||||||14||||||||15X",
-			entryValidTitleLength = "|||||||||1|||||||||2|||||||||3|||||||||4|||||||||5|||||||||6|||||||||7|||||||||8|||||||||9||||||||10||||||||11||||||||12||||||||13||||||||14||||||||15");
+			entryInvalidTitleLength = "|||||||||1|||||||||2|||||||||3|||||||||4|||||||||5|||||||||6|||||||||7|||||||||8|||||||||9||||||||10||||||||11||||||||12||||||||13||||||||14||||||||15X");
 
-		Navigator.openURL();
+		Navigator.gotoPage(pageName = "Blogs Page");
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Blogs");
+		BlogsNavigator.gotoEntryPG(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "|||||||||1|||||||||2|||||||||3|||||||||4|||||||||5|||||||||6|||||||||7|||||||||8|||||||||9||||||||10||||||||11||||||||12||||||||13||||||||14||||||||15");
 
-		Blogs.viewNoEntryCP();
+		BlogsEntry.viewEntryPG(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "|||||||||1|||||||||2|||||||||3|||||||||4|||||||||5|||||||||6|||||||||7|||||||||8|||||||||9||||||||10||||||||11||||||||12||||||||13||||||||14||||||||15");
 	}
 
 	@priority = "4"
@@ -172,7 +174,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "&amp; &lt; &gt; &quot; Escape Characters Entry");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "&amp; &lt; &gt; &quot; Escape Characters Entry");
 	}
@@ -204,15 +206,9 @@ definition {
 
 		Navigator.gotoPage(pageName = "Blogs Page2");
 
-		Portlet.gotoPortletOptions(
+		Portlet.selectScopePG(
 			portletName = "Blogs",
-			portletOption = "Configuration");
-
-		BlogsConfiguration.selectConfigurationIFrame();
-
-		BlogsNavigator.gotoConfigurationScopePG();
-
-		BlogsConfiguration.selectScopePG(scopeSelection = "Blogs Page2");
+			scope = "Blogs Page2");
 
 		Navigator.gotoPage(pageName = "Blogs Page2");
 
@@ -234,7 +230,7 @@ definition {
 			entryContent = "Blogs Entry1 Content",
 			entryTitle = "Blogs Entry1 Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry1 Content",
 			entryTitle = "Blogs Entry1 Title");
 
@@ -250,7 +246,7 @@ definition {
 			entryContent = "Blogs Entry2 Content",
 			entryTitle = "Blogs Entry2 Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry2 Content",
 			entryTitle = "Blogs Entry2 Title");
 
@@ -258,15 +254,9 @@ definition {
 
 		Navigator.gotoPage(pageName = "Blogs Page2");
 
-		Portlet.gotoPortletOptions(
+		Portlet.selectScopePG(
 			portletName = "Blogs",
-			portletOption = "Configuration");
-
-		BlogsConfiguration.selectConfigurationIFrame();
-
-		BlogsNavigator.gotoConfigurationScopePG();
-
-		BlogsConfiguration.selectScopePG(scopeSelection = "${siteName}");
+			scope = "${siteName}");
 
 		Navigator.gotoPage(pageName = "Blogs Page2");
 
@@ -276,7 +266,7 @@ definition {
 			entryContent = "Blogs Entry1 Content",
 			entryTitle = "Blogs Entry1 Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry1 Content",
 			entryTitle = "Blogs Entry1 Title");
 
@@ -294,7 +284,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entrySubtitle = "Blogs Entry Subtitle",
 			entryTitle = "Blogs Entry Title");
@@ -356,7 +346,7 @@ definition {
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/guest/blogs-page/-/blogs/custom-url-here");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 	}
@@ -401,7 +391,7 @@ definition {
 
 	@priority = "4"
 	test AddPortletToOrganizationSitePublicPage {
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -410,7 +400,7 @@ definition {
 			orgName = "Organization Name",
 			orgType = "Organization");
 
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -423,7 +413,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
-			panel = "Site Administration",
 			portlet = "Pages");
 
 		SitePages.addPublicPage(
@@ -585,8 +574,6 @@ definition {
 
 	@priority = "5"
 	test DeleteBlogsEntries {
-		property portal.acceptance = "true";
-
 		for (var entryCount : list "1,2,3") {
 			Navigator.gotoPage(pageName = "Blogs Page");
 
@@ -602,7 +589,7 @@ definition {
 				entryContent = "Blogs Entry${entryCount} Content",
 				entryTitle = "Blogs Entry${entryCount} Title");
 
-			BlogsEntry.viewEntry(
+			BlogsEntry.viewEntryPG(
 				entryContent = "Blogs Entry${entryCount} Content",
 				entryTitle = "Blogs Entry${entryCount} Title");
 		}
@@ -627,8 +614,6 @@ definition {
 
 	@priority = "4"
 	test DeleteBlogsEntryComment {
-		property portal.release = "false";
-
 		JSONBlog.addEntry(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
@@ -672,7 +657,7 @@ definition {
 			entryContent = "Blogs Entry Content Edit",
 			entryTitle = "Blogs Entry Title Edit");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content Edit",
 			entryTitle = "Blogs Entry Title Edit");
 	}
@@ -769,6 +754,9 @@ definition {
 	@description = "This is a usecase for LPS-75241"
 	@priority = "5"
 	test EmbedVideo {
+		property portal.acceptance = "true";
+		property testray.component.names = "WYSIWYG";
+
 		Blogs.addEntry(
 			embedVideo = "https://www.youtube.com/watch?v=2EPZxIC5ogU",
 			entryContent = "video",
@@ -781,7 +769,7 @@ definition {
 			entryContent = "video",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			embedVideo = "true",
 			entryContent = "video",
 			entryTitle = "Blogs Entry Title");
@@ -799,7 +787,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
@@ -811,42 +799,12 @@ definition {
 			entryTitle = "Blogs Entry Title");
 	}
 
-	@priority = "4"
-	test RateBlogsEntry {
-		JSONBlog.addEntry(
-			entryContent = "Blogs Entry Content",
-			entryTitle = "Blogs Entry Title");
-
-		Navigator.gotoPage(pageName = "Blogs Page");
-
-		BlogsNavigator.gotoEntryPG(
-			entryContent = "Blogs Entry Content",
-			entryTitle = "Blogs Entry Title");
-
-		Ratings.rate(ratingResult = "Thumb Up");
-
-		Ratings.viewRating(
-			ratingResult = "Thumb Up",
-			voteCount = "1");
-
-		Ratings.viewRating(
-			ratingResult = "Thumb Down",
-			voteCount = "0");
-
-		Ratings.rate(ratingResult = "Thumb Down");
-
-		Ratings.viewRating(
-			ratingResult = "Thumb Up",
-			voteCount = "0");
-
-		Ratings.viewRating(
-			ratingResult = "Thumb Down",
-			voteCount = "1");
-	}
-
 	@description = "This is a usecase for LPS-83229. This is the only small image test for blogs."
 	@priority = "5"
 	test RemoveSmallImage {
+		property portal.acceptance = "true";
+		property testray.component.names = "WYSIWYG";
+
 		BlogsNavigator.gotoAddEntry();
 
 		BlogsEntry.addEntryContent(
@@ -865,7 +823,7 @@ definition {
 
 		Navigator.gotoPage(pageName = "Blogs Page");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry with Small Image");
 
@@ -903,14 +861,13 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Content &amp; Data",
-			panel = "Site Administration",
 			portlet = "Blogs");
 
 		BlogsNavigator.gotoEntryCP(
 			entryStatus = "Draft",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryCP(
 			entryContent = "Blogs Entry Content",
 			entrySubtitle = "Blogs Entry Subtitle",
 			entryTitle = "Blogs Entry Title");
@@ -927,14 +884,13 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Content &amp; Data",
-			panel = "Site Administration",
 			portlet = "Blogs");
 
 		BlogsNavigator.gotoEntryCP(
 			entryStatus = "Draft",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryCP(
 			entryContent = "Blogs Entry Content",
 			entrySubtitle = "Blogs Entry Subtitle",
 			entryTitle = "Blogs Entry Title");
@@ -1081,14 +1037,14 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Roles");
 
-		Role.assignRegRoleCP(
+		JSONRole.assignRoleToUser(
 			roleTitle = "Administrator",
-			userScreenName = "usersn");
+			userEmailAddress = "userea@liferay.com");
 
 		JSONBlog.addEntry(
 			entryContent = "Blogs Entry Content",
@@ -1106,15 +1062,16 @@ definition {
 			userEmailAddress = "userea@liferay.com");
 
 		MockMock.viewMail(
-			asset = "Inappropriate Content Flagged in Liferay",
+			asset = "Inappropriate Content Flagged in ${siteName}",
 			content = "flagged as inappropriate by Test Test",
 			recipient = "Test Test",
 			sender = "Joe Bloggs",
-			subject = "Inappropriate Content Flagged in Liferay");
+			subject = "Inappropriate Content Flagged in ${siteName}");
 	}
 
 	@priority = "5"
 	test UserSubscribeToBlogsAndViewEntryEmails {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
 		property test.smtp.server.enabled = "true";
 
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
@@ -1125,16 +1082,12 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
-		User.editPasswordCP(
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
-
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -1189,6 +1142,28 @@ definition {
 			subject = "Blogs Entry Title Edit");
 	}
 
+	@description = "This test covers LPS-106613. It ensures that the custom abstract field cannot be reset to empty after typing in the content field."
+	@priority = "3"
+	test ViewAbstractDescriptionWithEntryContent {
+		BlogsNavigator.gotoAddEntry();
+
+		BlogsEntry.addTitle(entryTitle = "Blogs Entry Title");
+
+		Panel.expandPanel(panel = "Configuration");
+
+		BlogsEntry.addCustomAbstract(entryAbstractDescription = "Blogs Entry Abstract Description");
+
+		Click.pauseClickAt(
+			key_editor = "content",
+			locator1 = "AlloyEditor#EDITOR");
+
+		BlogsEntry.addContent(entryContent = "Blogs Entry Content");
+
+		AssertTextEquals(
+			locator1 = "TextInput#DESCRIPTION",
+			value1 = "Blogs Entry Abstract Description");
+	}
+
 	@description = "This is a usecase for LPS-66970"
 	test ViewBlogEntryViaEditedCustomURL {
 		Blogs.addEntry(
@@ -1197,7 +1172,7 @@ definition {
 
 		Navigator.openSpecificURL(url = "/web/guest/blogs-page/-/blogs/blogs-entry-title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
@@ -1217,7 +1192,7 @@ definition {
 
 		Navigator.openSpecificURL(url = "/web/guest/blogs-page/-/blogs/this-should-redirect-to-the-previous-entry");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
@@ -1225,7 +1200,7 @@ definition {
 
 		Navigator.openSpecificURL(url = "/web/guest/blogs-page/-/blogs/blogs-entry-title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 	}
@@ -1307,6 +1282,8 @@ definition {
 
 	@priority = "3"
 	test ViewBlogsEntryDraftNoAsUser {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
 		Blogs.addDraft(
 			entryContent = "Blogs Entry Content",
 			entrySubtitle = "Blogs Entry Subtitle",
@@ -1318,14 +1295,10 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.editPasswordCP(
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
 		User.logoutPG();
 
@@ -1347,6 +1320,7 @@ definition {
 	@description = "Basic test that ensures reading time displays when enabled."
 	@priority = "5"
 	test ViewBlogsEntryReadingTime {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "PGBlogs#ViewBlogsEntryReadingTime";
 
 		BlogsConfiguration.enableReadingTime();
@@ -1452,15 +1426,9 @@ definition {
 
 	@priority = "3"
 	test ViewBlogsEntryWithDefaultScope {
-		Portlet.gotoPortletOptions(
+		Portlet.selectScopePG(
 			portletName = "Blogs",
-			portletOption = "Configuration");
-
-		BlogsConfiguration.selectConfigurationIFrame();
-
-		BlogsNavigator.gotoConfigurationScopePG();
-
-		BlogsConfiguration.selectScopePG(scopeSelection = "Blogs Page");
+			scope = "Blogs Page");
 
 		Navigator.gotoPage(pageName = "Blogs Page");
 
@@ -1474,7 +1442,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
@@ -1482,26 +1450,16 @@ definition {
 
 		Navigator.gotoPage(pageName = "Blogs Page");
 
-		Portlet.gotoPortletOptions(
+		Portlet.selectScopePG(
 			portletName = "Blogs",
-			portletOption = "Configuration");
-
-		BlogsConfiguration.selectConfigurationIFrame();
-
-		BlogsNavigator.gotoConfigurationScopePG();
-
-		BlogsConfiguration.selectScopePG(scopeSelection = "Blogs Page");
+			scope = "Blogs Page");
 
 		Navigator.openURL();
 
-		ProductMenu.gotoPortlet(
+		ProductMenu.gotoScopedPortlet(
 			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Blogs");
-
-		BlogsConfiguration.selectScopeCP(
-			scopeDefault = "Default Scope",
-			scopeSelection = "Blogs Page");
+			portlet = "Blogs",
+			scope = "Blogs Page");
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "table");
 
@@ -1517,7 +1475,7 @@ definition {
 			locator1 = "Blogs#ENTRY_TABLE_TITLE",
 			value1 = "Blogs Entry Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryCP(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 	}
@@ -1544,7 +1502,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "${entryContent}",
 			entryTitle = "Blogs Entry Title");
 	}
@@ -1577,7 +1535,7 @@ definition {
 			entryContent = "Blogs Entry1 Content",
 			entryTitle = "Blogs Entry1 Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry1 Content",
 			entryTitle = "Blogs Entry1 Title");
 
@@ -1614,7 +1572,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entrySubtitle = "Blogs Entry Subtitle",
 			entryTitle = "Blogs Entry Title",
-			navTab = "Upload Image",
+			navTab = "Blog Images",
 			uploadFileName = "Document_1.jpg");
 
 		Button.clickPublish();
@@ -1627,7 +1585,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 	}
@@ -1679,7 +1637,9 @@ definition {
 
 	@priority = "4"
 	test ViewEntriesUsingCardADT {
-		ApplicationDisplayTemplates.selectPortletADT(templateName = "Card");
+		ApplicationDisplayTemplates.selectPortletADT(
+			portletName = "Blogs",
+			templateName = "Card");
 
 		JSONBlog.addEntry(
 			entryContent = "Blogs Entry Content",
@@ -1696,8 +1656,8 @@ definition {
 		Navigator.gotoPage(pageName = "Blogs Page");
 
 		BlogsEntry.viewPG(
-			entryContent = "Blogs Entry Content Edited",
-			entryTitle = "Blogs Entry Title");
+			entryCardTitle = "Blogs Entry Title",
+			entryContent = "Blogs Entry Content Edited");
 	}
 
 	@description = "This is a usecase for LPS-82025"
@@ -1741,13 +1701,13 @@ definition {
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/guest/blogs-page/-/blogs/custom-url-1");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/guest/blogs-page/-/blogs/custom-url-2");
 
-		BlogsEntry.viewEntry(
+		BlogsEntry.viewEntryPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 	}

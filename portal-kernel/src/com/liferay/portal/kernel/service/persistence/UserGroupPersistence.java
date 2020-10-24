@@ -16,6 +16,7 @@ package com.liferay.portal.kernel.service.persistence;
 
 import com.liferay.portal.kernel.exception.NoSuchUserGroupException;
 import com.liferay.portal.kernel.model.UserGroup;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -31,9 +32,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface UserGroupPersistence extends BasePersistence<UserGroup> {
+public interface UserGroupPersistence
+	extends BasePersistence<UserGroup>, CTPersistence<UserGroup> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link UserGroupUtil} to access the user group persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

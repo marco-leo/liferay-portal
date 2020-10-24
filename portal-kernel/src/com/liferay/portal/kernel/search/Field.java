@@ -50,6 +50,18 @@ public class Field implements Serializable {
 
 	public static final String ASSET_CATEGORY_TITLES = "assetCategoryTitles";
 
+	public static final String ASSET_INTERNAL_CATEGORY_ID =
+		"assetInternalCategoryId";
+
+	public static final String ASSET_INTERNAL_CATEGORY_IDS =
+		"assetInternalCategoryIds";
+
+	public static final String ASSET_INTERNAL_CATEGORY_TITLE =
+		"assetInternalCategoryTitle";
+
+	public static final String ASSET_INTERNAL_CATEGORY_TITLES =
+		"assetInternalCategoryTitles";
+
 	public static final String ASSET_PARENT_CATEGORY_ID = "parentCategoryId";
 
 	public static final String ASSET_PARENT_CATEGORY_IDS = "parentCategoryIds";
@@ -135,6 +147,8 @@ public class Field implements Serializable {
 
 	public static final String ROLE_ID = "roleId";
 
+	public static final String ROLE_IDS = "roleIds";
+
 	public static final String ROOT_ENTRY_CLASS_NAME = "rootEntryClassName";
 
 	public static final String ROOT_ENTRY_CLASS_PK = "rootEntryClassPK";
@@ -194,11 +208,8 @@ public class Field implements Serializable {
 	}
 
 	public static String getSortableFieldName(String name) {
-		return name.concat(
-			StringPool.UNDERLINE
-		).concat(
-			SORTABLE_FIELD_SUFFIX
-		);
+		return StringBundler.concat(
+			name, StringPool.UNDERLINE, SORTABLE_FIELD_SUFFIX);
 	}
 
 	public static String getSortFieldName(Sort sort, String scoreFieldName) {

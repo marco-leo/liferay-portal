@@ -214,6 +214,11 @@ public class DDMStructureWrapper
 	}
 
 	@Override
+	public DDMStructureLayout fetchDDMStructureLayout() {
+		return model.fetchDDMStructureLayout();
+	}
+
+	@Override
 	public String[] getAvailableLanguageIds() {
 		return model.getAvailableLanguageIds();
 	}
@@ -299,6 +304,11 @@ public class DDMStructureWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return model.getDDMFormLayout();
+	}
+
+	@Override
+	public long getDefaultDDMStructureLayoutId() {
+		return model.getDefaultDDMStructureLayoutId();
 	}
 
 	@Override
@@ -798,11 +808,6 @@ public class DDMStructureWrapper
 		return model.isFieldTransient(fieldName);
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a ddm structure model instance should use the <code>DDMStructure</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();

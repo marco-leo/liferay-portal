@@ -17,33 +17,45 @@
 <%@ include file="/render_fragment_layout/init.jsp" %>
 
 <%
-JSONArray structureJSONArray = (JSONArray)request.getAttribute("liferay-layout:render-fragment-layout:structureJSONArray");
+Map<String, Object> fieldValues = (Map<String, Object>)request.getAttribute("liferay-layout:render-fragment-layout:fieldValues");
+LayoutStructure layoutStructure = (LayoutStructure)request.getAttribute("liferay-layout:render-fragment-layout:layoutStructure");
+String mainItemId = (String)request.getAttribute("liferay-layout:render-fragment-layout:mainItemId");
+String mode = (String)request.getAttribute("liferay-layout:render-fragment-layout:mode");
+boolean showPreview = GetterUtil.getBoolean(request.getAttribute("liferay-layout:render-fragment-layout:showPreview"));
+
+RenderFragmentLayoutDisplayContext renderFragmentLayoutDisplayContext = new RenderFragmentLayoutDisplayContext(request, response);
 %>
 
-<c:if test="<%= structureJSONArray != null %>">
-	<div class="layout-content portlet-layout" id="main-content" role="main">
+<liferay-util:html-top>
+	<%= renderFragmentLayoutDisplayContext.getPortletHeaderPaths() %>
+</liferay-util:html-top>
 
-		<%
-		try {
-			request.setAttribute(WebKeys.SHOW_PORTLET_TOPPER, Boolean.TRUE);
+<%
+try {
+	request.setAttribute(WebKeys.SHOW_PORTLET_TOPPER, Boolean.TRUE);
+%>
 
-			RenderFragmentLayoutDisplayContext renderFragmentLayoutDisplayContext = new RenderFragmentLayoutDisplayContext(request, response);
+	<liferay-util:buffer
+		var="content"
+	>
+		<liferay-layout:render-layout-structure
+			fieldValues="<%= fieldValues %>"
+			layoutStructure="<%= layoutStructure %>"
+			mainItemId="<%= mainItemId %>"
+			mode="<%= mode %>"
+			showPreview="<%= showPreview %>"
+		/>
+	</liferay-util:buffer>
 
-			request.setAttribute("render_layout_data_structure.jsp-renderFragmentLayoutDisplayContext", renderFragmentLayoutDisplayContext);
+	<%= renderFragmentLayoutDisplayContext.processAMImages(content) %>
 
-			request.setAttribute("render_layout_data_structure.jsp-structureJSONArray", structureJSONArray);
-		%>
+<%
+}
+finally {
+	request.removeAttribute(WebKeys.SHOW_PORTLET_TOPPER);
+}
+%>
 
-			<%= renderFragmentLayoutDisplayContext.getPortletPaths() %>
-
-			<liferay-util:include page="/render_fragment_layout/render_layout_data_structure.jsp" servletContext="<%= application %>" />
-
-		<%
-		}
-		finally {
-			request.removeAttribute(WebKeys.SHOW_PORTLET_TOPPER);
-		}
-		%>
-
-	</div>
-</c:if>
+<liferay-util:html-bottom>
+	<%= renderFragmentLayoutDisplayContext.getPortletFooterPaths() %>
+</liferay-util:html-bottom>

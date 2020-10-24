@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.PortalUtil;
 
@@ -106,32 +107,35 @@ public class UpgradeDDMFormFieldValidation extends UpgradeProcess {
 		for (int i = 0; i < fieldsJSONArray.length(); i++) {
 			JSONObject jsonObject = fieldsJSONArray.getJSONObject(i);
 
-			if (_hasValidation(jsonObject)) {
-				JSONObject validationJSONObject = jsonObject.getJSONObject(
-					"validation");
+			if (!_hasValidation(jsonObject)) {
+				continue;
+			}
 
-				String originalValue = validationJSONObject.getString(
-					"errorMessage");
+			JSONObject validationJSONObject = jsonObject.getJSONObject(
+				"validation");
 
-				Map<String, String> localizedValue = new HashMap<>();
+			String originalValue = validationJSONObject.getString(
+				"errorMessage");
 
-				for (int j = 0; j < availableLanguageIdsJSONArray.length();
-					 j++) {
+			if (JSONUtil.isValid(originalValue)) {
+				continue;
+			}
 
-					localizedValue.put(
-						availableLanguageIdsJSONArray.getString(j),
-						originalValue);
-				}
+			Map<String, String> localizedValue = new HashMap<>();
 
-				validationJSONObject.put("errorMessage", localizedValue);
+			for (int j = 0; j < availableLanguageIdsJSONArray.length(); j++) {
+				localizedValue.put(
+					availableLanguageIdsJSONArray.getString(j), originalValue);
+			}
 
-				JSONArray nestedFieldsJSONArray = jsonObject.getJSONArray(
-					"nestedFields");
+			validationJSONObject.put("errorMessage", localizedValue);
 
-				if (nestedFieldsJSONArray != null) {
-					makeFieldsLocalizable(
-						availableLanguageIdsJSONArray, nestedFieldsJSONArray);
-				}
+			JSONArray nestedFieldsJSONArray = jsonObject.getJSONArray(
+				"nestedFields");
+
+			if (nestedFieldsJSONArray != null) {
+				makeFieldsLocalizable(
+					availableLanguageIdsJSONArray, nestedFieldsJSONArray);
 			}
 		}
 	}

@@ -209,7 +209,11 @@ public class LPKGDeployerRegistrar {
 		}
 
 		for (Tuple tuple : oldTuples) {
-			_moduleLocalService.deleteModule(tuple._moduleId);
+			Module module = _moduleLocalService.fetchModule(tuple._moduleId);
+
+			if (module != null) {
+				_moduleLocalService.deleteModule(tuple._moduleId);
+			}
 		}
 
 		for (Tuple tuple : newTuples) {
@@ -226,11 +230,11 @@ public class LPKGDeployerRegistrar {
 		try {
 			_doRegister(lpkgBundle, apps, modules);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			_log.error(
 				"Unable to track installed app " +
 					lpkgBundle.getSymbolicName() + " with Marketplace",
-				e);
+				exception);
 		}
 	}
 
@@ -261,8 +265,8 @@ public class LPKGDeployerRegistrar {
 	private static class Tuple {
 
 		@Override
-		public boolean equals(Object obj) {
-			Tuple tuple = (Tuple)obj;
+		public boolean equals(Object object) {
+			Tuple tuple = (Tuple)object;
 
 			if (Objects.equals(_symbolicName, tuple._symbolicName) &&
 				Objects.equals(_version, tuple._version) &&

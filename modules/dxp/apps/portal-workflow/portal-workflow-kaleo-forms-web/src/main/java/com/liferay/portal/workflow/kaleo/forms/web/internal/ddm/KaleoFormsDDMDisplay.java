@@ -14,13 +14,14 @@
 
 package com.liferay.portal.workflow.kaleo.forms.web.internal.ddm;
 
+import com.liferay.dynamic.data.mapping.constants.DDMTemplateConstants;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
-import com.liferay.dynamic.data.mapping.model.DDMTemplateConstants;
 import com.liferay.dynamic.data.mapping.storage.StorageType;
 import com.liferay.dynamic.data.mapping.util.BaseDDMDisplay;
 import com.liferay.dynamic.data.mapping.util.DDMDisplay;
 import com.liferay.dynamic.data.mapping.util.DDMNavigationHelper;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
@@ -29,7 +30,6 @@ import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.workflow.kaleo.forms.constants.KaleoFormsPortletKeys;
 import com.liferay.portal.workflow.kaleo.forms.model.KaleoProcess;
 

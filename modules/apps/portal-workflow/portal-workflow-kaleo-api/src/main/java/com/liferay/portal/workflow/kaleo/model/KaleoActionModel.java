@@ -39,7 +39,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface KaleoActionModel
 	extends BaseModel<KaleoAction>, GroupedModel, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo action model instance should use the {@link KaleoAction} interface instead.
@@ -230,6 +230,20 @@ public interface KaleoActionModel
 	 * @param kaleoClassPK the kaleo class pk of this kaleo action
 	 */
 	public void setKaleoClassPK(long kaleoClassPK);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo action.
+	 *
+	 * @return the kaleo definition ID of this kaleo action
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo action.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo action
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo action.

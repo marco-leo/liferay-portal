@@ -22,10 +22,11 @@ import com.liferay.portal.kernel.service.UserServiceUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.struts.Action;
-import com.liferay.portal.struts.ActionConstants;
+import com.liferay.portal.struts.constants.ActionConstants;
 import com.liferay.portal.struts.model.ActionForward;
 import com.liferay.portal.struts.model.ActionMapping;
 import com.liferay.users.admin.kernel.util.UsersAdmin;
@@ -57,22 +58,23 @@ public class UpdateReminderQueryAction implements Action {
 			return actionMapping.getActionForward(
 				ActionConstants.COMMON_REFERER_JSP);
 		}
-		catch (Exception e) {
-			if (e instanceof UserReminderQueryException) {
-				SessionErrors.add(httpServletRequest, e.getClass());
+		catch (Exception exception) {
+			if (exception instanceof UserReminderQueryException) {
+				SessionErrors.add(httpServletRequest, exception.getClass());
 
 				return actionMapping.getActionForward(
 					"portal.update_reminder_query");
 			}
-			else if (e instanceof NoSuchUserException ||
-					 e instanceof PrincipalException) {
+			else if (exception instanceof NoSuchUserException ||
+					 exception instanceof PrincipalException) {
 
-				SessionErrors.add(httpServletRequest, e.getClass());
+				SessionErrors.add(httpServletRequest, exception.getClass());
 
 				return actionMapping.getActionForward("portal.error");
 			}
 
-			PortalUtil.sendError(e, httpServletRequest, httpServletResponse);
+			PortalUtil.sendError(
+				exception, httpServletRequest, httpServletResponse);
 
 			return null;
 		}
@@ -86,7 +88,6 @@ public class UpdateReminderQueryAction implements Action {
 		AuthTokenUtil.checkCSRFToken(
 			httpServletRequest, UpdateReminderQueryAction.class.getName());
 
-		long userId = PortalUtil.getUserId(httpServletRequest);
 		String question = ParamUtil.getString(
 			httpServletRequest, "reminderQueryQuestion");
 		String answer = ParamUtil.getString(
@@ -97,7 +98,10 @@ public class UpdateReminderQueryAction implements Action {
 				httpServletRequest, "reminderQueryCustomQuestion");
 		}
 
-		UserServiceUtil.updateReminderQuery(userId, question, answer);
+		if (!answer.equals(Portal.TEMP_OBFUSCATION_VALUE)) {
+			UserServiceUtil.updateReminderQuery(
+				PortalUtil.getUserId(httpServletRequest), question, answer);
+		}
 	}
 
 }

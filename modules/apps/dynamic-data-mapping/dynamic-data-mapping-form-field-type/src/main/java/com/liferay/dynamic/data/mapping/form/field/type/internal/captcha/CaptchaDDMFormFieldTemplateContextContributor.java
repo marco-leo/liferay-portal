@@ -18,16 +18,17 @@ import com.liferay.captcha.taglib.servlet.taglib.CaptchaTag;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTemplateContextContributor;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
+import com.liferay.petra.io.unsync.UnsyncStringWriter;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.template.soy.util.SoyHTMLSanitizer;
+import com.liferay.portal.template.soy.data.SoyDataFactory;
+import com.liferay.portal.template.soy.util.SoyRawData;
 import com.liferay.taglib.servlet.PageContextFactoryUtil;
 import com.liferay.taglib.servlet.PipingServletResponse;
 
+import java.util.Collections;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -55,22 +56,18 @@ public class CaptchaDDMFormFieldTemplateContextContributor
 		DDMFormField ddmFormField,
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
 
-		return HashMapBuilder.<String, Object>put(
-			"html",
-			() -> {
-				String html = StringPool.BLANK;
+		String html = StringPool.BLANK;
 
-				try {
-					html = renderCaptchaTag(
-						ddmFormField, ddmFormFieldRenderingContext);
-				}
-				catch (Exception e) {
-					_log.error(e, e);
-				}
+		try {
+			html = renderCaptchaTag(ddmFormField, ddmFormFieldRenderingContext);
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+		}
 
-				return _soyHTMLSanitizer.sanitize(html);
-			}
-		).build();
+		SoyRawData soyRawData = _soyDataFactory.createSoyRawData(html);
+
+		return Collections.singletonMap("html", soyRawData.getValue());
 	}
 
 	protected String renderCaptchaTag(
@@ -105,6 +102,6 @@ public class CaptchaDDMFormFieldTemplateContextContributor
 		CaptchaDDMFormFieldTemplateContextContributor.class);
 
 	@Reference
-	private SoyHTMLSanitizer _soyHTMLSanitizer;
+	private SoyDataFactory _soyDataFactory;
 
 }

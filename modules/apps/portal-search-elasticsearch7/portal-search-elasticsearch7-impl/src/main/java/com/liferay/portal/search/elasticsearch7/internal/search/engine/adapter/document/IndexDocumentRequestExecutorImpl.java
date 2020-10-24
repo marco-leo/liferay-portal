@@ -44,7 +44,8 @@ public class IndexDocumentRequestExecutorImpl
 		IndexRequest indexRequest =
 			_bulkableDocumentRequestTranslator.translate(indexDocumentRequest);
 
-		IndexResponse indexResponse = getIndexResponse(indexRequest);
+		IndexResponse indexResponse = getIndexResponse(
+			indexRequest, indexDocumentRequest);
 
 		RestStatus restStatus = indexResponse.status();
 
@@ -52,16 +53,20 @@ public class IndexDocumentRequestExecutorImpl
 			restStatus.getStatus(), indexResponse.getId());
 	}
 
-	protected IndexResponse getIndexResponse(IndexRequest indexRequest) {
+	protected IndexResponse getIndexResponse(
+		IndexRequest indexRequest, IndexDocumentRequest indexDocumentRequest) {
+
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				indexDocumentRequest.getConnectionId(),
+				indexDocumentRequest.isPreferLocalCluster());
 
 		try {
 			return restHighLevelClient.index(
 				indexRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

@@ -19,6 +19,8 @@ import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -41,6 +43,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.service.TeamLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.GroupFinder;
 import com.liferay.portal.kernel.service.persistence.GroupPersistence;
 import com.liferay.portal.kernel.service.persistence.RoleFinder;
@@ -51,6 +54,7 @@ import com.liferay.portal.kernel.service.persistence.UserFinder;
 import com.liferay.portal.kernel.service.persistence.UserGroupFinder;
 import com.liferay.portal.kernel.service.persistence.UserGroupPersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -76,7 +80,7 @@ public abstract class TeamLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements IdentifiableOSGiService, TeamLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>TeamLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.TeamLocalServiceUtil</code>.
@@ -84,6 +88,10 @@ public abstract class TeamLocalServiceBaseImpl
 
 	/**
 	 * Adds the team to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect TeamLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param team the team
 	 * @return the team that was added
@@ -111,6 +119,10 @@ public abstract class TeamLocalServiceBaseImpl
 	/**
 	 * Deletes the team with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect TeamLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param teamId the primary key of the team
 	 * @return the team that was removed
 	 * @throws PortalException if a team with the primary key could not be found
@@ -124,6 +136,10 @@ public abstract class TeamLocalServiceBaseImpl
 	/**
 	 * Deletes the team from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect TeamLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param team the team
 	 * @return the team that was removed
 	 * @throws PortalException
@@ -132,6 +148,11 @@ public abstract class TeamLocalServiceBaseImpl
 	@Override
 	public Team deleteTeam(Team team) throws PortalException {
 		return teamPersistence.remove(team);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return teamPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -359,12 +380,30 @@ public abstract class TeamLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return teamPersistence.create(((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
 		return teamLocalService.deleteTeam((Team)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<Team> getBasePersistence() {
+		return teamPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -446,6 +485,10 @@ public abstract class TeamLocalServiceBaseImpl
 
 	/**
 	 * Updates the team in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect TeamLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param team the team
 	 * @return the team that was updated
@@ -1064,8 +1107,22 @@ public abstract class TeamLocalServiceBaseImpl
 		return TeamLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<Team> getCTPersistence() {
+		return teamPersistence;
+	}
+
+	@Override
+	public Class<Team> getModelClass() {
 		return Team.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<Team>, R, E> updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(teamPersistence);
 	}
 
 	protected String getModelClassName() {
@@ -1091,8 +1148,8 @@ public abstract class TeamLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

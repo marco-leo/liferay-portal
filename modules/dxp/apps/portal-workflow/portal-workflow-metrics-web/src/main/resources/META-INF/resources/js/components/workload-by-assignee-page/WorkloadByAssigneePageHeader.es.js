@@ -12,44 +12,42 @@
 import ClayManagementToolbar from '@clayui/management-toolbar';
 import React from 'react';
 
-import {filterKeys} from '../../shared/components/filter/util/filterConstants.es';
+import filterConstants from '../../shared/components/filter/util/filterConstants.es';
 import ResultsBar from '../../shared/components/results-bar/ResultsBar.es';
 import SearchField from '../../shared/components/search-field/SearchField.es';
-import ProcessStepFilter from '../filter/ProcessStepFilterHooks.es';
-import RoleFilter from '../filter/RoleFilterHooks.es';
+import ProcessStepFilter from '../filter/ProcessStepFilter.es';
+import RoleFilter from '../filter/RoleFilter.es';
 
-const Header = ({dispatch, routeParams, selectedFilters, totalCount}) => {
+const Header = ({filterKeys, routeParams, selectedFilters, totalCount}) => {
 	const showFiltersResult = routeParams.search || selectedFilters.length > 0;
 
 	return (
 		<>
-			<ClayManagementToolbar>
-				<ClayManagementToolbar.Item>
-					<strong className="ml-0 mr-0 navbar-text">
-						{Liferay.Language.get('filter-by')}
-					</strong>
-				</ClayManagementToolbar.Item>
+			<ClayManagementToolbar className="mb-0">
+				<ClayManagementToolbar.ItemList>
+					<ClayManagementToolbar.Item>
+						<strong className="ml-0 mr-0 navbar-text">
+							{Liferay.Language.get('filter-by')}
+						</strong>
+					</ClayManagementToolbar.Item>
 
-				<RoleFilter
-					dispatch={dispatch}
-					filterKey={filterKeys.roles}
-					processId={routeParams.processId}
-				/>
-
-				<ProcessStepFilter
-					dispatch={dispatch}
-					filterKey={filterKeys.processStep}
-					processId={routeParams.processId}
-				/>
-
-				<div className="navbar-form-autofit">
-					<SearchField
-						disabled={false}
-						placeholder={Liferay.Language.get(
-							'search-for-assignee-name'
-						)}
+					<RoleFilter
+						filterKey={filterConstants.roles.key}
+						processId={routeParams.processId}
 					/>
-				</div>
+
+					<ProcessStepFilter
+						filterKey={filterConstants.processStep.key}
+						processId={routeParams.processId}
+					/>
+				</ClayManagementToolbar.ItemList>
+
+				<SearchField
+					disabled={false}
+					placeholder={Liferay.Language.get(
+						'search-for-assignee-name'
+					)}
+				/>
 			</ClayManagementToolbar>
 
 			{showFiltersResult && (
@@ -65,6 +63,7 @@ const Header = ({dispatch, routeParams, selectedFilters, totalCount}) => {
 					/>
 
 					<ResultsBar.Clear
+						filterKeys={filterKeys}
 						filters={selectedFilters}
 						{...routeParams}
 					/>

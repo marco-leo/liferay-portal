@@ -29,7 +29,6 @@ import com.liferay.dynamic.data.mapping.form.field.type.DefaultDDMFormFieldTypeS
 	rules = {
 		@DDMFormRule(
 			actions = {
-				"setVisible('indexType', false)",
 				"setVisible('predefinedValue', false)",
 				"setVisible('validation', false)"
 			},
@@ -60,10 +59,11 @@ import com.liferay.dynamic.data.mapping.form.field.type.DefaultDDMFormFieldTypeS
 						@DDMFormLayoutColumn(
 							size = 12,
 							value = {
-								"predefinedValue", "visibilityExpression",
-								"validation", "fieldNamespace", "indexType",
-								"localizable", "readOnly", "dataType", "type",
-								"name", "showLabel", "repeatable"
+								"name", "predefinedValue",
+								"visibilityExpression", "validation",
+								"fieldNamespace", "indexType", "localizable",
+								"readOnly", "dataType", "type", "showLabel",
+								"repeatable"
 							}
 						)
 					}

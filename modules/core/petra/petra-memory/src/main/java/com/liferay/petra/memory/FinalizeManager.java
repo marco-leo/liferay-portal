@@ -134,7 +134,7 @@ public class FinalizeManager {
 						}
 					}
 				}
-				catch (InterruptedException ie) {
+				catch (InterruptedException interruptedException) {
 				}
 			}
 		}
@@ -148,8 +148,8 @@ public class FinalizeManager {
 	private static class IdentityKey {
 
 		@Override
-		public boolean equals(Object obj) {
-			IdentityKey identityKey = (IdentityKey)obj;
+		public boolean equals(Object object) {
+			IdentityKey identityKey = (IdentityKey)object;
 
 			if (_reference == identityKey._reference) {
 				return true;

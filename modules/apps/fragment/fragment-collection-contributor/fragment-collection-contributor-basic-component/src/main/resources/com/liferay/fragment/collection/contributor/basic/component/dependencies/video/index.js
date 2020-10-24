@@ -1,30 +1,37 @@
-let handleProviderResize = () => {};
-
 let content = null;
 let videoContainer = null;
 let errorMessage = null;
 let loadingIndicator = null;
 
-const resize = () => {
-	content.style.width = '';
-	content.style.height = '';
+const height = configuration.videoHeight
+	? configuration.videoHeight.replace('px', '')
+	: configuration.videoHeight;
+const width = configuration.videoWidth
+	? configuration.videoWidth.replace('px', '')
+	: configuration.videoWidth;
 
-	requestAnimationFrame(() => {
+function resize() {
+	content.style.height = '';
+	content.style.width = '';
+
+	requestAnimationFrame(function () {
 		try {
 			const boundingClientRect = content.getBoundingClientRect();
 
-			const width = configuration.width || boundingClientRect.width;
-			const height = configuration.height || width * 0.5625;
+			const contentWidth = width || boundingClientRect.width;
 
-			content.style.height = `${height}px`;
-			content.style.width = `${width}px`;
-		} catch (error) {
+			const contentHeight = height || contentWidth * 0.5625;
+
+			content.style.height = contentHeight + 'px';
+			content.style.width = contentWidth + 'px';
+		}
+		catch (error) {
 			window.removeEventListener('resize', resize);
 		}
 	});
-};
+}
 
-const showVideo = () => {
+function showVideo() {
 	videoContainer.removeAttribute('aria-hidden');
 	errorMessage.parentElement.removeChild(errorMessage);
 	loadingIndicator.parentElement.removeChild(loadingIndicator);
@@ -32,24 +39,25 @@ const showVideo = () => {
 	window.addEventListener('resize', resize);
 
 	resize();
-};
+}
 
-const showError = () => {
+function showError() {
 	if (document.body.classList.contains('has-edit-mode-menu')) {
 		errorMessage.removeAttribute('hidden');
 		videoContainer.parentElement.removeChild(videoContainer);
 		loadingIndicator.parentElement.removeChild(loadingIndicator);
-	} else {
+	}
+	else {
 		fragmentElement.parentElement.removeChild(fragmentElement);
 	}
-};
+}
 
 const rawProvider = {
-	getParameters: url => {
-		return {url};
+	getParameters: function (url) {
+		return {url: url};
 	},
 
-	showVideo: parameters => {
+	showVideo: function (parameters) {
 		const video = document.createElement('video');
 		const source = document.createElement('source');
 
@@ -66,58 +74,70 @@ const rawProvider = {
 		video.appendChild(source);
 		videoContainer.appendChild(video);
 		showVideo();
-	}
+	},
 };
 
 const youtubeProvider = {
-	getParameters: url => {
+	getParameters: function (url) {
 		const start = url.searchParams.get('start');
 
 		if (['www.youtube.com', 'youtube.com'].includes(url.hostname)) {
 			const videoId = url.searchParams.get('v');
 
 			if (videoId) {
-				return {videoId, start};
+				return {
+					start: start,
+					videoId: videoId,
+				};
 			}
-		} else if (['www.youtu.be', 'youtu.be'].includes(url.hostname)) {
+		}
+		else if (['www.youtu.be', 'youtu.be'].includes(url.hostname)) {
 			const videoId = url.pathname.substr(1);
 
 			if (videoId) {
-				return {videoId, start};
+				return {
+					start: start,
+					videoId: videoId,
+				};
 			}
 		}
 	},
 
-	showVideo: parameters => {
-		const handleAPIReady = () => {
+	showVideo: function (parameters) {
+		const handleAPIReady = function () {
 			const player = new YT.Player(videoContainer, {
-				height: configuration.height,
-				width: configuration.width,
-				videoId: parameters.videoId,
-				playerVars: {
-					autoplay: configuration.autoPlay,
-					controls: configuration.hideControls ? 0 : 1,
-					loop: configuration.loop ? 0 : 1,
-					start: !parameters.start ? 0 : parameters.start
-				},
 				events: {
-					onReady: () => {
+					onReady: function () {
 						if (configuration.mute) {
 							player.mute();
 						}
 
 						showVideo();
-					}
-				}
+					},
+				},
+				height: height,
+				playerVars: {
+					autoplay: configuration.autoPlay,
+					controls: configuration.hideControls ? 0 : 1,
+					loop: configuration.loop ? 1 : 0,
+					playlist: configuration.loop
+						? parameters.videoId
+						: undefined,
+					start: !parameters.start ? 0 : parameters.start,
+				},
+				videoId: parameters.videoId,
+				width: width,
 			});
 		};
 
 		if ('YT' in window) {
 			handleAPIReady();
-		} else {
-			const oldCallback = window.onYouTubeIframeAPIReady || (() => {});
+		}
+		else {
+			const oldCallback =
+				window.onYouTubeIframeAPIReady || function () {};
 
-			window.onYouTubeIframeAPIReady = () => {
+			window.onYouTubeIframeAPIReady = function () {
 				oldCallback();
 				handleAPIReady();
 			};
@@ -125,7 +145,9 @@ const youtubeProvider = {
 			const apiSrc = '//www.youtube.com/iframe_api';
 
 			let script = Array.from(document.querySelectorAll('script')).find(
-				script => script.src === apiSrc
+				function (script) {
+					return script.src === apiSrc;
+				}
 			);
 
 			if (!script) {
@@ -134,10 +156,10 @@ const youtubeProvider = {
 				document.body.appendChild(script);
 			}
 		}
-	}
+	},
 };
 
-const main = () => {
+function main() {
 	content = fragmentElement.querySelector('.video');
 
 	if (!content) {
@@ -168,9 +190,10 @@ const main = () => {
 		if (!matched) {
 			showError();
 		}
-	} catch (error) {
+	}
+	catch (error) {
 		showError();
 	}
-};
+}
 
 main();

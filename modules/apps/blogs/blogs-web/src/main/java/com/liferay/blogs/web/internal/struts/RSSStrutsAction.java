@@ -20,7 +20,6 @@ import com.liferay.blogs.service.BlogsEntryService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
@@ -75,8 +74,9 @@ public class RSSStrutsAction implements StrutsAction {
 
 			return null;
 		}
-		catch (Exception e) {
-			_portal.sendError(e, httpServletRequest, httpServletResponse);
+		catch (Exception exception) {
+			_portal.sendError(
+				exception, httpServletRequest, httpServletResponse);
 
 			return null;
 		}
@@ -157,7 +157,7 @@ public class RSSStrutsAction implements StrutsAction {
 
 	private boolean _hasGroupViewPermission(
 			HttpServletRequest httpServletRequest)
-		throws PortalException {
+		throws Exception {
 
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
@@ -165,7 +165,8 @@ public class RSSStrutsAction implements StrutsAction {
 
 		long groupId = ParamUtil.getLong(httpServletRequest, "groupId");
 
-		if (GroupPermissionUtil.contains(
+		if ((groupId == 0) ||
+			GroupPermissionUtil.contains(
 				themeDisplay.getPermissionChecker(), groupId,
 				ActionKeys.VIEW)) {
 

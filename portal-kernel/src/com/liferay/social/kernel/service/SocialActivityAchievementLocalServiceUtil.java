@@ -30,16 +30,10 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class SocialActivityAchievementLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portlet.social.service.impl.SocialActivityAchievementLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SocialActivityAchievementLocalServiceUtil} to access the social activity achievement local service. Add custom service methods to <code>com.liferay.portlet.social.service.impl.SocialActivityAchievementLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static void addActivityAchievement(
 			long userId, long groupId,
@@ -52,6 +46,10 @@ public class SocialActivityAchievementLocalServiceUtil {
 	/**
 	 * Adds the social activity achievement to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialActivityAchievementLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param socialActivityAchievement the social activity achievement
 	 * @return the social activity achievement that was added
 	 */
@@ -62,6 +60,16 @@ public class SocialActivityAchievementLocalServiceUtil {
 
 		return getService().addSocialActivityAchievement(
 			socialActivityAchievement);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -91,6 +99,10 @@ public class SocialActivityAchievementLocalServiceUtil {
 	/**
 	 * Deletes the social activity achievement with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialActivityAchievementLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param activityAchievementId the primary key of the social activity achievement
 	 * @return the social activity achievement that was removed
 	 * @throws PortalException if a social activity achievement with the primary key could not be found
@@ -106,6 +118,10 @@ public class SocialActivityAchievementLocalServiceUtil {
 	/**
 	 * Deletes the social activity achievement from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialActivityAchievementLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param socialActivityAchievement the social activity achievement
 	 * @return the social activity achievement that was removed
 	 */
@@ -116,6 +132,12 @@ public class SocialActivityAchievementLocalServiceUtil {
 
 		return getService().deleteSocialActivityAchievement(
 			socialActivityAchievement);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -271,6 +293,9 @@ public class SocialActivityAchievementLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -332,6 +357,10 @@ public class SocialActivityAchievementLocalServiceUtil {
 
 	/**
 	 * Updates the social activity achievement in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialActivityAchievementLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param socialActivityAchievement the social activity achievement
 	 * @return the social activity achievement that was updated

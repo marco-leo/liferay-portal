@@ -15,11 +15,10 @@
 package com.liferay.journal.web.internal.display.context;
 
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItem;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemList;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemListBuilder;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleServiceUtil;
 import com.liferay.journal.web.internal.util.JournalPortletUtil;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -51,9 +50,9 @@ public class JournalHistoryDisplayContext {
 		_httpServletRequest = PortalUtil.getHttpServletRequest(renderRequest);
 	}
 
-	public SearchContainer getArticleSearchContainer() {
-		SearchContainer articleSearchContainer = new SearchContainer(
-			_renderRequest, getPortletURL(), null, null);
+	public SearchContainer<JournalArticle> getArticleSearchContainer() {
+		SearchContainer<JournalArticle> articleSearchContainer =
+			new SearchContainer(_renderRequest, getPortletURL(), null, null);
 
 		articleSearchContainer.setRowChecker(
 			new EmptyOnClickRowChecker(_renderResponse));
@@ -107,17 +106,13 @@ public class JournalHistoryDisplayContext {
 	}
 
 	public List<NavigationItem> getNavigationItems() {
-		return new NavigationItemList() {
-			{
-				add(
-					navigationItem -> {
-						navigationItem.setActive(true);
-						navigationItem.setHref(StringPool.BLANK);
-						navigationItem.setLabel(
-							LanguageUtil.get(_httpServletRequest, "versions"));
-					});
+		return NavigationItemListBuilder.add(
+			navigationItem -> {
+				navigationItem.setActive(true);
+				navigationItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, "versions"));
 			}
-		};
+		).build();
 	}
 
 	public String getOrderByCol() {

@@ -12,12 +12,15 @@
  * details.
  */
 
+/**
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
+ */
 AUI.add(
 	'liferay-poller',
-	A => {
+	(A) => {
 		var AObject = A.Object;
 
-		var _browserKey = Liferay.Util.randomInt();
+		var _browserKey = Math.ceil(Math.random() * Number.MAX_SAFE_INTEGER);
 		var _enabled = false;
 		var _encryptedUserId = null;
 		var _supportsComet = false;
@@ -26,7 +29,7 @@ AUI.add(
 		var _delayIndex = 0;
 		var _delays = [1, 2, 3, 4, 5, 7, 10];
 
-		var _getEncryptedUserId = function() {
+		var _getEncryptedUserId = function () {
 			return _encryptedUserId;
 		};
 
@@ -41,7 +44,7 @@ AUI.add(
 			browserKey: _browserKey,
 			companyId: themeDisplay.getCompanyId(),
 			portletIdsMap: _portletIdsMap,
-			startPolling: true
+			startPolling: true,
 		};
 
 		var _customDelay = null;
@@ -62,39 +65,40 @@ AUI.add(
 		var _escapedCloseCurlyBrace = '[$CLOSE_CURLY_BRACE$]';
 		var _escapedOpenCurlyBrace = '[$OPEN_CURLY_BRACE$]';
 
-		var _cancelRequestTimer = function() {
+		var _cancelRequestTimer = function () {
 			clearTimeout(_timerId);
 
 			_timerId = null;
 		};
 
-		var _createRequestTimer = function() {
+		var _createRequestTimer = function () {
 			_cancelRequestTimer();
 
 			if (_enabled) {
 				if (Poller.isSupportsComet()) {
 					_receive();
-				} else {
+				}
+				else {
 					_timerId = setTimeout(_receive, Poller.getDelay());
 				}
 			}
 		};
 
-		var _freezeConnection = function() {
+		var _freezeConnection = function () {
 			_frozen = true;
 
 			_cancelRequestTimer();
 		};
 
-		var _getReceiveUrl = function() {
+		var _getReceiveUrl = function () {
 			return _receiveChannel;
 		};
 
-		var _getSendUrl = function() {
+		var _getSendUrl = function () {
 			return _sendChannel;
 		};
 
-		var _processResponse = function(id, obj) {
+		var _processResponse = function (id, obj) {
 			var response = JSON.parse(obj.responseText);
 			var send = false;
 
@@ -146,13 +150,14 @@ AUI.add(
 
 				if (!meta.suspendPolling) {
 					_thawConnection();
-				} else {
+				}
+				else {
 					_freezeConnection();
 				}
 			}
 		};
 
-		var _receive = function() {
+		var _receive = function () {
 			if (!_suspended && !_frozen) {
 				_metaData.userId = _getEncryptedUserId();
 				_metaData.timestamp = new Date().getTime();
@@ -166,27 +171,27 @@ AUI.add(
 
 				Liferay.Util.fetch(_getReceiveUrl(), {
 					body,
-					method: 'POST'
+					method: 'POST',
 				})
-					.then(response => {
+					.then((response) => {
 						return response.text();
 					})
-					.then(responseText => {
+					.then((responseText) => {
 						_processResponse(null, {responseText});
 					});
 			}
 		};
 
-		var _releaseLock = function() {
+		var _releaseLock = function () {
 			_locked = false;
 		};
 
-		var _sendComplete = function() {
+		var _sendComplete = function () {
 			_releaseLock();
 			_send();
 		};
 
-		var _send = function() {
+		var _send = function () {
 			if (
 				_enabled &&
 				!_locked &&
@@ -210,22 +215,22 @@ AUI.add(
 
 				Liferay.Util.fetch(_getSendUrl(), {
 					body,
-					method: 'POST'
+					method: 'POST',
 				})
-					.then(response => {
+					.then((response) => {
 						return response.text();
 					})
 					.then(_sendComplete);
 			}
 		};
 
-		var _thawConnection = function() {
+		var _thawConnection = function () {
 			_frozen = false;
 
 			_createRequestTimer();
 		};
 
-		var _updatePortletIdsMap = function(item, index) {
+		var _updatePortletIdsMap = function (item, index) {
 			_portletIdsMap[index] = item.initialRequest;
 		};
 
@@ -234,7 +239,7 @@ AUI.add(
 				_portlets[key] = {
 					initialRequest: true,
 					listener,
-					scope
+					scope,
 				};
 
 				if (!_enabled) {
@@ -251,7 +256,8 @@ AUI.add(
 			getDelay() {
 				if (_customDelay !== null) {
 					_requestDelay = _customDelay;
-				} else if (_delayIndex <= _maxDelay) {
+				}
+				else if (_delayIndex <= _maxDelay) {
 					_requestDelay = _delays[_delayIndex];
 					_delayAccessCount++;
 
@@ -301,7 +307,8 @@ AUI.add(
 			setCustomDelay(delay) {
 				if (delay === null) {
 					_customDelay = delay;
-				} else {
+				}
+				else {
 					_customDelay = delay / 1000;
 				}
 			},
@@ -345,7 +352,7 @@ AUI.add(
 
 					var requestData = {
 						data,
-						portletId: key
+						portletId: key,
 					};
 
 					if (chunkId) {
@@ -364,7 +371,7 @@ AUI.add(
 				_suspended = true;
 			},
 
-			url: _url
+			url: _url,
 		};
 
 		A.getWin().on('focus', () => {
@@ -377,6 +384,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-base', 'json']
+		requires: ['aui-base', 'json'],
 	}
 );

@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class SiteNavigationMenuServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.site.navigation.service.impl.SiteNavigationMenuServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SiteNavigationMenuServiceUtil} to access the site navigation menu remote service. Add custom service methods to <code>com.liferay.site.navigation.service.impl.SiteNavigationMenuServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.site.navigation.model.SiteNavigationMenu
 			addSiteNavigationMenu(
@@ -108,7 +102,8 @@ public class SiteNavigationMenuServiceUtil {
 			getSiteNavigationMenus(
 				long groupId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					orderByComparator) {
+					<com.liferay.site.navigation.model.SiteNavigationMenu>
+						orderByComparator) {
 
 		return getService().getSiteNavigationMenus(
 			groupId, start, end, orderByComparator);
@@ -119,10 +114,35 @@ public class SiteNavigationMenuServiceUtil {
 			getSiteNavigationMenus(
 				long groupId, String keywords, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					orderByComparator) {
+					<com.liferay.site.navigation.model.SiteNavigationMenu>
+						orderByComparator) {
 
 		return getService().getSiteNavigationMenus(
 			groupId, keywords, start, end, orderByComparator);
+	}
+
+	public static java.util.List
+		<com.liferay.site.navigation.model.SiteNavigationMenu>
+			getSiteNavigationMenus(
+				long[] groupIds, int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.site.navigation.model.SiteNavigationMenu>
+						orderByComparator) {
+
+		return getService().getSiteNavigationMenus(
+			groupIds, start, end, orderByComparator);
+	}
+
+	public static java.util.List
+		<com.liferay.site.navigation.model.SiteNavigationMenu>
+			getSiteNavigationMenus(
+				long[] groupIds, String keywords, int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.site.navigation.model.SiteNavigationMenu>
+						orderByComparator) {
+
+		return getService().getSiteNavigationMenus(
+			groupIds, keywords, start, end, orderByComparator);
 	}
 
 	public static int getSiteNavigationMenusCount(long groupId) {
@@ -133,6 +153,16 @@ public class SiteNavigationMenuServiceUtil {
 		long groupId, String keywords) {
 
 		return getService().getSiteNavigationMenusCount(groupId, keywords);
+	}
+
+	public static int getSiteNavigationMenusCount(long[] groupIds) {
+		return getService().getSiteNavigationMenusCount(groupIds);
+	}
+
+	public static int getSiteNavigationMenusCount(
+		long[] groupIds, String keywords) {
+
+		return getService().getSiteNavigationMenusCount(groupIds, keywords);
 	}
 
 	public static com.liferay.site.navigation.model.SiteNavigationMenu

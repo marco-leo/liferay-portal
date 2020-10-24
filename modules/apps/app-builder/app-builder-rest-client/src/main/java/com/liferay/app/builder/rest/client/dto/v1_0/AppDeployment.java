@@ -27,7 +27,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class AppDeployment {
+public class AppDeployment implements Cloneable {
+
+	public static AppDeployment toDTO(String json) {
+		return AppDeploymentSerDes.toDTO(json);
+	}
 
 	public Map<String, Object> getSettings() {
 		return settings;
@@ -68,6 +72,11 @@ public class AppDeployment {
 	}
 
 	protected String type;
+
+	@Override
+	public AppDeployment clone() throws CloneNotSupportedException {
+		return (AppDeployment)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

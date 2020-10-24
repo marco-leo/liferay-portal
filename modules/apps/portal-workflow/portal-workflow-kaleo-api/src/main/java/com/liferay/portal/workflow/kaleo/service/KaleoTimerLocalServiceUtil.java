@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class KaleoTimerLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.workflow.kaleo.service.impl.KaleoTimerLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class KaleoTimerLocalServiceUtil {
 
 	/**
 	 * Adds the kaleo timer to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoTimerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoTimer the kaleo timer
 	 * @return the kaleo timer that was added
@@ -54,14 +58,14 @@ public class KaleoTimerLocalServiceUtil {
 	public static com.liferay.portal.workflow.kaleo.model.KaleoTimer
 			addKaleoTimer(
 				String kaleoClassName, long kaleoClassPK,
-				long kaleoDefinitionVersionId,
+				long kaleoDefinitionId, long kaleoDefinitionVersionId,
 				com.liferay.portal.workflow.kaleo.definition.Timer timer,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().addKaleoTimer(
-			kaleoClassName, kaleoClassPK, kaleoDefinitionVersionId, timer,
-			serviceContext);
+			kaleoClassName, kaleoClassPK, kaleoDefinitionId,
+			kaleoDefinitionVersionId, timer, serviceContext);
 	}
 
 	/**
@@ -77,7 +81,21 @@ public class KaleoTimerLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the kaleo timer from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoTimerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoTimer the kaleo timer
 	 * @return the kaleo timer that was removed
@@ -91,6 +109,10 @@ public class KaleoTimerLocalServiceUtil {
 
 	/**
 	 * Deletes the kaleo timer with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoTimerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoTimerId the primary key of the kaleo timer
 	 * @return the kaleo timer that was removed
@@ -112,6 +134,12 @@ public class KaleoTimerLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -283,6 +311,9 @@ public class KaleoTimerLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -292,6 +323,10 @@ public class KaleoTimerLocalServiceUtil {
 
 	/**
 	 * Updates the kaleo timer in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoTimerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoTimer the kaleo timer
 	 * @return the kaleo timer that was updated

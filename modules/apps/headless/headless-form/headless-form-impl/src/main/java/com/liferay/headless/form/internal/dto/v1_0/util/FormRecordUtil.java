@@ -52,7 +52,7 @@ public class FormRecordUtil {
 			{
 				creator = CreatorUtil.toCreator(
 					portal,
-					userLocalService.getUser(
+					userLocalService.fetchUser(
 						ddmFormInstanceRecord.getUserId()));
 				dateCreated = ddmFormInstanceRecord.getCreateDate();
 				dateModified = ddmFormInstanceRecord.getModifiedDate();
@@ -102,9 +102,9 @@ public class FormRecordUtil {
 				fileEntry = dlAppService.getFileEntry(fileEntryId);
 			}
 		}
-		catch (JSONException jsone) {
+		catch (JSONException jsonException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(jsone, jsone);
+				_log.warn(jsonException, jsonException);
 			}
 		}
 

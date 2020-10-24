@@ -14,13 +14,21 @@
 
 package com.liferay.depot.service;
 
+import com.liferay.depot.model.DepotEntry;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
 import com.liferay.portal.kernel.security.access.control.AccessControlled;
 import com.liferay.portal.kernel.service.BaseService;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.transaction.Isolation;
+import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.kernel.util.UnicodeProperties;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -42,11 +50,38 @@ import org.osgi.annotation.versioning.ProviderType;
 )
 public interface DepotEntryService extends BaseService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
-	 * Never modify or reference this interface directly. Always use {@link DepotEntryServiceUtil} to access the depot entry remote service. Add custom service methods to <code>com.liferay.depot.service.impl.DepotEntryServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
+	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.depot.service.impl.DepotEntryServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the depot entry remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link DepotEntryServiceUtil} if injection and service tracking are not available.
 	 */
+	public DepotEntry addDepotEntry(
+			Map<Locale, String> nameMap, Map<Locale, String> descriptionMap,
+			ServiceContext serviceContext)
+		throws PortalException;
+
+	public DepotEntry deleteDepotEntry(long depotEntryId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public DepotEntry getDepotEntry(long depotEntryId) throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<DepotEntry> getGroupConnectedDepotEntries(
+			long groupId, boolean ddmStructuresAvailable, int start, int end)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<DepotEntry> getGroupConnectedDepotEntries(
+			long groupId, int start, int end)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getGroupConnectedDepotEntriesCount(long groupId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public DepotEntry getGroupDepotEntry(long groupId) throws PortalException;
 
 	/**
 	 * Returns the OSGi service identifier.
@@ -54,5 +89,13 @@ public interface DepotEntryService extends BaseService {
 	 * @return the OSGi service identifier
 	 */
 	public String getOSGiServiceIdentifier();
+
+	public DepotEntry updateDepotEntry(
+			long depotEntryId, Map<Locale, String> nameMap,
+			Map<Locale, String> descriptionMap,
+			Map<String, Boolean> depotAppCustomizationMap,
+			UnicodeProperties typeSettingsUnicodeProperties,
+			ServiceContext serviceContext)
+		throws PortalException;
 
 }

@@ -98,8 +98,8 @@ public class ServerManagerServlet extends HttpServlet {
 
 		String path = StringUtil.toLowerCase(pathInfo);
 
-		path = StringUtil.replace(
-			path, matchingExecutorPath + StringPool.SLASH, StringPool.BLANK);
+		path = StringUtil.removeSubstring(
+			path, matchingExecutorPath + StringPool.SLASH);
 
 		String[] pathParts = StringUtil.split(path, StringPool.SLASH);
 
@@ -127,8 +127,8 @@ public class ServerManagerServlet extends HttpServlet {
 				return true;
 			}
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 
 		return false;
@@ -159,9 +159,9 @@ public class ServerManagerServlet extends HttpServlet {
 				httpServletRequest, responseJSONObject,
 				httpServletRequest.getPathInfo());
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			responseJSONObject.put(
-				JSONKeys.ERROR, StackTraceUtil.getStackTrace(e)
+				JSONKeys.ERROR, StackTraceUtil.getStackTrace(exception)
 			).put(
 				JSONKeys.STATUS, 1
 			);

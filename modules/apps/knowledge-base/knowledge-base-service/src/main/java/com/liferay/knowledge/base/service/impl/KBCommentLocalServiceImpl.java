@@ -98,7 +98,7 @@ public class KBCommentLocalServiceImpl extends KBCommentLocalServiceBaseImpl {
 		kbComment.setUserRating(userRating);
 		kbComment.setStatus(KBCommentConstants.STATUS_NEW);
 
-		kbCommentPersistence.update(kbComment);
+		kbComment = kbCommentPersistence.update(kbComment);
 
 		// Social
 
@@ -124,10 +124,9 @@ public class KBCommentLocalServiceImpl extends KBCommentLocalServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		int userRating = getUserRating(userId, classNameId, classPK);
-
 		return addKBComment(
-			userId, classNameId, classPK, content, userRating, serviceContext);
+			userId, classNameId, classPK, content,
+			getUserRating(userId, classNameId, classPK), serviceContext);
 	}
 
 	@Override
@@ -186,16 +185,19 @@ public class KBCommentLocalServiceImpl extends KBCommentLocalServiceBaseImpl {
 	@Override
 	public List<KBComment> getKBComments(
 		long groupId, int status, int start, int end,
-		OrderByComparator<KBComment> obc) {
+		OrderByComparator<KBComment> orderByComparator) {
 
-		return kbCommentPersistence.findByG_S(groupId, status, start, end, obc);
+		return kbCommentPersistence.findByG_S(
+			groupId, status, start, end, orderByComparator);
 	}
 
 	@Override
 	public List<KBComment> getKBComments(
-		long groupId, int start, int end, OrderByComparator<KBComment> obc) {
+		long groupId, int start, int end,
+		OrderByComparator<KBComment> orderByComparator) {
 
-		return kbCommentPersistence.findByGroupId(groupId, start, end, obc);
+		return kbCommentPersistence.findByGroupId(
+			groupId, start, end, orderByComparator);
 	}
 
 	@Override
@@ -220,17 +222,17 @@ public class KBCommentLocalServiceImpl extends KBCommentLocalServiceBaseImpl {
 	@Override
 	public List<KBComment> getKBComments(
 		String className, long classPK, int status, int start, int end,
-		OrderByComparator<KBComment> obc) {
+		OrderByComparator<KBComment> orderByComparator) {
 
 		return kbCommentPersistence.findByC_C_S(
 			classNameLocalService.getClassNameId(className), classPK, status,
-			start, end, obc);
+			start, end, orderByComparator);
 	}
 
 	@Override
 	public List<KBComment> getKBComments(
 		String className, long classPK, int start, int end,
-		OrderByComparator orderByComparator) {
+		OrderByComparator<KBComment> orderByComparator) {
 
 		return kbCommentPersistence.findByC_C(
 			classNameLocalService.getClassNameId(className), classPK, start,
@@ -297,7 +299,7 @@ public class KBCommentLocalServiceImpl extends KBCommentLocalServiceBaseImpl {
 		kbComment.setUserRating(userRating);
 		kbComment.setStatus(status);
 
-		kbCommentPersistence.update(kbComment);
+		kbComment = kbCommentPersistence.update(kbComment);
 
 		// Social
 
@@ -339,7 +341,7 @@ public class KBCommentLocalServiceImpl extends KBCommentLocalServiceBaseImpl {
 
 		kbComment.setStatus(status);
 
-		kbCommentPersistence.update(kbComment);
+		kbComment = kbCommentPersistence.update(kbComment);
 
 		notifySubscribers(userId, kbComment, serviceContext);
 
@@ -519,8 +521,8 @@ public class KBCommentLocalServiceImpl extends KBCommentLocalServiceBaseImpl {
 				jsonObject.put("title", kbTemplate.getTitle());
 			}
 		}
-		catch (Exception e) {
-			_log.error("Unable to put title", e);
+		catch (Exception exception) {
+			_log.error("Unable to put title", exception);
 		}
 	}
 

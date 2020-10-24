@@ -17,12 +17,12 @@ package com.liferay.microblogs.service.impl;
 import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
 import com.liferay.asset.kernel.model.AssetRenderer;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.microblogs.constants.MicroblogsEntryConstants;
 import com.liferay.microblogs.constants.MicroblogsPortletKeys;
 import com.liferay.microblogs.exception.UnsupportedMicroblogsEntryException;
 import com.liferay.microblogs.internal.social.MicroblogsActivityKeys;
 import com.liferay.microblogs.internal.util.MicroblogsUtil;
 import com.liferay.microblogs.model.MicroblogsEntry;
-import com.liferay.microblogs.model.MicroblogsEntryConstants;
 import com.liferay.microblogs.service.base.MicroblogsEntryLocalServiceBaseImpl;
 import com.liferay.microblogs.util.comparator.EntryCreateDateComparator;
 import com.liferay.petra.string.StringPool;
@@ -104,7 +104,7 @@ public class MicroblogsEntryLocalServiceImpl
 		microblogsEntry.setParentMicroblogsEntryId(parentMicroblogsEntryId);
 		microblogsEntry.setSocialRelationType(socialRelationType);
 
-		microblogsEntryPersistence.update(microblogsEntry);
+		microblogsEntry = microblogsEntryPersistence.update(microblogsEntry);
 
 		// Resources
 
@@ -155,7 +155,7 @@ public class MicroblogsEntryLocalServiceImpl
 		microblogsEntry.setParentMicroblogsEntryId(parentMicroblogsEntryId);
 		microblogsEntry.setSocialRelationType(socialRelationType);
 
-		microblogsEntryPersistence.update(microblogsEntry);
+		microblogsEntry = microblogsEntryPersistence.update(microblogsEntry);
 
 		// Resources
 
@@ -280,10 +280,10 @@ public class MicroblogsEntryLocalServiceImpl
 	@Override
 	public List<MicroblogsEntry> getMicroblogsEntries(
 		long companyId, long creatorClassNameId, int type, int start, int end,
-		OrderByComparator obc) {
+		OrderByComparator<MicroblogsEntry> orderByComparator) {
 
 		return microblogsEntryPersistence.findByC_CCNI_T(
-			companyId, creatorClassNameId, type, start, end, obc);
+			companyId, creatorClassNameId, type, start, end, orderByComparator);
 	}
 
 	@Override
@@ -437,7 +437,7 @@ public class MicroblogsEntryLocalServiceImpl
 		microblogsEntry.setContent(content);
 		microblogsEntry.setSocialRelationType(socialRelationType);
 
-		microblogsEntryPersistence.update(microblogsEntry);
+		microblogsEntry = microblogsEntryPersistence.update(microblogsEntry);
 
 		// Asset
 
@@ -460,9 +460,9 @@ public class MicroblogsEntryLocalServiceImpl
 
 			return subscription.getSubscriptionId();
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(portalException, portalException);
 			}
 		}
 
@@ -500,9 +500,9 @@ public class MicroblogsEntryLocalServiceImpl
 				serviceContext.getLiferayPortletRequest(),
 				serviceContext.getLiferayPortletResponse(), null);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
+				_log.debug(exception, exception);
 			}
 		}
 
@@ -635,8 +635,8 @@ public class MicroblogsEntryLocalServiceImpl
 					_receiverUserIds, _microblogsEntry,
 					_notificationEventJSONObject);
 			}
-			catch (Exception e) {
-				throw new ProcessException(e);
+			catch (Exception exception) {
+				throw new ProcessException(exception);
 			}
 
 			return null;

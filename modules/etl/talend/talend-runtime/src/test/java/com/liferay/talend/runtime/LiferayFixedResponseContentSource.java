@@ -16,6 +16,7 @@ package com.liferay.talend.runtime;
 
 import com.liferay.talend.BaseTestCase;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,13 +32,13 @@ public class LiferayFixedResponseContentSource extends LiferaySource {
 	}
 
 	@Override
-	public JsonObject doGetRequest(String resourceURL) {
+	public Optional<JsonObject> doGetRequest(String resourceURL) {
 		if (_jsonObject != null) {
-			return _jsonObject;
+			return Optional.of(_jsonObject);
 		}
 
-		return _baseTestCase.readObject(
-			_getResponseContentFileName(resourceURL));
+		return Optional.of(
+			_baseTestCase.readObject(_getResponseContentFileName(resourceURL)));
 	}
 
 	public void setBaseTestCase(BaseTestCase baseTestCase) {
@@ -49,11 +50,12 @@ public class LiferayFixedResponseContentSource extends LiferaySource {
 
 		if (!matcher.matches()) {
 			throw new UnsupportedOperationException(
-				"Unable to extract file name from given resource URL");
+				"Unable to extract file name from given resource URL " +
+					resourceURL);
 		}
 
-		String fileName = matcher.group(3);
-		String fileNumber = matcher.group(4);
+		String fileName = matcher.group(2);
+		String fileNumber = matcher.group(3);
 
 		StringBuilder sb = new StringBuilder();
 
@@ -68,7 +70,6 @@ public class LiferayFixedResponseContentSource extends LiferaySource {
 	private BaseTestCase _baseTestCase;
 	private final JsonObject _jsonObject;
 	private Pattern _resourceURLPattern = Pattern.compile(
-		"https?://.+(:\\d+)?/o/.+/v\\d+(.\\d+)*/([^/\\s]+)/.+\\?.*(page=\\d+)" +
-			".*");
+		"/o/.+/v\\d+(.\\d+)*/([^/\\s]+)/.+\\?.*(page=\\d+).*");
 
 }

@@ -41,6 +41,7 @@ import com.liferay.portal.search.configuration.IndexWriterHelperConfiguration;
 import com.liferay.portal.search.index.IndexStatusManager;
 import com.liferay.portal.search.internal.background.task.ReindexPortalBackgroundTaskExecutor;
 import com.liferay.portal.search.internal.background.task.ReindexSingleIndexerBackgroundTaskExecutor;
+import com.liferay.portal.search.model.uid.UIDFactory;
 
 import java.io.Serializable;
 
@@ -69,6 +70,8 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 			String searchEngineId, long companyId, Document document,
 			boolean commitImmediately)
 		throws SearchException {
+
+		_enforceStandardUID(document);
 
 		if (_indexStatusManager.isIndexReadOnly() || (document == null)) {
 			return;
@@ -100,6 +103,8 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 			String searchEngineId, long companyId,
 			Collection<Document> documents, boolean commitImmediately)
 		throws SearchException {
+
+		_enforceStandardUID(documents);
 
 		if (_indexStatusManager.isIndexReadOnly() || (documents == null) ||
 			documents.isEmpty()) {
@@ -275,9 +280,9 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 		SearchContext searchContext = new SearchContext();
 
 		searchContext.setCompanyId(companyId);
-		searchContext.setSearchEngineId(searchEngineId);
 		searchContext.setKeywords(querySuggestion);
 		searchContext.setLocale(locale);
+		searchContext.setSearchEngineId(searchEngineId);
 
 		indexWriter.indexKeyword(searchContext, weight, keywordType);
 	}
@@ -333,8 +338,8 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 		SearchContext searchContext = new SearchContext();
 
 		searchContext.setCompanyId(companyId);
-		searchContext.setSearchEngineId(searchEngineId);
 		searchContext.setLocale(locale);
+		searchContext.setSearchEngineId(searchEngineId);
 
 		indexWriter.indexQuerySuggestionDictionary(searchContext);
 	}
@@ -388,8 +393,8 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 		SearchContext searchContext = new SearchContext();
 
 		searchContext.setCompanyId(companyId);
-		searchContext.setSearchEngineId(searchEngineId);
 		searchContext.setLocale(locale);
+		searchContext.setSearchEngineId(searchEngineId);
 
 		indexWriter.indexSpellCheckerDictionary(searchContext);
 	}
@@ -419,6 +424,8 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 			String searchEngineId, long companyId, Document document,
 			boolean commitImmediately)
 		throws SearchException {
+
+		_enforceStandardUID(document);
 
 		if (_indexStatusManager.isIndexReadOnly() || (document == null)) {
 			return;
@@ -450,6 +457,8 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 			String searchEngineId, long companyId,
 			Collection<Document> documents, boolean commitImmediately)
 		throws SearchException {
+
+		_enforceStandardUID(documents);
 
 		if (_indexStatusManager.isIndexReadOnly() || (documents == null) ||
 			documents.isEmpty()) {
@@ -501,8 +510,9 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 				ReindexPortalBackgroundTaskExecutor.class.getName(),
 				taskContextMap, new ServiceContext());
 		}
-		catch (PortalException pe) {
-			throw new SearchException("Unable to schedule portal reindex", pe);
+		catch (PortalException portalException) {
+			throw new SearchException(
+				"Unable to schedule portal reindex", portalException);
 		}
 	}
 
@@ -533,8 +543,9 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 				ReindexSingleIndexerBackgroundTaskExecutor.class.getName(),
 				taskContextMap, new ServiceContext());
 		}
-		catch (PortalException pe) {
-			throw new SearchException("Unable to schedule portal reindex", pe);
+		catch (PortalException portalException) {
+			throw new SearchException(
+				"Unable to schedule portal reindex", portalException);
 		}
 	}
 
@@ -563,6 +574,8 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 			String searchEngineId, long companyId, Document document,
 			boolean commitImmediately)
 		throws SearchException {
+
+		_enforceStandardUID(document);
 
 		if (_indexStatusManager.isIndexReadOnly() || (document == null)) {
 			return;
@@ -596,6 +609,8 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 			String searchEngineId, long companyId,
 			Collection<Document> documents, boolean commitImmediately)
 		throws SearchException {
+
+		_enforceStandardUID(documents);
 
 		if (_indexStatusManager.isIndexReadOnly() || (documents == null) ||
 			documents.isEmpty()) {
@@ -660,6 +675,17 @@ public class IndexWriterHelperImpl implements IndexWriterHelper {
 		else {
 			searchContext.setCommitImmediately(true);
 		}
+	}
+
+	@Reference
+	protected UIDFactory uidFactory;
+
+	private void _enforceStandardUID(Collection<Document> documents) {
+		documents.forEach(this::_enforceStandardUID);
+	}
+
+	private void _enforceStandardUID(Document document) {
+		uidFactory.getUID(document);
 	}
 
 	private String _getIndexerModelName(String name) {

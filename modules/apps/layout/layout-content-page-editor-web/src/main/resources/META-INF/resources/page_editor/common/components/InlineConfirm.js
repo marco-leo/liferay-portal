@@ -15,7 +15,7 @@
 import ClayButton from '@clayui/button';
 import {useIsMounted} from 'frontend-js-react-web';
 import PropTypes from 'prop-types';
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import Button from './Button';
 
@@ -24,7 +24,7 @@ export default function InlineConfirm({
 	confirmButtonLabel,
 	message,
 	onCancelButtonClick,
-	onConfirmButtonClick
+	onConfirmButtonClick,
 }) {
 	const [performingAction, setPerformingAction] = useState(false);
 	const wrapper = useRef(null);
@@ -43,6 +43,12 @@ export default function InlineConfirm({
 			}
 		});
 	};
+
+	useEffect(() => {
+		if (wrapper.current) {
+			wrapper.current.focus();
+		}
+	}, []);
 
 	useEffect(() => {
 		if (wrapper.current) {
@@ -81,7 +87,7 @@ export default function InlineConfirm({
 	return (
 		<div
 			className="page-editor__inline-confirm"
-			onKeyDown={e => e.key === 'Escape' && onCancelButtonClick()}
+			onKeyDown={(e) => e.key === 'Escape' && onCancelButtonClick()}
 			ref={wrapper}
 			role="alertdialog"
 			tabIndex="-1"
@@ -121,5 +127,5 @@ InlineConfirm.propTypes = {
 	confirmButtonLabel: PropTypes.string,
 	message: PropTypes.string,
 	onCancelButtonClick: PropTypes.func,
-	onConfirmButtonClick: PropTypes.func
+	onConfirmButtonClick: PropTypes.func,
 };

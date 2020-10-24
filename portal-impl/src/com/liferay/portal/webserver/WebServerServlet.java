@@ -29,6 +29,7 @@ import com.liferay.document.library.kernel.util.PDFProcessorUtil;
 import com.liferay.document.library.kernel.util.VideoProcessor;
 import com.liferay.document.library.kernel.util.VideoProcessorUtil;
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -86,7 +87,6 @@ import com.liferay.portal.kernel.transaction.TransactionConfig;
 import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.DigesterUtil;
-import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -119,8 +119,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.net.URL;
-
-import java.text.Format;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -197,12 +195,13 @@ public class WebServerServlet extends HttpServlet {
 
 						folderId = folder.getFolderId();
 					}
-					catch (NoSuchFolderException nsfe) {
+					catch (NoSuchFolderException noSuchFolderException) {
 
 						// LPS-52675
 
 						if (_log.isDebugEnabled()) {
-							_log.debug(nsfe, nsfe);
+							_log.debug(
+								noSuchFolderException, noSuchFolderException);
 						}
 
 						if (i != (pathArray.length - 1)) {
@@ -219,7 +218,7 @@ public class WebServerServlet extends HttpServlet {
 				}
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return false;
 		}
 		finally {
@@ -312,21 +311,24 @@ public class WebServerServlet extends HttpServlet {
 				_createFileServingCallable(
 					httpServletRequest, httpServletResponse, user));
 		}
-		catch (NoSuchFileEntryException | NoSuchFolderException e) {
+		catch (NoSuchFileEntryException | NoSuchFolderException exception) {
 			PortalUtil.sendError(
-				HttpServletResponse.SC_NOT_FOUND, e, httpServletRequest,
+				HttpServletResponse.SC_NOT_FOUND, exception, httpServletRequest,
 				httpServletResponse);
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 			processPrincipalException(
-				pe, user, httpServletRequest, httpServletResponse);
+				principalException, user, httpServletRequest,
+				httpServletResponse);
 		}
-		catch (Exception e) {
-			PortalUtil.sendError(e, httpServletRequest, httpServletResponse);
-		}
-		catch (Throwable t) {
+		catch (Exception exception) {
 			PortalUtil.sendError(
-				new Exception(t), httpServletRequest, httpServletResponse);
+				exception, httpServletRequest, httpServletResponse);
+		}
+		catch (Throwable throwable) {
+			PortalUtil.sendError(
+				new Exception(throwable), httpServletRequest,
+				httpServletResponse);
 		}
 	}
 
@@ -369,27 +371,27 @@ public class WebServerServlet extends HttpServlet {
 
 			image.setModifiedDate(fileEntry.getModifiedDate());
 
-			InputStream is = null;
+			InputStream inputStream = null;
 
 			if (smallImage) {
-				is = ImageProcessorUtil.getThumbnailAsStream(
+				inputStream = ImageProcessorUtil.getThumbnailAsStream(
 					fileEntry.getFileVersion(), 0);
 			}
 			else {
-				is = fileEntry.getContentStream();
+				inputStream = fileEntry.getContentStream();
 			}
 
-			image.setTextObj(FileUtil.getBytes(is));
+			image.setTextObj(FileUtil.getBytes(inputStream));
 
 			image.setType(fileEntry.getExtension());
 
 			return image;
 		}
-		catch (PortalException | SystemException e) {
-			throw e;
+		catch (PortalException | SystemException exception) {
+			throw exception;
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -521,10 +523,11 @@ public class WebServerServlet extends HttpServlet {
 		else {
 			String uuid = ParamUtil.getString(httpServletRequest, "uuid");
 			long groupId = ParamUtil.getLong(httpServletRequest, "groupId");
-			boolean igSmallImage = ParamUtil.getBoolean(
-				httpServletRequest, "igSmallImage");
 
 			if (Validator.isNotNull(uuid) && (groupId > 0)) {
+				boolean igSmallImage = ParamUtil.getBoolean(
+					httpServletRequest, "igSmallImage");
+
 				try {
 					FileEntry fileEntry =
 						DLAppServiceUtil.getFileEntryByUuidAndGroupId(
@@ -532,7 +535,7 @@ public class WebServerServlet extends HttpServlet {
 
 					image = convertFileEntry(igSmallImage, fileEntry);
 				}
-				catch (Exception e) {
+				catch (Exception exception) {
 				}
 			}
 		}
@@ -592,9 +595,10 @@ public class WebServerServlet extends HttpServlet {
 
 			return ImageToolUtil.getBytes(renderedImage, imageBag.getType());
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn("Error scaling image " + image.getImageId(), e);
+				_log.warn(
+					"Error scaling image " + image.getImageId(), exception);
 			}
 		}
 
@@ -679,7 +683,7 @@ public class WebServerServlet extends HttpServlet {
 				try {
 					fileEntry = getFileEntry(pathArray);
 				}
-				catch (Exception e) {
+				catch (Exception exception) {
 				}
 
 				if (fileEntry == null) {
@@ -707,13 +711,13 @@ public class WebServerServlet extends HttpServlet {
 
 			return (modifiedDate.getTime() / 1000) * 1000;
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(pe, pe);
+				_log.warn(principalException, principalException);
 			}
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 
 		return -1;
@@ -811,7 +815,7 @@ public class WebServerServlet extends HttpServlet {
 
 			return true;
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		return false;
@@ -822,13 +826,14 @@ public class WebServerServlet extends HttpServlet {
 	}
 
 	protected void processPrincipalException(
-			Throwable t, User user, HttpServletRequest httpServletRequest,
+			Throwable throwable, User user,
+			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
 		throws IOException, ServletException {
 
 		if (!user.isDefaultUser()) {
 			PortalUtil.sendError(
-				HttpServletResponse.SC_UNAUTHORIZED, (Exception)t,
+				HttpServletResponse.SC_UNAUTHORIZED, (Exception)throwable,
 				httpServletRequest, httpServletResponse);
 
 			return;
@@ -865,9 +870,9 @@ public class WebServerServlet extends HttpServlet {
 
 				folderId = folder.getFolderId();
 			}
-			catch (NoSuchFolderException nsfe) {
+			catch (NoSuchFolderException noSuchFolderException) {
 				if (i != (pathArray.length - 1)) {
-					throw nsfe;
+					throw noSuchFolderException;
 				}
 
 				String title = name;
@@ -884,19 +889,19 @@ public class WebServerServlet extends HttpServlet {
 
 			return;
 		}
-		catch (NoSuchFileEntryException | PrincipalException e1) {
+		catch (NoSuchFileEntryException | PrincipalException exception1) {
 			try {
 				sendFile(
 					httpServletResponse, user, groupId, folderId, "index.htm");
 
 				return;
 			}
-			catch (NoSuchFileEntryException | PrincipalException e2) {
+			catch (NoSuchFileEntryException | PrincipalException exception2) {
 
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(e2, e2);
+					_log.debug(exception2, exception2);
 				}
 			}
 		}
@@ -1000,13 +1005,9 @@ public class WebServerServlet extends HttpServlet {
 		long contentLength = 0;
 
 		if ((imageThumbnail > 0) && (imageThumbnail <= 3)) {
-			fileName = FileUtil.stripExtension(
-				fileName
-			).concat(
-				StringPool.PERIOD
-			).concat(
-				ImageProcessorUtil.getThumbnailType(fileVersion)
-			);
+			fileName = StringBundler.concat(
+				FileUtil.stripExtension(fileName), StringPool.PERIOD,
+				ImageProcessorUtil.getThumbnailType(fileVersion));
 
 			int thumbnailIndex = imageThumbnail - 1;
 
@@ -1018,13 +1019,9 @@ public class WebServerServlet extends HttpServlet {
 			converted = true;
 		}
 		else if ((documentThumbnail > 0) && (documentThumbnail <= 3)) {
-			fileName = FileUtil.stripExtension(
-				fileName
-			).concat(
-				StringPool.PERIOD
-			).concat(
-				PDFProcessor.THUMBNAIL_TYPE
-			);
+			fileName = StringBundler.concat(
+				FileUtil.stripExtension(fileName), StringPool.PERIOD,
+				PDFProcessor.THUMBNAIL_TYPE);
 
 			int thumbnailIndex = documentThumbnail - 1;
 
@@ -1036,13 +1033,9 @@ public class WebServerServlet extends HttpServlet {
 			converted = true;
 		}
 		else if (previewFileIndex > 0) {
-			fileName = FileUtil.stripExtension(
-				fileName
-			).concat(
-				StringPool.PERIOD
-			).concat(
-				PDFProcessor.PREVIEW_TYPE
-			);
+			fileName = StringBundler.concat(
+				FileUtil.stripExtension(fileName), StringPool.PERIOD,
+				PDFProcessor.PREVIEW_TYPE);
 			inputStream = PDFProcessorUtil.getPreviewAsStream(
 				fileVersion, previewFileIndex);
 			contentLength = PDFProcessorUtil.getPreviewFileSize(
@@ -1053,13 +1046,8 @@ public class WebServerServlet extends HttpServlet {
 		else if (audioPreview || videoPreview) {
 			String type = ParamUtil.getString(httpServletRequest, "type");
 
-			fileName = FileUtil.stripExtension(
-				fileName
-			).concat(
-				StringPool.PERIOD
-			).concat(
-				type
-			);
+			fileName = StringBundler.concat(
+				FileUtil.stripExtension(fileName), StringPool.PERIOD, type);
 
 			if (audioPreview) {
 				inputStream = AudioProcessorUtil.getPreviewAsStream(
@@ -1079,13 +1067,8 @@ public class WebServerServlet extends HttpServlet {
 		else if (imagePreview) {
 			String type = ImageProcessorUtil.getPreviewType(fileVersion);
 
-			fileName = FileUtil.stripExtension(
-				fileName
-			).concat(
-				StringPool.PERIOD
-			).concat(
-				type
-			);
+			fileName = StringBundler.concat(
+				FileUtil.stripExtension(fileName), StringPool.PERIOD, type);
 
 			inputStream = ImageProcessorUtil.getPreviewAsStream(fileVersion);
 
@@ -1094,13 +1077,9 @@ public class WebServerServlet extends HttpServlet {
 			converted = true;
 		}
 		else if ((videoThumbnail > 0) && (videoThumbnail <= 3)) {
-			fileName = FileUtil.stripExtension(
-				fileName
-			).concat(
-				StringPool.PERIOD
-			).concat(
-				VideoProcessor.THUMBNAIL_TYPE
-			);
+			fileName = StringBundler.concat(
+				FileUtil.stripExtension(fileName), StringPool.PERIOD,
+				VideoProcessor.THUMBNAIL_TYPE);
 
 			int thumbnailIndex = videoThumbnail - 1;
 
@@ -1121,13 +1100,9 @@ public class WebServerServlet extends HttpServlet {
 					targetExtension);
 
 				if (convertedFile != null) {
-					fileName = FileUtil.stripExtension(
-						fileName
-					).concat(
-						StringPool.PERIOD
-					).concat(
-						targetExtension
-					);
+					fileName = StringBundler.concat(
+						FileUtil.stripExtension(fileName), StringPool.PERIOD,
+						targetExtension);
 					inputStream = new FileInputStream(convertedFile);
 					contentLength = convertedFile.length();
 
@@ -1230,7 +1205,6 @@ public class WebServerServlet extends HttpServlet {
 		Template template = TemplateManagerUtil.getTemplate(
 			TemplateConstants.LANG_TYPE_FTL, _templateResource, true);
 
-		template.put("dateFormat", _dateFormat);
 		template.put("entries", webServerEntries);
 		template.put("path", HttpUtil.encodePath(path));
 
@@ -1285,19 +1259,19 @@ public class WebServerServlet extends HttpServlet {
 				HttpHeaders.CONTENT_DISPOSITION_ATTACHMENT);
 		}
 		else {
-			InputStream is = fileEntry.getContentStream();
+			InputStream inputStream = fileEntry.getContentStream();
 
 			FlashMagicBytesUtil.Result flashMagicBytesUtilResult =
-				FlashMagicBytesUtil.check(is);
+				FlashMagicBytesUtil.check(inputStream);
 
-			is = flashMagicBytesUtilResult.getInputStream();
+			inputStream = flashMagicBytesUtilResult.getInputStream();
 
 			if (flashMagicBytesUtilResult.isFlash()) {
 				fileName = FileUtil.stripExtension(fileName) + ".swf";
 			}
 
 			ServletResponseUtil.sendFile(
-				httpServletRequest, httpServletResponse, fileName, is,
+				httpServletRequest, httpServletResponse, fileName, inputStream,
 				fileEntry.getSize(), fileEntry.getMimeType());
 		}
 	}
@@ -1335,9 +1309,9 @@ public class WebServerServlet extends HttpServlet {
 				ServletResponseUtil.write(httpServletResponse, bytes);
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(e, e);
+				_log.warn(exception, exception);
 			}
 		}
 	}
@@ -1378,12 +1352,12 @@ public class WebServerServlet extends HttpServlet {
 			try {
 				DLAppLocalServiceUtil.getFileEntry(groupId, folderId, fileName);
 			}
-			catch (RepositoryException re) {
+			catch (RepositoryException repositoryException) {
 
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(re, re);
+					_log.debug(repositoryException, repositoryException);
 				}
 			}
 		}
@@ -1396,12 +1370,12 @@ public class WebServerServlet extends HttpServlet {
 				DLAppLocalServiceUtil.getFileEntryByUuidAndGroupId(
 					uuid, groupId);
 			}
-			catch (RepositoryException re) {
+			catch (RepositoryException repositoryException) {
 
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(re, re);
+					_log.debug(repositoryException, repositoryException);
 				}
 			}
 		}
@@ -1453,11 +1427,12 @@ public class WebServerServlet extends HttpServlet {
 	}
 
 	private static boolean _isDirectoryIndexingEnabled(Group group) {
-		UnicodeProperties typeSettingsProperties =
+		UnicodeProperties typeSettingsUnicodeProperties =
 			group.getTypeSettingsProperties();
 
 		return GetterUtil.getBoolean(
-			typeSettingsProperties.getProperty("directoryIndexingEnabled"),
+			typeSettingsUnicodeProperties.getProperty(
+				"directoryIndexingEnabled"),
 			PropsValues.WEB_SERVER_SERVLET_DIRECTORY_INDEXING_ENABLED);
 	}
 
@@ -1577,7 +1552,7 @@ public class WebServerServlet extends HttpServlet {
 
 	private PermissionChecker _getPermissionChecker(
 			HttpServletRequest httpServletRequest)
-		throws PortalException {
+		throws Exception {
 
 		User user = PortalUtil.getUser(httpServletRequest);
 
@@ -1591,7 +1566,7 @@ public class WebServerServlet extends HttpServlet {
 
 	private String _getPortletId(
 			FileEntry fileEntry, HttpServletRequest httpServletRequest)
-		throws PortalException {
+		throws Exception {
 
 		if (fileEntry.isInTrash()) {
 			int status = ParamUtil.getInteger(
@@ -1661,8 +1636,6 @@ public class WebServerServlet extends HttpServlet {
 			UserFileUploadsSettings.class, WebServerServlet.class,
 			"_userFileUploadsSettings", false);
 
-	private final Format _dateFormat =
-		FastDateFormatFactoryUtil.getSimpleDateFormat("d MMM yyyy HH:mm z");
 	private boolean _lastModified = true;
 	private TemplateResource _templateResource;
 

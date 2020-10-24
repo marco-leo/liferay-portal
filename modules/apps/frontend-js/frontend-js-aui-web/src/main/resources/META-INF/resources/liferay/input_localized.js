@@ -14,7 +14,7 @@
 
 AUI.add(
 	'liferay-input-localized',
-	A => {
+	(A) => {
 		var Lang = A.Lang;
 
 		var STR_BLANK = '';
@@ -47,57 +47,57 @@ AUI.add(
 			ATTRS: {
 				animateClass: {
 					validator: Lang.isString,
-					value: 'highlight-animation'
+					value: 'highlight-animation',
 				},
 
 				defaultLanguageId: {
-					value: defaultLanguageId
+					value: defaultLanguageId,
 				},
 
 				editor: {},
 
 				fieldPrefix: {
-					validator: Lang.isString
+					validator: Lang.isString,
 				},
 
 				fieldPrefixSeparator: {
-					validator: Lang.isString
+					validator: Lang.isString,
 				},
 
 				helpMessage: {
-					validator: Lang.isString
+					validator: Lang.isString,
 				},
 
 				id: {
-					validator: Lang.isString
+					validator: Lang.isString,
 				},
 
 				inputBox: {
-					setter: A.one
+					setter: A.one,
 				},
 
 				inputPlaceholder: {
-					setter: A.one
+					setter: A.one,
 				},
 
 				instanceId: {
-					value: Lang.isString
+					value: Lang.isString,
 				},
 
 				items: {
-					value: availableLanguageIds
+					value: availableLanguageIds,
 				},
 
 				itemsError: {
-					validator: Array.isArray
+					validator: Array.isArray,
 				},
 
 				name: {
-					validator: Lang.isString
+					validator: Lang.isString,
 				},
 
 				namespace: {
-					validator: Lang.isString
+					validator: Lang.isString,
 				},
 
 				selected: {
@@ -106,14 +106,20 @@ AUI.add(
 
 						var itemsError = instance.get(STR_ITEMS_ERROR);
 
-						var itemIndex = instance.get('defaultLanguageId');
+						var itemIndex =
+							instance.get('selectedLanguageId') ||
+							instance.get('defaultLanguageId');
 
 						if (itemsError.length) {
 							itemIndex = itemsError[0];
 						}
 
 						return instance.get(STR_ITEMS).indexOf(itemIndex);
-					}
+					},
+				},
+
+				selectedLanguageId: {
+					validator: Lang.isString,
 				},
 
 				translatedLanguages: {
@@ -126,8 +132,8 @@ AUI.add(
 
 						return set;
 					},
-					value: null
-				}
+					value: null,
+				},
 			},
 
 			EXTENDS: A.Palette,
@@ -211,7 +217,7 @@ AUI.add(
 								id,
 								name: A.Lang.String.escapeHTML(name),
 								namespace,
-								value: languageId
+								value: languageId,
 							})
 						);
 
@@ -228,6 +234,25 @@ AUI.add(
 					var namespace = instance.get('namespace');
 
 					return '#' + namespace + id + '_' + languageId;
+				},
+
+				_moveDefaultLanguageFlagToFirstPosition(defaultLanguageId) {
+					var instance = this;
+
+					var flags = instance._flags.getDOMNode();
+
+					var languageNode = flags.querySelector(
+						'[data-languageid="' + defaultLanguageId + '"]'
+					)?.parentElement;
+
+					if (languageNode) {
+						flags.removeChild(languageNode);
+
+						flags.insertBefore(
+							languageNode,
+							flags.firstElementChild
+						);
+					}
 				},
 
 				_onDefaultLocaleChanged(event) {
@@ -257,9 +282,13 @@ AUI.add(
 					instance._updateTranslationStatus(defaultLanguageId);
 					instance._updateTranslationStatus(prevDefaultLanguageId);
 
+					instance._moveDefaultLanguageFlagToFirstPosition(
+						defaultLanguageId
+					);
+
 					Liferay.fire('inputLocalized:localeChanged', {
 						item: event.item,
-						source: instance
+						source: instance,
 					});
 				},
 
@@ -272,7 +301,8 @@ AUI.add(
 
 					if (editor) {
 						value = editor.getHTML();
-					} else {
+					}
+					else {
 						input = input || event.currentTarget;
 
 						value = input.val();
@@ -295,7 +325,7 @@ AUI.add(
 					if (!event.domEvent) {
 						Liferay.fire('inputLocalized:localeChanged', {
 							item: event.item,
-							source: instance
+							source: instance,
 						});
 					}
 				},
@@ -401,7 +431,7 @@ AUI.add(
 							A.Lang.sub(instance.TRANSLATION_STATUS_TEMPLATE, {
 								languageId,
 								translationStatus,
-								translationStatusCssClass
+								translationStatusCssClass,
 							})
 						);
 					}
@@ -416,7 +446,7 @@ AUI.add(
 						flag: Liferay.Util.getLexiconIconTpl(
 							languageId.toLowerCase()
 						),
-						languageId
+						languageId,
 					});
 
 					instance
@@ -448,7 +478,9 @@ AUI.add(
 					var items = instance.get(STR_ITEMS);
 					var selected = instance.get(STR_SELECTED);
 
-					return items[selected];
+					return (
+						items[selected] || instance.get('selectedLanguageId')
+					);
 				},
 
 				getValue(languageId) {
@@ -478,7 +510,7 @@ AUI.add(
 							instance._onSelectFlag,
 							instance
 						),
-						Liferay.on(
+						Liferay.after(
 							'inputLocalized:defaultLocaleChanged',
 							A.bind('_onDefaultLocaleChanged', instance)
 						),
@@ -489,7 +521,7 @@ AUI.add(
 						Liferay.on(
 							'submitForm',
 							A.rbind(STR_SUBMIT, instance, inputPlaceholder)
-						)
+						),
 					];
 
 					if (!instance.get('editor')) {
@@ -509,8 +541,8 @@ AUI.add(
 						descendants: '.palette-item a',
 						keys: {
 							next: 'down:39,40',
-							previous: 'down:37,38'
-						}
+							previous: 'down:37,38',
+						},
 					});
 
 					instance._inputPlaceholderDescription = boundingBox.one(
@@ -575,7 +607,8 @@ AUI.add(
 
 					if (editor) {
 						editor.setHTML(value);
-					} else {
+					}
+					else {
 						inputPlaceholder.val(value);
 
 						inputPlaceholder.attr(
@@ -625,7 +658,7 @@ AUI.add(
 					translatedLanguages[action](selectedLanguageId);
 
 					instance._updateTranslationStatus(selectedLanguageId);
-				}
+				},
 			},
 
 			register(id, config) {
@@ -655,25 +688,21 @@ AUI.add(
 					instances[id] = inputLocalizedInstance;
 				}
 
-				Liferay.component(id, inputLocalizedInstance);
+				var portletId = inputLocalizedInstance
+					.get('namespace')
+					.replace(/^_|_$/gm, '');
+
+				Liferay.component(id, inputLocalizedInstance, {
+					portletId,
+				});
 			},
 
 			unregister(id) {
 				delete InputLocalized._instances[id];
-			}
+			},
 		});
 
 		Liferay.InputLocalized = InputLocalized;
-
-		Liferay.on('destroyPortlet', event => {
-			var portletNamespace = '_' + event.portletId + '_';
-
-			A.Object.each(Liferay.InputLocalized._instances, item => {
-				if (item.get('namespace') === portletNamespace) {
-					item.destroy();
-				}
-			});
-		});
 	},
 	'',
 	{
@@ -684,7 +713,7 @@ AUI.add(
 			'aui-palette',
 			'aui-set',
 			'liferay-form',
-			'portal-available-languages'
-		]
+			'portal-available-languages',
+		],
 	}
 );

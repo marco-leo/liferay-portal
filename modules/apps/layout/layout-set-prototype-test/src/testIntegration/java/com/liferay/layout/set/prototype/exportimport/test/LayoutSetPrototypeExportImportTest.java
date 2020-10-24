@@ -25,7 +25,7 @@ import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalServiceUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.service.test.ServiceTestUtil;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.Map;
@@ -33,7 +33,6 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,10 +64,9 @@ public class LayoutSetPrototypeExportImportTest
 	public void setUp() throws Exception {
 		super.setUp();
 
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 	}
 
-	@Ignore
 	@Override
 	@Test
 	public void testExportImportAssetLinks() throws Exception {

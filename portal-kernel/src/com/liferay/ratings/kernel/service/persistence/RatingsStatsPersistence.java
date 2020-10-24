@@ -15,6 +15,7 @@
 package com.liferay.ratings.kernel.service.persistence;
 
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.ratings.kernel.exception.NoSuchStatsException;
 import com.liferay.ratings.kernel.model.RatingsStats;
 
@@ -32,9 +33,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface RatingsStatsPersistence extends BasePersistence<RatingsStats> {
+public interface RatingsStatsPersistence
+	extends BasePersistence<RatingsStats>, CTPersistence<RatingsStats> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link RatingsStatsUtil} to access the ratings stats persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

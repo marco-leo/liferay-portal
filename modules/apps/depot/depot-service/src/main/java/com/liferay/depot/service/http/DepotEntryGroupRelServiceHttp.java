@@ -51,6 +51,88 @@ import com.liferay.portal.kernel.util.MethodKey;
  */
 public class DepotEntryGroupRelServiceHttp {
 
+	public static com.liferay.depot.model.DepotEntryGroupRel
+			addDepotEntryGroupRel(
+				HttpPrincipal httpPrincipal, long depotEntryId, long toGroupId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				DepotEntryGroupRelServiceUtil.class, "addDepotEntryGroupRel",
+				_addDepotEntryGroupRelParameterTypes0);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, depotEntryId, toGroupId);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (com.liferay.depot.model.DepotEntryGroupRel)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
+	public static com.liferay.depot.model.DepotEntryGroupRel
+			deleteDepotEntryGroupRel(
+				HttpPrincipal httpPrincipal, long depotEntryGroupRelId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				DepotEntryGroupRelServiceUtil.class, "deleteDepotEntryGroupRel",
+				_deleteDepotEntryGroupRelParameterTypes1);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, depotEntryGroupRelId);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (com.liferay.depot.model.DepotEntryGroupRel)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
 	public static java.util.List<com.liferay.depot.model.DepotEntryGroupRel>
 			getDepotEntryGroupRels(
 				HttpPrincipal httpPrincipal, long groupId, int start, int end)
@@ -59,7 +141,7 @@ public class DepotEntryGroupRelServiceHttp {
 		try {
 			MethodKey methodKey = new MethodKey(
 				DepotEntryGroupRelServiceUtil.class, "getDepotEntryGroupRels",
-				_getDepotEntryGroupRelsParameterTypes0);
+				_getDepotEntryGroupRelsParameterTypes2);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, groupId, start, end);
@@ -69,25 +151,69 @@ public class DepotEntryGroupRelServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return (java.util.List<com.liferay.depot.model.DepotEntryGroupRel>)
 				returnObj;
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
+	public static int getDepotEntryGroupRelsCount(
+			HttpPrincipal httpPrincipal,
+			com.liferay.depot.model.DepotEntry depotEntry)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				DepotEntryGroupRelServiceUtil.class,
+				"getDepotEntryGroupRelsCount",
+				_getDepotEntryGroupRelsCountParameterTypes3);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, depotEntry);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return ((Integer)returnObj).intValue();
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
@@ -99,7 +225,7 @@ public class DepotEntryGroupRelServiceHttp {
 			MethodKey methodKey = new MethodKey(
 				DepotEntryGroupRelServiceUtil.class,
 				"getDepotEntryGroupRelsCount",
-				_getDepotEntryGroupRelsCountParameterTypes1);
+				_getDepotEntryGroupRelsCountParameterTypes4);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId);
 
@@ -108,33 +234,133 @@ public class DepotEntryGroupRelServiceHttp {
 			try {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
-			catch (Exception e) {
-				if (e instanceof
+			catch (Exception exception) {
+				if (exception instanceof
 						com.liferay.portal.kernel.exception.PortalException) {
 
 					throw (com.liferay.portal.kernel.exception.PortalException)
-						e;
+						exception;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(
-					e);
+					exception);
 			}
 
 			return ((Integer)returnObj).intValue();
 		}
-		catch (com.liferay.portal.kernel.exception.SystemException se) {
-			_log.error(se, se);
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
 
-			throw se;
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
+	public static com.liferay.depot.model.DepotEntryGroupRel
+			updateDDMStructuresAvailable(
+				HttpPrincipal httpPrincipal, long depotEntryGroupRelId,
+				boolean ddmStructuresAvailable)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				DepotEntryGroupRelServiceUtil.class,
+				"updateDDMStructuresAvailable",
+				_updateDDMStructuresAvailableParameterTypes5);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, depotEntryGroupRelId, ddmStructuresAvailable);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (com.liferay.depot.model.DepotEntryGroupRel)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
+	public static com.liferay.depot.model.DepotEntryGroupRel updateSearchable(
+			HttpPrincipal httpPrincipal, long depotEntryGroupRelId,
+			boolean searchable)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				DepotEntryGroupRelServiceUtil.class, "updateSearchable",
+				_updateSearchableParameterTypes6);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, depotEntryGroupRelId, searchable);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (com.liferay.depot.model.DepotEntryGroupRel)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
 		}
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(
 		DepotEntryGroupRelServiceHttp.class);
 
-	private static final Class<?>[] _getDepotEntryGroupRelsParameterTypes0 =
+	private static final Class<?>[] _addDepotEntryGroupRelParameterTypes0 =
+		new Class[] {long.class, long.class};
+	private static final Class<?>[] _deleteDepotEntryGroupRelParameterTypes1 =
+		new Class[] {long.class};
+	private static final Class<?>[] _getDepotEntryGroupRelsParameterTypes2 =
 		new Class[] {long.class, int.class, int.class};
 	private static final Class<?>[]
-		_getDepotEntryGroupRelsCountParameterTypes1 = new Class[] {long.class};
+		_getDepotEntryGroupRelsCountParameterTypes3 = new Class[] {
+			com.liferay.depot.model.DepotEntry.class
+		};
+	private static final Class<?>[]
+		_getDepotEntryGroupRelsCountParameterTypes4 = new Class[] {long.class};
+	private static final Class<?>[]
+		_updateDDMStructuresAvailableParameterTypes5 = new Class[] {
+			long.class, boolean.class
+		};
+	private static final Class<?>[] _updateSearchableParameterTypes6 =
+		new Class[] {long.class, boolean.class};
 
 }

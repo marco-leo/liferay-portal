@@ -17,7 +17,7 @@ package com.liferay.headless.delivery.client.serdes.v1_0;
 import com.liferay.headless.delivery.client.dto.v1_0.CustomField;
 import com.liferay.headless.delivery.client.dto.v1_0.KnowledgeBaseArticle;
 import com.liferay.headless.delivery.client.dto.v1_0.RelatedContent;
-import com.liferay.headless.delivery.client.dto.v1_0.TaxonomyCategory;
+import com.liferay.headless.delivery.client.dto.v1_0.TaxonomyCategoryBrief;
 import com.liferay.headless.delivery.client.json.BaseJSONParser;
 
 import java.text.DateFormat;
@@ -64,6 +64,16 @@ public class KnowledgeBaseArticleSerDes {
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		if (knowledgeBaseArticle.getActions() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"actions\": ");
+
+			sb.append(_toJSON(knowledgeBaseArticle.getActions()));
+		}
 
 		if (knowledgeBaseArticle.getAggregateRating() != null) {
 			if (sb.length() > 1) {
@@ -321,24 +331,26 @@ public class KnowledgeBaseArticleSerDes {
 			sb.append(knowledgeBaseArticle.getSubscribed());
 		}
 
-		if (knowledgeBaseArticle.getTaxonomyCategories() != null) {
+		if (knowledgeBaseArticle.getTaxonomyCategoryBriefs() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			sb.append("\"taxonomyCategories\": ");
+			sb.append("\"taxonomyCategoryBriefs\": ");
 
 			sb.append("[");
 
 			for (int i = 0;
-				 i < knowledgeBaseArticle.getTaxonomyCategories().length; i++) {
+				 i < knowledgeBaseArticle.getTaxonomyCategoryBriefs().length;
+				 i++) {
 
 				sb.append(
 					String.valueOf(
-						knowledgeBaseArticle.getTaxonomyCategories()[i]));
+						knowledgeBaseArticle.getTaxonomyCategoryBriefs()[i]));
 
 				if ((i + 1) <
-						knowledgeBaseArticle.getTaxonomyCategories().length) {
+						knowledgeBaseArticle.
+							getTaxonomyCategoryBriefs().length) {
 
 					sb.append(", ");
 				}
@@ -424,6 +436,14 @@ public class KnowledgeBaseArticleSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (knowledgeBaseArticle.getActions() == null) {
+			map.put("actions", null);
+		}
+		else {
+			map.put(
+				"actions", String.valueOf(knowledgeBaseArticle.getActions()));
+		}
+
 		if (knowledgeBaseArticle.getAggregateRating() == null) {
 			map.put("aggregateRating", null);
 		}
@@ -459,15 +479,25 @@ public class KnowledgeBaseArticleSerDes {
 				String.valueOf(knowledgeBaseArticle.getCustomFields()));
 		}
 
-		map.put(
-			"dateCreated",
-			liferayToJSONDateFormat.format(
-				knowledgeBaseArticle.getDateCreated()));
+		if (knowledgeBaseArticle.getDateCreated() == null) {
+			map.put("dateCreated", null);
+		}
+		else {
+			map.put(
+				"dateCreated",
+				liferayToJSONDateFormat.format(
+					knowledgeBaseArticle.getDateCreated()));
+		}
 
-		map.put(
-			"dateModified",
-			liferayToJSONDateFormat.format(
-				knowledgeBaseArticle.getDateModified()));
+		if (knowledgeBaseArticle.getDateModified() == null) {
+			map.put("dateModified", null);
+		}
+		else {
+			map.put(
+				"dateModified",
+				liferayToJSONDateFormat.format(
+					knowledgeBaseArticle.getDateModified()));
+		}
 
 		if (knowledgeBaseArticle.getDescription() == null) {
 			map.put("description", null);
@@ -575,13 +605,14 @@ public class KnowledgeBaseArticleSerDes {
 				String.valueOf(knowledgeBaseArticle.getSubscribed()));
 		}
 
-		if (knowledgeBaseArticle.getTaxonomyCategories() == null) {
-			map.put("taxonomyCategories", null);
+		if (knowledgeBaseArticle.getTaxonomyCategoryBriefs() == null) {
+			map.put("taxonomyCategoryBriefs", null);
 		}
 		else {
 			map.put(
-				"taxonomyCategories",
-				String.valueOf(knowledgeBaseArticle.getTaxonomyCategories()));
+				"taxonomyCategoryBriefs",
+				String.valueOf(
+					knowledgeBaseArticle.getTaxonomyCategoryBriefs()));
 		}
 
 		if (knowledgeBaseArticle.getTaxonomyCategoryIds() == null) {
@@ -630,7 +661,14 @@ public class KnowledgeBaseArticleSerDes {
 			KnowledgeBaseArticle knowledgeBaseArticle,
 			String jsonParserFieldName, Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "aggregateRating")) {
+			if (Objects.equals(jsonParserFieldName, "actions")) {
+				if (jsonParserFieldValue != null) {
+					knowledgeBaseArticle.setActions(
+						(Map)KnowledgeBaseArticleSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "aggregateRating")) {
 				if (jsonParserFieldValue != null) {
 					knowledgeBaseArticle.setAggregateRating(
 						AggregateRatingSerDes.toDTO(
@@ -761,17 +799,17 @@ public class KnowledgeBaseArticleSerDes {
 				}
 			}
 			else if (Objects.equals(
-						jsonParserFieldName, "taxonomyCategories")) {
+						jsonParserFieldName, "taxonomyCategoryBriefs")) {
 
 				if (jsonParserFieldValue != null) {
-					knowledgeBaseArticle.setTaxonomyCategories(
+					knowledgeBaseArticle.setTaxonomyCategoryBriefs(
 						Stream.of(
 							toStrings((Object[])jsonParserFieldValue)
 						).map(
-							object -> TaxonomyCategorySerDes.toDTO(
+							object -> TaxonomyCategoryBriefSerDes.toDTO(
 								(String)object)
 						).toArray(
-							size -> new TaxonomyCategory[size]
+							size -> new TaxonomyCategoryBrief[size]
 						));
 				}
 			}
@@ -795,9 +833,8 @@ public class KnowledgeBaseArticleSerDes {
 							(String)jsonParserFieldValue));
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -853,10 +890,13 @@ public class KnowledgeBaseArticleSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

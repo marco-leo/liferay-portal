@@ -14,15 +14,15 @@
 
 package com.liferay.dynamic.data.mapping.service.test;
 
+import com.liferay.dynamic.data.mapping.constants.DDMStructureConstants;
+import com.liferay.dynamic.data.mapping.constants.DDMTemplateConstants;
 import com.liferay.dynamic.data.mapping.io.DDMFormDeserializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormDeserializerDeserializeRequest;
 import com.liferay.dynamic.data.mapping.io.DDMFormDeserializerDeserializeResponse;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
-import com.liferay.dynamic.data.mapping.model.DDMStructureConstants;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
-import com.liferay.dynamic.data.mapping.model.DDMTemplateConstants;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.storage.StorageType;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureLayoutTestHelper;
@@ -38,7 +38,6 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
-import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -52,6 +51,7 @@ import java.io.Serializable;
 import java.text.DateFormat;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -271,9 +271,11 @@ public abstract class BaseDDMServiceTestCase {
 	}
 
 	protected Map<Locale, String> getDefaultLocaleMap(String value) {
-		return HashMapBuilder.put(
-			LocaleUtil.getSiteDefault(), value
-		).build();
+		Map<Locale, String> map = new HashMap<>();
+
+		map.put(LocaleUtil.getSiteDefault(), value);
+
+		return map;
 	}
 
 	protected String getTestTemplateScript(String language) throws Exception {
@@ -299,10 +301,11 @@ public abstract class BaseDDMServiceTestCase {
 			clazz.getClassLoader(), getBasePath() + fileName);
 	}
 
-	protected void setUpDDMXML() throws Exception {
+	protected void setUpDDMXML() {
 		Registry registry = RegistryUtil.getRegistry();
 
-		ddmXML = registry.getService(DDMXML.class);
+		ddmXML = registry.getService(
+			registry.getServiceReference(DDMXML.class));
 	}
 
 	protected DDMForm toDDMForm(String definition) throws Exception {

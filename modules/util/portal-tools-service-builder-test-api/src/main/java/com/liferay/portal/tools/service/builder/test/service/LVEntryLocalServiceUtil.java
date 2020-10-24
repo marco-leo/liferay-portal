@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class LVEntryLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.tools.service.builder.test.service.impl.LVEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link LVEntryLocalServiceUtil} to access the lv entry local service. Add custom service methods to <code>com.liferay.portal.tools.service.builder.test.service.impl.LVEntryLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static void addBigDecimalEntryLVEntries(
 		long bigDecimalEntryId,
@@ -73,6 +67,10 @@ public class LVEntryLocalServiceUtil {
 
 	/**
 	 * Adds the lv entry to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LVEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param lvEntry the lv entry
 	 * @return the lv entry that was added
@@ -108,6 +106,16 @@ public class LVEntryLocalServiceUtil {
 		create() {
 
 		return getService().create();
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	public static com.liferay.portal.tools.service.builder.test.model.LVEntry
@@ -161,6 +169,10 @@ public class LVEntryLocalServiceUtil {
 	/**
 	 * Deletes the lv entry with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LVEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param lvEntryId the primary key of the lv entry
 	 * @return the lv entry that was removed
 	 * @throws PortalException if a lv entry with the primary key could not be found
@@ -174,6 +186,10 @@ public class LVEntryLocalServiceUtil {
 
 	/**
 	 * Deletes the lv entry from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LVEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param lvEntry the lv entry
 	 * @return the lv entry that was removed
@@ -205,6 +221,12 @@ public class LVEntryLocalServiceUtil {
 			throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deleteVersion(lvEntryVersion);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -504,6 +526,9 @@ public class LVEntryLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -586,6 +611,10 @@ public class LVEntryLocalServiceUtil {
 
 	/**
 	 * Updates the lv entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LVEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param lvEntry the lv entry
 	 * @return the lv entry that was updated

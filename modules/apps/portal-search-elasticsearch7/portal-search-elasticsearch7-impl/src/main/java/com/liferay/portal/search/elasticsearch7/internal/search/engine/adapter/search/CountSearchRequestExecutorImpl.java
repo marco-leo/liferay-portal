@@ -58,8 +58,10 @@ public class CountSearchRequestExecutorImpl
 
 		searchSourceBuilder.size(0);
 		searchSourceBuilder.trackScores(false);
+		searchSourceBuilder.trackTotalHits(true);
 
-		SearchResponse searchResponse = getSearchResponse(searchRequest);
+		SearchResponse searchResponse = getSearchResponse(
+			searchRequest, countSearchRequest);
 
 		SearchHits searchHits = searchResponse.getHits();
 
@@ -84,16 +86,20 @@ public class CountSearchRequestExecutorImpl
 		return countSearchResponse;
 	}
 
-	protected SearchResponse getSearchResponse(SearchRequest searchRequest) {
+	protected SearchResponse getSearchResponse(
+		SearchRequest searchRequest, CountSearchRequest countSearchRequest) {
+
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				countSearchRequest.getConnectionId(),
+				countSearchRequest.isPreferLocalCluster());
 
 		try {
 			return restHighLevelClient.search(
 				searchRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

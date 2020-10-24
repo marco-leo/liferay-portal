@@ -92,7 +92,7 @@ public class MessageLocalServiceImpl extends MessageLocalServiceBaseImpl {
 		message.setRemoteMessageId(remoteMessageId);
 		message.setContentType(removeBoundaryMarker(contentType));
 
-		messagePersistence.update(message);
+		message = messagePersistence.update(message);
 
 		// Indexer
 
@@ -283,9 +283,7 @@ public class MessageLocalServiceImpl extends MessageLocalServiceBaseImpl {
 		message.setFlags(flags);
 		message.setSize(getSize(messageId, body));
 
-		messagePersistence.update(message);
-
-		return message;
+		return messagePersistence.update(message);
 	}
 
 	@Override
@@ -333,7 +331,7 @@ public class MessageLocalServiceImpl extends MessageLocalServiceBaseImpl {
 		message.setSize(getSize(messageId, body));
 		message.setRemoteMessageId(remoteMessageId);
 
-		messagePersistence.update(message);
+		message = messagePersistence.update(message);
 
 		// Indexer
 
@@ -345,9 +343,9 @@ public class MessageLocalServiceImpl extends MessageLocalServiceBaseImpl {
 	}
 
 	protected String encode(String subject) {
-		byte[] bytes = subject.getBytes(StandardCharsets.ISO_8859_1);
-
-		return new String(bytes, StandardCharsets.UTF_8);
+		return new String(
+			subject.getBytes(StandardCharsets.ISO_8859_1),
+			StandardCharsets.UTF_8);
 	}
 
 	protected String getBody(String body) {

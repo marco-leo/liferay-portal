@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class LayoutPageTemplateEntryServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.layout.page.template.service.impl.LayoutPageTemplateEntryServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,8 +40,8 @@ public class LayoutPageTemplateEntryServiceUtil {
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #addLayoutPageTemplateEntry(long, long, long, long,
-	 String, long, int, ServiceContext)}
+	 #addLayoutPageTemplateEntry(long, long, long, long, String,
+	 long, int, ServiceContext)}
 	 */
 	@Deprecated
 	public static com.liferay.layout.page.template.model.LayoutPageTemplateEntry
@@ -143,6 +143,14 @@ public class LayoutPageTemplateEntryServiceUtil {
 
 		return getService().deleteLayoutPageTemplateEntry(
 			layoutPageTemplateEntryId);
+	}
+
+	public static com.liferay.layout.page.template.model.LayoutPageTemplateEntry
+		fetchDefaultLayoutPageTemplateEntry(
+			long groupId, int type, int status) {
+
+		return getService().fetchDefaultLayoutPageTemplateEntry(
+			groupId, type, status);
 	}
 
 	public static com.liferay.layout.page.template.model.LayoutPageTemplateEntry

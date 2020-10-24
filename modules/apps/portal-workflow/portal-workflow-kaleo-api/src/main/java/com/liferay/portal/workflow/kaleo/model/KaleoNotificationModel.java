@@ -40,7 +40,7 @@ public interface KaleoNotificationModel
 	extends BaseModel<KaleoNotification>, GroupedModel, MVCCModel,
 			ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo notification model instance should use the {@link KaleoNotification} interface instead.
@@ -231,6 +231,20 @@ public interface KaleoNotificationModel
 	 * @param kaleoClassPK the kaleo class pk of this kaleo notification
 	 */
 	public void setKaleoClassPK(long kaleoClassPK);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo notification.
+	 *
+	 * @return the kaleo definition ID of this kaleo notification
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo notification.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo notification
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo notification.

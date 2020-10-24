@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.servlet;
 
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.internal.util.ContextResourcePathsUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -76,11 +77,8 @@ public class ServletContextUtil {
 
 		if (cache) {
 			lastModifiedCacheKey = ServletContextUtil.class.getName();
-			lastModifiedCacheKey = lastModifiedCacheKey.concat(
-				StringPool.PERIOD
-			).concat(
-				path
-			);
+			lastModifiedCacheKey = StringBundler.concat(
+				lastModifiedCacheKey, StringPool.PERIOD, path);
 
 			Long lastModified = (Long)servletContext.getAttribute(
 				lastModifiedCacheKey);
@@ -149,8 +147,8 @@ public class ServletContextUtil {
 
 			servletContext.setAttribute(URI_ATTRIBUTE, rootURI);
 		}
-		catch (URISyntaxException urise) {
-			throw new MalformedURLException(urise.getMessage());
+		catch (URISyntaxException uriSyntaxException) {
+			throw new MalformedURLException(uriSyntaxException.getMessage());
 		}
 
 		return rootURI;
@@ -164,10 +162,7 @@ public class ServletContextUtil {
 			className = className.substring(rootPath.length() + 1);
 		}
 
-		className = StringUtil.replace(
-			className, CharPool.SLASH, CharPool.PERIOD);
-
-		return className;
+		return StringUtil.replace(className, CharPool.SLASH, CharPool.PERIOD);
 	}
 
 	private static void _getClassNames(
@@ -255,7 +250,7 @@ public class ServletContextUtil {
 							lastModified = curLastModified;
 						}
 					}
-					catch (IOException ioe) {
+					catch (IOException ioException) {
 					}
 				}
 

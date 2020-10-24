@@ -35,7 +35,7 @@ public interface PortletPreferencesModel
 	extends BaseModel<PortletPreferences>, CTModel<PortletPreferences>,
 			MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a portlet preferences model instance should use the {@link PortletPreferences} interface instead.

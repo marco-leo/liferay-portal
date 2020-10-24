@@ -61,8 +61,10 @@ import java.util.Map;
  *
  * @author Brian Wing Shun Chan
  * @see SourceServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class SourceServiceSoap {
 
 	public static com.liferay.portal.reports.engine.console.model.SourceSoap
@@ -85,10 +87,10 @@ public class SourceServiceSoap {
 			return com.liferay.portal.reports.engine.console.model.SourceSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -103,10 +105,10 @@ public class SourceServiceSoap {
 			return com.liferay.portal.reports.engine.console.model.SourceSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -121,10 +123,10 @@ public class SourceServiceSoap {
 			return com.liferay.portal.reports.engine.console.model.SourceSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -133,7 +135,8 @@ public class SourceServiceSoap {
 				long groupId, String name, String driverUrl, boolean andSearch,
 				int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					orderByComparator)
+					<com.liferay.portal.reports.engine.console.model.Source>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
@@ -146,10 +149,10 @@ public class SourceServiceSoap {
 			return com.liferay.portal.reports.engine.console.model.SourceSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -163,10 +166,10 @@ public class SourceServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -190,10 +193,10 @@ public class SourceServiceSoap {
 			return com.liferay.portal.reports.engine.console.model.SourceSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

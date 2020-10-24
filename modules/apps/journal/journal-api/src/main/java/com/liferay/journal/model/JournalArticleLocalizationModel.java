@@ -38,7 +38,7 @@ public interface JournalArticleLocalizationModel
 	extends BaseModel<JournalArticleLocalization>,
 			CTModel<JournalArticleLocalization>, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a journal article localization model instance should use the {@link JournalArticleLocalization} interface instead.

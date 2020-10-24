@@ -32,11 +32,6 @@ public class KBArticleLocalServiceWrapper
 		_kbArticleLocalService = kbArticleLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link KBArticleLocalServiceUtil} to access the kb article local service. Add custom service methods to <code>com.liferay.knowledge.base.service.impl.KBArticleLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.portal.kernel.repository.model.FileEntry addAttachment(
 			long userId, long resourcePrimKey, String fileName,
@@ -49,6 +44,10 @@ public class KBArticleLocalServiceWrapper
 
 	/**
 	 * Adds the kb article to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KBArticleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kbArticle the kb article
 	 * @return the kb article that was added
@@ -142,6 +141,17 @@ public class KBArticleLocalServiceWrapper
 		return _kbArticleLocalService.createKBArticle(kbArticleId);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _kbArticleLocalService.createPersistedModel(primaryKeyObj);
+	}
+
 	@Override
 	public void deleteGroupKBArticles(long groupId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -151,6 +161,10 @@ public class KBArticleLocalServiceWrapper
 
 	/**
 	 * Deletes the kb article from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KBArticleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kbArticle the kb article
 	 * @return the kb article that was removed
@@ -166,6 +180,10 @@ public class KBArticleLocalServiceWrapper
 
 	/**
 	 * Deletes the kb article with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KBArticleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kbArticleId the primary key of the kb article
 	 * @return the kb article that was removed
@@ -211,6 +229,11 @@ public class KBArticleLocalServiceWrapper
 
 		_kbArticleLocalService.deleteTempAttachment(
 			groupId, userId, fileName, tempFolderName);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _kbArticleLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -694,6 +717,9 @@ public class KBArticleLocalServiceWrapper
 		return _kbArticleLocalService.getPersistedModel(resourcePrimKey);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -814,6 +840,10 @@ public class KBArticleLocalServiceWrapper
 
 	/**
 	 * Updates the kb article in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KBArticleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kbArticle the kb article
 	 * @return the kb article that was updated

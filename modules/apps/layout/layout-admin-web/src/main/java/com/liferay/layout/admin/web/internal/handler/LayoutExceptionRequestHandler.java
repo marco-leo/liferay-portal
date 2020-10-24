@@ -23,10 +23,13 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutTypeController;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -49,18 +52,24 @@ public class LayoutExceptionRequestHandler {
 
 	public void handlePortalException(
 			ActionRequest actionRequest, ActionResponse actionResponse,
-			PortalException pe)
+			PortalException portalException)
 		throws Exception {
+
+		if (_log.isDebugEnabled()) {
+			_log.debug(portalException, portalException);
+		}
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		String errorMessage = null;
 
-		if (pe instanceof AssetCategoryException) {
-			AssetCategoryException ace = (AssetCategoryException)pe;
+		if (portalException instanceof AssetCategoryException) {
+			AssetCategoryException assetCategoryException =
+				(AssetCategoryException)portalException;
 
-			AssetVocabulary assetVocabulary = ace.getVocabulary();
+			AssetVocabulary assetVocabulary =
+				assetCategoryException.getVocabulary();
 
 			String assetVocabularyTitle = StringPool.BLANK;
 
@@ -69,13 +78,15 @@ public class LayoutExceptionRequestHandler {
 					themeDisplay.getLocale());
 			}
 
-			if (ace.getType() == AssetCategoryException.AT_LEAST_ONE_CATEGORY) {
+			if (assetCategoryException.getType() ==
+					AssetCategoryException.AT_LEAST_ONE_CATEGORY) {
+
 				errorMessage = LanguageUtil.format(
 					themeDisplay.getRequest(),
 					"please-select-at-least-one-category-for-x",
 					assetVocabularyTitle);
 			}
-			else if (ace.getType() ==
+			else if (assetCategoryException.getType() ==
 						AssetCategoryException.TOO_MANY_CATEGORIES) {
 
 				errorMessage = LanguageUtil.format(
@@ -84,10 +95,11 @@ public class LayoutExceptionRequestHandler {
 					assetVocabularyTitle);
 			}
 		}
-		else if (pe instanceof LayoutNameException) {
-			LayoutNameException lne = (LayoutNameException)pe;
+		else if (portalException instanceof LayoutNameException) {
+			LayoutNameException layoutNameException =
+				(LayoutNameException)portalException;
 
-			if (lne.getType() == LayoutNameException.TOO_LONG) {
+			if (layoutNameException.getType() == LayoutNameException.TOO_LONG) {
 				errorMessage = LanguageUtil.format(
 					themeDisplay.getRequest(),
 					"page-name-cannot-exceed-x-characters",
@@ -100,20 +112,30 @@ public class LayoutExceptionRequestHandler {
 					"please-enter-a-valid-name-for-the-page");
 			}
 		}
-		else if (pe instanceof LayoutTypeException) {
-			LayoutTypeException lte = (LayoutTypeException)pe;
+		else if (portalException instanceof LayoutTypeException) {
+			LayoutTypeException layoutTypeException =
+				(LayoutTypeException)portalException;
 
-			if ((lte.getType() == LayoutTypeException.FIRST_LAYOUT) ||
-				(lte.getType() == LayoutTypeException.NOT_INSTANCEABLE)) {
+			if ((layoutTypeException.getType() ==
+					LayoutTypeException.FIRST_LAYOUT) ||
+				(layoutTypeException.getType() ==
+					LayoutTypeException.NOT_INSTANCEABLE)) {
 
 				errorMessage = _handleLayoutTypeException(
-					actionRequest, lte.getType());
+					actionRequest, layoutTypeException.getType());
 			}
+		}
+		else if (portalException instanceof PrincipalException) {
+			errorMessage = LanguageUtil.get(
+				themeDisplay.getRequest(),
+				"you-do-not-have-the-required-permissions");
 		}
 
 		if (Validator.isNull(errorMessage)) {
 			errorMessage = LanguageUtil.get(
 				themeDisplay.getRequest(), "an-unexpected-error-occurred");
+
+			_log.error(portalException.getMessage());
 		}
 
 		JSONObject jsonObject = JSONUtil.put("errorMessage", errorMessage);
@@ -149,5 +171,8 @@ public class LayoutExceptionRequestHandler {
 		return LanguageUtil.format(
 			themeDisplay.getRequest(), errorMessage, layoutTypeName);
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		LayoutExceptionRequestHandler.class);
 
 }

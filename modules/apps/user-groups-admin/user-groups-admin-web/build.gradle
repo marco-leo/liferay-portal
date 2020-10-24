@@ -1,6 +1,6 @@
 buildCSS {
 	imports = [
-		new File(npmInstall.nodeModulesDir, "clay-css/src/scss")
+		new File(npmInstall.nodeModulesDir, "@clayui/css/src/scss")
 	]
 }
 
@@ -23,5 +23,6 @@ dependencies {
 	compileOnly project(":apps:users-admin:users-admin-api")
 	compileOnly project(":core:petra:petra-function")
 	compileOnly project(":core:petra:petra-lang")
+	compileOnly project(":core:petra:petra-sql-dsl-api")
 	compileOnly project(":core:petra:petra-string")
 }

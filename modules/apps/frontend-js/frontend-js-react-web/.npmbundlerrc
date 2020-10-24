@@ -1,6 +1,10 @@
 {
 	"config": {
 		"imports": {
+			"frontend-js-node-shims": {
+				"domain": "*",
+				"process": "*"
+			},
 			"frontend-taglib-clay": {
 				"@clayui/icon": ">=3.0.0-alpha.1"
 			}
@@ -27,12 +31,6 @@
 		"react": [
 			"umd/**/*"
 		],
-		"react-dnd": [
-			"dist/**/*"
-		],
-		"react-dnd-html5-backend": [
-			"dist/**/*"
-		],
 		"react-dom": [
 			"**/*profiling*",
 			"**/*server*",
@@ -56,12 +54,12 @@
 		"scheduler": [
 			"umd/**/*"
 		],
-		"symbol-observable": true,
 		"tiny-warning": [
 			"src/**/*"
 		],
 		"whatwg-fetch": true
 	},
 	"output": "build/node/packageRunBuild/resources",
-	"preset": "liferay-npm-bundler-preset-standard"
+	"preset": "liferay-npm-bundler-preset-standard",
+	"sources": ["src/main/resources/META-INF/resources"]
 }

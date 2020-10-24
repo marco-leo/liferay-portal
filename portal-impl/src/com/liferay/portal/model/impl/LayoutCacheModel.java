@@ -37,16 +37,16 @@ public class LayoutCacheModel
 	implements CacheModel<Layout>, Externalizable, MVCCModel {
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+	public boolean equals(Object object) {
+		if (this == object) {
 			return true;
 		}
 
-		if (!(obj instanceof LayoutCacheModel)) {
+		if (!(object instanceof LayoutCacheModel)) {
 			return false;
 		}
 
-		LayoutCacheModel layoutCacheModel = (LayoutCacheModel)obj;
+		LayoutCacheModel layoutCacheModel = (LayoutCacheModel)object;
 
 		if ((plid == layoutCacheModel.plid) &&
 			(mvccVersion == layoutCacheModel.mvccVersion)) {
@@ -76,7 +76,7 @@ public class LayoutCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(75);
+		StringBundler sb = new StringBundler(85);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -136,6 +136,8 @@ public class LayoutCacheModel
 		sb.append(themeId);
 		sb.append(", colorSchemeId=");
 		sb.append(colorSchemeId);
+		sb.append(", styleBookEntryId=");
+		sb.append(styleBookEntryId);
 		sb.append(", css=");
 		sb.append(css);
 		sb.append(", priority=");
@@ -152,6 +154,14 @@ public class LayoutCacheModel
 		sb.append(publishDate);
 		sb.append(", lastPublishDate=");
 		sb.append(lastPublishDate);
+		sb.append(", status=");
+		sb.append(status);
+		sb.append(", statusByUserId=");
+		sb.append(statusByUserId);
+		sb.append(", statusByUserName=");
+		sb.append(statusByUserName);
+		sb.append(", statusDate=");
+		sb.append(statusDate);
 		sb.append("}");
 
 		return sb.toString();
@@ -279,6 +289,8 @@ public class LayoutCacheModel
 			layoutImpl.setColorSchemeId(colorSchemeId);
 		}
 
+		layoutImpl.setStyleBookEntryId(styleBookEntryId);
+
 		if (css == null) {
 			layoutImpl.setCss("");
 		}
@@ -319,13 +331,32 @@ public class LayoutCacheModel
 			layoutImpl.setLastPublishDate(new Date(lastPublishDate));
 		}
 
+		layoutImpl.setStatus(status);
+		layoutImpl.setStatusByUserId(statusByUserId);
+
+		if (statusByUserName == null) {
+			layoutImpl.setStatusByUserName("");
+		}
+		else {
+			layoutImpl.setStatusByUserName(statusByUserName);
+		}
+
+		if (statusDate == Long.MIN_VALUE) {
+			layoutImpl.setStatusDate(null);
+		}
+		else {
+			layoutImpl.setStatusDate(new Date(statusDate));
+		}
+
 		layoutImpl.resetOriginalValues();
 
 		return layoutImpl;
 	}
 
 	@Override
-	public void readExternal(ObjectInput objectInput) throws IOException {
+	public void readExternal(ObjectInput objectInput)
+		throws ClassNotFoundException, IOException {
+
 		mvccVersion = objectInput.readLong();
 
 		ctCollectionId = objectInput.readLong();
@@ -355,11 +386,11 @@ public class LayoutCacheModel
 		classPK = objectInput.readLong();
 		name = objectInput.readUTF();
 		title = objectInput.readUTF();
-		description = objectInput.readUTF();
+		description = (String)objectInput.readObject();
 		keywords = objectInput.readUTF();
 		robots = objectInput.readUTF();
 		type = objectInput.readUTF();
-		typeSettings = objectInput.readUTF();
+		typeSettings = (String)objectInput.readObject();
 
 		hidden = objectInput.readBoolean();
 
@@ -369,7 +400,9 @@ public class LayoutCacheModel
 		iconImageId = objectInput.readLong();
 		themeId = objectInput.readUTF();
 		colorSchemeId = objectInput.readUTF();
-		css = objectInput.readUTF();
+
+		styleBookEntryId = objectInput.readLong();
+		css = (String)objectInput.readObject();
 
 		priority = objectInput.readInt();
 
@@ -380,6 +413,12 @@ public class LayoutCacheModel
 		sourcePrototypeLayoutUuid = objectInput.readUTF();
 		publishDate = objectInput.readLong();
 		lastPublishDate = objectInput.readLong();
+
+		status = objectInput.readInt();
+
+		statusByUserId = objectInput.readLong();
+		statusByUserName = objectInput.readUTF();
+		statusDate = objectInput.readLong();
 	}
 
 	@Override
@@ -440,10 +479,10 @@ public class LayoutCacheModel
 		}
 
 		if (description == null) {
-			objectOutput.writeUTF("");
+			objectOutput.writeObject("");
 		}
 		else {
-			objectOutput.writeUTF(description);
+			objectOutput.writeObject(description);
 		}
 
 		if (keywords == null) {
@@ -468,10 +507,10 @@ public class LayoutCacheModel
 		}
 
 		if (typeSettings == null) {
-			objectOutput.writeUTF("");
+			objectOutput.writeObject("");
 		}
 		else {
-			objectOutput.writeUTF(typeSettings);
+			objectOutput.writeObject(typeSettings);
 		}
 
 		objectOutput.writeBoolean(hidden);
@@ -501,11 +540,13 @@ public class LayoutCacheModel
 			objectOutput.writeUTF(colorSchemeId);
 		}
 
+		objectOutput.writeLong(styleBookEntryId);
+
 		if (css == null) {
-			objectOutput.writeUTF("");
+			objectOutput.writeObject("");
 		}
 		else {
-			objectOutput.writeUTF(css);
+			objectOutput.writeObject(css);
 		}
 
 		objectOutput.writeInt(priority);
@@ -530,6 +571,19 @@ public class LayoutCacheModel
 
 		objectOutput.writeLong(publishDate);
 		objectOutput.writeLong(lastPublishDate);
+
+		objectOutput.writeInt(status);
+
+		objectOutput.writeLong(statusByUserId);
+
+		if (statusByUserName == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(statusByUserName);
+		}
+
+		objectOutput.writeLong(statusDate);
 	}
 
 	public long mvccVersion;
@@ -561,6 +615,7 @@ public class LayoutCacheModel
 	public long iconImageId;
 	public String themeId;
 	public String colorSchemeId;
+	public long styleBookEntryId;
 	public String css;
 	public int priority;
 	public long masterLayoutPlid;
@@ -569,5 +624,9 @@ public class LayoutCacheModel
 	public String sourcePrototypeLayoutUuid;
 	public long publishDate;
 	public long lastPublishDate;
+	public int status;
+	public long statusByUserId;
+	public String statusByUserName;
+	public long statusDate;
 
 }

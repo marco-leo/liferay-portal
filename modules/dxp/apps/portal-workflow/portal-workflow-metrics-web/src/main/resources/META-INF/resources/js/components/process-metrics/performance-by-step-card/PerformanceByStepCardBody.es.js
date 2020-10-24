@@ -9,79 +9,79 @@
  * distribution rights of the Software.
  */
 
+import ClayIcon from '@clayui/icon';
 import React, {useContext} from 'react';
 
-import Icon from '../../../shared/components/Icon.es';
 import Panel from '../../../shared/components/Panel.es';
-import EmptyState from '../../../shared/components/list/EmptyState.es';
-import {ChildLink} from '../../../shared/components/router/routerWrapper.es';
+import ContentView from '../../../shared/components/content-view/ContentView.es';
+import ReloadButton from '../../../shared/components/list/ReloadButton.es';
+import ChildLink from '../../../shared/components/router/ChildLink.es';
 import {AppContext} from '../../AppContext.es';
-import {formatQueryDate} from '../util/timeRangeUtil.es';
-import PerformanceByStepCard from './PerformanceByStepCard.es';
+import {Table} from './PerformanceByStepCardTable.es';
 
-const Body = ({data, processId, timeRange}) => {
-	return (
-		<>
-			<Panel.Body>
-				{data.totalCount ? (
-					<PerformanceByStepCard.Table items={data.items} />
-				) : (
-					<PerformanceByStepCard.Empty />
-				)}
-			</Panel.Body>
-			{data.totalCount && (
-				<PerformanceByStepCard.Footer
-					processId={processId}
-					timeRange={timeRange}
-					totalCount={data.totalCount}
-				/>
-			)}
-		</>
-	);
-};
+const Body = ({items, totalCount}) => {
+	const statesProps = {
+		emptyProps: {
+			className: 'mt-5 py-8',
+			hideAnimation: true,
+			messageClassName: 'small',
+		},
+		errorProps: {
+			actionButton: <ReloadButton />,
+			className: 'mt-4 py-8',
+			hideAnimation: true,
+			message: Liferay.Language.get(
+				'there-was-a-problem-retrieving-data-please-try-reloading-the-page'
+			),
+			messageClassName: 'small',
+		},
+		loadingProps: {className: 'mt-4 py-8'},
+	};
 
-const Empty = () => {
 	return (
-		<EmptyState
-			className="border-0 mt-8"
-			hideAnimation={true}
-			message={Liferay.Language.get('there-is-no-data-at-the-moment')}
-			messageClassName="small"
-		/>
+		<Panel.Body>
+			<ContentView {...statesProps}>
+				{totalCount > 0 && <Body.Table items={items} />}
+			</ContentView>
+		</Panel.Body>
 	);
 };
 
 const Footer = ({processId, timeRange, totalCount}) => {
 	const {defaultDelta} = useContext(AppContext);
+	const filters = {};
 
-	const viewAllStepsQuery = timeRange
-		? {
-				filters: {
-					dateEnd: formatQueryDate(timeRange.dateEnd),
-					dateStart: formatQueryDate(timeRange.dateStart),
-					performanceTimeRange: timeRange.key
-				}
-		  }
-		: {};
+	const {dateEnd, dateStart, key} = timeRange;
+	if (dateEnd && dateStart && key) {
+		filters.dateEnd = dateEnd;
+		filters.dateStart = dateStart;
+		filters.timeRange = [key];
+	}
+
+	const viewAllStepsQuery = {filters};
 	const viewAllStepsUrl = `/performance/step/${processId}/${defaultDelta}/1/breachedInstancePercentage:desc`;
 
 	return (
 		<Panel.Footer elementClasses="fixed-bottom">
 			<div className="mb-1 text-right">
-				<ChildLink query={viewAllStepsQuery} to={viewAllStepsUrl}>
-					<button className="border-0 btn btn-secondary btn-sm">
-						<span className="mr-2" data-testid="viewAllSteps">
-							{`${Liferay.Language.get(
-								'view-all-steps'
-							)} (${totalCount})`}
-						</span>
+				<ChildLink
+					className="border-0 btn btn-secondary btn-sm"
+					query={viewAllStepsQuery}
+					to={viewAllStepsUrl}
+				>
+					<span className="mr-2">
+						{`${Liferay.Language.get(
+							'view-all-steps'
+						)} (${totalCount})`}
+					</span>
 
-						<Icon iconName="caret-right-l" />
-					</button>
+					<ClayIcon symbol="caret-right-l" />
 				</ChildLink>
 			</div>
 		</Panel.Footer>
 	);
 };
 
-export {Body, Empty, Footer};
+Body.Table = Table;
+
+export {Body, Footer};

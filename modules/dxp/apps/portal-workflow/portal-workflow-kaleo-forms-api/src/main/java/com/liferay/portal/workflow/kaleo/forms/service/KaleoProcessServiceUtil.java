@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class KaleoProcessServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.workflow.kaleo.forms.service.impl.KaleoProcessServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -147,7 +147,8 @@ public class KaleoProcessServiceUtil {
 		<com.liferay.portal.workflow.kaleo.forms.model.KaleoProcess> search(
 			long groupId, String keywords, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				orderByComparator) {
+				<com.liferay.portal.workflow.kaleo.forms.model.KaleoProcess>
+					orderByComparator) {
 
 		return getService().search(
 			groupId, keywords, start, end, orderByComparator);

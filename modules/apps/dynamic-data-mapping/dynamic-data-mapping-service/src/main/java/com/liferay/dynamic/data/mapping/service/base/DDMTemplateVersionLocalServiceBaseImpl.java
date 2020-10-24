@@ -18,6 +18,7 @@ import com.liferay.dynamic.data.mapping.model.DDMTemplateVersion;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMTemplateVersionPersistence;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -38,6 +39,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.service.change.tracking.CTService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -67,7 +69,7 @@ public abstract class DDMTemplateVersionLocalServiceBaseImpl
 	implements AopService, DDMTemplateVersionLocalService,
 			   IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>DDMTemplateVersionLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.dynamic.data.mapping.service.DDMTemplateVersionLocalServiceUtil</code>.
@@ -75,6 +77,10 @@ public abstract class DDMTemplateVersionLocalServiceBaseImpl
 
 	/**
 	 * Adds the ddm template version to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMTemplateVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddmTemplateVersion the ddm template version
 	 * @return the ddm template version that was added
@@ -104,6 +110,10 @@ public abstract class DDMTemplateVersionLocalServiceBaseImpl
 	/**
 	 * Deletes the ddm template version with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMTemplateVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param templateVersionId the primary key of the ddm template version
 	 * @return the ddm template version that was removed
 	 * @throws PortalException if a ddm template version with the primary key could not be found
@@ -119,6 +129,10 @@ public abstract class DDMTemplateVersionLocalServiceBaseImpl
 	/**
 	 * Deletes the ddm template version from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMTemplateVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param ddmTemplateVersion the ddm template version
 	 * @return the ddm template version that was removed
 	 */
@@ -128,6 +142,11 @@ public abstract class DDMTemplateVersionLocalServiceBaseImpl
 		DDMTemplateVersion ddmTemplateVersion) {
 
 		return ddmTemplateVersionPersistence.remove(ddmTemplateVersion);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return ddmTemplateVersionPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -287,6 +306,17 @@ public abstract class DDMTemplateVersionLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return ddmTemplateVersionPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -294,6 +324,14 @@ public abstract class DDMTemplateVersionLocalServiceBaseImpl
 			(DDMTemplateVersion)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<DDMTemplateVersion> getBasePersistence() {
+		return ddmTemplateVersionPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -329,6 +367,10 @@ public abstract class DDMTemplateVersionLocalServiceBaseImpl
 
 	/**
 	 * Updates the ddm template version in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMTemplateVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddmTemplateVersion the ddm template version
 	 * @return the ddm template version that was updated
@@ -408,8 +450,8 @@ public abstract class DDMTemplateVersionLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

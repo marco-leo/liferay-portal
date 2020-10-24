@@ -49,13 +49,10 @@ public class TCKJunitBatchTestClassGroup extends BatchTestClassGroup {
 
 			return new TCKBatchTestClass(
 				batchName,
-				new TestClassFile(
-					JenkinsResultsParserUtil.getCanonicalPath(warFile)));
+				new File(JenkinsResultsParserUtil.getCanonicalPath(warFile)));
 		}
 
-		protected TCKBatchTestClass(
-			String batchName, TestClassFile testClassFile) {
-
+		protected TCKBatchTestClass(String batchName, File testClassFile) {
 			super(testClassFile);
 
 			addTestClassMethod(batchName);
@@ -64,9 +61,10 @@ public class TCKJunitBatchTestClassGroup extends BatchTestClassGroup {
 	}
 
 	protected TCKJunitBatchTestClassGroup(
-		String batchName, PortalTestClassJob portalTestClassJob) {
+		String batchName, BuildProfile buildProfile,
+		PortalTestClassJob portalTestClassJob) {
 
-		super(batchName, portalTestClassJob);
+		super(batchName, buildProfile, portalTestClassJob);
 
 		_tckHomeDirectory = new File(
 			JenkinsResultsParserUtil.getProperty(jobProperties, "tck.home"));
@@ -133,11 +131,11 @@ public class TCKJunitBatchTestClassGroup extends BatchTestClassGroup {
 
 				});
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 			throw new RuntimeException(
 				"Unable to search for test file names in " +
 					_tckHomeDirectory.getPath(),
-				ioe);
+				ioException);
 		}
 
 		Collections.sort(testClasses);

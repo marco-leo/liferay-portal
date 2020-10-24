@@ -14,7 +14,8 @@
 
 package com.liferay.login.web.internal.portlet.action;
 
-import com.liferay.login.web.internal.constants.LoginPortletKeys;
+import com.liferay.login.web.constants.LoginPortletKeys;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.CompanyMaxUsersException;
 import com.liferay.portal.kernel.exception.CookieNotSupportedException;
 import com.liferay.portal.kernel.exception.NoSuchUserException;
@@ -114,39 +115,41 @@ public class LoginMVCActionCommand extends BaseMVCActionCommand {
 					WebKeys.REDIRECT, renderURL.toString());
 			}
 		}
-		catch (Exception e) {
-			if (e instanceof AuthException) {
-				Throwable cause = e.getCause();
+		catch (Exception exception) {
+			if (exception instanceof AuthException) {
+				Throwable throwable = exception.getCause();
 
-				if (cause instanceof PasswordExpiredException ||
-					cause instanceof UserLockoutException) {
+				if (throwable instanceof PasswordExpiredException ||
+					throwable instanceof UserLockoutException) {
 
-					SessionErrors.add(actionRequest, cause.getClass(), cause);
+					SessionErrors.add(
+						actionRequest, throwable.getClass(), throwable);
 				}
 				else {
 					if (_log.isInfoEnabled()) {
 						_log.info("Authentication failed");
 					}
 
-					SessionErrors.add(actionRequest, e.getClass());
+					SessionErrors.add(actionRequest, exception.getClass());
 				}
 			}
-			else if (e instanceof CompanyMaxUsersException ||
-					 e instanceof CookieNotSupportedException ||
-					 e instanceof NoSuchUserException ||
-					 e instanceof PasswordExpiredException ||
-					 e instanceof UserEmailAddressException ||
-					 e instanceof UserIdException ||
-					 e instanceof UserLockoutException ||
-					 e instanceof UserPasswordException ||
-					 e instanceof UserScreenNameException) {
+			else if (exception instanceof CompanyMaxUsersException ||
+					 exception instanceof CookieNotSupportedException ||
+					 exception instanceof NoSuchUserException ||
+					 exception instanceof PasswordExpiredException ||
+					 exception instanceof UserEmailAddressException ||
+					 exception instanceof UserIdException ||
+					 exception instanceof UserLockoutException ||
+					 exception instanceof UserPasswordException ||
+					 exception instanceof UserScreenNameException) {
 
-				SessionErrors.add(actionRequest, e.getClass(), e);
+				SessionErrors.add(
+					actionRequest, exception.getClass(), exception);
 			}
 			else {
-				_log.error(e, e);
+				_log.error(exception, exception);
 
-				_portal.sendError(e, actionRequest, actionResponse);
+				_portal.sendError(exception, actionRequest, actionResponse);
 
 				return;
 			}
@@ -216,11 +219,9 @@ public class LoginMVCActionCommand extends BaseMVCActionCommand {
 
 		if (PropsValues.PORTAL_JAAS_ENABLE) {
 			if (Validator.isNotNull(redirect)) {
-				redirect = mainPath.concat(
-					"/portal/protected?redirect="
-				).concat(
-					URLCodec.encodeURL(redirect)
-				);
+				redirect = StringBundler.concat(
+					mainPath, "/portal/protected?redirect=",
+					URLCodec.encodeURL(redirect));
 			}
 			else {
 				redirect = mainPath.concat("/portal/protected");
@@ -236,20 +237,11 @@ public class LoginMVCActionCommand extends BaseMVCActionCommand {
 
 		if (Validator.isNotNull(redirect)) {
 			if (!themeDisplay.isSignedIn()) {
-				LiferayPortletResponse liferayPortletResponse =
-					_portal.getLiferayPortletResponse(actionResponse);
-
-				PortletURL actionURL = liferayPortletResponse.createActionURL(
-					_portal.getPortletId(actionRequest));
-
-				actionURL.setParameter(
-					ActionRequest.ACTION_NAME, "/login/login");
-				actionURL.setParameter(
-					"saveLastPath", Boolean.FALSE.toString());
-				actionURL.setParameter("redirect", redirect);
-
 				actionRequest.setAttribute(
-					WebKeys.REDIRECT, actionURL.toString());
+					WebKeys.REDIRECT,
+					_http.addParameter(
+						_portal.getPathMain() + "/portal/login", "redirect",
+						redirect));
 
 				return;
 			}
@@ -322,6 +314,9 @@ public class LoginMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private AuthenticatedSessionManager _authenticatedSessionManager;
+
+	@Reference
+	private Http _http;
 
 	@Reference
 	private Portal _portal;

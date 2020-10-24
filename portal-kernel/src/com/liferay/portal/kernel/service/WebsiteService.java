@@ -45,10 +45,10 @@ import org.osgi.annotation.versioning.ProviderType;
 )
 public interface WebsiteService extends BaseService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
-	 * Never modify or reference this interface directly. Always use {@link WebsiteServiceUtil} to access the website remote service. Add custom service methods to <code>com.liferay.portal.service.impl.WebsiteServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
+	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.portal.service.impl.WebsiteServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the website remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link WebsiteServiceUtil} if injection and service tracking are not available.
 	 */
 	public Website addWebsite(
 			String className, long classPK, String url, long typeId,

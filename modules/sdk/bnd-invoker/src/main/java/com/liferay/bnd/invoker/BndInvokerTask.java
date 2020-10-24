@@ -58,8 +58,8 @@ public class BndInvokerTask extends Task {
 
 			_invoke(stringWriter.toString(), project.getBaseDir(), _output);
 		}
-		catch (Exception e) {
-			throw new BuildException(e);
+		catch (Exception exception) {
+			throw new BuildException(exception);
 		}
 	}
 
@@ -67,7 +67,7 @@ public class BndInvokerTask extends Task {
 		_output = output;
 	}
 
-	private static Set<URL> _getStaticURLs() throws MalformedURLException {
+	private Set<URL> _getStaticURLs() throws MalformedURLException {
 		if (_staticURLs == null) {
 			_staticURLs = new LinkedHashSet<>();
 

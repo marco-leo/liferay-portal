@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class SocialRelationLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portlet.social.service.impl.SocialRelationLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -54,6 +54,10 @@ public class SocialRelationLocalServiceUtil {
 	/**
 	 * Adds the social relation to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialRelationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param socialRelation the social relation
 	 * @return the social relation that was added
 	 */
@@ -62,6 +66,16 @@ public class SocialRelationLocalServiceUtil {
 			com.liferay.social.kernel.model.SocialRelation socialRelation) {
 
 		return getService().addSocialRelation(socialRelation);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -150,6 +164,10 @@ public class SocialRelationLocalServiceUtil {
 	/**
 	 * Deletes the social relation with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialRelationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param relationId the primary key of the social relation
 	 * @return the social relation that was removed
 	 * @throws PortalException if a social relation with the primary key could not be found
@@ -164,6 +182,10 @@ public class SocialRelationLocalServiceUtil {
 	/**
 	 * Deletes the social relation from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialRelationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param socialRelation the social relation
 	 * @return the social relation that was removed
 	 */
@@ -172,6 +194,12 @@ public class SocialRelationLocalServiceUtil {
 			com.liferay.social.kernel.model.SocialRelation socialRelation) {
 
 		return getService().deleteSocialRelation(socialRelation);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -339,6 +367,9 @@ public class SocialRelationLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -544,6 +575,10 @@ public class SocialRelationLocalServiceUtil {
 
 	/**
 	 * Updates the social relation in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialRelationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param socialRelation the social relation
 	 * @return the social relation that was updated

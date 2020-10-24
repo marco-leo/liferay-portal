@@ -518,11 +518,6 @@ public class MDRActionWrapper
 		return model.getUuid();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a mdr action model instance should use the <code>MDRAction</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -811,9 +806,9 @@ public class MDRActionWrapper
 	@Override
 	public void setTypeSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties
-			typeSettingsProperties) {
+			typeSettingsUnicodeProperties) {
 
-		model.setTypeSettingsProperties(typeSettingsProperties);
+		model.setTypeSettingsProperties(typeSettingsUnicodeProperties);
 	}
 
 	/**

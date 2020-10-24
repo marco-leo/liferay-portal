@@ -7,10 +7,10 @@ package ${configYAML.apiPackagePath}.internal.graphql.mutation.${escapedVersion}
 
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
@@ -19,6 +19,7 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
 import java.util.Date;
+import java.util.function.BiFunction;
 
 import javax.annotation.Generated;
 
@@ -117,6 +118,8 @@ public class Mutation {
 			${freeMarkerTool.getSchemaVarName(schemaName)}Resource.setContextHttpServletResponse(_httpServletResponse);
 			${freeMarkerTool.getSchemaVarName(schemaName)}Resource.setContextUriInfo(_uriInfo);
 			${freeMarkerTool.getSchemaVarName(schemaName)}Resource.setContextUser(_user);
+			${freeMarkerTool.getSchemaVarName(schemaName)}Resource.setGroupLocalService(_groupLocalService);
+			${freeMarkerTool.getSchemaVarName(schemaName)}Resource.setRoleLocalService(_roleLocalService);
 		}
 	</#list>
 
@@ -125,10 +128,13 @@ public class Mutation {
 	</#list>
 
 	private AcceptLanguage _acceptLanguage;
-	private Company _company;
+	private com.liferay.portal.kernel.model.Company _company;
+	private GroupLocalService _groupLocalService;
 	private HttpServletRequest _httpServletRequest;
 	private HttpServletResponse _httpServletResponse;
+	private RoleLocalService _roleLocalService;
+	private BiFunction<Object, String, Sort[]> _sortsBiFunction;
 	private UriInfo _uriInfo;
-	private User _user;
+	private com.liferay.portal.kernel.model.User _user;
 
 }

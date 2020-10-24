@@ -33,11 +33,31 @@ public class OAuth2ApplicationLocalServiceWrapper
 		_oAuth2ApplicationLocalService = oAuth2ApplicationLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link OAuth2ApplicationLocalServiceUtil} to access the o auth2 application local service. Add custom service methods to <code>com.liferay.oauth2.provider.service.impl.OAuth2ApplicationLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
+	@Override
+	public com.liferay.oauth2.provider.model.OAuth2Application
+			addOAuth2Application(
+				long companyId, long userId, String userName,
+				java.util.List<com.liferay.oauth2.provider.constants.GrantType>
+					allowedGrantTypesList,
+				long clientCredentialUserId, String clientId, int clientProfile,
+				String clientSecret, String description,
+				java.util.List<String> featuresList, String homePageURL,
+				long iconFileEntryId, String name, String privacyPolicyURL,
+				java.util.List<String> redirectURIsList,
+				java.util.function.Consumer
+					<com.liferay.oauth2.provider.util.builder.
+						OAuth2ScopeBuilder> builderConsumer,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuth2ApplicationLocalService.addOAuth2Application(
+			companyId, userId, userName, allowedGrantTypesList,
+			clientCredentialUserId, clientId, clientProfile, clientSecret,
+			description, featuresList, homePageURL, iconFileEntryId, name,
+			privacyPolicyURL, redirectURIsList, builderConsumer,
+			serviceContext);
+	}
+
 	@Override
 	public com.liferay.oauth2.provider.model.OAuth2Application
 			addOAuth2Application(
@@ -90,6 +110,10 @@ public class OAuth2ApplicationLocalServiceWrapper
 	/**
 	 * Adds the o auth2 application to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ApplicationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param oAuth2Application the o auth2 application
 	 * @return the o auth2 application that was added
 	 */
@@ -118,7 +142,23 @@ public class OAuth2ApplicationLocalServiceWrapper
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuth2ApplicationLocalService.createPersistedModel(
+			primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the o auth2 application with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ApplicationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2ApplicationId the primary key of the o auth2 application
 	 * @return the o auth2 application that was removed
@@ -135,6 +175,10 @@ public class OAuth2ApplicationLocalServiceWrapper
 
 	/**
 	 * Deletes the o auth2 application from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ApplicationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2Application the o auth2 application
 	 * @return the o auth2 application that was removed
@@ -166,6 +210,11 @@ public class OAuth2ApplicationLocalServiceWrapper
 
 		return _oAuth2ApplicationLocalService.deletePersistedModel(
 			persistedModel);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _oAuth2ApplicationLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -361,6 +410,9 @@ public class OAuth2ApplicationLocalServiceWrapper
 		return _oAuth2ApplicationLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -428,6 +480,10 @@ public class OAuth2ApplicationLocalServiceWrapper
 
 	/**
 	 * Updates the o auth2 application in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ApplicationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2Application the o auth2 application
 	 * @return the o auth2 application that was updated

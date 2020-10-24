@@ -19,7 +19,7 @@ import com.beust.jcommander.ParameterException;
 
 import com.liferay.project.templates.extensions.ProjectTemplatesArgs;
 import com.liferay.project.templates.extensions.ProjectTemplatesArgsExt;
-import com.liferay.project.templates.extensions.ProjectTemplatesConstants;
+import com.liferay.project.templates.extensions.constants.ProjectTemplatesConstants;
 import com.liferay.project.templates.extensions.util.FileUtil;
 import com.liferay.project.templates.extensions.util.ProjectTemplatesUtil;
 import com.liferay.project.templates.extensions.util.StringUtil;
@@ -30,6 +30,7 @@ import com.liferay.project.templates.internal.ProjectGenerator;
 import java.beans.Statement;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 
 import java.lang.reflect.Method;
@@ -52,6 +53,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.TreeMap;
@@ -60,11 +62,14 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.apache.maven.archetype.ArchetypeGenerationResult;
 
 /**
  * @author Andrea Di Giorgi
+ * @author Gregory Amerson
  */
 public class ProjectTemplates {
 
@@ -82,69 +87,91 @@ public class ProjectTemplates {
 			if (templatesFile.isDirectory()) {
 				try (DirectoryStream<Path> directoryStream =
 						Files.newDirectoryStream(
-							templatesFile.toPath(), "*.project.templates.*")) {
+							templatesFile.toPath(), "*.jar")) {
 
 					Iterator<Path> iterator = directoryStream.iterator();
 
 					while (iterator.hasNext()) {
 						Path path = iterator.next();
 
-						String fileName = String.valueOf(path.getFileName());
+						try {
+							String bundleSymbolicName =
+								FileUtil.getManifestProperty(
+									path.toFile(), "Bundle-SymbolicName");
 
-						String template = ProjectTemplatesUtil.getTemplateName(
-							fileName);
+							String templateName =
+								ProjectTemplatesUtil.getTemplateName(
+									bundleSymbolicName);
 
-						if (!template.startsWith(WorkspaceUtil.WORKSPACE)) {
+							if (templateName.startsWith(
+									WorkspaceUtil.WORKSPACE)) {
+
+								continue;
+							}
+
 							String bundleDescription =
 								FileUtil.getManifestProperty(
 									path.toFile(), "Bundle-Description");
 
-							templates.put(template, bundleDescription);
+							if (bundleDescription == null) {
+								continue;
+							}
+
+							try (ZipFile zipFile = new ZipFile(path.toFile())) {
+								ZipEntry zipEntry = zipFile.getEntry(
+									_ARCHETYPE_METADATA_XML);
+
+								if (Objects.nonNull(zipEntry)) {
+									templates.put(
+										templateName, bundleDescription);
+								}
+							}
+						}
+						catch (IOException ioException) {
 						}
 					}
 				}
+
+				continue;
 			}
-			else {
-				try (JarFile jarFile = new JarFile(templatesFile)) {
-					Enumeration<JarEntry> enumeration = jarFile.entries();
 
-					while (enumeration.hasMoreElements()) {
-						JarEntry jarEntry = enumeration.nextElement();
+			try (JarFile jarFile = new JarFile(templatesFile)) {
+				Enumeration<JarEntry> enumeration = jarFile.entries();
 
-						if (jarEntry.isDirectory()) {
-							continue;
-						}
+				while (enumeration.hasMoreElements()) {
+					JarEntry jarEntry = enumeration.nextElement();
 
-						String template = jarEntry.getName();
+					if (jarEntry.isDirectory()) {
+						continue;
+					}
 
-						if (!template.startsWith(
-								ProjectTemplatesConstants.
-									TEMPLATE_BUNDLE_PREFIX)) {
+					String template = jarEntry.getName();
 
-							continue;
-						}
+					if (!template.startsWith(
+							ProjectTemplatesConstants.TEMPLATE_BUNDLE_PREFIX)) {
 
-						template = ProjectTemplatesUtil.getTemplateName(
-							template);
+						continue;
+					}
 
-						if (!template.startsWith(WorkspaceUtil.WORKSPACE)) {
-							try (InputStream inputStream =
-									jarFile.getInputStream(jarEntry);
-								JarInputStream jarInputStream =
-									new JarInputStream(inputStream)) {
+					template = ProjectTemplatesUtil.getTemplateName(template);
 
-								Manifest manifest =
-									jarInputStream.getManifest();
+					if (!template.startsWith(WorkspaceUtil.WORKSPACE)) {
+						continue;
+					}
 
-								Attributes attributes =
-									manifest.getMainAttributes();
+					try (InputStream inputStream = jarFile.getInputStream(
+							jarEntry);
+						JarInputStream jarInputStream = new JarInputStream(
+							inputStream)) {
 
-								String bundleDescription = attributes.getValue(
-									"Bundle-Description");
+						Manifest manifest = jarInputStream.getManifest();
 
-								templates.put(template, bundleDescription);
-							}
-						}
+						Attributes attributes = manifest.getMainAttributes();
+
+						String bundleDescription = attributes.getValue(
+							"Bundle-Description");
+
+						templates.put(template, bundleDescription);
 					}
 				}
 			}
@@ -269,8 +296,8 @@ public class ProjectTemplates {
 				new ProjectTemplates(projectTemplatesArgs);
 			}
 		}
-		catch (ParameterException pe) {
-			System.err.println(pe.getMessage());
+		catch (ParameterException parameterException) {
+			System.err.println(parameterException.getMessage());
 
 			_printHelp(jCommander, projectTemplatesArgs);
 		}
@@ -338,10 +365,10 @@ public class ProjectTemplates {
 					projectTemplatesArgs, destinationDir);
 
 			if (archetypeGenerationResult != null) {
-				Exception cause = archetypeGenerationResult.getCause();
+				Exception exception = archetypeGenerationResult.getCause();
 
-				if (cause != null) {
-					throw cause;
+				if (exception != null) {
+					throw exception;
 				}
 			}
 
@@ -572,7 +599,7 @@ public class ProjectTemplates {
 				method = clazz.getMethod(
 					methodName, new Class<?>[] {String.class});
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				return false;
 			}
 
@@ -594,11 +621,14 @@ public class ProjectTemplates {
 			try {
 				statement.execute();
 			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
 			}
 		}
 	}
+
+	private static final String _ARCHETYPE_METADATA_XML =
+		"META-INF/maven/archetype-metadata.xml";
 
 	private static final Set<PosixFilePermission> _wrapperPosixFilePermissions =
 		PosixFilePermissions.fromString("rwxrwxr--");

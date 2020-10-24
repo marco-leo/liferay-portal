@@ -39,7 +39,7 @@ import com.liferay.knowledge.base.internal.util.KBArticleDiffUtil;
 import com.liferay.knowledge.base.internal.util.KBArticleLocalSiblingNavigationHelper;
 import com.liferay.knowledge.base.internal.util.KBCommentUtil;
 import com.liferay.knowledge.base.internal.util.KBSectionEscapeUtil;
-import com.liferay.knowledge.base.internal.util.KnowledgeBaseConstants;
+import com.liferay.knowledge.base.internal.util.constants.KnowledgeBaseConstants;
 import com.liferay.knowledge.base.model.KBArticle;
 import com.liferay.knowledge.base.model.KBFolder;
 import com.liferay.knowledge.base.service.base.KBArticleLocalServiceBaseImpl;
@@ -204,7 +204,7 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 		kbArticle.setStatus(WorkflowConstants.STATUS_DRAFT);
 		kbArticle.setExpandoBridgeAttributes(serviceContext);
 
-		kbArticlePersistence.update(kbArticle);
+		kbArticle = kbArticlePersistence.update(kbArticle);
 
 		// Resources
 
@@ -1147,9 +1147,10 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 		kbArticle.setSourceURL(sourceURL);
 		kbArticle.setExpandoBridgeAttributes(serviceContext);
 
-		kbArticlePersistence.update(kbArticle);
+		kbArticle = kbArticlePersistence.update(kbArticle);
 
 		if (oldKBArticle.isApproved()) {
+			oldKBArticle.setModifiedDate(oldKBArticle.getModifiedDate());
 			oldKBArticle.setLatest(false);
 
 			kbArticlePersistence.update(oldKBArticle);
@@ -1283,7 +1284,7 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 		kbArticle.setStatusByUserName(user.getFullName());
 		kbArticle.setStatusDate(serviceContext.getModifiedDate(now));
 
-		kbArticlePersistence.update(kbArticle);
+		kbArticle = kbArticlePersistence.update(kbArticle);
 
 		if (status != WorkflowConstants.STATUS_APPROVED) {
 			return kbArticle;
@@ -1293,6 +1294,7 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 			KBArticle oldKBArticle = kbArticlePersistence.findByR_V(
 				resourcePrimKey, kbArticle.getVersion() - 1);
 
+			oldKBArticle.setModifiedDate(oldKBArticle.getModifiedDate());
 			oldKBArticle.setMain(false);
 
 			kbArticlePersistence.update(oldKBArticle);
@@ -1571,8 +1573,8 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 						kbArticle.getResourcePrimKey(), version),
 					kbArticle.getVersion() - 1, kbArticle.getVersion(), param);
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 
 			emailKBArticleDiffs.put(param, value);
@@ -1848,15 +1850,16 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 		List<KBArticle> kbArticles1 = getKBArticleAndAllDescendantKBArticles(
 			resourcePrimKey, WorkflowConstants.STATUS_ANY, null);
 
-		for (KBArticle kbArticle1 : kbArticles1) {
+		for (KBArticle curKBArticle1 : kbArticles1) {
 			List<KBArticle> kbArticles2 = getKBArticleVersions(
-				kbArticle1.getResourcePrimKey(), WorkflowConstants.STATUS_ANY,
-				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+				curKBArticle1.getResourcePrimKey(),
+				WorkflowConstants.STATUS_ANY, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, null);
 
-			for (KBArticle kbArticle2 : kbArticles2) {
-				kbArticle2.setRootResourcePrimKey(rootResourcePrimKey);
+			for (KBArticle curKBArticle2 : kbArticles2) {
+				curKBArticle2.setRootResourcePrimKey(rootResourcePrimKey);
 
-				kbArticlePersistence.update(kbArticle2);
+				kbArticlePersistence.update(curKBArticle2);
 			}
 		}
 

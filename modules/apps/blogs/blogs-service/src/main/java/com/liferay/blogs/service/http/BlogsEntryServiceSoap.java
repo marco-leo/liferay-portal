@@ -57,8 +57,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see BlogsEntryServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class BlogsEntryServiceSoap {
 
 	public static com.liferay.portal.kernel.repository.model.FolderSoap
@@ -72,10 +74,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -104,10 +106,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -137,10 +139,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -148,10 +150,10 @@ public class BlogsEntryServiceSoap {
 		try {
 			BlogsEntryServiceUtil.deleteEntry(entryId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -167,10 +169,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -185,10 +187,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -202,10 +204,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -220,10 +222,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -239,10 +241,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -259,10 +261,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -277,10 +279,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -296,31 +298,31 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
 	public static com.liferay.blogs.model.BlogsEntrySoap[] getGroupEntries(
 			long groupId, int status, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.blogs.model.BlogsEntry> obc)
+				<com.liferay.blogs.model.BlogsEntry> orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.blogs.model.BlogsEntry> returnValue =
 				BlogsEntryServiceUtil.getGroupEntries(
-					groupId, status, start, end, obc);
+					groupId, status, start, end, orderByComparator);
 
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -334,10 +336,10 @@ public class BlogsEntryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -350,10 +352,10 @@ public class BlogsEntryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -370,52 +372,52 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
 	public static com.liferay.blogs.model.BlogsEntrySoap[] getGroupUserEntries(
 			long groupId, long userId, int status, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.blogs.model.BlogsEntry> obc)
+				<com.liferay.blogs.model.BlogsEntry> orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.blogs.model.BlogsEntry> returnValue =
 				BlogsEntryServiceUtil.getGroupUserEntries(
-					groupId, userId, status, start, end, obc);
+					groupId, userId, status, start, end, orderByComparator);
 
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
 	public static com.liferay.blogs.model.BlogsEntrySoap[] getGroupUserEntries(
 			long groupId, long userId, int[] statuses, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.blogs.model.BlogsEntry> obc)
+				<com.liferay.blogs.model.BlogsEntry> orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.blogs.model.BlogsEntry> returnValue =
 				BlogsEntryServiceUtil.getGroupUserEntries(
-					groupId, userId, statuses, start, end, obc);
+					groupId, userId, statuses, start, end, orderByComparator);
 
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -429,10 +431,10 @@ public class BlogsEntryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -446,10 +448,10 @@ public class BlogsEntryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -467,10 +469,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -485,10 +487,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -498,10 +500,10 @@ public class BlogsEntryServiceSoap {
 		try {
 			BlogsEntryServiceUtil.restoreEntryFromTrash(entryId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -509,10 +511,10 @@ public class BlogsEntryServiceSoap {
 		try {
 			BlogsEntryServiceUtil.subscribe(groupId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -520,10 +522,10 @@ public class BlogsEntryServiceSoap {
 		try {
 			BlogsEntryServiceUtil.unsubscribe(groupId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -553,10 +555,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -587,10 +589,10 @@ public class BlogsEntryServiceSoap {
 			return com.liferay.blogs.model.BlogsEntrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

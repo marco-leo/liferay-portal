@@ -52,13 +52,15 @@ import com.liferay.document.library.repository.external.ExtRepositorySearchResul
 import com.liferay.document.library.repository.external.cache.ConnectionBuilder;
 import com.liferay.document.library.repository.external.cache.ConnectionCache;
 import com.liferay.document.library.repository.external.search.ExtRepositoryQueryMapper;
-import com.liferay.documentum.repository.model.Constants;
+import com.liferay.documentum.repository.constants.Constants;
 import com.liferay.documentum.repository.model.DocumentumFileEntry;
 import com.liferay.documentum.repository.model.DocumentumFileVersion;
 import com.liferay.documentum.repository.model.DocumentumFolder;
 import com.liferay.documentum.repository.model.DocumentumObject;
 import com.liferay.documentum.repository.model.DocumentumVersionNumber;
 import com.liferay.documentum.repository.search.DQLQueryBuilder;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.InvalidRepositoryException;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -73,8 +75,6 @@ import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.PwdGenerator;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -161,11 +161,11 @@ public class DocumentumRepository
 
 					idfDocument.save();
 				}
-				catch (IOException ioe) {
+				catch (IOException ioException) {
 					throw new RepositoryException(
 						"Unable to update external repository file entry " +
 							title,
-						ioe);
+						ioException);
 				}
 				finally {
 					file.delete();
@@ -235,8 +235,8 @@ public class DocumentumRepository
 
 			return idfSessionManager;
 		}
-		catch (DfException de) {
-			throw new RepositoryException(de);
+		catch (DfException dfException) {
+			throw new RepositoryException(dfException);
 		}
 	}
 
@@ -479,8 +479,8 @@ public class DocumentumRepository
 
 			return idfDocument.getContent();
 		}
-		catch (DfException de) {
-			throw new RepositoryException(de);
+		catch (DfException dfException) {
+			throw new RepositoryException(dfException);
 		}
 	}
 
@@ -768,17 +768,17 @@ public class DocumentumRepository
 
 	@Override
 	public void initRepository(
-			UnicodeProperties typeSettingsProperties,
+			UnicodeProperties typeSettingsUnicodeProperties,
 			CredentialsProvider credentialsProvider)
 		throws InvalidRepositoryException, PrincipalException {
 
-		_cabinet = typeSettingsProperties.getProperty(_CABINET);
+		_cabinet = typeSettingsUnicodeProperties.getProperty(_CABINET);
 
 		if (Validator.isNull(_cabinet)) {
 			throw new InvalidRepositoryException();
 		}
 
-		_repository = typeSettingsProperties.getProperty(_REPOSITORY);
+		_repository = typeSettingsUnicodeProperties.getProperty(_REPOSITORY);
 
 		if (Validator.isNull(_repository)) {
 			throw new InvalidRepositoryException();
@@ -803,13 +803,13 @@ public class DocumentumRepository
 
 			_rootFolderKey = idfFolderId.getId();
 		}
-		catch (DfAuthenticationException dae) {
+		catch (DfAuthenticationException dfAuthenticationException) {
 			throw new PrincipalException(
 				"Unable to login with user " + _credentialsProvider.getLogin(),
-				dae);
+				dfAuthenticationException);
 		}
-		catch (DfException de) {
-			throw new RepositoryException(de);
+		catch (DfException dfException) {
+			throw new RepositoryException(dfException);
 		}
 		finally {
 			releaseSession(idfSession);
@@ -1044,8 +1044,8 @@ public class DocumentumRepository
 						latestIDfDocument.saveLock();
 					}
 				}
-				catch (IOException ioe) {
-					throw new RepositoryException(ioe);
+				catch (IOException ioException) {
+					throw new RepositoryException(ioException);
 				}
 				finally {
 					file.delete();
@@ -1065,7 +1065,7 @@ public class DocumentumRepository
 			try {
 				idfCollection.close();
 			}
-			catch (DfException de) {
+			catch (DfException dfException) {
 			}
 		}
 	}
@@ -1241,8 +1241,9 @@ public class DocumentumRepository
 
 			return idfSessionManager.getSession(_repository);
 		}
-		catch (DfAuthenticationException dae) {
-			throw new AuthenticationRepositoryException(dae);
+		catch (DfAuthenticationException dfAuthenticationException) {
+			throw new AuthenticationRepositoryException(
+				dfAuthenticationException);
 		}
 	}
 
@@ -1274,9 +1275,8 @@ public class DocumentumRepository
 			String extRepositoryObjectKey)
 		throws DfException {
 
-		IDfId idfId = getIDfId(idfSession, extRepositoryObjectKey);
-
-		return (T)idfSession.getObject(idfId);
+		return (T)idfSession.getObject(
+			getIDfId(idfSession, extRepositoryObjectKey));
 	}
 
 	protected IDfDocument getLatestIDfDocument(
@@ -1353,13 +1353,13 @@ public class DocumentumRepository
 
 			return documentumAction.run(idfSession);
 		}
-		catch (DfAuthenticationException dae) {
+		catch (DfAuthenticationException dfAuthenticationException) {
 			throw new PrincipalException(
 				"Unable to login with user " + _credentialsProvider.getLogin(),
-				dae);
+				dfAuthenticationException);
 		}
-		catch (DfException de) {
-			throw new RepositoryException(de);
+		catch (DfException dfException) {
+			throw new RepositoryException(dfException);
 		}
 		finally {
 			releaseSession(idfSession);

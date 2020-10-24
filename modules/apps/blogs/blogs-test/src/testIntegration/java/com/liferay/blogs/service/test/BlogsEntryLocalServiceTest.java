@@ -18,6 +18,7 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.blogs.attachments.test.BlogsEntryAttachmentFileEntryHelperTest;
 import com.liferay.blogs.constants.BlogsConstants;
 import com.liferay.blogs.exception.EntryContentException;
+import com.liferay.blogs.exception.EntrySmallImageNameException;
 import com.liferay.blogs.exception.EntryTitleException;
 import com.liferay.blogs.exception.EntryUrlTitleException;
 import com.liferay.blogs.exception.NoSuchEntryException;
@@ -42,13 +43,13 @@ import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.servlet.taglib.ui.ImageSelector;
+import com.liferay.portal.kernel.test.constants.TestDataConstants;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.OrganizationTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
-import com.liferay.portal.kernel.test.util.TestDataConstants;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
@@ -59,7 +60,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.subscription.service.SubscriptionLocalServiceUtil;
 
@@ -124,7 +124,7 @@ public class BlogsEntryLocalServiceTest {
 		_group = GroupTestUtil.addGroup();
 		_user = TestPropsValues.getUser();
 
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 	}
 
 	@Test
@@ -346,12 +346,10 @@ public class BlogsEntryLocalServiceTest {
 
 		String content = _repeat("0", maxLength + 1);
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
-
 		BlogsEntryLocalServiceUtil.addEntry(
 			_user.getUserId(), RandomTestUtil.randomString(), content,
-			serviceContext);
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
 	}
 
 	@Test(expected = EntryTitleException.class)
@@ -361,12 +359,10 @@ public class BlogsEntryLocalServiceTest {
 
 		String title = _repeat("0", maxLength + 1);
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
-
 		BlogsEntryLocalServiceUtil.addEntry(
 			_user.getUserId(), title, RandomTestUtil.randomString(),
-			serviceContext);
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
 	}
 
 	@Test
@@ -432,6 +428,21 @@ public class BlogsEntryLocalServiceTest {
 		Folder folder = portletFileEntry.getFolder();
 
 		Assert.assertEquals(BlogsConstants.SERVICE_NAME, folder.getName());
+	}
+
+	@Test(expected = EntrySmallImageNameException.class)
+	public void testAddSmallImageWithNotSupportedExtension() throws Exception {
+		BlogsEntry entry = addEntry(false);
+
+		FileEntry fileEntry = getTempFileEntry(
+			_user.getUserId(), _group.getGroupId(), "image1.svg");
+
+		ImageSelector imageSelector = new ImageSelector(
+			FileUtil.getBytes(fileEntry.getContentStream()),
+			fileEntry.getTitle(), fileEntry.getMimeType(), StringPool.BLANK);
+
+		BlogsEntryLocalServiceUtil.addSmallImage(
+			entry.getEntryId(), imageSelector);
 	}
 
 	@Test
@@ -703,16 +714,15 @@ public class BlogsEntryLocalServiceTest {
 
 		String urlTitle = "new-friendly-url";
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
-
 		BlogsEntryLocalServiceUtil.updateEntry(
 			expectedEntry.getUserId(), expectedEntry.getEntryId(),
 			expectedEntry.getTitle(), expectedEntry.getSubtitle(), urlTitle,
 			expectedEntry.getDescription(), expectedEntry.getContent(),
 			expectedEntry.getDisplayDate(), expectedEntry.isAllowPingbacks(),
 			expectedEntry.isAllowTrackbacks(), new String[0],
-			expectedEntry.getCoverImageCaption(), null, null, serviceContext);
+			expectedEntry.getCoverImageCaption(), null, null,
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
 
 		BlogsEntry actualEntry = BlogsEntryLocalServiceUtil.getEntry(
 			expectedEntry.getGroupId(), oldUrlTitle);
@@ -864,32 +874,26 @@ public class BlogsEntryLocalServiceTest {
 
 	@Test(expected = EntryTitleException.class)
 	public void testPublishWithBlankTitle() throws Exception {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
-
 		BlogsEntryLocalServiceUtil.addEntry(
 			_user.getUserId(), StringPool.BLANK, RandomTestUtil.randomString(),
-			serviceContext);
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
 	}
 
 	@Test(expected = EntryTitleException.class)
 	public void testPublishWithNullTitle() throws Exception {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
-
 		BlogsEntryLocalServiceUtil.addEntry(
 			_user.getUserId(), null, RandomTestUtil.randomString(),
-			serviceContext);
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
 	}
 
 	@Test(expected = EntryTitleException.class)
 	public void testPublishWithoutTitle() throws Exception {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
-
 		BlogsEntryLocalServiceUtil.addEntry(
 			_user.getUserId(), StringPool.BLANK, RandomTestUtil.randomString(),
-			serviceContext);
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
 	}
 
 	@Test
@@ -983,12 +987,10 @@ public class BlogsEntryLocalServiceTest {
 	public void testURLTitleIsSavedWhenAddingApprovedEntry() throws Exception {
 		String title = RandomTestUtil.randomString();
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
-
 		BlogsEntry entry = BlogsEntryLocalServiceUtil.addEntry(
 			_user.getUserId(), title, RandomTestUtil.randomString(),
-			serviceContext);
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
 
 		Assert.assertEquals(
 			_getUrlTitleMethod.invoke(null, entry.getEntryId(), title),
@@ -1001,11 +1003,10 @@ public class BlogsEntryLocalServiceTest {
 
 		String title = RandomTestUtil.randomString();
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
-
 		BlogsEntry entry = BlogsTestUtil.addEntryWithWorkflow(
-			_user.getUserId(), title, true, serviceContext);
+			_user.getUserId(), title, true,
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
 
 		Assert.assertEquals(
 			_getUrlTitleMethod.invoke(null, entry.getEntryId(), title),
@@ -1030,12 +1031,10 @@ public class BlogsEntryLocalServiceTest {
 	public void testURLTitleIsSavedWhenAddingDraftEntryWithWorkflow()
 		throws Exception {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
-
 		BlogsEntry entry = BlogsTestUtil.addEntryWithWorkflow(
 			_user.getUserId(), RandomTestUtil.randomString(), false,
-			serviceContext);
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
 
 		Assert.assertTrue(Validator.isNotNull(entry.getUrlTitle()));
 	}
@@ -1364,7 +1363,7 @@ public class BlogsEntryLocalServiceTest {
 		Assert.assertEquals(initialCount + 1, actualCount);
 	}
 
-	private static String _repeat(String string, int times) {
+	private String _repeat(String string, int times) {
 		StringBundler sb = new StringBundler(times);
 
 		for (int i = 0; i < times; i++) {

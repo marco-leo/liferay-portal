@@ -37,7 +37,7 @@ import java.util.List;
 public abstract class OrganizationBaseImpl
 	extends OrganizationModelImpl implements Organization {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a organization model instance should use the <code>Organization</code> interface instead.
@@ -66,7 +66,7 @@ public abstract class OrganizationBaseImpl
 				organization.getParentOrganizationId());
 		}
 
-		StringBundler sb = new StringBundler(organizations.size() * 2 + 1);
+		StringBundler sb = new StringBundler((organizations.size() * 2) + 1);
 
 		sb.append("/");
 

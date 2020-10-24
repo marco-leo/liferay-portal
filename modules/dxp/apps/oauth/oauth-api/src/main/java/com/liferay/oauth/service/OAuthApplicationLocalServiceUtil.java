@@ -32,17 +32,18 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class OAuthApplicationLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.oauth.service.impl.OAuthApplicationLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
 
 	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link OAuthApplicationLocalServiceUtil} to access the o auth application local service. Add custom service methods to <code>com.liferay.oauth.service.impl.OAuthApplicationLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 #addOAuthApplication(long, String, String, String, int
+	 boolean, String, String, ServiceContext)}
 	 */
+	@Deprecated
 	public static com.liferay.oauth.model.OAuthApplication addOAuthApplication(
 			long userId, String name, String description, int accessLevel,
 			boolean shareableAccessToken, String callbackURI, String websiteURL,
@@ -54,8 +55,24 @@ public class OAuthApplicationLocalServiceUtil {
 			callbackURI, websiteURL, serviceContext);
 	}
 
+	public static com.liferay.oauth.model.OAuthApplication addOAuthApplication(
+			long userId, String name, String description, String token,
+			int accessLevel, boolean shareableAccessToken, String callbackURI,
+			String websiteURL,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().addOAuthApplication(
+			userId, name, description, token, accessLevel, shareableAccessToken,
+			callbackURI, websiteURL, serviceContext);
+	}
+
 	/**
 	 * Adds the o auth application to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuthApplicationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuthApplication the o auth application
 	 * @return the o auth application that was added
@@ -78,6 +95,16 @@ public class OAuthApplicationLocalServiceUtil {
 		return getService().createOAuthApplication(oAuthApplicationId);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
 	public static void deleteLogo(long oAuthApplicationId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -86,6 +113,10 @@ public class OAuthApplicationLocalServiceUtil {
 
 	/**
 	 * Deletes the o auth application with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuthApplicationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuthApplicationId the primary key of the o auth application
 	 * @return the o auth application that was removed
@@ -100,6 +131,10 @@ public class OAuthApplicationLocalServiceUtil {
 
 	/**
 	 * Deletes the o auth application from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuthApplicationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuthApplication the o auth application
 	 * @return the o auth application that was removed
@@ -122,6 +157,12 @@ public class OAuthApplicationLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -276,7 +317,7 @@ public class OAuthApplicationLocalServiceUtil {
 		getOAuthApplications(
 			long companyId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				orderByComparator) {
+				<com.liferay.oauth.model.OAuthApplication> orderByComparator) {
 
 		return getService().getOAuthApplications(
 			companyId, start, end, orderByComparator);
@@ -304,6 +345,9 @@ public class OAuthApplicationLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -316,7 +360,7 @@ public class OAuthApplicationLocalServiceUtil {
 			long companyId, String keywords,
 			java.util.LinkedHashMap<String, Object> params, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				orderByComparator) {
+				<com.liferay.oauth.model.OAuthApplication> orderByComparator) {
 
 		return getService().search(
 			companyId, keywords, params, start, end, orderByComparator);
@@ -351,6 +395,10 @@ public class OAuthApplicationLocalServiceUtil {
 
 	/**
 	 * Updates the o auth application in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuthApplicationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuthApplication the o auth application
 	 * @return the o auth application that was updated

@@ -27,7 +27,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class FormRecord {
+public class FormRecord implements Cloneable {
+
+	public static FormRecord toDTO(String json) {
+		return FormRecordSerDes.toDTO(json);
+	}
 
 	public Creator getCreator() {
 		return creator;
@@ -195,6 +199,11 @@ public class FormRecord {
 	}
 
 	protected Long id;
+
+	@Override
+	public FormRecord clone() throws CloneNotSupportedException {
+		return (FormRecord)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

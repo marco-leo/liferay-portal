@@ -21,7 +21,7 @@ SelectUserGroupsDisplayContext selectUserGroupsDisplayContext = new SelectUserGr
 %>
 
 <clay:management-toolbar
-	displayContext="<%= new SelectUserGroupsManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, selectUserGroupsDisplayContext) %>"
+	displayContext="<%= new SelectUserGroupsManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, selectUserGroupsDisplayContext) %>"
 />
 
 <aui:form cssClass="container-fluid-1280 portlet-site-memberships-user-groups" name="fm">
@@ -57,14 +57,14 @@ SelectUserGroupsDisplayContext selectUserGroupsDisplayContext = new SelectUserGr
 		'<portlet:namespace />userGroups'
 	);
 
-	searchContainer.on('rowToggled', function(event) {
+	searchContainer.on('rowToggled', function (event) {
 		var result = {};
 
 		var data = event.elements.allSelectedElements.getDOMNodes();
 
 		if (data.length) {
 			result = {
-				data: data
+				data: data,
 			};
 		}
 

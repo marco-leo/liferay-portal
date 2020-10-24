@@ -15,6 +15,7 @@ create table LayoutSEOEntry (
 	DDMStorageId LONG,
 	openGraphDescription STRING null,
 	openGraphDescriptionEnabled BOOLEAN,
+	openGraphImageAlt STRING null,
 	openGraphImageFileEntryId LONG,
 	openGraphTitle STRING null,
 	openGraphTitleEnabled BOOLEAN,
@@ -32,5 +33,6 @@ create table LayoutSEOSite (
 	createDate DATE null,
 	modifiedDate DATE null,
 	openGraphEnabled BOOLEAN,
+	openGraphImageAlt STRING null,
 	openGraphImageFileEntryId LONG
 );

@@ -17,6 +17,7 @@ package com.liferay.change.tracking.model;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.MVCCModel;
+import com.liferay.portal.kernel.model.ShardedModel;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -32,9 +33,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface CTMessageModel extends BaseModel<CTMessage>, MVCCModel {
+public interface CTMessageModel
+	extends BaseModel<CTMessage>, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a ct message model instance should use the {@link CTMessage} interface instead.
@@ -83,6 +85,22 @@ public interface CTMessageModel extends BaseModel<CTMessage>, MVCCModel {
 	 * @param ctMessageId the ct message ID of this ct message
 	 */
 	public void setCtMessageId(long ctMessageId);
+
+	/**
+	 * Returns the company ID of this ct message.
+	 *
+	 * @return the company ID of this ct message
+	 */
+	@Override
+	public long getCompanyId();
+
+	/**
+	 * Sets the company ID of this ct message.
+	 *
+	 * @param companyId the company ID of this ct message
+	 */
+	@Override
+	public void setCompanyId(long companyId);
 
 	/**
 	 * Returns the ct collection ID of this ct message.

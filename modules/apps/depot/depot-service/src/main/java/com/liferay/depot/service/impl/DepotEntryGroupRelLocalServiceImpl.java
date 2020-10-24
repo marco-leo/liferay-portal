@@ -18,6 +18,7 @@ import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.model.DepotEntryGroupRel;
 import com.liferay.depot.service.base.DepotEntryGroupRelLocalServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
+import com.liferay.portal.kernel.exception.PortalException;
 
 import java.util.List;
 
@@ -35,7 +36,8 @@ public class DepotEntryGroupRelLocalServiceImpl
 
 	@Override
 	public DepotEntryGroupRel addDepotEntryGroupRel(
-		long depotEntryId, long toGroupId) {
+		boolean ddmStructuresAvailable, long depotEntryId, long toGroupId,
+		boolean searchable) {
 
 		DepotEntryGroupRel depotEntryGroupRel =
 			depotEntryGroupRelPersistence.fetchByD_TGI(depotEntryId, toGroupId);
@@ -47,10 +49,28 @@ public class DepotEntryGroupRelLocalServiceImpl
 		depotEntryGroupRel = depotEntryGroupRelPersistence.create(
 			counterLocalService.increment());
 
+		depotEntryGroupRel.setGroupId(toGroupId);
+		depotEntryGroupRel.setDdmStructuresAvailable(ddmStructuresAvailable);
 		depotEntryGroupRel.setDepotEntryId(depotEntryId);
+		depotEntryGroupRel.setSearchable(searchable);
 		depotEntryGroupRel.setToGroupId(toGroupId);
 
 		return depotEntryGroupRelPersistence.update(depotEntryGroupRel);
+	}
+
+	@Override
+	public DepotEntryGroupRel addDepotEntryGroupRel(
+		long depotEntryId, long toGroupId) {
+
+		return addDepotEntryGroupRel(depotEntryId, toGroupId, true);
+	}
+
+	@Override
+	public DepotEntryGroupRel addDepotEntryGroupRel(
+		long depotEntryId, long toGroupId, boolean searchable) {
+
+		return addDepotEntryGroupRel(
+			false, depotEntryId, toGroupId, searchable);
 	}
 
 	@Override
@@ -75,8 +95,53 @@ public class DepotEntryGroupRelLocalServiceImpl
 	}
 
 	@Override
+	public int getDepotEntryGroupRelsCount(DepotEntry depotEntry) {
+		return depotEntryGroupRelPersistence.countByDepotEntryId(
+			depotEntry.getDepotEntryId());
+	}
+
+	@Override
 	public int getDepotEntryGroupRelsCount(long groupId) {
 		return depotEntryGroupRelPersistence.countByToGroupId(groupId);
+	}
+
+	@Override
+	public List<DepotEntryGroupRel> getSearchableDepotEntryGroupRels(
+		long groupId, int start, int end) {
+
+		return depotEntryGroupRelPersistence.findByS_TGI(
+			true, groupId, start, end);
+	}
+
+	@Override
+	public int getSearchableDepotEntryGroupRelsCount(long groupId) {
+		return depotEntryGroupRelPersistence.countByS_TGI(true, groupId);
+	}
+
+	@Override
+	public DepotEntryGroupRel updateDDMStructuresAvailable(
+			long depotEntryGroupRelId, boolean ddmStructuresAvailable)
+		throws PortalException {
+
+		DepotEntryGroupRel depotEntryGroupRel = getDepotEntryGroupRel(
+			depotEntryGroupRelId);
+
+		depotEntryGroupRel.setDdmStructuresAvailable(ddmStructuresAvailable);
+
+		return depotEntryGroupRelPersistence.update(depotEntryGroupRel);
+	}
+
+	@Override
+	public DepotEntryGroupRel updateSearchable(
+			long depotEntryGroupRelId, boolean searchable)
+		throws PortalException {
+
+		DepotEntryGroupRel depotEntryGroupRel = getDepotEntryGroupRel(
+			depotEntryGroupRelId);
+
+		depotEntryGroupRel.setSearchable(searchable);
+
+		return depotEntryGroupRelPersistence.update(depotEntryGroupRel);
 	}
 
 }

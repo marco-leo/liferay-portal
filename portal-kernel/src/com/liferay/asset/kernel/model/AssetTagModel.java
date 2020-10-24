@@ -41,7 +41,7 @@ public interface AssetTagModel
 	extends BaseModel<AssetTag>, CTModel<AssetTag>, MVCCModel, ShardedModel,
 			StagedGroupedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a asset tag model instance should use the {@link AssetTag} interface instead.

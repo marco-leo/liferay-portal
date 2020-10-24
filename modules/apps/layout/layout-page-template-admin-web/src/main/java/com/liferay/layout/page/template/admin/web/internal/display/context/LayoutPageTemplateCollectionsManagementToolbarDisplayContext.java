@@ -32,14 +32,14 @@ public class LayoutPageTemplateCollectionsManagementToolbarDisplayContext
 	extends SearchContainerManagementToolbarDisplayContext {
 
 	public LayoutPageTemplateCollectionsManagementToolbarDisplayContext(
+		HttpServletRequest httpServletRequest,
 		LiferayPortletRequest liferayPortletRequest,
 		LiferayPortletResponse liferayPortletResponse,
-		HttpServletRequest httpServletRequest,
 		LayoutPageTemplateCollectionsDisplayContext
 			layoutPageTemplateCollectionsDisplayContext) {
 
 		super(
-			liferayPortletRequest, liferayPortletResponse, httpServletRequest,
+			httpServletRequest, liferayPortletRequest, liferayPortletResponse,
 			layoutPageTemplateCollectionsDisplayContext.getSearchContainer());
 	}
 

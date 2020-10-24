@@ -238,32 +238,6 @@ public class PortletAsyncContextImpl implements PortletAsyncContext {
 		}
 	}
 
-	private static PortletAsyncListenerFactory _getPortletAsyncListenerFactory(
-		String servletContextName) {
-
-		PortletAsyncListenerFactory portletAsyncListenerFactory =
-			_portletAsyncListenerFactories.getService(servletContextName);
-
-		if (portletAsyncListenerFactory == null) {
-			portletAsyncListenerFactory = _dummyPortletAsyncListenerFactory;
-		}
-
-		return portletAsyncListenerFactory;
-	}
-
-	private static PortletAsyncScopeManager _getPortletAsyncScopeManager(
-		String servletContextName) {
-
-		PortletAsyncScopeManagerFactory portletAsyncScopeManagerFactory =
-			_portletAsyncScopeManagerFactories.getService(servletContextName);
-
-		if (portletAsyncScopeManagerFactory == null) {
-			return _dummyPortletAsyncScopeManager;
-		}
-
-		return portletAsyncScopeManagerFactory.getPortletAsyncScopeManager();
-	}
-
 	private ServletRequest _getOriginalServletRequest() {
 		ServletRequest originalServletRequest = _asyncPortletServletRequest;
 
@@ -277,6 +251,32 @@ public class PortletAsyncContextImpl implements PortletAsyncContext {
 		return originalServletRequest;
 	}
 
+	private PortletAsyncListenerFactory _getPortletAsyncListenerFactory(
+		String servletContextName) {
+
+		PortletAsyncListenerFactory portletAsyncListenerFactory =
+			_portletAsyncListenerFactories.getService(servletContextName);
+
+		if (portletAsyncListenerFactory == null) {
+			portletAsyncListenerFactory = _dummyPortletAsyncListenerFactory;
+		}
+
+		return portletAsyncListenerFactory;
+	}
+
+	private PortletAsyncScopeManager _getPortletAsyncScopeManager(
+		String servletContextName) {
+
+		PortletAsyncScopeManagerFactory portletAsyncScopeManagerFactory =
+			_portletAsyncScopeManagerFactories.getService(servletContextName);
+
+		if (portletAsyncScopeManagerFactory == null) {
+			return _dummyPortletAsyncScopeManager;
+		}
+
+		return portletAsyncScopeManagerFactory.getPortletAsyncScopeManager();
+	}
+
 	private static final PortletAsyncListenerFactory
 		_dummyPortletAsyncListenerFactory = new PortletAsyncListenerFactory() {
 
@@ -288,8 +288,10 @@ public class PortletAsyncContextImpl implements PortletAsyncContext {
 				try {
 					return clazz.newInstance();
 				}
-				catch (ReflectiveOperationException roe) {
-					throw new PortletException(roe);
+				catch (ReflectiveOperationException
+							reflectiveOperationException) {
+
+					throw new PortletException(reflectiveOperationException);
 				}
 			}
 

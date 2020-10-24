@@ -24,7 +24,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
-			panel = "Site Administration",
 			portlet = "Pages");
 
 		SitePages.configurePage(
@@ -359,9 +358,13 @@ definition {
 			locator1 = "TextInput#SUBJECT",
 			value1 = "MB Thread Message Subject");
 
-		AlloyEditor.typeEditor(
-			content = "MB Thread Message Body",
-			editor = "body");
+		SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
+
+		Type(
+			locator1 = "CKEditor#BODY",
+			value1 = "MB Thread Message Body");
+
+		SelectFrame(value1 = "relative=top");
 
 		Panel.expandPanel(panel = "Attachments");
 
@@ -372,10 +375,30 @@ definition {
 				locator1 = "TextInput#FILE",
 				value1 = "${mbThreadAttachment}");
 
+			Pause(locator1 = "5000");
+
 			AssertTextEquals(
 				key_attachmentName = "${mbThreadAttachment}",
 				locator1 = "MessageBoardsEditMessage#ATTACHMENTS_SELECTED_FILE",
 				value1 = "${mbThreadAttachment}");
+
+			if (IsElementPresent(locator1 = "Header#H4_TITLE", key_title = "Uploading")) {
+				Click(
+					key_fileName = "${mbThreadAttachment}",
+					locator1 = "Icon#DELETE_ATTACHMENT");
+
+				UploadCommonFile.uploadCommonFileHiddenNoMouseOver(
+					locator1 = "TextInput#FILE",
+					value1 = "${mbThreadAttachment}");
+
+				if (IsNotChecked(locator1 = "Checkbox#SELECT_ALL")) {
+					Click(locator1 = "Checkbox#SELECT_ALL");
+				}
+			}
+
+			AssertChecked.assertCheckedNotVisible(
+				checkboxName = "${mbThreadAttachment}",
+				locator1 = "Checkbox#ANY_CHECKBOX");
 		}
 
 		PortletEntry.publish();
@@ -401,9 +424,8 @@ definition {
 
 	@priority = "5"
 	test CancelEditOnThread {
-		Navigator.gotoPage(pageName = "Message Boards Page");
-
-		MessageboardsThread.addPG(
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
 			threadBody = "Message Boards Thread Body",
 			threadSubject = "Message Boards Thread Subject");
 
@@ -458,9 +480,8 @@ definition {
 	test DeleteMBThread {
 		property portal.acceptance = "true";
 
-		Navigator.gotoPage(pageName = "Message Boards Page");
-
-		MessageboardsThread.addPG(
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
 			threadBody = "MB Thread Message Body",
 			threadSubject = "MB Thread Message Subject");
 
@@ -473,9 +494,10 @@ definition {
 	test EditMBCategory {
 		property portal.acceptance = "true";
 
-		Navigator.gotoPage(pageName = "Message Boards Page");
-
-		MessageboardsCategory.addPG(categoryName = "MB Category Name");
+		JSONMBMessage.addCategory(
+			categoryDescription = "",
+			categoryName = "MB Category Name",
+			userEmailAddress = "test@liferay.com");
 
 		Navigator.gotoPage(pageName = "Message Boards Page");
 
@@ -490,7 +512,8 @@ definition {
 	test EditMBThreadSubjectAndBody {
 		property test.name.skip.portal.instance = "PGMessageboards#EditMBThreadSubjectAndBody";
 
-		MessageboardsThread.addPG(
+		JSONMBMessage.addMessage(
+			groupName = "Guest",
 			threadBody = "MB Thread Message Body",
 			threadSubject = "MB Thread Message Subject");
 
@@ -657,7 +680,7 @@ definition {
 
 		MessageboardsThread.downloadAttachmentPG();
 
-		Pause(locator1 = "5000");
+		Pause(locator1 = "3000");
 
 		MessageboardsThread.downloadAttachmentPG();
 
@@ -683,7 +706,7 @@ definition {
 		var key_threadStatus = "Draft";
 		var key_threadSubject = "Message Boards Thread Draft";
 
-		AssertTextEquals(
+		AssertTextEquals.assertPartialText(
 			locator1 = "MessageBoards#THREAD_LIST_THREAD",
 			value1 = "Message Boards Thread Draft");
 
@@ -695,7 +718,7 @@ definition {
 			locator1 = "MessageBoards#NAVIGATION_MY_POSTS",
 			value1 = "My Posts");
 
-		AssertTextEquals(
+		AssertTextEquals.assertPartialText(
 			locator1 = "MessageBoards#THREAD_LIST_THREAD",
 			value1 = "Message Boards Thread Draft");
 
@@ -706,7 +729,7 @@ definition {
 
 	@priority = "4"
 	test ViewDefaultEmailFromConfigurationAndSubscriptionEmail {
-		property custom.properties = "message.boards.email.bulk=false";
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}message.boards.email.bulk=false";
 		property test.smtp.server.enabled = "true";
 
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
@@ -717,16 +740,12 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
-		User.editPasswordCP(
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
-
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -772,15 +791,8 @@ definition {
 		MockMock.viewMail(
 			asset = "MB Category Name",
 			content = "MB Category Name",
-			recipient = "Test Test",
-			sender = "Test Test",
-			subject = "MB Category Name");
-
-		MockMock.viewMail(
-			asset = "MB Category Name",
-			content = "MB Category Name",
 			recipient = "userfn userln",
-			sender = "Test Test",
+			sender = "Joe Bloggs",
 			subject = "MB Category Name");
 	}
 
@@ -897,17 +909,14 @@ definition {
 	@description = "This is a use case for LPS-77263."
 	@priority = "5"
 	test ViewVisualStateOfReadMBThread {
-		Navigator.gotoPage(pageName = "Message Boards Page");
+		property custom.properties = "jsonws.web.service.paths.excludes=";
 
-		MessageboardsThread.addPG(
-			threadBody = "MB Thread Message Body",
-			threadSubject = "MB Thread Message Subject 1");
-
-		Navigator.gotoPage(pageName = "Message Boards Page");
-
-		MessageboardsThread.addPG(
-			threadBody = "MB Thread Message Body",
-			threadSubject = "MB Thread Message Subject 2");
+		for (var num : list "1,2") {
+			JSONMBMessage.addMessage(
+				groupName = "Guest",
+				threadBody = "MB Thread Message Body",
+				threadSubject = "MB Thread Message Subject ${num}");
+		}
 
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
@@ -915,24 +924,14 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
-		User.editPasswordCP(
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
-
-		ProductMenu.gotoPortlet(
-			category = "People",
-			panel = "Site Administration",
-			portlet = "Memberships");
-
-		Site.assignUserAsMemberCP(
-			userFirstName = "userfn",
-			userLastName = "userln",
-			userScreenName = "usersn");
+		JSONUser.addUserToSite(
+			groupName = "Guest",
+			userEmailAddress = "userea@liferay.com");
 
 		User.logoutAndLoginPG(
 			userLoginEmailAddress = "userea@liferay.com",

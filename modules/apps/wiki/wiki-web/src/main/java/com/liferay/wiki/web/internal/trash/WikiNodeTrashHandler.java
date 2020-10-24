@@ -78,14 +78,15 @@ public class WikiNodeTrashHandler extends BaseWikiTrashHandler {
 			node.getGroupId(), originalTitle);
 
 		if (duplicateNode != null) {
-			RestoreEntryException ree = new RestoreEntryException(
-				RestoreEntryException.DUPLICATE);
+			RestoreEntryException restoreEntryException =
+				new RestoreEntryException(RestoreEntryException.DUPLICATE);
 
-			ree.setDuplicateEntryId(duplicateNode.getNodeId());
-			ree.setOldName(duplicateNode.getName());
-			ree.setTrashEntryId(trashEntry.getEntryId());
+			restoreEntryException.setDuplicateEntryId(
+				duplicateNode.getNodeId());
+			restoreEntryException.setOldName(duplicateNode.getName());
+			restoreEntryException.setTrashEntryId(trashEntry.getEntryId());
 
-			throw ree;
+			throw restoreEntryException;
 		}
 	}
 
@@ -157,11 +158,12 @@ public class WikiNodeTrashHandler extends BaseWikiTrashHandler {
 
 	@Override
 	public List<TrashedModel> getTrashModelTrashedModels(
-		long classPK, int start, int end, OrderByComparator<?> obc) {
+		long classPK, int start, int end,
+		OrderByComparator<?> orderByComparator) {
 
 		List<WikiPage> pages = _wikiPageLocalService.getPages(
 			classPK, true, WorkflowConstants.STATUS_IN_TRASH, start, end,
-			(OrderByComparator<WikiPage>)obc);
+			(OrderByComparator<WikiPage>)orderByComparator);
 
 		List<TrashedModel> trashedModels = new ArrayList<>(pages.size());
 

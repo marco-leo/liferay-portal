@@ -80,6 +80,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 @Component(immediate = true, service = RequestContextMapper.class)
 public class RequestContextMapperImpl implements RequestContextMapper {
 
+	@Override
 	public Context map(HttpServletRequest httpServletRequest) {
 		Context context = new Context();
 
@@ -123,9 +124,9 @@ public class RequestContextMapperImpl implements RequestContextMapper {
 		try {
 			user = _portal.initUser(httpServletRequest);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
+				_log.debug(exception, exception);
 			}
 		}
 

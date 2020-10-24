@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class LayoutSEOSiteLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.layout.seo.service.impl.LayoutSEOSiteLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class LayoutSEOSiteLocalServiceUtil {
 
 	/**
 	 * Adds the layout seo site to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutSEOSiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutSEOSite the layout seo site
 	 * @return the layout seo site that was added
@@ -63,7 +67,21 @@ public class LayoutSEOSiteLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the layout seo site from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutSEOSiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutSEOSite the layout seo site
 	 * @return the layout seo site that was removed
@@ -77,6 +95,10 @@ public class LayoutSEOSiteLocalServiceUtil {
 
 	/**
 	 * Deletes the layout seo site with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutSEOSiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutSEOSiteId the primary key of the layout seo site
 	 * @return the layout seo site that was removed
@@ -98,6 +120,12 @@ public class LayoutSEOSiteLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -330,6 +358,9 @@ public class LayoutSEOSiteLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -339,6 +370,10 @@ public class LayoutSEOSiteLocalServiceUtil {
 
 	/**
 	 * Updates the layout seo site in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutSEOSiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutSEOSite the layout seo site
 	 * @return the layout seo site that was updated
@@ -353,13 +388,14 @@ public class LayoutSEOSiteLocalServiceUtil {
 	public static com.liferay.layout.seo.model.LayoutSEOSite
 			updateLayoutSEOSite(
 				long userId, long groupId, boolean openGraphEnabled,
+				java.util.Map<java.util.Locale, String> openGraphImageAltMap,
 				long openGraphImageFileEntryId,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().updateLayoutSEOSite(
-			userId, groupId, openGraphEnabled, openGraphImageFileEntryId,
-			serviceContext);
+			userId, groupId, openGraphEnabled, openGraphImageAltMap,
+			openGraphImageFileEntryId, serviceContext);
 	}
 
 	public static LayoutSEOSiteLocalService getService() {

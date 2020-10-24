@@ -64,24 +64,24 @@ public class TunnelServlet extends HttpServlet {
 			return;
 		}
 
-		ObjectInputStream ois = null;
+		ObjectInputStream objectInputStream = null;
 
 		Thread thread = Thread.currentThread();
 
 		try {
-			ois = new ProtectedClassLoaderObjectInputStream(
+			objectInputStream = new ProtectedClassLoaderObjectInputStream(
 				httpServletRequest.getInputStream(),
 				thread.getContextClassLoader());
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(ioe, ioe);
+				_log.warn(ioException, ioException);
 			}
 
 			return;
 		}
 
-		Object returnObj = null;
+		Object returnObject = null;
 
 		boolean remoteAccess = AccessControlThreadLocal.isRemoteAccess();
 
@@ -89,7 +89,8 @@ public class TunnelServlet extends HttpServlet {
 			AccessControlThreadLocal.setRemoteAccess(true);
 
 			ObjectValuePair<HttpPrincipal, MethodHandler> ovp =
-				(ObjectValuePair<HttpPrincipal, MethodHandler>)ois.readObject();
+				(ObjectValuePair<HttpPrincipal, MethodHandler>)
+					objectInputStream.readObject();
 
 			MethodHandler methodHandler = ovp.getValue();
 
@@ -100,42 +101,47 @@ public class TunnelServlet extends HttpServlet {
 					return;
 				}
 
-				returnObj = methodHandler.invoke();
+				returnObject = methodHandler.invoke();
 			}
 		}
-		catch (InvocationTargetException ite) {
-			returnObj = ite.getCause();
+		catch (InvocationTargetException invocationTargetException) {
+			_log.error(invocationTargetException, invocationTargetException);
 
-			if (!(returnObj instanceof PortalException)) {
-				_log.error(ite, ite);
+			Throwable throwable = invocationTargetException.getCause();
 
-				if (returnObj != null) {
-					Throwable throwable = (Throwable)returnObj;
+			if (throwable != null) {
+				Class<?> clazz = throwable.getClass();
 
-					returnObj = new SystemException(throwable.getMessage());
+				if (throwable instanceof PortalException) {
+					returnObject = new PortalException(
+						"Invocation failed due to " + clazz.getName());
 				}
 				else {
-					returnObj = new SystemException();
+					returnObject = new SystemException(
+						"Invocation failed due to " + clazz.getName());
 				}
 			}
+			else {
+				returnObject = new SystemException();
+			}
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 		finally {
 			AccessControlThreadLocal.setRemoteAccess(remoteAccess);
 		}
 
-		if (returnObj != null) {
+		if (returnObject != null) {
 			try (ObjectOutputStream oos = new ObjectOutputStream(
 					httpServletResponse.getOutputStream())) {
 
-				oos.writeObject(returnObj);
+				oos.writeObject(returnObject);
 			}
-			catch (IOException ioe) {
-				_log.error(ioe, ioe);
+			catch (IOException ioException) {
+				_log.error(ioException, ioException);
 
-				throw ioe;
+				throw ioException;
 			}
 		}
 	}

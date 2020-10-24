@@ -57,8 +57,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see JournalFeedServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class JournalFeedServiceSoap {
 
 	public static com.liferay.journal.model.JournalFeedSoap addFeed(
@@ -83,10 +85,10 @@ public class JournalFeedServiceSoap {
 			return com.liferay.journal.model.JournalFeedSoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -94,10 +96,10 @@ public class JournalFeedServiceSoap {
 		try {
 			JournalFeedServiceUtil.deleteFeed(feedId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -107,10 +109,10 @@ public class JournalFeedServiceSoap {
 		try {
 			JournalFeedServiceUtil.deleteFeed(groupId, feedId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -124,10 +126,10 @@ public class JournalFeedServiceSoap {
 			return com.liferay.journal.model.JournalFeedSoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -142,10 +144,10 @@ public class JournalFeedServiceSoap {
 			return com.liferay.journal.model.JournalFeedSoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -170,10 +172,10 @@ public class JournalFeedServiceSoap {
 			return com.liferay.journal.model.JournalFeedSoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

@@ -194,11 +194,8 @@ public class DLFileEntryTrashHandlerTest
 
 	@Test
 	public void testFileNameUpdateWhenUpdatingTitle() throws Exception {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(group.getGroupId());
-
 		DLFileEntry dlFileEntry = (DLFileEntry)addBaseModelWithWorkflow(
-			serviceContext);
+			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
 
 		moveBaseModelToTrash(dlFileEntry.getFileEntryId());
 
@@ -229,7 +226,9 @@ public class DLFileEntryTrashHandlerTest
 		try {
 			super.testTrashParentAndBaseModel();
 		}
-		catch (com.liferay.trash.kernel.exception.TrashEntryException tee) {
+		catch (com.liferay.trash.kernel.exception.TrashEntryException
+					trashEntryException) {
+
 			throw new TrashEntryException();
 		}
 	}
@@ -240,7 +239,9 @@ public class DLFileEntryTrashHandlerTest
 		try {
 			super.testTrashParentAndRestoreParentAndBaseModel();
 		}
-		catch (com.liferay.trash.kernel.exception.RestoreEntryException ree) {
+		catch (com.liferay.trash.kernel.exception.RestoreEntryException
+					restoreEntryException) {
+
 			throw new RestoreEntryException();
 		}
 	}
@@ -360,9 +361,7 @@ public class DLFileEntryTrashHandlerTest
 	protected String getUniqueTitle(BaseModel<?> baseModel) {
 		DLFileEntry dlFileEntry = (DLFileEntry)baseModel;
 
-		String title = dlFileEntry.getTitle();
-
-		return _trashHelper.getOriginalTitle(title);
+		return _trashHelper.getOriginalTitle(dlFileEntry.getTitle());
 	}
 
 	@Override

@@ -36,8 +36,8 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.SearchContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -77,7 +77,7 @@ public class DLFileEntryIndexerLocalizedContentTest {
 
 		_group = GroupTestUtil.addGroup();
 
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		CompanyThreadLocal.setCompanyId(TestPropsValues.getCompanyId());
 	}
@@ -208,9 +208,7 @@ public class DLFileEntryIndexerLocalizedContentTest {
 	@Inject
 	protected IndexerRegistry indexerRegistry;
 
-	private static List<String> _getFieldValues(
-		String prefix, Document document) {
-
+	private List<String> _getFieldValues(String prefix, Document document) {
 		List<String> filteredFields = new ArrayList<>();
 
 		Map<String, Field> fields = document.getFields();
@@ -260,18 +258,18 @@ public class DLFileEntryIndexerLocalizedContentTest {
 			SearchContext searchContext = _getSearchContext(
 				searchTerm, locale, groupId);
 
-			Indexer indexer = indexerRegistry.getIndexer(
+			Indexer<?> indexer = indexerRegistry.getIndexer(
 				DLFileEntryConstants.getClassName());
 
 			Hits hits = indexer.search(searchContext);
 
 			return _getSingleDocument(searchTerm, hits);
 		}
-		catch (RuntimeException re) {
-			throw re;
+		catch (RuntimeException runtimeException) {
+			throw runtimeException;
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
 		}
 	}
 

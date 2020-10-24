@@ -93,10 +93,10 @@ GroupDisplayContextHelper groupDisplayContextHelper = new GroupDisplayContextHel
 		processesNode: '#importProcessesSearchContainer',
 		processesResourceURL:
 			'<%= HtmlUtil.escapeJS(importProcessesURL.toString()) %>',
-		timeZoneOffset: <%= timeZoneOffset %>
+		timeZoneOffset: <%= timeZoneOffset %>,
 	});
 
-	var destroyInstance = function(event) {
+	var destroyInstance = function (event) {
 		if (event.portletId === '<%= portletDisplay.getRootPortletId() %>') {
 			exportImport.destroy();
 

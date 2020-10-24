@@ -77,7 +77,8 @@ public class SiteNavigationMenuLocalServiceImpl
 		siteNavigationMenu.setType(type);
 		siteNavigationMenu.setAuto(auto);
 
-		siteNavigationMenuPersistence.update(siteNavigationMenu);
+		siteNavigationMenu = siteNavigationMenuPersistence.update(
+			siteNavigationMenu);
 
 		// Resources
 
@@ -191,7 +192,8 @@ public class SiteNavigationMenuLocalServiceImpl
 
 	@Override
 	public List<SiteNavigationMenu> getSiteNavigationMenus(
-		long groupId, int start, int end, OrderByComparator orderByComparator) {
+		long groupId, int start, int end,
+		OrderByComparator<SiteNavigationMenu> orderByComparator) {
 
 		return siteNavigationMenuPersistence.findByGroupId(
 			groupId, start, end, orderByComparator);
@@ -200,7 +202,7 @@ public class SiteNavigationMenuLocalServiceImpl
 	@Override
 	public List<SiteNavigationMenu> getSiteNavigationMenus(
 		long groupId, String keywords, int start, int end,
-		OrderByComparator orderByComparator) {
+		OrderByComparator<SiteNavigationMenu> orderByComparator) {
 
 		return siteNavigationMenuPersistence.findByG_LikeN(
 			groupId,

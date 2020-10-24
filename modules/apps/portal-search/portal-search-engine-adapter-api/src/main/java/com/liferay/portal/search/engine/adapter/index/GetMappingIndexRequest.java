@@ -14,15 +14,20 @@
 
 package com.liferay.portal.search.engine.adapter.index;
 
+import com.liferay.portal.search.engine.adapter.ccr.CrossClusterRequest;
+
 /**
  * @author Dylan Rebelak
  */
 public class GetMappingIndexRequest
-	implements IndexRequest<GetMappingIndexResponse> {
+	extends CrossClusterRequest
+	implements MappingIndexRequest<GetMappingIndexResponse> {
 
 	public GetMappingIndexRequest(String[] indexNames, String mappingName) {
 		_indexNames = indexNames;
 		_mappingName = mappingName;
+
+		setPreferLocalCluster(true);
 	}
 
 	@Override

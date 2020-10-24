@@ -12,80 +12,146 @@
  * details.
  */
 
-import React from 'react';
+import {useThunk} from 'frontend-js-react-web';
+import React, {
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useReducer,
+	useRef,
+} from 'react';
 
-// Commented out to avoid lint errors
-import {LAYOUT_DATA_ITEM_DEFAULT_CONFIGURATIONS} from '../config/constants/layoutDataItemDefaultConfigurations';
-import {LAYOUT_DATA_ITEM_TYPES} from '../config/constants/layoutDataItemTypes';
+import useUndo from '../components/undo/useUndo';
 
-const INITIAL_STATE = {
-	/**
-	 * A collection of dynamically loaded reducers that may be loaded from
-	 * plugins at runtime.
-	 *
-	 * TODO: potentially allow us to specify a ranking here to determine order
-	 */
-	reducers: {}
-};
+const StoreDispatchContext = React.createContext(() => {});
+const StoreGetStateContext = React.createContext(null);
+const StoreSubscriptionContext = React.createContext([() => {}, () => {}]);
 
-export const StoreContext = React.createContext(INITIAL_STATE);
+const DEFAULT_COMPARE_EQUAL = (a, b) => a === b;
+const DEFAULT_DISPATCH = () => {};
+const DEFAULT_GET_STATE = () => ({});
 
 /**
- * Prepares the initial contents of the store based on server data.
+ * Although StoreContextProvider creates a full functional store,
+ * sometimes mocking dispatchs and/or store state may be necessary
+ * for testing purposes.
  *
- * Data that goes in the store should be of "global" interest across the
- * app. Actions (user interactions, network activity etc) update that state, and
- * any interested component can obtain updates via the `StoreContext`.
- *
- * This is in contrast to immutable config, managed in the neigboring
- * config directory. Immutable config may be of interest across the app,
- * but it does not change in response to actions or events; it remains
- * static over the lifetime of the app.
- *
- * State which is not of "global" interest should go in component-local state
- * (see the `useState` hook) or a in more localized context objects that apply
- * to specific subtrees.
+ * This component wraps it's children with an usable StoreContext
+ * that calls dispatch and getState methods instead of using a real
+ * reducer internally.
  */
-export function getInitialState([data, config]) {
-	const state = {
-		...transformServerData(data)
-	};
+export const StoreAPIContextProvider = ({
+	children,
+	dispatch = DEFAULT_DISPATCH,
+	getState = DEFAULT_GET_STATE,
+}) => {
+	const state = getState();
 
-	// Exclude keys that were partitioned off into config.
-	Object.keys(config).forEach(key => {
-		delete state[key];
-	});
+	const subscribers = useRef([]);
 
-	return {
-		...INITIAL_STATE,
-		...state
-	};
-}
+	const subscribe = useCallback((subscriber) => {
+		subscribers.current = [...subscribers.current, subscriber];
+	}, []);
 
-function transformServerData(data) {
-	let layoutData = data.layoutData;
+	const unsubscribe = useCallback((subscriber) => {
+		subscribers.current = subscribers.current.filter(
+			(_subscriber) => _subscriber !== subscriber
+		);
+	}, []);
 
-	if (!layoutData.version) {
-		layoutData = {
-			items: {
-				main: {
-					children: [],
-					config: {...LAYOUT_DATA_ITEM_DEFAULT_CONFIGURATIONS.root},
-					itemId: 'main',
-					parentId: null,
-					type: LAYOUT_DATA_ITEM_TYPES.root
-				}
-			},
+	const subscriptionContext = useRef([subscribe, unsubscribe]);
 
-			rootItems: {main: 'main'},
-			version: 1
+	useEffect(() => {
+		subscribers.current.forEach((subscriber) => subscriber(state));
+	}, [state]);
+
+	return (
+		<StoreSubscriptionContext.Provider value={subscriptionContext.current}>
+			<StoreDispatchContext.Provider value={dispatch}>
+				<StoreGetStateContext.Provider value={getState}>
+					{children}
+				</StoreGetStateContext.Provider>
+			</StoreDispatchContext.Provider>
+		</StoreSubscriptionContext.Provider>
+	);
+};
+
+/**
+ * StoreContext is a black box for components: they should
+ * get information from state and dispatch actions by using
+ * given useSelector and useDispatch hooks.
+ *
+ * That's why we only provide a custom StoreContextProvider instead
+ * of the raw React context.
+ */
+export const StoreContextProvider = ({children, initialState, reducer}) => {
+	const [state, dispatch] = useThunk(
+		useUndo(useReducer(reducer, initialState))
+	);
+
+	const stateRef = useRef(state);
+	const getState = useCallback(() => stateRef.current, []);
+
+	stateRef.current = state;
+
+	return (
+		<StoreAPIContextProvider dispatch={dispatch} getState={getState}>
+			{children}
+		</StoreAPIContextProvider>
+	);
+};
+
+/**
+ * @see https://react-redux.js.org/api/hooks#usedispatch
+ */
+export const useDispatch = () => useContext(StoreDispatchContext);
+
+export const useSelectorCallback = (
+	selector,
+	dependencies,
+	compareEqual = DEFAULT_COMPARE_EQUAL
+) => {
+	const getState = useContext(StoreGetStateContext);
+	const [subscribe, unsubscribe] = useContext(StoreSubscriptionContext);
+
+	const initialState = useMemo(
+		() => selector(getState()),
+
+		// We really want to call selector here just on component mount.
+		// This provides an initial value that will be recalculated when
+		// store suscription has been called.
+		// eslint-disable-next-line
+		[]
+	);
+
+	const [selectorState, setSelectorState] = useReducer(
+		(state, nextState) =>
+			compareEqual(state, nextState) ? state : nextState,
+		initialState
+	);
+
+	/* eslint-disable-next-line react-hooks/exhaustive-deps */
+	const selectorCallback = useCallback(selector, dependencies);
+
+	useEffect(() => {
+		const onStoreChange = (nextState) => {
+			setSelectorState(selectorCallback(nextState));
 		};
-	}
 
-	// Currently nothing happening here, but keeping this around so that we have
-	// a place to massage the server data into shape.
-	return {
-		...data,
-		layoutData
-	};
-}
+		setSelectorState(selectorCallback(getState()));
+		subscribe(onStoreChange);
+
+		return () => {
+			unsubscribe(onStoreChange);
+		};
+	}, [getState, selectorCallback, subscribe, unsubscribe]);
+
+	return selectorState;
+};
+
+/**
+ * @see https://react-redux.js.org/api/hooks#useselector
+ */
+export const useSelector = (selector, compareEqual = DEFAULT_COMPARE_EQUAL) =>
+	useSelectorCallback(selector, [], compareEqual);

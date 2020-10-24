@@ -94,7 +94,7 @@ public class InitialUpgradeExtender
 		_bundleContext = bundleContext;
 
 		_bundleTracker = new BundleTracker<>(
-			bundleContext, Bundle.ACTIVE | Bundle.STARTING, this);
+			bundleContext, Bundle.ACTIVE, this);
 
 		_bundleTracker.open();
 	}
@@ -104,7 +104,7 @@ public class InitialUpgradeExtender
 		_bundleTracker.close();
 	}
 
-	private static ServiceRegistration<UpgradeStep> _processInitialUpgrade(
+	private ServiceRegistration<UpgradeStep> _processInitialUpgrade(
 		BundleContext bundleContext, Bundle bundle, DataSource dataSource) {
 
 		Dictionary<String, Object> properties = new HashMapDictionary<>();
@@ -176,51 +176,48 @@ public class InitialUpgradeExtender
 			try (Connection connection = _dataSource.getConnection()) {
 				if (tablesSQL != null) {
 					try {
-						db.runSQLTemplateString(
-							connection, tablesSQL, true, true);
+						db.runSQLTemplateString(connection, tablesSQL, true);
 					}
-					catch (Exception e) {
+					catch (Exception exception) {
 						throw new UpgradeException(
 							StringBundler.concat(
 								"Bundle ", _bundle,
 								" has invalid content in tables.sql:\n",
 								tablesSQL),
-							e);
+							exception);
 					}
 				}
 
 				if (sequencesSQL != null) {
 					try {
-						db.runSQLTemplateString(
-							connection, sequencesSQL, true, true);
+						db.runSQLTemplateString(connection, sequencesSQL, true);
 					}
-					catch (Exception e) {
+					catch (Exception exception) {
 						throw new UpgradeException(
 							StringBundler.concat(
 								"Bundle ", _bundle,
 								" has invalid content in sequences.sql:\n",
 								sequencesSQL),
-							e);
+							exception);
 					}
 				}
 
 				if (indexesSQL != null) {
 					try {
-						db.runSQLTemplateString(
-							connection, indexesSQL, true, true);
+						db.runSQLTemplateString(connection, indexesSQL, true);
 					}
-					catch (Exception e) {
+					catch (Exception exception) {
 						throw new UpgradeException(
 							StringBundler.concat(
 								"Bundle ", _bundle,
 								" has invalid content in indexes.sql:\n",
 								indexesSQL),
-							e);
+							exception);
 					}
 				}
 			}
-			catch (SQLException sqle) {
-				throw new UpgradeException(sqle);
+			catch (SQLException sqlException) {
+				throw new UpgradeException(sqlException);
 			}
 		}
 
@@ -245,9 +242,9 @@ public class InitialUpgradeExtender
 			try (InputStream inputStream = resource.openStream()) {
 				return StringUtil.read(inputStream);
 			}
-			catch (IOException ioe) {
+			catch (IOException ioException) {
 				throw new UpgradeException(
-					"Unable to read SQL template " + templateName, ioe);
+					"Unable to read SQL template " + templateName, ioException);
 			}
 		}
 

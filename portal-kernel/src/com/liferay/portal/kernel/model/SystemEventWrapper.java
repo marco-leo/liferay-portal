@@ -19,6 +19,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -42,6 +44,7 @@ public class SystemEventWrapper
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
 		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("systemEventId", getSystemEventId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -66,6 +69,12 @@ public class SystemEventWrapper
 
 		if (mvccVersion != null) {
 			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
 		}
 
 		Long systemEventId = (Long)attributes.get("systemEventId");
@@ -214,6 +223,16 @@ public class SystemEventWrapper
 	}
 
 	/**
+	 * Returns the ct collection ID of this system event.
+	 *
+	 * @return the ct collection ID of this system event
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
+	}
+
+	/**
 	 * Returns the extra data of this system event.
 	 *
 	 * @return the extra data of this system event
@@ -338,11 +357,6 @@ public class SystemEventWrapper
 		return model.getUserUuid();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a system event model instance should use the <code>SystemEvent</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -401,6 +415,16 @@ public class SystemEventWrapper
 	@Override
 	public void setCreateDate(Date createDate) {
 		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets the ct collection ID of this system event.
+	 *
+	 * @param ctCollectionId the ct collection ID of this system event
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -526,6 +550,20 @@ public class SystemEventWrapper
 	@Override
 	public void setUserUuid(String userUuid) {
 		model.setUserUuid(userUuid);
+	}
+
+	@Override
+	public Map<String, Function<SystemEvent, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<SystemEvent, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

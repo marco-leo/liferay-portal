@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class SocialActivitySettingLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portlet.social.service.impl.SocialActivitySettingLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -38,6 +38,10 @@ public class SocialActivitySettingLocalServiceUtil {
 
 	/**
 	 * Adds the social activity setting to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialActivitySettingLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param socialActivitySetting the social activity setting
 	 * @return the social activity setting that was added
@@ -48,6 +52,16 @@ public class SocialActivitySettingLocalServiceUtil {
 				socialActivitySetting) {
 
 		return getService().addSocialActivitySetting(socialActivitySetting);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -86,6 +100,10 @@ public class SocialActivitySettingLocalServiceUtil {
 	/**
 	 * Deletes the social activity setting with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialActivitySettingLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param activitySettingId the primary key of the social activity setting
 	 * @return the social activity setting that was removed
 	 * @throws PortalException if a social activity setting with the primary key could not be found
@@ -100,6 +118,10 @@ public class SocialActivitySettingLocalServiceUtil {
 	/**
 	 * Deletes the social activity setting from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialActivitySettingLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param socialActivitySetting the social activity setting
 	 * @return the social activity setting that was removed
 	 */
@@ -109,6 +131,12 @@ public class SocialActivitySettingLocalServiceUtil {
 				socialActivitySetting) {
 
 		return getService().deleteSocialActivitySetting(socialActivitySetting);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -246,6 +274,9 @@ public class SocialActivitySettingLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -342,6 +373,10 @@ public class SocialActivitySettingLocalServiceUtil {
 
 	/**
 	 * Updates the social activity setting in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialActivitySettingLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param socialActivitySetting the social activity setting
 	 * @return the social activity setting that was updated

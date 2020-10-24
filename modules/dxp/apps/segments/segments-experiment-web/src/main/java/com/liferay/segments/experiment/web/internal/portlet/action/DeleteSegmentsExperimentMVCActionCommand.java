@@ -45,7 +45,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"javax.portlet.name=" + SegmentsPortletKeys.SEGMENTS_EXPERIMENT,
-		"mvc.command.name=/delete_segments_experiment"
+		"mvc.command.name=/segments_experiment/delete_segments_experiment"
 	},
 	service = MVCActionCommand.class
 )
@@ -66,8 +66,8 @@ public class DeleteSegmentsExperimentMVCActionCommand
 			_segmentsExperimentService.deleteSegmentsExperiment(
 				ParamUtil.getLong(actionRequest, "segmentsExperimentId"));
 		}
-		catch (PortalException pe) {
-			_log.error(pe, pe);
+		catch (PortalException portalException) {
+			_log.error(portalException, portalException);
 
 			HttpServletResponse httpServletResponse =
 				_portal.getHttpServletResponse(actionResponse);

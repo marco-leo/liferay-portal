@@ -39,7 +39,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface KaleoConditionModel
 	extends BaseModel<KaleoCondition>, GroupedModel, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo condition model instance should use the {@link KaleoCondition} interface instead.
@@ -201,6 +201,20 @@ public interface KaleoConditionModel
 	 */
 	@Override
 	public void setModifiedDate(Date modifiedDate);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo condition.
+	 *
+	 * @return the kaleo definition ID of this kaleo condition
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo condition.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo condition
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo condition.

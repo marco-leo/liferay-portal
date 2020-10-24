@@ -14,14 +14,19 @@
 
 package com.liferay.portal.search.engine.adapter.cluster;
 
+import com.liferay.portal.search.engine.adapter.ccr.CrossClusterRequest;
+
 /**
  * @author Dylan Rebelak
  */
 public class StatsClusterRequest
+	extends CrossClusterRequest
 	implements ClusterRequest<StatsClusterResponse> {
 
 	public StatsClusterRequest(String[] nodeIds) {
 		_nodeIds = nodeIds;
+
+		setPreferLocalCluster(true);
 	}
 
 	@Override

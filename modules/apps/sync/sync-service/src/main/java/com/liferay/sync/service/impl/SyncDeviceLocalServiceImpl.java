@@ -62,15 +62,13 @@ public class SyncDeviceLocalServiceImpl extends SyncDeviceLocalServiceBaseImpl {
 		syncDevice.setHostname(hostname);
 		syncDevice.setStatus(SyncDeviceConstants.STATUS_ACTIVE);
 
-		syncDevicePersistence.update(syncDevice);
-
-		return syncDevice;
+		return syncDevicePersistence.update(syncDevice);
 	}
 
 	@Override
 	public List<SyncDevice> getSyncDevices(
 			long userId, int start, int end,
-			OrderByComparator orderByComparator)
+			OrderByComparator<SyncDevice> orderByComparator)
 		throws PortalException {
 
 		return syncDevicePersistence.findByUserId(
@@ -115,9 +113,7 @@ public class SyncDeviceLocalServiceImpl extends SyncDeviceLocalServiceBaseImpl {
 		syncDevice.setHostname(hostname);
 		syncDevice.setStatus(status);
 
-		syncDevicePersistence.update(syncDevice);
-
-		return syncDevice;
+		return syncDevicePersistence.update(syncDevice);
 	}
 
 }

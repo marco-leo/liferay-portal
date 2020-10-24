@@ -14,6 +14,7 @@
 
 package com.liferay.portal.service.base;
 
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -35,6 +36,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.CompanyPersistence;
 import com.liferay.portal.kernel.service.persistence.ResourceActionPersistence;
 import com.liferay.portal.kernel.service.persistence.ResourcePermissionFinder;
@@ -64,7 +66,7 @@ public abstract class ResourceActionLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements IdentifiableOSGiService, ResourceActionLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>ResourceActionLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.ResourceActionLocalServiceUtil</code>.
@@ -72,6 +74,10 @@ public abstract class ResourceActionLocalServiceBaseImpl
 
 	/**
 	 * Adds the resource action to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ResourceActionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param resourceAction the resource action
 	 * @return the resource action that was added
@@ -99,6 +105,10 @@ public abstract class ResourceActionLocalServiceBaseImpl
 	/**
 	 * Deletes the resource action with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ResourceActionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param resourceActionId the primary key of the resource action
 	 * @return the resource action that was removed
 	 * @throws PortalException if a resource action with the primary key could not be found
@@ -114,6 +124,10 @@ public abstract class ResourceActionLocalServiceBaseImpl
 	/**
 	 * Deletes the resource action from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ResourceActionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param resourceAction the resource action
 	 * @return the resource action that was removed
 	 */
@@ -121,6 +135,11 @@ public abstract class ResourceActionLocalServiceBaseImpl
 	@Override
 	public ResourceAction deleteResourceAction(ResourceAction resourceAction) {
 		return resourceActionPersistence.remove(resourceAction);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return resourceActionPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -275,6 +294,17 @@ public abstract class ResourceActionLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return resourceActionPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -282,6 +312,14 @@ public abstract class ResourceActionLocalServiceBaseImpl
 			(ResourceAction)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<ResourceAction> getBasePersistence() {
+		return resourceActionPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -317,6 +355,10 @@ public abstract class ResourceActionLocalServiceBaseImpl
 
 	/**
 	 * Updates the resource action in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ResourceActionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param resourceAction the resource action
 	 * @return the resource action that was updated
@@ -542,8 +584,8 @@ public abstract class ResourceActionLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

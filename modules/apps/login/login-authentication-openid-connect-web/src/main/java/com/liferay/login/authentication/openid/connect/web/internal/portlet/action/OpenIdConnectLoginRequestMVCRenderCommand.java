@@ -76,7 +76,8 @@ public class OpenIdConnectLoginRequestMVCRenderCommand
 
 		httpServletRequest.setAttribute(
 			OpenIdConnectWebKeys.OPEN_ID_CONNECT_PROVIDER_NAMES,
-			_openIdConnectProviderRegistry.getOpenIdConnectProviderNames());
+			_openIdConnectProviderRegistry.getOpenIdConnectProviderNames(
+				themeDisplay.getCompanyId()));
 
 		RequestDispatcher requestDispatcher =
 			_servletContext.getRequestDispatcher(_JSP_PATH);
@@ -87,13 +88,15 @@ public class OpenIdConnectLoginRequestMVCRenderCommand
 		try {
 			requestDispatcher.include(httpServletRequest, httpServletResponse);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			_log.error(
 				StringBundler.concat(
-					"Unable to include JSP ", _JSP_PATH, ": ", e.getMessage()),
-				e);
+					"Unable to include JSP ", _JSP_PATH, ": ",
+					exception.getMessage()),
+				exception);
 
-			throw new PortletException("Unable to include JSP " + _JSP_PATH, e);
+			throw new PortletException(
+				"Unable to include JSP " + _JSP_PATH, exception);
 		}
 
 		return "/navigation.jsp";
@@ -109,7 +112,7 @@ public class OpenIdConnectLoginRequestMVCRenderCommand
 	private OpenIdConnect _openIdConnect;
 
 	@Reference
-	private OpenIdConnectProviderRegistry _openIdConnectProviderRegistry;
+	private OpenIdConnectProviderRegistry<?, ?> _openIdConnectProviderRegistry;
 
 	@Reference
 	private Portal _portal;

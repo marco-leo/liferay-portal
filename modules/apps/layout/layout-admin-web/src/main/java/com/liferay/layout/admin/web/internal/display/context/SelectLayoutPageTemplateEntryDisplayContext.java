@@ -14,6 +14,7 @@
 
 package com.liferay.layout.admin.web.internal.display.context;
 
+import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.layout.admin.web.internal.util.LayoutPageTemplatePortletUtil;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
@@ -21,15 +22,19 @@ import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServ
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryServiceUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.model.LayoutConstants;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.LayoutTypeController;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.util.LayoutTypeControllerTracker;
+import com.liferay.style.book.model.StyleBookEntry;
+import com.liferay.style.book.service.StyleBookEntryLocalServiceUtil;
+import com.liferay.style.book.util.comparator.StyleBookEntryNameComparator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +54,22 @@ public class SelectLayoutPageTemplateEntryDisplayContext {
 
 		_themeDisplay = (ThemeDisplay)_httpServletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
+	}
+
+	public String getBackURL() {
+		if (_backURL != null) {
+			return _backURL;
+		}
+
+		String backURL = ParamUtil.getString(_httpServletRequest, "backURL");
+
+		if (Validator.isNull(backURL)) {
+			backURL = getRedirect();
+		}
+
+		_backURL = backURL;
+
+		return _backURL;
 	}
 
 	public List<LayoutPageTemplateEntry> getGlobalLayoutPageTemplateEntries() {
@@ -113,9 +134,21 @@ public class SelectLayoutPageTemplateEntryDisplayContext {
 
 		masterLayoutPageTemplateEntries.add(layoutPageTemplateEntry);
 
+		Group scopeGroup = _themeDisplay.getScopeGroup();
+
+		long scopeGroupId = _themeDisplay.getScopeGroupId();
+
+		if (scopeGroup.isLayoutPrototype()) {
+			LayoutPageTemplateEntry layoutPrototypeLayoutPageTemplateEntry =
+				LayoutPageTemplateEntryLocalServiceUtil.
+					fetchFirstLayoutPageTemplateEntry(scopeGroup.getClassPK());
+
+			scopeGroupId = layoutPrototypeLayoutPageTemplateEntry.getGroupId();
+		}
+
 		masterLayoutPageTemplateEntries.addAll(
 			LayoutPageTemplateEntryServiceUtil.getLayoutPageTemplateEntries(
-				_themeDisplay.getScopeGroupId(),
+				scopeGroupId,
 				LayoutPageTemplateEntryTypeConstants.TYPE_MASTER_LAYOUT,
 				WorkflowConstants.STATUS_APPROVED, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null));
@@ -144,6 +177,13 @@ public class SelectLayoutPageTemplateEntryDisplayContext {
 		return _selectedTab;
 	}
 
+	public List<StyleBookEntry> getStyleBookEntries() {
+		return StyleBookEntryLocalServiceUtil.getStyleBookEntries(
+			StagingUtil.getLiveGroupId(_themeDisplay.getScopeGroupId()),
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+			new StyleBookEntryNameComparator(true));
+	}
+
 	public List<String> getTypes() {
 		if (_types != null) {
 			return _types;
@@ -156,7 +196,7 @@ public class SelectLayoutPageTemplateEntryDisplayContext {
 					LayoutTypeControllerTracker.getLayoutTypeController(type);
 
 				return layoutTypeController.isInstanceable() &&
-					   !Objects.equals(type, LayoutConstants.TYPE_CONTENT);
+					   !layoutTypeController.isPrimaryType();
 			});
 
 		return _types;
@@ -200,6 +240,7 @@ public class SelectLayoutPageTemplateEntryDisplayContext {
 		return true;
 	}
 
+	private String _backURL;
 	private final HttpServletRequest _httpServletRequest;
 	private Long _layoutPageTemplateCollectionId;
 	private String _redirect;

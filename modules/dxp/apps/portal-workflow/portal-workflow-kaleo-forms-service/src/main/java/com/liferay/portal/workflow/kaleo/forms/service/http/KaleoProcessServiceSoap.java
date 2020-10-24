@@ -61,8 +61,10 @@ import java.util.Map;
  *
  * @author Marcellus Tavares
  * @see KaleoProcessServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class KaleoProcessServiceSoap {
 
 	/**
@@ -115,10 +117,10 @@ public class KaleoProcessServiceSoap {
 			return com.liferay.portal.workflow.kaleo.forms.model.
 				KaleoProcessSoap.toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -141,10 +143,10 @@ public class KaleoProcessServiceSoap {
 			return com.liferay.portal.workflow.kaleo.forms.model.
 				KaleoProcessSoap.toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -168,10 +170,10 @@ public class KaleoProcessServiceSoap {
 			return com.liferay.portal.workflow.kaleo.forms.model.
 				KaleoProcessSoap.toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -206,7 +208,8 @@ public class KaleoProcessServiceSoap {
 		com.liferay.portal.workflow.kaleo.forms.model.KaleoProcessSoap[] search(
 				long groupId, String keywords, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					orderByComparator)
+					<com.liferay.portal.workflow.kaleo.forms.model.KaleoProcess>
+						orderByComparator)
 			throws RemoteException {
 
 		try {
@@ -218,10 +221,10 @@ public class KaleoProcessServiceSoap {
 			return com.liferay.portal.workflow.kaleo.forms.model.
 				KaleoProcessSoap.toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -247,10 +250,10 @@ public class KaleoProcessServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -305,10 +308,10 @@ public class KaleoProcessServiceSoap {
 			return com.liferay.portal.workflow.kaleo.forms.model.
 				KaleoProcessSoap.toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

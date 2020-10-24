@@ -184,12 +184,12 @@ public class PortletWrapper
 	/**
 	 * Checks whether this portlet is equal to the specified object.
 	 *
-	 * @param obj the object to compare this portlet against
+	 * @param object the object to compare this portlet against
 	 * @return <code>true</code> if the portlet is equal to the specified object
 	 */
 	@Override
-	public boolean equals(Object obj) {
-		return model.equals(obj);
+	public boolean equals(Object object) {
+		return model.equals(object);
 	}
 
 	/**
@@ -2381,11 +2381,6 @@ public class PortletWrapper
 		model.linkRoles();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a portlet model instance should use the <code>Portlet</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();

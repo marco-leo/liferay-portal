@@ -17,6 +17,7 @@ package com.liferay.message.boards.service.persistence;
 import com.liferay.message.boards.exception.NoSuchCategoryException;
 import com.liferay.message.boards.model.MBCategory;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -32,9 +33,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface MBCategoryPersistence extends BasePersistence<MBCategory> {
+public interface MBCategoryPersistence
+	extends BasePersistence<MBCategory>, CTPersistence<MBCategory> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link MBCategoryUtil} to access the message boards category persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

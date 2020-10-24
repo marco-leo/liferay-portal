@@ -18,6 +18,7 @@ import com.liferay.dynamic.data.mapping.internal.search.util.DDMSearchHelper;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.security.permission.DDMPermissionSupport;
 import com.liferay.dynamic.data.mapping.service.base.DDMTemplateServiceBaseImpl;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -31,6 +32,7 @@ import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermi
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.File;
 
@@ -430,6 +432,18 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 			resourceClassNameId, type, mode, status);
 	}
 
+	@Override
+	public List<DDMTemplate> getTemplates(
+		long companyId, long[] groupIds, long[] classNameIds, long[] classPKs,
+		long resourceClassNameId, int start, int end,
+		OrderByComparator<DDMTemplate> orderByComparator) {
+
+		return ddmTemplateFinder.filterFindByC_G_C_C_R_T_M_S(
+			companyId, groupIds, classNameIds, classPKs, resourceClassNameId,
+			StringPool.BLANK, StringPool.BLANK, WorkflowConstants.STATUS_ANY,
+			start, end, orderByComparator);
+	}
+
 	/**
 	 * Returns all the templates matching the group, class PK, and resource
 	 * class name ID.
@@ -505,6 +519,16 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	}
 
 	@Override
+	public int getTemplatesCount(
+		long companyId, long[] groupIds, long[] classNameIds, long[] classPKs,
+		long resourceClassNameId) {
+
+		return ddmTemplateFinder.filterCountByC_G_C_C_R_T_M_S(
+			companyId, groupIds, classNameIds, classPKs, resourceClassNameId,
+			StringPool.BLANK, StringPool.BLANK, WorkflowConstants.STATUS_ANY);
+	}
+
+	@Override
 	public void revertTemplate(
 			long templateId, String version, ServiceContext serviceContext)
 		throws PortalException {
@@ -570,9 +594,9 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 				searchContext, DDMTemplate.class,
 				ddmTemplatePersistence::findByPrimaryKey);
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(principalException, principalException);
 			}
 		}
 
@@ -639,9 +663,9 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 				searchContext, DDMTemplate.class,
 				ddmTemplatePersistence::findByPrimaryKey);
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(principalException, principalException);
 			}
 		}
 
@@ -702,9 +726,9 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 				searchContext, DDMTemplate.class,
 				ddmTemplateLocalService::fetchTemplate);
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(principalException, principalException);
 			}
 		}
 
@@ -771,9 +795,9 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 				searchContext, DDMTemplate.class,
 				ddmTemplatePersistence::findByPrimaryKey);
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(principalException, principalException);
 			}
 		}
 
@@ -818,9 +842,9 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 			return _ddmSearchHelper.doSearchCount(
 				searchContext, DDMTemplate.class);
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(principalException, principalException);
 			}
 		}
 
@@ -870,9 +894,9 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 			return _ddmSearchHelper.doSearchCount(
 				searchContext, DDMTemplate.class);
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(principalException, principalException);
 			}
 		}
 
@@ -917,9 +941,9 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 			return _ddmSearchHelper.doSearchCount(
 				searchContext, DDMTemplate.class);
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(principalException, principalException);
 			}
 		}
 
@@ -970,9 +994,9 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 			return _ddmSearchHelper.doSearchCount(
 				searchContext, DDMTemplate.class);
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(principalException, principalException);
 			}
 		}
 

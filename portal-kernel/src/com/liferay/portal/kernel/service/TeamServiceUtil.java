@@ -30,16 +30,10 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class TeamServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.TeamServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link TeamServiceUtil} to access the team remote service. Add custom service methods to <code>com.liferay.portal.service.impl.TeamServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.portal.kernel.model.Team addTeam(
 			long groupId, String name, String description,
@@ -108,10 +102,10 @@ public class TeamServiceUtil {
 		long groupId, String name, String description,
 		java.util.LinkedHashMap<String, Object> params, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.portal.kernel.model.Team> obc) {
+			<com.liferay.portal.kernel.model.Team> orderByComparator) {
 
 		return getService().search(
-			groupId, name, description, params, start, end, obc);
+			groupId, name, description, params, start, end, orderByComparator);
 	}
 
 	public static int searchCount(

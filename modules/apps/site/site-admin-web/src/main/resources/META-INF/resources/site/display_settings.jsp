@@ -59,7 +59,7 @@ if ((publicLayoutSet.isLayoutSetPrototypeLinkEnabled() || privateLayoutSet.isLay
 
 <aui:input checked="<%= !inheritLocales %>" id="customLocales" label="define-a-custom-default-language-and-additional-available-languages-for-this-site" name="TypeSettingsProperties--inheritLocales--" readonly="<%= readOnlyLocaleInput %>" type="radio" value="<%= false %>" />
 
-<aui:fieldset id='<%= renderResponse.getNamespace() + "inheritLocalesFieldset" %>'>
+<aui:fieldset id='<%= liferayPortletResponse.getNamespace() + "inheritLocalesFieldset" %>'>
 	<aui:fieldset cssClass="default-language">
 		<h4 class="text-muted"><liferay-ui:message key="default-language" /></h4>
 
@@ -83,7 +83,7 @@ if ((publicLayoutSet.isLayoutSetPrototypeLinkEnabled() || privateLayoutSet.isLay
 	</aui:fieldset>
 </aui:fieldset>
 
-<aui:fieldset id='<%= renderResponse.getNamespace() + "customLocalesFieldset" %>'>
+<aui:fieldset id='<%= liferayPortletResponse.getNamespace() + "customLocalesFieldset" %>'>
 	<liferay-ui:error exception="<%= LocaleException.class %>">
 
 		<%
@@ -137,7 +137,7 @@ if ((publicLayoutSet.isLayoutSetPrototypeLinkEnabled() || privateLayoutSet.isLay
 
 		// Left list
 
-		List leftList = new ArrayList();
+		List<KeyValuePair> leftList = new ArrayList<>();
 
 		String groupLanguageIds = typeSettingsProperties.getProperty(PropsKeys.LOCALES);
 
@@ -154,7 +154,7 @@ if ((publicLayoutSet.isLayoutSetPrototypeLinkEnabled() || privateLayoutSet.isLay
 
 		// Right list
 
-		List rightList = new ArrayList();
+		List<KeyValuePair> rightList = new ArrayList<>();
 
 		for (Locale availableLocale : LanguageUtil.getAvailableLocales()) {
 			if (!siteAvailableLocales.contains(availableLocale)) {
@@ -201,7 +201,7 @@ if ((publicLayoutSet.isLayoutSetPrototypeLinkEnabled() || privateLayoutSet.isLay
 			Liferay.Util.setFormValues(form, {
 				<%= PropsKeys.LOCALES %>: Liferay.Util.listSelect(
 					currentLanguageIds
-				)
+				),
 			});
 		}
 	}
@@ -213,13 +213,13 @@ if ((publicLayoutSet.isLayoutSetPrototypeLinkEnabled() || privateLayoutSet.isLay
 	if (languageSelectInput) {
 		var nameInput = Liferay.component('<portlet:namespace />name');
 
-		languageSelectInput.on('change', function(event) {
+		languageSelectInput.on('change', function (event) {
 			var select = event.currentTarget.getDOMNode();
 
 			var selectedOption = select.options[select.selectedIndex];
 
 			Liferay.fire('inputLocalized:defaultLocaleChanged', {
-				item: selectedOption
+				item: selectedOption,
 			});
 
 			var defaultLanguage = languageSelectInput.val();
@@ -237,10 +237,13 @@ if ((publicLayoutSet.isLayoutSetPrototypeLinkEnabled() || privateLayoutSet.isLay
 				closeable: true,
 				cssClass: 'alert-warning',
 				destroyOnHide: false,
-				render: true
+				render: true,
 			});
 
-			if (!defaultLanguageSiteName && <%= !liveGroup.isGuest() %>) {
+			if (
+				!defaultLanguageSiteName &&
+				<%= !liveGroup.isGuest() && !liveGroup.isOrganization() %>
+			) {
 				new A.Alert({
 					bodyContent:
 						'<liferay-ui:message key="site-name-will-display-a-generic-text-until-a-translation-is-added" />',
@@ -249,7 +252,7 @@ if ((publicLayoutSet.isLayoutSetPrototypeLinkEnabled() || privateLayoutSet.isLay
 					closeable: true,
 					cssClass: 'alert-warning',
 					destroyOnHide: false,
-					render: true
+					render: true,
 				});
 
 				nameInput.updateInput('<liferay-ui:message key="unnamed-site" />');

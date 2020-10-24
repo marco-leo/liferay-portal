@@ -17,6 +17,7 @@ package com.liferay.asset.list.service.persistence;
 import com.liferay.asset.list.exception.NoSuchEntryUsageException;
 import com.liferay.asset.list.model.AssetListEntryUsage;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -33,9 +34,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface AssetListEntryUsagePersistence
-	extends BasePersistence<AssetListEntryUsage> {
+	extends BasePersistence<AssetListEntryUsage>,
+			CTPersistence<AssetListEntryUsage> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link AssetListEntryUsageUtil} to access the asset list entry usage persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

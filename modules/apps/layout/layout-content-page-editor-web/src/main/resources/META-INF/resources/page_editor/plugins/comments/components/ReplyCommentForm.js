@@ -15,41 +15,33 @@
 import ClayButton from '@clayui/button';
 import {openToast} from 'frontend-js-web';
 import PropTypes from 'prop-types';
-import React, {useState, useContext} from 'react';
+import React, {useState} from 'react';
 
-import AppContext from '../../../core/AppContext';
+import {useDispatch} from '../../../app/store/index';
+import addFragmentComment from '../../../app/thunks/addFragmentComment';
 import CommentForm from './CommentForm';
-
-function addFragmentEntryLinkCommentReply() {
-	throw new Error('Not implemented');
-}
 
 export default function ReplyCommentForm({
 	disabled,
 	fragmentEntryLinkId,
-	parentCommentId
+	parentCommentId,
 }) {
 	const [addingComment, setAddingComment] = useState(false);
 	const [showForm, setShowForm] = useState(false);
 	const [textareaContent, setTextareaContent] = useState('');
-	const {dispatch} = useContext(AppContext);
+	const dispatch = useDispatch();
 
 	const handleReplyButtonClick = () => {
 		setAddingComment(true);
 
-		addFragmentEntryLinkCommentReply(
-			fragmentEntryLinkId,
-			parentCommentId,
-			textareaContent
+		dispatch(
+			addFragmentComment({
+				body: textareaContent,
+				fragmentEntryLinkId,
+				parentCommentId,
+			})
 		)
-			.then(comment => {
-				dispatch({
-					comment,
-					fragmentEntryLinkId,
-					parentCommentId,
-					type: 'addReply'
-				});
-
+			.then(() => {
 				setAddingComment(false);
 				setShowForm(false);
 				setTextareaContent('');
@@ -59,8 +51,7 @@ export default function ReplyCommentForm({
 					message: Liferay.Language.get(
 						'the-reply-could-not-be-saved'
 					),
-					title: Liferay.Language.get('error'),
-					type: 'danger'
+					type: 'danger',
 				});
 
 				setAddingComment(false);
@@ -79,7 +70,7 @@ export default function ReplyCommentForm({
 						setTextareaContent('');
 					}}
 					onSubmitButtonClick={handleReplyButtonClick}
-					onTextareaChange={content =>
+					onTextareaChange={(content) =>
 						content && setTextareaContent(content)
 					}
 					showButtons={true}
@@ -104,5 +95,5 @@ export default function ReplyCommentForm({
 ReplyCommentForm.propTypes = {
 	disabled: PropTypes.bool,
 	fragmentEntryLinkId: PropTypes.string.isRequired,
-	parentCommentId: PropTypes.string.isRequired
+	parentCommentId: PropTypes.string.isRequired,
 };

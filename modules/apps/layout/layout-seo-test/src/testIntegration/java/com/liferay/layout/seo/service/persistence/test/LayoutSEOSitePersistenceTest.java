@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -45,7 +46,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import org.junit.After;
@@ -142,6 +142,8 @@ public class LayoutSEOSitePersistenceTest {
 
 		newLayoutSEOSite.setOpenGraphEnabled(RandomTestUtil.randomBoolean());
 
+		newLayoutSEOSite.setOpenGraphImageAlt(RandomTestUtil.randomString());
+
 		newLayoutSEOSite.setOpenGraphImageFileEntryId(
 			RandomTestUtil.nextLong());
 
@@ -177,6 +179,9 @@ public class LayoutSEOSitePersistenceTest {
 		Assert.assertEquals(
 			existingLayoutSEOSite.isOpenGraphEnabled(),
 			newLayoutSEOSite.isOpenGraphEnabled());
+		Assert.assertEquals(
+			existingLayoutSEOSite.getOpenGraphImageAlt(),
+			newLayoutSEOSite.getOpenGraphImageAlt());
 		Assert.assertEquals(
 			existingLayoutSEOSite.getOpenGraphImageFileEntryId(),
 			newLayoutSEOSite.getOpenGraphImageFileEntryId());
@@ -244,8 +249,8 @@ public class LayoutSEOSitePersistenceTest {
 			"LayoutSEOSite", "mvccVersion", true, "uuid", true,
 			"layoutSEOSiteId", true, "groupId", true, "companyId", true,
 			"userId", true, "userName", true, "createDate", true,
-			"modifiedDate", true, "openGraphEnabled", true,
-			"openGraphImageFileEntryId", true);
+			"modifiedDate", true, "openGraphEnabled", true, "openGraphImageAlt",
+			true, "openGraphImageFileEntryId", true);
 	}
 
 	@Test
@@ -467,24 +472,67 @@ public class LayoutSEOSitePersistenceTest {
 
 		_persistence.clearCache();
 
-		LayoutSEOSite existingLayoutSEOSite = _persistence.findByPrimaryKey(
-			newLayoutSEOSite.getPrimaryKey());
+		_assertOriginalValues(
+			_persistence.findByPrimaryKey(newLayoutSEOSite.getPrimaryKey()));
+	}
 
-		Assert.assertTrue(
-			Objects.equals(
-				existingLayoutSEOSite.getUuid(),
-				ReflectionTestUtil.invoke(
-					existingLayoutSEOSite, "getOriginalUuid",
-					new Class<?>[0])));
+	@Test
+	public void testResetOriginalValuesWithDynamicQueryLoadFromDatabase()
+		throws Exception {
+
+		_testResetOriginalValuesWithDynamicQuery(true);
+	}
+
+	@Test
+	public void testResetOriginalValuesWithDynamicQueryLoadFromSession()
+		throws Exception {
+
+		_testResetOriginalValuesWithDynamicQuery(false);
+	}
+
+	private void _testResetOriginalValuesWithDynamicQuery(boolean clearSession)
+		throws Exception {
+
+		LayoutSEOSite newLayoutSEOSite = addLayoutSEOSite();
+
+		if (clearSession) {
+			Session session = _persistence.openSession();
+
+			session.flush();
+
+			session.clear();
+		}
+
+		DynamicQuery dynamicQuery = DynamicQueryFactoryUtil.forClass(
+			LayoutSEOSite.class, _dynamicQueryClassLoader);
+
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.eq(
+				"layoutSEOSiteId", newLayoutSEOSite.getLayoutSEOSiteId()));
+
+		List<LayoutSEOSite> result = _persistence.findWithDynamicQuery(
+			dynamicQuery);
+
+		_assertOriginalValues(result.get(0));
+	}
+
+	private void _assertOriginalValues(LayoutSEOSite layoutSEOSite) {
 		Assert.assertEquals(
-			Long.valueOf(existingLayoutSEOSite.getGroupId()),
+			layoutSEOSite.getUuid(),
+			ReflectionTestUtil.invoke(
+				layoutSEOSite, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "uuid_"));
+		Assert.assertEquals(
+			Long.valueOf(layoutSEOSite.getGroupId()),
 			ReflectionTestUtil.<Long>invoke(
-				existingLayoutSEOSite, "getOriginalGroupId", new Class<?>[0]));
+				layoutSEOSite, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "groupId"));
 
 		Assert.assertEquals(
-			Long.valueOf(existingLayoutSEOSite.getGroupId()),
+			Long.valueOf(layoutSEOSite.getGroupId()),
 			ReflectionTestUtil.<Long>invoke(
-				existingLayoutSEOSite, "getOriginalGroupId", new Class<?>[0]));
+				layoutSEOSite, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "groupId"));
 	}
 
 	protected LayoutSEOSite addLayoutSEOSite() throws Exception {
@@ -509,6 +557,8 @@ public class LayoutSEOSitePersistenceTest {
 		layoutSEOSite.setModifiedDate(RandomTestUtil.nextDate());
 
 		layoutSEOSite.setOpenGraphEnabled(RandomTestUtil.randomBoolean());
+
+		layoutSEOSite.setOpenGraphImageAlt(RandomTestUtil.randomString());
 
 		layoutSEOSite.setOpenGraphImageFileEntryId(RandomTestUtil.nextLong());
 

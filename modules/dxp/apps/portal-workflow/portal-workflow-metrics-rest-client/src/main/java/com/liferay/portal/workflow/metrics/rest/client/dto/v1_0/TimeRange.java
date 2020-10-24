@@ -27,7 +27,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class TimeRange {
+public class TimeRange implements Cloneable {
+
+	public static TimeRange toDTO(String json) {
+		return TimeRangeSerDes.toDTO(json);
+	}
 
 	public Date getDateEnd() {
 		return dateEnd;
@@ -129,6 +133,11 @@ public class TimeRange {
 	}
 
 	protected String name;
+
+	@Override
+	public TimeRange clone() throws CloneNotSupportedException {
+		return (TimeRange)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

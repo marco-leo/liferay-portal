@@ -130,10 +130,11 @@ public class StagingGroupHelperImpl implements StagingGroupHelper {
 
 			return GroupServiceHttp.getGroup(httpPrincipal, remoteGroupId);
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
-					"Unable to get remote live group: " + pe.getMessage());
+					"Unable to get remote live group: " +
+						portalException.getMessage());
 			}
 
 			return null;
@@ -303,7 +304,7 @@ public class StagingGroupHelperImpl implements StagingGroupHelper {
 				_exportImportHelper.getDataSiteLevelPortlets(
 					group.getCompanyId(), true);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return true;
 		}
 
@@ -359,10 +360,10 @@ public class StagingGroupHelperImpl implements StagingGroupHelper {
 	}
 
 	private String _getTypeSettingsProperty(Group group, String key) {
-		UnicodeProperties typeSettingsProperties =
+		UnicodeProperties typeSettingsUnicodeProperties =
 			group.getTypeSettingsProperties();
 
-		return typeSettingsProperties.getProperty(key);
+		return typeSettingsUnicodeProperties.getProperty(key);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

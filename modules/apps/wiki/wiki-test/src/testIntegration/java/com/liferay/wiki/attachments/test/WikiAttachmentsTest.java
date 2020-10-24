@@ -20,7 +20,6 @@ import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.kernel.service.DLFolderLocalService;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.search.Hits;
@@ -36,9 +35,10 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.SearchContextTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.service.test.ServiceTestUtil;
+import com.liferay.portal.search.test.util.SearchTestRule;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.wiki.model.WikiNode;
@@ -69,7 +69,7 @@ public class WikiAttachmentsTest {
 
 	@Before
 	public void setUp() throws Exception {
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		_group = GroupTestUtil.addGroup();
 	}
@@ -303,6 +303,9 @@ public class WikiAttachmentsTest {
 		Assert.assertEquals(2, _searchCount(title, true));
 	}
 
+	@Rule
+	public SearchTestRule searchTestRule = new SearchTestRule();
+
 	protected void addWikiNode() throws Exception {
 		if (_group == null) {
 			_group = GroupTestUtil.addGroup();
@@ -329,7 +332,7 @@ public class WikiAttachmentsTest {
 			_page.getUserId(), _page.getNodeId(), _page.getTitle(), getClass());
 	}
 
-	private void _addFileEntry(String title) throws PortalException {
+	private void _addFileEntry(String title) throws Exception {
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
 

@@ -15,14 +15,30 @@
 package com.liferay.data.engine.rest.internal.resource.v2_0;
 
 import com.liferay.data.engine.rest.dto.v2_0.DataRecordCollection;
-import com.liferay.data.engine.rest.dto.v2_0.DataRecordCollectionPermission;
 import com.liferay.data.engine.rest.resource.v2_0.DataRecordCollectionResource;
 import com.liferay.petra.function.UnsafeFunction;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.User;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.model.GroupedModel;
+import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.ResourceActionLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
+import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
+import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
+import com.liferay.portal.vulcan.permission.ModelPermissionsUtil;
+import com.liferay.portal.vulcan.permission.PermissionUtil;
+import com.liferay.portal.vulcan.resource.EntityModelResource;
+import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
 
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,8 +47,12 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
 
+import java.io.Serializable;
+
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.annotation.Generated;
 
@@ -51,6 +71,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 /**
@@ -60,7 +83,8 @@ import javax.ws.rs.core.UriInfo;
 @Generated("")
 @Path("/v2.0")
 public abstract class BaseDataRecordCollectionResourceImpl
-	implements DataRecordCollectionResource {
+	implements DataRecordCollectionResource, EntityModelResource,
+			   VulcanBatchEngineTaskItemDelegate<DataRecordCollection> {
 
 	/**
 	 * Invoke this method with the command line:
@@ -139,6 +163,47 @@ public abstract class BaseDataRecordCollectionResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
+	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-record-collections/batch'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@Consumes("application/json")
+	@POST
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId"),
+			@Parameter(in = ParameterIn.QUERY, name = "callbackURL")
+		}
+	)
+	@Path("/data-definitions/{dataDefinitionId}/data-record-collections/batch")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "DataRecordCollection")})
+	public Response postDataDefinitionDataRecordCollectionBatch(
+			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
+				Long dataDefinitionId,
+			@Parameter(hidden = true) @QueryParam("callbackURL") String
+				callbackURL,
+			Object object)
+		throws Exception {
+
+		vulcanBatchEngineImportTaskResource.setContextAcceptLanguage(
+			contextAcceptLanguage);
+		vulcanBatchEngineImportTaskResource.setContextCompany(contextCompany);
+		vulcanBatchEngineImportTaskResource.setContextHttpServletRequest(
+			contextHttpServletRequest);
+		vulcanBatchEngineImportTaskResource.setContextUriInfo(contextUriInfo);
+		vulcanBatchEngineImportTaskResource.setContextUser(contextUser);
+
+		Response.ResponseBuilder responseBuilder = Response.accepted();
+
+		return responseBuilder.entity(
+			vulcanBatchEngineImportTaskResource.postImportTask(
+				DataRecordCollection.class.getName(), callbackURL, null, object)
+		).build();
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/data-engine/v2.0/data-record-collections/{dataRecordCollectionId}'  -u 'test@liferay.com:test'
 	 */
 	@Override
@@ -149,12 +214,48 @@ public abstract class BaseDataRecordCollectionResourceImpl
 		}
 	)
 	@Path("/data-record-collections/{dataRecordCollectionId}")
-	@Produces("application/json")
+	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "DataRecordCollection")})
 	public void deleteDataRecordCollection(
 			@NotNull @Parameter(hidden = true)
 			@PathParam("dataRecordCollectionId") Long dataRecordCollectionId)
 		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'DELETE' 'http://localhost:8080/o/data-engine/v2.0/data-record-collections/batch'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@Consumes("application/json")
+	@DELETE
+	@Parameters(
+		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	)
+	@Path("/data-record-collections/batch")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "DataRecordCollection")})
+	public Response deleteDataRecordCollectionBatch(
+			@Parameter(hidden = true) @QueryParam("callbackURL") String
+				callbackURL,
+			Object object)
+		throws Exception {
+
+		vulcanBatchEngineImportTaskResource.setContextAcceptLanguage(
+			contextAcceptLanguage);
+		vulcanBatchEngineImportTaskResource.setContextCompany(contextCompany);
+		vulcanBatchEngineImportTaskResource.setContextHttpServletRequest(
+			contextHttpServletRequest);
+		vulcanBatchEngineImportTaskResource.setContextUriInfo(contextUriInfo);
+		vulcanBatchEngineImportTaskResource.setContextUser(contextUser);
+
+		Response.ResponseBuilder responseBuilder = Response.accepted();
+
+		return responseBuilder.entity(
+			vulcanBatchEngineImportTaskResource.deleteImportTask(
+				DataRecordCollection.class.getName(), callbackURL, object)
+		).build();
 	}
 
 	/**
@@ -208,87 +309,151 @@ public abstract class BaseDataRecordCollectionResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-record-collections/{dataRecordCollectionId}/data-record-collection-permissions' -d $'{"addDataRecord": ___, "addDataRecordCollection": ___, "definePermissions": ___, "delete": ___, "deleteDataRecord": ___, "exportDataRecord": ___, "roleNames": ___, "update": ___, "updateDataRecord": ___, "view": ___, "viewDataRecord": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-record-collections/batch'  -u 'test@liferay.com:test'
 	 */
 	@Override
-	@Consumes({"application/json", "application/xml"})
-	@POST
+	@Consumes("application/json")
+	@PUT
 	@Parameters(
-		value = {
-			@Parameter(in = ParameterIn.PATH, name = "dataRecordCollectionId"),
-			@Parameter(in = ParameterIn.QUERY, name = "operation")
-		}
+		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
 	)
-	@Path(
-		"/data-record-collections/{dataRecordCollectionId}/data-record-collection-permissions"
-	)
+	@Path("/data-record-collections/batch")
 	@Produces("application/json")
 	@Tags(value = {@Tag(name = "DataRecordCollection")})
-	public void postDataRecordCollectionDataRecordCollectionPermission(
-			@NotNull @Parameter(hidden = true)
-			@PathParam("dataRecordCollectionId") Long dataRecordCollectionId,
-			@NotNull @Parameter(hidden = true) @QueryParam("operation") String
-				operation,
-			DataRecordCollectionPermission dataRecordCollectionPermission)
+	public Response putDataRecordCollectionBatch(
+			@Parameter(hidden = true) @QueryParam("callbackURL") String
+				callbackURL,
+			Object object)
 		throws Exception {
+
+		vulcanBatchEngineImportTaskResource.setContextAcceptLanguage(
+			contextAcceptLanguage);
+		vulcanBatchEngineImportTaskResource.setContextCompany(contextCompany);
+		vulcanBatchEngineImportTaskResource.setContextHttpServletRequest(
+			contextHttpServletRequest);
+		vulcanBatchEngineImportTaskResource.setContextUriInfo(contextUriInfo);
+		vulcanBatchEngineImportTaskResource.setContextUser(contextUser);
+
+		Response.ResponseBuilder responseBuilder = Response.accepted();
+
+		return responseBuilder.entity(
+			vulcanBatchEngineImportTaskResource.putImportTask(
+				DataRecordCollection.class.getName(), callbackURL, object)
+		).build();
 	}
 
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-record-collection-permissions' -d $'{"addDataRecord": ___, "addDataRecordCollection": ___, "definePermissions": ___, "delete": ___, "deleteDataRecord": ___, "exportDataRecord": ___, "roleNames": ___, "update": ___, "updateDataRecord": ___, "view": ___, "viewDataRecord": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
-	 */
-	@Override
-	@Consumes({"application/json", "application/xml"})
-	@POST
-	@Parameters(
-		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "operation")
-		}
-	)
-	@Path("/sites/{siteId}/data-record-collection-permissions")
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "DataRecordCollection")})
-	public void postSiteDataRecordCollectionPermission(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@NotNull @Parameter(hidden = true) @QueryParam("operation") String
-				operation,
-			DataRecordCollectionPermission dataRecordCollectionPermission)
-		throws Exception {
-	}
-
-	/**
-	 * Invoke this method with the command line:
-	 *
-	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-record-collections'  -u 'test@liferay.com:test'
+	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-record-collections/{dataRecordCollectionId}/permissions'  -u 'test@liferay.com:test'
 	 */
 	@Override
 	@GET
 	@Parameters(
 		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "keywords"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize")
+			@Parameter(in = ParameterIn.PATH, name = "dataRecordCollectionId"),
+			@Parameter(in = ParameterIn.QUERY, name = "roleNames")
 		}
 	)
-	@Path("/sites/{siteId}/data-record-collections")
+	@Path("/data-record-collections/{dataRecordCollectionId}/permissions")
 	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "DataRecordCollection")})
-	public Page<DataRecordCollection> getSiteDataRecordCollectionsPage(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@Parameter(hidden = true) @QueryParam("keywords") String keywords,
-			@Context Pagination pagination)
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			getDataRecordCollectionPermissionsPage(
+				@NotNull @Parameter(hidden = true)
+				@PathParam("dataRecordCollectionId") Long
+					dataRecordCollectionId,
+				@Parameter(hidden = true) @QueryParam("roleNames") String
+					roleNames)
 		throws Exception {
 
-		return Page.of(Collections.emptyList());
+		String resourceName = getPermissionCheckerResourceName(
+			dataRecordCollectionId);
+
+		PermissionUtil.checkPermission(
+			ActionKeys.PERMISSIONS, groupLocalService, resourceName,
+			dataRecordCollectionId,
+			getPermissionCheckerGroupId(dataRecordCollectionId));
+
+		return Page.of(
+			transform(
+				PermissionUtil.getRoles(
+					contextCompany, roleLocalService,
+					StringUtil.split(roleNames)),
+				role -> PermissionUtil.toPermission(
+					contextCompany.getCompanyId(), dataRecordCollectionId,
+					resourceActionLocalService.getResourceActions(resourceName),
+					resourceName, resourcePermissionLocalService, role)));
 	}
 
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-record-collections/{dataRecordCollectionKey}'  -u 'test@liferay.com:test'
+	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-record-collections/{dataRecordCollectionId}/permissions'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "dataRecordCollectionId")
+		}
+	)
+	@Path("/data-record-collections/{dataRecordCollectionId}/permissions")
+	@Produces({"application/json", "application/xml"})
+	@Tags(value = {@Tag(name = "DataRecordCollection")})
+	public void putDataRecordCollectionPermission(
+			@NotNull @Parameter(hidden = true)
+			@PathParam("dataRecordCollectionId") Long dataRecordCollectionId,
+			com.liferay.portal.vulcan.permission.Permission[] permissions)
+		throws Exception {
+
+		String resourceName = getPermissionCheckerResourceName(
+			dataRecordCollectionId);
+
+		PermissionUtil.checkPermission(
+			ActionKeys.PERMISSIONS, groupLocalService, resourceName,
+			dataRecordCollectionId,
+			getPermissionCheckerGroupId(dataRecordCollectionId));
+
+		resourcePermissionLocalService.updateResourcePermissions(
+			contextCompany.getCompanyId(), 0, resourceName,
+			String.valueOf(dataRecordCollectionId),
+			ModelPermissionsUtil.toModelPermissions(
+				contextCompany.getCompanyId(), permissions,
+				dataRecordCollectionId, resourceName,
+				resourceActionLocalService, resourcePermissionLocalService,
+				roleLocalService));
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-record-collections/{dataRecordCollectionId}/permissions/by-current-user'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@GET
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "dataRecordCollectionId")
+		}
+	)
+	@Path(
+		"/data-record-collections/{dataRecordCollectionId}/permissions/by-current-user"
+	)
+	@Produces({"application/json", "application/xml"})
+	@Tags(value = {@Tag(name = "DataRecordCollection")})
+	public String getDataRecordCollectionPermissionByCurrentUser(
+			@NotNull @Parameter(hidden = true)
+			@PathParam("dataRecordCollectionId") Long dataRecordCollectionId)
+		throws Exception {
+
+		return StringPool.BLANK;
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-record-collections/by-data-record-collection-key/{dataRecordCollectionKey}'  -u 'test@liferay.com:test'
 	 */
 	@Override
 	@GET
@@ -298,24 +463,149 @@ public abstract class BaseDataRecordCollectionResourceImpl
 			@Parameter(in = ParameterIn.PATH, name = "dataRecordCollectionKey")
 		}
 	)
-	@Path("/sites/{siteId}/data-record-collections/{dataRecordCollectionKey}")
+	@Path(
+		"/sites/{siteId}/data-record-collections/by-data-record-collection-key/{dataRecordCollectionKey}"
+	)
 	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "DataRecordCollection")})
-	public DataRecordCollection getSiteDataRecordCollection(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@NotNull @Parameter(hidden = true)
-			@PathParam("dataRecordCollectionKey") String
-				dataRecordCollectionKey)
+	public DataRecordCollection
+			getSiteDataRecordCollectionByDataRecordCollectionKey(
+				@NotNull @Parameter(hidden = true) @PathParam("siteId") Long
+					siteId,
+				@NotNull @Parameter(hidden = true)
+				@PathParam("dataRecordCollectionKey") String
+					dataRecordCollectionKey)
 		throws Exception {
 
 		return new DataRecordCollection();
+	}
+
+	@Override
+	@SuppressWarnings("PMD.UnusedLocalVariable")
+	public void create(
+			java.util.Collection<DataRecordCollection> dataRecordCollections,
+			Map<String, Serializable> parameters)
+		throws Exception {
+
+		for (DataRecordCollection dataRecordCollection :
+				dataRecordCollections) {
+
+			postDataDefinitionDataRecordCollection(
+				Long.valueOf((String)parameters.get("dataDefinitionId")),
+				dataRecordCollection);
+		}
+	}
+
+	@Override
+	public void delete(
+			java.util.Collection<DataRecordCollection> dataRecordCollections,
+			Map<String, Serializable> parameters)
+		throws Exception {
+
+		for (DataRecordCollection dataRecordCollection :
+				dataRecordCollections) {
+
+			deleteDataRecordCollection(dataRecordCollection.getId());
+		}
+	}
+
+	@Override
+	public EntityModel getEntityModel(Map<String, List<String>> multivaluedMap)
+		throws Exception {
+
+		return getEntityModel(
+			new MultivaluedHashMap<String, Object>(multivaluedMap));
+	}
+
+	@Override
+	public EntityModel getEntityModel(MultivaluedMap multivaluedMap)
+		throws Exception {
+
+		return null;
+	}
+
+	@Override
+	public Page<DataRecordCollection> read(
+			Filter filter, Pagination pagination, Sort[] sorts,
+			Map<String, Serializable> parameters, String search)
+		throws Exception {
+
+		return getDataDefinitionDataRecordCollectionsPage(
+			(Long)parameters.get("dataDefinitionId"),
+			(String)parameters.get("keywords"), pagination);
+	}
+
+	@Override
+	public void setLanguageId(String languageId) {
+		this.contextAcceptLanguage = new AcceptLanguage() {
+
+			@Override
+			public List<Locale> getLocales() {
+				return null;
+			}
+
+			@Override
+			public String getPreferredLanguageId() {
+				return languageId;
+			}
+
+			@Override
+			public Locale getPreferredLocale() {
+				return LocaleUtil.fromLanguageId(languageId);
+			}
+
+		};
+	}
+
+	@Override
+	public void update(
+			java.util.Collection<DataRecordCollection> dataRecordCollections,
+			Map<String, Serializable> parameters)
+		throws Exception {
+
+		for (DataRecordCollection dataRecordCollection :
+				dataRecordCollections) {
+
+			putDataRecordCollection(
+				dataRecordCollection.getId() != null ?
+				dataRecordCollection.getId() :
+				(Long)parameters.get("dataRecordCollectionId"),
+				dataRecordCollection);
+		}
+	}
+
+	protected String getPermissionCheckerActionsResourceName(Object id)
+		throws Exception {
+
+		return getPermissionCheckerResourceName(id);
+	}
+
+	protected Long getPermissionCheckerGroupId(Object id) throws Exception {
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected String getPermissionCheckerPortletName(Object id)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected String getPermissionCheckerResourceName(Object id)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {
 		this.contextAcceptLanguage = contextAcceptLanguage;
 	}
 
-	public void setContextCompany(Company contextCompany) {
+	public void setContextCompany(
+		com.liferay.portal.kernel.model.Company contextCompany) {
+
 		this.contextCompany = contextCompany;
 	}
 
@@ -335,13 +625,52 @@ public abstract class BaseDataRecordCollectionResourceImpl
 		this.contextUriInfo = contextUriInfo;
 	}
 
-	public void setContextUser(User contextUser) {
+	public void setContextUser(
+		com.liferay.portal.kernel.model.User contextUser) {
+
 		this.contextUser = contextUser;
 	}
 
-	protected void preparePatch(
-		DataRecordCollection dataRecordCollection,
-		DataRecordCollection existingDataRecordCollection) {
+	public void setGroupLocalService(GroupLocalService groupLocalService) {
+		this.groupLocalService = groupLocalService;
+	}
+
+	public void setRoleLocalService(RoleLocalService roleLocalService) {
+		this.roleLocalService = roleLocalService;
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, GroupedModel groupedModel, String methodName) {
+
+		return ActionUtil.addAction(
+			actionName, getClass(), groupedModel, methodName,
+			contextScopeChecker, contextUriInfo);
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, Long id, String methodName, Long ownerId,
+		String permissionName, Long siteId) {
+
+		return ActionUtil.addAction(
+			actionName, getClass(), id, methodName, contextScopeChecker,
+			ownerId, permissionName, siteId, contextUriInfo);
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, Long id, String methodName,
+		ModelResourcePermission modelResourcePermission) {
+
+		return ActionUtil.addAction(
+			actionName, getClass(), id, methodName, contextScopeChecker,
+			modelResourcePermission, contextUriInfo);
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, String methodName, String permissionName,
+		Long siteId) {
+
+		return addAction(
+			actionName, siteId, methodName, null, permissionName, siteId);
 	}
 
 	protected <T, R> List<R> transform(
@@ -373,10 +702,17 @@ public abstract class BaseDataRecordCollectionResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
-	protected Company contextCompany;
+	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;
+	protected Object contextScopeChecker;
 	protected UriInfo contextUriInfo;
-	protected User contextUser;
+	protected com.liferay.portal.kernel.model.User contextUser;
+	protected GroupLocalService groupLocalService;
+	protected ResourceActionLocalService resourceActionLocalService;
+	protected ResourcePermissionLocalService resourcePermissionLocalService;
+	protected RoleLocalService roleLocalService;
+	protected VulcanBatchEngineImportTaskResource
+		vulcanBatchEngineImportTaskResource;
 
 }

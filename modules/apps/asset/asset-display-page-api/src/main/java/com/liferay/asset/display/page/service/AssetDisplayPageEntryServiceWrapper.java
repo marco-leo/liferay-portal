@@ -14,6 +14,7 @@
 
 package com.liferay.asset.display.page.service;
 
+import com.liferay.asset.display.page.model.AssetDisplayPageEntry;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
 /**
@@ -33,17 +34,11 @@ public class AssetDisplayPageEntryServiceWrapper
 		_assetDisplayPageEntryService = assetDisplayPageEntryService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link AssetDisplayPageEntryServiceUtil} to access the asset display page entry remote service. Add custom service methods to <code>com.liferay.asset.display.page.service.impl.AssetDisplayPageEntryServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
-	public com.liferay.asset.display.page.model.AssetDisplayPageEntry
-			addAssetDisplayPageEntry(
-				long userId, long groupId, long classNameId, long classPK,
-				long layoutPageTemplateEntryId, int type,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public AssetDisplayPageEntry addAssetDisplayPageEntry(
+			long userId, long groupId, long classNameId, long classPK,
+			long layoutPageTemplateEntryId, int type,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws Exception {
 
 		return _assetDisplayPageEntryService.addAssetDisplayPageEntry(
@@ -52,11 +47,10 @@ public class AssetDisplayPageEntryServiceWrapper
 	}
 
 	@Override
-	public com.liferay.asset.display.page.model.AssetDisplayPageEntry
-			addAssetDisplayPageEntry(
-				long userId, long groupId, long classNameId, long classPK,
-				long layoutPageTemplateEntryId,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+	public AssetDisplayPageEntry addAssetDisplayPageEntry(
+			long userId, long groupId, long classNameId, long classPK,
+			long layoutPageTemplateEntryId,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws Exception {
 
 		return _assetDisplayPageEntryService.addAssetDisplayPageEntry(
@@ -74,9 +68,8 @@ public class AssetDisplayPageEntryServiceWrapper
 	}
 
 	@Override
-	public com.liferay.asset.display.page.model.AssetDisplayPageEntry
-			fetchAssetDisplayPageEntry(
-				long groupId, long classNameId, long classPK)
+	public AssetDisplayPageEntry fetchAssetDisplayPageEntry(
+			long groupId, long classNameId, long classPK)
 		throws Exception {
 
 		return _assetDisplayPageEntryService.fetchAssetDisplayPageEntry(
@@ -84,14 +77,25 @@ public class AssetDisplayPageEntryServiceWrapper
 	}
 
 	@Override
-	public java.util.List
-		<com.liferay.asset.display.page.model.AssetDisplayPageEntry>
-			getAssetDisplayPageEntriesByLayoutPageTemplateEntryId(
-				long layoutPageTemplateEntryId) {
+	public java.util.List<AssetDisplayPageEntry>
+		getAssetDisplayPageEntriesByLayoutPageTemplateEntryId(
+			long layoutPageTemplateEntryId) {
 
 		return _assetDisplayPageEntryService.
 			getAssetDisplayPageEntriesByLayoutPageTemplateEntryId(
 				layoutPageTemplateEntryId);
+	}
+
+	@Override
+	public java.util.List<AssetDisplayPageEntry>
+		getAssetDisplayPageEntriesByLayoutPageTemplateEntryId(
+			long layoutPageTemplateEntryId, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<AssetDisplayPageEntry> orderByComparator) {
+
+		return _assetDisplayPageEntryService.
+			getAssetDisplayPageEntriesByLayoutPageTemplateEntryId(
+				layoutPageTemplateEntryId, start, end, orderByComparator);
 	}
 
 	@Override
@@ -114,10 +118,9 @@ public class AssetDisplayPageEntryServiceWrapper
 	}
 
 	@Override
-	public com.liferay.asset.display.page.model.AssetDisplayPageEntry
-			updateAssetDisplayPageEntry(
-				long assetDisplayPageEntryId, long layoutPageTemplateEntryId,
-				int type)
+	public AssetDisplayPageEntry updateAssetDisplayPageEntry(
+			long assetDisplayPageEntryId, long layoutPageTemplateEntryId,
+			int type)
 		throws Exception {
 
 		return _assetDisplayPageEntryService.updateAssetDisplayPageEntry(

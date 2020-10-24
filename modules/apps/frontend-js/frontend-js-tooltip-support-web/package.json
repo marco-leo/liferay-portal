@@ -1,10 +1,10 @@
 {
 	"dependencies": {
-		"@clayui/tooltip": "3.0.5",
+		"@clayui/tooltip": "3.3.5",
 		"frontend-js-react-web": "*",
 		"metal-dom": "2.16.8",
 		"metal-position": "2.1.2",
-		"react": "16.9.0"
+		"react": "16.12.0"
 	},
 	"name": "frontend-js-tooltip-support-web",
 	"private": true,
@@ -13,5 +13,5 @@
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "1.0.0"
+	"version": "4.0.0"
 }

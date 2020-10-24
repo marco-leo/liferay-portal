@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class MBStatsUserLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.message.boards.service.impl.MBStatsUserLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class MBStatsUserLocalServiceUtil {
 
 	/**
 	 * Adds the message boards stats user to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBStatsUserLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param mbStatsUser the message boards stats user
 	 * @return the message boards stats user that was added
@@ -69,7 +73,21 @@ public class MBStatsUserLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the message boards stats user with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBStatsUserLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param statsUserId the primary key of the message boards stats user
 	 * @return the message boards stats user that was removed
@@ -84,6 +102,10 @@ public class MBStatsUserLocalServiceUtil {
 
 	/**
 	 * Deletes the message boards stats user from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBStatsUserLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param mbStatsUser the message boards stats user
 	 * @return the message boards stats user that was removed
@@ -124,6 +146,12 @@ public class MBStatsUserLocalServiceUtil {
 
 	public static void deleteStatsUsersByUserId(long userId) {
 		getService().deleteStatsUsersByUserId(userId);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -293,6 +321,9 @@ public class MBStatsUserLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -325,8 +356,19 @@ public class MBStatsUserLocalServiceUtil {
 		return getService().getStatsUsersByUserId(userId);
 	}
 
+	public static String[] getUserRank(
+			long groupId, String languageId, long userId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().getUserRank(groupId, languageId, userId);
+	}
+
 	/**
 	 * Updates the message boards stats user in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBStatsUserLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param mbStatsUser the message boards stats user
 	 * @return the message boards stats user that was updated

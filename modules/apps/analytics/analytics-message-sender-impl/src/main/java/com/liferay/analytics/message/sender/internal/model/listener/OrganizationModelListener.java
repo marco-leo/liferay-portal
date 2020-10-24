@@ -14,13 +14,15 @@
 
 package com.liferay.analytics.message.sender.internal.model.listener;
 
-import com.liferay.analytics.settings.configuration.AnalyticsConfiguration;
+import com.liferay.analytics.message.sender.model.listener.BaseEntityModelListener;
+import com.liferay.analytics.message.sender.model.listener.EntityModelListener;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.model.Organization;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
-import com.liferay.portal.kernel.util.ArrayUtil;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
@@ -29,49 +31,58 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Rachael Koestartyo
  */
-@Component(immediate = true, service = ModelListener.class)
+@Component(
+	immediate = true, service = {EntityModelListener.class, ModelListener.class}
+)
 public class OrganizationModelListener
 	extends BaseEntityModelListener<Organization> {
 
 	@Override
-	protected List<String> getAttributeNames() {
-		return _attributeNames;
+	public List<String> getAttributeNames(long companyId) {
+		return getOrganizationAttributeNames();
 	}
 
 	@Override
-	protected Organization getOriginalModel(Organization organization)
-		throws Exception {
+	public long[] getMembershipIds(User user) throws Exception {
+		return user.getOrganizationIds();
+	}
 
-		return _organizationLocalService.getOrganization(
-			organization.getOrganizationId());
+	@Override
+	public String getModelClassName() {
+		return Organization.class.getName();
+	}
+
+	@Override
+	public void onAfterRemove(Organization organization)
+		throws ModelListenerException {
+
+		if (!analyticsConfigurationTracker.isActive()) {
+			return;
+		}
+
+		if (isExcluded(organization)) {
+			return;
+		}
+
+		updateConfigurationProperties(
+			organization.getCompanyId(), "syncedOrganizationIds",
+			String.valueOf(organization.getOrganizationId()), null);
+	}
+
+	@Override
+	protected ActionableDynamicQuery getActionableDynamicQuery() {
+		return _organizationLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	protected Organization getModel(long id) throws Exception {
+		return _organizationLocalService.getOrganization(id);
 	}
 
 	@Override
 	protected String getPrimaryKeyName() {
 		return "organizationId";
 	}
-
-	@Override
-	protected boolean isExcluded(Organization organization) {
-		AnalyticsConfiguration analyticsConfiguration =
-			analyticsConfigurationTracker.getAnalyticsConfiguration(
-				organization.getCompanyId());
-
-		if (!ArrayUtil.contains(
-				analyticsConfiguration.syncedOrganizationIds(),
-				organization.getOrganizationId())) {
-
-			return true;
-		}
-
-		return false;
-	}
-
-	private static final List<String> _attributeNames = Arrays.asList(
-		"comments", "companyId", "countryId", "createDate",
-		"externalReferenceCode", "logoId", "name", "parentOrganizationId",
-		"recursable", "regionId", "statusId", "treePath", "type", "userId",
-		"userName", "uuid");
 
 	@Reference
 	private OrganizationLocalService _organizationLocalService;

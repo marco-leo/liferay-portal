@@ -24,7 +24,7 @@
 <%
 BackgroundTaskDisplay backgroundTaskDisplay = BackgroundTaskDisplayFactoryUtil.getBackgroundTaskDisplay(backgroundTask);
 
-String taglibOnClick = liferayPortletResponse.getNamespace() + "showProcessSummary(" + String.valueOf(backgroundTask.getBackgroundTaskId()) + ", '" + HtmlUtil.escapeJS(backgroundTaskDisplay.getDisplayName(request)) + "', '" + HtmlUtil.escape(processSummaryURL) + "');";
+String taglibOnClick = liferayPortletResponse.getNamespace() + "showProcessSummary(" + String.valueOf(backgroundTask.getBackgroundTaskId()) + ", '" + HtmlUtil.escapeJS(backgroundTaskDisplay.getDisplayName(request)) + "', '" + HtmlUtil.escapeJS(processSummaryURL) + "');";
 %>
 
 <liferay-ui:icon
@@ -41,14 +41,14 @@ String taglibOnClick = liferayPortletResponse.getNamespace() + "showProcessSumma
 	) {
 		Liferay.Util.openWindow({
 			dialog: {
-				destroyOnHide: true
+				destroyOnHide: true,
 			},
 			id: '<portlet:namespace />showSummary_' + backgroundTaskId,
 			title: backgroundTaskName,
 			uri:
 				processSummaryURL +
 				'&<portlet:namespace />backgroundTaskId=' +
-				backgroundTaskId
+				backgroundTaskId,
 		});
 	}
 </aui:script>

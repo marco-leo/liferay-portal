@@ -17,9 +17,11 @@ package com.liferay.fragment.service.base;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.service.FragmentEntryService;
 import com.liferay.fragment.service.persistence.FragmentCollectionPersistence;
+import com.liferay.fragment.service.persistence.FragmentEntryFinder;
 import com.liferay.fragment.service.persistence.FragmentEntryLinkFinder;
 import com.liferay.fragment.service.persistence.FragmentEntryLinkPersistence;
 import com.liferay.fragment.service.persistence.FragmentEntryPersistence;
+import com.liferay.fragment.service.persistence.FragmentEntryVersionPersistence;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -49,7 +51,7 @@ public abstract class FragmentEntryServiceBaseImpl
 	extends BaseServiceImpl
 	implements AopService, FragmentEntryService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>FragmentEntryService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.fragment.service.FragmentEntryServiceUtil</code>.
@@ -103,8 +105,8 @@ public abstract class FragmentEntryServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -116,6 +118,9 @@ public abstract class FragmentEntryServiceBaseImpl
 
 	@Reference
 	protected FragmentEntryPersistence fragmentEntryPersistence;
+
+	@Reference
+	protected FragmentEntryFinder fragmentEntryFinder;
 
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
@@ -134,6 +139,9 @@ public abstract class FragmentEntryServiceBaseImpl
 
 	@Reference
 	protected com.liferay.portal.kernel.service.UserService userService;
+
+	@Reference
+	protected FragmentEntryVersionPersistence fragmentEntryVersionPersistence;
 
 	@Reference
 	protected FragmentEntryLinkPersistence fragmentEntryLinkPersistence;

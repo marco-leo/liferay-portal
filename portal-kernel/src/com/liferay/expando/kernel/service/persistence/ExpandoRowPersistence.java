@@ -17,6 +17,7 @@ package com.liferay.expando.kernel.service.persistence;
 import com.liferay.expando.kernel.exception.NoSuchRowException;
 import com.liferay.expando.kernel.model.ExpandoRow;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -32,9 +33,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface ExpandoRowPersistence extends BasePersistence<ExpandoRow> {
+public interface ExpandoRowPersistence
+	extends BasePersistence<ExpandoRow>, CTPersistence<ExpandoRow> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link ExpandoRowUtil} to access the expando row persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

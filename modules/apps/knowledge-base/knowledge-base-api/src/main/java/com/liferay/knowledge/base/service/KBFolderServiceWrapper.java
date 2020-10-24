@@ -30,11 +30,6 @@ public class KBFolderServiceWrapper
 		_kbFolderService = kbFolderService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link KBFolderServiceUtil} to access the kb folder remote service. Add custom service methods to <code>com.liferay.knowledge.base.service.impl.KBFolderServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.knowledge.base.model.KBFolder addKBFolder(
 			long groupId, long parentResourceClassNameId,
@@ -67,11 +62,11 @@ public class KBFolderServiceWrapper
 	public com.liferay.knowledge.base.model.KBFolder fetchFirstChildKBFolder(
 			long groupId, long kbFolderId,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.knowledge.base.model.KBFolder> obc)
+				<com.liferay.knowledge.base.model.KBFolder> orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _kbFolderService.fetchFirstChildKBFolder(
-			groupId, kbFolderId, obc);
+			groupId, kbFolderId, orderByComparator);
 	}
 
 	@Override

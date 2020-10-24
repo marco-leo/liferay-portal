@@ -14,7 +14,7 @@
 
 package com.liferay.depot.web.internal.portlet.action;
 
-import com.liferay.depot.service.DepotEntryGroupRelLocalService;
+import com.liferay.depot.service.DepotEntryGroupRelService;
 import com.liferay.depot.web.internal.constants.DepotPortletKeys;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
@@ -34,7 +34,7 @@ import org.osgi.service.component.annotations.Reference;
 	property = {
 		"javax.portlet.name=" + DepotPortletKeys.DEPOT_ADMIN,
 		"javax.portlet.name=" + DepotPortletKeys.DEPOT_SETTINGS,
-		"mvc.command.name=/depot_entry/disconnect"
+		"mvc.command.name=/depot/disconnect_depot_entry"
 	},
 	service = MVCActionCommand.class
 )
@@ -45,11 +45,11 @@ public class DisconnectSiteMVCActionCommand extends BaseMVCActionCommand {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws PortalException {
 
-		_depotEntryGroupRelLocalService.deleteDepotEntryGroupRel(
+		_depotEntryGroupRelService.deleteDepotEntryGroupRel(
 			ParamUtil.getLong(actionRequest, "depotEntryGroupRelId"));
 	}
 
 	@Reference
-	private DepotEntryGroupRelLocalService _depotEntryGroupRelLocalService;
+	private DepotEntryGroupRelService _depotEntryGroupRelService;
 
 }

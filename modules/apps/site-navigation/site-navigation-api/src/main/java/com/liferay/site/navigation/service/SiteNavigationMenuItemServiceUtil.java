@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class SiteNavigationMenuItemServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.site.navigation.service.impl.SiteNavigationMenuItemServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SiteNavigationMenuItemServiceUtil} to access the site navigation menu item remote service. Add custom service methods to <code>com.liferay.site.navigation.service.impl.SiteNavigationMenuItemServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.site.navigation.model.SiteNavigationMenuItem
 			addSiteNavigationMenuItem(
@@ -84,6 +78,17 @@ public class SiteNavigationMenuItemServiceUtil {
 			getSiteNavigationMenuItems(long siteNavigationMenuId) {
 
 		return getService().getSiteNavigationMenuItems(siteNavigationMenuId);
+	}
+
+	public static java.util.List
+		<com.liferay.site.navigation.model.SiteNavigationMenuItem>
+				getSiteNavigationMenuItems(
+					long siteNavigationMenuId,
+					long parentSiteNavigationMenuItemId)
+			throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().getSiteNavigationMenuItems(
+			siteNavigationMenuId, parentSiteNavigationMenuItemId);
 	}
 
 	public static com.liferay.site.navigation.model.SiteNavigationMenuItem

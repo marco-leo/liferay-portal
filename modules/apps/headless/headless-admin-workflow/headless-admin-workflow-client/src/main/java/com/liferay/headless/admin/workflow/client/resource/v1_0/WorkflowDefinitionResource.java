@@ -18,6 +18,7 @@ import com.liferay.headless.admin.workflow.client.dto.v1_0.WorkflowDefinition;
 import com.liferay.headless.admin.workflow.client.http.HttpInvoker;
 import com.liferay.headless.admin.workflow.client.pagination.Page;
 import com.liferay.headless.admin.workflow.client.pagination.Pagination;
+import com.liferay.headless.admin.workflow.client.problem.Problem;
 import com.liferay.headless.admin.workflow.client.serdes.v1_0.WorkflowDefinitionSerDes;
 
 import java.util.LinkedHashMap;
@@ -87,15 +88,6 @@ public interface WorkflowDefinitionResource {
 				Boolean active, String name, String version)
 		throws Exception;
 
-	public WorkflowDefinition postWorkflowDefinitionUpdateTitle(
-			String name, String title, String version)
-		throws Exception;
-
-	public HttpInvoker.HttpResponse
-			postWorkflowDefinitionUpdateTitleHttpResponse(
-				String name, String title, String version)
-		throws Exception;
-
 	public static class Builder {
 
 		public Builder authentication(String login, String password) {
@@ -141,8 +133,8 @@ public interface WorkflowDefinitionResource {
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
-		private String _login = "test@liferay.com";
-		private String _password = "test";
+		private String _login = "";
+		private String _password = "";
 		private Map<String, String> _parameters = new LinkedHashMap<>();
 		private int _port = 8080;
 		private String _scheme = "http";
@@ -167,7 +159,16 @@ public interface WorkflowDefinitionResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return Page.of(content, WorkflowDefinitionSerDes::toDTO);
+			try {
+				return Page.of(content, WorkflowDefinitionSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse getWorkflowDefinitionsPageHttpResponse(
@@ -235,7 +236,7 @@ public interface WorkflowDefinitionResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -299,7 +300,7 @@ public interface WorkflowDefinitionResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -365,7 +366,7 @@ public interface WorkflowDefinitionResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -421,6 +422,17 @@ public interface WorkflowDefinitionResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse
@@ -492,7 +504,7 @@ public interface WorkflowDefinitionResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -540,85 +552,6 @@ public interface WorkflowDefinitionResource {
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
 						"/o/headless-admin-workflow/v1.0/workflow-definitions/update-active");
-
-			httpInvoker.userNameAndPassword(
-				_builder._login + ":" + _builder._password);
-
-			return httpInvoker.invoke();
-		}
-
-		public WorkflowDefinition postWorkflowDefinitionUpdateTitle(
-				String name, String title, String version)
-			throws Exception {
-
-			HttpInvoker.HttpResponse httpResponse =
-				postWorkflowDefinitionUpdateTitleHttpResponse(
-					name, title, version);
-
-			String content = httpResponse.getContent();
-
-			_logger.fine("HTTP response content: " + content);
-
-			_logger.fine("HTTP response message: " + httpResponse.getMessage());
-			_logger.fine(
-				"HTTP response status code: " + httpResponse.getStatusCode());
-
-			try {
-				return WorkflowDefinitionSerDes.toDTO(content);
-			}
-			catch (Exception e) {
-				_logger.log(
-					Level.WARNING,
-					"Unable to process HTTP response: " + content, e);
-
-				throw e;
-			}
-		}
-
-		public HttpInvoker.HttpResponse
-				postWorkflowDefinitionUpdateTitleHttpResponse(
-					String name, String title, String version)
-			throws Exception {
-
-			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-			httpInvoker.body(version.toString(), "application/json");
-
-			if (_builder._locale != null) {
-				httpInvoker.header(
-					"Accept-Language", _builder._locale.toLanguageTag());
-			}
-
-			for (Map.Entry<String, String> entry :
-					_builder._headers.entrySet()) {
-
-				httpInvoker.header(entry.getKey(), entry.getValue());
-			}
-
-			for (Map.Entry<String, String> entry :
-					_builder._parameters.entrySet()) {
-
-				httpInvoker.parameter(entry.getKey(), entry.getValue());
-			}
-
-			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
-
-			if (name != null) {
-				httpInvoker.parameter("name", String.valueOf(name));
-			}
-
-			if (title != null) {
-				httpInvoker.parameter("title", String.valueOf(title));
-			}
-
-			if (version != null) {
-				httpInvoker.parameter("version", String.valueOf(version));
-			}
-
-			httpInvoker.path(
-				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
-						"/o/headless-admin-workflow/v1.0/workflow-definitions/update-title");
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);

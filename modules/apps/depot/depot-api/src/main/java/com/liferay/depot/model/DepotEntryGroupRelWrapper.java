@@ -14,9 +14,11 @@
 
 package com.liferay.depot.model;
 
+import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,9 +44,15 @@ public class DepotEntryGroupRelWrapper
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
 		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("uuid", getUuid());
 		attributes.put("depotEntryGroupRelId", getDepotEntryGroupRelId());
+		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
+		attributes.put("createDate", getCreateDate());
+		attributes.put("modifiedDate", getModifiedDate());
+		attributes.put("ddmStructuresAvailable", isDdmStructuresAvailable());
 		attributes.put("depotEntryId", getDepotEntryId());
+		attributes.put("searchable", isSearchable());
 		attributes.put("toGroupId", getToGroupId());
 
 		return attributes;
@@ -58,11 +66,23 @@ public class DepotEntryGroupRelWrapper
 			setMvccVersion(mvccVersion);
 		}
 
+		String uuid = (String)attributes.get("uuid");
+
+		if (uuid != null) {
+			setUuid(uuid);
+		}
+
 		Long depotEntryGroupRelId = (Long)attributes.get(
 			"depotEntryGroupRelId");
 
 		if (depotEntryGroupRelId != null) {
 			setDepotEntryGroupRelId(depotEntryGroupRelId);
+		}
+
+		Long groupId = (Long)attributes.get("groupId");
+
+		if (groupId != null) {
+			setGroupId(groupId);
 		}
 
 		Long companyId = (Long)attributes.get("companyId");
@@ -71,10 +91,35 @@ public class DepotEntryGroupRelWrapper
 			setCompanyId(companyId);
 		}
 
+		Date createDate = (Date)attributes.get("createDate");
+
+		if (createDate != null) {
+			setCreateDate(createDate);
+		}
+
+		Date modifiedDate = (Date)attributes.get("modifiedDate");
+
+		if (modifiedDate != null) {
+			setModifiedDate(modifiedDate);
+		}
+
+		Boolean ddmStructuresAvailable = (Boolean)attributes.get(
+			"ddmStructuresAvailable");
+
+		if (ddmStructuresAvailable != null) {
+			setDdmStructuresAvailable(ddmStructuresAvailable);
+		}
+
 		Long depotEntryId = (Long)attributes.get("depotEntryId");
 
 		if (depotEntryId != null) {
 			setDepotEntryId(depotEntryId);
+		}
+
+		Boolean searchable = (Boolean)attributes.get("searchable");
+
+		if (searchable != null) {
+			setSearchable(searchable);
 		}
 
 		Long toGroupId = (Long)attributes.get("toGroupId");
@@ -92,6 +137,26 @@ public class DepotEntryGroupRelWrapper
 	@Override
 	public long getCompanyId() {
 		return model.getCompanyId();
+	}
+
+	/**
+	 * Returns the create date of this depot entry group rel.
+	 *
+	 * @return the create date of this depot entry group rel
+	 */
+	@Override
+	public Date getCreateDate() {
+		return model.getCreateDate();
+	}
+
+	/**
+	 * Returns the ddm structures available of this depot entry group rel.
+	 *
+	 * @return the ddm structures available of this depot entry group rel
+	 */
+	@Override
+	public boolean getDdmStructuresAvailable() {
+		return model.getDdmStructuresAvailable();
 	}
 
 	/**
@@ -115,6 +180,26 @@ public class DepotEntryGroupRelWrapper
 	}
 
 	/**
+	 * Returns the group ID of this depot entry group rel.
+	 *
+	 * @return the group ID of this depot entry group rel
+	 */
+	@Override
+	public long getGroupId() {
+		return model.getGroupId();
+	}
+
+	/**
+	 * Returns the modified date of this depot entry group rel.
+	 *
+	 * @return the modified date of this depot entry group rel
+	 */
+	@Override
+	public Date getModifiedDate() {
+		return model.getModifiedDate();
+	}
+
+	/**
 	 * Returns the mvcc version of this depot entry group rel.
 	 *
 	 * @return the mvcc version of this depot entry group rel
@@ -135,6 +220,16 @@ public class DepotEntryGroupRelWrapper
 	}
 
 	/**
+	 * Returns the searchable of this depot entry group rel.
+	 *
+	 * @return the searchable of this depot entry group rel
+	 */
+	@Override
+	public boolean getSearchable() {
+		return model.getSearchable();
+	}
+
+	/**
 	 * Returns the to group ID of this depot entry group rel.
 	 *
 	 * @return the to group ID of this depot entry group rel
@@ -145,10 +240,35 @@ public class DepotEntryGroupRelWrapper
 	}
 
 	/**
-	 * NOTE FOR DEVELOPERS:
+	 * Returns the uuid of this depot entry group rel.
 	 *
-	 * Never modify or reference this class directly. All methods that expect a depot entry group rel model instance should use the <code>DepotEntryGroupRel</code> interface instead.
+	 * @return the uuid of this depot entry group rel
 	 */
+	@Override
+	public String getUuid() {
+		return model.getUuid();
+	}
+
+	/**
+	 * Returns <code>true</code> if this depot entry group rel is ddm structures available.
+	 *
+	 * @return <code>true</code> if this depot entry group rel is ddm structures available; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isDdmStructuresAvailable() {
+		return model.isDdmStructuresAvailable();
+	}
+
+	/**
+	 * Returns <code>true</code> if this depot entry group rel is searchable.
+	 *
+	 * @return <code>true</code> if this depot entry group rel is searchable; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isSearchable() {
+		return model.isSearchable();
+	}
+
 	@Override
 	public void persist() {
 		model.persist();
@@ -162,6 +282,26 @@ public class DepotEntryGroupRelWrapper
 	@Override
 	public void setCompanyId(long companyId) {
 		model.setCompanyId(companyId);
+	}
+
+	/**
+	 * Sets the create date of this depot entry group rel.
+	 *
+	 * @param createDate the create date of this depot entry group rel
+	 */
+	@Override
+	public void setCreateDate(Date createDate) {
+		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets whether this depot entry group rel is ddm structures available.
+	 *
+	 * @param ddmStructuresAvailable the ddm structures available of this depot entry group rel
+	 */
+	@Override
+	public void setDdmStructuresAvailable(boolean ddmStructuresAvailable) {
+		model.setDdmStructuresAvailable(ddmStructuresAvailable);
 	}
 
 	/**
@@ -185,6 +325,26 @@ public class DepotEntryGroupRelWrapper
 	}
 
 	/**
+	 * Sets the group ID of this depot entry group rel.
+	 *
+	 * @param groupId the group ID of this depot entry group rel
+	 */
+	@Override
+	public void setGroupId(long groupId) {
+		model.setGroupId(groupId);
+	}
+
+	/**
+	 * Sets the modified date of this depot entry group rel.
+	 *
+	 * @param modifiedDate the modified date of this depot entry group rel
+	 */
+	@Override
+	public void setModifiedDate(Date modifiedDate) {
+		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
 	 * Sets the mvcc version of this depot entry group rel.
 	 *
 	 * @param mvccVersion the mvcc version of this depot entry group rel
@@ -205,6 +365,16 @@ public class DepotEntryGroupRelWrapper
 	}
 
 	/**
+	 * Sets whether this depot entry group rel is searchable.
+	 *
+	 * @param searchable the searchable of this depot entry group rel
+	 */
+	@Override
+	public void setSearchable(boolean searchable) {
+		model.setSearchable(searchable);
+	}
+
+	/**
 	 * Sets the to group ID of this depot entry group rel.
 	 *
 	 * @param toGroupId the to group ID of this depot entry group rel
@@ -212,6 +382,21 @@ public class DepotEntryGroupRelWrapper
 	@Override
 	public void setToGroupId(long toGroupId) {
 		model.setToGroupId(toGroupId);
+	}
+
+	/**
+	 * Sets the uuid of this depot entry group rel.
+	 *
+	 * @param uuid the uuid of this depot entry group rel
+	 */
+	@Override
+	public void setUuid(String uuid) {
+		model.setUuid(uuid);
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return model.getStagedModelType();
 	}
 
 	@Override

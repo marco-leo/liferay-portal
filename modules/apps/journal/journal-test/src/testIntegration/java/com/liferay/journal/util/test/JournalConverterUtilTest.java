@@ -15,6 +15,7 @@
 package com.liferay.journal.util.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.dynamic.data.mapping.constants.DDMStructureConstants;
 import com.liferay.dynamic.data.mapping.io.DDMFormDeserializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormDeserializerDeserializeRequest;
 import com.liferay.dynamic.data.mapping.io.DDMFormDeserializerDeserializeResponse;
@@ -22,7 +23,6 @@ import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
-import com.liferay.dynamic.data.mapping.model.DDMStructureConstants;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.storage.Field;
 import com.liferay.dynamic.data.mapping.storage.Fields;
@@ -111,17 +111,17 @@ public class JournalConverterUtilTest {
 
 		Registry registry = RegistryUtil.getRegistry();
 
-		_ddmXML = registry.getService(DDMXML.class);
-		_journalConverter = registry.getService(JournalConverter.class);
+		_ddmXML = registry.getService(
+			registry.getServiceReference(DDMXML.class));
+		_journalConverter = registry.getService(
+			registry.getServiceReference(JournalConverter.class));
 	}
 
 	@Test
 	public void testGetContentFromBooleanField() throws Exception {
 		Fields fields = new Fields();
 
-		Field booleanField = getBooleanField(_ddmStructure.getStructureId());
-
-		fields.put(booleanField);
+		fields.put(getBooleanField(_ddmStructure.getStructureId()));
 
 		Field fieldsDisplayField = getFieldsDisplayField(
 			_ddmStructure.getStructureId(),
@@ -178,9 +178,7 @@ public class JournalConverterUtilTest {
 	public void testGetContentFromListField() throws Exception {
 		Fields fields = new Fields();
 
-		Field listField = getListField(_ddmStructure.getStructureId());
-
-		fields.put(listField);
+		fields.put(getListField(_ddmStructure.getStructureId()));
 
 		Field fieldsDisplayField = getFieldsDisplayField(
 			_ddmStructure.getStructureId(), "list_INSTANCE_pcm9WPVX");
@@ -234,9 +232,7 @@ public class JournalConverterUtilTest {
 	public void testGetContentFromTextAreaField() throws Exception {
 		Fields fields = new Fields();
 
-		Field textAreaField = getTextAreaField(_ddmStructure.getStructureId());
-
-		fields.put(textAreaField);
+		fields.put(getTextAreaField(_ddmStructure.getStructureId()));
 
 		Field fieldsDisplayField = getFieldsDisplayField(
 			_ddmStructure.getStructureId(), "text_area_INSTANCE_RFnJ1nCn");
@@ -256,9 +252,7 @@ public class JournalConverterUtilTest {
 	public void testGetContentFromTextBoxField() throws Exception {
 		Fields fields = new Fields();
 
-		Field textBoxField = getTextBoxField(_ddmStructure.getStructureId());
-
-		fields.put(textBoxField);
+		fields.put(getTextBoxField(_ddmStructure.getStructureId()));
 
 		Field fieldsDisplayField = getFieldsDisplayField(
 			_ddmStructure.getStructureId(),
@@ -280,9 +274,7 @@ public class JournalConverterUtilTest {
 	public void testGetContentFromTextField() throws Exception {
 		Fields fields = new Fields();
 
-		Field textField = getTextField(_ddmStructure.getStructureId());
-
-		fields.put(textField);
+		fields.put(getTextField(_ddmStructure.getStructureId()));
 
 		Field fieldsDisplayField = getFieldsDisplayField(
 			_ddmStructure.getStructureId(), "text_INSTANCE_bf4sdx6Q");
@@ -317,9 +309,7 @@ public class JournalConverterUtilTest {
 	public void testGetFieldsFromContentWithBooleanElement() throws Exception {
 		Fields expectedFields = new Fields();
 
-		Field booleanField = getBooleanField(_ddmStructure.getStructureId());
-
-		expectedFields.put(booleanField);
+		expectedFields.put(getBooleanField(_ddmStructure.getStructureId()));
 
 		Field fieldsDisplayField = getFieldsDisplayField(
 			_ddmStructure.getStructureId(),
@@ -378,9 +368,7 @@ public class JournalConverterUtilTest {
 	public void testGetFieldsFromContentWithListElement() throws Exception {
 		Fields expectedFields = new Fields();
 
-		Field listField = getListField(_ddmStructure.getStructureId());
-
-		expectedFields.put(listField);
+		expectedFields.put(getListField(_ddmStructure.getStructureId()));
 
 		Field fieldsDisplayField = getFieldsDisplayField(
 			_ddmStructure.getStructureId(), "list_INSTANCE_pcm9WPVX");
@@ -910,10 +898,11 @@ public class JournalConverterUtilTest {
 			});
 	}
 
-	protected void setUpDDMXML() throws Exception {
+	protected void setUpDDMXML() {
 		Registry registry = RegistryUtil.getRegistry();
 
-		_ddmXML = registry.getService(DDMXML.class);
+		_ddmXML = registry.getService(
+			registry.getServiceReference(DDMXML.class));
 	}
 
 	protected void udpateFieldsMap(

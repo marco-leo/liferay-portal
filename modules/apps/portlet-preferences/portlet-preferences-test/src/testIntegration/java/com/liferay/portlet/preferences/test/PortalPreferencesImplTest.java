@@ -23,13 +23,13 @@ import com.liferay.portal.kernel.portlet.PortletPreferencesFactory;
 import com.liferay.portal.kernel.service.PortalPreferencesLocalService;
 import com.liferay.portal.kernel.service.PortalPreferencesLocalServiceUtil;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.test.SynchronousInvocationHandler;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.transaction.TransactionConfig;
 import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.ProxyUtil;
-import com.liferay.portal.service.test.SynchronousInvocationHandler;
 import com.liferay.portal.spring.aop.AopInvocationHandler;
 import com.liferay.portal.spring.transaction.DefaultTransactionExecutor;
 import com.liferay.portal.spring.transaction.TransactionAttributeAdapter;
@@ -148,11 +148,11 @@ public class PortalPreferencesImplTest {
 
 			Assert.fail();
 		}
-		catch (Exception e) {
-			Throwable cause = e.getCause();
+		catch (Exception exception) {
+			Throwable throwable = exception.getCause();
 
 			Assert.assertSame(
-				ConcurrentModificationException.class, cause.getClass());
+				ConcurrentModificationException.class, throwable.getClass());
 		}
 	}
 
@@ -186,11 +186,11 @@ public class PortalPreferencesImplTest {
 
 			Assert.fail();
 		}
-		catch (Exception e) {
-			Throwable cause = e.getCause();
+		catch (Exception exception) {
+			Throwable throwable = exception.getCause();
 
 			Assert.assertSame(
-				ConcurrentModificationException.class, cause.getClass());
+				ConcurrentModificationException.class, throwable.getClass());
 		}
 	}
 
@@ -258,11 +258,11 @@ public class PortalPreferencesImplTest {
 
 			Assert.fail();
 		}
-		catch (Exception e) {
-			Throwable cause = e.getCause();
+		catch (Exception exception) {
+			Throwable throwable = exception.getCause();
 
 			Assert.assertSame(
-				ConcurrentModificationException.class, cause.getClass());
+				ConcurrentModificationException.class, throwable.getClass());
 		}
 	}
 
@@ -330,11 +330,11 @@ public class PortalPreferencesImplTest {
 
 			Assert.fail();
 		}
-		catch (Exception e) {
-			Throwable cause = e.getCause();
+		catch (Exception exception) {
+			Throwable throwable = exception.getCause();
 
 			Assert.assertSame(
-				ConcurrentModificationException.class, cause.getClass());
+				ConcurrentModificationException.class, throwable.getClass());
 		}
 	}
 
@@ -400,8 +400,8 @@ public class PortalPreferencesImplTest {
 				_originalTransactionExecutor.commit(
 					transactionAttributeAdapter, transactionStatusAdapter);
 			}
-			catch (Throwable t) {
-				ReflectionUtil.throwException(t);
+			catch (Throwable throwable) {
+				ReflectionUtil.throwException(throwable);
 			}
 			finally {
 				PortalPreferencesWrapperCacheUtil.remove(

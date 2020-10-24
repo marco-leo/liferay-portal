@@ -133,8 +133,8 @@ public class ReCaptchaImpl extends SimpleCaptchaImpl {
 			options.addPart(
 				"secret", _captchaConfiguration.reCaptchaPrivateKey());
 		}
-		catch (SystemException se) {
-			_log.error(se, se);
+		catch (SystemException systemException) {
+			_log.error(systemException, systemException);
 		}
 
 		options.addPart("remoteip", httpServletRequest.getRemoteAddr());
@@ -146,8 +146,8 @@ public class ReCaptchaImpl extends SimpleCaptchaImpl {
 		try {
 			content = HttpUtil.URLtoString(options);
 		}
-		catch (IOException ioe) {
-			_log.error(ioe, ioe);
+		catch (IOException ioException) {
+			_log.error(ioException, ioException);
 
 			throw new CaptchaConfigurationException();
 		}
@@ -175,7 +175,7 @@ public class ReCaptchaImpl extends SimpleCaptchaImpl {
 				throw new CaptchaConfigurationException();
 			}
 
-			StringBundler sb = new StringBundler(jsonArray.length() * 2 - 1);
+			StringBundler sb = new StringBundler((jsonArray.length() * 2) - 1);
 
 			for (int i = 0; i < jsonArray.length(); i++) {
 				sb.append(jsonArray.getString(i));
@@ -189,9 +189,10 @@ public class ReCaptchaImpl extends SimpleCaptchaImpl {
 
 			throw new CaptchaConfigurationException();
 		}
-		catch (JSONException jsone) {
+		catch (JSONException jsonException) {
 			_log.error(
-				"reCAPTCHA did not return a valid result: " + content, jsone);
+				"reCAPTCHA did not return a valid result: " + content,
+				jsonException);
 
 			throw new CaptchaConfigurationException();
 		}

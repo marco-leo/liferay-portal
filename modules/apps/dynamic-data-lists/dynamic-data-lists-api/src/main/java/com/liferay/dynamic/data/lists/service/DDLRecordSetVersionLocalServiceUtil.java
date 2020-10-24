@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class DDLRecordSetVersionLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.dynamic.data.lists.service.impl.DDLRecordSetVersionLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class DDLRecordSetVersionLocalServiceUtil {
 
 	/**
 	 * Adds the ddl record set version to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDLRecordSetVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddlRecordSetVersion the ddl record set version
 	 * @return the ddl record set version that was added
@@ -64,12 +68,26 @@ public class DDLRecordSetVersionLocalServiceUtil {
 		return getService().createDDLRecordSetVersion(recordSetVersionId);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
 	public static void deleteByRecordSetId(long recordSetId) {
 		getService().deleteByRecordSetId(recordSetId);
 	}
 
 	/**
 	 * Deletes the ddl record set version from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDLRecordSetVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddlRecordSetVersion the ddl record set version
 	 * @return the ddl record set version that was removed
@@ -84,6 +102,10 @@ public class DDLRecordSetVersionLocalServiceUtil {
 
 	/**
 	 * Deletes the ddl record set version with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDLRecordSetVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param recordSetVersionId the primary key of the ddl record set version
 	 * @return the ddl record set version that was removed
@@ -105,6 +127,12 @@ public class DDLRecordSetVersionLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -268,6 +296,9 @@ public class DDLRecordSetVersionLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -314,6 +345,10 @@ public class DDLRecordSetVersionLocalServiceUtil {
 
 	/**
 	 * Updates the ddl record set version in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDLRecordSetVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddlRecordSetVersion the ddl record set version
 	 * @return the ddl record set version that was updated

@@ -77,7 +77,7 @@ public class SourceLocalServiceImpl extends SourceLocalServiceBaseImpl {
 		source.setDriverUserName(driverUserName);
 		source.setDriverPassword(driverPassword);
 
-		sourcePersistence.update(source);
+		source = sourcePersistence.update(source);
 
 		// Resources
 
@@ -127,7 +127,7 @@ public class SourceLocalServiceImpl extends SourceLocalServiceBaseImpl {
 	@Override
 	public List<Source> getSources(
 		long groupId, String name, String driverUrl, boolean andSearch,
-		int start, int end, OrderByComparator orderByComparator) {
+		int start, int end, OrderByComparator<Source> orderByComparator) {
 
 		return sourceFinder.findByG_N_DU(
 			groupId, name, driverUrl, andSearch, start, end, orderByComparator);
@@ -164,9 +164,7 @@ public class SourceLocalServiceImpl extends SourceLocalServiceBaseImpl {
 		source.setDriverUserName(driverUserName);
 		source.setDriverPassword(driverPassword);
 
-		sourcePersistence.update(source);
-
-		return source;
+		return sourcePersistence.update(source);
 	}
 
 	protected void validate(
@@ -179,8 +177,8 @@ public class SourceLocalServiceImpl extends SourceLocalServiceBaseImpl {
 		try {
 			Class.forName(driverClassName, true, portalClassLoader);
 		}
-		catch (ClassNotFoundException cnfe) {
-			throw new SourceDriverClassNameException(cnfe);
+		catch (ClassNotFoundException classNotFoundException) {
+			throw new SourceDriverClassNameException(classNotFoundException);
 		}
 
 		Thread currentThread = Thread.currentThread();

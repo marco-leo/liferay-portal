@@ -48,9 +48,10 @@ public class OpenNLPDocumentAssetAutoTagProvider
 	public Collection<String> getTagNames(AssetEntry assetEntry) {
 		try {
 			if (_isEnabled(assetEntry)) {
-				TextExtractor textExtractor =
-					_textExtractorTracker.getTextExtractor(
-						assetEntry.getClassName());
+				TextExtractor<Object> textExtractor =
+					(TextExtractor<Object>)
+						_textExtractorTracker.getTextExtractor(
+							assetEntry.getClassName());
 
 				if (textExtractor != null) {
 					Locale locale = LocaleUtil.fromLanguageId(
@@ -64,8 +65,10 @@ public class OpenNLPDocumentAssetAutoTagProvider
 				}
 			}
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(exception, exception);
+			}
 		}
 
 		return Collections.emptyList();

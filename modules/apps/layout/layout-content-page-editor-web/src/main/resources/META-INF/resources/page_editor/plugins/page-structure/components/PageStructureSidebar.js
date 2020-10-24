@@ -12,86 +12,23 @@
  * details.
  */
 
-import {Treeview} from 'frontend-js-components-web';
-import React, {useContext} from 'react';
+import React from 'react';
 
-import {EDITABLE_FRAGMENT_ENTRY_PROCESSOR} from '../../../app/config/constants/editableFragmentEntryProcessor';
-import {LAYOUT_DATA_ITEM_TYPES} from '../../../app/config/constants/layoutDataItemTypes';
-import {StoreContext} from '../../../app/store/index';
 import SidebarPanelHeader from '../../../common/components/SidebarPanelHeader';
-import StructureTreeNode from './StructureTreeNode';
+import ItemConfiguration from './ItemConfiguration';
+import StructureTree from './StructureTree';
 
 export default function PageStructureSidebar() {
-	const {fragmentEntryLinks, layoutData} = useContext(StoreContext);
-
-	const getName = (item, fragmentEntryLinks) => {
-		let name;
-
-		if (item.type === LAYOUT_DATA_ITEM_TYPES.fragment) {
-			name = fragmentEntryLinks[item.config.fragmentEntryLinkId].name;
-		} else if (item.type === LAYOUT_DATA_ITEM_TYPES.container) {
-			name = Liferay.Language.get('container');
-		} else if (item.type === LAYOUT_DATA_ITEM_TYPES.column) {
-			name = Liferay.Language.get('column');
-		} else if (item.type === LAYOUT_DATA_ITEM_TYPES.row) {
-			name = Liferay.Language.get('row');
-		}
-
-		return name;
-	};
-
-	const isRemovable = item => {
-		return item.type === LAYOUT_DATA_ITEM_TYPES.column ? false : true;
-	};
-
-	const visit = (item, items) => {
-		const children = [];
-
-		if (item.type === LAYOUT_DATA_ITEM_TYPES.fragment) {
-			const fragmentChildren =
-				fragmentEntryLinks[item.config.fragmentEntryLinkId]
-					.editableValues[EDITABLE_FRAGMENT_ENTRY_PROCESSOR];
-
-			Object.keys(fragmentChildren).forEach(childId => {
-				children.push({
-					children: [],
-					id: childId,
-					name: childId,
-					removable: false
-				});
-			});
-		} else {
-			item.children.forEach(childId => {
-				const childItem = items[childId];
-
-				const child = visit(childItem, items);
-
-				children.push(child);
-			});
-		}
-
-		return {
-			children,
-			id: item.itemId,
-			name: getName(item, fragmentEntryLinks),
-			removable: isRemovable(item)
-		};
-	};
-
-	const nodes = visit(
-		layoutData.items[layoutData.rootItems.main],
-		layoutData.items
-	).children;
-
 	return (
-		<>
+		<div className="page-editor__page-structure">
 			<SidebarPanelHeader>
-				{Liferay.Language.get('page-structure')}
+				{Liferay.Language.get('selection')}
 			</SidebarPanelHeader>
 
-			<div className="page-editor__page-structure px-2">
-				<Treeview NodeComponent={StructureTreeNode} nodes={nodes} />
+			<div className="page-editor__page-structure__content">
+				<StructureTree />
+				<ItemConfiguration />
 			</div>
-		</>
+		</div>
 	);
 }

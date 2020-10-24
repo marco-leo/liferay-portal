@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
-import com.liferay.portal.kernel.search.SearchContextFactory;
 import com.liferay.portal.kernel.search.facet.Facet;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -30,8 +29,11 @@ import com.liferay.portal.kernel.util.Html;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.search.constants.SearchContextAttributes;
+import com.liferay.portal.search.context.SearchContextFactory;
 import com.liferay.portal.search.legacy.searcher.SearchRequestBuilderFactory;
 import com.liferay.portal.search.searcher.SearchRequestBuilder;
 import com.liferay.portal.search.searcher.SearchResponse;
@@ -74,6 +76,7 @@ public class SearchDisplayContext {
 			IndexSearchPropsValues indexSearchPropsValues,
 			PortletURLFactory portletURLFactory,
 			SummaryBuilderFactory summaryBuilderFactory,
+			SearchContextFactory searchContextFactory,
 			SearchRequestBuilderFactory searchRequestBuilderFactory,
 			SearchFacetTracker searchFacetTracker)
 		throws PortletException {
@@ -83,6 +86,7 @@ public class SearchDisplayContext {
 		_indexSearchPropsValues = indexSearchPropsValues;
 		_portletURLFactory = portletURLFactory;
 		_summaryBuilderFactory = summaryBuilderFactory;
+		_searchContextFactory = searchContextFactory;
 		_searchFacetTracker = searchFacetTracker;
 
 		ThemeDisplaySupplier themeDisplaySupplier =
@@ -121,8 +125,21 @@ public class SearchDisplayContext {
 		SearchContainer<Document> searchContainer = new SearchContainer<>(
 			_renderRequest, getPortletURL(), null, emptyResultMessage);
 
-		SearchContext searchContext = SearchContextFactory.getInstance(
-			httpServletRequest);
+		long[] assetCategoryIds = StringUtil.split(
+			ParamUtil.getString(httpServletRequest, "category"), 0L);
+		String[] assetTagNames = StringUtil.split(
+			ParamUtil.getString(httpServletRequest, "tag"));
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		SearchContext searchContext = _searchContextFactory.getSearchContext(
+			assetCategoryIds, assetTagNames, themeDisplay.getCompanyId(),
+			ParamUtil.getString(httpServletRequest, "keywords"),
+			themeDisplay.getLayout(), themeDisplay.getLocale(),
+			httpServletRequest.getParameterMap(),
+			themeDisplay.getScopeGroupId(), themeDisplay.getTimeZone(),
+			themeDisplay.getUserId());
 
 		_resetScope(searchContext);
 
@@ -228,10 +245,10 @@ public class SearchDisplayContext {
 			_searchResultPreferences.isHighlightEnabled());
 		_queryConfig.setQueryIndexingEnabled(isQueryIndexingEnabled());
 		_queryConfig.setQueryIndexingThreshold(getQueryIndexingThreshold());
-		_queryConfig.setQuerySuggestionEnabled(isQuerySuggestionsEnabled());
+		_queryConfig.setQuerySuggestionEnabled(isQuerySuggestionEnabled());
 		_queryConfig.setQuerySuggestionScoresThreshold(
-			getQuerySuggestionsDisplayThreshold());
-		_queryConfig.setQuerySuggestionsMax(getQuerySuggestionsMax());
+			getQuerySuggestionDisplayThreshold());
+		_queryConfig.setQuerySuggestionMax(getQuerySuggestionMax());
 
 		return _queryConfig;
 	}
@@ -257,39 +274,39 @@ public class SearchDisplayContext {
 		return _queryString;
 	}
 
-	public int getQuerySuggestionsDisplayThreshold() {
-		if (_querySuggestionsDisplayThreshold != null) {
-			return _querySuggestionsDisplayThreshold;
+	public int getQuerySuggestionDisplayThreshold() {
+		if (_querySuggestionDisplayThreshold != null) {
+			return _querySuggestionDisplayThreshold;
 		}
 
-		_querySuggestionsDisplayThreshold = GetterUtil.getInteger(
+		_querySuggestionDisplayThreshold = GetterUtil.getInteger(
 			_portletPreferences.getValue(
-				"querySuggestionsDisplayThreshold", null),
+				"querySuggestionDisplayThreshold", null),
 			_indexSearchPropsValues.getQuerySuggestionScoresThreshold());
 
-		if (_querySuggestionsDisplayThreshold < 0) {
-			_querySuggestionsDisplayThreshold =
+		if (_querySuggestionDisplayThreshold < 0) {
+			_querySuggestionDisplayThreshold =
 				_indexSearchPropsValues.getQuerySuggestionScoresThreshold();
 		}
 
-		return _querySuggestionsDisplayThreshold;
+		return _querySuggestionDisplayThreshold;
 	}
 
-	public int getQuerySuggestionsMax() {
-		if (_querySuggestionsMax != null) {
-			return _querySuggestionsMax;
+	public int getQuerySuggestionMax() {
+		if (_querySuggestionMax != null) {
+			return _querySuggestionMax;
 		}
 
-		_querySuggestionsMax = GetterUtil.getInteger(
-			_portletPreferences.getValue("querySuggestionsMax", null),
+		_querySuggestionMax = GetterUtil.getInteger(
+			_portletPreferences.getValue("querySuggestionMax", null),
 			_indexSearchPropsValues.getQuerySuggestionMax());
 
-		if (_querySuggestionsMax <= 0) {
-			_querySuggestionsMax =
+		if (_querySuggestionMax <= 0) {
+			_querySuggestionMax =
 				_indexSearchPropsValues.getQuerySuggestionMax();
 		}
 
-		return _querySuggestionsMax;
+		return _querySuggestionMax;
 	}
 
 	public String[] getQueryTerms() {
@@ -439,16 +456,16 @@ public class SearchDisplayContext {
 		return _queryIndexingEnabled;
 	}
 
-	public boolean isQuerySuggestionsEnabled() {
-		if (_querySuggestionsEnabled != null) {
-			return _querySuggestionsEnabled;
+	public boolean isQuerySuggestionEnabled() {
+		if (_querySuggestionEnabled != null) {
+			return _querySuggestionEnabled;
 		}
 
-		_querySuggestionsEnabled = GetterUtil.getBoolean(
-			_portletPreferences.getValue("querySuggestionsEnabled", null),
+		_querySuggestionEnabled = GetterUtil.getBoolean(
+			_portletPreferences.getValue("querySuggestionEnabled", null),
 			_indexSearchPropsValues.isQuerySuggestionEnabled());
 
-		return _querySuggestionsEnabled;
+		return _querySuggestionEnabled;
 	}
 
 	public boolean isSearchScopePreferenceEverythingAvailable() {
@@ -535,10 +552,10 @@ public class SearchDisplayContext {
 		queryConfig.setHighlightEnabled(isHighlightEnabled());
 		queryConfig.setQueryIndexingEnabled(isQueryIndexingEnabled());
 		queryConfig.setQueryIndexingThreshold(getQueryIndexingThreshold());
-		queryConfig.setQuerySuggestionEnabled(isQuerySuggestionsEnabled());
+		queryConfig.setQuerySuggestionEnabled(isQuerySuggestionEnabled());
 		queryConfig.setQuerySuggestionScoresThreshold(
-			getQuerySuggestionsDisplayThreshold());
-		queryConfig.setQuerySuggestionsMax(getQuerySuggestionsMax());
+			getQuerySuggestionDisplayThreshold());
+		queryConfig.setQuerySuggestionMax(getQuerySuggestionMax());
 
 		addEnabledSearchFacets(searchSettings.getSearchRequestBuilder());
 
@@ -552,11 +569,11 @@ public class SearchDisplayContext {
 			searchFacet.init(
 				companyId, getSearchConfiguration(), searchContext);
 		}
-		catch (RuntimeException re) {
-			throw re;
+		catch (RuntimeException runtimeException) {
+			throw runtimeException;
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
 		}
 
 		return Optional.ofNullable(searchFacet.getFacet());
@@ -637,13 +654,14 @@ public class SearchDisplayContext {
 	private Boolean _queryIndexingEnabled;
 	private Integer _queryIndexingThreshold;
 	private final String _queryString;
-	private Integer _querySuggestionsDisplayThreshold;
-	private Boolean _querySuggestionsEnabled;
-	private Integer _querySuggestionsMax;
+	private Integer _querySuggestionDisplayThreshold;
+	private Boolean _querySuggestionEnabled;
+	private Integer _querySuggestionMax;
 	private final RenderRequest _renderRequest;
 	private String _searchConfiguration;
 	private final SearchContainer<Document> _searchContainer;
 	private final SearchContext _searchContext;
+	private final SearchContextFactory _searchContextFactory;
 	private final SearchFacetTracker _searchFacetTracker;
 	private final SearchResultPreferences _searchResultPreferences;
 	private String _searchScopePreferenceString;

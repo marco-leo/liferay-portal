@@ -136,13 +136,12 @@ public class BulkDocumentRequestExecutorImpl
 
 		Stream<DeleteDocumentRequest> stream = deleteDocumentRequests.stream();
 
-		List<String> uids = stream.map(
-			DeleteDocumentRequest::getUid
-		).collect(
-			Collectors.toList()
-		);
-
-		updateRequest.deleteById(uids);
+		updateRequest.deleteById(
+			stream.map(
+				DeleteDocumentRequest::getUid
+			).collect(
+				Collectors.toList()
+			));
 
 		if (refresh) {
 			updateRequest.setAction(UpdateRequest.ACTION.COMMIT, true, true);
@@ -160,13 +159,13 @@ public class BulkDocumentRequestExecutorImpl
 
 		Stream<GetDocumentRequest> stream = getDocumentRequests.stream();
 
-		String[] ids = stream.map(
-			GetDocumentRequest::getId
-		).toArray(
-			String[]::new
-		);
-
-		modifiableSolrParams.set("ids", ids);
+		modifiableSolrParams.set(
+			"ids",
+			stream.map(
+				GetDocumentRequest::getId
+			).toArray(
+				String[]::new
+			));
 
 		return new QueryRequest(modifiableSolrParams);
 	}
@@ -271,11 +270,11 @@ public class BulkDocumentRequestExecutorImpl
 
 			return bulkDocumentResponse;
 		}
-		catch (Exception e) {
-			if (e instanceof SolrException) {
-				SolrException se = (SolrException)e;
+		catch (Exception exception) {
+			if (exception instanceof SolrException) {
+				SolrException solrException = (SolrException)exception;
 
-				LogUtil.logSolrException(_log, se);
+				LogUtil.logSolrException(_log, solrException);
 
 				BulkDocumentResponse bulkDocumentResponse =
 					new BulkDocumentResponse(-1);
@@ -283,9 +282,10 @@ public class BulkDocumentRequestExecutorImpl
 				BulkDocumentItemResponse bulkDocumentItemResponse =
 					new BulkDocumentItemResponse();
 
-				bulkDocumentItemResponse.setCause(se);
-				bulkDocumentItemResponse.setFailureMessage(se.getMessage());
-				bulkDocumentItemResponse.setStatus(se.code());
+				bulkDocumentItemResponse.setCause(solrException);
+				bulkDocumentItemResponse.setFailureMessage(
+					solrException.getMessage());
+				bulkDocumentItemResponse.setStatus(solrException.code());
 
 				bulkDocumentResponse.addBulkDocumentItemResponse(
 					bulkDocumentItemResponse);
@@ -295,7 +295,7 @@ public class BulkDocumentRequestExecutorImpl
 				return bulkDocumentResponse;
 			}
 
-			throw new RuntimeException(e);
+			throw new RuntimeException(exception);
 		}
 	}
 

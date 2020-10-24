@@ -17,6 +17,7 @@ package com.liferay.journal.service.persistence;
 import com.liferay.journal.exception.NoSuchFeedException;
 import com.liferay.journal.model.JournalFeed;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -32,9 +33,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface JournalFeedPersistence extends BasePersistence<JournalFeed> {
+public interface JournalFeedPersistence
+	extends BasePersistence<JournalFeed>, CTPersistence<JournalFeed> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link JournalFeedUtil} to access the journal feed persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

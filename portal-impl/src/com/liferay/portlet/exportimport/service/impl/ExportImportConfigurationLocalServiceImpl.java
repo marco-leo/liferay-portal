@@ -14,7 +14,7 @@
 
 package com.liferay.portlet.exportimport.service.impl;
 
-import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationConstants;
+import com.liferay.exportimport.kernel.configuration.constants.ExportImportConfigurationConstants;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -453,9 +453,8 @@ public class ExportImportConfigurationLocalServiceImpl
 		exportImportConfiguration.setStatusByUserName(user.getScreenName());
 		exportImportConfiguration.setStatusDate(new Date());
 
-		exportImportConfigurationPersistence.update(exportImportConfiguration);
-
-		return exportImportConfiguration;
+		return exportImportConfigurationPersistence.update(
+			exportImportConfiguration);
 	}
 
 	protected SearchContext buildSearchContext(
@@ -466,7 +465,7 @@ public class ExportImportConfigurationLocalServiceImpl
 
 		searchContext.setAndSearch(andSearch);
 
-		Map<String, Serializable> attributes =
+		searchContext.setAttributes(
 			HashMapBuilder.<String, Serializable>put(
 				Field.STATUS, WorkflowConstants.STATUS_APPROVED
 			).put(
@@ -477,9 +476,7 @@ public class ExportImportConfigurationLocalServiceImpl
 				"name", name
 			).put(
 				"type", type
-			).build();
-
-		searchContext.setAttributes(attributes);
+			).build());
 
 		searchContext.setCompanyId(companyId);
 		searchContext.setEnd(end);

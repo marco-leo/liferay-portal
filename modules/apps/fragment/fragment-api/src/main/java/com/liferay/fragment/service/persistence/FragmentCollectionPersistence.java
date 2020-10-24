@@ -17,6 +17,7 @@ package com.liferay.fragment.service.persistence;
 import com.liferay.fragment.exception.NoSuchCollectionException;
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -33,9 +34,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface FragmentCollectionPersistence
-	extends BasePersistence<FragmentCollection> {
+	extends BasePersistence<FragmentCollection>,
+			CTPersistence<FragmentCollection> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link FragmentCollectionUtil} to access the fragment collection persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

@@ -31,7 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface SegmentsEntry extends PersistedModel, SegmentsEntryModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.segments.model.impl.SegmentsEntryImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -57,5 +57,7 @@ public interface SegmentsEntry extends PersistedModel, SegmentsEntryModel {
 		};
 
 	public com.liferay.segments.criteria.Criteria getCriteriaObj();
+
+	public long[] getRoleIds();
 
 }

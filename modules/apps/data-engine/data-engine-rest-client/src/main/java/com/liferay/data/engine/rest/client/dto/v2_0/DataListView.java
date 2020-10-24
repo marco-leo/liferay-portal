@@ -28,7 +28,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class DataListView {
+public class DataListView implements Cloneable {
+
+	public static DataListView toDTO(String json) {
+		return DataListViewSerDes.toDTO(json);
+	}
 
 	public Map<String, Object> getAppliedFilters() {
 		return appliedFilters;
@@ -238,6 +242,11 @@ public class DataListView {
 	}
 
 	protected Long userId;
+
+	@Override
+	public DataListView clone() throws CloneNotSupportedException {
+		return (DataListView)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

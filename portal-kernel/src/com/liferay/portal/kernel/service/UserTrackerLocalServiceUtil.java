@@ -30,16 +30,10 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class UserTrackerLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.UserTrackerLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link UserTrackerLocalServiceUtil} to access the user tracker local service. Add custom service methods to <code>com.liferay.portal.service.impl.UserTrackerLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.portal.kernel.model.UserTracker addUserTracker(
 		long companyId, long userId, java.util.Date modifiedDate,
@@ -56,6 +50,10 @@ public class UserTrackerLocalServiceUtil {
 	/**
 	 * Adds the user tracker to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserTrackerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param userTracker the user tracker
 	 * @return the user tracker that was added
 	 */
@@ -63,6 +61,16 @@ public class UserTrackerLocalServiceUtil {
 		com.liferay.portal.kernel.model.UserTracker userTracker) {
 
 		return getService().addUserTracker(userTracker);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -91,6 +99,10 @@ public class UserTrackerLocalServiceUtil {
 	/**
 	 * Deletes the user tracker with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserTrackerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param userTrackerId the primary key of the user tracker
 	 * @return the user tracker that was removed
 	 * @throws PortalException if a user tracker with the primary key could not be found
@@ -105,6 +117,10 @@ public class UserTrackerLocalServiceUtil {
 	/**
 	 * Deletes the user tracker from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserTrackerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param userTracker the user tracker
 	 * @return the user tracker that was removed
 	 */
@@ -112,6 +128,12 @@ public class UserTrackerLocalServiceUtil {
 		com.liferay.portal.kernel.model.UserTracker userTracker) {
 
 		return getService().deleteUserTracker(userTracker);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -227,6 +249,9 @@ public class UserTrackerLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -282,6 +307,10 @@ public class UserTrackerLocalServiceUtil {
 
 	/**
 	 * Updates the user tracker in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserTrackerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param userTracker the user tracker
 	 * @return the user tracker that was updated

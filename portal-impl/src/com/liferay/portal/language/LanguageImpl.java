@@ -15,6 +15,7 @@
 package com.liferay.portal.language;
 
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cache.PortalCacheHelperUtil;
@@ -30,6 +31,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -46,9 +48,7 @@ import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.ResourceBundleLoader;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -302,9 +302,9 @@ public class LanguageImpl implements Language, Serializable {
 				value = pattern;
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(e, e);
+				_log.warn(exception, exception);
 			}
 		}
 
@@ -472,9 +472,9 @@ public class LanguageImpl implements Language, Serializable {
 				value = pattern;
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(e, e);
+				_log.warn(exception, exception);
 			}
 		}
 
@@ -651,9 +651,9 @@ public class LanguageImpl implements Language, Serializable {
 				value = pattern;
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(e, e);
+				_log.warn(exception, exception);
 			}
 		}
 
@@ -791,13 +791,56 @@ public class LanguageImpl implements Language, Serializable {
 				value = pattern;
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(e, e);
+				_log.warn(exception, exception);
 			}
 		}
 
 		return value;
+	}
+
+	/**
+	 * Returns the translated and formatted storage size
+	 *
+	 * @param  size the storage size
+	 * @param  locale the locale to translate to
+	 * @return the translated storage size
+	 */
+	@Override
+	public String formatStorageSize(double size, Locale locale) {
+		NumberFormat numberFormat = NumberFormat.getInstance(locale);
+
+		numberFormat.setMaximumFractionDigits(0);
+
+		numberFormat.setMinimumFractionDigits(0);
+
+		String suffix = "storage.size.suffix.b";
+
+		if (size >= _STORAGE_SIZE_DENOMINATOR) {
+			suffix = "storage.size.suffix.kb";
+
+			size /= _STORAGE_SIZE_DENOMINATOR;
+		}
+
+		if (size >= _STORAGE_SIZE_DENOMINATOR) {
+			suffix = "storage.size.suffix.mb";
+
+			size /= _STORAGE_SIZE_DENOMINATOR;
+
+			numberFormat.setMaximumFractionDigits(1);
+		}
+
+		if (size >= _STORAGE_SIZE_DENOMINATOR) {
+			suffix = "storage.size.suffix.gb";
+
+			size /= _STORAGE_SIZE_DENOMINATOR;
+		}
+
+		suffix = get(locale, suffix);
+
+		return StringBundler.concat(
+			numberFormat.format(size), StringPool.SPACE, suffix);
 	}
 
 	/**
@@ -913,7 +956,7 @@ public class LanguageImpl implements Language, Serializable {
 		String value = LanguageResources.getMessage(locale, key);
 
 		if (value != null) {
-			return LanguageResources.fixValue(value);
+			return value;
 		}
 
 		if ((key.length() > 0) &&
@@ -996,7 +1039,7 @@ public class LanguageImpl implements Language, Serializable {
 				return companyLocalesBag.getAvailableLocales();
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		Map<String, Locale> groupLanguageIdLocalesMap =
@@ -1050,9 +1093,8 @@ public class LanguageImpl implements Language, Serializable {
 			}
 		}
 
-		Locale locale = PortalUtil.getLocale(httpServletRequest, null, false);
-
-		return getLanguageId(locale);
+		return getLanguageId(
+			PortalUtil.getLocale(httpServletRequest, null, false));
 	}
 
 	/**
@@ -1100,7 +1142,7 @@ public class LanguageImpl implements Language, Serializable {
 				return getLocale(languageCode);
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn("Unable to check if group inherits locales");
 			}
@@ -1126,9 +1168,23 @@ public class LanguageImpl implements Language, Serializable {
 		return companyLocalesBag.getByLanguageCode(languageCode);
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getResourceBundleLoader}
+	 */
+	@Deprecated
 	@Override
-	public ResourceBundleLoader getPortalResourceBundleLoader() {
-		return LanguageResources.RESOURCE_BUNDLE_LOADER;
+	public com.liferay.portal.kernel.util.ResourceBundleLoader
+		getPortalResourceBundleLoader() {
+
+		ResourceBundleLoader resourceBundleLoader = getResourceBundleLoader();
+
+		return locale -> resourceBundleLoader.loadResourceBundle(locale);
+	}
+
+	@Override
+	public ResourceBundleLoader getResourceBundleLoader() {
+		return LanguageResources.PORTAL_RESOURCE_BUNDLE_LOADER;
 	}
 
 	@Override
@@ -1240,9 +1296,9 @@ public class LanguageImpl implements Language, Serializable {
 
 			value = format(httpServletRequest, "x-" + unit, parts[0]);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(e, e);
+				_log.warn(exception, exception);
 			}
 		}
 
@@ -1383,9 +1439,9 @@ public class LanguageImpl implements Language, Serializable {
 
 			value = format(locale, "x-" + unit, parts[0]);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(e, e);
+				_log.warn(exception, exception);
 			}
 		}
 
@@ -1504,7 +1560,7 @@ public class LanguageImpl implements Language, Serializable {
 				return isAvailableLocale(languageId);
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		Map<String, Locale> groupLanguageIdLocalesMap =
@@ -1558,10 +1614,7 @@ public class LanguageImpl implements Language, Serializable {
 			group = group.getLiveGroup();
 		}
 
-		if ((!group.isSite() &&
-			 (group.getType() != GroupConstants.TYPE_DEPOT)) ||
-			group.isCompany()) {
-
+		if ((!group.isSite() && !group.isDepot()) || group.isCompany()) {
 			return true;
 		}
 
@@ -1680,10 +1733,6 @@ public class LanguageImpl implements Language, Serializable {
 		return companyLocalesBag;
 	}
 
-	private static void _updateLastModified() {
-		_lastModified = System.currentTimeMillis();
-	}
-
 	private ObjectValuePair<HashMap<String, Locale>, HashMap<String, Locale>>
 		_createGroupLocales(long groupId) {
 
@@ -1696,17 +1745,17 @@ public class LanguageImpl implements Language, Serializable {
 
 			defaultLocale = PortalUtil.getSiteDefaultLocale(group);
 
-			UnicodeProperties typeSettingsProperties =
+			UnicodeProperties typeSettingsUnicodeProperties =
 				group.getTypeSettingsProperties();
 
-			String groupLanguageIds = typeSettingsProperties.getProperty(
+			String groupLanguageIds = typeSettingsUnicodeProperties.getProperty(
 				PropsKeys.LOCALES);
 
 			if (groupLanguageIds != null) {
 				languageIds = StringUtil.split(groupLanguageIds);
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		HashMap<String, Locale> groupLanguageIdLocalesMap =
@@ -1800,7 +1849,7 @@ public class LanguageImpl implements Language, Serializable {
 		String value = ResourceBundleUtil.getString(resourceBundle, key);
 
 		if (value != null) {
-			return LanguageResources.fixValue(value);
+			return value;
 		}
 
 		if ((key.length() > 0) &&
@@ -1825,7 +1874,7 @@ public class LanguageImpl implements Language, Serializable {
 		Format numberFormat = null;
 		int pos = 0;
 		StringBuilder sb = new StringBuilder(
-			16 * arguments.length + pattern.length());
+			(16 * arguments.length) + pattern.length());
 
 		int start = pattern.indexOf(CharPool.OPEN_CURLY_BRACE);
 
@@ -1941,11 +1990,17 @@ public class LanguageImpl implements Language, Serializable {
 		_updateLastModified();
 	}
 
+	private void _updateLastModified() {
+		_lastModified = System.currentTimeMillis();
+	}
+
 	private static final String _COMPANY_LOCALES_PORTAL_CACHE_NAME =
 		LanguageImpl.class.getName() + "._companyLocalesPortalCache";
 
 	private static final String _GROUP_LOCALES_PORTAL_CACHE_NAME =
 		LanguageImpl.class.getName() + "._groupLocalesPortalCache";
+
+	private static final double _STORAGE_SIZE_DENOMINATOR = 1024.0;
 
 	private static final Log _log = LogFactoryUtil.getLog(LanguageImpl.class);
 
@@ -2012,12 +2067,12 @@ public class LanguageImpl implements Language, Serializable {
 						companyId, PropsKeys.LOCALES, StringPool.COMMA,
 						PropsValues.LOCALES_ENABLED);
 				}
-				catch (SystemException se) {
+				catch (SystemException systemException) {
 
 					// LPS-52675
 
 					if (_log.isDebugEnabled()) {
-						_log.debug(se, se);
+						_log.debug(systemException, systemException);
 					}
 
 					languageIds = PropsValues.LOCALES_ENABLED;

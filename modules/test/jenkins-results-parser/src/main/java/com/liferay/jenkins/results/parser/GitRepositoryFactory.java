@@ -14,9 +14,7 @@
 
 package com.liferay.jenkins.results.parser;
 
-import java.util.List;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.json.JSONObject;
 
@@ -97,9 +95,7 @@ public class GitRepositoryFactory {
 			throw new RuntimeException("Invalid remote URL " + remoteURL);
 		}
 
-		Pattern pattern = matcher.pattern();
-
-		String patternString = pattern.toString();
+		String patternString = String.valueOf(matcher.pattern());
 
 		String username = "liferay";
 
@@ -117,19 +113,6 @@ public class GitRepositoryFactory {
 
 		if (hostname.equalsIgnoreCase("github.com")) {
 			return new GitHubRemoteGitRepository(gitRepositoryName, username);
-		}
-
-		if (hostname.contains("github-dev")) {
-			List<String> gitHubDevNodeHostnames =
-				GitHubDevSyncUtil.getGitHubDevNodeHostnames();
-
-			hostname = gitHubDevNodeHostnames.get(
-				JenkinsResultsParserUtil.getRandomValue(
-					0, gitHubDevNodeHostnames.size() - 1));
-
-			if (hostname.startsWith("slave-")) {
-				hostname = hostname.substring(6);
-			}
 		}
 
 		return new DefaultRemoteGitRepository(

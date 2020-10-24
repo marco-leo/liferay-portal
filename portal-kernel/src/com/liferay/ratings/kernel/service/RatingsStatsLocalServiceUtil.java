@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class RatingsStatsLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portlet.ratings.service.impl.RatingsStatsLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -38,6 +38,10 @@ public class RatingsStatsLocalServiceUtil {
 
 	/**
 	 * Adds the ratings stats to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RatingsStatsLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ratingsStats the ratings stats
 	 * @return the ratings stats that was added
@@ -52,6 +56,16 @@ public class RatingsStatsLocalServiceUtil {
 		long classNameId, long classPK) {
 
 		return getService().addStats(classNameId, classPK);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -80,6 +94,10 @@ public class RatingsStatsLocalServiceUtil {
 	/**
 	 * Deletes the ratings stats with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RatingsStatsLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param statsId the primary key of the ratings stats
 	 * @return the ratings stats that was removed
 	 * @throws PortalException if a ratings stats with the primary key could not be found
@@ -94,6 +112,10 @@ public class RatingsStatsLocalServiceUtil {
 	/**
 	 * Deletes the ratings stats from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RatingsStatsLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param ratingsStats the ratings stats
 	 * @return the ratings stats that was removed
 	 */
@@ -106,6 +128,12 @@ public class RatingsStatsLocalServiceUtil {
 
 	public static void deleteStats(String className, long classPK) {
 		getService().deleteStats(className, classPK);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -227,6 +255,9 @@ public class RatingsStatsLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -297,6 +328,10 @@ public class RatingsStatsLocalServiceUtil {
 
 	/**
 	 * Updates the ratings stats in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RatingsStatsLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ratingsStats the ratings stats
 	 * @return the ratings stats that was updated

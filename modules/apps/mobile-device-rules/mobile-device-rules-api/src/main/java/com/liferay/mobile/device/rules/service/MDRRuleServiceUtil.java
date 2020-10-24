@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class MDRRuleServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.mobile.device.rules.service.impl.MDRRuleServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link MDRRuleServiceUtil} to access the mdr rule remote service. Add custom service methods to <code>com.liferay.mobile.device.rules.service.impl.MDRRuleServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.mobile.device.rules.model.MDRRule addRule(
 			long ruleGroupId, java.util.Map<java.util.Locale, String> nameMap,
@@ -58,13 +52,14 @@ public class MDRRuleServiceUtil {
 	public static com.liferay.mobile.device.rules.model.MDRRule addRule(
 			long ruleGroupId, java.util.Map<java.util.Locale, String> nameMap,
 			java.util.Map<java.util.Locale, String> descriptionMap, String type,
-			com.liferay.portal.kernel.util.UnicodeProperties typeSettings,
+			com.liferay.portal.kernel.util.UnicodeProperties
+				typeSettingsUnicodeProperties,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().addRule(
-			ruleGroupId, nameMap, descriptionMap, type, typeSettings,
-			serviceContext);
+			ruleGroupId, nameMap, descriptionMap, type,
+			typeSettingsUnicodeProperties, serviceContext);
 	}
 
 	public static void deleteRule(long ruleId)
@@ -112,13 +107,13 @@ public class MDRRuleServiceUtil {
 			long ruleId, java.util.Map<java.util.Locale, String> nameMap,
 			java.util.Map<java.util.Locale, String> descriptionMap, String type,
 			com.liferay.portal.kernel.util.UnicodeProperties
-				typeSettingsProperties,
+				typeSettingsUnicodeProperties,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().updateRule(
-			ruleId, nameMap, descriptionMap, type, typeSettingsProperties,
-			serviceContext);
+			ruleId, nameMap, descriptionMap, type,
+			typeSettingsUnicodeProperties, serviceContext);
 	}
 
 	public static MDRRuleService getService() {

@@ -705,53 +705,6 @@ public class PortletRequestModel implements Serializable {
 		return map;
 	}
 
-	private static boolean _isValidAttributeName(String name) {
-		if (StringUtil.equalsIgnoreCase(
-				name, WebKeys.PORTLET_RENDER_PARAMETERS) ||
-			StringUtil.equalsIgnoreCase(name, "j_password") ||
-			StringUtil.equalsIgnoreCase(name, "LAYOUT_CONTENT") ||
-			StringUtil.equalsIgnoreCase(name, "LAYOUTS") ||
-			StringUtil.equalsIgnoreCase(name, "USER_PASSWORD") ||
-			name.startsWith("javax.") || name.startsWith("liferay-ui:")) {
-
-			return false;
-		}
-
-		return true;
-	}
-
-	private static boolean _isValidAttributeValue(Object obj) {
-		if (obj == null) {
-			return false;
-		}
-		else if (obj instanceof Collection<?>) {
-			Collection<?> col = (Collection<?>)obj;
-
-			return !col.isEmpty();
-		}
-		else if (obj instanceof Map<?, ?>) {
-			Map<?, ?> map = (Map<?, ?>)obj;
-
-			return !map.isEmpty();
-		}
-		else {
-			String objString = String.valueOf(obj);
-
-			if (Validator.isNull(objString)) {
-				return false;
-			}
-
-			String hashCode = StringPool.AT.concat(
-				StringUtil.toHexString(obj.hashCode()));
-
-			if (objString.endsWith(hashCode)) {
-				return false;
-			}
-
-			return true;
-		}
-	}
-
 	private void _initAttributes() {
 		if (_attributes != null) {
 			return;
@@ -792,9 +745,9 @@ public class PortletRequestModel implements Serializable {
 			_applicationScopeSessionAttributes = portletSession.getAttributeMap(
 				PortletSession.APPLICATION_SCOPE);
 		}
-		catch (IllegalStateException ise) {
+		catch (IllegalStateException illegalStateException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(ise.getMessage());
+				_log.warn(illegalStateException.getMessage());
 			}
 		}
 	}
@@ -810,9 +763,9 @@ public class PortletRequestModel implements Serializable {
 
 				_actionURL = actionURL.toString();
 			}
-			catch (IllegalStateException ise) {
+			catch (IllegalStateException illegalStateException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(ise.getMessage());
+					_log.warn(illegalStateException.getMessage());
 				}
 			}
 
@@ -826,7 +779,7 @@ public class PortletRequestModel implements Serializable {
 
 					_renderURLExclusive = renderURL.toString();
 				}
-				catch (WindowStateException wse) {
+				catch (WindowStateException windowStateException) {
 				}
 
 				try {
@@ -834,7 +787,7 @@ public class PortletRequestModel implements Serializable {
 
 					_renderURLMaximized = renderURL.toString();
 				}
-				catch (WindowStateException wse) {
+				catch (WindowStateException windowStateException) {
 				}
 
 				try {
@@ -842,7 +795,7 @@ public class PortletRequestModel implements Serializable {
 
 					_renderURLMinimized = renderURL.toString();
 				}
-				catch (WindowStateException wse) {
+				catch (WindowStateException windowStateException) {
 				}
 
 				try {
@@ -850,7 +803,7 @@ public class PortletRequestModel implements Serializable {
 
 					_renderURLNormal = renderURL.toString();
 				}
-				catch (WindowStateException wse) {
+				catch (WindowStateException windowStateException) {
 				}
 
 				try {
@@ -858,12 +811,12 @@ public class PortletRequestModel implements Serializable {
 
 					_renderURLPopUp = renderURL.toString();
 				}
-				catch (WindowStateException wse) {
+				catch (WindowStateException windowStateException) {
 				}
 			}
-			catch (IllegalStateException ise) {
+			catch (IllegalStateException illegalStateException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(ise.getMessage());
+					_log.warn(illegalStateException.getMessage());
 				}
 			}
 
@@ -875,7 +828,54 @@ public class PortletRequestModel implements Serializable {
 			resourceURLString = HttpUtil.removeParameter(
 				resourceURLString, _portletNamespace + "redirect");
 
-			_resourceURL = resourceURL.toString();
+			_resourceURL = resourceURLString;
+		}
+	}
+
+	private boolean _isValidAttributeName(String name) {
+		if (StringUtil.equalsIgnoreCase(
+				name, WebKeys.PORTLET_RENDER_PARAMETERS) ||
+			StringUtil.equalsIgnoreCase(name, "j_password") ||
+			StringUtil.equalsIgnoreCase(name, "LAYOUT_CONTENT") ||
+			StringUtil.equalsIgnoreCase(name, "LAYOUTS") ||
+			StringUtil.equalsIgnoreCase(name, "USER_PASSWORD") ||
+			name.startsWith("javax.") || name.startsWith("liferay-ui:")) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	private boolean _isValidAttributeValue(Object object) {
+		if (object == null) {
+			return false;
+		}
+		else if (object instanceof Collection<?>) {
+			Collection<?> col = (Collection<?>)object;
+
+			return !col.isEmpty();
+		}
+		else if (object instanceof Map<?, ?>) {
+			Map<?, ?> map = (Map<?, ?>)object;
+
+			return !map.isEmpty();
+		}
+		else {
+			String objString = String.valueOf(object);
+
+			if (Validator.isNull(objString)) {
+				return false;
+			}
+
+			String hashCode = StringPool.AT.concat(
+				StringUtil.toHexString(object.hashCode()));
+
+			if (objString.endsWith(hashCode)) {
+				return false;
+			}
+
+			return true;
 		}
 	}
 

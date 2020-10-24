@@ -13,27 +13,25 @@ import {cleanup, render} from '@testing-library/react';
 import React from 'react';
 
 import PerformanceByAssigneePage from '../../../src/main/resources/META-INF/resources/js/components/performance-by-assignee-page/PerformanceByAssigneePage.es';
-import PromisesResolver from '../../../src/main/resources/META-INF/resources/js/shared/components/request/PromisesResolver.es';
+import PromisesResolver from '../../../src/main/resources/META-INF/resources/js/shared/components/promises-resolver/PromisesResolver.es';
 import {MockRouter} from '../../mock/MockRouter.es';
 
 const items = [
 	{
+		assignee: {image: 'path/to/image', name: 'User Test First'},
 		durationTaskAvg: 10800000,
-		image: 'path/to/image',
-		name: 'User Test First',
-		taskCount: 10
+		taskCount: 10,
 	},
 	{
+		assignee: {image: 'path/to/image', name: 'User Test Second'},
 		durationTaskAvg: 475200000,
-		image: 'path/to/image',
-		name: 'User Test Second',
-		taskCount: 31
+		taskCount: 31,
 	},
 	{
+		assignee: {name: 'User Test Third'},
 		durationTaskAvg: 0,
-		name: 'User Test Third',
-		taskCount: 1
-	}
+		taskCount: 1,
+	},
 ];
 
 const wrapper = ({children}) => (
@@ -52,7 +50,7 @@ describe('The performance by assignee page body should', () => {
 	beforeEach(() => {
 		const renderResult = render(
 			<PerformanceByAssigneePage.Body
-				data={{items, totalCount: items.length}}
+				{...{items, totalCount: items.length}}
 				page="1"
 				pageSize="5"
 			/>,
@@ -75,44 +73,26 @@ describe('The subcomponents from workload by assignee page body should', () => {
 	afterEach(cleanup);
 
 	test('Be rendered with empty view and no content message', async () => {
-		const {getByTestId} = render(<PerformanceByAssigneePage.Body.Empty />);
-
-		const emptyStateDiv = getByTestId('emptyState');
-
-		expect(emptyStateDiv.children[1].children[0].innerHTML).toBe(
-			'there-is-no-data-at-the-moment'
+		const {getByText} = render(
+			<PerformanceByAssigneePage.Body items={[]} totalCount={0} />
 		);
+
+		const emptyStateMessage = getByText('there-is-no-data-at-the-moment');
+
+		expect(emptyStateMessage).toBeTruthy();
 	});
 
 	test('Be rendered with empty view and no results message', async () => {
-		const {getByTestId} = render(
-			<PerformanceByAssigneePage.Body.Empty filtered={true} />
+		const {getByText} = render(
+			<PerformanceByAssigneePage.Body
+				filtered={true}
+				items={[]}
+				totalCount={0}
+			/>
 		);
 
-		const emptyStateDiv = getByTestId('emptyState');
+		const emptyStateMessage = getByText('no-results-were-found');
 
-		expect(emptyStateDiv.children[1].children[0].innerHTML).toBe(
-			'no-results-were-found'
-		);
-	});
-
-	test('Be rendered with error view and the expected message', () => {
-		const {getByTestId} = render(<PerformanceByAssigneePage.Body.Error />);
-
-		const emptyStateDiv = getByTestId('emptyState');
-
-		expect(emptyStateDiv.children[0].children[0].innerHTML).toBe(
-			'there-was-a-problem-retrieving-data-please-try-reloading-the-page'
-		);
-	});
-
-	test('Be rendered with loading view', async () => {
-		const {getByTestId} = render(
-			<PerformanceByAssigneePage.Body.Loading />
-		);
-
-		const loadingStateDiv = getByTestId('loadingState');
-
-		expect(loadingStateDiv).not.toBeNull();
+		expect(emptyStateMessage).toBeTruthy();
 	});
 });

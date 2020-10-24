@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.base;
 
+import com.liferay.document.library.kernel.service.persistence.DLFileEntryTypeFinder;
+import com.liferay.document.library.kernel.service.persistence.DLFileEntryTypePersistence;
 import com.liferay.expando.kernel.service.persistence.ExpandoColumnPersistence;
 import com.liferay.expando.kernel.service.persistence.ExpandoTablePersistence;
 import com.liferay.portal.kernel.bean.BeanReference;
@@ -27,6 +29,7 @@ import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiServic
 import com.liferay.portal.kernel.service.BaseServiceImpl;
 import com.liferay.portal.kernel.service.CompanyService;
 import com.liferay.portal.kernel.service.persistence.AccountPersistence;
+import com.liferay.portal.kernel.service.persistence.CompanyInfoPersistence;
 import com.liferay.portal.kernel.service.persistence.CompanyPersistence;
 import com.liferay.portal.kernel.service.persistence.ContactPersistence;
 import com.liferay.portal.kernel.service.persistence.GroupFinder;
@@ -66,7 +69,7 @@ import javax.sql.DataSource;
 public abstract class CompanyServiceBaseImpl
 	extends BaseServiceImpl implements CompanyService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>CompanyService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.CompanyServiceUtil</code>.
@@ -218,6 +221,93 @@ public abstract class CompanyServiceBaseImpl
 	}
 
 	/**
+	 * Returns the document library file entry type local service.
+	 *
+	 * @return the document library file entry type local service
+	 */
+	public
+		com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService
+			getDLFileEntryTypeLocalService() {
+
+		return dlFileEntryTypeLocalService;
+	}
+
+	/**
+	 * Sets the document library file entry type local service.
+	 *
+	 * @param dlFileEntryTypeLocalService the document library file entry type local service
+	 */
+	public void setDLFileEntryTypeLocalService(
+		com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService
+			dlFileEntryTypeLocalService) {
+
+		this.dlFileEntryTypeLocalService = dlFileEntryTypeLocalService;
+	}
+
+	/**
+	 * Returns the document library file entry type remote service.
+	 *
+	 * @return the document library file entry type remote service
+	 */
+	public com.liferay.document.library.kernel.service.DLFileEntryTypeService
+		getDLFileEntryTypeService() {
+
+		return dlFileEntryTypeService;
+	}
+
+	/**
+	 * Sets the document library file entry type remote service.
+	 *
+	 * @param dlFileEntryTypeService the document library file entry type remote service
+	 */
+	public void setDLFileEntryTypeService(
+		com.liferay.document.library.kernel.service.DLFileEntryTypeService
+			dlFileEntryTypeService) {
+
+		this.dlFileEntryTypeService = dlFileEntryTypeService;
+	}
+
+	/**
+	 * Returns the document library file entry type persistence.
+	 *
+	 * @return the document library file entry type persistence
+	 */
+	public DLFileEntryTypePersistence getDLFileEntryTypePersistence() {
+		return dlFileEntryTypePersistence;
+	}
+
+	/**
+	 * Sets the document library file entry type persistence.
+	 *
+	 * @param dlFileEntryTypePersistence the document library file entry type persistence
+	 */
+	public void setDLFileEntryTypePersistence(
+		DLFileEntryTypePersistence dlFileEntryTypePersistence) {
+
+		this.dlFileEntryTypePersistence = dlFileEntryTypePersistence;
+	}
+
+	/**
+	 * Returns the document library file entry type finder.
+	 *
+	 * @return the document library file entry type finder
+	 */
+	public DLFileEntryTypeFinder getDLFileEntryTypeFinder() {
+		return dlFileEntryTypeFinder;
+	}
+
+	/**
+	 * Sets the document library file entry type finder.
+	 *
+	 * @param dlFileEntryTypeFinder the document library file entry type finder
+	 */
+	public void setDLFileEntryTypeFinder(
+		DLFileEntryTypeFinder dlFileEntryTypeFinder) {
+
+		this.dlFileEntryTypeFinder = dlFileEntryTypeFinder;
+	}
+
+	/**
 	 * Returns the expando column local service.
 	 *
 	 * @return the expando column local service
@@ -324,6 +414,49 @@ public abstract class CompanyServiceBaseImpl
 		ExpandoTablePersistence expandoTablePersistence) {
 
 		this.expandoTablePersistence = expandoTablePersistence;
+	}
+
+	/**
+	 * Returns the company info local service.
+	 *
+	 * @return the company info local service
+	 */
+	public com.liferay.portal.kernel.service.CompanyInfoLocalService
+		getCompanyInfoLocalService() {
+
+		return companyInfoLocalService;
+	}
+
+	/**
+	 * Sets the company info local service.
+	 *
+	 * @param companyInfoLocalService the company info local service
+	 */
+	public void setCompanyInfoLocalService(
+		com.liferay.portal.kernel.service.CompanyInfoLocalService
+			companyInfoLocalService) {
+
+		this.companyInfoLocalService = companyInfoLocalService;
+	}
+
+	/**
+	 * Returns the company info persistence.
+	 *
+	 * @return the company info persistence
+	 */
+	public CompanyInfoPersistence getCompanyInfoPersistence() {
+		return companyInfoPersistence;
+	}
+
+	/**
+	 * Sets the company info persistence.
+	 *
+	 * @param companyInfoPersistence the company info persistence
+	 */
+	public void setCompanyInfoPersistence(
+		CompanyInfoPersistence companyInfoPersistence) {
+
+		this.companyInfoPersistence = companyInfoPersistence;
 	}
 
 	/**
@@ -1303,8 +1436,8 @@ public abstract class CompanyServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -1341,6 +1474,25 @@ public abstract class CompanyServiceBaseImpl
 	protected AccountPersistence accountPersistence;
 
 	@BeanReference(
+		type = com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService.class
+	)
+	protected
+		com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService
+			dlFileEntryTypeLocalService;
+
+	@BeanReference(
+		type = com.liferay.document.library.kernel.service.DLFileEntryTypeService.class
+	)
+	protected com.liferay.document.library.kernel.service.DLFileEntryTypeService
+		dlFileEntryTypeService;
+
+	@BeanReference(type = DLFileEntryTypePersistence.class)
+	protected DLFileEntryTypePersistence dlFileEntryTypePersistence;
+
+	@BeanReference(type = DLFileEntryTypeFinder.class)
+	protected DLFileEntryTypeFinder dlFileEntryTypeFinder;
+
+	@BeanReference(
 		type = com.liferay.expando.kernel.service.ExpandoColumnLocalService.class
 	)
 	protected com.liferay.expando.kernel.service.ExpandoColumnLocalService
@@ -1363,6 +1515,15 @@ public abstract class CompanyServiceBaseImpl
 
 	@BeanReference(type = ExpandoTablePersistence.class)
 	protected ExpandoTablePersistence expandoTablePersistence;
+
+	@BeanReference(
+		type = com.liferay.portal.kernel.service.CompanyInfoLocalService.class
+	)
+	protected com.liferay.portal.kernel.service.CompanyInfoLocalService
+		companyInfoLocalService;
+
+	@BeanReference(type = CompanyInfoPersistence.class)
+	protected CompanyInfoPersistence companyInfoPersistence;
 
 	@BeanReference(
 		type = com.liferay.portal.kernel.service.ContactLocalService.class

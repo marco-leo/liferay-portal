@@ -28,6 +28,8 @@ import com.liferay.data.engine.rest.client.pagination.Page;
 import com.liferay.data.engine.rest.client.pagination.Pagination;
 import com.liferay.data.engine.rest.client.resource.v2_0.DataRecordResource;
 import com.liferay.data.engine.rest.client.serdes.v2_0.DataRecordSerDes;
+import com.liferay.petra.function.UnsafeTriConsumer;
+import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -43,6 +45,7 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.test.log.CaptureAppender;
@@ -51,12 +54,16 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +75,9 @@ import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.log4j.Level;
 
 import org.junit.After;
@@ -109,7 +118,9 @@ public abstract class BaseDataRecordResourceTestCase {
 
 		DataRecordResource.Builder builder = DataRecordResource.builder();
 
-		dataRecordResource = builder.locale(
+		dataRecordResource = builder.authentication(
+			"test@liferay.com", "test"
+		).locale(
 			LocaleUtil.getDefault()
 		).build();
 	}
@@ -191,7 +202,7 @@ public abstract class BaseDataRecordResourceTestCase {
 		Page<DataRecord> page =
 			dataRecordResource.getDataDefinitionDataRecordsPage(
 				testGetDataDefinitionDataRecordsPage_getDataDefinitionId(),
-				Pagination.of(1, 2));
+				null, RandomTestUtil.randomString(), Pagination.of(1, 2), null);
 
 		Assert.assertEquals(0, page.getTotalCount());
 
@@ -206,7 +217,8 @@ public abstract class BaseDataRecordResourceTestCase {
 					irrelevantDataDefinitionId, randomIrrelevantDataRecord());
 
 			page = dataRecordResource.getDataDefinitionDataRecordsPage(
-				irrelevantDataDefinitionId, Pagination.of(1, 2));
+				irrelevantDataDefinitionId, null, null, Pagination.of(1, 2),
+				null);
 
 			Assert.assertEquals(1, page.getTotalCount());
 
@@ -225,7 +237,7 @@ public abstract class BaseDataRecordResourceTestCase {
 				dataDefinitionId, randomDataRecord());
 
 		page = dataRecordResource.getDataDefinitionDataRecordsPage(
-			dataDefinitionId, Pagination.of(1, 2));
+			dataDefinitionId, null, null, Pagination.of(1, 2), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -260,7 +272,7 @@ public abstract class BaseDataRecordResourceTestCase {
 
 		Page<DataRecord> page1 =
 			dataRecordResource.getDataDefinitionDataRecordsPage(
-				dataDefinitionId, Pagination.of(1, 2));
+				dataDefinitionId, null, null, Pagination.of(1, 2), null);
 
 		List<DataRecord> dataRecords1 = (List<DataRecord>)page1.getItems();
 
@@ -268,7 +280,7 @@ public abstract class BaseDataRecordResourceTestCase {
 
 		Page<DataRecord> page2 =
 			dataRecordResource.getDataDefinitionDataRecordsPage(
-				dataDefinitionId, Pagination.of(2, 2));
+				dataDefinitionId, null, null, Pagination.of(2, 2), null);
 
 		Assert.assertEquals(3, page2.getTotalCount());
 
@@ -278,11 +290,138 @@ public abstract class BaseDataRecordResourceTestCase {
 
 		Page<DataRecord> page3 =
 			dataRecordResource.getDataDefinitionDataRecordsPage(
-				dataDefinitionId, Pagination.of(1, 3));
+				dataDefinitionId, null, null, Pagination.of(1, 3), null);
 
 		assertEqualsIgnoringOrder(
 			Arrays.asList(dataRecord1, dataRecord2, dataRecord3),
 			(List<DataRecord>)page3.getItems());
+	}
+
+	@Test
+	public void testGetDataDefinitionDataRecordsPageWithSortDateTime()
+		throws Exception {
+
+		testGetDataDefinitionDataRecordsPageWithSort(
+			EntityField.Type.DATE_TIME,
+			(entityField, dataRecord1, dataRecord2) -> {
+				BeanUtils.setProperty(
+					dataRecord1, entityField.getName(),
+					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetDataDefinitionDataRecordsPageWithSortInteger()
+		throws Exception {
+
+		testGetDataDefinitionDataRecordsPageWithSort(
+			EntityField.Type.INTEGER,
+			(entityField, dataRecord1, dataRecord2) -> {
+				BeanUtils.setProperty(dataRecord1, entityField.getName(), 0);
+				BeanUtils.setProperty(dataRecord2, entityField.getName(), 1);
+			});
+	}
+
+	@Test
+	public void testGetDataDefinitionDataRecordsPageWithSortString()
+		throws Exception {
+
+		testGetDataDefinitionDataRecordsPageWithSort(
+			EntityField.Type.STRING,
+			(entityField, dataRecord1, dataRecord2) -> {
+				Class<?> clazz = dataRecord1.getClass();
+
+				String entityFieldName = entityField.getName();
+
+				Method method = clazz.getMethod(
+					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
+
+				Class<?> returnType = method.getReturnType();
+
+				if (returnType.isAssignableFrom(Map.class)) {
+					BeanUtils.setProperty(
+						dataRecord1, entityFieldName,
+						Collections.singletonMap("Aaa", "Aaa"));
+					BeanUtils.setProperty(
+						dataRecord2, entityFieldName,
+						Collections.singletonMap("Bbb", "Bbb"));
+				}
+				else if (entityFieldName.contains("email")) {
+					BeanUtils.setProperty(
+						dataRecord1, entityFieldName,
+						"aaa" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()) +
+									"@liferay.com");
+					BeanUtils.setProperty(
+						dataRecord2, entityFieldName,
+						"bbb" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()) +
+									"@liferay.com");
+				}
+				else {
+					BeanUtils.setProperty(
+						dataRecord1, entityFieldName,
+						"aaa" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()));
+					BeanUtils.setProperty(
+						dataRecord2, entityFieldName,
+						"bbb" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()));
+				}
+			});
+	}
+
+	protected void testGetDataDefinitionDataRecordsPageWithSort(
+			EntityField.Type type,
+			UnsafeTriConsumer<EntityField, DataRecord, DataRecord, Exception>
+				unsafeTriConsumer)
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(type);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long dataDefinitionId =
+			testGetDataDefinitionDataRecordsPage_getDataDefinitionId();
+
+		DataRecord dataRecord1 = randomDataRecord();
+		DataRecord dataRecord2 = randomDataRecord();
+
+		for (EntityField entityField : entityFields) {
+			unsafeTriConsumer.accept(entityField, dataRecord1, dataRecord2);
+		}
+
+		dataRecord1 = testGetDataDefinitionDataRecordsPage_addDataRecord(
+			dataDefinitionId, dataRecord1);
+
+		dataRecord2 = testGetDataDefinitionDataRecordsPage_addDataRecord(
+			dataDefinitionId, dataRecord2);
+
+		for (EntityField entityField : entityFields) {
+			Page<DataRecord> ascPage =
+				dataRecordResource.getDataDefinitionDataRecordsPage(
+					dataDefinitionId, null, null, Pagination.of(1, 2),
+					entityField.getName() + ":asc");
+
+			assertEquals(
+				Arrays.asList(dataRecord1, dataRecord2),
+				(List<DataRecord>)ascPage.getItems());
+
+			Page<DataRecord> descPage =
+				dataRecordResource.getDataDefinitionDataRecordsPage(
+					dataDefinitionId, null, null, Pagination.of(1, 2),
+					entityField.getName() + ":desc");
+
+			assertEquals(
+				Arrays.asList(dataRecord2, dataRecord1),
+				(List<DataRecord>)descPage.getItems());
+		}
 	}
 
 	protected DataRecord testGetDataDefinitionDataRecordsPage_addDataRecord(
@@ -332,7 +471,7 @@ public abstract class BaseDataRecordResourceTestCase {
 		Page<DataRecord> page =
 			dataRecordResource.getDataRecordCollectionDataRecordsPage(
 				testGetDataRecordCollectionDataRecordsPage_getDataRecordCollectionId(),
-				Pagination.of(1, 2));
+				null, RandomTestUtil.randomString(), Pagination.of(1, 2), null);
 
 		Assert.assertEquals(0, page.getTotalCount());
 
@@ -348,7 +487,8 @@ public abstract class BaseDataRecordResourceTestCase {
 					randomIrrelevantDataRecord());
 
 			page = dataRecordResource.getDataRecordCollectionDataRecordsPage(
-				irrelevantDataRecordCollectionId, Pagination.of(1, 2));
+				irrelevantDataRecordCollectionId, null, null,
+				Pagination.of(1, 2), null);
 
 			Assert.assertEquals(1, page.getTotalCount());
 
@@ -367,7 +507,7 @@ public abstract class BaseDataRecordResourceTestCase {
 				dataRecordCollectionId, randomDataRecord());
 
 		page = dataRecordResource.getDataRecordCollectionDataRecordsPage(
-			dataRecordCollectionId, Pagination.of(1, 2));
+			dataRecordCollectionId, null, null, Pagination.of(1, 2), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -402,7 +542,7 @@ public abstract class BaseDataRecordResourceTestCase {
 
 		Page<DataRecord> page1 =
 			dataRecordResource.getDataRecordCollectionDataRecordsPage(
-				dataRecordCollectionId, Pagination.of(1, 2));
+				dataRecordCollectionId, null, null, Pagination.of(1, 2), null);
 
 		List<DataRecord> dataRecords1 = (List<DataRecord>)page1.getItems();
 
@@ -410,7 +550,7 @@ public abstract class BaseDataRecordResourceTestCase {
 
 		Page<DataRecord> page2 =
 			dataRecordResource.getDataRecordCollectionDataRecordsPage(
-				dataRecordCollectionId, Pagination.of(2, 2));
+				dataRecordCollectionId, null, null, Pagination.of(2, 2), null);
 
 		Assert.assertEquals(3, page2.getTotalCount());
 
@@ -420,11 +560,138 @@ public abstract class BaseDataRecordResourceTestCase {
 
 		Page<DataRecord> page3 =
 			dataRecordResource.getDataRecordCollectionDataRecordsPage(
-				dataRecordCollectionId, Pagination.of(1, 3));
+				dataRecordCollectionId, null, null, Pagination.of(1, 3), null);
 
 		assertEqualsIgnoringOrder(
 			Arrays.asList(dataRecord1, dataRecord2, dataRecord3),
 			(List<DataRecord>)page3.getItems());
+	}
+
+	@Test
+	public void testGetDataRecordCollectionDataRecordsPageWithSortDateTime()
+		throws Exception {
+
+		testGetDataRecordCollectionDataRecordsPageWithSort(
+			EntityField.Type.DATE_TIME,
+			(entityField, dataRecord1, dataRecord2) -> {
+				BeanUtils.setProperty(
+					dataRecord1, entityField.getName(),
+					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetDataRecordCollectionDataRecordsPageWithSortInteger()
+		throws Exception {
+
+		testGetDataRecordCollectionDataRecordsPageWithSort(
+			EntityField.Type.INTEGER,
+			(entityField, dataRecord1, dataRecord2) -> {
+				BeanUtils.setProperty(dataRecord1, entityField.getName(), 0);
+				BeanUtils.setProperty(dataRecord2, entityField.getName(), 1);
+			});
+	}
+
+	@Test
+	public void testGetDataRecordCollectionDataRecordsPageWithSortString()
+		throws Exception {
+
+		testGetDataRecordCollectionDataRecordsPageWithSort(
+			EntityField.Type.STRING,
+			(entityField, dataRecord1, dataRecord2) -> {
+				Class<?> clazz = dataRecord1.getClass();
+
+				String entityFieldName = entityField.getName();
+
+				Method method = clazz.getMethod(
+					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
+
+				Class<?> returnType = method.getReturnType();
+
+				if (returnType.isAssignableFrom(Map.class)) {
+					BeanUtils.setProperty(
+						dataRecord1, entityFieldName,
+						Collections.singletonMap("Aaa", "Aaa"));
+					BeanUtils.setProperty(
+						dataRecord2, entityFieldName,
+						Collections.singletonMap("Bbb", "Bbb"));
+				}
+				else if (entityFieldName.contains("email")) {
+					BeanUtils.setProperty(
+						dataRecord1, entityFieldName,
+						"aaa" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()) +
+									"@liferay.com");
+					BeanUtils.setProperty(
+						dataRecord2, entityFieldName,
+						"bbb" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()) +
+									"@liferay.com");
+				}
+				else {
+					BeanUtils.setProperty(
+						dataRecord1, entityFieldName,
+						"aaa" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()));
+					BeanUtils.setProperty(
+						dataRecord2, entityFieldName,
+						"bbb" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()));
+				}
+			});
+	}
+
+	protected void testGetDataRecordCollectionDataRecordsPageWithSort(
+			EntityField.Type type,
+			UnsafeTriConsumer<EntityField, DataRecord, DataRecord, Exception>
+				unsafeTriConsumer)
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(type);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long dataRecordCollectionId =
+			testGetDataRecordCollectionDataRecordsPage_getDataRecordCollectionId();
+
+		DataRecord dataRecord1 = randomDataRecord();
+		DataRecord dataRecord2 = randomDataRecord();
+
+		for (EntityField entityField : entityFields) {
+			unsafeTriConsumer.accept(entityField, dataRecord1, dataRecord2);
+		}
+
+		dataRecord1 = testGetDataRecordCollectionDataRecordsPage_addDataRecord(
+			dataRecordCollectionId, dataRecord1);
+
+		dataRecord2 = testGetDataRecordCollectionDataRecordsPage_addDataRecord(
+			dataRecordCollectionId, dataRecord2);
+
+		for (EntityField entityField : entityFields) {
+			Page<DataRecord> ascPage =
+				dataRecordResource.getDataRecordCollectionDataRecordsPage(
+					dataRecordCollectionId, null, null, Pagination.of(1, 2),
+					entityField.getName() + ":asc");
+
+			assertEquals(
+				Arrays.asList(dataRecord1, dataRecord2),
+				(List<DataRecord>)ascPage.getItems());
+
+			Page<DataRecord> descPage =
+				dataRecordResource.getDataRecordCollectionDataRecordsPage(
+					dataRecordCollectionId, null, null, Pagination.of(1, 2),
+					entityField.getName() + ":desc");
+
+			assertEquals(
+				Arrays.asList(dataRecord2, dataRecord1),
+				(List<DataRecord>)descPage.getItems());
+		}
 	}
 
 	protected DataRecord
@@ -479,6 +746,7 @@ public abstract class BaseDataRecordResourceTestCase {
 
 	@Test
 	public void testDeleteDataRecord() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
 		DataRecord dataRecord = testDeleteDataRecord_addDataRecord();
 
 		assertHttpResponseStatusCode(
@@ -503,43 +771,34 @@ public abstract class BaseDataRecordResourceTestCase {
 	public void testGraphQLDeleteDataRecord() throws Exception {
 		DataRecord dataRecord = testGraphQLDataRecord_addDataRecord();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"mutation",
-			new GraphQLField(
-				"deleteDataRecord",
-				new HashMap<String, Object>() {
-					{
-						put("dataRecordId", dataRecord.getId());
-					}
-				}));
-
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
-			invoke(graphQLField.toString()));
-
-		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
-
-		Assert.assertTrue(dataJSONObject.getBoolean("deleteDataRecord"));
+		Assert.assertTrue(
+			JSONUtil.getValueAsBoolean(
+				invokeGraphQLMutation(
+					new GraphQLField(
+						"deleteDataRecord",
+						new HashMap<String, Object>() {
+							{
+								put("dataRecordId", dataRecord.getId());
+							}
+						})),
+				"JSONObject/data", "Object/deleteDataRecord"));
 
 		try (CaptureAppender captureAppender =
 				Log4JLoggerTestUtil.configureLog4JLogger(
 					"graphql.execution.SimpleDataFetcherExceptionHandler",
 					Level.WARN)) {
 
-			graphQLField = new GraphQLField(
-				"query",
-				new GraphQLField(
-					"dataRecord",
-					new HashMap<String, Object>() {
-						{
-							put("dataRecordId", dataRecord.getId());
-						}
-					},
-					new GraphQLField("id")));
-
-			jsonObject = JSONFactoryUtil.createJSONObject(
-				invoke(graphQLField.toString()));
-
-			JSONArray errorsJSONArray = jsonObject.getJSONArray("errors");
+			JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
+				invokeGraphQLQuery(
+					new GraphQLField(
+						"dataRecord",
+						new HashMap<String, Object>() {
+							{
+								put("dataRecordId", dataRecord.getId());
+							}
+						},
+						new GraphQLField("id"))),
+				"JSONArray/errors");
 
 			Assert.assertTrue(errorsJSONArray.length() > 0);
 		}
@@ -565,27 +824,67 @@ public abstract class BaseDataRecordResourceTestCase {
 	public void testGraphQLGetDataRecord() throws Exception {
 		DataRecord dataRecord = testGraphQLDataRecord_addDataRecord();
 
-		List<GraphQLField> graphQLFields = getGraphQLFields();
-
-		GraphQLField graphQLField = new GraphQLField(
-			"query",
-			new GraphQLField(
-				"dataRecord",
-				new HashMap<String, Object>() {
-					{
-						put("dataRecordId", dataRecord.getId());
-					}
-				},
-				graphQLFields.toArray(new GraphQLField[0])));
-
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
-			invoke(graphQLField.toString()));
-
-		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
-
 		Assert.assertTrue(
-			equalsJSONObject(
-				dataRecord, dataJSONObject.getJSONObject("dataRecord")));
+			equals(
+				dataRecord,
+				DataRecordSerDes.toDTO(
+					JSONUtil.getValueAsString(
+						invokeGraphQLQuery(
+							new GraphQLField(
+								"dataRecord",
+								new HashMap<String, Object>() {
+									{
+										put("dataRecordId", dataRecord.getId());
+									}
+								},
+								getGraphQLFields())),
+						"JSONObject/data", "Object/dataRecord"))));
+	}
+
+	@Test
+	public void testGraphQLGetDataRecordNotFound() throws Exception {
+		Long irrelevantDataRecordId = RandomTestUtil.randomLong();
+
+		Assert.assertEquals(
+			"Not Found",
+			JSONUtil.getValueAsString(
+				invokeGraphQLQuery(
+					new GraphQLField(
+						"dataRecord",
+						new HashMap<String, Object>() {
+							{
+								put("dataRecordId", irrelevantDataRecordId);
+							}
+						},
+						getGraphQLFields())),
+				"JSONArray/errors", "Object/0", "JSONObject/extensions",
+				"Object/code"));
+	}
+
+	@Test
+	public void testPatchDataRecord() throws Exception {
+		DataRecord postDataRecord = testPatchDataRecord_addDataRecord();
+
+		DataRecord randomPatchDataRecord = randomPatchDataRecord();
+
+		DataRecord patchDataRecord = dataRecordResource.patchDataRecord(
+			postDataRecord.getId(), randomPatchDataRecord);
+
+		DataRecord expectedPatchDataRecord = postDataRecord.clone();
+
+		_beanUtilsBean.copyProperties(
+			expectedPatchDataRecord, randomPatchDataRecord);
+
+		DataRecord getDataRecord = dataRecordResource.getDataRecord(
+			patchDataRecord.getId());
+
+		assertEquals(expectedPatchDataRecord, getDataRecord);
+		assertValid(getDataRecord);
+	}
+
+	protected DataRecord testPatchDataRecord_addDataRecord() throws Exception {
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -669,26 +968,7 @@ public abstract class BaseDataRecordResourceTestCase {
 		}
 	}
 
-	protected void assertEqualsJSONArray(
-		List<DataRecord> dataRecords, JSONArray jsonArray) {
-
-		for (DataRecord dataRecord : dataRecords) {
-			boolean contains = false;
-
-			for (Object object : jsonArray) {
-				if (equalsJSONObject(dataRecord, (JSONObject)object)) {
-					contains = true;
-
-					break;
-				}
-			}
-
-			Assert.assertTrue(
-				jsonArray + " does not contain " + dataRecord, contains);
-		}
-	}
-
-	protected void assertValid(DataRecord dataRecord) {
+	protected void assertValid(DataRecord dataRecord) throws Exception {
 		boolean valid = true;
 
 		if (dataRecord.getId() == null) {
@@ -745,13 +1025,49 @@ public abstract class BaseDataRecordResourceTestCase {
 		return new String[0];
 	}
 
-	protected List<GraphQLField> getGraphQLFields() {
+	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (String additionalAssertFieldName :
-				getAdditionalAssertFieldNames()) {
+		for (Field field :
+				ReflectionUtil.getDeclaredFields(
+					com.liferay.data.engine.rest.dto.v2_0.DataRecord.class)) {
 
-			graphQLFields.add(new GraphQLField(additionalAssertFieldName));
+			if (!ArrayUtil.contains(
+					getAdditionalAssertFieldNames(), field.getName())) {
+
+				continue;
+			}
+
+			graphQLFields.addAll(getGraphQLFields(field));
+		}
+
+		return graphQLFields;
+	}
+
+	protected List<GraphQLField> getGraphQLFields(Field... fields)
+		throws Exception {
+
+		List<GraphQLField> graphQLFields = new ArrayList<>();
+
+		for (Field field : fields) {
+			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
+				vulcanGraphQLField = field.getAnnotation(
+					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
+						class);
+
+			if (vulcanGraphQLField != null) {
+				Class<?> clazz = field.getType();
+
+				if (clazz.isArray()) {
+					clazz = clazz.getComponentType();
+				}
+
+				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
+					ReflectionUtil.getDeclaredFields(clazz));
+
+				graphQLFields.add(
+					new GraphQLField(field.getName(), childrenGraphQLFields));
+			}
 		}
 
 		return graphQLFields;
@@ -783,9 +1099,9 @@ public abstract class BaseDataRecordResourceTestCase {
 			}
 
 			if (Objects.equals("dataRecordValues", additionalAssertFieldName)) {
-				if (!Objects.deepEquals(
-						dataRecord1.getDataRecordValues(),
-						dataRecord2.getDataRecordValues())) {
+				if (!equals(
+						(Map)dataRecord1.getDataRecordValues(),
+						(Map)dataRecord2.getDataRecordValues())) {
 
 					return false;
 				}
@@ -811,36 +1127,30 @@ public abstract class BaseDataRecordResourceTestCase {
 		return true;
 	}
 
-	protected boolean equalsJSONObject(
-		DataRecord dataRecord, JSONObject jsonObject) {
+	protected boolean equals(
+		Map<String, Object> map1, Map<String, Object> map2) {
 
-		for (String fieldName : getAdditionalAssertFieldNames()) {
-			if (Objects.equals("dataRecordCollectionId", fieldName)) {
-				if (!Objects.deepEquals(
-						dataRecord.getDataRecordCollectionId(),
-						jsonObject.getLong("dataRecordCollectionId"))) {
+		if (Objects.equals(map1.keySet(), map2.keySet())) {
+			for (Map.Entry<String, Object> entry : map1.entrySet()) {
+				if (entry.getValue() instanceof Map) {
+					if (!equals(
+							(Map)entry.getValue(),
+							(Map)map2.get(entry.getKey()))) {
+
+						return false;
+					}
+				}
+				else if (!Objects.deepEquals(
+							entry.getValue(), map2.get(entry.getKey()))) {
 
 					return false;
 				}
-
-				continue;
 			}
 
-			if (Objects.equals("id", fieldName)) {
-				if (!Objects.deepEquals(
-						dataRecord.getId(), jsonObject.getLong("id"))) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			throw new IllegalArgumentException(
-				"Invalid field name " + fieldName);
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -929,6 +1239,26 @@ public abstract class BaseDataRecordResourceTestCase {
 		return httpResponse.getContent();
 	}
 
+	protected JSONObject invokeGraphQLMutation(GraphQLField graphQLField)
+		throws Exception {
+
+		GraphQLField mutationGraphQLField = new GraphQLField(
+			"mutation", graphQLField);
+
+		return JSONFactoryUtil.createJSONObject(
+			invoke(mutationGraphQLField.toString()));
+	}
+
+	protected JSONObject invokeGraphQLQuery(GraphQLField graphQLField)
+		throws Exception {
+
+		GraphQLField queryGraphQLField = new GraphQLField(
+			"query", graphQLField);
+
+		return JSONFactoryUtil.createJSONObject(
+			invoke(queryGraphQLField.toString()));
+	}
+
 	protected DataRecord randomDataRecord() throws Exception {
 		return new DataRecord() {
 			{
@@ -959,9 +1289,22 @@ public abstract class BaseDataRecordResourceTestCase {
 			this(key, new HashMap<>(), graphQLFields);
 		}
 
+		public GraphQLField(String key, List<GraphQLField> graphQLFields) {
+			this(key, new HashMap<>(), graphQLFields);
+		}
+
 		public GraphQLField(
 			String key, Map<String, Object> parameterMap,
 			GraphQLField... graphQLFields) {
+
+			_key = key;
+			_parameterMap = parameterMap;
+			_graphQLFields = Arrays.asList(graphQLFields);
+		}
+
+		public GraphQLField(
+			String key, Map<String, Object> parameterMap,
+			List<GraphQLField> graphQLFields) {
 
 			_key = key;
 			_parameterMap = parameterMap;
@@ -989,7 +1332,7 @@ public abstract class BaseDataRecordResourceTestCase {
 				sb.append(")");
 			}
 
-			if (_graphQLFields.length > 0) {
+			if (!_graphQLFields.isEmpty()) {
 				sb.append("{");
 
 				for (GraphQLField graphQLField : _graphQLFields) {
@@ -1005,7 +1348,7 @@ public abstract class BaseDataRecordResourceTestCase {
 			return sb.toString();
 		}
 
-		private final GraphQLField[] _graphQLFields;
+		private final List<GraphQLField> _graphQLFields;
 		private final String _key;
 		private final Map<String, Object> _parameterMap;
 

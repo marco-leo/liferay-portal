@@ -69,6 +69,8 @@ public class KaleoTaskAssignmentInstanceLocalServiceImpl
 		kaleoTaskAssignmentInstance.setUserName(user.getFullName());
 		kaleoTaskAssignmentInstance.setCreateDate(now);
 		kaleoTaskAssignmentInstance.setModifiedDate(now);
+		kaleoTaskAssignmentInstance.setKaleoDefinitionId(
+			kaleoTaskInstanceToken.getKaleoDefinitionId());
 		kaleoTaskAssignmentInstance.setKaleoDefinitionVersionId(
 			kaleoTaskInstanceToken.getKaleoDefinitionVersionId());
 		kaleoTaskAssignmentInstance.setKaleoInstanceId(
@@ -99,10 +101,8 @@ public class KaleoTaskAssignmentInstanceLocalServiceImpl
 
 		kaleoTaskAssignmentInstance.setCompleted(false);
 
-		kaleoTaskAssignmentInstancePersistence.update(
+		return kaleoTaskAssignmentInstancePersistence.update(
 			kaleoTaskAssignmentInstance);
-
-		return kaleoTaskAssignmentInstance;
 	}
 
 	@Override
@@ -150,6 +150,21 @@ public class KaleoTaskAssignmentInstanceLocalServiceImpl
 	}
 
 	@Override
+	public List<KaleoTaskAssignmentInstance> assignKaleoTaskAssignmentInstances(
+			KaleoTaskInstanceToken kaleoTaskInstanceToken,
+			Collection<KaleoTaskAssignment> kaleoTaskAssignments,
+			Map<String, Serializable> workflowContext,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		deleteKaleoTaskAssignmentInstances(kaleoTaskInstanceToken);
+
+		return addTaskAssignmentInstances(
+			kaleoTaskInstanceToken, kaleoTaskAssignments, workflowContext,
+			serviceContext);
+	}
+
+	@Override
 	public KaleoTaskAssignmentInstance completeKaleoTaskInstanceToken(
 			long kaleoTaskInstanceTokenId, ServiceContext serviceContext)
 		throws PortalException {
@@ -170,10 +185,8 @@ public class KaleoTaskAssignmentInstanceLocalServiceImpl
 		kaleoTaskAssignmentInstance.setCompleted(true);
 		kaleoTaskAssignmentInstance.setCompletionDate(new Date());
 
-		kaleoTaskAssignmentInstancePersistence.update(
+		return kaleoTaskAssignmentInstancePersistence.update(
 			kaleoTaskAssignmentInstance);
-
-		return kaleoTaskAssignmentInstance;
 	}
 
 	@Override

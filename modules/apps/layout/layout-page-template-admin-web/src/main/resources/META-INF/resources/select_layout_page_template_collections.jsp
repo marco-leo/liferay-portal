@@ -17,11 +17,11 @@
 <%@ include file="/init.jsp" %>
 
 <%
-LayoutPageTemplateCollectionsDisplayContext layoutPageTemplateCollectionsDisplayContext = new LayoutPageTemplateCollectionsDisplayContext(renderRequest, renderResponse, request);
+LayoutPageTemplateCollectionsDisplayContext layoutPageTemplateCollectionsDisplayContext = new LayoutPageTemplateCollectionsDisplayContext(request, renderRequest, renderResponse);
 %>
 
 <clay:management-toolbar
-	displayContext="<%= new LayoutPageTemplateCollectionsManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, layoutPageTemplateCollectionsDisplayContext) %>"
+	displayContext="<%= new LayoutPageTemplateCollectionsManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, layoutPageTemplateCollectionsDisplayContext) %>"
 />
 
 <aui:form cssClass="container-fluid-1280" name="fm">
@@ -58,11 +58,11 @@ LayoutPageTemplateCollectionsDisplayContext layoutPageTemplateCollectionsDisplay
 		'<portlet:namespace />layoutPageTemplateCollections'
 	);
 
-	searchContainer.on('rowToggled', function(event) {
+	searchContainer.on('rowToggled', function (event) {
 		Liferay.Util.getOpener().Liferay.fire(
 			'<%= HtmlUtil.escapeJS(layoutPageTemplateCollectionsDisplayContext.getEventName()) %>',
 			{
-				data: event.elements.allSelectedElements.getDOMNodes()
+				data: event.elements.allSelectedElements.getDOMNodes(),
 			}
 		);
 	});

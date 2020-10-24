@@ -57,6 +57,7 @@ public class OAuthJSONWebServiceClientImpl extends JSONWebServiceClientImpl {
 	}
 
 	@Activate
+	@Override
 	protected void activate(Map<String, Object> properties)
 		throws IOReactorException {
 
@@ -120,9 +121,9 @@ public class OAuthJSONWebServiceClientImpl extends JSONWebServiceClientImpl {
 		try {
 			oAuthConsumer.sign(httpRequestBase);
 		}
-		catch (OAuthException oae) {
+		catch (OAuthException oAuthException) {
 			throw new JSONWebServiceTransportException.SigningFailure(
-				"Unable to sign HTTP request", oae);
+				"Unable to sign HTTP request", oAuthException);
 		}
 	}
 

@@ -1,6 +1,7 @@
 @component-name = "portal-collaboration"
 definition {
 
+	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Asset Sharing";
@@ -16,14 +17,10 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.editPasswordCP(
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
 		JSONBlog.addEntry(
 			entryContent = "Blogs Entry Content",
@@ -49,6 +46,8 @@ definition {
 	@description = "This test asserts that proper notifications are sent based on sharing permissions granted."
 	@priority = "5"
 	test AssertNotifications {
+		property portal.acceptance = "true";
+
 		BlogsNavigator.gotoShare(entryTitle = "Blogs Entry Title");
 
 		Asset.share(
@@ -152,6 +151,8 @@ definition {
 	@description = "This test ensures a user can only comment on a blog entry once it is shared with him."
 	@priority = "5"
 	test ShareWithCommentPermissions {
+		property portal.acceptance = "true";
+
 		BlogsNavigator.gotoShare(entryTitle = "Blogs Entry Title");
 
 		Asset.share(
@@ -186,6 +187,8 @@ definition {
 	@description = "This test ensures a user can update a blog entry once it is shared with him."
 	@priority = "5"
 	test ShareWithUpdatePermissions {
+		property portal.acceptance = "true";
+
 		BlogsNavigator.gotoShare(entryTitle = "Blogs Entry Title");
 
 		Asset.share(
@@ -210,8 +213,6 @@ definition {
 			ownerName = "Test Test");
 
 		NotificationsPortlet.configureNotificationPG(menuItem = "Edit");
-
-		IFrame.selectModalFrame();
 
 		BlogsEntry.editEntryContent(
 			entryContent = "Blogs Entry Content",

@@ -123,15 +123,15 @@ public class JSassCompiler implements SassCompiler {
 				try {
 					write(new File(sourceMapFileName), output.getSourceMap());
 				}
-				catch (Exception e) {
+				catch (Exception exception) {
 					System.out.println("Unable to create source map");
 				}
 			}
 
 			return output.getCss();
 		}
-		catch (Exception e) {
-			throw new JSassCompilerException(e);
+		catch (Exception exception) {
+			throw new JSassCompilerException(exception);
 		}
 	}
 
@@ -213,8 +213,8 @@ public class JSassCompiler implements SassCompiler {
 
 			return output;
 		}
-		catch (Throwable t) {
-			throw new JSassCompilerException(t);
+		catch (Throwable throwable) {
+			throw new JSassCompilerException(throwable);
 		}
 	}
 

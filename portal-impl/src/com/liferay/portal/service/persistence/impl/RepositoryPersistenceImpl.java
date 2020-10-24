@@ -15,6 +15,7 @@
 package com.liferay.portal.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
@@ -26,12 +27,15 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.NoSuchRepositoryException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.Repository;
+import com.liferay.portal.kernel.model.RepositoryTable;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.RepositoryPersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -39,6 +43,9 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.model.impl.RepositoryImpl;
 import com.liferay.portal.model.impl.RepositoryModelImpl;
+import com.liferay.registry.Registry;
+import com.liferay.registry.RegistryUtil;
+import com.liferay.registry.ServiceRegistration;
 
 import java.io.Serializable;
 
@@ -46,10 +53,12 @@ import java.lang.reflect.InvocationHandler;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The persistence implementation for the repository service.
@@ -64,7 +73,7 @@ import java.util.Set;
 public class RepositoryPersistenceImpl
 	extends BasePersistenceImpl<Repository> implements RepositoryPersistence {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>RepositoryUtil</code> to access the repository persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -190,54 +199,54 @@ public class RepositoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_REPOSITORY_WHERE);
+			sb.append(_SQL_SELECT_REPOSITORY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_UUID_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(RepositoryModelImpl.ORDER_BY_JPQL);
+				sb.append(RepositoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
 				list = (List<Repository>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -245,12 +254,8 @@ public class RepositoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -279,16 +284,16 @@ public class RepositoryPersistenceImpl
 			return repository;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchRepositoryException(msg.toString());
+		throw new NoSuchRepositoryException(sb.toString());
 	}
 
 	/**
@@ -330,16 +335,16 @@ public class RepositoryPersistenceImpl
 			return repository;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchRepositoryException(msg.toString());
+		throw new NoSuchRepositoryException(sb.toString());
 	}
 
 	/**
@@ -405,8 +410,8 @@ public class RepositoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -417,28 +422,28 @@ public class RepositoryPersistenceImpl
 		Session session, Repository repository, String uuid,
 		OrderByComparator<Repository> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_REPOSITORY_WHERE);
+		sb.append(_SQL_SELECT_REPOSITORY_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_UUID_3);
+			sb.append(_FINDER_COLUMN_UUID_UUID_3);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_UUID_2);
+			sb.append(_FINDER_COLUMN_UUID_UUID_2);
 		}
 
 		if (orderByComparator != null) {
@@ -446,83 +451,83 @@ public class RepositoryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(RepositoryModelImpl.ORDER_BY_JPQL);
+			sb.append(RepositoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(repository)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<Repository> list = q.list();
+		List<Repository> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -564,44 +569,42 @@ public class RepositoryPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_REPOSITORY_WHERE);
+			sb.append(_SQL_COUNT_REPOSITORY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_UUID_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -635,23 +638,23 @@ public class RepositoryPersistenceImpl
 		Repository repository = fetchByUUID_G(uuid, groupId);
 
 		if (repository == null) {
-			StringBundler msg = new StringBundler(6);
+			StringBundler sb = new StringBundler(6);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("uuid=");
-			msg.append(uuid);
+			sb.append("uuid=");
+			sb.append(uuid);
 
-			msg.append(", groupId=");
-			msg.append(groupId);
+			sb.append(", groupId=");
+			sb.append(groupId);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchRepositoryException(msg.toString());
+			throw new NoSuchRepositoryException(sb.toString());
 		}
 
 		return repository;
@@ -707,41 +710,41 @@ public class RepositoryPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_SELECT_REPOSITORY_WHERE);
+			sb.append(_SQL_SELECT_REPOSITORY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_G_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_G_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
+			sb.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				List<Repository> list = q.list();
+				List<Repository> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
@@ -757,13 +760,8 @@ public class RepositoryPersistenceImpl
 					cacheResult(repository);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(
-						_finderPathFetchByUUID_G, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -813,48 +811,46 @@ public class RepositoryPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_REPOSITORY_WHERE);
+			sb.append(_SQL_COUNT_REPOSITORY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_G_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_G_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
+			sb.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -994,58 +990,58 @@ public class RepositoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_REPOSITORY_WHERE);
+			sb.append(_SQL_SELECT_REPOSITORY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(RepositoryModelImpl.ORDER_BY_JPQL);
+				sb.append(RepositoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				list = (List<Repository>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -1053,12 +1049,8 @@ public class RepositoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1090,19 +1082,19 @@ public class RepositoryPersistenceImpl
 			return repository;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append(", companyId=");
-		msg.append(companyId);
+		sb.append(", companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchRepositoryException(msg.toString());
+		throw new NoSuchRepositoryException(sb.toString());
 	}
 
 	/**
@@ -1150,19 +1142,19 @@ public class RepositoryPersistenceImpl
 			return repository;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append(", companyId=");
-		msg.append(companyId);
+		sb.append(", companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchRepositoryException(msg.toString());
+		throw new NoSuchRepositoryException(sb.toString());
 	}
 
 	/**
@@ -1231,8 +1223,8 @@ public class RepositoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1243,116 +1235,116 @@ public class RepositoryPersistenceImpl
 		Session session, Repository repository, String uuid, long companyId,
 		OrderByComparator<Repository> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_REPOSITORY_WHERE);
+		sb.append(_SQL_SELECT_REPOSITORY_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 		}
 
-		query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(RepositoryModelImpl.ORDER_BY_JPQL);
+			sb.append(RepositoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(repository)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<Repository> list = q.list();
+		List<Repository> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1398,48 +1390,46 @@ public class RepositoryPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_REPOSITORY_WHERE);
+			sb.append(_SQL_COUNT_REPOSITORY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1566,43 +1556,43 @@ public class RepositoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_REPOSITORY_WHERE);
+			sb.append(_SQL_SELECT_REPOSITORY_WHERE);
 
-			query.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
+			sb.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(RepositoryModelImpl.ORDER_BY_JPQL);
+				sb.append(RepositoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
 				list = (List<Repository>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -1610,12 +1600,8 @@ public class RepositoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1645,16 +1631,16 @@ public class RepositoryPersistenceImpl
 			return repository;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchRepositoryException(msg.toString());
+		throw new NoSuchRepositoryException(sb.toString());
 	}
 
 	/**
@@ -1696,16 +1682,16 @@ public class RepositoryPersistenceImpl
 			return repository;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchRepositoryException(msg.toString());
+		throw new NoSuchRepositoryException(sb.toString());
 	}
 
 	/**
@@ -1769,8 +1755,8 @@ public class RepositoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1781,101 +1767,101 @@ public class RepositoryPersistenceImpl
 		Session session, Repository repository, long groupId,
 		OrderByComparator<Repository> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_REPOSITORY_WHERE);
+		sb.append(_SQL_SELECT_REPOSITORY_WHERE);
 
-		query.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
+		sb.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(RepositoryModelImpl.ORDER_BY_JPQL);
+			sb.append(RepositoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(repository)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<Repository> list = q.list();
+		List<Repository> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1916,33 +1902,31 @@ public class RepositoryPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_REPOSITORY_WHERE);
+			sb.append(_SQL_COUNT_REPOSITORY_WHERE);
 
-			query.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
+			sb.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1974,26 +1958,26 @@ public class RepositoryPersistenceImpl
 		Repository repository = fetchByG_N_P(groupId, name, portletId);
 
 		if (repository == null) {
-			StringBundler msg = new StringBundler(8);
+			StringBundler sb = new StringBundler(8);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("groupId=");
-			msg.append(groupId);
+			sb.append("groupId=");
+			sb.append(groupId);
 
-			msg.append(", name=");
-			msg.append(name);
+			sb.append(", name=");
+			sb.append(name);
 
-			msg.append(", portletId=");
-			msg.append(portletId);
+			sb.append(", portletId=");
+			sb.append(portletId);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchRepositoryException(msg.toString());
+			throw new NoSuchRepositoryException(sb.toString());
 		}
 
 		return repository;
@@ -2055,56 +2039,56 @@ public class RepositoryPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(5);
+			StringBundler sb = new StringBundler(5);
 
-			query.append(_SQL_SELECT_REPOSITORY_WHERE);
+			sb.append(_SQL_SELECT_REPOSITORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_N_P_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_N_P_GROUPID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_N_P_NAME_3);
+				sb.append(_FINDER_COLUMN_G_N_P_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_G_N_P_NAME_2);
+				sb.append(_FINDER_COLUMN_G_N_P_NAME_2);
 			}
 
 			boolean bindPortletId = false;
 
 			if (portletId.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_N_P_PORTLETID_3);
+				sb.append(_FINDER_COLUMN_G_N_P_PORTLETID_3);
 			}
 			else {
 				bindPortletId = true;
 
-				query.append(_FINDER_COLUMN_G_N_P_PORTLETID_2);
+				sb.append(_FINDER_COLUMN_G_N_P_PORTLETID_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
 				if (bindName) {
-					qPos.add(name);
+					queryPos.add(name);
 				}
 
 				if (bindPortletId) {
-					qPos.add(portletId);
+					queryPos.add(portletId);
 				}
 
-				List<Repository> list = q.list();
+				List<Repository> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
@@ -2120,13 +2104,8 @@ public class RepositoryPersistenceImpl
 					cacheResult(repository);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(
-						_finderPathFetchByG_N_P, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2179,63 +2158,61 @@ public class RepositoryPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_COUNT_REPOSITORY_WHERE);
+			sb.append(_SQL_COUNT_REPOSITORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_N_P_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_N_P_GROUPID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_N_P_NAME_3);
+				sb.append(_FINDER_COLUMN_G_N_P_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_G_N_P_NAME_2);
+				sb.append(_FINDER_COLUMN_G_N_P_NAME_2);
 			}
 
 			boolean bindPortletId = false;
 
 			if (portletId.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_N_P_PORTLETID_3);
+				sb.append(_FINDER_COLUMN_G_N_P_PORTLETID_3);
 			}
 			else {
 				bindPortletId = true;
 
-				query.append(_FINDER_COLUMN_G_N_P_PORTLETID_2);
+				sb.append(_FINDER_COLUMN_G_N_P_PORTLETID_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
 				if (bindName) {
-					qPos.add(name);
+					queryPos.add(name);
 				}
 
 				if (bindPortletId) {
-					qPos.add(portletId);
+					queryPos.add(portletId);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2261,17 +2238,18 @@ public class RepositoryPersistenceImpl
 		"(repository.portletId IS NULL OR repository.portletId = '')";
 
 	public RepositoryPersistenceImpl() {
-		setModelClass(Repository.class);
-
-		setModelImplClass(RepositoryImpl.class);
-		setModelPKClass(long.class);
-		setEntityCacheEnabled(RepositoryModelImpl.ENTITY_CACHE_ENABLED);
-
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
 		dbColumnNames.put("uuid", "uuid_");
 
 		setDBColumnNames(dbColumnNames);
+
+		setModelClass(Repository.class);
+
+		setModelImplClass(RepositoryImpl.class);
+		setModelPKClass(long.class);
+
+		setTable(RepositoryTable.INSTANCE);
 	}
 
 	/**
@@ -2282,8 +2260,7 @@ public class RepositoryPersistenceImpl
 	@Override
 	public void cacheResult(Repository repository) {
 		EntityCacheUtil.putResult(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED, RepositoryImpl.class,
-			repository.getPrimaryKey(), repository);
+			RepositoryImpl.class, repository.getPrimaryKey(), repository);
 
 		FinderCacheUtil.putResult(
 			_finderPathFetchByUUID_G,
@@ -2297,8 +2274,6 @@ public class RepositoryPersistenceImpl
 				repository.getPortletId()
 			},
 			repository);
-
-		repository.resetOriginalValues();
 	}
 
 	/**
@@ -2310,13 +2285,9 @@ public class RepositoryPersistenceImpl
 	public void cacheResult(List<Repository> repositories) {
 		for (Repository repository : repositories) {
 			if (EntityCacheUtil.getResult(
-					RepositoryModelImpl.ENTITY_CACHE_ENABLED,
 					RepositoryImpl.class, repository.getPrimaryKey()) == null) {
 
 				cacheResult(repository);
-			}
-			else {
-				repository.resetOriginalValues();
 			}
 		}
 	}
@@ -2346,27 +2317,13 @@ public class RepositoryPersistenceImpl
 	 */
 	@Override
 	public void clearCache(Repository repository) {
-		EntityCacheUtil.removeResult(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED, RepositoryImpl.class,
-			repository.getPrimaryKey());
-
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
-		clearUniqueFindersCache((RepositoryModelImpl)repository, true);
+		EntityCacheUtil.removeResult(RepositoryImpl.class, repository);
 	}
 
 	@Override
 	public void clearCache(List<Repository> repositories) {
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
 		for (Repository repository : repositories) {
-			EntityCacheUtil.removeResult(
-				RepositoryModelImpl.ENTITY_CACHE_ENABLED, RepositoryImpl.class,
-				repository.getPrimaryKey());
-
-			clearUniqueFindersCache((RepositoryModelImpl)repository, true);
+			EntityCacheUtil.removeResult(RepositoryImpl.class, repository);
 		}
 	}
 
@@ -2377,9 +2334,7 @@ public class RepositoryPersistenceImpl
 		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
 		for (Serializable primaryKey : primaryKeys) {
-			EntityCacheUtil.removeResult(
-				RepositoryModelImpl.ENTITY_CACHE_ENABLED, RepositoryImpl.class,
-				primaryKey);
+			EntityCacheUtil.removeResult(RepositoryImpl.class, primaryKey);
 		}
 	}
 
@@ -2404,54 +2359,6 @@ public class RepositoryPersistenceImpl
 			_finderPathCountByG_N_P, args, Long.valueOf(1), false);
 		FinderCacheUtil.putResult(
 			_finderPathFetchByG_N_P, args, repositoryModelImpl, false);
-	}
-
-	protected void clearUniqueFindersCache(
-		RepositoryModelImpl repositoryModelImpl, boolean clearCurrent) {
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				repositoryModelImpl.getUuid(), repositoryModelImpl.getGroupId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByUUID_G, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByUUID_G, args);
-		}
-
-		if ((repositoryModelImpl.getColumnBitmask() &
-			 _finderPathFetchByUUID_G.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				repositoryModelImpl.getOriginalUuid(),
-				repositoryModelImpl.getOriginalGroupId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByUUID_G, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByUUID_G, args);
-		}
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				repositoryModelImpl.getGroupId(), repositoryModelImpl.getName(),
-				repositoryModelImpl.getPortletId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByG_N_P, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByG_N_P, args);
-		}
-
-		if ((repositoryModelImpl.getColumnBitmask() &
-			 _finderPathFetchByG_N_P.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				repositoryModelImpl.getOriginalGroupId(),
-				repositoryModelImpl.getOriginalName(),
-				repositoryModelImpl.getOriginalPortletId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByG_N_P, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByG_N_P, args);
-		}
 	}
 
 	/**
@@ -2520,11 +2427,11 @@ public class RepositoryPersistenceImpl
 
 			return remove(repository);
 		}
-		catch (NoSuchRepositoryException nsee) {
-			throw nsee;
+		catch (NoSuchRepositoryException noSuchEntityException) {
+			throw noSuchEntityException;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2547,8 +2454,8 @@ public class RepositoryPersistenceImpl
 				session.delete(repository);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2618,124 +2525,28 @@ public class RepositoryPersistenceImpl
 		try {
 			session = openSession();
 
-			if (repository.isNew()) {
+			if (isNew) {
 				session.save(repository);
-
-				repository.setNew(false);
 			}
 			else {
 				repository = (Repository)session.merge(repository);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
 		}
 
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-
-		if (!RepositoryModelImpl.COLUMN_BITMASK_ENABLED) {
-			FinderCacheUtil.clearCache(
-				FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-		}
-		else if (isNew) {
-			Object[] args = new Object[] {repositoryModelImpl.getUuid()};
-
-			FinderCacheUtil.removeResult(_finderPathCountByUuid, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByUuid, args);
-
-			args = new Object[] {
-				repositoryModelImpl.getUuid(),
-				repositoryModelImpl.getCompanyId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByUuid_C, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByUuid_C, args);
-
-			args = new Object[] {repositoryModelImpl.getGroupId()};
-
-			FinderCacheUtil.removeResult(_finderPathCountByGroupId, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByGroupId, args);
-
-			FinderCacheUtil.removeResult(
-				_finderPathCountAll, FINDER_ARGS_EMPTY);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindAll, FINDER_ARGS_EMPTY);
-		}
-		else {
-			if ((repositoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByUuid.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					repositoryModelImpl.getOriginalUuid()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByUuid, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByUuid, args);
-
-				args = new Object[] {repositoryModelImpl.getUuid()};
-
-				FinderCacheUtil.removeResult(_finderPathCountByUuid, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByUuid, args);
-			}
-
-			if ((repositoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByUuid_C.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					repositoryModelImpl.getOriginalUuid(),
-					repositoryModelImpl.getOriginalCompanyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByUuid_C, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByUuid_C, args);
-
-				args = new Object[] {
-					repositoryModelImpl.getUuid(),
-					repositoryModelImpl.getCompanyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByUuid_C, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByUuid_C, args);
-			}
-
-			if ((repositoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByGroupId.
-					 getColumnBitmask()) != 0) {
-
-				Object[] args = new Object[] {
-					repositoryModelImpl.getOriginalGroupId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByGroupId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByGroupId, args);
-
-				args = new Object[] {repositoryModelImpl.getGroupId()};
-
-				FinderCacheUtil.removeResult(_finderPathCountByGroupId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByGroupId, args);
-			}
-		}
-
 		EntityCacheUtil.putResult(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED, RepositoryImpl.class,
-			repository.getPrimaryKey(), repository, false);
+			RepositoryImpl.class, repositoryModelImpl, false, true);
 
-		clearUniqueFindersCache(repositoryModelImpl, false);
 		cacheUniqueFindersCache(repositoryModelImpl);
+
+		if (isNew) {
+			repository.setNew(false);
+		}
 
 		repository.resetOriginalValues();
 
@@ -2879,19 +2690,19 @@ public class RepositoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 			String sql = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					2 + (orderByComparator.getOrderByFields().length * 2));
 
-				query.append(_SQL_SELECT_REPOSITORY);
+				sb.append(_SQL_SELECT_REPOSITORY);
 
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 
-				sql = query.toString();
+				sql = sb.toString();
 			}
 			else {
 				sql = _SQL_SELECT_REPOSITORY;
@@ -2904,10 +2715,10 @@ public class RepositoryPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
 				list = (List<Repository>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -2915,12 +2726,8 @@ public class RepositoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2957,18 +2764,15 @@ public class RepositoryPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(_SQL_COUNT_REPOSITORY);
+				Query query = session.createQuery(_SQL_COUNT_REPOSITORY);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(
 					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3007,132 +2811,118 @@ public class RepositoryPersistenceImpl
 	 * Initializes the repository persistence.
 	 */
 	public void afterPropertiesSet() {
-		_finderPathWithPaginationFindAll = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, RepositoryImpl.class,
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0]);
+		Registry registry = RegistryUtil.getRegistry();
 
-		_finderPathWithoutPaginationFindAll = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, RepositoryImpl.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll",
-			new String[0]);
+		_argumentsResolverServiceRegistration = registry.registerService(
+			ArgumentsResolver.class, new RepositoryModelArgumentsResolver(),
+			HashMapBuilder.<String, Object>put(
+				"model.class.name", Repository.class.getName()
+			).build());
 
-		_finderPathCountAll = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathWithPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathWithoutPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathCountAll = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
-			new String[0]);
+			new String[0], new String[0], false);
 
-		_finderPathWithPaginationFindByUuid = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, RepositoryImpl.class,
+		_finderPathWithPaginationFindByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid",
 			new String[] {
 				String.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"uuid_"}, true);
 
-		_finderPathWithoutPaginationFindByUuid = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, RepositoryImpl.class,
+		_finderPathWithoutPaginationFindByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid",
-			new String[] {String.class.getName()},
-			RepositoryModelImpl.UUID_COLUMN_BITMASK);
+			new String[] {String.class.getName()}, new String[] {"uuid_"},
+			true);
 
-		_finderPathCountByUuid = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid",
-			new String[] {String.class.getName()});
+			new String[] {String.class.getName()}, new String[] {"uuid_"},
+			false);
 
-		_finderPathFetchByUUID_G = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, RepositoryImpl.class,
+		_finderPathFetchByUUID_G = _createFinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByUUID_G",
 			new String[] {String.class.getName(), Long.class.getName()},
-			RepositoryModelImpl.UUID_COLUMN_BITMASK |
-			RepositoryModelImpl.GROUPID_COLUMN_BITMASK);
+			new String[] {"uuid_", "groupId"}, true);
 
-		_finderPathCountByUUID_G = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByUUID_G = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUUID_G",
-			new String[] {String.class.getName(), Long.class.getName()});
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"uuid_", "groupId"}, false);
 
-		_finderPathWithPaginationFindByUuid_C = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, RepositoryImpl.class,
+		_finderPathWithPaginationFindByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid_C",
 			new String[] {
 				String.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"uuid_", "companyId"}, true);
 
-		_finderPathWithoutPaginationFindByUuid_C = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, RepositoryImpl.class,
+		_finderPathWithoutPaginationFindByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid_C",
 			new String[] {String.class.getName(), Long.class.getName()},
-			RepositoryModelImpl.UUID_COLUMN_BITMASK |
-			RepositoryModelImpl.COMPANYID_COLUMN_BITMASK);
+			new String[] {"uuid_", "companyId"}, true);
 
-		_finderPathCountByUuid_C = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid_C",
-			new String[] {String.class.getName(), Long.class.getName()});
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"uuid_", "companyId"}, false);
 
-		_finderPathWithPaginationFindByGroupId = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, RepositoryImpl.class,
+		_finderPathWithPaginationFindByGroupId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByGroupId",
 			new String[] {
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"groupId"}, true);
 
-		_finderPathWithoutPaginationFindByGroupId = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, RepositoryImpl.class,
+		_finderPathWithoutPaginationFindByGroupId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByGroupId",
-			new String[] {Long.class.getName()},
-			RepositoryModelImpl.GROUPID_COLUMN_BITMASK);
+			new String[] {Long.class.getName()}, new String[] {"groupId"},
+			true);
 
-		_finderPathCountByGroupId = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByGroupId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByGroupId",
-			new String[] {Long.class.getName()});
+			new String[] {Long.class.getName()}, new String[] {"groupId"},
+			false);
 
-		_finderPathFetchByG_N_P = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, RepositoryImpl.class,
+		_finderPathFetchByG_N_P = _createFinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByG_N_P",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				String.class.getName()
 			},
-			RepositoryModelImpl.GROUPID_COLUMN_BITMASK |
-			RepositoryModelImpl.NAME_COLUMN_BITMASK |
-			RepositoryModelImpl.PORTLETID_COLUMN_BITMASK);
+			new String[] {"groupId", "name", "portletId"}, true);
 
-		_finderPathCountByG_N_P = new FinderPath(
-			RepositoryModelImpl.ENTITY_CACHE_ENABLED,
-			RepositoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByG_N_P = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_N_P",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				String.class.getName()
-			});
+			},
+			new String[] {"groupId", "name", "portletId"}, false);
 	}
 
 	public void destroy() {
 		EntityCacheUtil.removeCache(RepositoryImpl.class.getName());
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_ENTITY);
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		_argumentsResolverServiceRegistration.unregister();
+
+		for (ServiceRegistration<FinderPath> serviceRegistration :
+				_serviceRegistrations) {
+
+			serviceRegistration.unregister();
+		}
 	}
 
 	private static final String _SQL_SELECT_REPOSITORY =
@@ -3160,5 +2950,107 @@ public class RepositoryPersistenceImpl
 
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid"});
+
+	private FinderPath _createFinderPath(
+		String cacheName, String methodName, String[] params,
+		String[] columnNames, boolean baseModelResult) {
+
+		FinderPath finderPath = new FinderPath(
+			cacheName, methodName, params, columnNames, baseModelResult);
+
+		if (!cacheName.equals(FINDER_CLASS_NAME_LIST_WITH_PAGINATION)) {
+			Registry registry = RegistryUtil.getRegistry();
+
+			_serviceRegistrations.add(
+				registry.registerService(
+					FinderPath.class, finderPath,
+					HashMapBuilder.<String, Object>put(
+						"cache.name", cacheName
+					).build()));
+		}
+
+		return finderPath;
+	}
+
+	private ServiceRegistration<ArgumentsResolver>
+		_argumentsResolverServiceRegistration;
+	private Set<ServiceRegistration<FinderPath>> _serviceRegistrations =
+		new HashSet<>();
+
+	private static class RepositoryModelArgumentsResolver
+		implements ArgumentsResolver {
+
+		@Override
+		public Object[] getArguments(
+			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
+			boolean original) {
+
+			String[] columnNames = finderPath.getColumnNames();
+
+			if ((columnNames == null) || (columnNames.length == 0)) {
+				if (baseModel.isNew()) {
+					return FINDER_ARGS_EMPTY;
+				}
+
+				return null;
+			}
+
+			RepositoryModelImpl repositoryModelImpl =
+				(RepositoryModelImpl)baseModel;
+
+			long columnBitmask = repositoryModelImpl.getColumnBitmask();
+
+			if (!checkColumn || (columnBitmask == 0)) {
+				return _getValue(repositoryModelImpl, columnNames, original);
+			}
+
+			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
+				finderPath);
+
+			if (finderPathColumnBitmask == null) {
+				finderPathColumnBitmask = 0L;
+
+				for (String columnName : columnNames) {
+					finderPathColumnBitmask |=
+						repositoryModelImpl.getColumnBitmask(columnName);
+				}
+
+				_finderPathColumnBitmasksCache.put(
+					finderPath, finderPathColumnBitmask);
+			}
+
+			if ((columnBitmask & finderPathColumnBitmask) != 0) {
+				return _getValue(repositoryModelImpl, columnNames, original);
+			}
+
+			return null;
+		}
+
+		private Object[] _getValue(
+			RepositoryModelImpl repositoryModelImpl, String[] columnNames,
+			boolean original) {
+
+			Object[] arguments = new Object[columnNames.length];
+
+			for (int i = 0; i < arguments.length; i++) {
+				String columnName = columnNames[i];
+
+				if (original) {
+					arguments[i] = repositoryModelImpl.getColumnOriginalValue(
+						columnName);
+				}
+				else {
+					arguments[i] = repositoryModelImpl.getColumnValue(
+						columnName);
+				}
+			}
+
+			return arguments;
+		}
+
+		private static Map<FinderPath, Long> _finderPathColumnBitmasksCache =
+			new ConcurrentHashMap<>();
+
+	}
 
 }

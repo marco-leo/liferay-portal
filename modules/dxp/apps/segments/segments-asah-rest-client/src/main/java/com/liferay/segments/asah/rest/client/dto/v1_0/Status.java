@@ -26,7 +26,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class Status {
+public class Status implements Cloneable {
+
+	public static Status toDTO(String json) {
+		return StatusSerDes.toDTO(json);
+	}
 
 	public String getStatus() {
 		return status;
@@ -69,6 +73,11 @@ public class Status {
 	}
 
 	protected String winnerVariantId;
+
+	@Override
+	public Status clone() throws CloneNotSupportedException {
+		return (Status)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

@@ -60,6 +60,7 @@ public class AssetVocabularyWrapper
 		attributes.put("title", getTitle());
 		attributes.put("description", getDescription());
 		attributes.put("settings", getSettings());
+		attributes.put("visibilityType", getVisibilityType());
 		attributes.put("lastPublishDate", getLastPublishDate());
 
 		return attributes;
@@ -156,6 +157,12 @@ public class AssetVocabularyWrapper
 
 		if (settings != null) {
 			setSettings(settings);
+		}
+
+		Integer visibilityType = (Integer)attributes.get("visibilityType");
+
+		if (visibilityType != null) {
+			setVisibilityType(visibilityType);
 		}
 
 		Date lastPublishDate = (Date)attributes.get("lastPublishDate");
@@ -387,17 +394,6 @@ public class AssetVocabularyWrapper
 	}
 
 	/**
-	 * @deprecated As of Wilberforce (7.0.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public com.liferay.portal.kernel.util.UnicodeProperties
-		getSettingsProperties() {
-
-		return model.getSettingsProperties();
-	}
-
-	/**
 	 * Returns the title of this asset vocabulary.
 	 *
 	 * @return the title of this asset vocabulary
@@ -523,6 +519,16 @@ public class AssetVocabularyWrapper
 	}
 
 	/**
+	 * Returns the visibility type of this asset vocabulary.
+	 *
+	 * @return the visibility type of this asset vocabulary
+	 */
+	@Override
+	public int getVisibilityType() {
+		return model.getVisibilityType();
+	}
+
+	/**
 	 * Returns the vocabulary ID of this asset vocabulary.
 	 *
 	 * @return the vocabulary ID of this asset vocabulary
@@ -563,26 +569,11 @@ public class AssetVocabularyWrapper
 		return model.isMultiValued();
 	}
 
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 #isRequired(long, long)}
-	 */
-	@Deprecated
-	@Override
-	public boolean isRequired(long classNameId) {
-		return model.isRequired(classNameId);
-	}
-
 	@Override
 	public boolean isRequired(long classNameId, long classTypePK) {
 		return model.isRequired(classNameId, classTypePK);
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a asset vocabulary model instance should use the <code>AssetVocabulary</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -781,17 +772,6 @@ public class AssetVocabularyWrapper
 	}
 
 	/**
-	 * @deprecated As of Wilberforce (7.0.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void setSettingsProperties(
-		com.liferay.portal.kernel.util.UnicodeProperties settingsProperties) {
-
-		model.setSettingsProperties(settingsProperties);
-	}
-
-	/**
 	 * Sets the title of this asset vocabulary.
 	 *
 	 * @param title the title of this asset vocabulary
@@ -893,6 +873,16 @@ public class AssetVocabularyWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
+	}
+
+	/**
+	 * Sets the visibility type of this asset vocabulary.
+	 *
+	 * @param visibilityType the visibility type of this asset vocabulary
+	 */
+	@Override
+	public void setVisibilityType(int visibilityType) {
+		model.setVisibilityType(visibilityType);
 	}
 
 	/**

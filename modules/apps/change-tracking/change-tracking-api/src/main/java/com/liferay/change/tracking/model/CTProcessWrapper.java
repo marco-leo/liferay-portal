@@ -188,11 +188,6 @@ public class CTProcessWrapper
 		return model.getUserUuid();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a ct process model instance should use the <code>CTProcess</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();

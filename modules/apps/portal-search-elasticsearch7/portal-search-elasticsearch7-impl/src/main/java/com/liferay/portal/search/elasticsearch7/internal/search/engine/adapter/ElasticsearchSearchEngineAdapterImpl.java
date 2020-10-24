@@ -17,6 +17,9 @@ package com.liferay.portal.search.elasticsearch7.internal.search.engine.adapter;
 import com.liferay.portal.kernel.search.Query;
 import com.liferay.portal.kernel.search.query.QueryTranslator;
 import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
+import com.liferay.portal.search.engine.adapter.ccr.CCRRequest;
+import com.liferay.portal.search.engine.adapter.ccr.CCRRequestExecutor;
+import com.liferay.portal.search.engine.adapter.ccr.CCRResponse;
 import com.liferay.portal.search.engine.adapter.cluster.ClusterRequest;
 import com.liferay.portal.search.engine.adapter.cluster.ClusterRequestExecutor;
 import com.liferay.portal.search.engine.adapter.cluster.ClusterResponse;
@@ -49,14 +52,24 @@ public class ElasticsearchSearchEngineAdapterImpl
 	implements SearchEngineAdapter {
 
 	@Override
+	public <T extends CCRResponse> T execute(CCRRequest<T> ccrRequest) {
+		try {
+			return ccrRequest.accept(_ccrRequestExecutor);
+		}
+		catch (RuntimeException runtimeException) {
+			throw _getRuntimeException(runtimeException);
+		}
+	}
+
+	@Override
 	public <T extends ClusterResponse> T execute(
 		ClusterRequest<T> clusterRequest) {
 
 		try {
 			return _clusterRequestExecutor.execute(clusterRequest);
 		}
-		catch (RuntimeException re) {
-			throw _getRuntimeException(re);
+		catch (RuntimeException runtimeException) {
+			throw _getRuntimeException(runtimeException);
 		}
 	}
 
@@ -67,8 +80,8 @@ public class ElasticsearchSearchEngineAdapterImpl
 		try {
 			return documentRequest.accept(_documentRequestExecutor);
 		}
-		catch (RuntimeException re) {
-			throw _getRuntimeException(re);
+		catch (RuntimeException runtimeException) {
+			throw _getRuntimeException(runtimeException);
 		}
 	}
 
@@ -77,8 +90,8 @@ public class ElasticsearchSearchEngineAdapterImpl
 		try {
 			return indexRequest.accept(_indexRequestExecutor);
 		}
-		catch (RuntimeException re) {
-			throw _getRuntimeException(re);
+		catch (RuntimeException runtimeException) {
+			throw _getRuntimeException(runtimeException);
 		}
 	}
 
@@ -89,8 +102,8 @@ public class ElasticsearchSearchEngineAdapterImpl
 		try {
 			return searchRequest.accept(_searchRequestExecutor);
 		}
-		catch (RuntimeException re) {
-			throw _getRuntimeException(re);
+		catch (RuntimeException runtimeException) {
+			throw _getRuntimeException(runtimeException);
 		}
 	}
 
@@ -101,8 +114,8 @@ public class ElasticsearchSearchEngineAdapterImpl
 		try {
 			return snapshotRequest.accept(_snapshotRequestExecutor);
 		}
-		catch (RuntimeException re) {
-			throw _getRuntimeException(re);
+		catch (RuntimeException runtimeException) {
+			throw _getRuntimeException(runtimeException);
 		}
 	}
 
@@ -113,9 +126,16 @@ public class ElasticsearchSearchEngineAdapterImpl
 
 			return queryBuilder.toString();
 		}
-		catch (RuntimeException re) {
-			throw _getRuntimeException(re);
+		catch (RuntimeException runtimeException) {
+			throw _getRuntimeException(runtimeException);
 		}
+	}
+
+	@Reference(target = "(search.engine.impl=Elasticsearch)", unbind = "-")
+	protected void setCCRRequestExecutor(
+		CCRRequestExecutor ccrRequestExecutor) {
+
+		_ccrRequestExecutor = ccrRequestExecutor;
 	}
 
 	@Reference(target = "(search.engine.impl=Elasticsearch)", unbind = "-")
@@ -165,28 +185,29 @@ public class ElasticsearchSearchEngineAdapterImpl
 	}
 
 	private RuntimeException _getRuntimeException(
-		RuntimeException runtimeException) {
+		RuntimeException runtimeException1) {
 
 		if (_throwOriginalExceptions) {
-			return runtimeException;
+			return runtimeException1;
 		}
 
-		Class<?> clazz = runtimeException.getClass();
+		Class<?> clazz = runtimeException1.getClass();
 
 		String name = clazz.getName();
 
 		if (name.startsWith("org.elasticsearch")) {
-			RuntimeException newRuntimeException = new RuntimeException(
-				name + ": " + runtimeException.toString());
+			RuntimeException runtimeException2 = new RuntimeException(
+				name + ": " + runtimeException1.toString());
 
-			newRuntimeException.setStackTrace(runtimeException.getStackTrace());
+			runtimeException2.setStackTrace(runtimeException1.getStackTrace());
 
-			return newRuntimeException;
+			return runtimeException2;
 		}
 
-		return runtimeException;
+		return runtimeException1;
 	}
 
+	private CCRRequestExecutor _ccrRequestExecutor;
 	private ClusterRequestExecutor _clusterRequestExecutor;
 	private DocumentRequestExecutor _documentRequestExecutor;
 	private IndexRequestExecutor _indexRequestExecutor;

@@ -19,7 +19,7 @@ import com.liferay.headless.delivery.client.dto.v1_0.CustomField;
 import com.liferay.headless.delivery.client.dto.v1_0.RelatedContent;
 import com.liferay.headless.delivery.client.dto.v1_0.RenderedContent;
 import com.liferay.headless.delivery.client.dto.v1_0.StructuredContent;
-import com.liferay.headless.delivery.client.dto.v1_0.TaxonomyCategory;
+import com.liferay.headless.delivery.client.dto.v1_0.TaxonomyCategoryBrief;
 import com.liferay.headless.delivery.client.json.BaseJSONParser;
 
 import java.text.DateFormat;
@@ -67,6 +67,16 @@ public class StructuredContentSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (structuredContent.getActions() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"actions\": ");
+
+			sb.append(_toJSON(structuredContent.getActions()));
+		}
+
 		if (structuredContent.getAggregateRating() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -75,6 +85,20 @@ public class StructuredContentSerDes {
 			sb.append("\"aggregateRating\": ");
 
 			sb.append(String.valueOf(structuredContent.getAggregateRating()));
+		}
+
+		if (structuredContent.getAssetLibraryKey() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"assetLibraryKey\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(structuredContent.getAssetLibraryKey()));
+
+			sb.append("\"");
 		}
 
 		if (structuredContent.getAvailableLanguages() != null) {
@@ -234,6 +258,16 @@ public class StructuredContentSerDes {
 			sb.append("\"");
 		}
 
+		if (structuredContent.getDescription_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"description_i18n\": ");
+
+			sb.append(_toJSON(structuredContent.getDescription_i18n()));
+		}
+
 		if (structuredContent.getFriendlyUrlPath() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -246,6 +280,16 @@ public class StructuredContentSerDes {
 			sb.append(_escape(structuredContent.getFriendlyUrlPath()));
 
 			sb.append("\"");
+		}
+
+		if (structuredContent.getFriendlyUrlPath_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"friendlyUrlPath_i18n\": ");
+
+			sb.append(_toJSON(structuredContent.getFriendlyUrlPath_i18n()));
 		}
 
 		if (structuredContent.getId() != null) {
@@ -372,24 +416,25 @@ public class StructuredContentSerDes {
 			sb.append(structuredContent.getSubscribed());
 		}
 
-		if (structuredContent.getTaxonomyCategories() != null) {
+		if (structuredContent.getTaxonomyCategoryBriefs() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			sb.append("\"taxonomyCategories\": ");
+			sb.append("\"taxonomyCategoryBriefs\": ");
 
 			sb.append("[");
 
 			for (int i = 0;
-				 i < structuredContent.getTaxonomyCategories().length; i++) {
+				 i < structuredContent.getTaxonomyCategoryBriefs().length;
+				 i++) {
 
 				sb.append(
 					String.valueOf(
-						structuredContent.getTaxonomyCategories()[i]));
+						structuredContent.getTaxonomyCategoryBriefs()[i]));
 
 				if ((i + 1) <
-						structuredContent.getTaxonomyCategories().length) {
+						structuredContent.getTaxonomyCategoryBriefs().length) {
 
 					sb.append(", ");
 				}
@@ -434,6 +479,16 @@ public class StructuredContentSerDes {
 			sb.append(_escape(structuredContent.getTitle()));
 
 			sb.append("\"");
+		}
+
+		if (structuredContent.getTitle_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"title_i18n\": ");
+
+			sb.append(_toJSON(structuredContent.getTitle_i18n()));
 		}
 
 		if (structuredContent.getUuid() != null) {
@@ -488,6 +543,13 @@ public class StructuredContentSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (structuredContent.getActions() == null) {
+			map.put("actions", null);
+		}
+		else {
+			map.put("actions", String.valueOf(structuredContent.getActions()));
+		}
+
 		if (structuredContent.getAggregateRating() == null) {
 			map.put("aggregateRating", null);
 		}
@@ -495,6 +557,15 @@ public class StructuredContentSerDes {
 			map.put(
 				"aggregateRating",
 				String.valueOf(structuredContent.getAggregateRating()));
+		}
+
+		if (structuredContent.getAssetLibraryKey() == null) {
+			map.put("assetLibraryKey", null);
+		}
+		else {
+			map.put(
+				"assetLibraryKey",
+				String.valueOf(structuredContent.getAssetLibraryKey()));
 		}
 
 		if (structuredContent.getAvailableLanguages() == null) {
@@ -540,19 +611,35 @@ public class StructuredContentSerDes {
 				String.valueOf(structuredContent.getCustomFields()));
 		}
 
-		map.put(
-			"dateCreated",
-			liferayToJSONDateFormat.format(structuredContent.getDateCreated()));
+		if (structuredContent.getDateCreated() == null) {
+			map.put("dateCreated", null);
+		}
+		else {
+			map.put(
+				"dateCreated",
+				liferayToJSONDateFormat.format(
+					structuredContent.getDateCreated()));
+		}
 
-		map.put(
-			"dateModified",
-			liferayToJSONDateFormat.format(
-				structuredContent.getDateModified()));
+		if (structuredContent.getDateModified() == null) {
+			map.put("dateModified", null);
+		}
+		else {
+			map.put(
+				"dateModified",
+				liferayToJSONDateFormat.format(
+					structuredContent.getDateModified()));
+		}
 
-		map.put(
-			"datePublished",
-			liferayToJSONDateFormat.format(
-				structuredContent.getDatePublished()));
+		if (structuredContent.getDatePublished() == null) {
+			map.put("datePublished", null);
+		}
+		else {
+			map.put(
+				"datePublished",
+				liferayToJSONDateFormat.format(
+					structuredContent.getDatePublished()));
+		}
 
 		if (structuredContent.getDescription() == null) {
 			map.put("description", null);
@@ -563,6 +650,15 @@ public class StructuredContentSerDes {
 				String.valueOf(structuredContent.getDescription()));
 		}
 
+		if (structuredContent.getDescription_i18n() == null) {
+			map.put("description_i18n", null);
+		}
+		else {
+			map.put(
+				"description_i18n",
+				String.valueOf(structuredContent.getDescription_i18n()));
+		}
+
 		if (structuredContent.getFriendlyUrlPath() == null) {
 			map.put("friendlyUrlPath", null);
 		}
@@ -570,6 +666,15 @@ public class StructuredContentSerDes {
 			map.put(
 				"friendlyUrlPath",
 				String.valueOf(structuredContent.getFriendlyUrlPath()));
+		}
+
+		if (structuredContent.getFriendlyUrlPath_i18n() == null) {
+			map.put("friendlyUrlPath_i18n", null);
+		}
+		else {
+			map.put(
+				"friendlyUrlPath_i18n",
+				String.valueOf(structuredContent.getFriendlyUrlPath_i18n()));
 		}
 
 		if (structuredContent.getId() == null) {
@@ -637,13 +742,13 @@ public class StructuredContentSerDes {
 				String.valueOf(structuredContent.getSubscribed()));
 		}
 
-		if (structuredContent.getTaxonomyCategories() == null) {
-			map.put("taxonomyCategories", null);
+		if (structuredContent.getTaxonomyCategoryBriefs() == null) {
+			map.put("taxonomyCategoryBriefs", null);
 		}
 		else {
 			map.put(
-				"taxonomyCategories",
-				String.valueOf(structuredContent.getTaxonomyCategories()));
+				"taxonomyCategoryBriefs",
+				String.valueOf(structuredContent.getTaxonomyCategoryBriefs()));
 		}
 
 		if (structuredContent.getTaxonomyCategoryIds() == null) {
@@ -660,6 +765,15 @@ public class StructuredContentSerDes {
 		}
 		else {
 			map.put("title", String.valueOf(structuredContent.getTitle()));
+		}
+
+		if (structuredContent.getTitle_i18n() == null) {
+			map.put("title_i18n", null);
+		}
+		else {
+			map.put(
+				"title_i18n",
+				String.valueOf(structuredContent.getTitle_i18n()));
 		}
 
 		if (structuredContent.getUuid() == null) {
@@ -699,11 +813,24 @@ public class StructuredContentSerDes {
 			StructuredContent structuredContent, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "aggregateRating")) {
+			if (Objects.equals(jsonParserFieldName, "actions")) {
+				if (jsonParserFieldValue != null) {
+					structuredContent.setActions(
+						(Map)StructuredContentSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "aggregateRating")) {
 				if (jsonParserFieldValue != null) {
 					structuredContent.setAggregateRating(
 						AggregateRatingSerDes.toDTO(
 							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "assetLibraryKey")) {
+				if (jsonParserFieldValue != null) {
+					structuredContent.setAssetLibraryKey(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(
@@ -776,10 +903,26 @@ public class StructuredContentSerDes {
 						(String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "description_i18n")) {
+				if (jsonParserFieldValue != null) {
+					structuredContent.setDescription_i18n(
+						(Map)StructuredContentSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "friendlyUrlPath")) {
 				if (jsonParserFieldValue != null) {
 					structuredContent.setFriendlyUrlPath(
 						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "friendlyUrlPath_i18n")) {
+
+				if (jsonParserFieldValue != null) {
+					structuredContent.setFriendlyUrlPath_i18n(
+						(Map)StructuredContentSerDes.toMap(
+							(String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "id")) {
@@ -843,17 +986,17 @@ public class StructuredContentSerDes {
 				}
 			}
 			else if (Objects.equals(
-						jsonParserFieldName, "taxonomyCategories")) {
+						jsonParserFieldName, "taxonomyCategoryBriefs")) {
 
 				if (jsonParserFieldValue != null) {
-					structuredContent.setTaxonomyCategories(
+					structuredContent.setTaxonomyCategoryBriefs(
 						Stream.of(
 							toStrings((Object[])jsonParserFieldValue)
 						).map(
-							object -> TaxonomyCategorySerDes.toDTO(
+							object -> TaxonomyCategoryBriefSerDes.toDTO(
 								(String)object)
 						).toArray(
-							size -> new TaxonomyCategory[size]
+							size -> new TaxonomyCategoryBrief[size]
 						));
 				}
 			}
@@ -870,6 +1013,13 @@ public class StructuredContentSerDes {
 					structuredContent.setTitle((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "title_i18n")) {
+				if (jsonParserFieldValue != null) {
+					structuredContent.setTitle_i18n(
+						(Map)StructuredContentSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "uuid")) {
 				if (jsonParserFieldValue != null) {
 					structuredContent.setUuid((String)jsonParserFieldValue);
@@ -882,9 +1032,8 @@ public class StructuredContentSerDes {
 							(String)jsonParserFieldValue));
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -940,10 +1089,13 @@ public class StructuredContentSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

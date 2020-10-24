@@ -58,8 +58,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see DLFolderServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class DLFolderServiceSoap {
 
 	public static com.liferay.document.library.kernel.model.DLFolderSoap
@@ -78,10 +80,10 @@ public class DLFolderServiceSoap {
 			return com.liferay.document.library.kernel.model.DLFolderSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -89,10 +91,10 @@ public class DLFolderServiceSoap {
 		try {
 			DLFolderServiceUtil.deleteFolder(folderId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -103,10 +105,10 @@ public class DLFolderServiceSoap {
 		try {
 			DLFolderServiceUtil.deleteFolder(folderId, includeTrashedEntries);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -117,10 +119,10 @@ public class DLFolderServiceSoap {
 		try {
 			DLFolderServiceUtil.deleteFolder(groupId, parentFolderId, name);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -135,16 +137,17 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getFileEntriesAndFileShortcutsCount(long, long, String[], int)}
+	 #getFileEntriesAndFileShortcutsCount(long, long, String[],
+	 int)}
 	 */
 	@Deprecated
 	public static int getFileEntriesAndFileShortcutsCount(
@@ -158,10 +161,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -176,10 +179,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -194,10 +197,10 @@ public class DLFolderServiceSoap {
 			return com.liferay.document.library.kernel.model.DLFolderSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -212,10 +215,10 @@ public class DLFolderServiceSoap {
 			return com.liferay.document.library.kernel.model.DLFolderSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -228,10 +231,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue.toArray(new Long[returnValue.size()]);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -240,28 +243,30 @@ public class DLFolderServiceSoap {
 				long groupId, long parentFolderId, boolean includeMountfolders,
 				int status, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.document.library.kernel.model.DLFolder> obc)
+					<com.liferay.document.library.kernel.model.DLFolder>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.document.library.kernel.model.DLFolder>
 				returnValue = DLFolderServiceUtil.getFolders(
 					groupId, parentFolderId, includeMountfolders, status, start,
-					end, obc);
+					end, orderByComparator);
 
 			return com.liferay.document.library.kernel.model.DLFolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getFolders(long, long, boolean, int, int, int, OrderByComparator)}
+	 #getFolders(long, long, boolean, int, int, int,
+	 OrderByComparator)}
 	 */
 	@Deprecated
 	public static com.liferay.document.library.kernel.model.DLFolderSoap[]
@@ -269,22 +274,23 @@ public class DLFolderServiceSoap {
 				long groupId, long parentFolderId, int status,
 				boolean includeMountfolders, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.document.library.kernel.model.DLFolder> obc)
+					<com.liferay.document.library.kernel.model.DLFolder>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.document.library.kernel.model.DLFolder>
 				returnValue = DLFolderServiceUtil.getFolders(
 					groupId, parentFolderId, status, includeMountfolders, start,
-					end, obc);
+					end, orderByComparator);
 
 			return com.liferay.document.library.kernel.model.DLFolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -292,21 +298,22 @@ public class DLFolderServiceSoap {
 			getFolders(
 				long groupId, long parentFolderId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.document.library.kernel.model.DLFolder> obc)
+					<com.liferay.document.library.kernel.model.DLFolder>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.document.library.kernel.model.DLFolder>
 				returnValue = DLFolderServiceUtil.getFolders(
-					groupId, parentFolderId, start, end, obc);
+					groupId, parentFolderId, start, end, orderByComparator);
 
 			return com.liferay.document.library.kernel.model.DLFolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -323,16 +330,17 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 #getFoldersAndFileEntriesAndFileShortcutsCount(long, long, String[], boolean, int)}
+	 #getFoldersAndFileEntriesAndFileShortcutsCount(long, long,
+	 String[], boolean, int)}
 	 */
 	@Deprecated
 	public static int getFoldersAndFileEntriesAndFileShortcutsCount(
@@ -349,10 +357,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -370,10 +378,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -393,10 +401,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -414,10 +422,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -430,10 +438,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -448,10 +456,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -471,10 +479,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -482,21 +490,22 @@ public class DLFolderServiceSoap {
 			getMountFolders(
 				long groupId, long parentFolderId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.document.library.kernel.model.DLFolder> obc)
+					<com.liferay.document.library.kernel.model.DLFolder>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.document.library.kernel.model.DLFolder>
 				returnValue = DLFolderServiceUtil.getMountFolders(
-					groupId, parentFolderId, start, end, obc);
+					groupId, parentFolderId, start, end, orderByComparator);
 
 			return com.liferay.document.library.kernel.model.DLFolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -509,10 +518,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -524,10 +533,10 @@ public class DLFolderServiceSoap {
 			DLFolderServiceUtil.getSubfolderIds(
 				ListUtil.toList(folderIds), groupId, folderId, recurse);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -541,10 +550,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue.toArray(new Long[returnValue.size()]);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -554,10 +563,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -570,10 +579,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -583,10 +592,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -599,10 +608,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -618,10 +627,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -639,10 +648,10 @@ public class DLFolderServiceSoap {
 			return com.liferay.document.library.kernel.model.DLFolderSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -657,10 +666,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -672,10 +681,10 @@ public class DLFolderServiceSoap {
 			DLFolderServiceUtil.unlockFolder(
 				groupId, parentFolderId, name, lockUuid);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -685,10 +694,10 @@ public class DLFolderServiceSoap {
 		try {
 			DLFolderServiceUtil.unlockFolder(folderId, lockUuid);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -710,10 +719,10 @@ public class DLFolderServiceSoap {
 			return com.liferay.document.library.kernel.model.DLFolderSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -735,10 +744,10 @@ public class DLFolderServiceSoap {
 			return com.liferay.document.library.kernel.model.DLFolderSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -751,10 +760,10 @@ public class DLFolderServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

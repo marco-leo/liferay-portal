@@ -29,7 +29,7 @@ function filterDuplicates(list) {
 	return cleanedList.filter(
 		(item, index) =>
 			cleanedList.findIndex(
-				newVal =>
+				(newVal) =>
 					newVal.label.toLowerCase() === item.label.toLowerCase() &&
 					newVal.value.toLowerCase() === item.value.toLowerCase()
 			) === index
@@ -52,7 +52,7 @@ function filterEmptyStrings(list) {
  * @returns {Array} A list of label-value objects.
  */
 function transformListOfStringsToObjects(list) {
-	return list.map(string => ({label: string, value: string}));
+	return list.map((string) => ({label: string, value: string}));
 }
 
 /**
@@ -62,25 +62,25 @@ function transformListOfStringsToObjects(list) {
 function trimListItems(list) {
 	return list.map(({label, value}) => ({
 		label: label.trim(),
-		value: value.trim()
+		value: value.trim(),
 	}));
 }
 
 class Alias extends Component {
 	static propTypes = {
 		keywords: PropTypes.arrayOf(String),
-		onChange: PropTypes.func.isRequired
+		onChange: PropTypes.func.isRequired,
 	};
 
 	state = {
-		inputValue: ''
+		inputValue: '',
 	};
 
-	_handleInputChange = value => {
+	_handleInputChange = (value) => {
 		this.setState({inputValue: value});
 	};
 
-	_handleItemsChange = values => {
+	_handleItemsChange = (values) => {
 		this.props.onChange(filterDuplicates(values));
 	};
 

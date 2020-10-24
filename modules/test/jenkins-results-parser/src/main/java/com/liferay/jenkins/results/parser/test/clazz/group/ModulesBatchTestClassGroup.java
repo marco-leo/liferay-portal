@@ -40,7 +40,7 @@ public abstract class ModulesBatchTestClassGroup extends BatchTestClassGroup {
 
 	public static class ModulesBatchTestClass extends BaseTestClass {
 
-		protected ModulesBatchTestClass(TestClassFile moduleBaseDir) {
+		protected ModulesBatchTestClass(File moduleBaseDir) {
 			super(moduleBaseDir);
 		}
 
@@ -61,9 +61,10 @@ public abstract class ModulesBatchTestClassGroup extends BatchTestClassGroup {
 	}
 
 	protected ModulesBatchTestClassGroup(
-		String batchName, PortalTestClassJob portalTestClassJob) {
+		String batchName, BuildProfile buildProfile,
+		PortalTestClassJob portalTestClassJob) {
 
-		super(batchName, portalTestClassJob);
+		super(batchName, buildProfile, portalTestClassJob);
 
 		try {
 			File modulesDir = new File(
@@ -129,6 +130,11 @@ public abstract class ModulesBatchTestClassGroup extends BatchTestClassGroup {
 				}
 			}
 
+			excludesPathMatchers.addAll(
+				getPathMatchers(
+					getFirstPropertyValue("modules.excludes." + buildProfile),
+					modulesDir));
+
 			if (testRelevantChanges) {
 				moduleDirsList.addAll(
 					getRequiredModuleDirs(
@@ -140,8 +146,8 @@ public abstract class ModulesBatchTestClassGroup extends BatchTestClassGroup {
 
 			setAxisTestClassGroups();
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

@@ -15,6 +15,7 @@
 package com.liferay.social.kernel.service.persistence;
 
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.social.kernel.exception.NoSuchRequestException;
 import com.liferay.social.kernel.model.SocialRequest;
 
@@ -33,9 +34,9 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface SocialRequestPersistence
-	extends BasePersistence<SocialRequest> {
+	extends BasePersistence<SocialRequest>, CTPersistence<SocialRequest> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link SocialRequestUtil} to access the social request persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

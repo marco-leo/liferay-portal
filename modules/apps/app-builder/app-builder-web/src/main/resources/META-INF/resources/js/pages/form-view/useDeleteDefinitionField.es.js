@@ -12,26 +12,24 @@
  * details.
  */
 
-import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
+import {PagesVisitor} from 'dynamic-data-mapping-form-renderer';
 import {useContext} from 'react';
 
-import {getIndexesFromFieldName} from '../../utils/dataLayoutVisitor.es';
 import FormViewContext from './FormViewContext.es';
 import {deleteDefinitionField} from './actions.es';
 
 export default ({dataLayoutBuilder}) => {
-	const [{dataLayout}, dispatch] = useContext(FormViewContext);
+	const [, dispatch] = useContext(FormViewContext);
 
-	return fieldName => {
+	return (event) => {
 		const {pages} = dataLayoutBuilder.getStore();
 		const visitor = new PagesVisitor(pages);
 
-		if (visitor.containsField(fieldName)) {
-			const indexes = getIndexesFromFieldName(dataLayout, fieldName);
-
-			dataLayoutBuilder.dispatch('fieldDeleted', {indexes});
-		} else {
-			dispatch(deleteDefinitionField(fieldName));
+		if (visitor.containsField(event.fieldName, true)) {
+			dataLayoutBuilder.dispatch('fieldDeleted', event);
+		}
+		else {
+			dispatch(deleteDefinitionField(event.fieldName));
 		}
 	};
 };

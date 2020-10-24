@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class WikiPageResourceLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.wiki.service.impl.WikiPageResourceLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link WikiPageResourceLocalServiceUtil} to access the wiki page resource local service. Add custom service methods to <code>com.liferay.wiki.service.impl.WikiPageResourceLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.wiki.model.WikiPageResource addPageResource(
 		long groupId, long nodeId, String title) {
@@ -52,6 +46,10 @@ public class WikiPageResourceLocalServiceUtil {
 	/**
 	 * Adds the wiki page resource to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiPageResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param wikiPageResource the wiki page resource
 	 * @return the wiki page resource that was added
 	 */
@@ -59,6 +57,16 @@ public class WikiPageResourceLocalServiceUtil {
 		com.liferay.wiki.model.WikiPageResource wikiPageResource) {
 
 		return getService().addWikiPageResource(wikiPageResource);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -93,6 +101,10 @@ public class WikiPageResourceLocalServiceUtil {
 	/**
 	 * Deletes the wiki page resource with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiPageResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param resourcePrimKey the primary key of the wiki page resource
 	 * @return the wiki page resource that was removed
 	 * @throws PortalException if a wiki page resource with the primary key could not be found
@@ -107,6 +119,10 @@ public class WikiPageResourceLocalServiceUtil {
 	/**
 	 * Deletes the wiki page resource from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiPageResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param wikiPageResource the wiki page resource
 	 * @return the wiki page resource that was removed
 	 */
@@ -115,6 +131,12 @@ public class WikiPageResourceLocalServiceUtil {
 			com.liferay.wiki.model.WikiPageResource wikiPageResource) {
 
 		return getService().deleteWikiPageResource(wikiPageResource);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -276,6 +298,9 @@ public class WikiPageResourceLocalServiceUtil {
 		return getService().getPageResourcePrimKey(groupId, nodeId, title);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -374,6 +399,10 @@ public class WikiPageResourceLocalServiceUtil {
 
 	/**
 	 * Updates the wiki page resource in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiPageResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param wikiPageResource the wiki page resource
 	 * @return the wiki page resource that was updated

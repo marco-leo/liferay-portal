@@ -70,8 +70,8 @@ public class DeleteConfigurationMVCActionCommand implements MVCActionCommand {
 
 			configuration.delete();
 		}
-		catch (IOException ioe) {
-			throw new PortletException(ioe);
+		catch (IOException ioException) {
+			throw new PortletException(ioException);
 		}
 
 		return true;
@@ -80,7 +80,7 @@ public class DeleteConfigurationMVCActionCommand implements MVCActionCommand {
 	private static final Log _log = LogFactoryUtil.getLog(
 		DeleteConfigurationMVCActionCommand.class);
 
-	@Reference
+	@Reference(target = "(!(filter.visibility=*))")
 	private ConfigurationModelRetriever _configurationModelRetriever;
 
 }

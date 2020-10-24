@@ -33,11 +33,6 @@ public class AnnouncementsEntryServiceWrapper
 		_announcementsEntryService = announcementsEntryService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link AnnouncementsEntryServiceUtil} to access the announcements entry remote service. Add custom service methods to <code>com.liferay.portlet.announcements.service.impl.AnnouncementsEntryServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.announcements.kernel.model.AnnouncementsEntry addEntry(
 			long classNameId, long classPK, String title, String content,

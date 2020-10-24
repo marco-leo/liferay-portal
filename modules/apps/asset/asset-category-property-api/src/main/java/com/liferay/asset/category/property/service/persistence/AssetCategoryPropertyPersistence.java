@@ -17,6 +17,7 @@ package com.liferay.asset.category.property.service.persistence;
 import com.liferay.asset.category.property.exception.NoSuchCategoryPropertyException;
 import com.liferay.asset.category.property.model.AssetCategoryProperty;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -33,9 +34,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface AssetCategoryPropertyPersistence
-	extends BasePersistence<AssetCategoryProperty> {
+	extends BasePersistence<AssetCategoryProperty>,
+			CTPersistence<AssetCategoryProperty> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link AssetCategoryPropertyUtil} to access the asset category property persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

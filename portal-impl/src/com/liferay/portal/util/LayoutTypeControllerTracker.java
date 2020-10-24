@@ -67,18 +67,16 @@ public class LayoutTypeControllerTracker {
 			_defaultLayoutTypeControllers.entrySet();
 
 		for (Map.Entry<String, LayoutTypeController> entry : entries) {
-			Map<String, Object> properties = HashMapBuilder.<String, Object>put(
-				"layout.type", entry.getKey()
-			).build();
-
 			registry.registerService(
-				LayoutTypeController.class, entry.getValue(), properties);
+				LayoutTypeController.class, entry.getValue(),
+				HashMapBuilder.<String, Object>put(
+					"layout.type", entry.getKey()
+				).build());
 		}
 	}
 
 	private static final String[] _LAYOUT_TYPES = {
-		LayoutConstants.TYPE_EMBEDDED, LayoutConstants.TYPE_PANEL,
-		LayoutConstants.TYPE_PORTLET, LayoutConstants.TYPE_URL
+		LayoutConstants.TYPE_PORTLET
 	};
 
 	private static final Map<String, LayoutTypeController>

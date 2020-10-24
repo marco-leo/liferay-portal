@@ -22,6 +22,7 @@ import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -42,6 +43,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -69,7 +71,7 @@ public abstract class DEDataListViewLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements AopService, DEDataListViewLocalService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>DEDataListViewLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.data.engine.service.DEDataListViewLocalServiceUtil</code>.
@@ -77,6 +79,10 @@ public abstract class DEDataListViewLocalServiceBaseImpl
 
 	/**
 	 * Adds the de data list view to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DEDataListViewLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param deDataListView the de data list view
 	 * @return the de data list view that was added
@@ -104,6 +110,10 @@ public abstract class DEDataListViewLocalServiceBaseImpl
 	/**
 	 * Deletes the de data list view with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DEDataListViewLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param deDataListViewId the primary key of the de data list view
 	 * @return the de data list view that was removed
 	 * @throws PortalException if a de data list view with the primary key could not be found
@@ -119,6 +129,10 @@ public abstract class DEDataListViewLocalServiceBaseImpl
 	/**
 	 * Deletes the de data list view from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DEDataListViewLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param deDataListView the de data list view
 	 * @return the de data list view that was removed
 	 */
@@ -126,6 +140,11 @@ public abstract class DEDataListViewLocalServiceBaseImpl
 	@Override
 	public DEDataListView deleteDEDataListView(DEDataListView deDataListView) {
 		return deDataListViewPersistence.remove(deDataListView);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return deDataListViewPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -360,6 +379,17 @@ public abstract class DEDataListViewLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return deDataListViewPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -367,6 +397,14 @@ public abstract class DEDataListViewLocalServiceBaseImpl
 			(DEDataListView)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<DEDataListView> getBasePersistence() {
+		return deDataListViewPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -452,6 +490,10 @@ public abstract class DEDataListViewLocalServiceBaseImpl
 	/**
 	 * Updates the de data list view in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DEDataListViewLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param deDataListView the de data list view
 	 * @return the de data list view that was updated
 	 */
@@ -511,8 +553,8 @@ public abstract class DEDataListViewLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

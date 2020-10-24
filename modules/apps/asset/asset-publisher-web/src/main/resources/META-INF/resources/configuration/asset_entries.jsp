@@ -211,8 +211,8 @@ for (long groupId : groupIds) {
 			data: {
 				assetEntryOrder: assetEntryOrder,
 				cmd: 'move-selection-down',
-				redirect: '<%= HtmlUtil.escapeJS(currentURL) %>'
-			}
+				redirect: '<%= HtmlUtil.escapeJS(currentURL) %>',
+			},
 		});
 	}
 
@@ -221,18 +221,18 @@ for (long groupId : groupIds) {
 			data: {
 				assetEntryOrder: assetEntryOrder,
 				cmd: 'move-selection-up',
-				redirect: '<%= HtmlUtil.escapeJS(currentURL) %>'
-			}
+				redirect: '<%= HtmlUtil.escapeJS(currentURL) %>',
+			},
 		});
 	}
 </script>
 
-<aui:script require="metal-dom/src/dom as dom, frontend-js-web/liferay/ItemSelectorDialog.es as ItemSelectorDialog">
+<aui:script require="metal-dom/src/dom as dom">
 	function selectAssets(assetEntryList) {
 		var assetClassName = '';
 		var assetEntryIds = [];
 
-		Array.prototype.forEach.call(assetEntryList, function(assetEntry) {
+		Array.prototype.forEach.call(assetEntryList, function (assetEntry) {
 			assetEntryIds.push(assetEntry.entityid);
 
 			assetClassName = assetEntry.assetclassname;
@@ -243,8 +243,8 @@ for (long groupId : groupIds) {
 				assetEntryIds: assetEntryIds.join(','),
 				assetEntryType: assetClassName,
 				cmd: 'add-selection',
-				redirect: '<%= HtmlUtil.escapeJS(currentURL) %>'
-			}
+				redirect: '<%= HtmlUtil.escapeJS(currentURL) %>',
+			},
 		});
 	}
 
@@ -252,25 +252,21 @@ for (long groupId : groupIds) {
 		document.body,
 		'click',
 		'.asset-selector a',
-		function(event) {
+		function (event) {
 			event.preventDefault();
 
 			var delegateTarget = event.delegateTarget;
 
-			var itemSelectorDialog = new ItemSelectorDialog.default({
-				eventName: '<%= eventName %>',
+			Liferay.Util.openSelectionModal({
+				multiple: true,
+				onSelect: function (selectedItems) {
+					if (selectedItems) {
+						selectAssets(selectedItems);
+					}
+				},
+				selectEventName: '<%= eventName %>',
 				title: delegateTarget.dataset.title,
-				url: delegateTarget.dataset.href
-			});
-
-			itemSelectorDialog.open();
-
-			itemSelectorDialog.on('selectedItemChange', function(event) {
-				var selectedItems = event.selectedItem;
-
-				if (selectedItems) {
-					selectAssets(selectedItems);
-				}
+				url: delegateTarget.dataset.href,
 			});
 		}
 	);

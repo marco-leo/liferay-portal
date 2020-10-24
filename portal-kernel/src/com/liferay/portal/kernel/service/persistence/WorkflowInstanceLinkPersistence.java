@@ -16,6 +16,7 @@ package com.liferay.portal.kernel.service.persistence;
 
 import com.liferay.portal.kernel.exception.NoSuchWorkflowInstanceLinkException;
 import com.liferay.portal.kernel.model.WorkflowInstanceLink;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -32,9 +33,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface WorkflowInstanceLinkPersistence
-	extends BasePersistence<WorkflowInstanceLink> {
+	extends BasePersistence<WorkflowInstanceLink>,
+			CTPersistence<WorkflowInstanceLink> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link WorkflowInstanceLinkUtil} to access the workflow instance link persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

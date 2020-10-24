@@ -10,30 +10,48 @@
  * distribution rights of the Software.
  */
 
+import ClayIcon from '@clayui/icon';
+import ClayLayout from '@clayui/layout';
 import {ClayTooltipProvider} from '@clayui/tooltip';
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useMemo} from 'react';
 
-import Icon from '../../../shared/components/Icon.es';
 import Panel from '../../../shared/components/Panel.es';
-import {ErrorContext} from '../../../shared/components/request/Error.es';
-import {LoadingContext} from '../../../shared/components/request/Loading.es';
-import Request from '../../../shared/components/request/Request.es';
-import {AppContext} from '../../AppContext.es';
+import ContentView from '../../../shared/components/content-view/ContentView.es';
+import ReloadButton from '../../../shared/components/list/ReloadButton.es';
+import PromisesResolver from '../../../shared/components/promises-resolver/PromisesResolver.es';
+import {useFetch} from '../../../shared/hooks/useFetch.es';
 import PANELS from './Panels.es';
 import SummaryCard from './SummaryCard.es';
 
-function ProcessItemsCard({
+const ProcessItemsCard = ({
 	children,
 	completed,
 	description,
 	processId,
-	timeRange,
-	title
-}) {
+	timeRange = {},
+	title,
+}) => {
+	const {data, fetchData} = useFetch({
+		params: {
+			completed,
+			...timeRange,
+		},
+		url: `/processes/${processId}/metrics`,
+	});
+
+	const promises = useMemo(() => {
+		if (!completed || (timeRange.dateEnd && timeRange.dateStart)) {
+			return [fetchData()];
+		}
+
+		return [new Promise((_, reject) => reject())];
+	}, [fetchData, timeRange.dateEnd, timeRange.dateStart]);
+
 	return (
-		<Request>
+		<PromisesResolver promises={promises}>
 			<Panel>
 				<ProcessItemsCard.Header
+					data={data}
 					description={description}
 					title={title}
 				>
@@ -42,60 +60,34 @@ function ProcessItemsCard({
 
 				<ProcessItemsCard.Body
 					completed={completed}
+					data={data}
 					processId={processId}
 					timeRange={timeRange}
 				/>
 			</Panel>
-		</Request>
+		</PromisesResolver>
 	);
-}
+};
 
-const Body = ({completed = false, processId, timeRange}) => {
-	const {client, setTitle} = useContext(AppContext);
-	const {dateEnd, dateStart} = timeRange || {};
-	const [process, setProcess] = useState(null);
-	const {setError} = useContext(ErrorContext);
-	const {setLoading} = useContext(LoadingContext);
-
-	const fetchData = () => {
-		setError(null);
-		setLoading(true);
-
-		const isValidDate = date => date && !isNaN(date);
-
-		let urlRequest = `/processes/${processId}?completed=${completed}`;
-
-		if (isValidDate(dateEnd) && isValidDate(dateStart)) {
-			urlRequest += `&dateEnd=${dateEnd.toISOString()}&dateStart=${dateStart.toISOString()}`;
-		}
-
-		return client
-			.get(urlRequest)
-			.then(({data}) => {
-				setTitle(data.title);
-				setProcess(data);
-			})
-			.catch(error => {
-				setError(error);
-			})
-			.then(() => {
-				setLoading(false);
-			});
+const Body = ({completed = false, data, processId, timeRange}) => {
+	const statesProps = {
+		errorProps: {
+			actionButton: <ReloadButton />,
+			className: 'mt-2 pb-5 pt-4',
+			hideAnimation: true,
+			message: Liferay.Language.get(
+				'there-was-a-problem-retrieving-data-please-try-reloading-the-page'
+			),
+			messageClassName: 'small',
+		},
+		loadingProps: {className: 'mt-2 pb-5 pt-4'},
 	};
-
-	useEffect(() => {
-		fetchData();
-	}, [dateStart, dateEnd]);
 
 	return (
 		<Panel.Body>
-			<Request.Error />
-
-			<Request.Loading />
-
-			<Request.Success>
-				{process && (
-					<div className={'d-flex pb-4 pt-1'}>
+			<ContentView {...statesProps}>
+				{data ? (
+					<div className="d-flex pb-3">
 						{PANELS.map((panel, index) => (
 							<SummaryCard
 								{...panel}
@@ -106,23 +98,25 @@ const Body = ({completed = false, processId, timeRange}) => {
 								total={
 									panel.addressedToField === panel.totalField
 								}
-								totalValue={process[panel.totalField]}
-								value={process[panel.addressedToField]}
+								totalValue={data[panel.totalField]}
+								value={data[panel.addressedToField]}
 							/>
 						))}
 					</div>
+				) : (
+					<></>
 				)}
-			</Request.Success>
+			</ContentView>
 		</Panel.Body>
 	);
 };
 
-const Header = ({children, description, title}) => (
+const Header = ({children, data, description, title}) => (
 	<Panel.Header
 		elementClasses={['dashboard-panel-header', children && 'pb-0']}
 	>
-		<div className="autofit-row">
-			<div className="autofit-col autofit-col-expand flex-row">
+		<ClayLayout.ContentRow>
+			<ClayLayout.ContentCol className="flex-row" expand>
 				<span className="mr-2">{title}</span>
 
 				<ClayTooltipProvider>
@@ -132,20 +126,18 @@ const Header = ({children, description, title}) => (
 							data-tooltip-align={'right'}
 							title={description}
 						>
-							<Icon iconName={'question-circle-full'} />
+							<ClayIcon symbol="question-circle-full" />
 						</span>
 					</span>
 				</ClayTooltipProvider>
-			</div>
+			</ClayLayout.ContentCol>
 
-			{children && (
-				<Request.Success>
-					<div className="autofit-col m-0 management-bar management-bar-light navbar">
-						<ul className="navbar-nav">{children}</ul>
-					</div>
-				</Request.Success>
+			{children && data && (
+				<ClayLayout.ContentCol className="m-0 management-bar management-bar-light navbar">
+					<ul className="navbar-nav">{children}</ul>
+				</ClayLayout.ContentCol>
 			)}
-		</div>
+		</ClayLayout.ContentRow>
 	</Panel.Header>
 );
 

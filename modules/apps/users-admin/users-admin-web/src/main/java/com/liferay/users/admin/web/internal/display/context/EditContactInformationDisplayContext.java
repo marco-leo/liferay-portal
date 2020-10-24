@@ -36,15 +36,15 @@ import javax.servlet.http.HttpServletRequest;
 public class EditContactInformationDisplayContext {
 
 	public EditContactInformationDisplayContext(
-		String contactInfoTypeName, RenderResponse renderResponse,
-		HttpServletRequest httpServletRequest) {
+		String contactInfoTypeName, HttpServletRequest httpServletRequest,
+		RenderResponse renderResponse) {
 
-		_renderResponse = renderResponse;
 		_httpServletRequest = httpServletRequest;
+		_renderResponse = renderResponse;
 
 		_className = ParamUtil.getString(httpServletRequest, "className");
 		_classPK = ParamUtil.getLong(httpServletRequest, "classPK");
-		_primaryKey = ParamUtil.getLong(httpServletRequest, "primaryKey", 0L);
+		_primaryKey = ParamUtil.getLong(httpServletRequest, "primaryKey");
 		_redirect = PortalUtil.escapeRedirect(
 			ParamUtil.getString(httpServletRequest, "redirect"));
 

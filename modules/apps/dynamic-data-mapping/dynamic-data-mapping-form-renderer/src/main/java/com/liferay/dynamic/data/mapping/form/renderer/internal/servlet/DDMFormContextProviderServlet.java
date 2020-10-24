@@ -18,6 +18,8 @@ import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluator;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
 import com.liferay.dynamic.data.mapping.form.renderer.internal.DDMFormPagesTemplateContextFactory;
+import com.liferay.dynamic.data.mapping.service.DDMStructureLayoutLocalService;
+import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.kernel.events.ActionException;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -84,9 +86,9 @@ public class DDMFormContextProviderServlet extends HttpServlet {
 				PropsValues.SERVLET_SERVICE_EVENTS_PRE, httpServletRequest,
 				httpServletResponse);
 		}
-		catch (ActionException ae) {
+		catch (ActionException actionException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(ae, ae);
+				_log.debug(actionException, actionException);
 			}
 		}
 	}
@@ -120,7 +122,9 @@ public class DDMFormContextProviderServlet extends HttpServlet {
 					new DDMFormPagesTemplateContextFactory(
 						ddmFormTemplateContextProcessor.getDDMForm(),
 						ddmFormTemplateContextProcessor.getDDMFormLayout(),
-						ddmFormRenderingContext);
+						ddmFormRenderingContext,
+						_ddmStructureLayoutLocalService,
+						_ddmStructureLocalService, _jsonFactory);
 
 			ddmFormPagesTemplateContextFactory.setDDMFormEvaluator(
 				_ddmFormEvaluator);
@@ -130,9 +134,9 @@ public class DDMFormContextProviderServlet extends HttpServlet {
 
 			return ddmFormPagesTemplateContextFactory.create();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
+				_log.debug(exception, exception);
 			}
 		}
 
@@ -217,6 +221,12 @@ public class DDMFormContextProviderServlet extends HttpServlet {
 
 	@Reference
 	private DDMFormFieldTypeServicesTracker _ddmFormFieldTypeServicesTracker;
+
+	@Reference
+	private DDMStructureLayoutLocalService _ddmStructureLayoutLocalService;
+
+	@Reference
+	private DDMStructureLocalService _ddmStructureLocalService;
 
 	@Reference
 	private JSONFactory _jsonFactory;

@@ -29,9 +29,9 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.Date;
@@ -70,7 +70,7 @@ public class MBExportImportTest extends BasePortletExportImportTestCase {
 	public void setUp() throws Exception {
 		super.setUp();
 
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 	}
 
 	@Test
@@ -103,18 +103,16 @@ public class MBExportImportTest extends BasePortletExportImportTestCase {
 
 		Assert.assertNotNull(importedMessage);
 
-		Map<String, String[]> exportParameterMap = LinkedHashMapBuilder.put(
-			PortletDataHandlerKeys.DELETIONS,
-			new String[] {Boolean.TRUE.toString()}
-		).build();
-
-		Map<String, String[]> importParameterMap = LinkedHashMapBuilder.put(
-			PortletDataHandlerKeys.DELETIONS,
-			new String[] {Boolean.TRUE.toString()}
-		).build();
-
 		exportImportPortlet(
-			getPortletId(), exportParameterMap, importParameterMap);
+			getPortletId(),
+			LinkedHashMapBuilder.put(
+				PortletDataHandlerKeys.DELETIONS,
+				new String[] {Boolean.TRUE.toString()}
+			).build(),
+			LinkedHashMapBuilder.put(
+				PortletDataHandlerKeys.DELETIONS,
+				new String[] {Boolean.TRUE.toString()}
+			).build());
 
 		importedMessage =
 			MBMessageLocalServiceUtil.fetchMBMessageByUuidAndGroupId(

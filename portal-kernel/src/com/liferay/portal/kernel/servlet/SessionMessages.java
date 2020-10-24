@@ -342,18 +342,18 @@ public class SessionMessages {
 	}
 
 	public static void print(HttpSession session) {
-		Iterator<String> itr = iterator(session);
+		Iterator<String> iterator = iterator(session);
 
-		while (itr.hasNext()) {
-			System.out.println(itr.next());
+		while (iterator.hasNext()) {
+			System.out.println(iterator.next());
 		}
 	}
 
 	public static void print(PortletRequest portletRequest) {
-		Iterator<String> itr = iterator(portletRequest);
+		Iterator<String> iterator = iterator(portletRequest);
 
-		while (itr.hasNext()) {
-			System.out.println(itr.next());
+		while (iterator.hasNext()) {
+			System.out.println(iterator.next());
 		}
 	}
 
@@ -416,7 +416,7 @@ public class SessionMessages {
 
 			return map;
 		}
-		catch (IllegalStateException ise) {
+		catch (IllegalStateException illegalStateException) {
 
 			// Session is already invalidated, just return a null map
 

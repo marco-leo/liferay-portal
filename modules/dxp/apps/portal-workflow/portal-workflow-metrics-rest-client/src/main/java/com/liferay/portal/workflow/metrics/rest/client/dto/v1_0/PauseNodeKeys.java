@@ -26,7 +26,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class PauseNodeKeys {
+public class PauseNodeKeys implements Cloneable {
+
+	public static PauseNodeKeys toDTO(String json) {
+		return PauseNodeKeysSerDes.toDTO(json);
+	}
 
 	public NodeKey[] getNodeKeys() {
 		return nodeKeys;
@@ -69,6 +73,11 @@ public class PauseNodeKeys {
 	}
 
 	protected Integer status;
+
+	@Override
+	public PauseNodeKeys clone() throws CloneNotSupportedException {
+		return (PauseNodeKeys)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

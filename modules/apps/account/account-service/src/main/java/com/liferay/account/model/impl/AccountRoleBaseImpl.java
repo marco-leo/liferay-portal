@@ -32,7 +32,7 @@ import com.liferay.account.service.AccountRoleLocalServiceUtil;
 public abstract class AccountRoleBaseImpl
 	extends AccountRoleModelImpl implements AccountRole {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a account role model instance should use the <code>AccountRole</code> interface instead.

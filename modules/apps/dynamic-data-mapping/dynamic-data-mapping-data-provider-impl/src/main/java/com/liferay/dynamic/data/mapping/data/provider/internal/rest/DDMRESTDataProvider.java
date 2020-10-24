@@ -87,12 +87,12 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 		try {
 			return doGetData(ddmDataProviderRequest);
 		}
-		catch (HttpException he) {
-			Throwable cause = he.getCause();
+		catch (HttpException httpException) {
+			Throwable throwable = httpException.getCause();
 
-			if (cause instanceof ConnectException) {
+			if (throwable instanceof ConnectException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(cause, cause);
+					_log.warn(throwable, throwable);
 				}
 
 				DDMDataProviderResponse.Builder builder =
@@ -103,10 +103,10 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 				).build();
 			}
 
-			throw new DDMDataProviderException(he);
+			throw new DDMDataProviderException(httpException);
 		}
-		catch (Exception e) {
-			throw new DDMDataProviderException(e);
+		catch (Exception exception) {
+			throw new DDMDataProviderException(exception);
 		}
 	}
 
@@ -307,8 +307,11 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 			httpResponse = proxiedHttpRequest.send();
 		}
 
-		DocumentContext documentContext = JsonPath.parse(
-			httpResponse.bodyText());
+		httpResponse.charset("UTF-8");
+
+		String responseBodyText = _removeUTFBOM(httpResponse.bodyText());
+
+		DocumentContext documentContext = JsonPath.parse(responseBodyText);
 
 		ddmDataProviderResponse = createDDMDataProviderResponse(
 			documentContext, ddmDataProviderRequest,
@@ -402,12 +405,13 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 				proxySettings.put("proxyPort", Integer.valueOf(proxyPort));
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			proxySettings.clear();
 
 			if (_log.isWarnEnabled()) {
 				_log.warn(
-					"Unable to get proxy settings from system properties", e);
+					"Unable to get proxy settings from system properties",
+					exception);
 			}
 		}
 
@@ -532,6 +536,16 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 
 	@Reference
 	protected UserLocalService userLocalService;
+
+	private String _removeUTFBOM(String bodyText) {
+		for (int i = 0; i < bodyText.length(); i++) {
+			if ((bodyText.charAt(i) == '[') || (bodyText.charAt(i) == '{')) {
+				return bodyText.substring(i);
+			}
+		}
+
+		return "";
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DDMRESTDataProvider.class);

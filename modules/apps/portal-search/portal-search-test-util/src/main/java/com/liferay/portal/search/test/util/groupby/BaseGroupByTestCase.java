@@ -308,12 +308,14 @@ public abstract class BaseGroupByTestCase extends BaseIndexingTestCase {
 				try {
 					indexingTestHelper.search();
 				}
-				catch (RuntimeException re) {
-					if (_shouldIgnoreSearchEngineGlitchAndRetry(re)) {
-						Assert.fail(re.getMessage());
+				catch (RuntimeException runtimeException) {
+					if (_shouldIgnoreSearchEngineGlitchAndRetry(
+							runtimeException)) {
+
+						Assert.fail(runtimeException.getMessage());
 					}
 
-					throw re;
+					throw runtimeException;
 				}
 
 				indexingTestHelper.verify(
@@ -631,11 +633,11 @@ public abstract class BaseGroupByTestCase extends BaseIndexingTestCase {
 					DocumentCreationHelpers.twoKeywords(
 						field, name, SORT_FIELD, String.valueOf(i)));
 			}
-			catch (RuntimeException re) {
-				throw re;
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
 			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
 			}
 		}
 	}
@@ -656,13 +658,13 @@ public abstract class BaseGroupByTestCase extends BaseIndexingTestCase {
 		new GroupByRequestFactoryImpl();
 
 	private boolean _shouldIgnoreSearchEngineGlitchAndRetry(
-		RuntimeException re) {
+		RuntimeException runtimeException) {
 
-		Throwable t1 = re.getCause();
+		Throwable throwable1 = runtimeException.getCause();
 
-		Throwable t2 = t1.getCause();
+		Throwable throwable2 = throwable1.getCause();
 
-		String message = t2.getMessage();
+		String message = throwable2.getMessage();
 
 		if (message.equals(
 				"numHits must be > 0; please use TotalHitCountCollector if " +

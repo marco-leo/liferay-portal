@@ -359,11 +359,6 @@ public class CalendarNotificationTemplateWrapper
 		return model.getUuid();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a calendar notification template model instance should use the <code>CalendarNotificationTemplate</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -514,9 +509,10 @@ public class CalendarNotificationTemplateWrapper
 	@Override
 	public void setTypeSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties
-			notificationTypeSettingsProperties) {
+			notificationTypeSettingsUnicodeProperties) {
 
-		model.setTypeSettingsProperties(notificationTypeSettingsProperties);
+		model.setTypeSettingsProperties(
+			notificationTypeSettingsUnicodeProperties);
 	}
 
 	/**

@@ -30,6 +30,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.util.LocalizationImpl;
 import com.liferay.portlet.PortletPreferencesImpl;
+import com.liferay.portletmvc4spring.test.mock.web.portlet.MockPortletRequest;
 
 import java.lang.reflect.Field;
 
@@ -52,8 +53,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import org.springframework.mock.web.portlet.MockPortletRequest;
 
 /**
  * @author Connor McKay
@@ -418,14 +417,13 @@ public class LocalizationImplTest {
 		String englishValue = "foo&bar";
 		String spanishValue = "bar&foo";
 
-		Map<Locale, String> localizationMap = HashMapBuilder.put(
-			LocaleUtil.SPAIN, spanishValue
-		).put(
-			LocaleUtil.US, englishValue
-		).build();
-
 		String xml = LocalizationUtil.updateLocalization(
-			localizationMap, _xml, "static-content", "en_US");
+			HashMapBuilder.put(
+				LocaleUtil.SPAIN, spanishValue
+			).put(
+				LocaleUtil.US, englishValue
+			).build(),
+			_xml, "static-content", "en_US");
 
 		Assert.assertEquals(
 			spanishValue,

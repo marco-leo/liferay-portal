@@ -15,6 +15,7 @@
 package com.liferay.saml.opensaml.integration.internal;
 
 import com.liferay.petra.lang.ClassLoaderPool;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.bean.BeanLocator;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.bean.PortletBeanLocatorUtil;
@@ -39,9 +40,9 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Props;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.saml.constants.SamlProviderConfigurationKeys;
 import com.liferay.saml.opensaml.integration.SamlBinding;
 import com.liferay.saml.opensaml.integration.internal.binding.HttpPostBinding;
 import com.liferay.saml.opensaml.integration.internal.binding.HttpRedirectBinding;
@@ -146,7 +147,7 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 
 			field.set(serviceUtilClass, null);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 	}
 
@@ -173,7 +174,8 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 		KeyStoreCredentialResolver keyStoreCredentialResolver =
 			new KeyStoreCredentialResolver();
 
-		keyStoreCredentialResolver.setKeyStoreManager(keyStoreManager);
+		keyStoreCredentialResolver.setKeyStoreManager(
+			fileSystemKeyStoreManagerImpl);
 
 		SamlProviderConfigurationHelper peerSamlProviderConfigurationHelper =
 			Mockito.mock(SamlProviderConfigurationHelper.class);
@@ -265,7 +267,7 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 
 				mockHttpServletRequest.setParameter(kvp[0], value);
 			}
-			catch (UnsupportedEncodingException uee) {
+			catch (UnsupportedEncodingException unsupportedEncodingException) {
 			}
 		}
 
@@ -315,7 +317,7 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 		when(
 			samlProviderConfiguration.role()
 		).thenReturn(
-			"idp"
+			SamlProviderConfigurationKeys.SAML_ROLE_IDP
 		);
 
 		when(
@@ -335,7 +337,7 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 		when(
 			samlProviderConfiguration.role()
 		).thenReturn(
-			"sp"
+			SamlProviderConfigurationKeys.SAML_ROLE_SP
 		);
 
 		when(
@@ -484,21 +486,20 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 	protected void setupMetadata() throws Exception {
 		metadataManagerImpl = new MetadataManagerImpl();
 
-		keyStoreManager = new FileSystemKeyStoreManagerImpl();
-
-		Map<String, Object> properties = HashMapBuilder.<String, Object>put(
-			"saml.keystore.path",
-			"classpath:/com/liferay/saml/opensaml/integration/internal" +
-				"/credential/dependencies/keystore.jks"
-		).build();
+		fileSystemKeyStoreManagerImpl = new FileSystemKeyStoreManagerImpl();
 
 		ReflectionTestUtil.invoke(
-			keyStoreManager, "activate", new Class<?>[] {Map.class},
-			properties);
+			fileSystemKeyStoreManagerImpl, "activate",
+			new Class<?>[] {Map.class},
+			HashMapBuilder.<String, Object>put(
+				"saml.keystore.path",
+				"classpath:/com/liferay/saml/opensaml/integration/internal" +
+					"/credential/dependencies/keystore.jks"
+			).build());
 
 		credentialResolver = new KeyStoreCredentialResolver();
 
-		credentialResolver.setKeyStoreManager(keyStoreManager);
+		credentialResolver.setKeyStoreManager(fileSystemKeyStoreManagerImpl);
 
 		credentialResolver.setSamlProviderConfigurationHelper(
 			samlProviderConfigurationHelper);
@@ -675,12 +676,12 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 	protected static final String UNKNOWN_ENTITY_ID = "testunknown";
 
 	protected KeyStoreCredentialResolver credentialResolver;
+	protected FileSystemKeyStoreManagerImpl fileSystemKeyStoreManagerImpl;
 	protected GroupLocalService groupLocalService;
 	protected HttpClient httpClient;
 	protected IdentifierGenerationStrategyFactory
 		identifierGenerationStrategyFactory;
 	protected List<String> identifiers = new ArrayList<>();
-	protected FileSystemKeyStoreManagerImpl keyStoreManager;
 	protected LocalEntityManager localEntityManager;
 	protected MetadataManagerImpl metadataManagerImpl;
 	protected ParserPool parserPool;
@@ -711,8 +712,8 @@ public abstract class BaseSamlTestCase extends PowerMockito {
 			try {
 				return Collections.singleton(doResolve(criteriaSet));
 			}
-			catch (Exception e) {
-				throw new ResolverException(e);
+			catch (Exception exception) {
+				throw new ResolverException(exception);
 			}
 		}
 

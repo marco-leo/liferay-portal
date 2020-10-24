@@ -130,8 +130,9 @@ public class AnnotationsExtendedObjectClassDefinition
 			try (InputStream is = url.openStream()) {
 				return JSONFactoryUtil.createJSONObject(StringUtil.read(is));
 			}
-			catch (Exception e) {
-				_log.error("Unable to process resource " + resourcePath, e);
+			catch (Exception exception) {
+				_log.error(
+					"Unable to process resource " + resourcePath, exception);
 			}
 		}
 
@@ -147,7 +148,7 @@ public class AnnotationsExtendedObjectClassDefinition
 			_configurationBeanClass = classLoader.loadClass(
 				_objectClassDefinition.getID());
 		}
-		catch (ClassNotFoundException cnfe) {
+		catch (ClassNotFoundException classNotFoundException) {
 		}
 	}
 
@@ -185,32 +186,34 @@ public class AnnotationsExtendedObjectClassDefinition
 			configurationBeanClass.getAnnotation(
 				ExtendedObjectClassDefinition.class);
 
-		if (extendedObjectClassDefinition != null) {
-			Map<String, String> attributes = HashMapBuilder.put(
-				"category", extendedObjectClassDefinition.category()
-			).put(
-				"description-arguments",
-				StringUtil.merge(
-					extendedObjectClassDefinition.descriptionArguments())
-			).put(
-				"factoryInstanceLabelAttribute",
-				extendedObjectClassDefinition.factoryInstanceLabelAttribute()
-			).put(
-				"generateUI",
-				Boolean.toString(extendedObjectClassDefinition.generateUI())
-			).put(
-				"name-arguments",
-				StringUtil.merge(extendedObjectClassDefinition.nameArguments())
-			).build();
-
-			ExtendedObjectClassDefinition.Scope scope =
-				extendedObjectClassDefinition.scope();
-
-			attributes.put("scope", scope.toString());
-
-			_extensionAttributes.put(
-				ExtendedObjectClassDefinition.XML_NAMESPACE, attributes);
+		if (extendedObjectClassDefinition == null) {
+			return;
 		}
+
+		Map<String, String> attributes = HashMapBuilder.put(
+			"category", extendedObjectClassDefinition.category()
+		).put(
+			"description-arguments",
+			StringUtil.merge(
+				extendedObjectClassDefinition.descriptionArguments())
+		).put(
+			"factoryInstanceLabelAttribute",
+			extendedObjectClassDefinition.factoryInstanceLabelAttribute()
+		).put(
+			"generateUI",
+			Boolean.toString(extendedObjectClassDefinition.generateUI())
+		).put(
+			"name-arguments",
+			StringUtil.merge(extendedObjectClassDefinition.nameArguments())
+		).build();
+
+		ExtendedObjectClassDefinition.Scope scope =
+			extendedObjectClassDefinition.scope();
+
+		attributes.put("scope", scope.toString());
+
+		_extensionAttributes.put(
+			ExtendedObjectClassDefinition.XML_NAMESPACE, attributes);
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(

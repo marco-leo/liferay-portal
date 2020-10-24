@@ -31,18 +31,15 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.Sync;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-
-import java.util.Map;
 
 import javax.portlet.PortletPreferences;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,7 +70,7 @@ public class DDMFormDisplayExportImportTest
 	public void setUp() throws Exception {
 		super.setUp();
 
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
 			group.getGroupId(), DDMFormInstance.class.getName());
@@ -109,13 +106,17 @@ public class DDMFormDisplayExportImportTest
 		DDMFormInstance ddmFormInstance =
 			ddmFormInstanceRecord.getFormInstance();
 
-		Map<String, String[]> preferenceMap = HashMapBuilder.put(
-			"formInstanceId",
-			new String[] {String.valueOf(ddmFormInstance.getFormInstanceId())}
-		).build();
-
 		PortletPreferences importedPortletPreferences =
-			getImportedPortletPreferences(preferenceMap);
+			getImportedPortletPreferences(
+				HashMapBuilder.put(
+					"formInstanceId",
+					new String[] {
+						String.valueOf(ddmFormInstance.getFormInstanceId())
+					}
+				).put(
+					"groupId",
+					new String[] {String.valueOf(ddmFormInstance.getGroupId())}
+				).build());
 
 		DDMFormInstance importedDDMFormInstance =
 			DDMFormInstanceLocalServiceUtil.
@@ -130,11 +131,9 @@ public class DDMFormDisplayExportImportTest
 				"formInstanceId", StringPool.BLANK));
 	}
 
-	@Ignore
 	@Override
 	@Test
 	public void testExportImportAssetLinks() throws Exception {
-		super.testExportImportAssetLinks();
 	}
 
 	private DDMFormInstanceRecordTestHelper _ddmFormInstanceRecordTestHelper;

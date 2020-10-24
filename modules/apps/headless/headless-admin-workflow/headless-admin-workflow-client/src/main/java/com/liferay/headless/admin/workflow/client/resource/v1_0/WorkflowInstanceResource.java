@@ -14,10 +14,13 @@
 
 package com.liferay.headless.admin.workflow.client.resource.v1_0;
 
+import com.liferay.headless.admin.workflow.client.dto.v1_0.ChangeTransition;
 import com.liferay.headless.admin.workflow.client.dto.v1_0.WorkflowInstance;
+import com.liferay.headless.admin.workflow.client.dto.v1_0.WorkflowInstanceSubmit;
 import com.liferay.headless.admin.workflow.client.http.HttpInvoker;
 import com.liferay.headless.admin.workflow.client.pagination.Page;
 import com.liferay.headless.admin.workflow.client.pagination.Pagination;
+import com.liferay.headless.admin.workflow.client.problem.Problem;
 import com.liferay.headless.admin.workflow.client.serdes.v1_0.WorkflowInstanceSerDes;
 
 import java.util.LinkedHashMap;
@@ -50,13 +53,11 @@ public interface WorkflowInstanceResource {
 		throws Exception;
 
 	public WorkflowInstance postWorkflowInstanceSubmit(
-			com.liferay.headless.admin.workflow.client.dto.v1_0.
-				WorkflowInstanceSubmit workflowInstanceSubmit)
+			WorkflowInstanceSubmit workflowInstanceSubmit)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse postWorkflowInstanceSubmitHttpResponse(
-			com.liferay.headless.admin.workflow.client.dto.v1_0.
-				WorkflowInstanceSubmit workflowInstanceSubmit)
+			WorkflowInstanceSubmit workflowInstanceSubmit)
 		throws Exception;
 
 	public void deleteWorkflowInstance(Long workflowInstanceId)
@@ -74,16 +75,12 @@ public interface WorkflowInstanceResource {
 		throws Exception;
 
 	public WorkflowInstance postWorkflowInstanceChangeTransition(
-			Long workflowInstanceId,
-			com.liferay.headless.admin.workflow.client.dto.v1_0.ChangeTransition
-				changeTransition)
+			Long workflowInstanceId, ChangeTransition changeTransition)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
 			postWorkflowInstanceChangeTransitionHttpResponse(
-				Long workflowInstanceId,
-				com.liferay.headless.admin.workflow.client.dto.v1_0.
-					ChangeTransition changeTransition)
+				Long workflowInstanceId, ChangeTransition changeTransition)
 		throws Exception;
 
 	public static class Builder {
@@ -131,8 +128,8 @@ public interface WorkflowInstanceResource {
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
-		private String _login = "test@liferay.com";
-		private String _password = "test";
+		private String _login = "";
+		private String _password = "";
 		private Map<String, String> _parameters = new LinkedHashMap<>();
 		private int _port = 8080;
 		private String _scheme = "http";
@@ -159,7 +156,16 @@ public interface WorkflowInstanceResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return Page.of(content, WorkflowInstanceSerDes::toDTO);
+			try {
+				return Page.of(content, WorkflowInstanceSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse getWorkflowInstancesPageHttpResponse(
@@ -226,8 +232,7 @@ public interface WorkflowInstanceResource {
 		}
 
 		public WorkflowInstance postWorkflowInstanceSubmit(
-				com.liferay.headless.admin.workflow.client.dto.v1_0.
-					WorkflowInstanceSubmit workflowInstanceSubmit)
+				WorkflowInstanceSubmit workflowInstanceSubmit)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -249,13 +254,12 @@ public interface WorkflowInstanceResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
 		public HttpInvoker.HttpResponse postWorkflowInstanceSubmitHttpResponse(
-				com.liferay.headless.admin.workflow.client.dto.v1_0.
-					WorkflowInstanceSubmit workflowInstanceSubmit)
+				WorkflowInstanceSubmit workflowInstanceSubmit)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -306,6 +310,17 @@ public interface WorkflowInstanceResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse deleteWorkflowInstanceHttpResponse(
@@ -367,7 +382,7 @@ public interface WorkflowInstanceResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -409,9 +424,7 @@ public interface WorkflowInstanceResource {
 		}
 
 		public WorkflowInstance postWorkflowInstanceChangeTransition(
-				Long workflowInstanceId,
-				com.liferay.headless.admin.workflow.client.dto.v1_0.
-					ChangeTransition changeTransition)
+				Long workflowInstanceId, ChangeTransition changeTransition)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -434,15 +447,13 @@ public interface WorkflowInstanceResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
 		public HttpInvoker.HttpResponse
 				postWorkflowInstanceChangeTransitionHttpResponse(
-					Long workflowInstanceId,
-					com.liferay.headless.admin.workflow.client.dto.v1_0.
-						ChangeTransition changeTransition)
+					Long workflowInstanceId, ChangeTransition changeTransition)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();

@@ -42,7 +42,7 @@ public interface KBArticleModel
 	extends BaseModel<KBArticle>, MVCCModel, ResourcedModel, ShardedModel,
 			StagedGroupedModel, WorkflowedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kb article model instance should use the {@link KBArticle} interface instead.

@@ -90,8 +90,10 @@ public class TensorFlowImageAssetAutoTagProvider
 				}
 			}
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(exception, exception);
+			}
 		}
 
 		return Collections.emptyList();

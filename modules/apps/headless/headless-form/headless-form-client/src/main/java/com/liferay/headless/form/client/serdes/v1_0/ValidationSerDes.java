@@ -67,6 +67,16 @@ public class ValidationSerDes {
 			sb.append("\"");
 		}
 
+		if (validation.getErrorMessage_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"errorMessage_i18n\": ");
+
+			sb.append(_toJSON(validation.getErrorMessage_i18n()));
+		}
+
 		if (validation.getExpression() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -117,6 +127,15 @@ public class ValidationSerDes {
 				"errorMessage", String.valueOf(validation.getErrorMessage()));
 		}
 
+		if (validation.getErrorMessage_i18n() == null) {
+			map.put("errorMessage_i18n", null);
+		}
+		else {
+			map.put(
+				"errorMessage_i18n",
+				String.valueOf(validation.getErrorMessage_i18n()));
+		}
+
 		if (validation.getExpression() == null) {
 			map.put("expression", null);
 		}
@@ -157,6 +176,13 @@ public class ValidationSerDes {
 					validation.setErrorMessage((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "errorMessage_i18n")) {
+				if (jsonParserFieldValue != null) {
+					validation.setErrorMessage_i18n(
+						(Map)ValidationSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "expression")) {
 				if (jsonParserFieldValue != null) {
 					validation.setExpression((String)jsonParserFieldValue);
@@ -168,9 +194,8 @@ public class ValidationSerDes {
 						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -226,10 +251,13 @@ public class ValidationSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

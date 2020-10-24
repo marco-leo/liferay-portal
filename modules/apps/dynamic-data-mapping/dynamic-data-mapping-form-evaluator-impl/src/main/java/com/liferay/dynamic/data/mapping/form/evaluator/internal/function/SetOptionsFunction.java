@@ -96,10 +96,10 @@ public class SetOptionsFunction
 			JSONObject jsonObject = jsonFactory.createJSONObject(
 				String.valueOf(value));
 
-			Iterator<String> keys = jsonObject.keys();
+			Iterator<String> iterator = jsonObject.keys();
 
-			while (keys.hasNext()) {
-				String currentLanguageId = keys.next();
+			while (iterator.hasNext()) {
+				String currentLanguageId = iterator.next();
 
 				if (currentLanguageId.equals(languageId)) {
 					JSONArray jsonArray = jsonObject.getJSONArray(
@@ -120,8 +120,8 @@ public class SetOptionsFunction
 				}
 			}
 		}
-		catch (JSONException jsone) {
-			_log.error(jsone, jsone);
+		catch (JSONException jsonException) {
+			_log.error(jsonException, jsonException);
 		}
 
 		return keyValuePairs;

@@ -13,6 +13,18 @@ definition {
 		}
 	}
 
+	macro _addGeneralVariables {
+		if (isSet(generalVariables)) {
+			for (var generalVariable : list "${generalVariables}") {
+				var key_generalVariable = "${generalVariable}";
+
+				AssertClick(
+					locator1 = "DDMEditTemplate#SCRIPT_GENERAL_VARIABLE",
+					value1 = "${generalVariable}");
+			}
+		}
+	}
+
 	@summary = "Helper function to add description '${description}' to the template"
 	macro _inputDescription {
 		if (isSet(templateDescription)) {
@@ -27,17 +39,22 @@ definition {
 				locator1 = "DDMEditTemplate#DETAILS_SELECT_STRUCTURE",
 				value1 = "Select");
 
-			SelectFrameTop();
-
-			SelectFrame(locator1 = "IFrame#DIALOG");
-
-			Click(locator1 = "Icon#BASIC_SEARCH");
+			SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
 			var key_ddlDataDefinitionName = "${structureName}";
 
-			AssertClickNoError(
-				locator1 = "DDMSelectStructure#DDM_STRUCTURE_TABLE_NAME_LINK",
-				value1 = "${structureName}");
+			AssertElementPresent(locator1 = "DDMSelectStructure#DDM_STRUCTURE_TABLE_NAME_LINK");
+
+			var browserType = PropsUtil.get("browser.type");
+
+			if ("${browserType}" == "safari") {
+				Click.javaScriptClick(locator1 = "DDMSelectStructure#DDM_STRUCTURE_TABLE_NAME_LINK");
+			}
+			else {
+				AssertClick.assertTextClickAt(
+					locator1 = "DDMSelectStructure#DDM_STRUCTURE_TABLE_NAME_LINK",
+					value1 = "${structureName}");
+			}
 
 			SelectFrameTop();
 		}
@@ -57,6 +74,7 @@ definition {
 		LexiconEntry.gotoAdd();
 
 		WebContentTemplates.inputTemplateAddScreenFields(
+			generalVariables = "${generalVariables}",
 			imageSourceURL = "${imageSourceURL}",
 			structureName = "${structureName}",
 			templateDescription = "${templateDescription}",
@@ -66,7 +84,7 @@ definition {
 			templateName = "${templateName}",
 			templateScript = "${templateScript}");
 
-		DDLDataDefinition.save(changeListEnabled = "${changeListEnabled}");
+		DDLDataDefinition.save(publicationsEnabled = "${publicationsEnabled}");
 	}
 
 	@summary = "Attempt to add a blank template"
@@ -88,7 +106,7 @@ definition {
 			item = "Permissions",
 			templateName = "${templateName}");
 
-		SelectFrame(locator1 = "IFrame#DIALOG");
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
 		PermissionsInline.addOrRemoveViewPermissionFromAllRoles(
 			addOrRemoveViewPermission = "Add",
@@ -159,6 +177,8 @@ definition {
 		else {
 			WebContentTemplates._addFields(templateFieldNames = "${templateFieldNames}");
 
+			WebContentTemplates._addGeneralVariables(generalVariables = "${generalVariables}");
+
 			WebContentTemplates._inputTemplateFile(templateFile = "${templateFile}");
 		}
 	}
@@ -205,7 +225,7 @@ definition {
 			templateName = "${templateName}",
 			templateScript = "${templateScript}");
 
-		DDLDataDefinition.save(changeListEnabled = "${changeListEnabled}");
+		DDLDataDefinition.save(publicationsEnabled = "${publicationsEnabled}");
 	}
 
 	@summary = "Open Web Content Templates admin page for the site '${siteURLKey}'"
@@ -219,7 +239,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Content &amp; Data",
-			panel = "Site Administration",
 			portlet = "Web Content");
 
 		Navigator.gotoNavItem(navItem = "Templates");

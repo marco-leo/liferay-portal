@@ -35,7 +35,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface VersionedEntryPersistence
 	extends BasePersistence<VersionedEntry> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link VersionedEntryUtil} to access the versioned entry persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

@@ -50,7 +50,7 @@ public class IndexerQueryBuilderImpl<T extends BaseModel<?>>
 		IndexerRegistry indexerRegistry,
 		ModelSearchSettings modelSearchSettings,
 		ModelKeywordQueryContributorsHolder modelKeywordQueryContributorsHolder,
-		Iterable<SearchContextContributor> modelSearchContextContributor,
+		Iterable<SearchContextContributor> modelSearchContextContributors,
 		KeywordQueryContributorsHolder keywordQueryContributorsHolder,
 		PreFilterContributorHelper preFilterContributorHelper,
 		Iterable<SearchContextContributor> searchContextContributors,
@@ -61,7 +61,7 @@ public class IndexerQueryBuilderImpl<T extends BaseModel<?>>
 		_modelSearchSettings = modelSearchSettings;
 		_modelKeywordQueryContributorsHolder =
 			modelKeywordQueryContributorsHolder;
-		_modelSearchContextContributors = modelSearchContextContributor;
+		_modelSearchContextContributors = modelSearchContextContributors;
 		_keywordQueryContributorsHolder = keywordQueryContributorsHolder;
 		_preFilterContributorHelper = preFilterContributorHelper;
 		_searchContextContributors = searchContextContributors;
@@ -229,11 +229,11 @@ public class IndexerQueryBuilderImpl<T extends BaseModel<?>>
 					indexerPostProcessor.postProcessFullQuery(
 						booleanQuery, searchContext);
 				}
-				catch (RuntimeException re) {
-					throw re;
+				catch (RuntimeException runtimeException) {
+					throw runtimeException;
 				}
-				catch (Exception e) {
-					throw new SystemException(e);
+				catch (Exception exception) {
+					throw new SystemException(exception);
 				}
 			});
 	}
@@ -245,8 +245,8 @@ public class IndexerQueryBuilderImpl<T extends BaseModel<?>>
 		try {
 			booleanQuery.add(query, booleanClauseOccur);
 		}
-		catch (ParseException pe) {
-			throw new SystemException(pe);
+		catch (ParseException parseException) {
+			throw new SystemException(parseException);
 		}
 	}
 
@@ -277,11 +277,11 @@ public class IndexerQueryBuilderImpl<T extends BaseModel<?>>
 					indexerPostProcessor.postProcessSearchQuery(
 						booleanQuery, booleanFilter, searchContext);
 				}
-				catch (RuntimeException re) {
-					throw re;
+				catch (RuntimeException runtimeException) {
+					throw runtimeException;
 				}
-				catch (Exception e) {
-					throw new SystemException(e);
+				catch (Exception exception) {
+					throw new SystemException(exception);
 				}
 			});
 	}

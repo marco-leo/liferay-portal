@@ -73,8 +73,15 @@ public class RecentSitesItemSelectorView
 	}
 
 	@Override
-	public boolean isVisible(ThemeDisplay themeDisplay) {
-		return true;
+	public boolean isVisible(
+		SiteItemSelectorCriterion siteItemSelectorCriterion,
+		ThemeDisplay themeDisplay) {
+
+		if (siteItemSelectorCriterion.isIncludeRecentSites()) {
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override

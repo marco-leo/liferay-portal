@@ -14,9 +14,10 @@
 
 package com.liferay.portal.workflow.kaleo.forms.web.internal.upgrade.v1_0_2;
 
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.LayoutTypePortletConstants;
+import com.liferay.portal.kernel.upgrade.BaseUpgradePortletId;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.workflow.kaleo.forms.constants.KaleoFormsPortletKeys;
@@ -30,8 +31,7 @@ import java.util.Set;
 /**
  * @author Inácio Nery
  */
-public class UpgradePortletId
-	extends com.liferay.portal.upgrade.util.UpgradePortletId {
+public class UpgradePortletId extends BaseUpgradePortletId {
 
 	protected void deletePortletReferences(String portletId) throws Exception {
 		runSQL("delete from Portlet where portletId = '" + portletId + "'");
@@ -58,16 +58,17 @@ public class UpgradePortletId
 	protected String getNewTypeSettings(
 		String typeSettings, String oldRootPortletId) {
 
-		UnicodeProperties typeSettingsProperties = new UnicodeProperties(true);
+		UnicodeProperties typeSettingsUnicodeProperties = new UnicodeProperties(
+			true);
 
-		typeSettingsProperties.fastLoad(typeSettings);
+		typeSettingsUnicodeProperties.fastLoad(typeSettings);
 
-		Set<String> keys = typeSettingsProperties.keySet();
+		Set<String> keys = typeSettingsUnicodeProperties.keySet();
 
-		Iterator<String> itr = keys.iterator();
+		Iterator<String> iterator = keys.iterator();
 
-		while (itr.hasNext()) {
-			String key = itr.next();
+		while (iterator.hasNext()) {
+			String key = iterator.next();
 
 			if (StringUtil.startsWith(
 					key, LayoutTypePortletConstants.COLUMN_PREFIX) ||
@@ -75,7 +76,7 @@ public class UpgradePortletId
 					key, LayoutTypePortletConstants.NESTED_COLUMN_IDS)) {
 
 				String[] portletIds = StringUtil.split(
-					typeSettingsProperties.getProperty(key));
+					typeSettingsUnicodeProperties.getProperty(key));
 
 				if (!ArrayUtil.contains(portletIds, oldRootPortletId)) {
 					continue;
@@ -86,16 +87,16 @@ public class UpgradePortletId
 
 					String mergedPortletIds = StringUtil.merge(portletIds);
 
-					typeSettingsProperties.setProperty(
+					typeSettingsUnicodeProperties.setProperty(
 						key, mergedPortletIds.concat(StringPool.COMMA));
 				}
 				else {
-					itr.remove();
+					iterator.remove();
 				}
 			}
 		}
 
-		return typeSettingsProperties.toString();
+		return typeSettingsUnicodeProperties.toString();
 	}
 
 	@Override

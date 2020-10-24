@@ -38,7 +38,7 @@ public interface DDMStructureLinkModel
 	extends AttachedModel, BaseModel<DDMStructureLink>,
 			CTModel<DDMStructureLink>, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a ddm structure link model instance should use the {@link DDMStructureLink} interface instead.

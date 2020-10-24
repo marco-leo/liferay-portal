@@ -29,6 +29,18 @@ AccountUserDisplay accountUserDisplay = (AccountUserDisplay)row.getObject();
 	message="<%= StringPool.BLANK %>"
 	showWhenSingleIcon="<%= true %>"
 >
+	<c:if test="<%= AccountPermission.contains(permissionChecker, AccountPortletKeys.ACCOUNT_USERS_ADMIN, AccountActionKeys.ASSIGN_ACCOUNTS) || UserPermissionUtil.contains(permissionChecker, accountUserDisplay.getUserId(), ActionKeys.UPDATE) %>">
+		<portlet:renderURL var="editUserURL">
+			<portlet:param name="p_u_i_d" value="<%= String.valueOf(accountUserDisplay.getUserId()) %>" />
+			<portlet:param name="mvcPath" value="/account_users_admin/edit_account_user.jsp" />
+		</portlet:renderURL>
+
+		<liferay-ui:icon
+			message="edit"
+			url="<%= editUserURL %>"
+		/>
+	</c:if>
+
 	<c:if test="<%= !PropsValues.PORTAL_JAAS_ENABLE && PropsValues.PORTAL_IMPERSONATION_ENABLE && (accountUserDisplay.getUserId() != user.getUserId()) && !themeDisplay.isImpersonated() && UserPermissionUtil.contains(permissionChecker, accountUserDisplay.getUserId(), ActionKeys.IMPERSONATE) %>">
 		<liferay-security:doAsURL
 			doAsUserId="<%= accountUserDisplay.getUserId() %>"

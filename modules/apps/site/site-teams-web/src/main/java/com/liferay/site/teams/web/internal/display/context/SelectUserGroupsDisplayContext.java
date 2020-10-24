@@ -49,12 +49,12 @@ import javax.servlet.http.HttpServletRequest;
 public class SelectUserGroupsDisplayContext {
 
 	public SelectUserGroupsDisplayContext(
-		RenderRequest renderRequest, RenderResponse renderResponse,
-		HttpServletRequest httpServletRequest) {
+		HttpServletRequest httpServletRequest, RenderRequest renderRequest,
+		RenderResponse renderResponse) {
 
+		_httpServletRequest = httpServletRequest;
 		_renderRequest = renderRequest;
 		_renderResponse = renderResponse;
-		_httpServletRequest = httpServletRequest;
 	}
 
 	public String getDisplayStyle() {
@@ -171,7 +171,7 @@ public class SelectUserGroupsDisplayContext {
 		return _teamId;
 	}
 
-	public SearchContainer getUserGroupSearchContainer() {
+	public SearchContainer<UserGroup> getUserGroupSearchContainer() {
 		if (_userGroupSearchContainer != null) {
 			return _userGroupSearchContainer;
 		}
@@ -180,8 +180,8 @@ public class SelectUserGroupsDisplayContext {
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		SearchContainer userGroupSearchContainer = new UserGroupSearch(
-			_renderRequest, getPortletURL());
+		SearchContainer<UserGroup> userGroupSearchContainer =
+			new UserGroupSearch(_renderRequest, getPortletURL());
 
 		OrderByComparator<UserGroup> orderByComparator =
 			UsersAdminUtil.getUserGroupOrderByComparator(
@@ -199,16 +199,19 @@ public class SelectUserGroupsDisplayContext {
 		UserGroupDisplayTerms searchTerms =
 			(UserGroupDisplayTerms)userGroupSearchContainer.getSearchTerms();
 
-		Group group = GroupLocalServiceUtil.fetchGroup(team.getGroupId());
-
-		if (group != null) {
-			group = StagingUtil.getLiveGroup(group.getGroupId());
-		}
-
 		LinkedHashMap<String, Object> userGroupParams =
 			LinkedHashMapBuilder.<String, Object>put(
 				UserGroupFinderConstants.PARAM_KEY_USER_GROUPS_GROUPS,
-				Long.valueOf(group.getGroupId())
+				() -> {
+					Group group = GroupLocalServiceUtil.fetchGroup(
+						team.getGroupId());
+
+					if (group != null) {
+						group = StagingUtil.getLiveGroup(group.getGroupId());
+					}
+
+					return Long.valueOf(group.getGroupId());
+				}
 			).build();
 
 		int userGroupsCount = UserGroupLocalServiceUtil.searchCount(
@@ -241,6 +244,6 @@ public class SelectUserGroupsDisplayContext {
 	private final RenderResponse _renderResponse;
 	private Team _team;
 	private Long _teamId;
-	private SearchContainer _userGroupSearchContainer;
+	private SearchContainer<UserGroup> _userGroupSearchContainer;
 
 }

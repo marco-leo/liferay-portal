@@ -60,8 +60,10 @@ public class JournalArticleTag extends IncludeTag {
 				portletRequest, portletResponse);
 		}
 
-		_article = JournalArticleLocalServiceUtil.fetchLatestArticle(
-			_groupId, _articleId, WorkflowConstants.STATUS_APPROVED);
+		if (_article == null) {
+			_article = JournalArticleLocalServiceUtil.fetchLatestArticle(
+				_groupId, _articleId, WorkflowConstants.STATUS_APPROVED);
+		}
 
 		try {
 			_articleDisplay = JournalArticleLocalServiceUtil.getArticleDisplay(
@@ -69,15 +71,20 @@ public class JournalArticleTag extends IncludeTag {
 				_article.getVersion(), _ddmTemplateKey, Constants.VIEW,
 				getLanguageId(), 1, portletRequestModel, themeDisplay);
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug("Unable to get journal article display", pe);
+				_log.debug(
+					"Unable to get journal article display", portalException);
 			}
 
 			return SKIP_BODY;
 		}
 
 		return super.doStartTag();
+	}
+
+	public JournalArticle getArticle() {
+		return _article;
 	}
 
 	public String getArticleId() {
@@ -94,6 +101,10 @@ public class JournalArticleTag extends IncludeTag {
 
 	public boolean isShowTitle() {
 		return _showTitle;
+	}
+
+	public void setArticle(JournalArticle article) {
+		_article = article;
 	}
 
 	public void setArticleId(String articleId) {
@@ -132,6 +143,7 @@ public class JournalArticleTag extends IncludeTag {
 		super.cleanUp();
 
 		_article = null;
+		_articleDisplay = null;
 		_articleId = null;
 		_ddmTemplateKey = null;
 		_groupId = 0;

@@ -29,6 +29,7 @@ import com.liferay.portal.odata.filter.expression.ComplexPropertyExpression;
 import com.liferay.portal.odata.filter.expression.Expression;
 import com.liferay.portal.odata.filter.expression.ExpressionVisitException;
 import com.liferay.portal.odata.filter.expression.ExpressionVisitor;
+import com.liferay.portal.odata.filter.expression.ListExpression;
 import com.liferay.portal.odata.filter.expression.LiteralExpression;
 import com.liferay.portal.odata.filter.expression.MemberExpression;
 import com.liferay.portal.odata.filter.expression.MethodExpression;
@@ -114,6 +115,27 @@ public class ImportExpressionVisitorImpl implements ExpressionVisitor<Object> {
 	}
 
 	@Override
+	public Object visitListExpressionOperation(
+			ListExpression.Operation operation, Object left,
+			List<Object> rights)
+		throws ExpressionVisitException {
+
+		if (!Objects.equals(ListExpression.Operation.IN, operation)) {
+			return _filterStringSB.toString();
+		}
+
+		EntityField entityField = (EntityField)left;
+
+		if (Objects.equals(EntityField.Type.ID, entityField.getType())) {
+			for (Object right : rights) {
+				_importEntityFieldIDReferences(entityField, right);
+			}
+		}
+
+		return _filterStringSB.toString();
+	}
+
+	@Override
 	public Object visitLiteralExpression(LiteralExpression literalExpression) {
 		return StringUtil.removeChar(
 			literalExpression.getText(), CharPool.APOSTROPHE);
@@ -179,7 +201,7 @@ public class ImportExpressionVisitorImpl implements ExpressionVisitor<Object> {
 		}
 
 		Optional<SegmentsFieldCustomizer> segmentsFieldCustomizerOptional =
-			_segmentsFieldCustomizerRegistry.getSegmentFieldCustomizerOptional(
+			_segmentsFieldCustomizerRegistry.getSegmentsFieldCustomizerOptional(
 				_entityModel.getName(), entityField.getName());
 
 		if (!segmentsFieldCustomizerOptional.isPresent()) {

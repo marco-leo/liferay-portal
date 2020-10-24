@@ -376,11 +376,11 @@ public abstract class BasePermissionFilteredPaginationTestCase
 		try {
 			return search(searchContext);
 		}
-		catch (RuntimeException re) {
-			throw re;
+		catch (RuntimeException runtimeException) {
+			throw runtimeException;
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
 		}
 	}
 
@@ -451,7 +451,7 @@ public abstract class BasePermissionFilteredPaginationTestCase
 				defaultSearchResultPermissionFilterConfiguration)
 		throws Exception {
 
-		Indexer indexer = Mockito.mock(Indexer.class);
+		Indexer<Object> indexer = Mockito.mock(Indexer.class);
 
 		Mockito.when(
 			indexer.hasPermission(

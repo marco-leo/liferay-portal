@@ -165,6 +165,16 @@ public class FormSerDes {
 			sb.append("\"");
 		}
 
+		if (form.getDescription_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"description_i18n\": ");
+
+			sb.append(_toJSON(form.getDescription_i18n()));
+		}
+
 		if (form.getFormRecords() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -227,6 +237,16 @@ public class FormSerDes {
 			sb.append(_escape(form.getName()));
 
 			sb.append("\"");
+		}
+
+		if (form.getName_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"name_i18n\": ");
+
+			sb.append(_toJSON(form.getName_i18n()));
 		}
 
 		if (form.getSiteId() != null) {
@@ -296,17 +316,32 @@ public class FormSerDes {
 			map.put("creator", String.valueOf(form.getCreator()));
 		}
 
-		map.put(
-			"dateCreated",
-			liferayToJSONDateFormat.format(form.getDateCreated()));
+		if (form.getDateCreated() == null) {
+			map.put("dateCreated", null);
+		}
+		else {
+			map.put(
+				"dateCreated",
+				liferayToJSONDateFormat.format(form.getDateCreated()));
+		}
 
-		map.put(
-			"dateModified",
-			liferayToJSONDateFormat.format(form.getDateModified()));
+		if (form.getDateModified() == null) {
+			map.put("dateModified", null);
+		}
+		else {
+			map.put(
+				"dateModified",
+				liferayToJSONDateFormat.format(form.getDateModified()));
+		}
 
-		map.put(
-			"datePublished",
-			liferayToJSONDateFormat.format(form.getDatePublished()));
+		if (form.getDatePublished() == null) {
+			map.put("datePublished", null);
+		}
+		else {
+			map.put(
+				"datePublished",
+				liferayToJSONDateFormat.format(form.getDatePublished()));
+		}
 
 		if (form.getDefaultLanguage() == null) {
 			map.put("defaultLanguage", null);
@@ -321,6 +356,14 @@ public class FormSerDes {
 		}
 		else {
 			map.put("description", String.valueOf(form.getDescription()));
+		}
+
+		if (form.getDescription_i18n() == null) {
+			map.put("description_i18n", null);
+		}
+		else {
+			map.put(
+				"description_i18n", String.valueOf(form.getDescription_i18n()));
 		}
 
 		if (form.getFormRecords() == null) {
@@ -349,6 +392,13 @@ public class FormSerDes {
 		}
 		else {
 			map.put("name", String.valueOf(form.getName()));
+		}
+
+		if (form.getName_i18n() == null) {
+			map.put("name_i18n", null);
+		}
+		else {
+			map.put("name_i18n", String.valueOf(form.getName_i18n()));
 		}
 
 		if (form.getSiteId() == null) {
@@ -429,6 +479,12 @@ public class FormSerDes {
 					form.setDescription((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "description_i18n")) {
+				if (jsonParserFieldValue != null) {
+					form.setDescription_i18n(
+						(Map)FormSerDes.toMap((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "formRecords")) {
 				if (jsonParserFieldValue != null) {
 					form.setFormRecords(
@@ -457,6 +513,12 @@ public class FormSerDes {
 					form.setName((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "name_i18n")) {
+				if (jsonParserFieldValue != null) {
+					form.setName_i18n(
+						(Map)FormSerDes.toMap((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "siteId")) {
 				if (jsonParserFieldValue != null) {
 					form.setSiteId(Long.valueOf((String)jsonParserFieldValue));
@@ -475,9 +537,8 @@ public class FormSerDes {
 						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -533,10 +594,13 @@ public class FormSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

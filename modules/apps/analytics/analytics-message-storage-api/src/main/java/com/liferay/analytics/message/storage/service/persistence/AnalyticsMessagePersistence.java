@@ -35,7 +35,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface AnalyticsMessagePersistence
 	extends BasePersistence<AnalyticsMessage> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link AnalyticsMessageUtil} to access the analytics message persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

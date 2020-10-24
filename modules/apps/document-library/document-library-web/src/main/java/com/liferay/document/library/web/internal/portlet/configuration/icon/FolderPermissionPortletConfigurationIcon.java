@@ -26,7 +26,7 @@ import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfiguration
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionHelper;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -86,8 +86,8 @@ public class FolderPermissionPortletConfigurationIcon
 				LiferayWindowState.POP_UP.toString(), null,
 				themeDisplay.getRequest());
 		}
-		catch (Exception e) {
-			return ReflectionUtil.throwException(e);
+		catch (Exception exception) {
+			return ReflectionUtil.throwException(exception);
 		}
 	}
 
@@ -118,7 +118,7 @@ public class FolderPermissionPortletConfigurationIcon
 					(ThemeDisplay)portletRequest.getAttribute(
 						WebKeys.THEME_DISPLAY);
 
-				return ModelResourcePermissionHelper.contains(
+				return ModelResourcePermissionUtil.contains(
 					_folderModelResourcePermission,
 					themeDisplay.getPermissionChecker(),
 					themeDisplay.getScopeGroupId(), folder.getFolderId(),

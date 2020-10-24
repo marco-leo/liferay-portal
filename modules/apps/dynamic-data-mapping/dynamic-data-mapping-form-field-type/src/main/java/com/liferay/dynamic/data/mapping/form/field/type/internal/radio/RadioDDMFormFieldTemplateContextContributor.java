@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 
 import java.util.List;
@@ -82,10 +81,7 @@ public class RadioDDMFormFieldTemplateContextContributor
 
 		DDMFormFieldOptions ddmFormFieldOptions = new DDMFormFieldOptions();
 
-		String dataSourceType = GetterUtil.getString(
-			ddmFormField.getProperty("dataSourceType"), "manual");
-
-		if (Objects.equals(dataSourceType, "manual")) {
+		if (Objects.equals(ddmFormField.getDataSourceType(), "manual")) {
 			List<Map<String, String>> keyValuePairs =
 				(List<Map<String, String>>)
 					ddmFormFieldRenderingContext.getProperty("options");
@@ -133,10 +129,6 @@ public class RadioDDMFormFieldTemplateContextContributor
 			predefinedValue.getString(ddmFormFieldRenderingContext.getLocale()),
 			"[]");
 
-		if (ddmFormFieldRenderingContext.isViewMode()) {
-			predefinedValueString = HtmlUtil.extractText(predefinedValueString);
-		}
-
 		return getValue(predefinedValueString);
 	}
 
@@ -146,9 +138,9 @@ public class RadioDDMFormFieldTemplateContextContributor
 
 			return GetterUtil.getString(jsonArray.get(0));
 		}
-		catch (JSONException jsone) {
+		catch (JSONException jsonException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(jsone, jsone);
+				_log.debug(jsonException, jsonException);
 			}
 
 			return valueString;

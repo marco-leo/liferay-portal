@@ -27,7 +27,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class DataRecordCollection {
+public class DataRecordCollection implements Cloneable {
+
+	public static DataRecordCollection toDTO(String json) {
+		return DataRecordCollectionSerDes.toDTO(json);
+	}
 
 	public Long getDataDefinitionId() {
 		return dataDefinitionId;
@@ -155,6 +159,11 @@ public class DataRecordCollection {
 	}
 
 	protected Long siteId;
+
+	@Override
+	public DataRecordCollection clone() throws CloneNotSupportedException {
+		return (DataRecordCollection)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

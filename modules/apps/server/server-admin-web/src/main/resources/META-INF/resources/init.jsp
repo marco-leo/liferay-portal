@@ -45,6 +45,7 @@ page import="com.liferay.portal.kernel.model.*" %><%@
 page import="com.liferay.portal.kernel.model.impl.*" %><%@
 page import="com.liferay.portal.kernel.patcher.PatcherUtil" %><%@
 page import="com.liferay.portal.kernel.portlet.PortletURLUtil" %><%@
+page import="com.liferay.portal.kernel.scripting.ScriptingException" %><%@
 page import="com.liferay.portal.kernel.scripting.ScriptingUtil" %><%@
 page import="com.liferay.portal.kernel.service.*" %><%@
 page import="com.liferay.portal.kernel.servlet.SessionMessages" %><%@
@@ -71,6 +72,7 @@ page import="com.liferay.portal.util.PrefsPropsUtil" %><%@
 page import="com.liferay.portal.util.PropsUtil" %><%@
 page import="com.liferay.portal.util.PropsValues" %><%@
 page import="com.liferay.portal.util.ShutdownUtil" %><%@
+page import="com.liferay.server.admin.web.internal.constants.ServerAdminNavigationEntryConstants" %><%@
 page import="com.liferay.server.admin.web.internal.display.context.ServerDisplayContext" %><%@
 page import="com.liferay.taglib.servlet.PipingServletResponse" %>
 
@@ -78,6 +80,7 @@ page import="com.liferay.taglib.servlet.PipingServletResponse" %>
 
 <%@ page import="java.util.ArrayList" %><%@
 page import="java.util.Collection" %><%@
+page import="java.util.Date" %><%@
 page import="java.util.Enumeration" %><%@
 page import="java.util.Iterator" %><%@
 page import="java.util.List" %><%@
@@ -85,8 +88,7 @@ page import="java.util.Map" %><%@
 page import="java.util.Properties" %><%@
 page import="java.util.TreeMap" %>
 
-<%@ page import="javax.portlet.PortletMode" %><%@
-page import="javax.portlet.PortletPreferences" %><%@
+<%@ page import="javax.portlet.PortletPreferences" %><%@
 page import="javax.portlet.PortletURL" %><%@
 page import="javax.portlet.WindowState" %>
 
@@ -99,10 +101,6 @@ page import="org.apache.log4j.Logger" %>
 <liferay-theme:defineObjects />
 
 <portlet:defineObjects />
-
-<%
-PortletMode portletMode = liferayPortletRequest.getPortletMode();
-%>
 
 <%
 String tabs1 = ParamUtil.getString(request, "tabs1", "resources");

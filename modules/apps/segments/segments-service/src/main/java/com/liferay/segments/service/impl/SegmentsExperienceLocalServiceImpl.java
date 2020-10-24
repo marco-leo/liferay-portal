@@ -109,7 +109,8 @@ public class SegmentsExperienceLocalServiceImpl
 		segmentsExperience.setPriority(priority);
 		segmentsExperience.setActive(active);
 
-		segmentsExperiencePersistence.update(segmentsExperience);
+		segmentsExperience = segmentsExperiencePersistence.update(
+			segmentsExperience);
 
 		// Resources
 
@@ -241,6 +242,14 @@ public class SegmentsExperienceLocalServiceImpl
 
 		return segmentsExperiencePersistence.fetchByPrimaryKey(
 			segmentsExperienceId);
+	}
+
+	@Override
+	public SegmentsExperience fetchSegmentsExperience(
+		long groupId, long classNameId, long classPK, int priority) {
+
+		return segmentsExperiencePersistence.fetchByG_C_C_P(
+			groupId, classNameId, classPK, priority);
 	}
 
 	@Override

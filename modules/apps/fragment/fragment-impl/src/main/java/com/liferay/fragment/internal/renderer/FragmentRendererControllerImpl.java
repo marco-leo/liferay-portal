@@ -14,37 +14,41 @@
 
 package com.liferay.fragment.internal.renderer;
 
+import com.liferay.fragment.constants.FragmentConstants;
+import com.liferay.fragment.constants.FragmentEntryLinkConstants;
 import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
-import com.liferay.fragment.exception.FragmentEntryConfigurationException;
 import com.liferay.fragment.exception.FragmentEntryContentException;
+import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.renderer.FragmentRendererController;
 import com.liferay.fragment.renderer.FragmentRendererTracker;
 import com.liferay.fragment.renderer.constants.FragmentRendererConstants;
-import com.liferay.fragment.util.FragmentEntryConfigUtil;
+import com.liferay.fragment.service.FragmentEntryLocalService;
+import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.fragment.validator.FragmentEntryValidator;
+import com.liferay.layout.adaptive.media.LayoutAdaptiveMediaProcessor;
+import com.liferay.petra.io.unsync.UnsyncStringWriter;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.resource.bundle.AggregateResourceBundleLoader;
+import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
+import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.AggregateResourceBundleLoader;
-import com.liferay.portal.kernel.util.ResourceBundleLoader;
-import com.liferay.portal.kernel.util.ResourceBundleLoaderUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.servlet.PipingServletResponse;
 
 import java.util.Locale;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 import javax.servlet.http.HttpServletRequest;
@@ -74,9 +78,10 @@ public class FragmentRendererControllerImpl
 			return _translateConfigurationFields(
 				jsonObject, fragmentRendererContext.getLocale());
 		}
-		catch (JSONException jsone) {
+		catch (JSONException jsonException) {
 			_log.error(
-				"Unable to parse fragment entry link configuration", jsone);
+				"Unable to parse fragment entry link configuration",
+				jsonException);
 		}
 
 		return StringPool.BLANK;
@@ -91,20 +96,6 @@ public class FragmentRendererControllerImpl
 		FragmentEntryLink fragmentEntryLink =
 			fragmentRendererContext.getFragmentEntryLink();
 
-		try {
-			if (Validator.isNotNull(fragmentEntryLink.getConfiguration())) {
-				_fragmentEntryValidator.validateConfiguration(
-					fragmentEntryLink.getConfiguration());
-			}
-		}
-		catch (FragmentEntryConfigurationException fece) {
-			SessionErrors.add(
-				httpServletRequest, "fragmentEntryContentInvalid");
-
-			return _getFragmentEntryConfigurationExceptionMessage(
-				httpServletRequest, fece);
-		}
-
 		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
 
 		FragmentRenderer fragmentRenderer = _getFragmentRenderer(
@@ -116,68 +107,43 @@ public class FragmentRendererControllerImpl
 				new PipingServletResponse(
 					httpServletResponse, unsyncStringWriter));
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
 				_log.debug(
 					StringBundler.concat(
 						"Unable to render content of fragment entry ",
 						fragmentEntryLink.getFragmentEntryId(), ":",
-						e.getMessage()),
-					e);
+						exception.getMessage()),
+					exception);
 			}
 			else {
 				_log.error(
 					StringBundler.concat(
 						"Unable to render content of fragment entry ",
 						fragmentEntryLink.getFragmentEntryId(), ":",
-						e.getMessage()));
+						exception.getMessage()));
 			}
 
 			SessionErrors.add(
 				httpServletRequest, "fragmentEntryContentInvalid");
 
 			return _getFragmentEntryContentExceptionMessage(
-				e, httpServletRequest);
+				exception, httpServletRequest);
+		}
+
+		if (Objects.equals(
+				fragmentRendererContext.getMode(),
+				FragmentEntryLinkConstants.EDIT)) {
+
+			return _layoutAdaptiveMediaProcessor.processAdaptiveMediaContent(
+				unsyncStringWriter.toString());
 		}
 
 		return unsyncStringWriter.toString();
 	}
 
-	private String _getFragmentEntryConfigurationExceptionMessage(
-		HttpServletRequest httpServletRequest,
-		FragmentEntryConfigurationException fece) {
-
-		StringBundler divSB = new StringBundler(3);
-
-		divSB.append("<div class=\"alert alert-danger m-2\">");
-
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			themeDisplay.getLocale(), FragmentRendererControllerImpl.class);
-
-		StringBundler detailedErrorMessageSB = new StringBundler(4);
-
-		detailedErrorMessageSB.append(
-			LanguageUtil.get(
-				resourceBundle, "fragment-configuration-is-invalid"));
-		detailedErrorMessageSB.append(StringPool.NEW_LINE);
-		detailedErrorMessageSB.append(StringPool.NEW_LINE);
-		detailedErrorMessageSB.append(fece.getLocalizedMessage());
-
-		String detailedErrorMessage = detailedErrorMessageSB.toString();
-
-		divSB.append(detailedErrorMessage.replaceAll("\\n", "<br>"));
-
-		divSB.append("</div>");
-
-		return divSB.toString();
-	}
-
 	private String _getFragmentEntryContentExceptionMessage(
-		Exception e, HttpServletRequest httpServletRequest) {
+		Exception exception, HttpServletRequest httpServletRequest) {
 
 		StringBundler sb = new StringBundler(3);
 
@@ -185,13 +151,13 @@ public class FragmentRendererControllerImpl
 
 		String errorMessage = "an-unexpected-error-occurred";
 
-		Throwable throwable = e.getCause();
+		Throwable throwable = exception.getCause();
 
 		if (throwable instanceof FragmentEntryContentException) {
-			FragmentEntryContentException fece =
+			FragmentEntryContentException fragmentEntryContentException =
 				(FragmentEntryContentException)throwable;
 
-			errorMessage = fece.getLocalizedMessage();
+			errorMessage = fragmentEntryContentException.getLocalizedMessage();
 		}
 
 		ThemeDisplay themeDisplay =
@@ -219,6 +185,20 @@ public class FragmentRendererControllerImpl
 		}
 
 		if (fragmentRenderer == null) {
+			FragmentEntry fragmentEntry =
+				_fragmentEntryLocalService.fetchFragmentEntry(
+					fragmentEntryLink.getFragmentEntryId());
+
+			if ((fragmentEntry != null) &&
+				(fragmentEntry.getType() == FragmentConstants.TYPE_REACT)) {
+
+				fragmentRenderer = _fragmentRendererTracker.getFragmentRenderer(
+					FragmentRendererConstants.
+						FRAGMENT_ENTRY_FRAGMENT_RENDERER_KEY_REACT);
+			}
+		}
+
+		if (fragmentRenderer == null) {
 			fragmentRenderer = _fragmentRendererTracker.getFragmentRenderer(
 				FragmentRendererConstants.FRAGMENT_ENTRY_FRAGMENT_RENDERER_KEY);
 		}
@@ -238,7 +218,7 @@ public class FragmentRendererControllerImpl
 		ResourceBundle resourceBundle = resourceBundleLoader.loadResourceBundle(
 			locale);
 
-		return FragmentEntryConfigUtil.translateConfiguration(
+		return _fragmentEntryConfigurationParser.translateConfiguration(
 			jsonObject, resourceBundle);
 	}
 
@@ -250,9 +230,18 @@ public class FragmentRendererControllerImpl
 		_fragmentCollectionContributorTracker;
 
 	@Reference
+	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
+
+	@Reference
+	private FragmentEntryLocalService _fragmentEntryLocalService;
+
+	@Reference
 	private FragmentEntryValidator _fragmentEntryValidator;
 
 	@Reference
 	private FragmentRendererTracker _fragmentRendererTracker;
+
+	@Reference
+	private LayoutAdaptiveMediaProcessor _layoutAdaptiveMediaProcessor;
 
 }

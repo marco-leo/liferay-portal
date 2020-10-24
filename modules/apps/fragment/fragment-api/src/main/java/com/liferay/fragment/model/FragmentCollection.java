@@ -34,7 +34,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface FragmentCollection
 	extends FragmentCollectionModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.fragment.model.impl.FragmentCollectionImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -75,6 +75,10 @@ public interface FragmentCollection
 
 	public void populateZipWriter(
 			com.liferay.portal.kernel.zip.ZipWriter zipWriter)
+		throws Exception;
+
+	public void populateZipWriter(
+			com.liferay.portal.kernel.zip.ZipWriter zipWriter, String path)
 		throws Exception;
 
 }

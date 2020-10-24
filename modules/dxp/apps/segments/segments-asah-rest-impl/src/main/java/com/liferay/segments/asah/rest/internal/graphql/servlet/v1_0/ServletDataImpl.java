@@ -46,6 +46,9 @@ public class ServletDataImpl implements ServletData {
 			_experimentRunResourceComponentServiceObjects);
 		Mutation.setStatusResourceComponentServiceObjects(
 			_statusResourceComponentServiceObjects);
+
+		Query.setExperimentResourceComponentServiceObjects(
+			_experimentResourceComponentServiceObjects);
 	}
 
 	@Override
@@ -53,11 +56,7 @@ public class ServletDataImpl implements ServletData {
 		return new Mutation();
 	}
 
-	/**
-	 * @deprecated
-	 */
 	@Override
-	@Deprecated
 	public String getPath() {
 		return "/segments-asah-graphql/v1_0";
 	}

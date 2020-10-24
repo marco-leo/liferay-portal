@@ -46,6 +46,7 @@ public class CTPreferencesWrapper
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
 		attributes.put("ctCollectionId", getCtCollectionId());
+		attributes.put("previousCtCollectionId", getPreviousCtCollectionId());
 		attributes.put("confirmationEnabled", isConfirmationEnabled());
 
 		return attributes;
@@ -81,6 +82,13 @@ public class CTPreferencesWrapper
 
 		if (ctCollectionId != null) {
 			setCtCollectionId(ctCollectionId);
+		}
+
+		Long previousCtCollectionId = (Long)attributes.get(
+			"previousCtCollectionId");
+
+		if (previousCtCollectionId != null) {
+			setPreviousCtCollectionId(previousCtCollectionId);
 		}
 
 		Boolean confirmationEnabled = (Boolean)attributes.get(
@@ -142,6 +150,16 @@ public class CTPreferencesWrapper
 	}
 
 	/**
+	 * Returns the previous ct collection ID of this ct preferences.
+	 *
+	 * @return the previous ct collection ID of this ct preferences
+	 */
+	@Override
+	public long getPreviousCtCollectionId() {
+		return model.getPreviousCtCollectionId();
+	}
+
+	/**
 	 * Returns the primary key of this ct preferences.
 	 *
 	 * @return the primary key of this ct preferences
@@ -181,11 +199,6 @@ public class CTPreferencesWrapper
 		return model.isConfirmationEnabled();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a ct preferences model instance should use the <code>CTPreferences</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -239,6 +252,16 @@ public class CTPreferencesWrapper
 	@Override
 	public void setMvccVersion(long mvccVersion) {
 		model.setMvccVersion(mvccVersion);
+	}
+
+	/**
+	 * Sets the previous ct collection ID of this ct preferences.
+	 *
+	 * @param previousCtCollectionId the previous ct collection ID of this ct preferences
+	 */
+	@Override
+	public void setPreviousCtCollectionId(long previousCtCollectionId) {
+		model.setPreviousCtCollectionId(previousCtCollectionId);
 	}
 
 	/**

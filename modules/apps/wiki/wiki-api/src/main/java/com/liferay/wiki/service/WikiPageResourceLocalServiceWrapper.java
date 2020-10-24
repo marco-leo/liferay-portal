@@ -33,11 +33,6 @@ public class WikiPageResourceLocalServiceWrapper
 		_wikiPageResourceLocalService = wikiPageResourceLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link WikiPageResourceLocalServiceUtil} to access the wiki page resource local service. Add custom service methods to <code>com.liferay.wiki.service.impl.WikiPageResourceLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.wiki.model.WikiPageResource addPageResource(
 		long groupId, long nodeId, String title) {
@@ -49,6 +44,10 @@ public class WikiPageResourceLocalServiceWrapper
 	/**
 	 * Adds the wiki page resource to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiPageResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param wikiPageResource the wiki page resource
 	 * @return the wiki page resource that was added
 	 */
@@ -58,6 +57,18 @@ public class WikiPageResourceLocalServiceWrapper
 
 		return _wikiPageResourceLocalService.addWikiPageResource(
 			wikiPageResource);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _wikiPageResourceLocalService.createPersistedModel(
+			primaryKeyObj);
 	}
 
 	/**
@@ -96,6 +107,10 @@ public class WikiPageResourceLocalServiceWrapper
 	/**
 	 * Deletes the wiki page resource with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiPageResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param resourcePrimKey the primary key of the wiki page resource
 	 * @return the wiki page resource that was removed
 	 * @throws PortalException if a wiki page resource with the primary key could not be found
@@ -112,6 +127,10 @@ public class WikiPageResourceLocalServiceWrapper
 	/**
 	 * Deletes the wiki page resource from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiPageResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param wikiPageResource the wiki page resource
 	 * @return the wiki page resource that was removed
 	 */
@@ -121,6 +140,11 @@ public class WikiPageResourceLocalServiceWrapper
 
 		return _wikiPageResourceLocalService.deleteWikiPageResource(
 			wikiPageResource);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _wikiPageResourceLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -301,6 +325,9 @@ public class WikiPageResourceLocalServiceWrapper
 			groupId, nodeId, title);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -409,6 +436,10 @@ public class WikiPageResourceLocalServiceWrapper
 
 	/**
 	 * Updates the wiki page resource in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiPageResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param wikiPageResource the wiki page resource
 	 * @return the wiki page resource that was updated

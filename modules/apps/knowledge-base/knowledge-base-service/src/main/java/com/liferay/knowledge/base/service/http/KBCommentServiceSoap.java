@@ -57,8 +57,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see KBCommentServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class KBCommentServiceSoap {
 
 	public static com.liferay.knowledge.base.model.KBCommentSoap
@@ -75,10 +77,10 @@ public class KBCommentServiceSoap {
 			return com.liferay.knowledge.base.model.KBCommentSoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -93,10 +95,10 @@ public class KBCommentServiceSoap {
 			return com.liferay.knowledge.base.model.KBCommentSoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -111,10 +113,10 @@ public class KBCommentServiceSoap {
 			return com.liferay.knowledge.base.model.KBCommentSoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -130,10 +132,10 @@ public class KBCommentServiceSoap {
 			return com.liferay.knowledge.base.model.KBCommentSoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -141,21 +143,22 @@ public class KBCommentServiceSoap {
 			getKBComments(
 				long groupId, int status, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.knowledge.base.model.KBComment> obc)
+					<com.liferay.knowledge.base.model.KBComment>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.knowledge.base.model.KBComment>
 				returnValue = KBCommentServiceUtil.getKBComments(
-					groupId, status, start, end, obc);
+					groupId, status, start, end, orderByComparator);
 
 			return com.liferay.knowledge.base.model.KBCommentSoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -163,21 +166,22 @@ public class KBCommentServiceSoap {
 			getKBComments(
 				long groupId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.knowledge.base.model.KBComment> obc)
+					<com.liferay.knowledge.base.model.KBComment>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.knowledge.base.model.KBComment>
 				returnValue = KBCommentServiceUtil.getKBComments(
-					groupId, start, end, obc);
+					groupId, start, end, orderByComparator);
 
 			return com.liferay.knowledge.base.model.KBCommentSoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -195,10 +199,10 @@ public class KBCommentServiceSoap {
 			return com.liferay.knowledge.base.model.KBCommentSoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -207,21 +211,23 @@ public class KBCommentServiceSoap {
 				long groupId, String className, long classPK, int status,
 				int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.knowledge.base.model.KBComment> obc)
+					<com.liferay.knowledge.base.model.KBComment>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.knowledge.base.model.KBComment>
 				returnValue = KBCommentServiceUtil.getKBComments(
-					groupId, className, classPK, status, start, end, obc);
+					groupId, className, classPK, status, start, end,
+					orderByComparator);
 
 			return com.liferay.knowledge.base.model.KBCommentSoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -230,21 +236,22 @@ public class KBCommentServiceSoap {
 				long groupId, String className, long classPK, int start,
 				int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.knowledge.base.model.KBComment> obc)
+					<com.liferay.knowledge.base.model.KBComment>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.knowledge.base.model.KBComment>
 				returnValue = KBCommentServiceUtil.getKBComments(
-					groupId, className, classPK, start, end, obc);
+					groupId, className, classPK, start, end, orderByComparator);
 
 			return com.liferay.knowledge.base.model.KBCommentSoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -254,10 +261,10 @@ public class KBCommentServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -270,10 +277,10 @@ public class KBCommentServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -287,10 +294,10 @@ public class KBCommentServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -304,10 +311,10 @@ public class KBCommentServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -327,10 +334,10 @@ public class KBCommentServiceSoap {
 			return com.liferay.knowledge.base.model.KBCommentSoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -349,10 +356,10 @@ public class KBCommentServiceSoap {
 			return com.liferay.knowledge.base.model.KBCommentSoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -369,10 +376,10 @@ public class KBCommentServiceSoap {
 			return com.liferay.knowledge.base.model.KBCommentSoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

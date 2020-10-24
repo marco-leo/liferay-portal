@@ -30,16 +30,10 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class TicketLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.TicketLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link TicketLocalServiceUtil} to access the ticket local service. Add custom service methods to <code>com.liferay.portal.service.impl.TicketLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.portal.kernel.model.Ticket addDistinctTicket(
 		long companyId, String className, long classPK, int type,
@@ -64,6 +58,10 @@ public class TicketLocalServiceUtil {
 	/**
 	 * Adds the ticket to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect TicketLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param ticket the ticket
 	 * @return the ticket that was added
 	 */
@@ -71,6 +69,16 @@ public class TicketLocalServiceUtil {
 		com.liferay.portal.kernel.model.Ticket ticket) {
 
 		return getService().addTicket(ticket);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -99,6 +107,10 @@ public class TicketLocalServiceUtil {
 	/**
 	 * Deletes the ticket with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect TicketLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param ticketId the primary key of the ticket
 	 * @return the ticket that was removed
 	 * @throws PortalException if a ticket with the primary key could not be found
@@ -113,6 +125,10 @@ public class TicketLocalServiceUtil {
 	/**
 	 * Deletes the ticket from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect TicketLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param ticket the ticket
 	 * @return the ticket that was removed
 	 */
@@ -120,6 +136,12 @@ public class TicketLocalServiceUtil {
 		com.liferay.portal.kernel.model.Ticket ticket) {
 
 		return getService().deleteTicket(ticket);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -241,6 +263,9 @@ public class TicketLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -317,6 +342,10 @@ public class TicketLocalServiceUtil {
 
 	/**
 	 * Updates the ticket in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect TicketLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ticket the ticket
 	 * @return the ticket that was updated

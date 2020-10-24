@@ -146,7 +146,7 @@ public class WikiPageTrashHandler extends BaseWikiTrashHandler {
 					return parentPage;
 				}
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 			}
 		}
 
@@ -243,7 +243,8 @@ public class WikiPageTrashHandler extends BaseWikiTrashHandler {
 
 	@Override
 	public List<TrashedModel> getTrashModelTrashedModels(
-			long classPK, int start, int end, OrderByComparator obc)
+			long classPK, int start, int end,
+			OrderByComparator<?> orderByComparator)
 		throws PortalException {
 
 		List<TrashedModel> trashedModels = new ArrayList<>();
@@ -252,7 +253,8 @@ public class WikiPageTrashHandler extends BaseWikiTrashHandler {
 
 		List<WikiPage> pages = _wikiPageLocalService.getChildren(
 			page.getNodeId(), true, page.getTitle(),
-			WorkflowConstants.STATUS_IN_TRASH, start, end, obc);
+			WorkflowConstants.STATUS_IN_TRASH, start, end,
+			(OrderByComparator<WikiPage>)orderByComparator);
 
 		for (WikiPage curPage : pages) {
 			trashedModels.add(curPage);
@@ -386,19 +388,20 @@ public class WikiPageTrashHandler extends BaseWikiTrashHandler {
 				containerModelId, originalTitle);
 
 		if (duplicatePageResource != null) {
-			RestoreEntryException ree = new RestoreEntryException(
-				RestoreEntryException.DUPLICATE);
+			RestoreEntryException restoreEntryException =
+				new RestoreEntryException(RestoreEntryException.DUPLICATE);
 
 			WikiPage duplicatePage = _wikiPageLocalService.getLatestPage(
 				duplicatePageResource.getResourcePrimKey(),
 				WorkflowConstants.STATUS_ANY, false);
 
-			ree.setDuplicateEntryId(duplicatePage.getResourcePrimKey());
-			ree.setOldName(duplicatePage.getTitle());
+			restoreEntryException.setDuplicateEntryId(
+				duplicatePage.getResourcePrimKey());
+			restoreEntryException.setOldName(duplicatePage.getTitle());
 
-			ree.setTrashEntryId(trashEntryId);
+			restoreEntryException.setTrashEntryId(trashEntryId);
 
-			throw ree;
+			throw restoreEntryException;
 		}
 
 		List<WikiPage> pages = _wikiPageLocalService.getDependentPages(

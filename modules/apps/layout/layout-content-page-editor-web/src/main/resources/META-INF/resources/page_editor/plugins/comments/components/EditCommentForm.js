@@ -16,28 +16,33 @@ import {openToast} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 
+import {useDispatch} from '../../../app/store/index';
+import editFragmentComment from '../../../app/thunks/editFragmentComment';
 import CommentForm from './CommentForm';
-
-function editFragmentEntryLinkComment() {
-	throw new Error('Not implemented');
-}
 
 export default function EditCommentForm({
 	comment,
+	fragmentEntryLinkId,
 	onCloseForm,
-	onEdit = () => {}
 }) {
 	const [editingComment, setEditingComment] = useState(false);
 	const [textareaContent, setTextareaContent] = useState(comment.body);
+	const dispatch = useDispatch();
 
 	const _handleCommentButtonClick = () => {
 		setEditingComment(true);
 
-		editFragmentEntryLinkComment(comment.commentId, textareaContent)
-			.then(comment => {
+		dispatch(
+			editFragmentComment({
+				body: textareaContent,
+				commentId: comment.commentId,
+				fragmentEntryLinkId,
+				parentCommentId: comment.parentCommentId,
+			})
+		)
+			.then(() => {
 				setEditingComment(false);
 
-				onEdit(comment);
 				onCloseForm();
 			})
 			.catch(() => {
@@ -45,8 +50,7 @@ export default function EditCommentForm({
 					message: Liferay.Language.get(
 						'the-comment-could-not-be-edited'
 					),
-					title: Liferay.Language.get('error'),
-					type: 'danger'
+					type: 'danger',
 				});
 
 				setEditingComment(false);
@@ -60,7 +64,7 @@ export default function EditCommentForm({
 			loading={editingComment}
 			onCancelButtonClick={() => onCloseForm()}
 			onSubmitButtonClick={_handleCommentButtonClick}
-			onTextareaChange={content => setTextareaContent(content)}
+			onTextareaChange={(content) => setTextareaContent(content)}
 			showButtons
 			submitButtonLabel={Liferay.Language.get('update')}
 			textareaContent={textareaContent}
@@ -71,8 +75,7 @@ export default function EditCommentForm({
 EditCommentForm.propTypes = {
 	comment: PropTypes.shape({
 		body: PropTypes.string.isRequired,
-		commentId: PropTypes.string.isRequired
+		commentId: PropTypes.string.isRequired,
 	}),
 	onCloseForm: PropTypes.func.isRequired,
-	onEdit: PropTypes.func
 };

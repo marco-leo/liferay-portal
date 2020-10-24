@@ -50,36 +50,36 @@ public class ImageBlogsUploadResponseHandler implements UploadResponseHandler {
 
 	@Override
 	public JSONObject onFailure(
-			PortletRequest portletRequest, PortalException pe)
+			PortletRequest portletRequest, PortalException portalException)
 		throws PortalException {
 
 		JSONObject jsonObject = _itemSelectorUploadResponseHandler.onFailure(
-			portletRequest, pe);
+			portletRequest, portalException);
 
-		if (pe instanceof EntryImageNameException ||
-			pe instanceof EntryImageSizeException) {
+		if (portalException instanceof EntryImageNameException ||
+			portalException instanceof EntryImageSizeException) {
 
 			String errorMessage = StringPool.BLANK;
 			int errorType = 0;
 
-			if (pe instanceof EntryImageNameException) {
+			if (portalException instanceof EntryImageNameException) {
 				errorType =
 					ServletResponseConstants.SC_FILE_EXTENSION_EXCEPTION;
 
 				errorMessage = StringUtil.merge(
 					_blogsFileUploadsConfiguration.imageExtensions());
 			}
-			else if (pe instanceof EntryImageSizeException) {
+			else if (portalException instanceof EntryImageSizeException) {
 				errorType = ServletResponseConstants.SC_FILE_SIZE_EXCEPTION;
 			}
 
-			JSONObject errorJSONObject = JSONUtil.put(
-				"errorType", errorType
-			).put(
-				"message", errorMessage
-			);
-
-			jsonObject.put("error", errorJSONObject);
+			jsonObject.put(
+				"error",
+				JSONUtil.put(
+					"errorType", errorType
+				).put(
+					"message", errorMessage
+				));
 		}
 
 		return jsonObject;

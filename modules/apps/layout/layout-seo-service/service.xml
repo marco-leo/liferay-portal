@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.3.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_3_0.dtd">
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
 
 <service-builder auto-import-default-references="false" auto-namespace-tables="false" dependency-injector="ds" mvcc-enabled="true" package-path="com.liferay.layout.seo">
 	<namespace>LayoutSEO</namespace>
@@ -30,6 +30,7 @@
 		<column name="DDMStorageId" type="long" />
 		<column localized="true" name="openGraphDescription" type="String" />
 		<column name="openGraphDescriptionEnabled" type="boolean" />
+		<column localized="true" name="openGraphImageAlt" type="String" />
 		<column name="openGraphImageFileEntryId" type="long" />
 		<column localized="true" name="openGraphTitle" type="String" />
 		<column name="openGraphTitleEnabled" type="boolean" />
@@ -69,6 +70,7 @@
 		<!-- Other fields -->
 
 		<column name="openGraphEnabled" type="boolean" />
+		<column localized="true" name="openGraphImageAlt" type="String" />
 		<column name="openGraphImageFileEntryId" type="long" />
 
 		<!-- Finder methods -->

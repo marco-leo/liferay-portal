@@ -14,11 +14,46 @@
 
 import ClayIcon from '@clayui/icon';
 import classNames from 'classnames';
-import React, {useContext, useEffect} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {Link as InternalLink, withRouter} from 'react-router-dom';
 
 import {AppContext} from '../../AppContext.es';
+
+const BackButton = ({backURL}) => {
+	const [backButtonContainer, setBackButtonContainer] = useState(null);
+	const Link =
+		backURL && backURL.startsWith('http') ? ExternalLink : InternalLink;
+
+	useEffect(() => {
+		if (backButtonContainer !== null) {
+			return;
+		}
+
+		setBackButtonContainer(
+			document.querySelector('.sites-control-group .control-menu-nav')
+		);
+	}, [backButtonContainer]);
+
+	if (!backButtonContainer) {
+		return <></>;
+	}
+
+	return createPortal(
+		<li className="control-menu-nav-item">
+			<Link
+				className="control-menu-icon lfr-icon-item"
+				tabIndex={1}
+				to={backURL}
+			>
+				<span className="icon-monospaced">
+					<ClayIcon symbol="angle-left" />
+				</span>
+			</Link>
+		</li>,
+		backButtonContainer
+	);
+};
 
 const ExternalLink = ({children, to, ...props}) => {
 	return (
@@ -39,17 +74,15 @@ const resolveBackURL = (backURL, url) => {
 	return backURL;
 };
 
-const setDocumentTitle = title => {
+const setDocumentTitle = (title) => {
 	if (title) {
 		const titles = document.title.split(' - ');
-
 		titles[0] = title;
-
 		document.title = titles.join(' - ');
 	}
 };
 
-export const InlineControlMenu = ({backURL, title, tooltip, url}) => {
+export const InlineControlMenu = ({backURL, title, url}) => {
 	const {appDeploymentType, controlMenuElementId} = useContext(AppContext);
 
 	backURL = resolveBackURL(backURL, url);
@@ -57,9 +90,17 @@ export const InlineControlMenu = ({backURL, title, tooltip, url}) => {
 	const Link =
 		backURL && backURL.startsWith('http') ? ExternalLink : InternalLink;
 
-	const controlMenuElement = document.getElementById(controlMenuElementId);
+	const [controlMenuContainer, setControlMenuContainer] = useState(null);
 
-	const ControlMenu = (
+	useEffect(() => {
+		if (controlMenuContainer !== null) {
+			return;
+		}
+
+		setControlMenuContainer(document.getElementById(controlMenuElementId));
+	}, [controlMenuContainer, controlMenuElementId]);
+
+	const ControlMenu = () => (
 		<div
 			className={classNames(
 				'app-builder-control-menu',
@@ -90,29 +131,18 @@ export const InlineControlMenu = ({backURL, title, tooltip, url}) => {
 					{title}
 				</span>
 			)}
-			{tooltip && (
-				<span
-					className="lfr-portal-tooltip taglib-icon-help"
-					data-title={tooltip}
-				>
-					<ClayIcon symbol="question-circle-full" />
-				</span>
-			)}
 		</div>
 	);
 
-	if (controlMenuElement) {
-		return createPortal(ControlMenu, controlMenuElement);
-	} else {
-		return ControlMenu;
-	}
+	return controlMenuContainer ? (
+		createPortal(<ControlMenu />, controlMenuContainer)
+	) : (
+		<ControlMenu />
+	);
 };
 
-export const PortalControlMenu = ({backURL, title, tooltip, url}) => {
+export const PortalControlMenu = ({backURL, title, url}) => {
 	backURL = resolveBackURL(backURL, url);
-
-	const Link =
-		backURL && backURL.startsWith('http') ? ExternalLink : InternalLink;
 
 	useEffect(() => {
 		document.querySelector(
@@ -120,47 +150,10 @@ export const PortalControlMenu = ({backURL, title, tooltip, url}) => {
 		).innerHTML = title;
 	}, [title]);
 
-	useEffect(() => {
-		const tooltipNode = document.querySelector(
-			'.tools-control-group .taglib-icon-help'
-		);
-
-		if (!tooltipNode) {
-			return;
-		}
-
-		if (tooltip) {
-			tooltipNode.classList.remove('hide');
-			tooltipNode.setAttribute('title', tooltip);
-		} else {
-			tooltipNode.classList.add('hide');
-		}
-	}, [tooltip]);
-
-	return (
-		<>
-			{backURL &&
-				createPortal(
-					<li className="control-menu-nav-item">
-						<Link
-							className="control-menu-icon lfr-icon-item"
-							tabIndex={1}
-							to={backURL}
-						>
-							<span className="icon-monospaced">
-								<ClayIcon symbol="angle-left" />
-							</span>
-						</Link>
-					</li>,
-					document.querySelector(
-						'.sites-control-group .control-menu-nav'
-					)
-				)}
-		</>
-	);
+	return <>{backURL && <BackButton backURL={backURL} />}</>;
 };
 
-export const ControlMenuBase = props => {
+export const ControlMenuBase = (props) => {
 	useEffect(() => {
 		setDocumentTitle(props.title);
 	}, [props.title]);
@@ -172,7 +165,8 @@ export const ControlMenuBase = props => {
 		(appDeploymentType === 'standalone' || appDeploymentType === 'widget')
 	) {
 		return <InlineControlMenu {...props} />;
-	} else {
+	}
+	else {
 		return <PortalControlMenu {...props} />;
 	}
 };

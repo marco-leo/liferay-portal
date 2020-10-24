@@ -32,7 +32,7 @@ import com.liferay.change.tracking.store.service.CTSContentLocalServiceUtil;
 public abstract class CTSContentBaseImpl
 	extends CTSContentModelImpl implements CTSContent {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a cts content model instance should use the <code>CTSContent</code> interface instead.

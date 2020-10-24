@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class KaleoTaskLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.workflow.kaleo.service.impl.KaleoTaskLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class KaleoTaskLocalServiceUtil {
 
 	/**
 	 * Adds the kaleo task to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoTask the kaleo task
 	 * @return the kaleo task that was added
@@ -53,13 +57,15 @@ public class KaleoTaskLocalServiceUtil {
 
 	public static com.liferay.portal.workflow.kaleo.model.KaleoTask
 			addKaleoTask(
-				long kaleoDefinitionVersionId, long kaleoNodeId,
+				long kaleoDefinitionId, long kaleoDefinitionVersionId,
+				long kaleoNodeId,
 				com.liferay.portal.workflow.kaleo.definition.Task task,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().addKaleoTask(
-			kaleoDefinitionVersionId, kaleoNodeId, task, serviceContext);
+			kaleoDefinitionId, kaleoDefinitionVersionId, kaleoNodeId, task,
+			serviceContext);
 	}
 
 	/**
@@ -72,6 +78,16 @@ public class KaleoTaskLocalServiceUtil {
 		createKaleoTask(long kaleoTaskId) {
 
 		return getService().createKaleoTask(kaleoTaskId);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	public static void deleteCompanyKaleoTasks(long companyId) {
@@ -88,6 +104,10 @@ public class KaleoTaskLocalServiceUtil {
 	/**
 	 * Deletes the kaleo task from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param kaleoTask the kaleo task
 	 * @return the kaleo task that was removed
 	 */
@@ -100,6 +120,10 @@ public class KaleoTaskLocalServiceUtil {
 
 	/**
 	 * Deletes the kaleo task with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoTaskId the primary key of the kaleo task
 	 * @return the kaleo task that was removed
@@ -121,6 +145,12 @@ public class KaleoTaskLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -284,6 +314,9 @@ public class KaleoTaskLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -293,6 +326,10 @@ public class KaleoTaskLocalServiceUtil {
 
 	/**
 	 * Updates the kaleo task in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoTask the kaleo task
 	 * @return the kaleo task that was updated

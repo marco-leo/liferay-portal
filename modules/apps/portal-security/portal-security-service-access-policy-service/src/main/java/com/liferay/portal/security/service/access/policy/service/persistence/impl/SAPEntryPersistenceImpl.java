@@ -16,6 +16,7 @@ package com.liferay.portal.security.service.access.policy.service.persistence.im
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
+import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -27,12 +28,13 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -41,6 +43,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.security.service.access.policy.exception.NoSuchEntryException;
 import com.liferay.portal.security.service.access.policy.model.SAPEntry;
+import com.liferay.portal.security.service.access.policy.model.SAPEntryTable;
 import com.liferay.portal.security.service.access.policy.model.impl.SAPEntryImpl;
 import com.liferay.portal.security.service.access.policy.model.impl.SAPEntryModelImpl;
 import com.liferay.portal.security.service.access.policy.service.persistence.SAPEntryPersistence;
@@ -53,13 +56,17 @@ import java.lang.reflect.InvocationHandler;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -79,7 +86,7 @@ import org.osgi.service.component.annotations.Reference;
 public class SAPEntryPersistenceImpl
 	extends BasePersistenceImpl<SAPEntry> implements SAPEntryPersistence {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>SAPEntryUtil</code> to access the sap entry persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -204,54 +211,54 @@ public class SAPEntryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_SAPENTRY_WHERE);
+			sb.append(_SQL_SELECT_SAPENTRY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_UUID_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
 				list = (List<SAPEntry>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -259,12 +266,8 @@ public class SAPEntryPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -293,16 +296,16 @@ public class SAPEntryPersistenceImpl
 			return sapEntry;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchEntryException(msg.toString());
+		throw new NoSuchEntryException(sb.toString());
 	}
 
 	/**
@@ -344,16 +347,16 @@ public class SAPEntryPersistenceImpl
 			return sapEntry;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchEntryException(msg.toString());
+		throw new NoSuchEntryException(sb.toString());
 	}
 
 	/**
@@ -419,8 +422,8 @@ public class SAPEntryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -431,28 +434,28 @@ public class SAPEntryPersistenceImpl
 		Session session, SAPEntry sapEntry, String uuid,
 		OrderByComparator<SAPEntry> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_SAPENTRY_WHERE);
+		sb.append(_SQL_SELECT_SAPENTRY_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_UUID_3);
+			sb.append(_FINDER_COLUMN_UUID_UUID_3);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_UUID_2);
+			sb.append(_FINDER_COLUMN_UUID_UUID_2);
 		}
 
 		if (orderByComparator != null) {
@@ -460,83 +463,83 @@ public class SAPEntryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+			sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(sapEntry)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SAPEntry> list = q.list();
+		List<SAPEntry> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -599,61 +602,59 @@ public class SAPEntryPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				3 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
 		}
 		else {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_UUID_3_SQL);
+			sb.append(_FINDER_COLUMN_UUID_UUID_3_SQL);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_UUID_2_SQL);
+			sb.append(_FINDER_COLUMN_UUID_UUID_2_SQL);
 		}
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(SAPEntryModelImpl.ORDER_BY_SQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), SAPEntry.class.getName(),
+			sb.toString(), SAPEntry.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -661,25 +662,26 @@ public class SAPEntryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
+				sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
+				sqlQuery.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 			if (bindUuid) {
-				qPos.add(uuid);
+				queryPos.add(uuid);
 			}
 
-			return (List<SAPEntry>)QueryUtil.list(q, getDialect(), start, end);
+			return (List<SAPEntry>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -726,8 +728,8 @@ public class SAPEntryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -738,39 +740,37 @@ public class SAPEntryPersistenceImpl
 		Session session, SAPEntry sapEntry, String uuid,
 		OrderByComparator<SAPEntry> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
 		}
 		else {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_UUID_3_SQL);
+			sb.append(_FINDER_COLUMN_UUID_UUID_3_SQL);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_UUID_2_SQL);
+			sb.append(_FINDER_COLUMN_UUID_UUID_2_SQL);
 		}
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
@@ -778,18 +778,18 @@ public class SAPEntryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -797,96 +797,96 @@ public class SAPEntryPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(SAPEntryModelImpl.ORDER_BY_SQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), SAPEntry.class.getName(),
+			sb.toString(), SAPEntry.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(sapEntry)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SAPEntry> list = q.list();
+		List<SAPEntry> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -927,44 +927,42 @@ public class SAPEntryPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_SAPENTRY_WHERE);
+			sb.append(_SQL_COUNT_SAPENTRY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_UUID_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -988,23 +986,23 @@ public class SAPEntryPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
-		StringBundler query = new StringBundler(2);
+		StringBundler sb = new StringBundler(2);
 
-		query.append(_FILTER_SQL_COUNT_SAPENTRY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_SAPENTRY_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_UUID_3_SQL);
+			sb.append(_FINDER_COLUMN_UUID_UUID_3_SQL);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_UUID_2_SQL);
+			sb.append(_FINDER_COLUMN_UUID_UUID_2_SQL);
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), SAPEntry.class.getName(),
+			sb.toString(), SAPEntry.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -1012,23 +1010,23 @@ public class SAPEntryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 			if (bindUuid) {
-				qPos.add(uuid);
+				queryPos.add(uuid);
 			}
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1167,58 +1165,58 @@ public class SAPEntryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_SAPENTRY_WHERE);
+			sb.append(_SQL_SELECT_SAPENTRY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				list = (List<SAPEntry>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -1226,12 +1224,8 @@ public class SAPEntryPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1263,19 +1257,19 @@ public class SAPEntryPersistenceImpl
 			return sapEntry;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append(", companyId=");
-		msg.append(companyId);
+		sb.append(", companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchEntryException(msg.toString());
+		throw new NoSuchEntryException(sb.toString());
 	}
 
 	/**
@@ -1323,19 +1317,19 @@ public class SAPEntryPersistenceImpl
 			return sapEntry;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append(", companyId=");
-		msg.append(companyId);
+		sb.append(", companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchEntryException(msg.toString());
+		throw new NoSuchEntryException(sb.toString());
 	}
 
 	/**
@@ -1404,8 +1398,8 @@ public class SAPEntryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1416,116 +1410,116 @@ public class SAPEntryPersistenceImpl
 		Session session, SAPEntry sapEntry, String uuid, long companyId,
 		OrderByComparator<SAPEntry> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_SAPENTRY_WHERE);
+		sb.append(_SQL_SELECT_SAPENTRY_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 		}
 
-		query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+			sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(sapEntry)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SAPEntry> list = q.list();
+		List<SAPEntry> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1593,63 +1587,61 @@ public class SAPEntryPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
 		}
 		else {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_C_UUID_3_SQL);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_3_SQL);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_C_UUID_2_SQL);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_2_SQL);
 		}
 
-		query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(SAPEntryModelImpl.ORDER_BY_SQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), SAPEntry.class.getName(),
+			sb.toString(), SAPEntry.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -1657,27 +1649,28 @@ public class SAPEntryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
+				sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
+				sqlQuery.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 			if (bindUuid) {
-				qPos.add(uuid);
+				queryPos.add(uuid);
 			}
 
-			qPos.add(companyId);
+			queryPos.add(companyId);
 
-			return (List<SAPEntry>)QueryUtil.list(q, getDialect(), start, end);
+			return (List<SAPEntry>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1726,8 +1719,8 @@ public class SAPEntryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1738,41 +1731,39 @@ public class SAPEntryPersistenceImpl
 		Session session, SAPEntry sapEntry, String uuid, long companyId,
 		OrderByComparator<SAPEntry> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
 		}
 		else {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_C_UUID_3_SQL);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_3_SQL);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_C_UUID_2_SQL);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_2_SQL);
 		}
 
-		query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
@@ -1780,18 +1771,18 @@ public class SAPEntryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -1799,98 +1790,98 @@ public class SAPEntryPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(SAPEntryModelImpl.ORDER_BY_SQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), SAPEntry.class.getName(),
+			sb.toString(), SAPEntry.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(sapEntry)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SAPEntry> list = q.list();
+		List<SAPEntry> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1935,48 +1926,46 @@ public class SAPEntryPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_SAPENTRY_WHERE);
+			sb.append(_SQL_COUNT_SAPENTRY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2001,25 +1990,25 @@ public class SAPEntryPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
-		StringBundler query = new StringBundler(3);
+		StringBundler sb = new StringBundler(3);
 
-		query.append(_FILTER_SQL_COUNT_SAPENTRY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_SAPENTRY_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_C_UUID_3_SQL);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_3_SQL);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_C_UUID_2_SQL);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_2_SQL);
 		}
 
-		query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), SAPEntry.class.getName(),
+			sb.toString(), SAPEntry.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -2027,25 +2016,25 @@ public class SAPEntryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 			if (bindUuid) {
-				qPos.add(uuid);
+				queryPos.add(uuid);
 			}
 
-			qPos.add(companyId);
+			queryPos.add(companyId);
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2176,43 +2165,43 @@ public class SAPEntryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_SAPENTRY_WHERE);
+			sb.append(_SQL_SELECT_SAPENTRY_WHERE);
 
-			query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				list = (List<SAPEntry>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -2220,12 +2209,8 @@ public class SAPEntryPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2255,16 +2240,16 @@ public class SAPEntryPersistenceImpl
 			return sapEntry;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("companyId=");
-		msg.append(companyId);
+		sb.append("companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchEntryException(msg.toString());
+		throw new NoSuchEntryException(sb.toString());
 	}
 
 	/**
@@ -2307,16 +2292,16 @@ public class SAPEntryPersistenceImpl
 			return sapEntry;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("companyId=");
-		msg.append(companyId);
+		sb.append("companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchEntryException(msg.toString());
+		throw new NoSuchEntryException(sb.toString());
 	}
 
 	/**
@@ -2380,8 +2365,8 @@ public class SAPEntryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2392,101 +2377,101 @@ public class SAPEntryPersistenceImpl
 		Session session, SAPEntry sapEntry, long companyId,
 		OrderByComparator<SAPEntry> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_SAPENTRY_WHERE);
+		sb.append(_SQL_SELECT_SAPENTRY_WHERE);
 
-		query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+			sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(sapEntry)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SAPEntry> list = q.list();
+		List<SAPEntry> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -2549,52 +2534,50 @@ public class SAPEntryPersistenceImpl
 			return findByCompanyId(companyId, start, end, orderByComparator);
 		}
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				3 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
 		}
 		else {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(SAPEntryModelImpl.ORDER_BY_SQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), SAPEntry.class.getName(),
+			sb.toString(), SAPEntry.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -2602,23 +2585,24 @@ public class SAPEntryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
+				sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
+				sqlQuery.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(companyId);
+			queryPos.add(companyId);
 
-			return (List<SAPEntry>)QueryUtil.list(q, getDialect(), start, end);
+			return (List<SAPEntry>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2664,8 +2648,8 @@ public class SAPEntryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2676,30 +2660,28 @@ public class SAPEntryPersistenceImpl
 		Session session, SAPEntry sapEntry, long companyId,
 		OrderByComparator<SAPEntry> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
 		}
 		else {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
@@ -2707,18 +2689,18 @@ public class SAPEntryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -2726,94 +2708,94 @@ public class SAPEntryPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(SAPEntryModelImpl.ORDER_BY_SQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), SAPEntry.class.getName(),
+			sb.toString(), SAPEntry.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(sapEntry)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SAPEntry> list = q.list();
+		List<SAPEntry> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -2853,33 +2835,31 @@ public class SAPEntryPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_SAPENTRY_WHERE);
+			sb.append(_SQL_COUNT_SAPENTRY_WHERE);
 
-			query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2901,14 +2881,14 @@ public class SAPEntryPersistenceImpl
 			return countByCompanyId(companyId);
 		}
 
-		StringBundler query = new StringBundler(2);
+		StringBundler sb = new StringBundler(2);
 
-		query.append(_FILTER_SQL_COUNT_SAPENTRY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_SAPENTRY_WHERE);
 
-		query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), SAPEntry.class.getName(),
+			sb.toString(), SAPEntry.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -2916,21 +2896,21 @@ public class SAPEntryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(companyId);
+			queryPos.add(companyId);
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -3059,47 +3039,47 @@ public class SAPEntryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_SAPENTRY_WHERE);
+			sb.append(_SQL_SELECT_SAPENTRY_WHERE);
 
-			query.append(_FINDER_COLUMN_C_D_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_C_D_COMPANYID_2);
 
-			query.append(_FINDER_COLUMN_C_D_DEFAULTSAPENTRY_2);
+			sb.append(_FINDER_COLUMN_C_D_DEFAULTSAPENTRY_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
-				qPos.add(defaultSAPEntry);
+				queryPos.add(defaultSAPEntry);
 
 				list = (List<SAPEntry>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -3107,12 +3087,8 @@ public class SAPEntryPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3144,19 +3120,19 @@ public class SAPEntryPersistenceImpl
 			return sapEntry;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("companyId=");
-		msg.append(companyId);
+		sb.append("companyId=");
+		sb.append(companyId);
 
-		msg.append(", defaultSAPEntry=");
-		msg.append(defaultSAPEntry);
+		sb.append(", defaultSAPEntry=");
+		sb.append(defaultSAPEntry);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchEntryException(msg.toString());
+		throw new NoSuchEntryException(sb.toString());
 	}
 
 	/**
@@ -3204,19 +3180,19 @@ public class SAPEntryPersistenceImpl
 			return sapEntry;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("companyId=");
-		msg.append(companyId);
+		sb.append("companyId=");
+		sb.append(companyId);
 
-		msg.append(", defaultSAPEntry=");
-		msg.append(defaultSAPEntry);
+		sb.append(", defaultSAPEntry=");
+		sb.append(defaultSAPEntry);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchEntryException(msg.toString());
+		throw new NoSuchEntryException(sb.toString());
 	}
 
 	/**
@@ -3285,8 +3261,8 @@ public class SAPEntryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -3298,105 +3274,105 @@ public class SAPEntryPersistenceImpl
 		boolean defaultSAPEntry, OrderByComparator<SAPEntry> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_SAPENTRY_WHERE);
+		sb.append(_SQL_SELECT_SAPENTRY_WHERE);
 
-		query.append(_FINDER_COLUMN_C_D_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_C_D_COMPANYID_2);
 
-		query.append(_FINDER_COLUMN_C_D_DEFAULTSAPENTRY_2);
+		sb.append(_FINDER_COLUMN_C_D_DEFAULTSAPENTRY_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+			sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
-		qPos.add(defaultSAPEntry);
+		queryPos.add(defaultSAPEntry);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(sapEntry)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SAPEntry> list = q.list();
+		List<SAPEntry> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -3466,54 +3442,52 @@ public class SAPEntryPersistenceImpl
 				companyId, defaultSAPEntry, start, end, orderByComparator);
 		}
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
 		}
 		else {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_C_D_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_C_D_COMPANYID_2);
 
-		query.append(_FINDER_COLUMN_C_D_DEFAULTSAPENTRY_2);
+		sb.append(_FINDER_COLUMN_C_D_DEFAULTSAPENTRY_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(SAPEntryModelImpl.ORDER_BY_SQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), SAPEntry.class.getName(),
+			sb.toString(), SAPEntry.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -3521,25 +3495,26 @@ public class SAPEntryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
+				sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
+				sqlQuery.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(companyId);
+			queryPos.add(companyId);
 
-			qPos.add(defaultSAPEntry);
+			queryPos.add(defaultSAPEntry);
 
-			return (List<SAPEntry>)QueryUtil.list(q, getDialect(), start, end);
+			return (List<SAPEntry>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -3588,8 +3563,8 @@ public class SAPEntryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -3601,32 +3576,30 @@ public class SAPEntryPersistenceImpl
 		boolean defaultSAPEntry, OrderByComparator<SAPEntry> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_WHERE);
 		}
 		else {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_C_D_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_C_D_COMPANYID_2);
 
-		query.append(_FINDER_COLUMN_C_D_DEFAULTSAPENTRY_2);
+		sb.append(_FINDER_COLUMN_C_D_DEFAULTSAPENTRY_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
-				_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
+			sb.append(_FILTER_SQL_SELECT_SAPENTRY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
@@ -3634,18 +3607,18 @@ public class SAPEntryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -3653,96 +3626,96 @@ public class SAPEntryPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(SAPEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(SAPEntryModelImpl.ORDER_BY_SQL);
+				sb.append(SAPEntryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), SAPEntry.class.getName(),
+			sb.toString(), SAPEntry.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, SAPEntryImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, SAPEntryImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
-		qPos.add(defaultSAPEntry);
+		queryPos.add(defaultSAPEntry);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(sapEntry)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SAPEntry> list = q.list();
+		List<SAPEntry> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -3785,37 +3758,35 @@ public class SAPEntryPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_SAPENTRY_WHERE);
+			sb.append(_SQL_COUNT_SAPENTRY_WHERE);
 
-			query.append(_FINDER_COLUMN_C_D_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_C_D_COMPANYID_2);
 
-			query.append(_FINDER_COLUMN_C_D_DEFAULTSAPENTRY_2);
+			sb.append(_FINDER_COLUMN_C_D_DEFAULTSAPENTRY_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
-				qPos.add(defaultSAPEntry);
+				queryPos.add(defaultSAPEntry);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3838,16 +3809,16 @@ public class SAPEntryPersistenceImpl
 			return countByC_D(companyId, defaultSAPEntry);
 		}
 
-		StringBundler query = new StringBundler(3);
+		StringBundler sb = new StringBundler(3);
 
-		query.append(_FILTER_SQL_COUNT_SAPENTRY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_SAPENTRY_WHERE);
 
-		query.append(_FINDER_COLUMN_C_D_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_C_D_COMPANYID_2);
 
-		query.append(_FINDER_COLUMN_C_D_DEFAULTSAPENTRY_2);
+		sb.append(_FINDER_COLUMN_C_D_DEFAULTSAPENTRY_2);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), SAPEntry.class.getName(),
+			sb.toString(), SAPEntry.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
 		Session session = null;
@@ -3855,23 +3826,23 @@ public class SAPEntryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(companyId);
+			queryPos.add(companyId);
 
-			qPos.add(defaultSAPEntry);
+			queryPos.add(defaultSAPEntry);
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -3902,23 +3873,23 @@ public class SAPEntryPersistenceImpl
 		SAPEntry sapEntry = fetchByC_N(companyId, name);
 
 		if (sapEntry == null) {
-			StringBundler msg = new StringBundler(6);
+			StringBundler sb = new StringBundler(6);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("companyId=");
-			msg.append(companyId);
+			sb.append("companyId=");
+			sb.append(companyId);
 
-			msg.append(", name=");
-			msg.append(name);
+			sb.append(", name=");
+			sb.append(name);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchEntryException(msg.toString());
+			throw new NoSuchEntryException(sb.toString());
 		}
 
 		return sapEntry;
@@ -3974,41 +3945,41 @@ public class SAPEntryPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_SELECT_SAPENTRY_WHERE);
+			sb.append(_SQL_SELECT_SAPENTRY_WHERE);
 
-			query.append(_FINDER_COLUMN_C_N_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_C_N_COMPANYID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_C_N_NAME_3);
+				sb.append(_FINDER_COLUMN_C_N_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_C_N_NAME_2);
+				sb.append(_FINDER_COLUMN_C_N_NAME_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				if (bindName) {
-					qPos.add(StringUtil.toLowerCase(name));
+					queryPos.add(StringUtil.toLowerCase(name));
 				}
 
-				List<SAPEntry> list = q.list();
+				List<SAPEntry> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
@@ -4039,12 +4010,8 @@ public class SAPEntryPersistenceImpl
 					cacheResult(sapEntry);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(_finderPathFetchByC_N, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -4093,48 +4060,46 @@ public class SAPEntryPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_SAPENTRY_WHERE);
+			sb.append(_SQL_COUNT_SAPENTRY_WHERE);
 
-			query.append(_FINDER_COLUMN_C_N_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_C_N_COMPANYID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_C_N_NAME_3);
+				sb.append(_FINDER_COLUMN_C_N_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_C_N_NAME_2);
+				sb.append(_FINDER_COLUMN_C_N_NAME_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				if (bindName) {
-					qPos.add(StringUtil.toLowerCase(name));
+					queryPos.add(StringUtil.toLowerCase(name));
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -4154,16 +4119,18 @@ public class SAPEntryPersistenceImpl
 		"(sapEntry.name IS NULL OR sapEntry.name = '')";
 
 	public SAPEntryPersistenceImpl() {
-		setModelClass(SAPEntry.class);
-
-		setModelImplClass(SAPEntryImpl.class);
-		setModelPKClass(long.class);
-
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
 		dbColumnNames.put("uuid", "uuid_");
 
 		setDBColumnNames(dbColumnNames);
+
+		setModelClass(SAPEntry.class);
+
+		setModelImplClass(SAPEntryImpl.class);
+		setModelPKClass(long.class);
+
+		setTable(SAPEntryTable.INSTANCE);
 	}
 
 	/**
@@ -4174,15 +4141,12 @@ public class SAPEntryPersistenceImpl
 	@Override
 	public void cacheResult(SAPEntry sapEntry) {
 		entityCache.putResult(
-			entityCacheEnabled, SAPEntryImpl.class, sapEntry.getPrimaryKey(),
-			sapEntry);
+			SAPEntryImpl.class, sapEntry.getPrimaryKey(), sapEntry);
 
 		finderCache.putResult(
 			_finderPathFetchByC_N,
 			new Object[] {sapEntry.getCompanyId(), sapEntry.getName()},
 			sapEntry);
-
-		sapEntry.resetOriginalValues();
 	}
 
 	/**
@@ -4194,13 +4158,9 @@ public class SAPEntryPersistenceImpl
 	public void cacheResult(List<SAPEntry> sapEntries) {
 		for (SAPEntry sapEntry : sapEntries) {
 			if (entityCache.getResult(
-					entityCacheEnabled, SAPEntryImpl.class,
-					sapEntry.getPrimaryKey()) == null) {
+					SAPEntryImpl.class, sapEntry.getPrimaryKey()) == null) {
 
 				cacheResult(sapEntry);
-			}
-			else {
-				sapEntry.resetOriginalValues();
 			}
 		}
 	}
@@ -4230,26 +4190,13 @@ public class SAPEntryPersistenceImpl
 	 */
 	@Override
 	public void clearCache(SAPEntry sapEntry) {
-		entityCache.removeResult(
-			entityCacheEnabled, SAPEntryImpl.class, sapEntry.getPrimaryKey());
-
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
-		clearUniqueFindersCache((SAPEntryModelImpl)sapEntry, true);
+		entityCache.removeResult(SAPEntryImpl.class, sapEntry);
 	}
 
 	@Override
 	public void clearCache(List<SAPEntry> sapEntries) {
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
 		for (SAPEntry sapEntry : sapEntries) {
-			entityCache.removeResult(
-				entityCacheEnabled, SAPEntryImpl.class,
-				sapEntry.getPrimaryKey());
-
-			clearUniqueFindersCache((SAPEntryModelImpl)sapEntry, true);
+			entityCache.removeResult(SAPEntryImpl.class, sapEntry);
 		}
 	}
 
@@ -4260,8 +4207,7 @@ public class SAPEntryPersistenceImpl
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
 		for (Serializable primaryKey : primaryKeys) {
-			entityCache.removeResult(
-				entityCacheEnabled, SAPEntryImpl.class, primaryKey);
+			entityCache.removeResult(SAPEntryImpl.class, primaryKey);
 		}
 	}
 
@@ -4276,31 +4222,6 @@ public class SAPEntryPersistenceImpl
 			_finderPathCountByC_N, args, Long.valueOf(1), false);
 		finderCache.putResult(
 			_finderPathFetchByC_N, args, sapEntryModelImpl, false);
-	}
-
-	protected void clearUniqueFindersCache(
-		SAPEntryModelImpl sapEntryModelImpl, boolean clearCurrent) {
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				sapEntryModelImpl.getCompanyId(), sapEntryModelImpl.getName()
-			};
-
-			finderCache.removeResult(_finderPathCountByC_N, args);
-			finderCache.removeResult(_finderPathFetchByC_N, args);
-		}
-
-		if ((sapEntryModelImpl.getColumnBitmask() &
-			 _finderPathFetchByC_N.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				sapEntryModelImpl.getOriginalCompanyId(),
-				sapEntryModelImpl.getOriginalName()
-			};
-
-			finderCache.removeResult(_finderPathCountByC_N, args);
-			finderCache.removeResult(_finderPathFetchByC_N, args);
-		}
 	}
 
 	/**
@@ -4367,11 +4288,11 @@ public class SAPEntryPersistenceImpl
 
 			return remove(sapEntry);
 		}
-		catch (NoSuchEntryException nsee) {
-			throw nsee;
+		catch (NoSuchEntryException noSuchEntityException) {
+			throw noSuchEntityException;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -4394,8 +4315,8 @@ public class SAPEntryPersistenceImpl
 				session.delete(sapEntry);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -4464,153 +4385,28 @@ public class SAPEntryPersistenceImpl
 		try {
 			session = openSession();
 
-			if (sapEntry.isNew()) {
+			if (isNew) {
 				session.save(sapEntry);
-
-				sapEntry.setNew(false);
 			}
 			else {
 				sapEntry = (SAPEntry)session.merge(sapEntry);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
 		}
 
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-
-		if (!_columnBitmaskEnabled) {
-			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-		}
-		else if (isNew) {
-			Object[] args = new Object[] {sapEntryModelImpl.getUuid()};
-
-			finderCache.removeResult(_finderPathCountByUuid, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByUuid, args);
-
-			args = new Object[] {
-				sapEntryModelImpl.getUuid(), sapEntryModelImpl.getCompanyId()
-			};
-
-			finderCache.removeResult(_finderPathCountByUuid_C, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByUuid_C, args);
-
-			args = new Object[] {sapEntryModelImpl.getCompanyId()};
-
-			finderCache.removeResult(_finderPathCountByCompanyId, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByCompanyId, args);
-
-			args = new Object[] {
-				sapEntryModelImpl.getCompanyId(),
-				sapEntryModelImpl.isDefaultSAPEntry()
-			};
-
-			finderCache.removeResult(_finderPathCountByC_D, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByC_D, args);
-
-			finderCache.removeResult(_finderPathCountAll, FINDER_ARGS_EMPTY);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindAll, FINDER_ARGS_EMPTY);
-		}
-		else {
-			if ((sapEntryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByUuid.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					sapEntryModelImpl.getOriginalUuid()
-				};
-
-				finderCache.removeResult(_finderPathCountByUuid, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByUuid, args);
-
-				args = new Object[] {sapEntryModelImpl.getUuid()};
-
-				finderCache.removeResult(_finderPathCountByUuid, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByUuid, args);
-			}
-
-			if ((sapEntryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByUuid_C.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					sapEntryModelImpl.getOriginalUuid(),
-					sapEntryModelImpl.getOriginalCompanyId()
-				};
-
-				finderCache.removeResult(_finderPathCountByUuid_C, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByUuid_C, args);
-
-				args = new Object[] {
-					sapEntryModelImpl.getUuid(),
-					sapEntryModelImpl.getCompanyId()
-				};
-
-				finderCache.removeResult(_finderPathCountByUuid_C, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByUuid_C, args);
-			}
-
-			if ((sapEntryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByCompanyId.
-					 getColumnBitmask()) != 0) {
-
-				Object[] args = new Object[] {
-					sapEntryModelImpl.getOriginalCompanyId()
-				};
-
-				finderCache.removeResult(_finderPathCountByCompanyId, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByCompanyId, args);
-
-				args = new Object[] {sapEntryModelImpl.getCompanyId()};
-
-				finderCache.removeResult(_finderPathCountByCompanyId, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByCompanyId, args);
-			}
-
-			if ((sapEntryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByC_D.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					sapEntryModelImpl.getOriginalCompanyId(),
-					sapEntryModelImpl.getOriginalDefaultSAPEntry()
-				};
-
-				finderCache.removeResult(_finderPathCountByC_D, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByC_D, args);
-
-				args = new Object[] {
-					sapEntryModelImpl.getCompanyId(),
-					sapEntryModelImpl.isDefaultSAPEntry()
-				};
-
-				finderCache.removeResult(_finderPathCountByC_D, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByC_D, args);
-			}
-		}
-
 		entityCache.putResult(
-			entityCacheEnabled, SAPEntryImpl.class, sapEntry.getPrimaryKey(),
-			sapEntry, false);
+			SAPEntryImpl.class, sapEntryModelImpl, false, true);
 
-		clearUniqueFindersCache(sapEntryModelImpl, false);
 		cacheUniqueFindersCache(sapEntryModelImpl);
+
+		if (isNew) {
+			sapEntry.setNew(false);
+		}
 
 		sapEntry.resetOriginalValues();
 
@@ -4754,19 +4550,19 @@ public class SAPEntryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 			String sql = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					2 + (orderByComparator.getOrderByFields().length * 2));
 
-				query.append(_SQL_SELECT_SAPENTRY);
+				sb.append(_SQL_SELECT_SAPENTRY);
 
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 
-				sql = query.toString();
+				sql = sb.toString();
 			}
 			else {
 				sql = _SQL_SELECT_SAPENTRY;
@@ -4779,10 +4575,10 @@ public class SAPEntryPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
 				list = (List<SAPEntry>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -4790,12 +4586,8 @@ public class SAPEntryPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -4832,18 +4624,15 @@ public class SAPEntryPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(_SQL_COUNT_SAPENTRY);
+				Query query = session.createQuery(_SQL_COUNT_SAPENTRY);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(
 					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -4882,123 +4671,122 @@ public class SAPEntryPersistenceImpl
 	 * Initializes the sap entry persistence.
 	 */
 	@Activate
-	public void activate() {
-		SAPEntryModelImpl.setEntityCacheEnabled(entityCacheEnabled);
-		SAPEntryModelImpl.setFinderCacheEnabled(finderCacheEnabled);
+	public void activate(BundleContext bundleContext) {
+		_bundleContext = bundleContext;
 
-		_finderPathWithPaginationFindAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SAPEntryImpl.class,
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0]);
+		_argumentsResolverServiceRegistration = _bundleContext.registerService(
+			ArgumentsResolver.class, new SAPEntryModelArgumentsResolver(),
+			MapUtil.singletonDictionary(
+				"model.class.name", SAPEntry.class.getName()));
 
-		_finderPathWithoutPaginationFindAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SAPEntryImpl.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll",
-			new String[0]);
+		_finderPathWithPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
+			new String[0], true);
 
-		_finderPathCountAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathWithoutPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathCountAll = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
-			new String[0]);
+			new String[0], new String[0], false);
 
-		_finderPathWithPaginationFindByUuid = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SAPEntryImpl.class,
+		_finderPathWithPaginationFindByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid",
 			new String[] {
 				String.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"uuid_"}, true);
 
-		_finderPathWithoutPaginationFindByUuid = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SAPEntryImpl.class,
+		_finderPathWithoutPaginationFindByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid",
-			new String[] {String.class.getName()},
-			SAPEntryModelImpl.UUID_COLUMN_BITMASK);
+			new String[] {String.class.getName()}, new String[] {"uuid_"},
+			true);
 
-		_finderPathCountByUuid = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid",
-			new String[] {String.class.getName()});
+			new String[] {String.class.getName()}, new String[] {"uuid_"},
+			false);
 
-		_finderPathWithPaginationFindByUuid_C = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SAPEntryImpl.class,
+		_finderPathWithPaginationFindByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid_C",
 			new String[] {
 				String.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"uuid_", "companyId"}, true);
 
-		_finderPathWithoutPaginationFindByUuid_C = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SAPEntryImpl.class,
+		_finderPathWithoutPaginationFindByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid_C",
 			new String[] {String.class.getName(), Long.class.getName()},
-			SAPEntryModelImpl.UUID_COLUMN_BITMASK |
-			SAPEntryModelImpl.COMPANYID_COLUMN_BITMASK);
+			new String[] {"uuid_", "companyId"}, true);
 
-		_finderPathCountByUuid_C = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid_C",
-			new String[] {String.class.getName(), Long.class.getName()});
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"uuid_", "companyId"}, false);
 
-		_finderPathWithPaginationFindByCompanyId = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SAPEntryImpl.class,
+		_finderPathWithPaginationFindByCompanyId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByCompanyId",
 			new String[] {
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"companyId"}, true);
 
-		_finderPathWithoutPaginationFindByCompanyId = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SAPEntryImpl.class,
+		_finderPathWithoutPaginationFindByCompanyId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByCompanyId",
-			new String[] {Long.class.getName()},
-			SAPEntryModelImpl.COMPANYID_COLUMN_BITMASK);
+			new String[] {Long.class.getName()}, new String[] {"companyId"},
+			true);
 
-		_finderPathCountByCompanyId = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByCompanyId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByCompanyId",
-			new String[] {Long.class.getName()});
+			new String[] {Long.class.getName()}, new String[] {"companyId"},
+			false);
 
-		_finderPathWithPaginationFindByC_D = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SAPEntryImpl.class,
+		_finderPathWithPaginationFindByC_D = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByC_D",
 			new String[] {
 				Long.class.getName(), Boolean.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"companyId", "defaultSAPEntry"}, true);
 
-		_finderPathWithoutPaginationFindByC_D = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SAPEntryImpl.class,
+		_finderPathWithoutPaginationFindByC_D = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByC_D",
 			new String[] {Long.class.getName(), Boolean.class.getName()},
-			SAPEntryModelImpl.COMPANYID_COLUMN_BITMASK |
-			SAPEntryModelImpl.DEFAULTSAPENTRY_COLUMN_BITMASK);
+			new String[] {"companyId", "defaultSAPEntry"}, true);
 
-		_finderPathCountByC_D = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByC_D = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_D",
-			new String[] {Long.class.getName(), Boolean.class.getName()});
+			new String[] {Long.class.getName(), Boolean.class.getName()},
+			new String[] {"companyId", "defaultSAPEntry"}, false);
 
-		_finderPathFetchByC_N = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SAPEntryImpl.class,
+		_finderPathFetchByC_N = _createFinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByC_N",
 			new String[] {Long.class.getName(), String.class.getName()},
-			SAPEntryModelImpl.COMPANYID_COLUMN_BITMASK |
-			SAPEntryModelImpl.NAME_COLUMN_BITMASK);
+			new String[] {"companyId", "name"}, true);
 
-		_finderPathCountByC_N = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByC_N = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_N",
-			new String[] {Long.class.getName(), String.class.getName()});
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"companyId", "name"}, false);
 	}
 
 	@Deactivate
 	public void deactivate() {
 		entityCache.removeCache(SAPEntryImpl.class.getName());
-		finderCache.removeCache(FINDER_CLASS_NAME_ENTITY);
-		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		_argumentsResolverServiceRegistration.unregister();
+
+		for (ServiceRegistration<FinderPath> serviceRegistration :
+				_serviceRegistrations) {
+
+			serviceRegistration.unregister();
+		}
 	}
 
 	@Override
@@ -5007,12 +4795,6 @@ public class SAPEntryPersistenceImpl
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
-		super.setConfiguration(configuration);
-
-		_columnBitmaskEnabled = GetterUtil.getBoolean(
-			configuration.get(
-				"value.object.column.bitmask.enabled.com.liferay.portal.security.service.access.policy.model.SAPEntry"),
-			true);
 	}
 
 	@Override
@@ -5033,7 +4815,7 @@ public class SAPEntryPersistenceImpl
 		super.setSessionFactory(sessionFactory);
 	}
 
-	private boolean _columnBitmaskEnabled;
+	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -5094,9 +4876,105 @@ public class SAPEntryPersistenceImpl
 		try {
 			Class.forName(SAPPersistenceConstants.class.getName());
 		}
-		catch (ClassNotFoundException cnfe) {
-			throw new ExceptionInInitializerError(cnfe);
+		catch (ClassNotFoundException classNotFoundException) {
+			throw new ExceptionInInitializerError(classNotFoundException);
 		}
+	}
+
+	private FinderPath _createFinderPath(
+		String cacheName, String methodName, String[] params,
+		String[] columnNames, boolean baseModelResult) {
+
+		FinderPath finderPath = new FinderPath(
+			cacheName, methodName, params, columnNames, baseModelResult);
+
+		if (!cacheName.equals(FINDER_CLASS_NAME_LIST_WITH_PAGINATION)) {
+			_serviceRegistrations.add(
+				_bundleContext.registerService(
+					FinderPath.class, finderPath,
+					MapUtil.singletonDictionary("cache.name", cacheName)));
+		}
+
+		return finderPath;
+	}
+
+	private ServiceRegistration<ArgumentsResolver>
+		_argumentsResolverServiceRegistration;
+	private Set<ServiceRegistration<FinderPath>> _serviceRegistrations =
+		new HashSet<>();
+
+	private static class SAPEntryModelArgumentsResolver
+		implements ArgumentsResolver {
+
+		@Override
+		public Object[] getArguments(
+			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
+			boolean original) {
+
+			String[] columnNames = finderPath.getColumnNames();
+
+			if ((columnNames == null) || (columnNames.length == 0)) {
+				if (baseModel.isNew()) {
+					return FINDER_ARGS_EMPTY;
+				}
+
+				return null;
+			}
+
+			SAPEntryModelImpl sapEntryModelImpl = (SAPEntryModelImpl)baseModel;
+
+			long columnBitmask = sapEntryModelImpl.getColumnBitmask();
+
+			if (!checkColumn || (columnBitmask == 0)) {
+				return _getValue(sapEntryModelImpl, columnNames, original);
+			}
+
+			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
+				finderPath);
+
+			if (finderPathColumnBitmask == null) {
+				finderPathColumnBitmask = 0L;
+
+				for (String columnName : columnNames) {
+					finderPathColumnBitmask |=
+						sapEntryModelImpl.getColumnBitmask(columnName);
+				}
+
+				_finderPathColumnBitmasksCache.put(
+					finderPath, finderPathColumnBitmask);
+			}
+
+			if ((columnBitmask & finderPathColumnBitmask) != 0) {
+				return _getValue(sapEntryModelImpl, columnNames, original);
+			}
+
+			return null;
+		}
+
+		private Object[] _getValue(
+			SAPEntryModelImpl sapEntryModelImpl, String[] columnNames,
+			boolean original) {
+
+			Object[] arguments = new Object[columnNames.length];
+
+			for (int i = 0; i < arguments.length; i++) {
+				String columnName = columnNames[i];
+
+				if (original) {
+					arguments[i] = sapEntryModelImpl.getColumnOriginalValue(
+						columnName);
+				}
+				else {
+					arguments[i] = sapEntryModelImpl.getColumnValue(columnName);
+				}
+			}
+
+			return arguments;
+		}
+
+		private static Map<FinderPath, Long> _finderPathColumnBitmasksCache =
+			new ConcurrentHashMap<>();
+
 	}
 
 }

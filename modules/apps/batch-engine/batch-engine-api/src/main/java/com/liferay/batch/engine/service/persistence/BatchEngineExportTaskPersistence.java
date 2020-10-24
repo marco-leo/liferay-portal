@@ -35,7 +35,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface BatchEngineExportTaskPersistence
 	extends BasePersistence<BatchEngineExportTask> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link BatchEngineExportTaskUtil} to access the batch engine export task persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

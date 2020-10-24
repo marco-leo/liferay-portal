@@ -18,15 +18,16 @@ import com.liferay.bulk.rest.dto.v1_0.Status;
 import com.liferay.bulk.rest.resource.v1_0.StatusResource;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.pagination.Page;
 
+import java.util.Map;
 import java.util.function.BiFunction;
 
 import javax.annotation.Generated;
@@ -70,12 +71,17 @@ public class Query {
 	public class StatusPage {
 
 		public StatusPage(Page statusPage) {
+			actions = statusPage.getActions();
+
 			items = statusPage.getItems();
 			lastPage = statusPage.getLastPage();
 			page = statusPage.getPage();
 			pageSize = statusPage.getPageSize();
 			totalCount = statusPage.getTotalCount();
 		}
+
+		@GraphQLField
+		protected Map<String, Map> actions;
 
 		@GraphQLField
 		protected java.util.Collection<Status> items;
@@ -122,18 +128,22 @@ public class Query {
 		statusResource.setContextHttpServletResponse(_httpServletResponse);
 		statusResource.setContextUriInfo(_uriInfo);
 		statusResource.setContextUser(_user);
+		statusResource.setGroupLocalService(_groupLocalService);
+		statusResource.setRoleLocalService(_roleLocalService);
 	}
 
 	private static ComponentServiceObjects<StatusResource>
 		_statusResourceComponentServiceObjects;
 
 	private AcceptLanguage _acceptLanguage;
+	private com.liferay.portal.kernel.model.Company _company;
 	private BiFunction<Object, String, Filter> _filterBiFunction;
-	private BiFunction<Object, String, Sort[]> _sortsBiFunction;
-	private Company _company;
+	private GroupLocalService _groupLocalService;
 	private HttpServletRequest _httpServletRequest;
 	private HttpServletResponse _httpServletResponse;
+	private RoleLocalService _roleLocalService;
+	private BiFunction<Object, String, Sort[]> _sortsBiFunction;
 	private UriInfo _uriInfo;
-	private User _user;
+	private com.liferay.portal.kernel.model.User _user;
 
 }

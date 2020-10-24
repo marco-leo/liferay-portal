@@ -22,6 +22,7 @@ import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
+import com.liferay.portal.vulcan.util.ObjectMapperUtil;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -45,6 +46,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 @JsonFilter("Liferay.Vulcan")
 @XmlRootElement(name = "ContentStructureField")
 public class ContentStructureField {
+
+	public static ContentStructureField toDTO(String json) {
+		return ObjectMapperUtil.readValue(ContentStructureField.class, json);
+	}
 
 	@Schema(
 		description = "The form field's type (e.g., date, geolocation, text, etc.)."
@@ -137,6 +142,36 @@ public class ContentStructureField {
 	@GraphQLField(description = "The form field's label.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String label;
+
+	@Schema
+	@Valid
+	public Map<String, String> getLabel_i18n() {
+		return label_i18n;
+	}
+
+	public void setLabel_i18n(Map<String, String> label_i18n) {
+		this.label_i18n = label_i18n;
+	}
+
+	@JsonIgnore
+	public void setLabel_i18n(
+		UnsafeSupplier<Map<String, String>, Exception>
+			label_i18nUnsafeSupplier) {
+
+		try {
+			label_i18n = label_i18nUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Map<String, String> label_i18n;
 
 	@Schema(
 		description = "A flag that indicates whether the content is accessible in different languages."
@@ -322,6 +357,38 @@ public class ContentStructureField {
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String predefinedValue;
 
+	@Schema
+	@Valid
+	public Map<String, String> getPredefinedValue_i18n() {
+		return predefinedValue_i18n;
+	}
+
+	public void setPredefinedValue_i18n(
+		Map<String, String> predefinedValue_i18n) {
+
+		this.predefinedValue_i18n = predefinedValue_i18n;
+	}
+
+	@JsonIgnore
+	public void setPredefinedValue_i18n(
+		UnsafeSupplier<Map<String, String>, Exception>
+			predefinedValue_i18nUnsafeSupplier) {
+
+		try {
+			predefinedValue_i18n = predefinedValue_i18nUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Map<String, String> predefinedValue_i18n;
+
 	@Schema(
 		description = "A flag that indicates whether this content can be rendered (and answered) several times."
 	)
@@ -488,6 +555,16 @@ public class ContentStructureField {
 			sb.append("\"");
 		}
 
+		if (label_i18n != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"label_i18n\": ");
+
+			sb.append(_toJSON(label_i18n));
+		}
+
 		if (localizable != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -576,6 +653,16 @@ public class ContentStructureField {
 			sb.append("\"");
 		}
 
+		if (predefinedValue_i18n != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"predefinedValue_i18n\": ");
+
+			sb.append(_toJSON(predefinedValue_i18n));
+		}
+
 		if (repeatable != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -623,6 +710,16 @@ public class ContentStructureField {
 		return string.replaceAll("\"", "\\\\\"");
 	}
 
+	private static boolean _isArray(Object value) {
+		if (value == null) {
+			return false;
+		}
+
+		Class<?> clazz = value.getClass();
+
+		return clazz.isArray();
+	}
+
 	private static String _toJSON(Map<String, ?> map) {
 		StringBuilder sb = new StringBuilder("{");
 
@@ -638,9 +735,42 @@ public class ContentStructureField {
 			sb.append("\"");
 			sb.append(entry.getKey());
 			sb.append("\":");
-			sb.append("\"");
-			sb.append(entry.getValue());
-			sb.append("\"");
+
+			Object value = entry.getValue();
+
+			if (_isArray(value)) {
+				sb.append("[");
+
+				Object[] valueArray = (Object[])value;
+
+				for (int i = 0; i < valueArray.length; i++) {
+					if (valueArray[i] instanceof String) {
+						sb.append("\"");
+						sb.append(valueArray[i]);
+						sb.append("\"");
+					}
+					else {
+						sb.append(valueArray[i]);
+					}
+
+					if ((i + 1) < valueArray.length) {
+						sb.append(", ");
+					}
+				}
+
+				sb.append("]");
+			}
+			else if (value instanceof Map) {
+				sb.append(_toJSON((Map<String, ?>)value));
+			}
+			else if (value instanceof String) {
+				sb.append("\"");
+				sb.append(value);
+				sb.append("\"");
+			}
+			else {
+				sb.append(value);
+			}
 
 			if (iterator.hasNext()) {
 				sb.append(",");

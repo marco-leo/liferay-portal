@@ -28,7 +28,7 @@ import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionHelper;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionUtil;
 import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.servlet.taglib.ui.MenuItem;
 import com.liferay.portal.kernel.servlet.taglib.ui.URLMenuItem;
@@ -69,7 +69,7 @@ public class DLOpenerGoogleDriveDLPortletToolbarContributorContext
 
 			if (!_dlOpenerGoogleDriveManager.isConfigured(
 					themeDisplay.getCompanyId()) ||
-				!ModelResourcePermissionHelper.contains(
+				!ModelResourcePermissionUtil.contains(
 					_folderEntryModelResourcePermission,
 					themeDisplay.getPermissionChecker(),
 					themeDisplay.getScopeGroupId(), folderId,
@@ -94,8 +94,8 @@ public class DLOpenerGoogleDriveDLPortletToolbarContributorContext
 					DLOpenerMimeTypes.APPLICATION_VND_XLSX,
 					_ICON_NAME_SPREADSHEET, _ICON_COLOR_SPREADSHEET));
 		}
-		catch (PortalException pe) {
-			_log.error(pe, pe);
+		catch (PortalException portalException) {
+			_log.error(portalException, portalException);
 		}
 	}
 
@@ -149,8 +149,8 @@ public class DLOpenerGoogleDriveDLPortletToolbarContributorContext
 
 			return liferayPortletURL.toString();
 		}
-		catch (PortalException pe) {
-			throw new RuntimeException(pe);
+		catch (PortalException portalException) {
+			throw new RuntimeException(portalException);
 		}
 	}
 

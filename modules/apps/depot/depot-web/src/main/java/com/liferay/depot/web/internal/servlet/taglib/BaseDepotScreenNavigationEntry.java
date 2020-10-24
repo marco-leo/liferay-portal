@@ -14,16 +14,22 @@
 
 package com.liferay.depot.web.internal.servlet.taglib;
 
+import com.liferay.asset.auto.tagger.configuration.AssetAutoTaggerConfiguration;
+import com.liferay.asset.auto.tagger.configuration.AssetAutoTaggerConfigurationFactory;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.web.internal.constants.DepotAdminWebKeys;
 import com.liferay.depot.web.internal.constants.DepotScreenNavigationEntryConstants;
+import com.liferay.depot.web.internal.constants.SharingWebKeys;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.util.AggregateResourceBundle;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
+import com.liferay.sharing.configuration.SharingConfigurationFactory;
 
 import java.io.IOException;
 
@@ -66,6 +72,13 @@ public abstract class BaseDepotScreenNavigationEntry
 			HttpServletResponse httpServletResponse)
 		throws IOException {
 
+		Group group = _getGroup(httpServletRequest);
+
+		httpServletRequest.setAttribute(
+			AssetAutoTaggerConfiguration.class.getName(),
+			assetAutoTaggerConfigurationFactory.
+				getGroupAssetAutoTaggerConfiguration(group));
+
 		httpServletRequest.setAttribute(
 			DepotAdminWebKeys.ACTION_COMMAND_NAME, getActionCommandName());
 		httpServletRequest.setAttribute(
@@ -78,6 +91,9 @@ public abstract class BaseDepotScreenNavigationEntry
 			DepotAdminWebKeys.JSP_PATH, getJspPath());
 		httpServletRequest.setAttribute(
 			DepotAdminWebKeys.SHOW_CONTROLS, isShowControls());
+		httpServletRequest.setAttribute(
+			SharingWebKeys.GROUP_SHARING_CONFIGURATION,
+			sharingConfigurationFactory.getGroupSharingConfiguration(group));
 
 		jspRenderer.renderJSP(
 			httpServletRequest, httpServletResponse,
@@ -101,9 +117,30 @@ public abstract class BaseDepotScreenNavigationEntry
 	}
 
 	@Reference
+	protected AssetAutoTaggerConfigurationFactory
+		assetAutoTaggerConfigurationFactory;
+
+	@Reference
 	protected JSPRenderer jspRenderer;
 
 	@Reference
 	protected Portal portal;
+
+	@Reference
+	protected SharingConfigurationFactory sharingConfigurationFactory;
+
+	private Group _getGroup(HttpServletRequest httpServletRequest)
+		throws IOException {
+
+		try {
+			DepotEntry depotEntry = (DepotEntry)httpServletRequest.getAttribute(
+				DepotAdminWebKeys.DEPOT_ENTRY);
+
+			return depotEntry.getGroup();
+		}
+		catch (PortalException portalException) {
+			throw new IOException(portalException);
+		}
+	}
 
 }

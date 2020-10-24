@@ -16,8 +16,10 @@ package com.liferay.portlet.announcements.service.persistence.impl;
 
 import com.liferay.announcements.kernel.exception.NoSuchFlagException;
 import com.liferay.announcements.kernel.model.AnnouncementsFlag;
+import com.liferay.announcements.kernel.model.AnnouncementsFlagTable;
 import com.liferay.announcements.kernel.service.persistence.AnnouncementsFlagPersistence;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
@@ -28,20 +30,27 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portlet.announcements.model.impl.AnnouncementsFlagImpl;
 import com.liferay.portlet.announcements.model.impl.AnnouncementsFlagModelImpl;
+import com.liferay.registry.Registry;
+import com.liferay.registry.RegistryUtil;
+import com.liferay.registry.ServiceRegistration;
 
 import java.io.Serializable;
 
 import java.lang.reflect.InvocationHandler;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The persistence implementation for the announcements flag service.
@@ -57,7 +66,7 @@ public class AnnouncementsFlagPersistenceImpl
 	extends BasePersistenceImpl<AnnouncementsFlag>
 	implements AnnouncementsFlagPersistence {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>AnnouncementsFlagUtil</code> to access the announcements flag persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -186,43 +195,43 @@ public class AnnouncementsFlagPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_ANNOUNCEMENTSFLAG_WHERE);
+			sb.append(_SQL_SELECT_ANNOUNCEMENTSFLAG_WHERE);
 
-			query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AnnouncementsFlagModelImpl.ORDER_BY_JPQL);
+				sb.append(AnnouncementsFlagModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				list = (List<AnnouncementsFlag>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -230,12 +239,8 @@ public class AnnouncementsFlagPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -266,16 +271,16 @@ public class AnnouncementsFlagPersistenceImpl
 			return announcementsFlag;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("companyId=");
-		msg.append(companyId);
+		sb.append("companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchFlagException(msg.toString());
+		throw new NoSuchFlagException(sb.toString());
 	}
 
 	/**
@@ -321,16 +326,16 @@ public class AnnouncementsFlagPersistenceImpl
 			return announcementsFlag;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("companyId=");
-		msg.append(companyId);
+		sb.append("companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchFlagException(msg.toString());
+		throw new NoSuchFlagException(sb.toString());
 	}
 
 	/**
@@ -396,8 +401,8 @@ public class AnnouncementsFlagPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -409,102 +414,102 @@ public class AnnouncementsFlagPersistenceImpl
 		OrderByComparator<AnnouncementsFlag> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_ANNOUNCEMENTSFLAG_WHERE);
+		sb.append(_SQL_SELECT_ANNOUNCEMENTSFLAG_WHERE);
 
-		query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AnnouncementsFlagModelImpl.ORDER_BY_JPQL);
+			sb.append(AnnouncementsFlagModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						announcementsFlag)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AnnouncementsFlag> list = q.list();
+		List<AnnouncementsFlag> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -545,33 +550,31 @@ public class AnnouncementsFlagPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_ANNOUNCEMENTSFLAG_WHERE);
+			sb.append(_SQL_COUNT_ANNOUNCEMENTSFLAG_WHERE);
 
-			query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -694,43 +697,43 @@ public class AnnouncementsFlagPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_ANNOUNCEMENTSFLAG_WHERE);
+			sb.append(_SQL_SELECT_ANNOUNCEMENTSFLAG_WHERE);
 
-			query.append(_FINDER_COLUMN_ENTRYID_ENTRYID_2);
+			sb.append(_FINDER_COLUMN_ENTRYID_ENTRYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AnnouncementsFlagModelImpl.ORDER_BY_JPQL);
+				sb.append(AnnouncementsFlagModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(entryId);
+				queryPos.add(entryId);
 
 				list = (List<AnnouncementsFlag>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -738,12 +741,8 @@ public class AnnouncementsFlagPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -774,16 +773,16 @@ public class AnnouncementsFlagPersistenceImpl
 			return announcementsFlag;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("entryId=");
-		msg.append(entryId);
+		sb.append("entryId=");
+		sb.append(entryId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchFlagException(msg.toString());
+		throw new NoSuchFlagException(sb.toString());
 	}
 
 	/**
@@ -828,16 +827,16 @@ public class AnnouncementsFlagPersistenceImpl
 			return announcementsFlag;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("entryId=");
-		msg.append(entryId);
+		sb.append("entryId=");
+		sb.append(entryId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchFlagException(msg.toString());
+		throw new NoSuchFlagException(sb.toString());
 	}
 
 	/**
@@ -901,8 +900,8 @@ public class AnnouncementsFlagPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -914,102 +913,102 @@ public class AnnouncementsFlagPersistenceImpl
 		OrderByComparator<AnnouncementsFlag> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_ANNOUNCEMENTSFLAG_WHERE);
+		sb.append(_SQL_SELECT_ANNOUNCEMENTSFLAG_WHERE);
 
-		query.append(_FINDER_COLUMN_ENTRYID_ENTRYID_2);
+		sb.append(_FINDER_COLUMN_ENTRYID_ENTRYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AnnouncementsFlagModelImpl.ORDER_BY_JPQL);
+			sb.append(AnnouncementsFlagModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(entryId);
+		queryPos.add(entryId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						announcementsFlag)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AnnouncementsFlag> list = q.list();
+		List<AnnouncementsFlag> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1050,33 +1049,31 @@ public class AnnouncementsFlagPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_ANNOUNCEMENTSFLAG_WHERE);
+			sb.append(_SQL_COUNT_ANNOUNCEMENTSFLAG_WHERE);
 
-			query.append(_FINDER_COLUMN_ENTRYID_ENTRYID_2);
+			sb.append(_FINDER_COLUMN_ENTRYID_ENTRYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(entryId);
+				queryPos.add(entryId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1109,26 +1106,26 @@ public class AnnouncementsFlagPersistenceImpl
 			userId, entryId, value);
 
 		if (announcementsFlag == null) {
-			StringBundler msg = new StringBundler(8);
+			StringBundler sb = new StringBundler(8);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("userId=");
-			msg.append(userId);
+			sb.append("userId=");
+			sb.append(userId);
 
-			msg.append(", entryId=");
-			msg.append(entryId);
+			sb.append(", entryId=");
+			sb.append(entryId);
 
-			msg.append(", value=");
-			msg.append(value);
+			sb.append(", value=");
+			sb.append(value);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchFlagException(msg.toString());
+			throw new NoSuchFlagException(sb.toString());
 		}
 
 		return announcementsFlag;
@@ -1187,34 +1184,34 @@ public class AnnouncementsFlagPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(5);
+			StringBundler sb = new StringBundler(5);
 
-			query.append(_SQL_SELECT_ANNOUNCEMENTSFLAG_WHERE);
+			sb.append(_SQL_SELECT_ANNOUNCEMENTSFLAG_WHERE);
 
-			query.append(_FINDER_COLUMN_U_E_V_USERID_2);
+			sb.append(_FINDER_COLUMN_U_E_V_USERID_2);
 
-			query.append(_FINDER_COLUMN_U_E_V_ENTRYID_2);
+			sb.append(_FINDER_COLUMN_U_E_V_ENTRYID_2);
 
-			query.append(_FINDER_COLUMN_U_E_V_VALUE_2);
+			sb.append(_FINDER_COLUMN_U_E_V_VALUE_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(userId);
+				queryPos.add(userId);
 
-				qPos.add(entryId);
+				queryPos.add(entryId);
 
-				qPos.add(value);
+				queryPos.add(value);
 
-				List<AnnouncementsFlag> list = q.list();
+				List<AnnouncementsFlag> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
@@ -1230,13 +1227,8 @@ public class AnnouncementsFlagPersistenceImpl
 					cacheResult(announcementsFlag);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(
-						_finderPathFetchByU_E_V, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1287,41 +1279,39 @@ public class AnnouncementsFlagPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_COUNT_ANNOUNCEMENTSFLAG_WHERE);
+			sb.append(_SQL_COUNT_ANNOUNCEMENTSFLAG_WHERE);
 
-			query.append(_FINDER_COLUMN_U_E_V_USERID_2);
+			sb.append(_FINDER_COLUMN_U_E_V_USERID_2);
 
-			query.append(_FINDER_COLUMN_U_E_V_ENTRYID_2);
+			sb.append(_FINDER_COLUMN_U_E_V_ENTRYID_2);
 
-			query.append(_FINDER_COLUMN_U_E_V_VALUE_2);
+			sb.append(_FINDER_COLUMN_U_E_V_VALUE_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(userId);
+				queryPos.add(userId);
 
-				qPos.add(entryId);
+				queryPos.add(entryId);
 
-				qPos.add(value);
+				queryPos.add(value);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1345,7 +1335,8 @@ public class AnnouncementsFlagPersistenceImpl
 
 		setModelImplClass(AnnouncementsFlagImpl.class);
 		setModelPKClass(long.class);
-		setEntityCacheEnabled(AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED);
+
+		setTable(AnnouncementsFlagTable.INSTANCE);
 	}
 
 	/**
@@ -1356,7 +1347,6 @@ public class AnnouncementsFlagPersistenceImpl
 	@Override
 	public void cacheResult(AnnouncementsFlag announcementsFlag) {
 		EntityCacheUtil.putResult(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
 			AnnouncementsFlagImpl.class, announcementsFlag.getPrimaryKey(),
 			announcementsFlag);
 
@@ -1367,8 +1357,6 @@ public class AnnouncementsFlagPersistenceImpl
 				announcementsFlag.getValue()
 			},
 			announcementsFlag);
-
-		announcementsFlag.resetOriginalValues();
 	}
 
 	/**
@@ -1380,14 +1368,10 @@ public class AnnouncementsFlagPersistenceImpl
 	public void cacheResult(List<AnnouncementsFlag> announcementsFlags) {
 		for (AnnouncementsFlag announcementsFlag : announcementsFlags) {
 			if (EntityCacheUtil.getResult(
-					AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
 					AnnouncementsFlagImpl.class,
 					announcementsFlag.getPrimaryKey()) == null) {
 
 				cacheResult(announcementsFlag);
-			}
-			else {
-				announcementsFlag.resetOriginalValues();
 			}
 		}
 	}
@@ -1418,28 +1402,14 @@ public class AnnouncementsFlagPersistenceImpl
 	@Override
 	public void clearCache(AnnouncementsFlag announcementsFlag) {
 		EntityCacheUtil.removeResult(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-			AnnouncementsFlagImpl.class, announcementsFlag.getPrimaryKey());
-
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
-		clearUniqueFindersCache(
-			(AnnouncementsFlagModelImpl)announcementsFlag, true);
+			AnnouncementsFlagImpl.class, announcementsFlag);
 	}
 
 	@Override
 	public void clearCache(List<AnnouncementsFlag> announcementsFlags) {
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
 		for (AnnouncementsFlag announcementsFlag : announcementsFlags) {
 			EntityCacheUtil.removeResult(
-				AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-				AnnouncementsFlagImpl.class, announcementsFlag.getPrimaryKey());
-
-			clearUniqueFindersCache(
-				(AnnouncementsFlagModelImpl)announcementsFlag, true);
+				AnnouncementsFlagImpl.class, announcementsFlag);
 		}
 	}
 
@@ -1451,7 +1421,6 @@ public class AnnouncementsFlagPersistenceImpl
 
 		for (Serializable primaryKey : primaryKeys) {
 			EntityCacheUtil.removeResult(
-				AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
 				AnnouncementsFlagImpl.class, primaryKey);
 		}
 	}
@@ -1469,35 +1438,6 @@ public class AnnouncementsFlagPersistenceImpl
 			_finderPathCountByU_E_V, args, Long.valueOf(1), false);
 		FinderCacheUtil.putResult(
 			_finderPathFetchByU_E_V, args, announcementsFlagModelImpl, false);
-	}
-
-	protected void clearUniqueFindersCache(
-		AnnouncementsFlagModelImpl announcementsFlagModelImpl,
-		boolean clearCurrent) {
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				announcementsFlagModelImpl.getUserId(),
-				announcementsFlagModelImpl.getEntryId(),
-				announcementsFlagModelImpl.getValue()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByU_E_V, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByU_E_V, args);
-		}
-
-		if ((announcementsFlagModelImpl.getColumnBitmask() &
-			 _finderPathFetchByU_E_V.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				announcementsFlagModelImpl.getOriginalUserId(),
-				announcementsFlagModelImpl.getOriginalEntryId(),
-				announcementsFlagModelImpl.getOriginalValue()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByU_E_V, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByU_E_V, args);
-		}
 	}
 
 	/**
@@ -1561,11 +1501,11 @@ public class AnnouncementsFlagPersistenceImpl
 
 			return remove(announcementsFlag);
 		}
-		catch (NoSuchFlagException nsee) {
-			throw nsee;
+		catch (NoSuchFlagException noSuchEntityException) {
+			throw noSuchEntityException;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1591,8 +1531,8 @@ public class AnnouncementsFlagPersistenceImpl
 				session.delete(announcementsFlag);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1634,96 +1574,30 @@ public class AnnouncementsFlagPersistenceImpl
 		try {
 			session = openSession();
 
-			if (announcementsFlag.isNew()) {
+			if (isNew) {
 				session.save(announcementsFlag);
-
-				announcementsFlag.setNew(false);
 			}
 			else {
 				announcementsFlag = (AnnouncementsFlag)session.merge(
 					announcementsFlag);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
 		}
 
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-
-		if (!AnnouncementsFlagModelImpl.COLUMN_BITMASK_ENABLED) {
-			FinderCacheUtil.clearCache(
-				FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-		}
-		else if (isNew) {
-			Object[] args = new Object[] {
-				announcementsFlagModelImpl.getCompanyId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByCompanyId, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByCompanyId, args);
-
-			args = new Object[] {announcementsFlagModelImpl.getEntryId()};
-
-			FinderCacheUtil.removeResult(_finderPathCountByEntryId, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByEntryId, args);
-
-			FinderCacheUtil.removeResult(
-				_finderPathCountAll, FINDER_ARGS_EMPTY);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindAll, FINDER_ARGS_EMPTY);
-		}
-		else {
-			if ((announcementsFlagModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByCompanyId.
-					 getColumnBitmask()) != 0) {
-
-				Object[] args = new Object[] {
-					announcementsFlagModelImpl.getOriginalCompanyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByCompanyId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByCompanyId, args);
-
-				args = new Object[] {announcementsFlagModelImpl.getCompanyId()};
-
-				FinderCacheUtil.removeResult(_finderPathCountByCompanyId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByCompanyId, args);
-			}
-
-			if ((announcementsFlagModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByEntryId.
-					 getColumnBitmask()) != 0) {
-
-				Object[] args = new Object[] {
-					announcementsFlagModelImpl.getOriginalEntryId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByEntryId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByEntryId, args);
-
-				args = new Object[] {announcementsFlagModelImpl.getEntryId()};
-
-				FinderCacheUtil.removeResult(_finderPathCountByEntryId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByEntryId, args);
-			}
-		}
-
 		EntityCacheUtil.putResult(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-			AnnouncementsFlagImpl.class, announcementsFlag.getPrimaryKey(),
-			announcementsFlag, false);
+			AnnouncementsFlagImpl.class, announcementsFlagModelImpl, false,
+			true);
 
-		clearUniqueFindersCache(announcementsFlagModelImpl, false);
 		cacheUniqueFindersCache(announcementsFlagModelImpl);
+
+		if (isNew) {
+			announcementsFlag.setNew(false);
+		}
 
 		announcementsFlag.resetOriginalValues();
 
@@ -1869,19 +1743,19 @@ public class AnnouncementsFlagPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 			String sql = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					2 + (orderByComparator.getOrderByFields().length * 2));
 
-				query.append(_SQL_SELECT_ANNOUNCEMENTSFLAG);
+				sb.append(_SQL_SELECT_ANNOUNCEMENTSFLAG);
 
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 
-				sql = query.toString();
+				sql = sb.toString();
 			}
 			else {
 				sql = _SQL_SELECT_ANNOUNCEMENTSFLAG;
@@ -1894,10 +1768,10 @@ public class AnnouncementsFlagPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
 				list = (List<AnnouncementsFlag>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -1905,12 +1779,8 @@ public class AnnouncementsFlagPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1947,18 +1817,15 @@ public class AnnouncementsFlagPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(_SQL_COUNT_ANNOUNCEMENTSFLAG);
+				Query query = session.createQuery(_SQL_COUNT_ANNOUNCEMENTSFLAG);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(
 					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1992,105 +1859,90 @@ public class AnnouncementsFlagPersistenceImpl
 	 * Initializes the announcements flag persistence.
 	 */
 	public void afterPropertiesSet() {
-		_finderPathWithPaginationFindAll = new FinderPath(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-			AnnouncementsFlagModelImpl.FINDER_CACHE_ENABLED,
-			AnnouncementsFlagImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findAll", new String[0]);
+		Registry registry = RegistryUtil.getRegistry();
 
-		_finderPathWithoutPaginationFindAll = new FinderPath(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-			AnnouncementsFlagModelImpl.FINDER_CACHE_ENABLED,
-			AnnouncementsFlagImpl.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll",
-			new String[0]);
+		_argumentsResolverServiceRegistration = registry.registerService(
+			ArgumentsResolver.class,
+			new AnnouncementsFlagModelArgumentsResolver(),
+			HashMapBuilder.<String, Object>put(
+				"model.class.name", AnnouncementsFlag.class.getName()
+			).build());
 
-		_finderPathCountAll = new FinderPath(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-			AnnouncementsFlagModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathWithPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathWithoutPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathCountAll = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
-			new String[0]);
+			new String[0], new String[0], false);
 
-		_finderPathWithPaginationFindByCompanyId = new FinderPath(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-			AnnouncementsFlagModelImpl.FINDER_CACHE_ENABLED,
-			AnnouncementsFlagImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByCompanyId",
+		_finderPathWithPaginationFindByCompanyId = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByCompanyId",
 			new String[] {
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"companyId"}, true);
 
-		_finderPathWithoutPaginationFindByCompanyId = new FinderPath(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-			AnnouncementsFlagModelImpl.FINDER_CACHE_ENABLED,
-			AnnouncementsFlagImpl.class,
+		_finderPathWithoutPaginationFindByCompanyId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByCompanyId",
-			new String[] {Long.class.getName()},
-			AnnouncementsFlagModelImpl.COMPANYID_COLUMN_BITMASK |
-			AnnouncementsFlagModelImpl.USERID_COLUMN_BITMASK |
-			AnnouncementsFlagModelImpl.CREATEDATE_COLUMN_BITMASK);
+			new String[] {Long.class.getName()}, new String[] {"companyId"},
+			true);
 
-		_finderPathCountByCompanyId = new FinderPath(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-			AnnouncementsFlagModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByCompanyId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByCompanyId",
-			new String[] {Long.class.getName()});
+			new String[] {Long.class.getName()}, new String[] {"companyId"},
+			false);
 
-		_finderPathWithPaginationFindByEntryId = new FinderPath(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-			AnnouncementsFlagModelImpl.FINDER_CACHE_ENABLED,
-			AnnouncementsFlagImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByEntryId",
+		_finderPathWithPaginationFindByEntryId = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByEntryId",
 			new String[] {
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"entryId"}, true);
 
-		_finderPathWithoutPaginationFindByEntryId = new FinderPath(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-			AnnouncementsFlagModelImpl.FINDER_CACHE_ENABLED,
-			AnnouncementsFlagImpl.class,
+		_finderPathWithoutPaginationFindByEntryId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByEntryId",
-			new String[] {Long.class.getName()},
-			AnnouncementsFlagModelImpl.ENTRYID_COLUMN_BITMASK |
-			AnnouncementsFlagModelImpl.USERID_COLUMN_BITMASK |
-			AnnouncementsFlagModelImpl.CREATEDATE_COLUMN_BITMASK);
+			new String[] {Long.class.getName()}, new String[] {"entryId"},
+			true);
 
-		_finderPathCountByEntryId = new FinderPath(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-			AnnouncementsFlagModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByEntryId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByEntryId",
-			new String[] {Long.class.getName()});
+			new String[] {Long.class.getName()}, new String[] {"entryId"},
+			false);
 
-		_finderPathFetchByU_E_V = new FinderPath(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-			AnnouncementsFlagModelImpl.FINDER_CACHE_ENABLED,
-			AnnouncementsFlagImpl.class, FINDER_CLASS_NAME_ENTITY,
-			"fetchByU_E_V",
+		_finderPathFetchByU_E_V = _createFinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByU_E_V",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Integer.class.getName()
 			},
-			AnnouncementsFlagModelImpl.USERID_COLUMN_BITMASK |
-			AnnouncementsFlagModelImpl.ENTRYID_COLUMN_BITMASK |
-			AnnouncementsFlagModelImpl.VALUE_COLUMN_BITMASK);
+			new String[] {"userId", "entryId", "value"}, true);
 
-		_finderPathCountByU_E_V = new FinderPath(
-			AnnouncementsFlagModelImpl.ENTITY_CACHE_ENABLED,
-			AnnouncementsFlagModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByU_E_V = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByU_E_V",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Integer.class.getName()
-			});
+			},
+			new String[] {"userId", "entryId", "value"}, false);
 	}
 
 	public void destroy() {
 		EntityCacheUtil.removeCache(AnnouncementsFlagImpl.class.getName());
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_ENTITY);
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		_argumentsResolverServiceRegistration.unregister();
+
+		for (ServiceRegistration<FinderPath> serviceRegistration :
+				_serviceRegistrations) {
+
+			serviceRegistration.unregister();
+		}
 	}
 
 	private static final String _SQL_SELECT_ANNOUNCEMENTSFLAG =
@@ -2115,5 +1967,110 @@ public class AnnouncementsFlagPersistenceImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		AnnouncementsFlagPersistenceImpl.class);
+
+	private FinderPath _createFinderPath(
+		String cacheName, String methodName, String[] params,
+		String[] columnNames, boolean baseModelResult) {
+
+		FinderPath finderPath = new FinderPath(
+			cacheName, methodName, params, columnNames, baseModelResult);
+
+		if (!cacheName.equals(FINDER_CLASS_NAME_LIST_WITH_PAGINATION)) {
+			Registry registry = RegistryUtil.getRegistry();
+
+			_serviceRegistrations.add(
+				registry.registerService(
+					FinderPath.class, finderPath,
+					HashMapBuilder.<String, Object>put(
+						"cache.name", cacheName
+					).build()));
+		}
+
+		return finderPath;
+	}
+
+	private ServiceRegistration<ArgumentsResolver>
+		_argumentsResolverServiceRegistration;
+	private Set<ServiceRegistration<FinderPath>> _serviceRegistrations =
+		new HashSet<>();
+
+	private static class AnnouncementsFlagModelArgumentsResolver
+		implements ArgumentsResolver {
+
+		@Override
+		public Object[] getArguments(
+			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
+			boolean original) {
+
+			String[] columnNames = finderPath.getColumnNames();
+
+			if ((columnNames == null) || (columnNames.length == 0)) {
+				if (baseModel.isNew()) {
+					return FINDER_ARGS_EMPTY;
+				}
+
+				return null;
+			}
+
+			AnnouncementsFlagModelImpl announcementsFlagModelImpl =
+				(AnnouncementsFlagModelImpl)baseModel;
+
+			long columnBitmask = announcementsFlagModelImpl.getColumnBitmask();
+
+			if (!checkColumn || (columnBitmask == 0)) {
+				return _getValue(
+					announcementsFlagModelImpl, columnNames, original);
+			}
+
+			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
+				finderPath);
+
+			if (finderPathColumnBitmask == null) {
+				finderPathColumnBitmask = 0L;
+
+				for (String columnName : columnNames) {
+					finderPathColumnBitmask |=
+						announcementsFlagModelImpl.getColumnBitmask(columnName);
+				}
+
+				_finderPathColumnBitmasksCache.put(
+					finderPath, finderPathColumnBitmask);
+			}
+
+			if ((columnBitmask & finderPathColumnBitmask) != 0) {
+				return _getValue(
+					announcementsFlagModelImpl, columnNames, original);
+			}
+
+			return null;
+		}
+
+		private Object[] _getValue(
+			AnnouncementsFlagModelImpl announcementsFlagModelImpl,
+			String[] columnNames, boolean original) {
+
+			Object[] arguments = new Object[columnNames.length];
+
+			for (int i = 0; i < arguments.length; i++) {
+				String columnName = columnNames[i];
+
+				if (original) {
+					arguments[i] =
+						announcementsFlagModelImpl.getColumnOriginalValue(
+							columnName);
+				}
+				else {
+					arguments[i] = announcementsFlagModelImpl.getColumnValue(
+						columnName);
+				}
+			}
+
+			return arguments;
+		}
+
+		private static Map<FinderPath, Long> _finderPathColumnBitmasksCache =
+			new ConcurrentHashMap<>();
+
+	}
 
 }

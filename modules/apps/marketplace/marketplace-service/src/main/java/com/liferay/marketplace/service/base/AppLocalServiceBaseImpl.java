@@ -23,6 +23,7 @@ import com.liferay.marketplace.model.App;
 import com.liferay.marketplace.service.AppLocalService;
 import com.liferay.marketplace.service.persistence.AppPersistence;
 import com.liferay.marketplace.service.persistence.ModulePersistence;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -43,6 +44,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -70,7 +72,7 @@ public abstract class AppLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements AopService, AppLocalService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>AppLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.marketplace.service.AppLocalServiceUtil</code>.
@@ -78,6 +80,10 @@ public abstract class AppLocalServiceBaseImpl
 
 	/**
 	 * Adds the app to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AppLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param app the app
 	 * @return the app that was added
@@ -105,6 +111,10 @@ public abstract class AppLocalServiceBaseImpl
 	/**
 	 * Deletes the app with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AppLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param appId the primary key of the app
 	 * @return the app that was removed
 	 * @throws PortalException if a app with the primary key could not be found
@@ -118,6 +128,10 @@ public abstract class AppLocalServiceBaseImpl
 	/**
 	 * Deletes the app from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AppLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param app the app
 	 * @return the app that was removed
 	 */
@@ -125,6 +139,11 @@ public abstract class AppLocalServiceBaseImpl
 	@Override
 	public App deleteApp(App app) {
 		return appPersistence.remove(app);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return appPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -349,12 +368,30 @@ public abstract class AppLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return appPersistence.create(((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
 		return appLocalService.deleteApp((App)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<App> getBasePersistence() {
+		return appPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -405,6 +442,10 @@ public abstract class AppLocalServiceBaseImpl
 
 	/**
 	 * Updates the app in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AppLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param app the app
 	 * @return the app that was updated
@@ -465,8 +506,8 @@ public abstract class AppLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

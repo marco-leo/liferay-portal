@@ -66,6 +66,16 @@ public class UserAccountSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (userAccount.getActions() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"actions\": ");
+
+			sb.append(_toJSON(userAccount.getActions()));
+		}
+
 		if (userAccount.getAdditionalName() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -429,6 +439,13 @@ public class UserAccountSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (userAccount.getActions() == null) {
+			map.put("actions", null);
+		}
+		else {
+			map.put("actions", String.valueOf(userAccount.getActions()));
+		}
+
 		if (userAccount.getAdditionalName() == null) {
 			map.put("additionalName", null);
 		}
@@ -447,9 +464,14 @@ public class UserAccountSerDes {
 				String.valueOf(userAccount.getAlternateName()));
 		}
 
-		map.put(
-			"birthDate",
-			liferayToJSONDateFormat.format(userAccount.getBirthDate()));
+		if (userAccount.getBirthDate() == null) {
+			map.put("birthDate", null);
+		}
+		else {
+			map.put(
+				"birthDate",
+				liferayToJSONDateFormat.format(userAccount.getBirthDate()));
+		}
 
 		if (userAccount.getCustomFields() == null) {
 			map.put("customFields", null);
@@ -467,13 +489,23 @@ public class UserAccountSerDes {
 				"dashboardURL", String.valueOf(userAccount.getDashboardURL()));
 		}
 
-		map.put(
-			"dateCreated",
-			liferayToJSONDateFormat.format(userAccount.getDateCreated()));
+		if (userAccount.getDateCreated() == null) {
+			map.put("dateCreated", null);
+		}
+		else {
+			map.put(
+				"dateCreated",
+				liferayToJSONDateFormat.format(userAccount.getDateCreated()));
+		}
 
-		map.put(
-			"dateModified",
-			liferayToJSONDateFormat.format(userAccount.getDateModified()));
+		if (userAccount.getDateModified() == null) {
+			map.put("dateModified", null);
+		}
+		else {
+			map.put(
+				"dateModified",
+				liferayToJSONDateFormat.format(userAccount.getDateModified()));
+		}
 
 		if (userAccount.getEmailAddress() == null) {
 			map.put("emailAddress", null);
@@ -610,7 +642,14 @@ public class UserAccountSerDes {
 			UserAccount userAccount, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "additionalName")) {
+			if (Objects.equals(jsonParserFieldName, "actions")) {
+				if (jsonParserFieldValue != null) {
+					userAccount.setActions(
+						(Map)UserAccountSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "additionalName")) {
 				if (jsonParserFieldValue != null) {
 					userAccount.setAdditionalName((String)jsonParserFieldValue);
 				}
@@ -762,9 +801,8 @@ public class UserAccountSerDes {
 							(String)jsonParserFieldValue));
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -820,10 +858,13 @@ public class UserAccountSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

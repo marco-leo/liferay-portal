@@ -16,12 +16,14 @@ package com.liferay.mail.reader.service.persistence.impl;
 
 import com.liferay.mail.reader.exception.NoSuchAttachmentException;
 import com.liferay.mail.reader.model.Attachment;
+import com.liferay.mail.reader.model.AttachmentTable;
 import com.liferay.mail.reader.model.impl.AttachmentImpl;
 import com.liferay.mail.reader.model.impl.AttachmentModelImpl;
 import com.liferay.mail.reader.service.persistence.AttachmentPersistence;
 import com.liferay.mail.reader.service.persistence.impl.constants.MailPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
+import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -32,9 +34,10 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -44,12 +47,16 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -69,7 +76,7 @@ import org.osgi.service.component.annotations.Reference;
 public class AttachmentPersistenceImpl
 	extends BasePersistenceImpl<Attachment> implements AttachmentPersistence {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>AttachmentUtil</code> to access the attachment persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -198,43 +205,43 @@ public class AttachmentPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_ATTACHMENT_WHERE);
+			sb.append(_SQL_SELECT_ATTACHMENT_WHERE);
 
-			query.append(_FINDER_COLUMN_MESSAGEID_MESSAGEID_2);
+			sb.append(_FINDER_COLUMN_MESSAGEID_MESSAGEID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AttachmentModelImpl.ORDER_BY_JPQL);
+				sb.append(AttachmentModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(messageId);
+				queryPos.add(messageId);
 
 				list = (List<Attachment>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -242,12 +249,8 @@ public class AttachmentPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -277,16 +280,16 @@ public class AttachmentPersistenceImpl
 			return attachment;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("messageId=");
-		msg.append(messageId);
+		sb.append("messageId=");
+		sb.append(messageId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchAttachmentException(msg.toString());
+		throw new NoSuchAttachmentException(sb.toString());
 	}
 
 	/**
@@ -330,16 +333,16 @@ public class AttachmentPersistenceImpl
 			return attachment;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("messageId=");
-		msg.append(messageId);
+		sb.append("messageId=");
+		sb.append(messageId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchAttachmentException(msg.toString());
+		throw new NoSuchAttachmentException(sb.toString());
 	}
 
 	/**
@@ -403,8 +406,8 @@ public class AttachmentPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -415,101 +418,101 @@ public class AttachmentPersistenceImpl
 		Session session, Attachment attachment, long messageId,
 		OrderByComparator<Attachment> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_ATTACHMENT_WHERE);
+		sb.append(_SQL_SELECT_ATTACHMENT_WHERE);
 
-		query.append(_FINDER_COLUMN_MESSAGEID_MESSAGEID_2);
+		sb.append(_FINDER_COLUMN_MESSAGEID_MESSAGEID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AttachmentModelImpl.ORDER_BY_JPQL);
+			sb.append(AttachmentModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(messageId);
+		queryPos.add(messageId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(attachment)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<Attachment> list = q.list();
+		List<Attachment> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -549,33 +552,31 @@ public class AttachmentPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_ATTACHMENT_WHERE);
+			sb.append(_SQL_COUNT_ATTACHMENT_WHERE);
 
-			query.append(_FINDER_COLUMN_MESSAGEID_MESSAGEID_2);
+			sb.append(_FINDER_COLUMN_MESSAGEID_MESSAGEID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(messageId);
+				queryPos.add(messageId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -589,16 +590,18 @@ public class AttachmentPersistenceImpl
 		"attachment.messageId = ?";
 
 	public AttachmentPersistenceImpl() {
-		setModelClass(Attachment.class);
-
-		setModelImplClass(AttachmentImpl.class);
-		setModelPKClass(long.class);
-
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
 		dbColumnNames.put("size", "size_");
 
 		setDBColumnNames(dbColumnNames);
+
+		setModelClass(Attachment.class);
+
+		setModelImplClass(AttachmentImpl.class);
+		setModelPKClass(long.class);
+
+		setTable(AttachmentTable.INSTANCE);
 	}
 
 	/**
@@ -609,10 +612,7 @@ public class AttachmentPersistenceImpl
 	@Override
 	public void cacheResult(Attachment attachment) {
 		entityCache.putResult(
-			entityCacheEnabled, AttachmentImpl.class,
-			attachment.getPrimaryKey(), attachment);
-
-		attachment.resetOriginalValues();
+			AttachmentImpl.class, attachment.getPrimaryKey(), attachment);
 	}
 
 	/**
@@ -624,13 +624,9 @@ public class AttachmentPersistenceImpl
 	public void cacheResult(List<Attachment> attachments) {
 		for (Attachment attachment : attachments) {
 			if (entityCache.getResult(
-					entityCacheEnabled, AttachmentImpl.class,
-					attachment.getPrimaryKey()) == null) {
+					AttachmentImpl.class, attachment.getPrimaryKey()) == null) {
 
 				cacheResult(attachment);
-			}
-			else {
-				attachment.resetOriginalValues();
 			}
 		}
 	}
@@ -660,23 +656,13 @@ public class AttachmentPersistenceImpl
 	 */
 	@Override
 	public void clearCache(Attachment attachment) {
-		entityCache.removeResult(
-			entityCacheEnabled, AttachmentImpl.class,
-			attachment.getPrimaryKey());
-
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		entityCache.removeResult(AttachmentImpl.class, attachment);
 	}
 
 	@Override
 	public void clearCache(List<Attachment> attachments) {
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
 		for (Attachment attachment : attachments) {
-			entityCache.removeResult(
-				entityCacheEnabled, AttachmentImpl.class,
-				attachment.getPrimaryKey());
+			entityCache.removeResult(AttachmentImpl.class, attachment);
 		}
 	}
 
@@ -687,8 +673,7 @@ public class AttachmentPersistenceImpl
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
 		for (Serializable primaryKey : primaryKeys) {
-			entityCache.removeResult(
-				entityCacheEnabled, AttachmentImpl.class, primaryKey);
+			entityCache.removeResult(AttachmentImpl.class, primaryKey);
 		}
 	}
 
@@ -754,11 +739,11 @@ public class AttachmentPersistenceImpl
 
 			return remove(attachment);
 		}
-		catch (NoSuchAttachmentException nsee) {
-			throw nsee;
+		catch (NoSuchAttachmentException noSuchEntityException) {
+			throw noSuchEntityException;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -781,8 +766,8 @@ public class AttachmentPersistenceImpl
 				session.delete(attachment);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -823,62 +808,26 @@ public class AttachmentPersistenceImpl
 		try {
 			session = openSession();
 
-			if (attachment.isNew()) {
+			if (isNew) {
 				session.save(attachment);
-
-				attachment.setNew(false);
 			}
 			else {
 				attachment = (Attachment)session.merge(attachment);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
 		}
 
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-
-		if (!_columnBitmaskEnabled) {
-			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-		}
-		else if (isNew) {
-			Object[] args = new Object[] {attachmentModelImpl.getMessageId()};
-
-			finderCache.removeResult(_finderPathCountByMessageId, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByMessageId, args);
-
-			finderCache.removeResult(_finderPathCountAll, FINDER_ARGS_EMPTY);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindAll, FINDER_ARGS_EMPTY);
-		}
-		else {
-			if ((attachmentModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByMessageId.
-					 getColumnBitmask()) != 0) {
-
-				Object[] args = new Object[] {
-					attachmentModelImpl.getOriginalMessageId()
-				};
-
-				finderCache.removeResult(_finderPathCountByMessageId, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByMessageId, args);
-
-				args = new Object[] {attachmentModelImpl.getMessageId()};
-
-				finderCache.removeResult(_finderPathCountByMessageId, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByMessageId, args);
-			}
-		}
-
 		entityCache.putResult(
-			entityCacheEnabled, AttachmentImpl.class,
-			attachment.getPrimaryKey(), attachment, false);
+			AttachmentImpl.class, attachmentModelImpl, false, true);
+
+		if (isNew) {
+			attachment.setNew(false);
+		}
 
 		attachment.resetOriginalValues();
 
@@ -1022,19 +971,19 @@ public class AttachmentPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 			String sql = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					2 + (orderByComparator.getOrderByFields().length * 2));
 
-				query.append(_SQL_SELECT_ATTACHMENT);
+				sb.append(_SQL_SELECT_ATTACHMENT);
 
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 
-				sql = query.toString();
+				sql = sb.toString();
 			}
 			else {
 				sql = _SQL_SELECT_ATTACHMENT;
@@ -1047,10 +996,10 @@ public class AttachmentPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
 				list = (List<Attachment>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -1058,12 +1007,8 @@ public class AttachmentPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1100,18 +1045,15 @@ public class AttachmentPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(_SQL_COUNT_ATTACHMENT);
+				Query query = session.createQuery(_SQL_COUNT_ATTACHMENT);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(
 					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1150,50 +1092,56 @@ public class AttachmentPersistenceImpl
 	 * Initializes the attachment persistence.
 	 */
 	@Activate
-	public void activate() {
-		AttachmentModelImpl.setEntityCacheEnabled(entityCacheEnabled);
-		AttachmentModelImpl.setFinderCacheEnabled(finderCacheEnabled);
+	public void activate(BundleContext bundleContext) {
+		_bundleContext = bundleContext;
 
-		_finderPathWithPaginationFindAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, AttachmentImpl.class,
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0]);
+		_argumentsResolverServiceRegistration = _bundleContext.registerService(
+			ArgumentsResolver.class, new AttachmentModelArgumentsResolver(),
+			MapUtil.singletonDictionary(
+				"model.class.name", Attachment.class.getName()));
 
-		_finderPathWithoutPaginationFindAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, AttachmentImpl.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll",
-			new String[0]);
+		_finderPathWithPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
+			new String[0], true);
 
-		_finderPathCountAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathWithoutPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathCountAll = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
-			new String[0]);
+			new String[0], new String[0], false);
 
-		_finderPathWithPaginationFindByMessageId = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, AttachmentImpl.class,
+		_finderPathWithPaginationFindByMessageId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByMessageId",
 			new String[] {
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"messageId"}, true);
 
-		_finderPathWithoutPaginationFindByMessageId = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, AttachmentImpl.class,
+		_finderPathWithoutPaginationFindByMessageId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByMessageId",
-			new String[] {Long.class.getName()},
-			AttachmentModelImpl.MESSAGEID_COLUMN_BITMASK);
+			new String[] {Long.class.getName()}, new String[] {"messageId"},
+			true);
 
-		_finderPathCountByMessageId = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByMessageId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByMessageId",
-			new String[] {Long.class.getName()});
+			new String[] {Long.class.getName()}, new String[] {"messageId"},
+			false);
 	}
 
 	@Deactivate
 	public void deactivate() {
 		entityCache.removeCache(AttachmentImpl.class.getName());
-		finderCache.removeCache(FINDER_CLASS_NAME_ENTITY);
-		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		_argumentsResolverServiceRegistration.unregister();
+
+		for (ServiceRegistration<FinderPath> serviceRegistration :
+				_serviceRegistrations) {
+
+			serviceRegistration.unregister();
+		}
 	}
 
 	@Override
@@ -1202,12 +1150,6 @@ public class AttachmentPersistenceImpl
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
-		super.setConfiguration(configuration);
-
-		_columnBitmaskEnabled = GetterUtil.getBoolean(
-			configuration.get(
-				"value.object.column.bitmask.enabled.com.liferay.mail.reader.model.Attachment"),
-			true);
 	}
 
 	@Override
@@ -1228,7 +1170,7 @@ public class AttachmentPersistenceImpl
 		super.setSessionFactory(sessionFactory);
 	}
 
-	private boolean _columnBitmaskEnabled;
+	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -1266,9 +1208,107 @@ public class AttachmentPersistenceImpl
 		try {
 			Class.forName(MailPersistenceConstants.class.getName());
 		}
-		catch (ClassNotFoundException cnfe) {
-			throw new ExceptionInInitializerError(cnfe);
+		catch (ClassNotFoundException classNotFoundException) {
+			throw new ExceptionInInitializerError(classNotFoundException);
 		}
+	}
+
+	private FinderPath _createFinderPath(
+		String cacheName, String methodName, String[] params,
+		String[] columnNames, boolean baseModelResult) {
+
+		FinderPath finderPath = new FinderPath(
+			cacheName, methodName, params, columnNames, baseModelResult);
+
+		if (!cacheName.equals(FINDER_CLASS_NAME_LIST_WITH_PAGINATION)) {
+			_serviceRegistrations.add(
+				_bundleContext.registerService(
+					FinderPath.class, finderPath,
+					MapUtil.singletonDictionary("cache.name", cacheName)));
+		}
+
+		return finderPath;
+	}
+
+	private ServiceRegistration<ArgumentsResolver>
+		_argumentsResolverServiceRegistration;
+	private Set<ServiceRegistration<FinderPath>> _serviceRegistrations =
+		new HashSet<>();
+
+	private static class AttachmentModelArgumentsResolver
+		implements ArgumentsResolver {
+
+		@Override
+		public Object[] getArguments(
+			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
+			boolean original) {
+
+			String[] columnNames = finderPath.getColumnNames();
+
+			if ((columnNames == null) || (columnNames.length == 0)) {
+				if (baseModel.isNew()) {
+					return FINDER_ARGS_EMPTY;
+				}
+
+				return null;
+			}
+
+			AttachmentModelImpl attachmentModelImpl =
+				(AttachmentModelImpl)baseModel;
+
+			long columnBitmask = attachmentModelImpl.getColumnBitmask();
+
+			if (!checkColumn || (columnBitmask == 0)) {
+				return _getValue(attachmentModelImpl, columnNames, original);
+			}
+
+			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
+				finderPath);
+
+			if (finderPathColumnBitmask == null) {
+				finderPathColumnBitmask = 0L;
+
+				for (String columnName : columnNames) {
+					finderPathColumnBitmask |=
+						attachmentModelImpl.getColumnBitmask(columnName);
+				}
+
+				_finderPathColumnBitmasksCache.put(
+					finderPath, finderPathColumnBitmask);
+			}
+
+			if ((columnBitmask & finderPathColumnBitmask) != 0) {
+				return _getValue(attachmentModelImpl, columnNames, original);
+			}
+
+			return null;
+		}
+
+		private Object[] _getValue(
+			AttachmentModelImpl attachmentModelImpl, String[] columnNames,
+			boolean original) {
+
+			Object[] arguments = new Object[columnNames.length];
+
+			for (int i = 0; i < arguments.length; i++) {
+				String columnName = columnNames[i];
+
+				if (original) {
+					arguments[i] = attachmentModelImpl.getColumnOriginalValue(
+						columnName);
+				}
+				else {
+					arguments[i] = attachmentModelImpl.getColumnValue(
+						columnName);
+				}
+			}
+
+			return arguments;
+		}
+
+		private static Map<FinderPath, Long> _finderPathColumnBitmasksCache =
+			new ConcurrentHashMap<>();
+
 	}
 
 }

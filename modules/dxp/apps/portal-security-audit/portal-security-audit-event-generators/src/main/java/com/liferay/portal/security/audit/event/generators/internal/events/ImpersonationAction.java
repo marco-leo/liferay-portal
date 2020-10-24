@@ -54,8 +54,8 @@ public class ImpersonationAction extends Action {
 		try {
 			doRun(httpServletRequest, httpServletResponse);
 		}
-		catch (Exception e) {
-			throw new ActionException(e);
+		catch (Exception exception) {
+			throw new ActionException(exception);
 		}
 	}
 
@@ -76,14 +76,13 @@ public class ImpersonationAction extends Action {
 
 		User user = themeDisplay.getUser();
 		User realUser = themeDisplay.getRealUser();
-		String doAsUserId = themeDisplay.getDoAsUserId();
 
 		HttpSession session = httpServletRequest.getSession();
 
 		Boolean impersonatingUser = (Boolean)session.getAttribute(
 			_IMPERSONATING_USER);
 
-		if (Validator.isNotNull(doAsUserId) &&
+		if (Validator.isNotNull(themeDisplay.getDoAsUserId()) &&
 			(user.getUserId() != realUser.getUserId())) {
 
 			if (impersonatingUser == null) {

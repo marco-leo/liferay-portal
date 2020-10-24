@@ -19,7 +19,7 @@
 <%
 UADExportProcessDisplayContext uadExportProcessDisplayContext = new UADExportProcessDisplayContext(request, renderResponse);
 
-UADExportProcessManagementToolbarDisplayContext uadExportProcessManagementToolbarDisplayContext = new UADExportProcessManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, uadExportProcessDisplayContext.getSearchContainer());
+UADExportProcessManagementToolbarDisplayContext uadExportProcessManagementToolbarDisplayContext = new UADExportProcessManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, uadExportProcessDisplayContext.getSearchContainer());
 
 portletDisplay.setShowBackIcon(true);
 
@@ -38,7 +38,6 @@ renderResponse.setTitle(StringBundler.concat(selectedUser.getFullName(), " - ", 
 				add(
 					navigationItem -> {
 						navigationItem.setActive(true);
-						navigationItem.setHref(StringPool.BLANK);
 						navigationItem.setLabel(LanguageUtil.get(request, "export-processes"));
 					});
 			}
@@ -71,6 +70,6 @@ renderResponse.setTitle(StringBundler.concat(selectedUser.getFullName(), " - ", 
 	new Liferay.UADExport({
 		exportProcessesNode: '#exportProcesses',
 		exportProcessesResourceURL: '<%= exportProcessesURL.toString() %>',
-		namespace: '<portlet:namespace />'
+		namespace: '<portlet:namespace />',
 	});
 </aui:script>

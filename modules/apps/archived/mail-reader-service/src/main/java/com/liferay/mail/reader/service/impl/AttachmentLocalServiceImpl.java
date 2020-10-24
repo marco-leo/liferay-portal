@@ -18,6 +18,7 @@ import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.mail.reader.model.Attachment;
 import com.liferay.mail.reader.model.Message;
 import com.liferay.mail.reader.service.base.AttachmentLocalServiceBaseImpl;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -70,7 +71,7 @@ public class AttachmentLocalServiceImpl extends AttachmentLocalServiceBaseImpl {
 		attachment.setFileName(fileName);
 		attachment.setSize(size);
 
-		attachmentPersistence.update(attachment);
+		attachment = attachmentPersistence.update(attachment);
 
 		// File
 
@@ -85,9 +86,9 @@ public class AttachmentLocalServiceImpl extends AttachmentLocalServiceBaseImpl {
 				DLStoreUtil.addFile(
 					attachment.getCompanyId(), _REPOSITORY_ID, filePath, file);
 			}
-			catch (PortalException pe) {
+			catch (PortalException portalException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(pe, pe);
+					_log.debug(portalException, portalException);
 				}
 			}
 		}
@@ -150,8 +151,8 @@ public class AttachmentLocalServiceImpl extends AttachmentLocalServiceBaseImpl {
 
 			return file;
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 	}
 
@@ -173,14 +174,9 @@ public class AttachmentLocalServiceImpl extends AttachmentLocalServiceBaseImpl {
 		return _DIRECTORY_PATH_PREFIX.concat(String.valueOf(messageId));
 	}
 
-	protected String getFilePath(long messageId, String filename) {
-		return getDirectoryPath(
-			messageId
-		).concat(
-			StringPool.SLASH
-		).concat(
-			filename
-		);
+	protected String getFilePath(long messageId, String fileName) {
+		return StringBundler.concat(
+			getDirectoryPath(messageId), StringPool.SLASH, fileName);
 	}
 
 	private static final String _DIRECTORY_PATH_PREFIX = "mail/";

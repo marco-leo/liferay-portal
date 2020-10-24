@@ -31,11 +31,6 @@ public class LayoutSetPrototypeServiceWrapper
 		_layoutSetPrototypeService = layoutSetPrototypeService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link LayoutSetPrototypeServiceUtil} to access the layout set prototype remote service. Add custom service methods to <code>com.liferay.portal.service.impl.LayoutSetPrototypeServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.portal.kernel.model.LayoutSetPrototype
 			addLayoutSetPrototype(
@@ -91,10 +86,12 @@ public class LayoutSetPrototypeServiceWrapper
 			search(
 				long companyId, java.lang.Boolean active,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.portal.kernel.model.LayoutSetPrototype> obc)
+					<com.liferay.portal.kernel.model.LayoutSetPrototype>
+						orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _layoutSetPrototypeService.search(companyId, active, obc);
+		return _layoutSetPrototypeService.search(
+			companyId, active, orderByComparator);
 	}
 
 	@Override

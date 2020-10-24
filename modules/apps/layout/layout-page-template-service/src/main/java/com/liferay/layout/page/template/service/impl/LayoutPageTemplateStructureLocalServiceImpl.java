@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.segments.constants.SegmentsExperienceConstants;
 
 import java.util.Date;
@@ -55,10 +56,26 @@ import org.osgi.service.component.annotations.Reference;
 public class LayoutPageTemplateStructureLocalServiceImpl
 	extends LayoutPageTemplateStructureLocalServiceBaseImpl {
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #addLayoutPageTemplateStructure(long, long, long, long,
+	 *             String, ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public LayoutPageTemplateStructure addLayoutPageTemplateStructure(
 			long userId, long groupId, long classNameId, long classPK,
 			String data, ServiceContext serviceContext)
+		throws PortalException {
+
+		return addLayoutPageTemplateStructure(
+			userId, groupId, classPK, data, serviceContext);
+	}
+
+	@Override
+	public LayoutPageTemplateStructure addLayoutPageTemplateStructure(
+			long userId, long groupId, long plid, String data,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		// Layout page template structure
@@ -80,20 +97,20 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 			serviceContext.getCreateDate(new Date()));
 		layoutPageTemplateStructure.setModifiedDate(
 			serviceContext.getModifiedDate(new Date()));
-		layoutPageTemplateStructure.setClassNameId(classNameId);
-		layoutPageTemplateStructure.setClassPK(classPK);
+		layoutPageTemplateStructure.setClassNameId(
+			_portal.getClassNameId(Layout.class));
+		layoutPageTemplateStructure.setClassPK(plid);
 
-		layoutPageTemplateStructurePersistence.update(
-			layoutPageTemplateStructure);
+		layoutPageTemplateStructure =
+			layoutPageTemplateStructurePersistence.update(
+				layoutPageTemplateStructure);
 
 		int count =
-			_fragmentEntryLinkLocalService.
-				getClassedModelFragmentEntryLinksCount(
-					groupId, classNameId, classPK);
+			_fragmentEntryLinkLocalService.getFragmentEntryLinksCountByPlid(
+				groupId, plid);
 
 		if (count > 0) {
-			_fragmentEntryLinkLocalService.updateClassedModel(
-				classNameId, classPK);
+			_fragmentEntryLinkLocalService.updateClassedModel(plid);
 		}
 
 		// Layout page template structure rel
@@ -140,12 +157,12 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 
 	@Override
 	public LayoutPageTemplateStructure deleteLayoutPageTemplateStructure(
-			long groupId, long classNameId, long classPK)
+			long groupId, long plid)
 		throws PortalException {
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			layoutPageTemplateStructurePersistence.findByG_C_C(
-				groupId, classNameId, classPK);
+				groupId, _portal.getClassNameId(Layout.class), plid);
 
 		layoutPageTemplateStructureLocalService.
 			deleteLayoutPageTemplateStructure(layoutPageTemplateStructure);
@@ -153,86 +170,158 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 		return layoutPageTemplateStructure;
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #deleteLayoutPageTemplateStructure(long, long)}
+	 */
+	@Deprecated
+	@Override
+	public LayoutPageTemplateStructure deleteLayoutPageTemplateStructure(
+			long groupId, long classNameId, long classPK)
+		throws PortalException {
+
+		return deleteLayoutPageTemplateStructure(groupId, classPK);
+	}
+
+	@Override
+	public LayoutPageTemplateStructure fetchLayoutPageTemplateStructure(
+		long groupId, long plid) {
+
+		return layoutPageTemplateStructurePersistence.fetchByG_C_C(
+			groupId, _portal.getClassNameId(Layout.class), plid);
+	}
+
+	@Override
+	public LayoutPageTemplateStructure fetchLayoutPageTemplateStructure(
+			long groupId, long plid, boolean rebuildStructure)
+		throws PortalException {
+
+		LayoutPageTemplateStructure layoutPageTemplateStructure =
+			fetchLayoutPageTemplateStructure(groupId, plid);
+
+		if ((layoutPageTemplateStructure != null) || !rebuildStructure) {
+			return layoutPageTemplateStructure;
+		}
+
+		return layoutPageTemplateStructureLocalService.
+			rebuildLayoutPageTemplateStructure(groupId, plid);
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #fetchLayoutPageTemplateStructure(long, long)}
+	 */
+	@Deprecated
 	@Override
 	public LayoutPageTemplateStructure fetchLayoutPageTemplateStructure(
 		long groupId, long classNameId, long classPK) {
 
-		return layoutPageTemplateStructurePersistence.fetchByG_C_C(
-			groupId, classNameId, classPK);
+		return fetchLayoutPageTemplateStructure(groupId, classPK);
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #fetchLayoutPageTemplateStructure(long, long, boolean)}
+	 */
+	@Deprecated
 	@Override
 	public LayoutPageTemplateStructure fetchLayoutPageTemplateStructure(
 			long groupId, long classNameId, long classPK,
 			boolean rebuildStructure)
 		throws PortalException {
 
-		LayoutPageTemplateStructure layoutPageTemplateStructure =
-			fetchLayoutPageTemplateStructure(groupId, classNameId, classPK);
-
-		if ((layoutPageTemplateStructure != null) || !rebuildStructure) {
-			return layoutPageTemplateStructure;
-		}
-
-		return rebuildLayoutPageTemplateStructure(
-			groupId, classNameId, classPK);
+		return fetchLayoutPageTemplateStructure(
+			groupId, classPK, rebuildStructure);
 	}
 
+	@Override
+	public LayoutPageTemplateStructure rebuildLayoutPageTemplateStructure(
+			long groupId, long plid)
+		throws PortalException {
+
+		List<FragmentEntryLink> fragmentEntryLinks =
+			_fragmentEntryLinkLocalService.getFragmentEntryLinksByPlid(
+				groupId, plid);
+
+		JSONObject jsonObject =
+			LayoutPageTemplateStructureHelperUtil.
+				generateContentLayoutStructure(
+					fragmentEntryLinks,
+					_getLayoutPageTemplateEntryType(
+						_layoutLocalService.getLayout(plid)));
+
+		LayoutPageTemplateStructure layoutPageTemplateStructure =
+			fetchLayoutPageTemplateStructure(groupId, plid);
+
+		if (layoutPageTemplateStructure != null) {
+			return updateLayoutPageTemplateStructureData(
+				groupId, plid, jsonObject.toString());
+		}
+
+		return addLayoutPageTemplateStructure(
+			PrincipalThreadLocal.getUserId(), groupId, plid,
+			jsonObject.toString(),
+			ServiceContextThreadLocal.getServiceContext());
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #rebuildLayoutPageTemplateStructure(long, long)}
+	 */
+	@Deprecated
 	@Override
 	public LayoutPageTemplateStructure rebuildLayoutPageTemplateStructure(
 			long groupId, long classNameId, long classPK)
 		throws PortalException {
 
-		List<FragmentEntryLink> fragmentEntryLinks =
-			_fragmentEntryLinkLocalService.getFragmentEntryLinks(
-				groupId, classNameId, classPK);
-
-		Layout layout = _layoutLocalService.getLayout(classPK);
-
-		int type = LayoutPageTemplateEntryTypeConstants.TYPE_BASIC;
-
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			_layoutPageTemplateEntryLocalService.
-				fetchLayoutPageTemplateEntryByPlid(layout.getClassPK());
-
-		if (layoutPageTemplateEntry != null) {
-			type = layoutPageTemplateEntry.getType();
-		}
-
-		JSONObject jsonObject =
-			LayoutPageTemplateStructureHelperUtil.
-				generateContentLayoutStructure(fragmentEntryLinks, type);
-
-		LayoutPageTemplateStructure layoutPageTemplateStructure =
-			fetchLayoutPageTemplateStructure(groupId, classNameId, classPK);
-
-		if (layoutPageTemplateStructure != null) {
-			return updateLayoutPageTemplateStructure(
-				groupId, classNameId, classPK, jsonObject.toString());
-		}
-
-		return addLayoutPageTemplateStructure(
-			PrincipalThreadLocal.getUserId(), groupId, classNameId, classPK,
-			jsonObject.toString(),
-			ServiceContextThreadLocal.getServiceContext());
+		return rebuildLayoutPageTemplateStructure(groupId, classPK);
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #updateLayoutPageTemplateStructureData(long, long, long,
+	 *             String)}
+	 */
+	@Deprecated
 	@Override
 	public LayoutPageTemplateStructure updateLayoutPageTemplateStructure(
 			long groupId, long classNameId, long classPK,
 			long segmentsExperienceId, String data)
 		throws PortalException {
 
+		return updateLayoutPageTemplateStructureData(
+			groupId, classPK, segmentsExperienceId, data);
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #updateLayoutPageTemplateStructureData(long, long, String)}
+	 */
+	@Deprecated
+	@Override
+	public LayoutPageTemplateStructure updateLayoutPageTemplateStructure(
+			long groupId, long classNameId, long classPK, String data)
+		throws PortalException {
+
+		return updateLayoutPageTemplateStructureData(groupId, classPK, data);
+	}
+
+	@Override
+	public LayoutPageTemplateStructure updateLayoutPageTemplateStructureData(
+			long groupId, long plid, long segmentsExperienceId, String data)
+		throws PortalException {
+
 		// Layout page template structure
 
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			layoutPageTemplateStructurePersistence.findByG_C_C(
-				groupId, classNameId, classPK);
+				groupId, _portal.getClassNameId(Layout.class), plid);
 
 		layoutPageTemplateStructure.setModifiedDate(new Date());
 
-		layoutPageTemplateStructurePersistence.update(
-			layoutPageTemplateStructure);
+		layoutPageTemplateStructure =
+			layoutPageTemplateStructurePersistence.update(
+				layoutPageTemplateStructure);
 
 		// Layout page template structure rel
 
@@ -260,44 +349,52 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 					segmentsExperienceId, data);
 		}
 
-		_updateClassedModel(classNameId, classPK);
+		_updateLayoutStatus(plid);
 
 		return layoutPageTemplateStructure;
 	}
 
 	@Override
-	public LayoutPageTemplateStructure updateLayoutPageTemplateStructure(
-			long groupId, long classNameId, long classPK, String data)
+	public LayoutPageTemplateStructure updateLayoutPageTemplateStructureData(
+			long groupId, long plid, String data)
 		throws PortalException {
 
 		return layoutPageTemplateStructureLocalService.
-			updateLayoutPageTemplateStructure(
-				groupId, classNameId, classPK,
-				SegmentsExperienceConstants.ID_DEFAULT, data);
+			updateLayoutPageTemplateStructureData(
+				groupId, plid, SegmentsExperienceConstants.ID_DEFAULT, data);
 	}
 
-	private void _updateClassedModel(long classNameId, long classPK)
-		throws PortalException {
+	private int _getLayoutPageTemplateEntryType(Layout layout) {
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.
+				fetchLayoutPageTemplateEntryByPlid(layout.getClassPK());
 
-		if (classNameId == _portal.getClassNameId(Layout.class)) {
-			Layout layout = _layoutLocalService.getLayout(classPK);
-
-			_layoutLocalService.updateLayout(
-				layout.getGroupId(), layout.isPrivateLayout(),
-				layout.getLayoutId(), layout.getTypeSettings());
+		if (layoutPageTemplateEntry != null) {
+			return layoutPageTemplateEntry.getType();
 		}
-		else if (classNameId == _portal.getClassNameId(
-					LayoutPageTemplateEntry.class)) {
 
-			LayoutPageTemplateEntry layoutPageTemplateEntry =
-				_layoutPageTemplateEntryLocalService.getLayoutPageTemplateEntry(
-					classPK);
+		Layout draftLayout = layout.fetchDraftLayout();
 
-			layoutPageTemplateEntry.setModifiedDate(new Date());
+		if (draftLayout != null) {
+			LayoutPageTemplateEntry draftLayoutPageTemplateEntry =
+				_layoutPageTemplateEntryLocalService.
+					fetchLayoutPageTemplateEntryByPlid(
+						draftLayout.getClassPK());
 
-			_layoutPageTemplateEntryLocalService.updateLayoutPageTemplateEntry(
-				layoutPageTemplateEntry);
+			if (draftLayoutPageTemplateEntry != null) {
+				return draftLayoutPageTemplateEntry.getType();
+			}
 		}
+
+		return LayoutPageTemplateEntryTypeConstants.TYPE_BASIC;
+	}
+
+	private void _updateLayoutStatus(long plid) throws PortalException {
+		Layout layout = _layoutLocalService.getLayout(plid);
+
+		layout.setStatus(WorkflowConstants.STATUS_DRAFT);
+
+		_layoutLocalService.updateLayout(layout);
 	}
 
 	@Reference

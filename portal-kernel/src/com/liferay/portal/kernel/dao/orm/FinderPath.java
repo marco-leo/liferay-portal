@@ -32,28 +32,73 @@ import java.util.Map;
  */
 public class FinderPath {
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #FinderPath(String, String, String[], String[], boolean)}
+	 */
+	@Deprecated
 	public FinderPath(
 		boolean entityCacheEnabled, boolean finderCacheEnabled,
 		Class<?> resultClass, String cacheName, String methodName,
 		String[] params) {
 
 		this(
-			entityCacheEnabled, finderCacheEnabled, resultClass, cacheName,
-			methodName, params, -1);
+			cacheName, methodName, params, new String[0],
+			BaseModel.class.isAssignableFrom(resultClass));
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #FinderPath(String, String, String[], String[], boolean)}
+	 */
+	@Deprecated
 	public FinderPath(
 		boolean entityCacheEnabled, boolean finderCacheEnabled,
 		Class<?> resultClass, String cacheName, String methodName,
 		String[] params, long columnBitmask) {
 
-		_entityCacheEnabled = entityCacheEnabled;
-		_finderCacheEnabled = finderCacheEnabled;
-		_resultClass = resultClass;
-		_cacheName = cacheName;
-		_columnBitmask = columnBitmask;
+		this(
+			cacheName, methodName, params, new String[0],
+			BaseModel.class.isAssignableFrom(resultClass));
+	}
 
-		if (BaseModel.class.isAssignableFrom(_resultClass)) {
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #FinderPath(String, String, String[], String[], boolean)}
+	 */
+	@Deprecated
+	public FinderPath(
+		Class<?> resultClass, String cacheName, String methodName,
+		String[] params) {
+
+		this(
+			cacheName, methodName, params, new String[0],
+			BaseModel.class.isAssignableFrom(resultClass));
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #FinderPath(String, String, String[], String[], boolean)}
+	 */
+	@Deprecated
+	public FinderPath(
+		Class<?> resultClass, String cacheName, String methodName,
+		String[] params, long columnBitmask) {
+
+		this(
+			cacheName, methodName, params, new String[0],
+			BaseModel.class.isAssignableFrom(resultClass));
+	}
+
+	public FinderPath(
+		String cacheName, String methodName, String[] params,
+		String[] columnNames, boolean baseModelResult) {
+
+		_cacheName = cacheName;
+		_columnNames = columnNames;
+		_baseModelResult = baseModelResult;
+
+		if (baseModelResult) {
 			_cacheKeyGeneratorCacheName = _BASE_MODEL_CACHE_KEY_GENERATOR_NAME;
 		}
 		else {
@@ -72,9 +117,13 @@ public class FinderPath {
 		}
 
 		_initCacheKeyPrefix(methodName, params);
-		_initLocalCacheKeyPrefix();
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #encodeCacheKey(Object[])}
+	 */
+	@Deprecated
 	public String encodeArguments(Object[] arguments) {
 		String[] keys = new String[arguments.length * 2];
 
@@ -88,33 +137,94 @@ public class FinderPath {
 		return StringUtil.toHexString(_getCacheKey(keys));
 	}
 
+	public Serializable encodeCacheKey(Object[] arguments) {
+		CacheKeyGenerator cacheKeyGenerator = _cacheKeyGenerator;
+
+		if (cacheKeyGenerator == null) {
+			cacheKeyGenerator = CacheKeyGeneratorUtil.getCacheKeyGenerator(
+				_cacheKeyGeneratorCacheName);
+		}
+
+		String[] keys = new String[arguments.length * 2];
+
+		for (int i = 0; i < arguments.length; i++) {
+			int index = i * 2;
+
+			keys[index] = StringPool.PERIOD;
+			keys[index + 1] = StringUtil.toHexString(arguments[i]);
+		}
+
+		return cacheKeyGenerator.getCacheKey(
+			new String[] {
+				_cacheKeyPrefix,
+				StringUtil.toHexString(cacheKeyGenerator.getCacheKey(keys))
+			});
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #encodeCacheKey(Object[])}
+	 */
+	@Deprecated
 	public Serializable encodeCacheKey(String encodedArguments) {
 		return _getCacheKey(new String[] {_cacheKeyPrefix, encodedArguments});
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	public Serializable encodeLocalCacheKey(String encodedArguments) {
 		return _getCacheKey(
-			new String[] {_localCacheKeyPrefix, encodedArguments});
+			new String[] {
+				StringBundler.concat(
+					_cacheName, StringPool.PERIOD, _cacheKeyPrefix),
+				encodedArguments
+			});
 	}
 
 	public String getCacheName() {
 		return _cacheName;
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	public long getColumnBitmask() {
-		return _columnBitmask;
+		return 0;
 	}
 
+	public String[] getColumnNames() {
+		return _columnNames;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	public Class<?> getResultClass() {
-		return _resultClass;
+		return null;
 	}
 
+	public boolean isBaseModelResult() {
+		return _baseModelResult;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	public boolean isEntityCacheEnabled() {
-		return _entityCacheEnabled;
+		return true;
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	public boolean isFinderCacheEnabled() {
-		return _finderCacheEnabled;
+		return true;
 	}
 
 	private static Map<String, String> _getEncodedTypes() {
@@ -151,7 +261,7 @@ public class FinderPath {
 	}
 
 	private void _initCacheKeyPrefix(String methodName, String[] params) {
-		StringBundler sb = new StringBundler(params.length * 2 + 3);
+		StringBundler sb = new StringBundler((params.length * 2) + 3);
 
 		sb.append(methodName);
 		sb.append(_PARAMS_SEPARATOR);
@@ -166,14 +276,6 @@ public class FinderPath {
 		_cacheKeyPrefix = sb.toString();
 	}
 
-	private void _initLocalCacheKeyPrefix() {
-		_localCacheKeyPrefix = _cacheName.concat(
-			StringPool.PERIOD
-		).concat(
-			_cacheKeyPrefix
-		);
-	}
-
 	private static final String _ARGS_SEPARATOR = "_A_";
 
 	private static final String _BASE_MODEL_CACHE_KEY_GENERATOR_NAME =
@@ -183,14 +285,11 @@ public class FinderPath {
 
 	private static final Map<String, String> _encodedTypes = _getEncodedTypes();
 
+	private final boolean _baseModelResult;
 	private final CacheKeyGenerator _cacheKeyGenerator;
 	private final String _cacheKeyGeneratorCacheName;
 	private String _cacheKeyPrefix;
 	private final String _cacheName;
-	private final long _columnBitmask;
-	private final boolean _entityCacheEnabled;
-	private final boolean _finderCacheEnabled;
-	private String _localCacheKeyPrefix;
-	private final Class<?> _resultClass;
+	private final String[] _columnNames;
 
 }

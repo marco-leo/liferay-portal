@@ -154,11 +154,6 @@ public class AccountEntryUserRelWrapper
 		return model.getPrimaryKey();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a account entry user rel model instance should use the <code>AccountEntryUserRel</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();

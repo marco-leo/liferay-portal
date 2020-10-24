@@ -9,17 +9,17 @@
  * distribution rights of the Software.
  */
 
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
 import Panel from '../../../shared/components/Panel.es';
-import {getFiltersParam} from '../../../shared/components/filter/util/filterUtil.es';
-import Request from '../../../shared/components/request/Request.es';
-import ProcessStepFilter from '../filter/ProcessStepFilter.es';
-import {ProcessStepProvider} from '../filter/store/ProcessStepStore.es';
+import PromisesResolver from '../../../shared/components/promises-resolver/PromisesResolver.es';
+import Tabs from '../../../shared/components/tabs/Tabs.es';
+import {useFilter} from '../../../shared/hooks/useFilter.es';
+import {usePost} from '../../../shared/hooks/usePost.es';
+import ProcessStepFilter from '../../filter/ProcessStepFilter.es';
 import {Body} from './WorkloadByAssigneeCardBody.es';
-import Tabs from './WorkloadByAssigneeCardTabs.es';
 
-const Header = () => (
+const Header = ({processId}) => (
 	<>
 		<Panel.HeaderWithOptions
 			description={Liferay.Language.get(
@@ -30,59 +30,86 @@ const Header = () => (
 			tooltipPosition="bottom"
 		/>
 
-		<Request.Success>
-			<div className="management-bar management-bar-light ml-3 navbar navbar-expand-md pl-1">
-				<ul className="navbar-nav">
-					<ProcessStepFilter
-						filterKey="assigneeTaskKeys"
-						hideControl={true}
-						multiple={false}
-						showFilterName={false}
-					/>
-				</ul>
-			</div>
-		</Request.Success>
+		<div className="management-bar management-bar-light ml-3 navbar navbar-expand-md pl-1">
+			<ul className="navbar-nav">
+				<ProcessStepFilter
+					options={{
+						hideControl: true,
+						multiple: false,
+						withAllSteps: true,
+						withSelectionTitle: true,
+					}}
+					processId={processId}
+				/>
+			</ul>
+		</div>
 	</>
 );
 
-const WorkloadByAssigneeCard = ({processId, query}) => {
-	const {assigneeTaskKeys = []} = getFiltersParam(query);
+const WorkloadByAssigneeCard = ({routeParams}) => {
+	const {processId} = routeParams;
 	const [currentTab, setCurrentTab] = useState('overdue');
+	const filterKeys = ['processStep'];
+
+	const {
+		filterValues: {taskNames: [taskName] = ['allSteps']},
+	} = useFilter({filterKeys});
+
+	const sort = useMemo(() => {
+		const items = {
+			onTime: 'onTimeTaskCount:desc',
+			overdue: 'overdueTaskCount:desc',
+			total: 'taskCount:desc',
+		};
+
+		return items[currentTab];
+	}, [currentTab]);
+
+	const taskNames = taskName !== 'allSteps' ? [taskName] : undefined;
+
+	const {data, postData} = usePost({
+		body: {taskNames},
+		params: {
+			page: 1,
+			pageSize: 10,
+			sort,
+		},
+		url: `/processes/${processId}/assignees/metrics`,
+	});
+
+	const promises = useMemo(() => [postData()], [postData]);
+
+	const tabs = [
+		{name: Liferay.Language.get('overdue'), tabKey: 'overdue'},
+		{name: Liferay.Language.get('on-time'), tabKey: 'onTime'},
+		{name: Liferay.Language.get('total'), tabKey: 'total'},
+	];
 
 	return (
-		<Request>
-			<ProcessStepProvider
-				processId={processId}
-				processStepKeys={assigneeTaskKeys}
-				withAllSteps={true}
-			>
-				<Panel elementClasses="workload-by-assignee-card">
-					<WorkloadByAssigneeCard.Header />
+		<PromisesResolver promises={promises}>
+			<Panel elementClasses="workload-by-assignee-card">
+				<WorkloadByAssigneeCard.Header processId={processId} />
 
-					<WorkloadByAssigneeCard.Tabs
+				<div className="border-bottom">
+					<Tabs
 						currentTab={currentTab}
 						setCurrentTab={setCurrentTab}
+						tabs={tabs}
 					/>
+				</div>
 
-					<Panel.Body>
-						<Request.Error />
-
-						<Request.Loading />
-
-						<WorkloadByAssigneeCard.Body
-							currentTab={currentTab}
-							processId={processId}
-							query={query}
-						/>
-					</Panel.Body>
-				</Panel>
-			</ProcessStepProvider>
-		</Request>
+				<WorkloadByAssigneeCard.Body
+					currentTab={currentTab}
+					{...data}
+					processStepKey={taskNames && taskName}
+					{...routeParams}
+				/>
+			</Panel>
+		</PromisesResolver>
 	);
 };
 
 WorkloadByAssigneeCard.Body = Body;
 WorkloadByAssigneeCard.Header = Header;
-WorkloadByAssigneeCard.Tabs = Tabs;
 
 export default WorkloadByAssigneeCard;

@@ -17,8 +17,8 @@ package com.liferay.portal.vulcan.internal.jaxrs.writer.interceptor;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.vulcan.fields.NestedField;
 import com.liferay.portal.vulcan.fields.NestedFieldId;
-import com.liferay.portal.vulcan.internal.fields.NestedFieldsContext;
-import com.liferay.portal.vulcan.internal.fields.NestedFieldsContextThreadLocal;
+import com.liferay.portal.vulcan.fields.NestedFieldsContext;
+import com.liferay.portal.vulcan.fields.NestedFieldsContextThreadLocal;
 import com.liferay.portal.vulcan.internal.fields.servlet.NestedFieldsHttpServletRequestWrapperTest;
 import com.liferay.portal.vulcan.internal.jaxrs.context.provider.PaginationContextProvider;
 import com.liferay.portal.vulcan.pagination.Page;
@@ -98,7 +98,7 @@ public class NestedFieldsWriterInterceptorTest {
 			Mockito.any(Message.class)
 		);
 
-		ServiceReference serviceReference1 = new MockServiceReference();
+		ServiceReference<Object> serviceReference1 = new MockServiceReference();
 
 		_productResource_v1_0_Impl = new ProductResource_v1_0_Impl();
 
@@ -120,7 +120,7 @@ public class NestedFieldsWriterInterceptorTest {
 
 		_nestedFieldServiceTrackerCustomizer.addingService(serviceReference1);
 
-		ServiceReference serviceReference2 = new MockServiceReference();
+		ServiceReference<Object> serviceReference2 = new MockServiceReference();
 
 		_productResource_v2_0_Impl = new ProductResource_v2_0_Impl();
 
@@ -353,6 +353,75 @@ public class NestedFieldsWriterInterceptorTest {
 	}
 
 	@Test
+	public void testGetNestedFieldsWithoutContextAnnotation() throws Exception {
+		Product product = _toProduct(1L, null);
+
+		Mockito.when(
+			_writerInterceptorContext.getEntity()
+		).thenReturn(
+			product
+		);
+
+		Mockito.doReturn(
+			new NestedFieldsHttpServletRequestWrapperTest.
+				MockHttpServletRequest("skus")
+		).when(
+			_nestedFieldServiceTrackerCustomizer
+		).getHttpServletRequest(
+			Mockito.any(Message.class)
+		);
+
+		NestedFieldsContextThreadLocal.setNestedFieldsContext(
+			new NestedFieldsContext(
+				Arrays.asList("productOptions", "skus"), new MessageImpl(),
+				_getPathParameters(), "v1.0", new MultivaluedHashMap<>()));
+
+		Assert.assertNull(_productResource_v1_0_Impl.contextThemeDisplay);
+
+		_nestedFieldsWriterInterceptor.aroundWriteTo(_writerInterceptorContext);
+
+		Assert.assertNotNull(_productResource_v1_0_Impl.contextThemeDisplay);
+	}
+
+	@Test
+	public void testGetNestedFieldsWithoutOverridingMethod()
+		throws IOException {
+
+		Product product = _toProduct(1L, "externalCode");
+
+		Mockito.when(
+			_writerInterceptorContext.getEntity()
+		).thenReturn(
+			product
+		);
+
+		Mockito.doReturn(
+			new NestedFieldsHttpServletRequestWrapperTest.
+				MockHttpServletRequest("externalCode")
+		).when(
+			_nestedFieldServiceTrackerCustomizer
+		).getHttpServletRequest(
+			Mockito.any(Message.class)
+		);
+
+		MultivaluedHashMap<String, String> queryParameters =
+			new MultivaluedHashMap<String, String>() {
+				{
+					putSingle("externalCode.AcceptLanguage", "es_ES");
+				}
+			};
+
+		NestedFieldsContextThreadLocal.setNestedFieldsContext(
+			new NestedFieldsContext(
+				Collections.singletonList("externalCode"), new MessageImpl(),
+				_getPathParameters(), "v1.0", queryParameters));
+
+		_nestedFieldsWriterInterceptor.aroundWriteTo(_writerInterceptorContext);
+
+		Assert.assertEquals("codigoExterno", product.getExternalCode());
+	}
+
+	@Test
 	public void testGetNestedFieldsWithPagination() throws Exception {
 		Product product = _toProduct(1L, null);
 
@@ -566,21 +635,21 @@ public class NestedFieldsWriterInterceptorTest {
 		return sku;
 	}
 
-	private static Subproduct _toSubproduct(long id, String externalCode) {
-		Subproduct subproduct = new Subproduct();
-
-		subproduct.setExternalCode(externalCode);
-		subproduct.setId(id);
-
-		return subproduct;
-	}
-
 	private MultivaluedHashMap<String, String> _getPathParameters() {
 		return new MultivaluedHashMap<String, String>() {
 			{
 				putSingle("id", "1");
 			}
 		};
+	}
+
+	private Subproduct _toSubproduct(long id, String externalCode) {
+		Subproduct subproduct = new Subproduct();
+
+		subproduct.setExternalCode(externalCode);
+		subproduct.setId(id);
+
+		return subproduct;
 	}
 
 	private NestedFieldsWriterInterceptor.NestedFieldServiceTrackerCustomizer
@@ -904,6 +973,8 @@ public class NestedFieldsWriterInterceptorTest {
 			return Page.of(skus);
 		}
 
+		public ThemeDisplay contextThemeDisplay;
+
 		@Context
 		public ThemeDisplay themeDisplay;
 
@@ -917,6 +988,17 @@ public class NestedFieldsWriterInterceptorTest {
 
 			return Arrays.asList(
 				_toCategory(1L), _toCategory(2L), _toCategory(3L));
+		}
+
+		@NestedField("externalCode")
+		protected String getExternalCodeByQueryParam(
+			@QueryParam("AcceptLanguage") String acceptLanguage) {
+
+			if (!Objects.equals(acceptLanguage, "es_ES")) {
+				return "";
+			}
+
+			return "codigoExterno";
 		}
 
 	}

@@ -57,8 +57,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see SiteNavigationMenuItemServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class SiteNavigationMenuItemServiceSoap {
 
 	public static com.liferay.site.navigation.model.SiteNavigationMenuItemSoap
@@ -80,10 +82,10 @@ public class SiteNavigationMenuItemServiceSoap {
 			return com.liferay.site.navigation.model.SiteNavigationMenuItemSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -100,10 +102,10 @@ public class SiteNavigationMenuItemServiceSoap {
 			return com.liferay.site.navigation.model.SiteNavigationMenuItemSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -114,10 +116,10 @@ public class SiteNavigationMenuItemServiceSoap {
 			SiteNavigationMenuItemServiceUtil.deleteSiteNavigationMenuItems(
 				siteNavigationMenuId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -135,10 +137,34 @@ public class SiteNavigationMenuItemServiceSoap {
 			return com.liferay.site.navigation.model.SiteNavigationMenuItemSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
+		}
+	}
+
+	public static com.liferay.site.navigation.model.SiteNavigationMenuItemSoap[]
+			getSiteNavigationMenuItems(
+				long siteNavigationMenuId, long parentSiteNavigationMenuItemId)
+		throws RemoteException {
+
+		try {
+			java.util.List
+				<com.liferay.site.navigation.model.SiteNavigationMenuItem>
+					returnValue =
+						SiteNavigationMenuItemServiceUtil.
+							getSiteNavigationMenuItems(
+								siteNavigationMenuId,
+								parentSiteNavigationMenuItemId);
+
+			return com.liferay.site.navigation.model.SiteNavigationMenuItemSoap.
+				toSoapModels(returnValue);
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -159,10 +185,10 @@ public class SiteNavigationMenuItemServiceSoap {
 			return com.liferay.site.navigation.model.SiteNavigationMenuItemSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -182,10 +208,10 @@ public class SiteNavigationMenuItemServiceSoap {
 			return com.liferay.site.navigation.model.SiteNavigationMenuItemSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

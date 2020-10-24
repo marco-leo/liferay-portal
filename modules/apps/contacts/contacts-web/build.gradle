@@ -1,6 +1,6 @@
 buildCSS {
 	imports = [
-		new File(npmInstall.nodeModulesDir, "clay-css/src/scss")
+		new File(npmInstall.nodeModulesDir, "@clayui/css/src/scss")
 	]
 }
 
@@ -16,12 +16,14 @@ dependencies {
 	compileOnly project(":apps:asset:asset-taglib")
 	compileOnly project(":apps:contacts:contacts-api")
 	compileOnly project(":apps:frontend-taglib:frontend-taglib")
-	compileOnly project(":apps:frontend-taglib:frontend-taglib-soy")
+	compileOnly project(":apps:frontend-taglib:frontend-taglib-clay")
 	compileOnly project(":apps:portal:portal-upgrade-api")
+	compileOnly project(":apps:product-navigation:product-navigation-personal-menu-api")
 	compileOnly project(":apps:social:social-activities-taglib")
 	compileOnly project(":apps:static:portal-configuration:portal-configuration-metatype-api")
 	compileOnly project(":apps:text-localizer:text-localizer-taglib")
 	compileOnly project(":apps:users-admin:users-admin-api")
 	compileOnly project(":core:petra:petra-lang")
+	compileOnly project(":core:petra:petra-sql-dsl-api")
 	compileOnly project(":core:petra:petra-string")
 }

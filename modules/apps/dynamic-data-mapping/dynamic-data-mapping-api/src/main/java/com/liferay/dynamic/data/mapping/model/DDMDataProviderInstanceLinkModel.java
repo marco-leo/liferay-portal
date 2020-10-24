@@ -17,6 +17,7 @@ package com.liferay.dynamic.data.mapping.model;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -33,9 +34,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface DDMDataProviderInstanceLinkModel
-	extends BaseModel<DDMDataProviderInstanceLink>, MVCCModel, ShardedModel {
+	extends BaseModel<DDMDataProviderInstanceLink>,
+			CTModel<DDMDataProviderInstanceLink>, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a ddm data provider instance link model instance should use the {@link DDMDataProviderInstanceLink} interface instead.
@@ -46,6 +48,7 @@ public interface DDMDataProviderInstanceLinkModel
 	 *
 	 * @return the primary key of this ddm data provider instance link
 	 */
+	@Override
 	public long getPrimaryKey();
 
 	/**
@@ -53,6 +56,7 @@ public interface DDMDataProviderInstanceLinkModel
 	 *
 	 * @param primaryKey the primary key of this ddm data provider instance link
 	 */
+	@Override
 	public void setPrimaryKey(long primaryKey);
 
 	/**
@@ -70,6 +74,22 @@ public interface DDMDataProviderInstanceLinkModel
 	 */
 	@Override
 	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the ct collection ID of this ddm data provider instance link.
+	 *
+	 * @return the ct collection ID of this ddm data provider instance link
+	 */
+	@Override
+	public long getCtCollectionId();
+
+	/**
+	 * Sets the ct collection ID of this ddm data provider instance link.
+	 *
+	 * @param ctCollectionId the ct collection ID of this ddm data provider instance link
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId);
 
 	/**
 	 * Returns the data provider instance link ID of this ddm data provider instance link.

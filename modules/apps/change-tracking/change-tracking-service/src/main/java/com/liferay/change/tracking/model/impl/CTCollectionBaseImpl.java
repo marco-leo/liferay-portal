@@ -32,7 +32,7 @@ import com.liferay.change.tracking.service.CTCollectionLocalServiceUtil;
 public abstract class CTCollectionBaseImpl
 	extends CTCollectionModelImpl implements CTCollection {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a ct collection model instance should use the <code>CTCollection</code> interface instead.

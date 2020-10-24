@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class AssetListEntryLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.asset.list.service.impl.AssetListEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link AssetListEntryLocalServiceUtil} to access the asset list entry local service. Add custom service methods to <code>com.liferay.asset.list.service.impl.AssetListEntryLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static void addAssetEntrySelection(
 			long assetListEntryId, long assetEntryId, long segmentsEntryId,
@@ -63,6 +57,10 @@ public class AssetListEntryLocalServiceUtil {
 
 	/**
 	 * Adds the asset list entry to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetListEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetListEntry the asset list entry
 	 * @return the asset list entry that was added
@@ -124,6 +122,16 @@ public class AssetListEntryLocalServiceUtil {
 		return getService().createAssetListEntry(assetListEntryId);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
 	public static void deleteAssetEntrySelection(
 			long assetListEntryId, long segmentsEntryId, int position)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -135,18 +143,28 @@ public class AssetListEntryLocalServiceUtil {
 	/**
 	 * Deletes the asset list entry from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetListEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param assetListEntry the asset list entry
 	 * @return the asset list entry that was removed
+	 * @throws PortalException
 	 */
 	public static com.liferay.asset.list.model.AssetListEntry
-		deleteAssetListEntry(
-			com.liferay.asset.list.model.AssetListEntry assetListEntry) {
+			deleteAssetListEntry(
+				com.liferay.asset.list.model.AssetListEntry assetListEntry)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deleteAssetListEntry(assetListEntry);
 	}
 
 	/**
 	 * Deletes the asset list entry with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetListEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetListEntryId the primary key of the asset list entry
 	 * @return the asset list entry that was removed
@@ -176,6 +194,12 @@ public class AssetListEntryLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -415,6 +439,9 @@ public class AssetListEntryLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -433,6 +460,10 @@ public class AssetListEntryLocalServiceUtil {
 
 	/**
 	 * Updates the asset list entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetListEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetListEntry the asset list entry
 	 * @return the asset list entry that was updated

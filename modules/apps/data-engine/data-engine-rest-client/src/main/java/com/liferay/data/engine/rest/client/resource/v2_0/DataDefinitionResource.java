@@ -18,6 +18,8 @@ import com.liferay.data.engine.rest.client.dto.v2_0.DataDefinition;
 import com.liferay.data.engine.rest.client.http.HttpInvoker;
 import com.liferay.data.engine.rest.client.pagination.Page;
 import com.liferay.data.engine.rest.client.pagination.Pagination;
+import com.liferay.data.engine.rest.client.permission.Permission;
+import com.liferay.data.engine.rest.client.problem.Problem;
 import com.liferay.data.engine.rest.client.serdes.v2_0.DataDefinitionSerDes;
 
 import java.util.LinkedHashMap;
@@ -25,6 +27,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Generated;
 
@@ -39,6 +43,25 @@ public interface DataDefinitionResource {
 		return new Builder();
 	}
 
+	public Page<DataDefinition> getDataDefinitionByContentTypeContentTypePage(
+			String contentType, String keywords, Pagination pagination,
+			String sortString)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
+			getDataDefinitionByContentTypeContentTypePageHttpResponse(
+				String contentType, String keywords, Pagination pagination,
+				String sortString)
+		throws Exception;
+
+	public DataDefinition postDataDefinitionByContentType(
+			String contentType, DataDefinition dataDefinition)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse postDataDefinitionByContentTypeHttpResponse(
+			String contentType, DataDefinition dataDefinition)
+		throws Exception;
+
 	public String getDataDefinitionDataDefinitionFieldFieldTypes()
 		throws Exception;
 
@@ -50,6 +73,13 @@ public interface DataDefinitionResource {
 
 	public HttpInvoker.HttpResponse deleteDataDefinitionHttpResponse(
 			Long dataDefinitionId)
+		throws Exception;
+
+	public void deleteDataDefinitionBatch(String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse deleteDataDefinitionBatchHttpResponse(
+			String callbackURL, Object object)
 		throws Exception;
 
 	public DataDefinition getDataDefinition(Long dataDefinitionId)
@@ -67,65 +97,58 @@ public interface DataDefinitionResource {
 			Long dataDefinitionId, DataDefinition dataDefinition)
 		throws Exception;
 
-	public String getDataDefinitionDataDefinitionFieldLinks(
-			Long dataDefinitionId, String fieldName)
+	public void putDataDefinitionBatch(String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse putDataDefinitionBatchHttpResponse(
+			String callbackURL, Object object)
+		throws Exception;
+
+	public Page<Permission> getDataDefinitionPermissionsPage(
+			Long dataDefinitionId, String roleNames)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
-			getDataDefinitionDataDefinitionFieldLinksHttpResponse(
-				Long dataDefinitionId, String fieldName)
+			getDataDefinitionPermissionsPageHttpResponse(
+				Long dataDefinitionId, String roleNames)
 		throws Exception;
 
-	public void postDataDefinitionDataDefinitionPermission(
-			Long dataDefinitionId, String operation,
-			com.liferay.data.engine.rest.client.dto.v2_0.
-				DataDefinitionPermission dataDefinitionPermission)
+	public void putDataDefinitionPermission(
+			Long dataDefinitionId, Permission[] permissions)
 		throws Exception;
 
-	public HttpInvoker.HttpResponse
-			postDataDefinitionDataDefinitionPermissionHttpResponse(
-				Long dataDefinitionId, String operation,
-				com.liferay.data.engine.rest.client.dto.v2_0.
-					DataDefinitionPermission dataDefinitionPermission)
+	public HttpInvoker.HttpResponse putDataDefinitionPermissionHttpResponse(
+			Long dataDefinitionId, Permission[] permissions)
 		throws Exception;
 
-	public void postSiteDataDefinitionPermission(
-			Long siteId, String operation,
-			com.liferay.data.engine.rest.client.dto.v2_0.
-				DataDefinitionPermission dataDefinitionPermission)
+	public Page<DataDefinition>
+			getSiteDataDefinitionByContentTypeContentTypePage(
+				Long siteId, String contentType, String keywords,
+				Pagination pagination, String sortString)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
-			postSiteDataDefinitionPermissionHttpResponse(
-				Long siteId, String operation,
-				com.liferay.data.engine.rest.client.dto.v2_0.
-					DataDefinitionPermission dataDefinitionPermission)
+			getSiteDataDefinitionByContentTypeContentTypePageHttpResponse(
+				Long siteId, String contentType, String keywords,
+				Pagination pagination, String sortString)
 		throws Exception;
 
-	public Page<DataDefinition> getSiteDataDefinitionsPage(
-			Long siteId, Long classNameId, String keywords,
-			Pagination pagination, String sortString)
+	public DataDefinition postSiteDataDefinitionByContentType(
+			Long siteId, String contentType, DataDefinition dataDefinition)
 		throws Exception;
 
-	public HttpInvoker.HttpResponse getSiteDataDefinitionsPageHttpResponse(
-			Long siteId, Long classNameId, String keywords,
-			Pagination pagination, String sortString)
+	public HttpInvoker.HttpResponse
+			postSiteDataDefinitionByContentTypeHttpResponse(
+				Long siteId, String contentType, DataDefinition dataDefinition)
 		throws Exception;
 
-	public DataDefinition postSiteDataDefinition(
-			Long siteId, DataDefinition dataDefinition)
+	public DataDefinition getSiteDataDefinitionByContentTypeByDataDefinitionKey(
+			Long siteId, String contentType, String dataDefinitionKey)
 		throws Exception;
 
-	public HttpInvoker.HttpResponse postSiteDataDefinitionHttpResponse(
-			Long siteId, DataDefinition dataDefinition)
-		throws Exception;
-
-	public DataDefinition getSiteDataDefinition(
-			Long siteId, String dataDefinitionKey, Long classNameId)
-		throws Exception;
-
-	public HttpInvoker.HttpResponse getSiteDataDefinitionHttpResponse(
-			Long siteId, String dataDefinitionKey, Long classNameId)
+	public HttpInvoker.HttpResponse
+			getSiteDataDefinitionByContentTypeByDataDefinitionKeyHttpResponse(
+				Long siteId, String contentType, String dataDefinitionKey)
 		throws Exception;
 
 	public static class Builder {
@@ -173,8 +196,8 @@ public interface DataDefinitionResource {
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
-		private String _login = "test@liferay.com";
-		private String _password = "test";
+		private String _login = "";
+		private String _password = "";
 		private Map<String, String> _parameters = new LinkedHashMap<>();
 		private int _port = 8080;
 		private String _scheme = "http";
@@ -183,6 +206,158 @@ public interface DataDefinitionResource {
 
 	public static class DataDefinitionResourceImpl
 		implements DataDefinitionResource {
+
+		public Page<DataDefinition>
+				getDataDefinitionByContentTypeContentTypePage(
+					String contentType, String keywords, Pagination pagination,
+					String sortString)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				getDataDefinitionByContentTypeContentTypePageHttpResponse(
+					contentType, keywords, pagination, sortString);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return Page.of(content, DataDefinitionSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				getDataDefinitionByContentTypeContentTypePageHttpResponse(
+					String contentType, String keywords, Pagination pagination,
+					String sortString)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			if (keywords != null) {
+				httpInvoker.parameter("keywords", String.valueOf(keywords));
+			}
+
+			if (pagination != null) {
+				httpInvoker.parameter(
+					"page", String.valueOf(pagination.getPage()));
+				httpInvoker.parameter(
+					"pageSize", String.valueOf(pagination.getPageSize()));
+			}
+
+			if (sortString != null) {
+				httpInvoker.parameter("sort", sortString);
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/data-engine/v2.0/data-definitions/by-content-type/{contentType}",
+				contentType);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public DataDefinition postDataDefinitionByContentType(
+				String contentType, DataDefinition dataDefinition)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postDataDefinitionByContentTypeHttpResponse(
+					contentType, dataDefinition);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return DataDefinitionSerDes.toDTO(content);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				postDataDefinitionByContentTypeHttpResponse(
+					String contentType, DataDefinition dataDefinition)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(dataDefinition.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/data-engine/v2.0/data-definitions/by-content-type/{contentType}",
+				contentType);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
 
 		public String getDataDefinitionDataDefinitionFieldFieldTypes()
 			throws Exception {
@@ -198,7 +373,16 @@ public interface DataDefinitionResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return content;
+			try {
+				return content;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse
@@ -250,6 +434,17 @@ public interface DataDefinitionResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse deleteDataDefinitionHttpResponse(
@@ -289,6 +484,62 @@ public interface DataDefinitionResource {
 			return httpInvoker.invoke();
 		}
 
+		public void deleteDataDefinitionBatch(String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				deleteDataDefinitionBatchHttpResponse(callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse deleteDataDefinitionBatchHttpResponse(
+				String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.DELETE);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/data-engine/v2.0/data-definitions/batch");
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public DataDefinition getDataDefinition(Long dataDefinitionId)
 			throws Exception {
 
@@ -311,7 +562,7 @@ public interface DataDefinitionResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -375,7 +626,7 @@ public interface DataDefinitionResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -418,13 +669,11 @@ public interface DataDefinitionResource {
 			return httpInvoker.invoke();
 		}
 
-		public String getDataDefinitionDataDefinitionFieldLinks(
-				Long dataDefinitionId, String fieldName)
+		public void putDataDefinitionBatch(String callbackURL, Object object)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				getDataDefinitionDataDefinitionFieldLinksHttpResponse(
-					dataDefinitionId, fieldName);
+				putDataDefinitionBatchHttpResponse(callbackURL, object);
 
 			String content = httpResponse.getContent();
 
@@ -433,16 +682,15 @@ public interface DataDefinitionResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
-
-			return content;
 		}
 
-		public HttpInvoker.HttpResponse
-				getDataDefinitionDataDefinitionFieldLinksHttpResponse(
-					Long dataDefinitionId, String fieldName)
+		public HttpInvoker.HttpResponse putDataDefinitionBatchHttpResponse(
+				String callbackURL, Object object)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(
@@ -461,206 +709,225 @@ public interface DataDefinitionResource {
 				httpInvoker.parameter(entry.getKey(), entry.getValue());
 			}
 
-			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
 
-			if (fieldName != null) {
-				httpInvoker.parameter("fieldName", String.valueOf(fieldName));
-			}
-
-			httpInvoker.path(
-				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
-						"/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-definition-field-links",
-				dataDefinitionId);
-
-			httpInvoker.userNameAndPassword(
-				_builder._login + ":" + _builder._password);
-
-			return httpInvoker.invoke();
-		}
-
-		public void postDataDefinitionDataDefinitionPermission(
-				Long dataDefinitionId, String operation,
-				com.liferay.data.engine.rest.client.dto.v2_0.
-					DataDefinitionPermission dataDefinitionPermission)
-			throws Exception {
-
-			HttpInvoker.HttpResponse httpResponse =
-				postDataDefinitionDataDefinitionPermissionHttpResponse(
-					dataDefinitionId, operation, dataDefinitionPermission);
-
-			String content = httpResponse.getContent();
-
-			_logger.fine("HTTP response content: " + content);
-
-			_logger.fine("HTTP response message: " + httpResponse.getMessage());
-			_logger.fine(
-				"HTTP response status code: " + httpResponse.getStatusCode());
-		}
-
-		public HttpInvoker.HttpResponse
-				postDataDefinitionDataDefinitionPermissionHttpResponse(
-					Long dataDefinitionId, String operation,
-					com.liferay.data.engine.rest.client.dto.v2_0.
-						DataDefinitionPermission dataDefinitionPermission)
-			throws Exception {
-
-			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-			httpInvoker.body(
-				dataDefinitionPermission.toString(), "application/json");
-
-			if (_builder._locale != null) {
-				httpInvoker.header(
-					"Accept-Language", _builder._locale.toLanguageTag());
-			}
-
-			for (Map.Entry<String, String> entry :
-					_builder._headers.entrySet()) {
-
-				httpInvoker.header(entry.getKey(), entry.getValue());
-			}
-
-			for (Map.Entry<String, String> entry :
-					_builder._parameters.entrySet()) {
-
-				httpInvoker.parameter(entry.getKey(), entry.getValue());
-			}
-
-			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
-
-			if (operation != null) {
-				httpInvoker.parameter("operation", String.valueOf(operation));
-			}
-
-			httpInvoker.path(
-				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
-						"/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-definition-permissions",
-				dataDefinitionId);
-
-			httpInvoker.userNameAndPassword(
-				_builder._login + ":" + _builder._password);
-
-			return httpInvoker.invoke();
-		}
-
-		public void postSiteDataDefinitionPermission(
-				Long siteId, String operation,
-				com.liferay.data.engine.rest.client.dto.v2_0.
-					DataDefinitionPermission dataDefinitionPermission)
-			throws Exception {
-
-			HttpInvoker.HttpResponse httpResponse =
-				postSiteDataDefinitionPermissionHttpResponse(
-					siteId, operation, dataDefinitionPermission);
-
-			String content = httpResponse.getContent();
-
-			_logger.fine("HTTP response content: " + content);
-
-			_logger.fine("HTTP response message: " + httpResponse.getMessage());
-			_logger.fine(
-				"HTTP response status code: " + httpResponse.getStatusCode());
-		}
-
-		public HttpInvoker.HttpResponse
-				postSiteDataDefinitionPermissionHttpResponse(
-					Long siteId, String operation,
-					com.liferay.data.engine.rest.client.dto.v2_0.
-						DataDefinitionPermission dataDefinitionPermission)
-			throws Exception {
-
-			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-			httpInvoker.body(
-				dataDefinitionPermission.toString(), "application/json");
-
-			if (_builder._locale != null) {
-				httpInvoker.header(
-					"Accept-Language", _builder._locale.toLanguageTag());
-			}
-
-			for (Map.Entry<String, String> entry :
-					_builder._headers.entrySet()) {
-
-				httpInvoker.header(entry.getKey(), entry.getValue());
-			}
-
-			for (Map.Entry<String, String> entry :
-					_builder._parameters.entrySet()) {
-
-				httpInvoker.parameter(entry.getKey(), entry.getValue());
-			}
-
-			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
-
-			if (operation != null) {
-				httpInvoker.parameter("operation", String.valueOf(operation));
-			}
-
-			httpInvoker.path(
-				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
-						"/o/data-engine/v2.0/sites/{siteId}/data-definition-permissions",
-				siteId);
-
-			httpInvoker.userNameAndPassword(
-				_builder._login + ":" + _builder._password);
-
-			return httpInvoker.invoke();
-		}
-
-		public Page<DataDefinition> getSiteDataDefinitionsPage(
-				Long siteId, Long classNameId, String keywords,
-				Pagination pagination, String sortString)
-			throws Exception {
-
-			HttpInvoker.HttpResponse httpResponse =
-				getSiteDataDefinitionsPageHttpResponse(
-					siteId, classNameId, keywords, pagination, sortString);
-
-			String content = httpResponse.getContent();
-
-			_logger.fine("HTTP response content: " + content);
-
-			_logger.fine("HTTP response message: " + httpResponse.getMessage());
-			_logger.fine(
-				"HTTP response status code: " + httpResponse.getStatusCode());
-
-			return Page.of(content, DataDefinitionSerDes::toDTO);
-		}
-
-		public HttpInvoker.HttpResponse getSiteDataDefinitionsPageHttpResponse(
-				Long siteId, Long classNameId, String keywords,
-				Pagination pagination, String sortString)
-			throws Exception {
-
-			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-			if (_builder._locale != null) {
-				httpInvoker.header(
-					"Accept-Language", _builder._locale.toLanguageTag());
-			}
-
-			for (Map.Entry<String, String> entry :
-					_builder._headers.entrySet()) {
-
-				httpInvoker.header(entry.getKey(), entry.getValue());
-			}
-
-			for (Map.Entry<String, String> entry :
-					_builder._parameters.entrySet()) {
-
-				httpInvoker.parameter(entry.getKey(), entry.getValue());
-			}
-
-			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
-
-			if (classNameId != null) {
+			if (callbackURL != null) {
 				httpInvoker.parameter(
-					"classNameId", String.valueOf(classNameId));
+					"callbackURL", String.valueOf(callbackURL));
 			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/data-engine/v2.0/data-definitions/batch");
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public Page<Permission> getDataDefinitionPermissionsPage(
+				Long dataDefinitionId, String roleNames)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				getDataDefinitionPermissionsPageHttpResponse(
+					dataDefinitionId, roleNames);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return Page.of(content, Permission::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				getDataDefinitionPermissionsPageHttpResponse(
+					Long dataDefinitionId, String roleNames)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			if (roleNames != null) {
+				httpInvoker.parameter("roleNames", String.valueOf(roleNames));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/permissions",
+				dataDefinitionId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void putDataDefinitionPermission(
+				Long dataDefinitionId, Permission[] permissions)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putDataDefinitionPermissionHttpResponse(
+					dataDefinitionId, permissions);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse putDataDefinitionPermissionHttpResponse(
+				Long dataDefinitionId, Permission[] permissions)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(
+				Stream.of(
+					permissions
+				).map(
+					value -> String.valueOf(value)
+				).collect(
+					Collectors.toList()
+				).toString(),
+				"application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/permissions",
+				dataDefinitionId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public Page<DataDefinition>
+				getSiteDataDefinitionByContentTypeContentTypePage(
+					Long siteId, String contentType, String keywords,
+					Pagination pagination, String sortString)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				getSiteDataDefinitionByContentTypeContentTypePageHttpResponse(
+					siteId, contentType, keywords, pagination, sortString);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return Page.of(content, DataDefinitionSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				getSiteDataDefinitionByContentTypeContentTypePageHttpResponse(
+					Long siteId, String contentType, String keywords,
+					Pagination pagination, String sortString)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
 
 			if (keywords != null) {
 				httpInvoker.parameter("keywords", String.valueOf(keywords));
@@ -680,8 +947,8 @@ public interface DataDefinitionResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/data-engine/v2.0/sites/{siteId}/data-definitions",
-				siteId);
+						"/o/data-engine/v2.0/sites/{siteId}/data-definitions/by-content-type/{contentType}",
+				siteId, contentType);
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);
@@ -689,12 +956,13 @@ public interface DataDefinitionResource {
 			return httpInvoker.invoke();
 		}
 
-		public DataDefinition postSiteDataDefinition(
-				Long siteId, DataDefinition dataDefinition)
+		public DataDefinition postSiteDataDefinitionByContentType(
+				Long siteId, String contentType, DataDefinition dataDefinition)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				postSiteDataDefinitionHttpResponse(siteId, dataDefinition);
+				postSiteDataDefinitionByContentTypeHttpResponse(
+					siteId, contentType, dataDefinition);
 
 			String content = httpResponse.getContent();
 
@@ -712,12 +980,14 @@ public interface DataDefinitionResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
-		public HttpInvoker.HttpResponse postSiteDataDefinitionHttpResponse(
-				Long siteId, DataDefinition dataDefinition)
+		public HttpInvoker.HttpResponse
+				postSiteDataDefinitionByContentTypeHttpResponse(
+					Long siteId, String contentType,
+					DataDefinition dataDefinition)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -746,8 +1016,8 @@ public interface DataDefinitionResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/data-engine/v2.0/sites/{siteId}/data-definitions",
-				siteId);
+						"/o/data-engine/v2.0/sites/{siteId}/data-definitions/by-content-type/{contentType}",
+				siteId, contentType);
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);
@@ -755,13 +1025,14 @@ public interface DataDefinitionResource {
 			return httpInvoker.invoke();
 		}
 
-		public DataDefinition getSiteDataDefinition(
-				Long siteId, String dataDefinitionKey, Long classNameId)
+		public DataDefinition
+				getSiteDataDefinitionByContentTypeByDataDefinitionKey(
+					Long siteId, String contentType, String dataDefinitionKey)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				getSiteDataDefinitionHttpResponse(
-					siteId, dataDefinitionKey, classNameId);
+				getSiteDataDefinitionByContentTypeByDataDefinitionKeyHttpResponse(
+					siteId, contentType, dataDefinitionKey);
 
 			String content = httpResponse.getContent();
 
@@ -779,12 +1050,13 @@ public interface DataDefinitionResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
-		public HttpInvoker.HttpResponse getSiteDataDefinitionHttpResponse(
-				Long siteId, String dataDefinitionKey, Long classNameId)
+		public HttpInvoker.HttpResponse
+				getSiteDataDefinitionByContentTypeByDataDefinitionKeyHttpResponse(
+					Long siteId, String contentType, String dataDefinitionKey)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -808,16 +1080,11 @@ public interface DataDefinitionResource {
 
 			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
 
-			if (classNameId != null) {
-				httpInvoker.parameter(
-					"classNameId", String.valueOf(classNameId));
-			}
-
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/data-engine/v2.0/sites/{siteId}/data-definitions/{dataDefinitionKey}",
-				siteId, dataDefinitionKey);
+						"/o/data-engine/v2.0/sites/{siteId}/data-definitions/by-content-type/{contentType}/by-data-definition-key/{dataDefinitionKey}",
+				siteId, contentType, dataDefinitionKey);
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);

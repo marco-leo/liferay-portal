@@ -29,11 +29,11 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.DateTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.transaction.Propagation;
-import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
@@ -91,25 +91,34 @@ public class AssetDisplayPageEntryLocalServiceTest {
 	public void testAddAssetDisplayPageEntryUpdatesLayoutPageTemplate()
 		throws PortalException {
 
-		_layoutPageTemplateEntry = _getLayoutPageTemplateEntry();
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
+				TestPropsValues.getUserId(), _group.getGroupId(), 0, 0, 0,
+				RandomTestUtil.randomString(),
+				LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE, 0, true,
+				0, 0, 0, WorkflowConstants.STATUS_APPROVED,
+				new ServiceContext());
 
-		Date originalModifiedDate = _layoutPageTemplateEntry.getModifiedDate();
+		Date originalModifiedDate = layoutPageTemplateEntry.getModifiedDate();
 
-		long classPK = RandomTestUtil.randomLong();
+		originalModifiedDate.setTime(originalModifiedDate.getTime() - 1000);
+
+		layoutPageTemplateEntry.setModifiedDate(originalModifiedDate);
+
+		_layoutPageTemplateEntryLocalService.updateLayoutPageTemplateEntry(
+			layoutPageTemplateEntry);
 
 		AssetDisplayPageEntryTestUtil.addAssetDisplayPageEntry(
-			_group.getGroupId(), _classNameId, classPK,
-			_layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+			_group.getGroupId(), _classNameId, RandomTestUtil.randomLong(),
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
 			AssetDisplayPageConstants.TYPE_DEFAULT);
 
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
+		layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.getLayoutPageTemplateEntry(
-				_layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
+				layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
 
-		Assert.assertFalse(
-			DateUtil.equals(
-				originalModifiedDate,
-				layoutPageTemplateEntry.getModifiedDate()));
+		DateTestUtil.assertNotEquals(
+			originalModifiedDate, layoutPageTemplateEntry.getModifiedDate());
 	}
 
 	@Test
@@ -284,53 +293,44 @@ public class AssetDisplayPageEntryLocalServiceTest {
 	public void testUpdateAssetDisplayPageEntryUpdatesLayoutPageTemplate()
 		throws PortalException {
 
-		_layoutPageTemplateEntry = _getLayoutPageTemplateEntry();
-
-		long classPK = RandomTestUtil.randomLong();
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
+				TestPropsValues.getUserId(), _group.getGroupId(), 0, 0, 0,
+				RandomTestUtil.randomString(),
+				LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE, 0, true,
+				0, 0, 0, WorkflowConstants.STATUS_APPROVED,
+				new ServiceContext());
 
 		AssetDisplayPageEntry assetDisplayPageEntry =
 			AssetDisplayPageEntryTestUtil.addAssetDisplayPageEntry(
-				_group.getGroupId(), _classNameId, classPK,
-				_layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+				_group.getGroupId(), _classNameId, RandomTestUtil.randomLong(),
+				layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
 				AssetDisplayPageConstants.TYPE_DEFAULT);
 
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
+		layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.getLayoutPageTemplateEntry(
-				_layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
+				layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
 
 		Date originalModifiedDate = layoutPageTemplateEntry.getModifiedDate();
 
+		originalModifiedDate.setTime(originalModifiedDate.getTime() - 1000);
+
+		layoutPageTemplateEntry.setModifiedDate(originalModifiedDate);
+
+		_layoutPageTemplateEntryLocalService.updateLayoutPageTemplateEntry(
+			layoutPageTemplateEntry);
+
 		_assetDisplayPageEntryLocalService.updateAssetDisplayPageEntry(
 			assetDisplayPageEntry.getAssetDisplayPageEntryId(),
-			_layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
 			AssetDisplayPageConstants.TYPE_SPECIFIC);
 
 		layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.getLayoutPageTemplateEntry(
 				layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
 
-		Assert.assertFalse(
-			DateUtil.equals(
-				originalModifiedDate,
-				layoutPageTemplateEntry.getModifiedDate()));
-	}
-
-	private LayoutPageTemplateEntry _getLayoutPageTemplateEntry()
-		throws PortalException {
-
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
-				TestPropsValues.getUserId(), _group.getGroupId(), 0, 0, 0,
-				RandomTestUtil.randomString(),
-				LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE, true, 0,
-				0, 0, WorkflowConstants.STATUS_APPROVED, new ServiceContext());
-
-		layoutPageTemplateEntry.setModifiedDate(null);
-
-		_layoutPageTemplateEntryLocalService.updateLayoutPageTemplateEntry(
-			layoutPageTemplateEntry);
-
-		return layoutPageTemplateEntry;
+		DateTestUtil.assertNotEquals(
+			originalModifiedDate, layoutPageTemplateEntry.getModifiedDate());
 	}
 
 	@Inject
@@ -344,9 +344,6 @@ public class AssetDisplayPageEntryLocalServiceTest {
 
 	@DeleteAfterTestRun
 	private Group _group;
-
-	@DeleteAfterTestRun
-	private LayoutPageTemplateEntry _layoutPageTemplateEntry;
 
 	@Inject
 	private LayoutPageTemplateEntryLocalService

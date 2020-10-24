@@ -51,7 +51,7 @@ public abstract class EntryServiceBaseImpl
 	extends BaseServiceImpl
 	implements AopService, EntryService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>EntryService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.reports.engine.console.service.EntryServiceUtil</code>.
@@ -105,8 +105,8 @@ public abstract class EntryServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

@@ -16,18 +16,16 @@ package com.liferay.talend.runtime.writer;
 
 import com.liferay.talend.avro.IndexedRecordJsonObjectConverter;
 import com.liferay.talend.avro.JsonObjectIndexedRecordConverter;
-import com.liferay.talend.common.schema.SchemaUtils;
+import com.liferay.talend.properties.output.LiferayOutputProperties;
+import com.liferay.talend.properties.resource.Operation;
 import com.liferay.talend.runtime.LiferaySink;
-import com.liferay.talend.tliferayoutput.Action;
-import com.liferay.talend.tliferayoutput.TLiferayOutputProperties;
 
 import java.io.IOException;
-
-import java.net.URI;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import javax.json.JsonObject;
 
@@ -39,7 +37,6 @@ import org.slf4j.LoggerFactory;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.WriteOperation;
 import org.talend.components.api.component.runtime.WriterWithFeedback;
-import org.talend.components.api.container.RuntimeContainer;
 import org.talend.daikon.exception.TalendRuntimeException;
 
 /**
@@ -50,27 +47,32 @@ public class LiferayWriter
 	implements WriterWithFeedback<Result, IndexedRecord, IndexedRecord> {
 
 	public LiferayWriter(
-		LiferayWriteOperation writeOperation, RuntimeContainer runtimeContainer,
-		TLiferayOutputProperties tLiferayOutputProperties) {
+		LiferayWriteOperation liferayWriteOperation,
+		LiferayOutputProperties liferayOutputProperties) {
 
-		_liferayWriteOperation = writeOperation;
-		_runtimeContainer = runtimeContainer;
-		_tLiferayOutputProperties = tLiferayOutputProperties;
+		_liferayWriteOperation = liferayWriteOperation;
 
-		_dieOnError = tLiferayOutputProperties.getDieOnError();
-		_liferaySink = writeOperation.getSink();
+		_liferayOutputProperties = liferayOutputProperties;
+
+		_dieOnError = _liferayOutputProperties.getDieOnError();
+		_endpointUrl = _liferayOutputProperties.getEndpointUrl();
+
+		_liferaySink = _liferayWriteOperation.getSink();
 		_result = new Result();
 		_successWrites = new ArrayList<>();
 
 		_indexedRecordJsonObjectConverter =
 			new IndexedRecordJsonObjectConverter(
-				_dieOnError, _tLiferayOutputProperties.getSchema(),
-				SchemaUtils.createRejectSchema(
-					_tLiferayOutputProperties.getSchema()),
+				_dieOnError,
+				_liferayOutputProperties.resource.inboundSchemaProperties.
+					schema.getValue(),
+				_liferayOutputProperties.resource.rejectSchemaProperties.schema.
+					getValue(),
 				_result);
 		_jsonObjectIndexedRecordConverter =
 			new JsonObjectIndexedRecordConverter(
-				_tLiferayOutputProperties.getSchema());
+				_liferayOutputProperties.resource.outboundSchemaProperties.
+					schema.getValue());
 	}
 
 	@Override
@@ -84,65 +86,51 @@ public class LiferayWriter
 		return _result;
 	}
 
-	public void doDelete(IndexedRecord indexedRecord) throws IOException {
-		URI resourceURI = _tLiferayOutputProperties.resource.getEndpointURI();
+	public void doDelete(IndexedRecord indexedRecord) {
+		Optional<JsonObject> jsonObjectOptional = _liferaySink.doDeleteRequest(
+			_endpointUrl);
 
-		try {
-			_liferaySink.doDeleteRequest(
-				_runtimeContainer, resourceURI.toASCIIString());
-		}
-		catch (Exception e) {
-			_indexedRecordJsonObjectConverter.reject(indexedRecord, e);
-
-			return;
-		}
-
-		_handleSuccessRecord(indexedRecord);
-	}
-
-	public void doInsert(IndexedRecord indexedRecord) throws IOException {
-		URI resourceURI = _tLiferayOutputProperties.resource.getEndpointURI();
-
-		JsonObject jsonObject = null;
-
-		try {
-			jsonObject = _liferaySink.doPostRequest(
-				_runtimeContainer, resourceURI.toASCIIString(),
-				_indexedRecordJsonObjectConverter.toJsonObject(indexedRecord));
-		}
-		catch (Exception e) {
-			_indexedRecordJsonObjectConverter.reject(indexedRecord, e);
+		if (!jsonObjectOptional.isPresent()) {
+			_handleSuccessRecord(indexedRecord);
 
 			return;
 		}
 
 		_handleSuccessRecord(
-			_jsonObjectIndexedRecordConverter.toIndexedRecord(jsonObject));
+			_jsonObjectIndexedRecordConverter.toIndexedRecord(
+				jsonObjectOptional.get()));
 	}
 
-	public void doUpdate(IndexedRecord indexedRecord) throws IOException {
-		URI resourceURI = _tLiferayOutputProperties.resource.getEndpointURI();
+	public void doInsert(IndexedRecord indexedRecord) throws IOException {
+		Optional<JsonObject> jsonObjectOptional = _liferaySink.doPostRequest(
+			_endpointUrl,
+			_indexedRecordJsonObjectConverter.toJsonObject(indexedRecord));
 
-		JsonObject jsonObject = null;
-
-		try {
-			jsonObject = _liferaySink.doPatchRequest(
-				_runtimeContainer, resourceURI.toASCIIString(),
-				_indexedRecordJsonObjectConverter.toJsonObject(indexedRecord));
-		}
-		catch (Exception e) {
-			_indexedRecordJsonObjectConverter.reject(indexedRecord, e);
+		if (!jsonObjectOptional.isPresent()) {
+			_handleSuccessRecord(indexedRecord);
 
 			return;
 		}
 
-		if (jsonObject != null) {
-			_handleSuccessRecord(
-				_jsonObjectIndexedRecordConverter.toIndexedRecord(jsonObject));
-		}
-		else {
+		_handleSuccessRecord(
+			_jsonObjectIndexedRecordConverter.toIndexedRecord(
+				jsonObjectOptional.get()));
+	}
+
+	public void doUpdate(IndexedRecord indexedRecord) throws IOException {
+		Optional<JsonObject> jsonObjectOptional = _liferaySink.doPatchRequest(
+			_endpointUrl,
+			_indexedRecordJsonObjectConverter.toJsonObject(indexedRecord));
+
+		if (!jsonObjectOptional.isPresent()) {
 			_handleSuccessRecord(indexedRecord);
+
+			return;
 		}
+
+		_handleSuccessRecord(
+			_jsonObjectIndexedRecordConverter.toIndexedRecord(
+				jsonObjectOptional.get()));
 	}
 
 	@Override
@@ -175,25 +163,30 @@ public class LiferayWriter
 
 		cleanWrites();
 
-		Action action = _tLiferayOutputProperties.getConfiguredAction();
+		Operation operation = _liferayOutputProperties.getOperation();
 
-		if (Action.Delete == action) {
-			doDelete(indexedRecord);
-		}
-		else if (Action.Insert == action) {
-			doInsert(indexedRecord);
-		}
-		else if (Action.Update == action) {
-			doUpdate(indexedRecord);
-		}
-		else {
-			_indexedRecordJsonObjectConverter.reject(
-				indexedRecord,
-				TalendRuntimeException.createUnexpectedException(
-					"Unsupported write action " + action));
-		}
+		try {
+			if (Operation.Delete == operation) {
+				doDelete(indexedRecord);
+			}
+			else if (Operation.Insert == operation) {
+				doInsert(indexedRecord);
+			}
+			else if (Operation.Update == operation) {
+				doUpdate(indexedRecord);
+			}
+			else {
+				_indexedRecordJsonObjectConverter.reject(
+					indexedRecord,
+					TalendRuntimeException.createUnexpectedException(
+						"Unsupported write operation " + operation));
+			}
 
-		_result.totalCount++;
+			_result.totalCount++;
+		}
+		catch (Exception exception) {
+			_indexedRecordJsonObjectConverter.reject(indexedRecord, exception);
+		}
 	}
 
 	private void _handleSuccessRecord(IndexedRecord indexedRecord) {
@@ -207,11 +200,11 @@ public class LiferayWriter
 			return true;
 		}
 
-		IllegalArgumentException iae = new IllegalArgumentException(
-			"Indexed record is null");
+		IllegalArgumentException illegalArgumentException =
+			new IllegalArgumentException("Indexed record is null");
 
 		if (object != null) {
-			iae = new IllegalArgumentException(
+			illegalArgumentException = new IllegalArgumentException(
 				String.format(
 					"Expected record instance of %s but actual instance " +
 						"passed was %s",
@@ -219,11 +212,11 @@ public class LiferayWriter
 		}
 
 		if (_dieOnError) {
-			throw new IOException(iae);
+			throw new IOException(illegalArgumentException);
 		}
 
 		if (_logger.isWarnEnabled()) {
-			_logger.warn("Unable to process record", iae);
+			_logger.warn("Unable to process record", illegalArgumentException);
 		}
 
 		return false;
@@ -233,15 +226,15 @@ public class LiferayWriter
 		LiferayWriter.class);
 
 	private final boolean _dieOnError;
+	private final String _endpointUrl;
 	private final IndexedRecordJsonObjectConverter
 		_indexedRecordJsonObjectConverter;
 	private final JsonObjectIndexedRecordConverter
 		_jsonObjectIndexedRecordConverter;
+	private final LiferayOutputProperties _liferayOutputProperties;
 	private final LiferaySink _liferaySink;
 	private final LiferayWriteOperation _liferayWriteOperation;
 	private final Result _result;
-	private final RuntimeContainer _runtimeContainer;
 	private final List<IndexedRecord> _successWrites;
-	private final TLiferayOutputProperties _tLiferayOutputProperties;
 
 }

@@ -31,7 +31,7 @@ JournalArticle article = journalDisplayContext.getArticle();
 		<%
 		JournalHistoryDisplayContext journalHistoryDisplayContext = new JournalHistoryDisplayContext(renderRequest, renderResponse, journalDisplayContext.getArticle());
 
-		JournalHistoryManagementToolbarDisplayContext journalHistoryManagementToolbarDisplayContext = new JournalHistoryManagementToolbarDisplayContext(article, liferayPortletRequest, liferayPortletResponse, request, journalHistoryDisplayContext);
+		JournalHistoryManagementToolbarDisplayContext journalHistoryManagementToolbarDisplayContext = new JournalHistoryManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, article, journalHistoryDisplayContext);
 
 		portletDisplay.setShowBackIcon(true);
 		portletDisplay.setURLBack(journalHistoryDisplayContext.getBackURL());
@@ -66,9 +66,9 @@ JournalArticle article = journalDisplayContext.getArticle();
 				>
 
 					<%
-					Map<String, Object> rowData = new HashMap<>();
-
-					rowData.put("actions", journalHistoryManagementToolbarDisplayContext.getAvailableActions(articleVersion));
+					Map<String, Object> rowData = HashMapBuilder.<String, Object>put(
+						"actions", journalHistoryManagementToolbarDisplayContext.getAvailableActions(articleVersion)
+					).build();
 
 					row.setData(rowData);
 

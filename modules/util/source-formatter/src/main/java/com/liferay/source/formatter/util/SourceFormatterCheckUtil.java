@@ -14,6 +14,7 @@
 
 package com.liferay.source.formatter.util;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.json.JSONArrayImpl;
 import com.liferay.portal.json.JSONObjectImpl;
@@ -46,7 +47,7 @@ public class SourceFormatterCheckUtil {
 		JSONObject attributesJSONObject, Map<String, Properties> propertiesMap,
 		CheckType checkType, String checkName) {
 
-		String keyPrefix = _getKeyPrefix(checkType, checkName);
+		String[] keyPrefixes = _getKeyPrefixes(checkType, checkName);
 
 		for (Map.Entry<String, Properties> entry : propertiesMap.entrySet()) {
 			JSONObject propertiesAttributesJSONObject =
@@ -58,15 +59,21 @@ public class SourceFormatterCheckUtil {
 
 			Properties properties = entry.getValue();
 
-			for (Object obj : properties.keySet()) {
-				String key = (String)obj;
+			for (Object object : properties.keySet()) {
+				String key = (String)object;
 
-				if (!key.startsWith(keyPrefix)) {
-					continue;
+				String attributeName = null;
+
+				for (String keyPrefix : keyPrefixes) {
+					if (key.startsWith(keyPrefix)) {
+						attributeName = StringUtil.replaceFirst(
+							key, keyPrefix, StringPool.BLANK);
+					}
 				}
 
-				String attributeName = StringUtil.replaceFirst(
-					key, keyPrefix, StringPool.BLANK);
+				if (attributeName == null) {
+					continue;
+				}
 
 				JSONArray jsonArray = new JSONArrayImpl();
 
@@ -103,8 +110,8 @@ public class SourceFormatterCheckUtil {
 
 			Properties properties = entry.getValue();
 
-			for (Object obj : properties.keySet()) {
-				String key = (String)obj;
+			for (Object object : properties.keySet()) {
+				String key = (String)object;
 
 				if (!ArrayUtil.contains(keys, key)) {
 					continue;
@@ -141,8 +148,8 @@ public class SourceFormatterCheckUtil {
 
 			Properties properties = entry.getValue();
 
-			for (Object obj : properties.keySet()) {
-				String key = (String)obj;
+			for (Object object : properties.keySet()) {
+				String key = (String)object;
 
 				if (!key.endsWith(".excludes")) {
 					continue;
@@ -196,10 +203,10 @@ public class SourceFormatterCheckUtil {
 		boolean cacheValue = true;
 		String closestPropertiesFileLocation = null;
 
-		Iterator<String> keys = jsonObject.keys();
+		Iterator<String> iterator = jsonObject.keys();
 
-		while (keys.hasNext()) {
-			String fileLocation = keys.next();
+		while (iterator.hasNext()) {
+			String fileLocation = iterator.next();
 
 			String curValue = _getJSONObjectValue(
 				jsonObject.getJSONObject(fileLocation), key);
@@ -273,10 +280,10 @@ public class SourceFormatterCheckUtil {
 
 		boolean cacheValues = true;
 
-		Iterator<String> keys = jsonObject.keys();
+		Iterator<String> iterator = jsonObject.keys();
 
-		while (keys.hasNext()) {
-			String fileLocation = keys.next();
+		while (iterator.hasNext()) {
+			String fileLocation = iterator.next();
 
 			List<String> curValues = _getJSONObjectValues(
 				jsonObject.getJSONObject(fileLocation), key);
@@ -395,12 +402,8 @@ public class SourceFormatterCheckUtil {
 		return values;
 	}
 
-	private static String _getKeyPrefix(CheckType checkType, String checkName) {
-		checkName = checkName.replaceAll("([a-z])([A-Z])", "$1.$2");
-
-		checkName = checkName.replaceAll("([A-Z])([A-Z][a-z])", "$1.$2");
-
-		String keyPrefix = StringUtil.toLowerCase(checkName) + ".";
+	private static String[] _getKeyPrefixes(
+		CheckType checkType, String checkName) {
 
 		String checkTypeName = checkType.getValue();
 
@@ -409,7 +412,18 @@ public class SourceFormatterCheckUtil {
 		checkTypeName = checkTypeName.replaceAll(
 			"([A-Z])([A-Z][a-z])", "$1.$2");
 
-		return StringUtil.toLowerCase(checkTypeName) + "." + keyPrefix;
+		checkTypeName = StringUtil.toLowerCase(checkTypeName);
+
+		String formattedCheckName = checkName.replaceAll(
+			"([a-z])([A-Z])", "$1.$2");
+
+		formattedCheckName = StringUtil.toLowerCase(
+			formattedCheckName.replaceAll("([A-Z])([A-Z][a-z])", "$1.$2"));
+
+		return new String[] {
+			StringBundler.concat(checkTypeName, ".", checkName, "."),
+			StringBundler.concat(checkTypeName, ".", formattedCheckName, ".")
+		};
 	}
 
 }

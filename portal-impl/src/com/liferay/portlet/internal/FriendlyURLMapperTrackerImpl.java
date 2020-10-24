@@ -99,12 +99,11 @@ public class FriendlyURLMapperTrackerImpl implements FriendlyURLMapperTracker {
 	public void register(FriendlyURLMapper friendlyURLMapper) {
 		Registry registry = RegistryUtil.getRegistry();
 
-		Map<String, Object> properties = HashMapBuilder.<String, Object>put(
-			"javax.portlet.name", _portlet.getPortletId()
-		).build();
-
 		ServiceRegistration<?> serviceRegistration = registry.registerService(
-			FriendlyURLMapper.class, friendlyURLMapper, properties);
+			FriendlyURLMapper.class, friendlyURLMapper,
+			HashMapBuilder.<String, Object>put(
+				"javax.portlet.name", _portlet.getPortletId()
+			).build());
 
 		_serviceRegistrations.put(friendlyURLMapper, serviceRegistration);
 	}
@@ -207,8 +206,8 @@ public class FriendlyURLMapperTrackerImpl implements FriendlyURLMapperTracker {
 
 				friendlyURLMapper.setRouter(newFriendlyURLRouter(xml));
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 
 				return null;
 			}

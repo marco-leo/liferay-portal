@@ -60,7 +60,6 @@ public abstract class DDLRecordSetFinderBaseImpl
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
-		super.setConfiguration(configuration);
 	}
 
 	@Override
@@ -91,8 +90,8 @@ public abstract class DDLRecordSetFinderBaseImpl
 		try {
 			Class.forName(DDLPersistenceConstants.class.getName());
 		}
-		catch (ClassNotFoundException cnfe) {
-			throw new ExceptionInInitializerError(cnfe);
+		catch (ClassNotFoundException classNotFoundException) {
+			throw new ExceptionInInitializerError(classNotFoundException);
 		}
 	}
 

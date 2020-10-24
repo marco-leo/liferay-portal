@@ -226,7 +226,7 @@ public class StringUtil {
 
 		for (int i = 0; i < bytes.length; i++) {
 			chars[i * 2] = HEX_DIGITS[(bytes[i] & 0xFF) >> 4];
-			chars[i * 2 + 1] = HEX_DIGITS[bytes[i] & 0x0F];
+			chars[(i * 2) + 1] = HEX_DIGITS[bytes[i] & 0x0F];
 		}
 
 		return new String(chars);
@@ -291,11 +291,7 @@ public class StringUtil {
 			s = s.concat(delimiter);
 		}
 
-		String dtd = delimiter.concat(
-			text
-		).concat(
-			delimiter
-		);
+		String dtd = StringBundler.concat(delimiter, text, delimiter);
 
 		int pos = s.indexOf(dtd);
 
@@ -1116,11 +1112,7 @@ public class StringUtil {
 		String prefix = s.substring(0, offset);
 		String postfix = s.substring(offset);
 
-		return prefix.concat(
-			insert
-		).concat(
-			postfix
-		);
+		return StringBundler.concat(prefix, insert, postfix);
 	}
 
 	/**
@@ -1635,7 +1627,7 @@ public class StringUtil {
 			return String.valueOf(array[0]);
 		}
 
-		StringBundler sb = new StringBundler(2 * array.length - 1);
+		StringBundler sb = new StringBundler((2 * array.length) - 1);
 
 		for (int i = 0; i < array.length; i++) {
 			if (i != 0) {
@@ -1684,7 +1676,7 @@ public class StringUtil {
 			return String.valueOf(array[0]);
 		}
 
-		StringBundler sb = new StringBundler(2 * array.length - 1);
+		StringBundler sb = new StringBundler((2 * array.length) - 1);
 
 		for (int i = 0; i < array.length; i++) {
 			if (i != 0) {
@@ -1782,7 +1774,7 @@ public class StringUtil {
 			return String.valueOf(array[0]);
 		}
 
-		StringBundler sb = new StringBundler(2 * array.length - 1);
+		StringBundler sb = new StringBundler((2 * array.length) - 1);
 
 		for (int i = 0; i < array.length; i++) {
 			if (i != 0) {
@@ -1831,7 +1823,7 @@ public class StringUtil {
 			return String.valueOf(array[0]);
 		}
 
-		StringBundler sb = new StringBundler(2 * array.length - 1);
+		StringBundler sb = new StringBundler((2 * array.length) - 1);
 
 		for (int i = 0; i < array.length; i++) {
 			if (i != 0) {
@@ -1880,7 +1872,7 @@ public class StringUtil {
 			return String.valueOf(array[0]);
 		}
 
-		StringBundler sb = new StringBundler(2 * array.length - 1);
+		StringBundler sb = new StringBundler((2 * array.length) - 1);
 
 		for (int i = 0; i < array.length; i++) {
 			if (i != 0) {
@@ -1929,7 +1921,7 @@ public class StringUtil {
 			return String.valueOf(array[0]);
 		}
 
-		StringBundler sb = new StringBundler(2 * array.length - 1);
+		StringBundler sb = new StringBundler((2 * array.length) - 1);
 
 		for (int i = 0; i < array.length; i++) {
 			if (i != 0) {
@@ -1978,7 +1970,7 @@ public class StringUtil {
 			return String.valueOf(array[0]);
 		}
 
-		StringBundler sb = new StringBundler(2 * array.length - 1);
+		StringBundler sb = new StringBundler((2 * array.length) - 1);
 
 		for (int i = 0; i < array.length; i++) {
 			if (i != 0) {
@@ -2029,7 +2021,7 @@ public class StringUtil {
 			return String.valueOf(array[0]);
 		}
 
-		StringBundler sb = new StringBundler(2 * array.length - 1);
+		StringBundler sb = new StringBundler((2 * array.length) - 1);
 
 		for (int i = 0; i < array.length; i++) {
 			if (i != 0) {
@@ -2117,11 +2109,7 @@ public class StringUtil {
 			return null;
 		}
 
-		return quote.concat(
-			s
-		).concat(
-			quote
-		);
+		return StringBundler.concat(quote, s, quote);
 	}
 
 	/**
@@ -2130,11 +2118,22 @@ public class StringUtil {
 	 * @return a randomized string of four lower case, alphabetic characters
 	 */
 	public static String randomId() {
+		return randomId(4);
+	}
+
+	/**
+	 * Returns a randomized string with the length informed and only alphabetic
+	 * characters.
+	 *
+	 * @return a randomized string with the length informed and only alphabetic
+	 *         characters.
+	 */
+	public static String randomId(int length) {
 		Random random = new Random();
 
-		char[] chars = new char[4];
+		char[] chars = new char[length];
 
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < length; i++) {
 			chars[i] = (char)(CharPool.LOWER_CASE_A + random.nextInt(26));
 		}
 
@@ -2178,8 +2177,8 @@ public class StringUtil {
 		try (InputStream inputStream = clazz.getResourceAsStream(name)) {
 			return read(inputStream);
 		}
-		catch (IOException ioe) {
-			return ReflectionUtil.throwException(ioe);
+		catch (IOException ioException) {
+			return ReflectionUtil.throwException(ioException);
 		}
 	}
 
@@ -2195,10 +2194,10 @@ public class StringUtil {
 		if (all) {
 			StringBundler sb = new StringBundler();
 
-			Enumeration<URL> enu = classLoader.getResources(name);
+			Enumeration<URL> enumeration = classLoader.getResources(name);
 
-			while (enu.hasMoreElements()) {
-				URL url = enu.nextElement();
+			while (enumeration.hasMoreElements()) {
+				URL url = enumeration.nextElement();
 
 				try (InputStream is = url.openStream()) {
 					String s = read(is);
@@ -2227,8 +2226,8 @@ public class StringUtil {
 		}
 	}
 
-	public static String read(InputStream is) throws IOException {
-		String s = _read(is);
+	public static String read(InputStream inputStream) throws IOException {
+		String s = _read(inputStream);
 
 		s = replace(s, "\r\n", StringPool.NEW_LINE);
 
@@ -2237,10 +2236,11 @@ public class StringUtil {
 		return s.trim();
 	}
 
-	public static void readLines(InputStream is, Collection<String> lines)
+	public static void readLines(
+			InputStream inputStream, Collection<String> lines)
 		throws IOException {
 
-		_splitLines(_read(is), lines);
+		_splitLines(_read(inputStream), lines);
 	}
 
 	public static String removeChar(String s, char oldSub) {
@@ -2376,11 +2376,7 @@ public class StringUtil {
 			s += delimiter;
 		}
 
-		String drd = delimiter.concat(
-			element
-		).concat(
-			delimiter
-		);
+		String drd = StringBundler.concat(delimiter, element, delimiter);
 
 		String rd = element.concat(delimiter);
 
@@ -2906,13 +2902,8 @@ public class StringUtil {
 		int y = s.indexOf(oldSub, fromIndex);
 
 		if (y >= 0) {
-			return s.substring(
-				0, y
-			).concat(
-				newSub
-			).concat(
-				s.substring(y + oldSub.length())
-			);
+			return StringBundler.concat(
+				s.substring(0, y), newSub, s.substring(y + oldSub.length()));
 		}
 
 		return s;
@@ -3016,13 +3007,8 @@ public class StringUtil {
 		int y = s.lastIndexOf(oldSub);
 
 		if (y >= 0) {
-			return s.substring(
-				0, y
-			).concat(
-				newSub
-			).concat(
-				s.substring(y + oldSub.length())
-			);
+			return StringBundler.concat(
+				s.substring(0, y), newSub, s.substring(y + oldSub.length()));
 		}
 
 		return s;
@@ -3109,7 +3095,7 @@ public class StringUtil {
 			return new StringBundler(s);
 		}
 
-		StringBundler sb = new StringBundler(values.size() * 2 + 1);
+		StringBundler sb = new StringBundler((values.size() * 2) + 1);
 
 		int pos = 0;
 
@@ -3617,7 +3603,7 @@ public class StringUtil {
 
 				value = booleanValue.booleanValue();
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 			}
 
 			newArray[i] = value;
@@ -3650,7 +3636,7 @@ public class StringUtil {
 			try {
 				value = Double.parseDouble(array[i]);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 			}
 
 			newArray[i] = value;
@@ -3682,7 +3668,7 @@ public class StringUtil {
 			try {
 				value = Float.parseFloat(array[i]);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 			}
 
 			newArray[i] = value;
@@ -3714,7 +3700,7 @@ public class StringUtil {
 			try {
 				value = Integer.parseInt(array[i]);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 			}
 
 			newArray[i] = value;
@@ -3746,7 +3732,7 @@ public class StringUtil {
 			try {
 				value = Long.parseLong(array[i]);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 			}
 
 			newArray[i] = value;
@@ -3778,7 +3764,7 @@ public class StringUtil {
 			try {
 				value = Short.parseShort(array[i]);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 			}
 
 			newArray[i] = value;
@@ -4139,23 +4125,23 @@ public class StringUtil {
 	 * <code>Integer</code> or <code>Long</code> object type. If the object is
 	 * not an instance of these types, the object's original value is returned.
 	 *
-	 * @param  obj the object to convert
+	 * @param  object the object to convert
 	 * @return a string representing the hexidecimal character code of the
 	 *         object
 	 */
-	public static String toHexString(Object obj) {
-		if (obj instanceof Integer) {
-			Integer integerObj = (Integer)obj;
+	public static String toHexString(Object object) {
+		if (object instanceof Integer) {
+			Integer integerObj = (Integer)object;
 
 			return toHexString(integerObj.intValue());
 		}
-		else if (obj instanceof Long) {
-			Long longObj = (Long)obj;
+		else if (object instanceof Long) {
+			Long longObj = (Long)object;
 
 			return toHexString(longObj.longValue());
 		}
 
-		return String.valueOf(obj);
+		return String.valueOf(object);
 	}
 
 	/**

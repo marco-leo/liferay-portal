@@ -24,6 +24,7 @@ import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
+import com.liferay.portal.vulcan.util.ObjectMapperUtil;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -50,43 +51,46 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Generated("")
 @GraphQLName("WikiPage")
 @JsonFilter("Liferay.Vulcan")
-@Schema(requiredProperties = {"encodingFormat", "headline"})
+@Schema(
+	requiredProperties = {"encodingFormat", "headline"},
+	description = "Represents a wiki page."
+)
 @XmlRootElement(name = "WikiPage")
 public class WikiPage {
 
-	@GraphQLName("ViewableBy")
-	public static enum ViewableBy {
-
-		ANYONE("Anyone"), MEMBERS("Members"), OWNER("Owner");
-
-		@JsonCreator
-		public static ViewableBy create(String value) {
-			for (ViewableBy viewableBy : values()) {
-				if (Objects.equals(viewableBy.getValue(), value)) {
-					return viewableBy;
-				}
-			}
-
-			return null;
-		}
-
-		@JsonValue
-		public String getValue() {
-			return _value;
-		}
-
-		@Override
-		public String toString() {
-			return _value;
-		}
-
-		private ViewableBy(String value) {
-			_value = value;
-		}
-
-		private final String _value;
-
+	public static WikiPage toDTO(String json) {
+		return ObjectMapperUtil.readValue(WikiPage.class, json);
 	}
+
+	@Schema
+	@Valid
+	public Map<String, Map<String, String>> getActions() {
+		return actions;
+	}
+
+	public void setActions(Map<String, Map<String, String>> actions) {
+		this.actions = actions;
+	}
+
+	@JsonIgnore
+	public void setActions(
+		UnsafeSupplier<Map<String, Map<String, String>>, Exception>
+			actionsUnsafeSupplier) {
+
+		try {
+			actions = actionsUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Map<String, Map<String, String>> actions;
 
 	@Schema(description = "The blog post's average rating.")
 	@Valid
@@ -467,6 +471,34 @@ public class WikiPage {
 	protected Integer numberOfWikiPages;
 
 	@Schema
+	public Long getParentWikiPageId() {
+		return parentWikiPageId;
+	}
+
+	public void setParentWikiPageId(Long parentWikiPageId) {
+		this.parentWikiPageId = parentWikiPageId;
+	}
+
+	@JsonIgnore
+	public void setParentWikiPageId(
+		UnsafeSupplier<Long, Exception> parentWikiPageIdUnsafeSupplier) {
+
+		try {
+			parentWikiPageId = parentWikiPageIdUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Long parentWikiPageId;
+
+	@Schema
 	@Valid
 	public RelatedContent[] getRelatedContents() {
 		return relatedContents;
@@ -558,21 +590,23 @@ public class WikiPage {
 
 	@Schema(description = "The categories associated with this blog post.")
 	@Valid
-	public TaxonomyCategory[] getTaxonomyCategories() {
-		return taxonomyCategories;
+	public TaxonomyCategoryBrief[] getTaxonomyCategoryBriefs() {
+		return taxonomyCategoryBriefs;
 	}
 
-	public void setTaxonomyCategories(TaxonomyCategory[] taxonomyCategories) {
-		this.taxonomyCategories = taxonomyCategories;
+	public void setTaxonomyCategoryBriefs(
+		TaxonomyCategoryBrief[] taxonomyCategoryBriefs) {
+
+		this.taxonomyCategoryBriefs = taxonomyCategoryBriefs;
 	}
 
 	@JsonIgnore
-	public void setTaxonomyCategories(
-		UnsafeSupplier<TaxonomyCategory[], Exception>
-			taxonomyCategoriesUnsafeSupplier) {
+	public void setTaxonomyCategoryBriefs(
+		UnsafeSupplier<TaxonomyCategoryBrief[], Exception>
+			taxonomyCategoryBriefsUnsafeSupplier) {
 
 		try {
-			taxonomyCategories = taxonomyCategoriesUnsafeSupplier.get();
+			taxonomyCategoryBriefs = taxonomyCategoryBriefsUnsafeSupplier.get();
 		}
 		catch (RuntimeException re) {
 			throw re;
@@ -586,7 +620,7 @@ public class WikiPage {
 		description = "The categories associated with this blog post."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
-	protected TaxonomyCategory[] taxonomyCategories;
+	protected TaxonomyCategoryBrief[] taxonomyCategoryBriefs;
 
 	@Schema(
 		description = "A write-only field that adds a `TaxonomyCategory` to this resource."
@@ -691,6 +725,16 @@ public class WikiPage {
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		if (actions != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"actions\": ");
+
+			sb.append(_toJSON(actions));
+		}
 
 		if (aggregateRating != null) {
 			if (sb.length() > 1) {
@@ -870,6 +914,16 @@ public class WikiPage {
 			sb.append(numberOfWikiPages);
 		}
 
+		if (parentWikiPageId != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"parentWikiPageId\": ");
+
+			sb.append(parentWikiPageId);
+		}
+
 		if (relatedContents != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -910,19 +964,19 @@ public class WikiPage {
 			sb.append(subscribed);
 		}
 
-		if (taxonomyCategories != null) {
+		if (taxonomyCategoryBriefs != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			sb.append("\"taxonomyCategories\": ");
+			sb.append("\"taxonomyCategoryBriefs\": ");
 
 			sb.append("[");
 
-			for (int i = 0; i < taxonomyCategories.length; i++) {
-				sb.append(String.valueOf(taxonomyCategories[i]));
+			for (int i = 0; i < taxonomyCategoryBriefs.length; i++) {
+				sb.append(String.valueOf(taxonomyCategoryBriefs[i]));
 
-				if ((i + 1) < taxonomyCategories.length) {
+				if ((i + 1) < taxonomyCategoryBriefs.length) {
 					sb.append(", ");
 				}
 			}
@@ -975,10 +1029,54 @@ public class WikiPage {
 	)
 	public String xClassName;
 
+	@GraphQLName("ViewableBy")
+	public static enum ViewableBy {
+
+		ANYONE("Anyone"), MEMBERS("Members"), OWNER("Owner");
+
+		@JsonCreator
+		public static ViewableBy create(String value) {
+			for (ViewableBy viewableBy : values()) {
+				if (Objects.equals(viewableBy.getValue(), value)) {
+					return viewableBy;
+				}
+			}
+
+			return null;
+		}
+
+		@JsonValue
+		public String getValue() {
+			return _value;
+		}
+
+		@Override
+		public String toString() {
+			return _value;
+		}
+
+		private ViewableBy(String value) {
+			_value = value;
+		}
+
+		private final String _value;
+
+	}
+
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
 		return string.replaceAll("\"", "\\\\\"");
+	}
+
+	private static boolean _isArray(Object value) {
+		if (value == null) {
+			return false;
+		}
+
+		Class<?> clazz = value.getClass();
+
+		return clazz.isArray();
 	}
 
 	private static String _toJSON(Map<String, ?> map) {
@@ -996,9 +1094,42 @@ public class WikiPage {
 			sb.append("\"");
 			sb.append(entry.getKey());
 			sb.append("\":");
-			sb.append("\"");
-			sb.append(entry.getValue());
-			sb.append("\"");
+
+			Object value = entry.getValue();
+
+			if (_isArray(value)) {
+				sb.append("[");
+
+				Object[] valueArray = (Object[])value;
+
+				for (int i = 0; i < valueArray.length; i++) {
+					if (valueArray[i] instanceof String) {
+						sb.append("\"");
+						sb.append(valueArray[i]);
+						sb.append("\"");
+					}
+					else {
+						sb.append(valueArray[i]);
+					}
+
+					if ((i + 1) < valueArray.length) {
+						sb.append(", ");
+					}
+				}
+
+				sb.append("]");
+			}
+			else if (value instanceof Map) {
+				sb.append(_toJSON((Map<String, ?>)value));
+			}
+			else if (value instanceof String) {
+				sb.append("\"");
+				sb.append(value);
+				sb.append("\"");
+			}
+			else {
+				sb.append(value);
+			}
 
 			if (iterator.hasNext()) {
 				sb.append(",");

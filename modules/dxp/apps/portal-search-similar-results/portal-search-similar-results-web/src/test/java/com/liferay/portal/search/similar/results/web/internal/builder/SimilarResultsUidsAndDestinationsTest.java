@@ -30,8 +30,10 @@ import com.liferay.message.boards.service.MBCategoryLocalService;
 import com.liferay.message.boards.service.MBMessageLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.model.ClassedModel;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.search.model.uid.UIDFactory;
 import com.liferay.portal.search.similar.results.web.internal.contributor.asset.publisher.AssetPublisherSimilarResultsContributor;
 import com.liferay.portal.search.similar.results.web.internal.contributor.blogs.BlogsSimilarResultsContributor;
 import com.liferay.portal.search.similar.results.web.internal.contributor.document.library.DocumentLibrarySimilarResultsContributor;
@@ -94,11 +96,16 @@ public class SimilarResultsUidsAndDestinationsTest {
 	public void testAssetPublisher() {
 		String urlString = StringBundler.concat(
 			"http://localhost:8080/web/guest/ap-page/-/asset_publisher",
-			"/BNPTUvWUBXIr/content/id/43152",
+			"/BNPTUvWUBXIr/content/id",
 			"?_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_",
+			"INSTANCE_BNPTUvWUBXIr_assetEntryId=43152",
+			"&_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_",
 			"INSTANCE_BNPTUvWUBXIr_redirect=",
 			"http%3A%2F%2Flocalhost%3A8080%2Fweb%2Fguest%2F",
-			"ap-page%3Fp_p_id&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view",
+			"ap-page%3Fp_p_id=com_liferay_asset_publisher_web_portlet_",
+			"AssetPublisherPortlet_",
+			"INSTANCE_BNPTUvWUBXIr&p_p_lifecycle=0&p_p_state=normal",
+			"&p_p_mode=view",
 			"&_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_",
 			"INSTANCE_BNPTUvWUBXIr_cur=0&p_r_p_resetCur=false",
 			"&_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_",
@@ -115,10 +122,15 @@ public class SimilarResultsUidsAndDestinationsTest {
 
 		String expectedDestination = StringBundler.concat(
 			"http://localhost:8080/web/guest/ap-page/-/asset_publisher",
-			"/BNPTUvWUBXIr/blog/id/25134",
+			"/BNPTUvWUBXIr/blog/id",
 			"?_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_",
+			"INSTANCE_BNPTUvWUBXIr_assetEntryId=25134",
+			"&_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_",
 			"INSTANCE_BNPTUvWUBXIr_redirect=http://localhost:8080/web/guest",
-			"/ap-page?p_p_id&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view",
+			"/ap-page?p_p_id=com_liferay_asset_publisher_web_portlet_",
+			"AssetPublisherPortlet_",
+			"INSTANCE_BNPTUvWUBXIr&p_p_lifecycle=0&p_p_state=normal",
+			"&p_p_mode=view",
 			"&_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_",
 			"INSTANCE_BNPTUvWUBXIr_cur=0&p_r_p_resetCur=false",
 			"&_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_",
@@ -148,7 +160,7 @@ public class SimilarResultsUidsAndDestinationsTest {
 			journalArticle
 		).getId();
 
-		AssetRenderer assetRenderer = Mockito.mock(AssetRenderer.class);
+		AssetRenderer<?> assetRenderer = Mockito.mock(AssetRenderer.class);
 
 		Mockito.doReturn(
 			journalArticle
@@ -173,6 +185,8 @@ public class SimilarResultsUidsAndDestinationsTest {
 		setUpDestinationAssetEntry(assetEntry2);
 
 		setUpDestinationClassName(className2);
+
+		setUpUIDFactory(expectedUID);
 
 		assertSimilarResultsContributor(
 			urlString, expectedUID, expectedDestination);
@@ -202,7 +216,7 @@ public class SimilarResultsUidsAndDestinationsTest {
 
 		AssetEntry assetEntry = getAssetEntry(className, classPK);
 
-		AssetRenderer assetRenderer = Mockito.mock(AssetRenderer.class);
+		AssetRenderer<?> assetRenderer = Mockito.mock(AssetRenderer.class);
 
 		Mockito.doReturn(
 			urlTitle
@@ -228,6 +242,7 @@ public class SimilarResultsUidsAndDestinationsTest {
 		setUpBlogsEntryLocalService(blogsEntry);
 		setUpInputGroupId(groupId);
 		setUpDestinationAssetRenderer(assetRenderer);
+		setUpUIDFactory(expectedUID);
 
 		assertSimilarResultsContributor(
 			urlString, expectedUID, expectedDestination);
@@ -259,7 +274,7 @@ public class SimilarResultsUidsAndDestinationsTest {
 			dlFileEntry
 		).getFileEntryId();
 
-		AssetRenderer assetRenderer = Mockito.mock(AssetRenderer.class);
+		AssetRenderer<?> assetRenderer = Mockito.mock(AssetRenderer.class);
 
 		Mockito.doReturn(
 			dlFileEntry
@@ -267,9 +282,7 @@ public class SimilarResultsUidsAndDestinationsTest {
 			assetRenderer
 		).getAssetObject();
 
-		AssetEntry assetEntry = getAssetEntry(className, 12345);
-
-		setUpAssetEntryLocalServiceFetchUUID(assetEntry);
+		setUpAssetEntryLocalServiceFetchUUID(getAssetEntry(className, 12345));
 
 		setUpDestinationAssetRenderer(assetRenderer);
 		setUpDestinationClassName(className);
@@ -306,7 +319,7 @@ public class SimilarResultsUidsAndDestinationsTest {
 			dlFolder
 		).getFolderId();
 
-		AssetRenderer assetRenderer = Mockito.mock(AssetRenderer.class);
+		AssetRenderer<?> assetRenderer = Mockito.mock(AssetRenderer.class);
 
 		Mockito.doReturn(
 			dlFolder
@@ -314,9 +327,7 @@ public class SimilarResultsUidsAndDestinationsTest {
 			assetRenderer
 		).getAssetObject();
 
-		AssetEntry assetEntry = getAssetEntry(className, 12345);
-
-		setUpAssetEntryLocalServiceFetchUUID(assetEntry);
+		setUpAssetEntryLocalServiceFetchUUID(getAssetEntry(className, 12345));
 
 		setUpDestinationAssetRenderer(assetRenderer);
 		setUpDestinationClassName(className);
@@ -399,9 +410,7 @@ public class SimilarResultsUidsAndDestinationsTest {
 			destinationHelper
 		).getClassPK();
 
-		AssetEntry assetEntry = getAssetEntry(className, 12345);
-
-		setUpAssetEntryLocalServiceFetchUUID(assetEntry);
+		setUpAssetEntryLocalServiceFetchUUID(getAssetEntry(className, 12345));
 
 		setUpInputGroupId(groupId);
 		setUpMBMessageLocalService(messageId);
@@ -433,9 +442,7 @@ public class SimilarResultsUidsAndDestinationsTest {
 			"http://localhost:8080/web/guest/blabal?className=", className,
 			"&classPK=", classPK);
 
-		AssetEntry assetEntry = getAssetEntry(className, classPK);
-
-		setUpDestinationAssetEntry(assetEntry);
+		setUpDestinationAssetEntry(getAssetEntry(className, classPK));
 
 		assertSimilarResultsContributor(
 			urlString, expectedUID, expectedDestination);
@@ -455,9 +462,9 @@ public class SimilarResultsUidsAndDestinationsTest {
 
 		String expectedUID = "ClassNamePortlet_PORTLET_34567";
 
-		String expectedDestination =
-			"http://localhost:8080/web/guest/blabal?classNameId=" +
-				classNameId2 + "&classPK=" + classPK2;
+		String expectedDestination = StringBundler.concat(
+			"http://localhost:8080/web/guest/blabal?classNameId=", classNameId2,
+			"&classPK=", classPK2);
 
 		AssetEntry assetEntry1 = getAssetEntry(className, classPK1);
 
@@ -630,7 +637,7 @@ public class SimilarResultsUidsAndDestinationsTest {
 			wikiPage
 		).getTitle();
 
-		AssetRenderer assetRenderer = Mockito.mock(AssetRenderer.class);
+		AssetRenderer<?> assetRenderer = Mockito.mock(AssetRenderer.class);
 
 		Mockito.doReturn(
 			wikiPage
@@ -638,12 +645,11 @@ public class SimilarResultsUidsAndDestinationsTest {
 			assetRenderer
 		).getAssetObject();
 
-		AssetEntry assetEntry = getAssetEntry(className, classPK);
-
-		setUpAssetEntryLocalServiceFetchUUID(assetEntry);
+		setUpAssetEntryLocalServiceFetchUUID(getAssetEntry(className, classPK));
 
 		setUpDestinationAssetRenderer(assetRenderer);
 		setUpInputGroupId(groupId);
+		setUpUIDFactory(expectedUID);
 		setUpWikiNodeLocalService(wikiNode);
 		setUpWikiPageLocalService(wikiPage);
 
@@ -670,6 +676,7 @@ public class SimilarResultsUidsAndDestinationsTest {
 			{
 				setAssetEntryLocalService(_assetEntryLocalService);
 				setHttpHelper(_httpHelper);
+				setUIDFactory(_uidFactory);
 			}
 		};
 	}
@@ -677,9 +684,9 @@ public class SimilarResultsUidsAndDestinationsTest {
 	protected SimilarResultsContributor createBlogsSimilarResultsContributor() {
 		return new BlogsSimilarResultsContributor() {
 			{
-				setAssetEntryLocalService(_assetEntryLocalService);
 				setBlogsEntryLocalService(_blogsEntryLocalService);
 				setHttpHelper(_httpHelper);
+				setUIDFactory(_uidFactory);
 			}
 		};
 	}
@@ -798,6 +805,7 @@ public class SimilarResultsUidsAndDestinationsTest {
 			{
 				setAssetEntryLocalService(_assetEntryLocalService);
 				setHttpHelper(_httpHelper);
+				setUIDFactory(_uidFactory);
 				setWikiNodeLocalService(_wikiNodeLocalService);
 				setWikiPageLocalService(_wikiPageLocalService);
 			}
@@ -893,7 +901,9 @@ public class SimilarResultsUidsAndDestinationsTest {
 		).getAssetEntry();
 	}
 
-	protected void setUpDestinationAssetRenderer(AssetRenderer assetRenderer) {
+	protected void setUpDestinationAssetRenderer(
+		AssetRenderer<?> assetRenderer) {
+
 		Mockito.doReturn(
 			assetRenderer
 		).when(
@@ -960,6 +970,14 @@ public class SimilarResultsUidsAndDestinationsTest {
 			_mbMessageLocalService.fetchMBMessage(Matchers.anyLong())
 		).thenReturn(
 			mbMessage
+		);
+	}
+
+	protected void setUpUIDFactory(String uid) {
+		Mockito.when(
+			_uidFactory.getUID(Matchers.any(ClassedModel.class))
+		).thenReturn(
+			uid
 		);
 	}
 
@@ -1032,6 +1050,9 @@ public class SimilarResultsUidsAndDestinationsTest {
 
 	private SimilarResultsContributorsRegistry
 		_similarResultsContributorsRegistry;
+
+	@Mock
+	private UIDFactory _uidFactory;
 
 	@Mock
 	private WikiNodeLocalService _wikiNodeLocalService;

@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class MBMessageServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.message.boards.service.impl.MBMessageServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link MBMessageServiceUtil} to access the message-boards message remote service. Add custom service methods to <code>com.liferay.message.boards.service.impl.MBMessageServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.message.boards.model.MBMessage
 			addDiscussionMessage(
@@ -160,6 +154,13 @@ public class MBMessageServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		getService().emptyMessageAttachments(messageId);
+	}
+
+	public static com.liferay.message.boards.model.MBMessage
+			fetchMBMessageByUrlSubject(long groupId, String urlSubject)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().fetchMBMessageByUrlSubject(groupId, urlSubject);
 	}
 
 	public static java.util.List<com.liferay.message.boards.model.MBMessage>

@@ -19,6 +19,7 @@ import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -39,6 +40,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -70,7 +72,7 @@ public abstract class SiteNavigationMenuLocalServiceBaseImpl
 	implements AopService, IdentifiableOSGiService,
 			   SiteNavigationMenuLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>SiteNavigationMenuLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.site.navigation.service.SiteNavigationMenuLocalServiceUtil</code>.
@@ -78,6 +80,10 @@ public abstract class SiteNavigationMenuLocalServiceBaseImpl
 
 	/**
 	 * Adds the site navigation menu to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SiteNavigationMenuLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param siteNavigationMenu the site navigation menu
 	 * @return the site navigation menu that was added
@@ -109,6 +115,10 @@ public abstract class SiteNavigationMenuLocalServiceBaseImpl
 	/**
 	 * Deletes the site navigation menu with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SiteNavigationMenuLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param siteNavigationMenuId the primary key of the site navigation menu
 	 * @return the site navigation menu that was removed
 	 * @throws PortalException if a site navigation menu with the primary key could not be found
@@ -125,6 +135,10 @@ public abstract class SiteNavigationMenuLocalServiceBaseImpl
 	/**
 	 * Deletes the site navigation menu from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SiteNavigationMenuLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param siteNavigationMenu the site navigation menu
 	 * @return the site navigation menu that was removed
 	 * @throws PortalException
@@ -136,6 +150,11 @@ public abstract class SiteNavigationMenuLocalServiceBaseImpl
 		throws PortalException {
 
 		return siteNavigationMenuPersistence.remove(siteNavigationMenu);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return siteNavigationMenuPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -383,6 +402,17 @@ public abstract class SiteNavigationMenuLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return siteNavigationMenuPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -390,6 +420,14 @@ public abstract class SiteNavigationMenuLocalServiceBaseImpl
 			(SiteNavigationMenu)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<SiteNavigationMenu> getBasePersistence() {
+		return siteNavigationMenuPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -475,6 +513,10 @@ public abstract class SiteNavigationMenuLocalServiceBaseImpl
 	/**
 	 * Updates the site navigation menu in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SiteNavigationMenuLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param siteNavigationMenu the site navigation menu
 	 * @return the site navigation menu that was updated
 	 */
@@ -538,8 +580,8 @@ public abstract class SiteNavigationMenuLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

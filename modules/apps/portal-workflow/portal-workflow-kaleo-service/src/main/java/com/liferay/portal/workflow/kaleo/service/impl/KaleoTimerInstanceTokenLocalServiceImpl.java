@@ -98,6 +98,8 @@ public class KaleoTimerInstanceTokenLocalServiceImpl
 		kaleoTimerInstanceToken.setKaleoClassName(
 			kaleoTimer.getKaleoClassName());
 		kaleoTimerInstanceToken.setKaleoClassPK(kaleoTimer.getKaleoClassPK());
+		kaleoTimerInstanceToken.setKaleoDefinitionId(
+			kaleoInstanceToken.getKaleoDefinitionId());
 		kaleoTimerInstanceToken.setKaleoDefinitionVersionId(
 			kaleoInstanceToken.getKaleoDefinitionVersionId());
 		kaleoTimerInstanceToken.setKaleoInstanceId(
@@ -112,7 +114,8 @@ public class KaleoTimerInstanceTokenLocalServiceImpl
 		kaleoTimerInstanceToken.setWorkflowContext(
 			WorkflowContextUtil.convert(workflowContext));
 
-		kaleoTimerInstanceTokenPersistence.update(kaleoTimerInstanceToken);
+		kaleoTimerInstanceToken = kaleoTimerInstanceTokenPersistence.update(
+			kaleoTimerInstanceToken);
 
 		scheduleTimer(kaleoTimerInstanceToken, kaleoTimer);
 
@@ -168,7 +171,8 @@ public class KaleoTimerInstanceTokenLocalServiceImpl
 		kaleoTimerInstanceToken.setCompleted(true);
 		kaleoTimerInstanceToken.setCompletionDate(new Date());
 
-		kaleoTimerInstanceTokenPersistence.update(kaleoTimerInstanceToken);
+		kaleoTimerInstanceToken = kaleoTimerInstanceTokenPersistence.update(
+			kaleoTimerInstanceToken);
 
 		deleteScheduledTimer(kaleoTimerInstanceToken);
 
@@ -232,10 +236,11 @@ public class KaleoTimerInstanceTokenLocalServiceImpl
 			try {
 				deleteScheduledTimer(kaleoTimerInstanceToken);
 			}
-			catch (PortalException pe) {
+			catch (PortalException portalException) {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
-						"Unable to unschedule " + kaleoTimerInstanceToken, pe);
+						"Unable to unschedule " + kaleoTimerInstanceToken,
+						portalException);
 				}
 			}
 
@@ -297,8 +302,7 @@ public class KaleoTimerInstanceTokenLocalServiceImpl
 
 		DelayDuration delayDuration = new DelayDuration(
 			kaleoTimer.getDuration(),
-			DurationScale.valueOf(
-				StringUtil.toUpperCase(kaleoTimer.getScale())));
+			DurationScale.parse(kaleoTimer.getScale()));
 
 		Date dueDate = _dueDateCalculator.getDueDate(new Date(), delayDuration);
 
@@ -308,8 +312,7 @@ public class KaleoTimerInstanceTokenLocalServiceImpl
 		if (kaleoTimer.isRecurring()) {
 			DelayDuration recurrenceDelayDuration = new DelayDuration(
 				kaleoTimer.getRecurrenceDuration(),
-				DurationScale.valueOf(
-					StringUtil.toUpperCase(kaleoTimer.getRecurrenceScale())));
+				DurationScale.parse(kaleoTimer.getRecurrenceScale()));
 
 			interval = (int)recurrenceDelayDuration.getDuration();
 
@@ -325,6 +328,7 @@ public class KaleoTimerInstanceTokenLocalServiceImpl
 
 		Message message = new Message();
 
+		message.put("companyId", kaleoTimerInstanceToken.getCompanyId());
 		message.put(
 			"kaleoTimerInstanceTokenId",
 			kaleoTimerInstanceToken.getKaleoTimerInstanceTokenId());

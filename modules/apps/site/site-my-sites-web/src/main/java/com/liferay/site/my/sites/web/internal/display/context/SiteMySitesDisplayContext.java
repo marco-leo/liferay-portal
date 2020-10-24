@@ -16,7 +16,7 @@ package com.liferay.site.my.sites.web.internal.display.context;
 
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItem;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemList;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemListBuilder;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
@@ -63,16 +63,6 @@ public class SiteMySitesDisplayContext {
 		_httpServletRequest = PortalUtil.getHttpServletRequest(renderRequest);
 	}
 
-	public List<DropdownItem> getArticleActionDropdownItems(Group group)
-		throws Exception {
-
-		SiteActionDropdownItemsProvider siteActionDropdownItemsProvider =
-			new SiteActionDropdownItemsProvider(
-				group, _renderRequest, _renderResponse, getTabs1());
-
-		return siteActionDropdownItemsProvider.getActionDropdownItems();
-	}
-
 	public String getDisplayStyle() {
 		if (Validator.isNotNull(_displayStyle)) {
 			return _displayStyle;
@@ -82,6 +72,16 @@ public class SiteMySitesDisplayContext {
 			_renderRequest, "displayStyle", "descriptive");
 
 		return _displayStyle;
+	}
+
+	public List<DropdownItem> getGroupActionDropdownItems(Group group)
+		throws Exception {
+
+		SiteActionDropdownItemsProvider siteActionDropdownItemsProvider =
+			new SiteActionDropdownItemsProvider(
+				group, _renderRequest, _renderResponse, getTabs1());
+
+		return siteActionDropdownItemsProvider.getActionDropdownItems();
 	}
 
 	public GroupSearch getGroupSearchContainer() {
@@ -145,6 +145,10 @@ public class SiteMySitesDisplayContext {
 	}
 
 	public int getGroupUsersCounts(long groupId) {
+		if (_groupUsersCounts != null) {
+			return GetterUtil.getInteger(_groupUsersCounts.get(groupId));
+		}
+
 		ThemeDisplay themeDisplay = (ThemeDisplay)_renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
@@ -153,38 +157,32 @@ public class SiteMySitesDisplayContext {
 		long[] groupIds = ListUtil.toLongArray(
 			groupSearch.getResults(), Group.GROUP_ID_ACCESSOR);
 
-		Map<Long, Integer> groupUsersCounts = UserLocalServiceUtil.searchCounts(
+		_groupUsersCounts = UserLocalServiceUtil.searchCounts(
 			themeDisplay.getCompanyId(), WorkflowConstants.STATUS_APPROVED,
 			groupIds);
 
-		return GetterUtil.getInteger(groupUsersCounts.get(groupId));
+		return GetterUtil.getInteger(_groupUsersCounts.get(groupId));
 	}
 
 	public List<NavigationItem> getNavigationItems() {
-		return new NavigationItemList() {
-			{
-				add(
-					navigationItem -> {
-						navigationItem.setActive(
-							Objects.equals(getTabs1(), "my-sites"));
-						navigationItem.setHref(
-							getPortletURL(), "tabs1", "my-sites");
-						navigationItem.setLabel(
-							LanguageUtil.get(_httpServletRequest, "my-sites"));
-					});
-
-				add(
-					navigationItem -> {
-						navigationItem.setActive(
-							Objects.equals(getTabs1(), "available-sites"));
-						navigationItem.setHref(
-							getPortletURL(), "tabs1", "available-sites");
-						navigationItem.setLabel(
-							LanguageUtil.get(
-								_httpServletRequest, "available-sites"));
-					});
+		return NavigationItemListBuilder.add(
+			navigationItem -> {
+				navigationItem.setActive(
+					Objects.equals(getTabs1(), "my-sites"));
+				navigationItem.setHref(getPortletURL(), "tabs1", "my-sites");
+				navigationItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, "my-sites"));
 			}
-		};
+		).add(
+			navigationItem -> {
+				navigationItem.setActive(
+					Objects.equals(getTabs1(), "available-sites"));
+				navigationItem.setHref(
+					getPortletURL(), "tabs1", "available-sites");
+				navigationItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, "available-sites"));
+			}
+		).build();
 	}
 
 	public String getOrderByCol() {
@@ -240,6 +238,7 @@ public class SiteMySitesDisplayContext {
 
 	private String _displayStyle;
 	private GroupSearch _groupSearch;
+	private Map<Long, Integer> _groupUsersCounts;
 	private final HttpServletRequest _httpServletRequest;
 	private String _orderByCol;
 	private String _orderByType;

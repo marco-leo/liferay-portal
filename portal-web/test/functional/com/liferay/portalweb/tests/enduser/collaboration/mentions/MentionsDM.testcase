@@ -3,7 +3,7 @@ definition {
 
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property custom.properties = "default.layout.template.id=1_column";
+	property custom.properties = "default.layout.template.id=1_column${line.separator}jsonws.web.service.paths.excludes=";
 	property testray.component.names = "Mentions";
 	property testray.main.component.name = "Mentions";
 
@@ -18,17 +18,12 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
-		User.editPasswordCP(
-			password = "password",
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
-
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -36,6 +31,16 @@ definition {
 		User.assignRegularRoleCP(
 			roleTitle = "Administrator",
 			userScreenName = "usersn");
+
+		User.logoutPG();
+
+		User.loginPG(
+			password = "test",
+			userEmailAddress = "userea@liferay.com");
+
+		User.logoutPG();
+
+		User.loginPG();
 	}
 
 	tearDown {
@@ -59,7 +64,6 @@ definition {
 	test ViewMentionViaDMComment {
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
-			panel = "Site Administration",
 			portlet = "Pages");
 
 		SitePages.addPublicPage(
@@ -70,17 +74,12 @@ definition {
 
 		Portlet.addPG(portletName = "Documents and Media");
 
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Documents and Media");
-
-		DMDocument.addCP(
+		JSONDocument.addFileWithUploadedFile(
 			dmDocumentDescription = "DM Document Description",
-			dmDocumentFile = "Document_1.txt",
-			dmDocumentTitle = "DM Document Title");
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Guest",
+			mimeType = "text/plain",
+			sourceFileName = "Document_1.txt");
 
 		User.logoutPG();
 
@@ -110,7 +109,6 @@ definition {
 	test ViewReplyMentionViaDMComment {
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
-			panel = "Site Administration",
 			portlet = "Pages");
 
 		SitePages.addPublicPage(
@@ -121,17 +119,12 @@ definition {
 
 		Portlet.addPG(portletName = "Documents and Media");
 
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Documents and Media");
-
-		DMDocument.addCP(
+		JSONDocument.addFileWithUploadedFile(
 			dmDocumentDescription = "DM Document Description",
-			dmDocumentFile = "Document_1.txt",
-			dmDocumentTitle = "DM Document Title");
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Guest",
+			mimeType = "text/plain",
+			sourceFileName = "Document_1.txt");
 
 		User.logoutPG();
 
@@ -180,6 +173,8 @@ definition {
 			entryComment = "Comment reply mentioning",
 			mentionsUserFullName = "userfn userln",
 			mentionsUserScreenName = "usersn");
+
+		ProductMenuHelper.openProductMenu();
 
 		Mentions.viewCommentMentionTagLink(
 			mentionsUserFullName = "userfn userln",

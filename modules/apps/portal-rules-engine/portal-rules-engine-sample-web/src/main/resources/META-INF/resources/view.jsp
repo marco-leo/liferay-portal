@@ -16,10 +16,14 @@
 
 <%@ include file="/init.jsp" %>
 
+<%
+RulesEngine rulesEngine = (RulesEngine)request.getAttribute(RulesEngine.class.getName());
+%>
+
 <c:choose>
 	<c:when test="<%= themeDisplay.isSignedIn() %>">
 		<c:choose>
-			<c:when test="<%= RulesEngineUtil.getRulesEngine() != null %>">
+			<c:when test="<%= rulesEngine != null %>">
 
 				<%
 				List<Fact<?>> facts = new ArrayList<Fact<?>>();
@@ -30,13 +34,13 @@
 				facts.add(new Fact<KeyValuePair>("userCustomAttributeNames", new KeyValuePair("userCustomAttributeNames", userCustomAttributeNames)));
 				facts.add(new Fact<List<AssetEntry>>("results", new ArrayList<AssetEntry>()));
 
-				if (!RulesEngineUtil.containsRuleDomain(domainName)) {
+				if (!rulesEngine.containsRuleDomain(domainName)) {
 					RulesResourceRetriever rulesResourceRetriever = new RulesResourceRetriever(new StringResourceRetriever(rules), String.valueOf(RulesLanguage.DROOLS_RULE_LANGUAGE));
 
-					RulesEngineUtil.update(domainName, rulesResourceRetriever);
+					rulesEngine.update(domainName, rulesResourceRetriever);
 				}
 
-				Map<String, ?> results = RulesEngineUtil.execute(domainName, facts, Query.createStandardQuery());
+				Map<String, ?> results = rulesEngine.execute(domainName, facts, Query.createStandardQuery());
 
 				List<AssetEntry> assetEntries = (List<AssetEntry>)results.get("results");
 				%>
@@ -50,13 +54,13 @@
 
 						<%
 						for (AssetEntry assetEntry : assetEntries) {
-							AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(assetEntry.getClassName());
+							AssetRendererFactory<?> assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(assetEntry.getClassName());
 
 							if (assetRendererFactory == null) {
 								continue;
 							}
 
-							AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(assetEntry.getClassPK());
+							AssetRenderer<?> assetRenderer = assetRendererFactory.getAssetRenderer(assetEntry.getClassPK());
 
 							request.setAttribute(WebKeys.ASSET_RENDERER, assetRenderer);
 							request.setAttribute(WebKeys.ASSET_RENDERER_FACTORY, assetRendererFactory);

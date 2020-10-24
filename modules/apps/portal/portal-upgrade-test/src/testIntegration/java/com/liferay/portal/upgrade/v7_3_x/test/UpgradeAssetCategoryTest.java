@@ -56,7 +56,7 @@ public class UpgradeAssetCategoryTest {
 
 		category = _createCategory(category.getCategoryId());
 
-		category = _createCategory(category.getCategoryId());
+		_createCategory(category.getCategoryId());
 	}
 
 	@Test
@@ -67,7 +67,7 @@ public class UpgradeAssetCategoryTest {
 
 		CacheRegistryUtil.clear();
 
-		StringBundler sb = new StringBundler(2 * _assetCategories.size() + 1);
+		StringBundler sb = new StringBundler((2 * _assetCategories.size()) + 1);
 
 		sb.append("/");
 

@@ -26,7 +26,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class Creator {
+public class Creator implements Cloneable {
+
+	public static Creator toDTO(String json) {
+		return CreatorSerDes.toDTO(json);
+	}
 
 	public String getAdditionalName() {
 		return additionalName;
@@ -191,6 +195,11 @@ public class Creator {
 	}
 
 	protected String profileURL;
+
+	@Override
+	public Creator clone() throws CloneNotSupportedException {
+		return (Creator)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

@@ -40,19 +40,19 @@ import javax.servlet.http.HttpServletRequest;
 public class AssetTagsSelectorDisplayContext {
 
 	public AssetTagsSelectorDisplayContext(
-		RenderRequest renderRequest, RenderResponse renderResponse,
-		HttpServletRequest httpServletRequest) {
+		HttpServletRequest httpServletRequest, RenderRequest renderRequest,
+		RenderResponse renderResponse) {
 
-		this(renderRequest, renderResponse, httpServletRequest, true);
+		this(httpServletRequest, renderRequest, renderResponse, true);
 	}
 
 	public AssetTagsSelectorDisplayContext(
-		RenderRequest renderRequest, RenderResponse renderResponse,
-		HttpServletRequest httpServletRequest, boolean rowChecker) {
+		HttpServletRequest httpServletRequest, RenderRequest renderRequest,
+		RenderResponse renderResponse, boolean rowChecker) {
 
+		_httpServletRequest = httpServletRequest;
 		_renderRequest = renderRequest;
 		_renderResponse = renderResponse;
-		_httpServletRequest = httpServletRequest;
 		_rowChecker = rowChecker;
 	}
 
@@ -102,16 +102,12 @@ public class AssetTagsSelectorDisplayContext {
 		return _selectedTagNames;
 	}
 
-	public SearchContainer getTagsSearchContainer() {
+	public SearchContainer<AssetTag> getTagsSearchContainer() {
 		if (_tagsSearchContainer != null) {
 			return _tagsSearchContainer;
 		}
 
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)_httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		SearchContainer tagsSearchContainer = new SearchContainer(
+		SearchContainer<AssetTag> tagsSearchContainer = new SearchContainer(
 			_renderRequest, getPortletURL(), null, "there-are-no-tags");
 
 		String orderByCol = _getOrderByCol();
@@ -137,7 +133,7 @@ public class AssetTagsSelectorDisplayContext {
 		}
 
 		int tagsCount = AssetTagServiceUtil.getTagsCount(
-			themeDisplay.getScopeGroupId(), _getKeywords());
+			_getGroupIds(), _getKeywords());
 
 		tagsSearchContainer.setTotal(tagsCount);
 
@@ -158,14 +154,14 @@ public class AssetTagsSelectorDisplayContext {
 			return _groupIds;
 		}
 
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)_httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
 		_groupIds = StringUtil.split(
 			ParamUtil.getString(_httpServletRequest, "groupIds"), 0L);
 
 		if (ArrayUtil.isEmpty(_groupIds)) {
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)_httpServletRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
 			_groupIds = new long[] {themeDisplay.getScopeGroupId()};
 		}
 
@@ -215,6 +211,6 @@ public class AssetTagsSelectorDisplayContext {
 	private final RenderResponse _renderResponse;
 	private final boolean _rowChecker;
 	private String[] _selectedTagNames;
-	private SearchContainer _tagsSearchContainer;
+	private SearchContainer<AssetTag> _tagsSearchContainer;
 
 }

@@ -84,18 +84,20 @@ public class UpdateLayoutPrototypeMVCActionCommand
 				actionRequest, actionResponse,
 				JSONUtil.put("redirectURL", redirect));
 		}
-		catch (Throwable t) {
+		catch (Throwable throwable) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(t, t);
+				_log.debug(throwable, throwable);
 			}
 
-			if (t instanceof LayoutPageTemplateEntryNameException) {
-				LayoutPageTemplateEntryNameException lptene =
-					(LayoutPageTemplateEntryNameException)t;
+			if (throwable instanceof LayoutPageTemplateEntryNameException) {
+				LayoutPageTemplateEntryNameException
+					layoutPageTemplateEntryNameException =
+						(LayoutPageTemplateEntryNameException)throwable;
 
 				_layoutPageTemplateEntryExceptionRequestHandler.
 					handlePortalException(
-						actionRequest, actionResponse, lptene);
+						actionRequest, actionResponse,
+						layoutPageTemplateEntryNameException);
 			}
 			else {
 				ThemeDisplay themeDisplay =

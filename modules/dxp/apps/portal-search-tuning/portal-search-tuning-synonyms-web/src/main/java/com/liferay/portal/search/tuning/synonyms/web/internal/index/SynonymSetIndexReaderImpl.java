@@ -20,10 +20,12 @@ import com.liferay.portal.search.document.Document;
 import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
 import com.liferay.portal.search.engine.adapter.document.GetDocumentRequest;
 import com.liferay.portal.search.engine.adapter.document.GetDocumentResponse;
+import com.liferay.portal.search.engine.adapter.index.IndicesExistsIndexRequest;
+import com.liferay.portal.search.engine.adapter.index.IndicesExistsIndexResponse;
 import com.liferay.portal.search.engine.adapter.search.SearchSearchRequest;
 import com.liferay.portal.search.engine.adapter.search.SearchSearchResponse;
 import com.liferay.portal.search.query.Queries;
-import com.liferay.portal.search.query.TermQuery;
+import com.liferay.portal.search.tuning.synonyms.web.internal.index.name.SynonymSetIndexName;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,23 +40,35 @@ import org.osgi.service.component.annotations.Reference;
 public class SynonymSetIndexReaderImpl implements SynonymSetIndexReader {
 
 	@Override
-	public Optional<SynonymSet> fetchOptional(String id) {
+	public Optional<SynonymSet> fetchOptional(
+		SynonymSetIndexName synonymSetIndexName, String id) {
+
 		return _getDocumentOptional(
-			id
+			synonymSetIndexName, id
 		).map(
 			document -> translate(document, id)
 		);
 	}
 
 	@Override
-	public List<SynonymSet> searchByIndexName(String indexName) {
+	public boolean isExists(SynonymSetIndexName synonymSetIndexName) {
+		IndicesExistsIndexRequest indicesExistsIndexRequest =
+			new IndicesExistsIndexRequest(synonymSetIndexName.getIndexName());
+
+		indicesExistsIndexRequest.setPreferLocalCluster(false);
+
+		IndicesExistsIndexResponse indicesExistsIndexResponse =
+			_searchEngineAdapter.execute(indicesExistsIndexRequest);
+
+		return indicesExistsIndexResponse.isExists();
+	}
+
+	@Override
+	public List<SynonymSet> search(SynonymSetIndexName synonymSetIndexName) {
 		SearchSearchRequest searchSearchRequest = new SearchSearchRequest();
 
-		searchSearchRequest.setIndexNames(SynonymSetIndexDefinition.INDEX_NAME);
-
-		TermQuery query = _queries.term(SynonymSetFields.INDEX, indexName);
-
-		searchSearchRequest.setPostFilterQuery(query);
+		searchSearchRequest.setIndexNames(synonymSetIndexName.getIndexName());
+		searchSearchRequest.setPreferLocalCluster(false);
 
 		SearchSearchResponse searchSearchResponse =
 			_searchEngineAdapter.execute(searchSearchRequest);
@@ -74,16 +88,19 @@ public class SynonymSetIndexReaderImpl implements SynonymSetIndexReader {
 		return _documentToSynonymSetTranslator.translate(document, id);
 	}
 
-	private Optional<Document> _getDocumentOptional(String id) {
+	private Optional<Document> _getDocumentOptional(
+		SynonymSetIndexName synonymSetIndexName, String id) {
+
 		if (Validator.isNull(id)) {
 			return Optional.empty();
 		}
 
 		GetDocumentRequest getDocumentRequest = new GetDocumentRequest(
-			SynonymSetIndexDefinition.INDEX_NAME, id);
+			synonymSetIndexName.getIndexName(), id);
 
 		getDocumentRequest.setFetchSource(true);
 		getDocumentRequest.setFetchSourceInclude(StringPool.STAR);
+		getDocumentRequest.setPreferLocalCluster(false);
 
 		GetDocumentResponse getDocumentResponse = _searchEngineAdapter.execute(
 			getDocumentRequest);

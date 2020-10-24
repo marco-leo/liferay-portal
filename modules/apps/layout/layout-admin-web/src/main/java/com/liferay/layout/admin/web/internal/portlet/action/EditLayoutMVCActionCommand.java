@@ -16,7 +16,6 @@ package com.liferay.layout.admin.web.internal.portlet.action;
 
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
-import com.liferay.layout.seo.service.LayoutSEOEntryService;
 import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
@@ -37,10 +36,8 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PropertiesParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -107,11 +104,18 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 			iconBytes = FileUtil.getBytes(fileEntry.getContentStream());
 		}
 
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			Layout.class.getName(), actionRequest);
-
 		Layout layout = _layoutLocalService.getLayout(
 			groupId, privateLayout, layoutId);
+
+		long masterLayoutPlid = ParamUtil.getLong(
+			uploadPortletRequest, "masterLayoutPlid",
+			layout.getMasterLayoutPlid());
+		long styleBookEntryId = ParamUtil.getLong(
+			uploadPortletRequest, "styleBookEntryId",
+			layout.getStyleBookEntryId());
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			Layout.class.getName(), actionRequest);
 
 		String oldFriendlyURL = layout.getFriendlyURL();
 
@@ -123,11 +127,7 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 			friendlyURLMap = layout.getFriendlyURLMap();
 		}
 
-		String currentType = layout.getType();
-
-		if (StringUtil.equals(
-				currentType, LayoutConstants.TYPE_ASSET_DISPLAY)) {
-
+		if (layout.isTypeAssetDisplay()) {
 			serviceContext.setAttribute(
 				"layout.instanceable.allowed", Boolean.TRUE);
 		}
@@ -136,10 +136,10 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 			groupId, privateLayout, layoutId, layout.getParentLayoutId(),
 			nameMap, layout.getTitleMap(), layout.getDescriptionMap(),
 			layout.getKeywordsMap(), layout.getRobotsMap(), type, hidden,
-			friendlyURLMap, !deleteLogo, iconBytes, serviceContext);
+			friendlyURLMap, !deleteLogo, iconBytes, masterLayoutPlid,
+			styleBookEntryId, serviceContext);
 
-		Layout draftLayout = _layoutLocalService.fetchLayout(
-			_portal.getClassNameId(Layout.class), layout.getPlid());
+		Layout draftLayout = layout.fetchDraftLayout();
 
 		if (draftLayout != null) {
 			_layoutService.updateLayout(
@@ -148,15 +148,16 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 				draftLayout.getTitleMap(), draftLayout.getDescriptionMap(),
 				draftLayout.getKeywordsMap(), draftLayout.getRobotsMap(), type,
 				draftLayout.isHidden(), draftLayout.getFriendlyURLMap(),
-				!deleteLogo, iconBytes, serviceContext);
+				!deleteLogo, iconBytes, draftLayout.getMasterLayoutPlid(),
+				styleBookEntryId, serviceContext);
 		}
 
 		themeDisplay.clearLayoutFriendlyURL(layout);
 
-		UnicodeProperties layoutTypeSettingsProperties =
+		UnicodeProperties layoutTypeSettingsUnicodeProperties =
 			layout.getTypeSettingsProperties();
 
-		UnicodeProperties formTypeSettingsProperties =
+		UnicodeProperties formTypeSettingsUnicodeProperties =
 			PropertiesParamUtil.getProperties(
 				actionRequest, "TypeSettingsProperties--");
 
@@ -167,7 +168,7 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 			Layout linkToLayout = _layoutService.getLayoutByUuidAndGroupId(
 				linkToLayoutUuid, groupId, privateLayout);
 
-			formTypeSettingsProperties.put(
+			formTypeSettingsUnicodeProperties.put(
 				"linkToLayoutId", String.valueOf(linkToLayout.getLayoutId()));
 		}
 
@@ -182,36 +183,29 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 			layoutTypePortlet.setLayoutTemplateId(
 				themeDisplay.getUserId(), layoutTemplateId);
 
-			layoutTypeSettingsProperties.putAll(formTypeSettingsProperties);
+			layoutTypeSettingsUnicodeProperties.putAll(
+				formTypeSettingsUnicodeProperties);
 
 			boolean layoutCustomizable = GetterUtil.getBoolean(
-				layoutTypeSettingsProperties.get(
+				layoutTypeSettingsUnicodeProperties.get(
 					LayoutConstants.CUSTOMIZABLE_LAYOUT));
 
 			if (!layoutCustomizable) {
 				layoutTypePortlet.removeCustomization(
-					layoutTypeSettingsProperties);
-			}
-
-			layout = _layoutService.updateLayout(
-				groupId, privateLayout, layoutId,
-				layoutTypeSettingsProperties.toString());
-
-			if (!currentType.equals(LayoutConstants.TYPE_PORTLET)) {
-				_portletPreferencesLocalService.deletePortletPreferences(
-					0, PortletKeys.PREFS_OWNER_TYPE_LAYOUT, layout.getPlid());
+					layoutTypeSettingsUnicodeProperties);
 			}
 		}
 		else {
-			layoutTypeSettingsProperties.putAll(formTypeSettingsProperties);
+			layoutTypeSettingsUnicodeProperties.putAll(
+				formTypeSettingsUnicodeProperties);
 
-			layoutTypeSettingsProperties.putAll(
+			layoutTypeSettingsUnicodeProperties.putAll(
 				layout.getTypeSettingsProperties());
-
-			layout = _layoutService.updateLayout(
-				groupId, privateLayout, layoutId,
-				layoutTypeSettingsProperties.toString());
 		}
+
+		layout = _layoutService.updateLayout(
+			groupId, privateLayout, layoutId,
+			layoutTypeSettingsUnicodeProperties.toString());
 
 		EventsProcessorUtil.process(
 			PropsKeys.LAYOUT_CONFIGURATION_ACTION_UPDATE,
@@ -219,7 +213,7 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 			uploadPortletRequest,
 			_portal.getHttpServletResponse(actionResponse));
 
-		_actionUtil.updateLookAndFeel(
+		ActionUtil.updateLookAndFeel(
 			actionRequest, themeDisplay.getCompanyId(), liveGroupId,
 			stagingGroupId, privateLayout, layout.getLayoutId(),
 			layout.getTypeSettingsProperties());
@@ -243,16 +237,10 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 	}
 
 	@Reference
-	private ActionUtil _actionUtil;
-
-	@Reference
 	private DLAppLocalService _dlAppLocalService;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
-
-	@Reference
-	private LayoutSEOEntryService _layoutSEOEntryService;
 
 	@Reference
 	private LayoutService _layoutService;

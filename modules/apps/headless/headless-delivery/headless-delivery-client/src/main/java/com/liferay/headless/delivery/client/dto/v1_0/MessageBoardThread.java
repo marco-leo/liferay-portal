@@ -18,6 +18,7 @@ import com.liferay.headless.delivery.client.function.UnsafeSupplier;
 import com.liferay.headless.delivery.client.serdes.v1_0.MessageBoardThreadSerDes;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.Generated;
@@ -27,38 +28,33 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class MessageBoardThread {
+public class MessageBoardThread implements Cloneable {
 
-	public static enum ViewableBy {
-
-		ANYONE("Anyone"), MEMBERS("Members"), OWNER("Owner");
-
-		public static ViewableBy create(String value) {
-			for (ViewableBy viewableBy : values()) {
-				if (Objects.equals(viewableBy.getValue(), value)) {
-					return viewableBy;
-				}
-			}
-
-			return null;
-		}
-
-		public String getValue() {
-			return _value;
-		}
-
-		@Override
-		public String toString() {
-			return _value;
-		}
-
-		private ViewableBy(String value) {
-			_value = value;
-		}
-
-		private final String _value;
-
+	public static MessageBoardThread toDTO(String json) {
+		return MessageBoardThreadSerDes.toDTO(json);
 	}
+
+	public Map<String, Map<String, String>> getActions() {
+		return actions;
+	}
+
+	public void setActions(Map<String, Map<String, String>> actions) {
+		this.actions = actions;
+	}
+
+	public void setActions(
+		UnsafeSupplier<Map<String, Map<String, String>>, Exception>
+			actionsUnsafeSupplier) {
+
+		try {
+			actions = actionsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Map<String, Map<String, String>> actions;
 
 	public AggregateRating getAggregateRating() {
 		return aggregateRating;
@@ -123,6 +119,28 @@ public class MessageBoardThread {
 	}
 
 	protected Creator creator;
+
+	public CreatorStatistics getCreatorStatistics() {
+		return creatorStatistics;
+	}
+
+	public void setCreatorStatistics(CreatorStatistics creatorStatistics) {
+		this.creatorStatistics = creatorStatistics;
+	}
+
+	public void setCreatorStatistics(
+		UnsafeSupplier<CreatorStatistics, Exception>
+			creatorStatisticsUnsafeSupplier) {
+
+		try {
+			creatorStatistics = creatorStatisticsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected CreatorStatistics creatorStatistics;
 
 	public CustomField[] getCustomFields() {
 		return customFields;
@@ -208,6 +226,48 @@ public class MessageBoardThread {
 
 	protected String encodingFormat;
 
+	public String getFriendlyUrlPath() {
+		return friendlyUrlPath;
+	}
+
+	public void setFriendlyUrlPath(String friendlyUrlPath) {
+		this.friendlyUrlPath = friendlyUrlPath;
+	}
+
+	public void setFriendlyUrlPath(
+		UnsafeSupplier<String, Exception> friendlyUrlPathUnsafeSupplier) {
+
+		try {
+			friendlyUrlPath = friendlyUrlPathUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String friendlyUrlPath;
+
+	public Boolean getHasValidAnswer() {
+		return hasValidAnswer;
+	}
+
+	public void setHasValidAnswer(Boolean hasValidAnswer) {
+		this.hasValidAnswer = hasValidAnswer;
+	}
+
+	public void setHasValidAnswer(
+		UnsafeSupplier<Boolean, Exception> hasValidAnswerUnsafeSupplier) {
+
+		try {
+			hasValidAnswer = hasValidAnswerUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean hasValidAnswer;
+
 	public String getHeadline() {
 		return headline;
 	}
@@ -268,6 +328,48 @@ public class MessageBoardThread {
 	}
 
 	protected String[] keywords;
+
+	public Boolean getLocked() {
+		return locked;
+	}
+
+	public void setLocked(Boolean locked) {
+		this.locked = locked;
+	}
+
+	public void setLocked(
+		UnsafeSupplier<Boolean, Exception> lockedUnsafeSupplier) {
+
+		try {
+			locked = lockedUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean locked;
+
+	public Long getMessageBoardSectionId() {
+		return messageBoardSectionId;
+	}
+
+	public void setMessageBoardSectionId(Long messageBoardSectionId) {
+		this.messageBoardSectionId = messageBoardSectionId;
+	}
+
+	public void setMessageBoardSectionId(
+		UnsafeSupplier<Long, Exception> messageBoardSectionIdUnsafeSupplier) {
+
+		try {
+			messageBoardSectionId = messageBoardSectionIdUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long messageBoardSectionId;
 
 	public Integer getNumberOfMessageBoardAttachments() {
 		return numberOfMessageBoardAttachments;
@@ -341,6 +443,25 @@ public class MessageBoardThread {
 
 	protected RelatedContent[] relatedContents;
 
+	public Boolean getSeen() {
+		return seen;
+	}
+
+	public void setSeen(Boolean seen) {
+		this.seen = seen;
+	}
+
+	public void setSeen(UnsafeSupplier<Boolean, Exception> seenUnsafeSupplier) {
+		try {
+			seen = seenUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean seen;
+
 	public Boolean getShowAsQuestion() {
 		return showAsQuestion;
 	}
@@ -403,6 +524,51 @@ public class MessageBoardThread {
 	}
 
 	protected Boolean subscribed;
+
+	public TaxonomyCategoryBrief[] getTaxonomyCategoryBriefs() {
+		return taxonomyCategoryBriefs;
+	}
+
+	public void setTaxonomyCategoryBriefs(
+		TaxonomyCategoryBrief[] taxonomyCategoryBriefs) {
+
+		this.taxonomyCategoryBriefs = taxonomyCategoryBriefs;
+	}
+
+	public void setTaxonomyCategoryBriefs(
+		UnsafeSupplier<TaxonomyCategoryBrief[], Exception>
+			taxonomyCategoryBriefsUnsafeSupplier) {
+
+		try {
+			taxonomyCategoryBriefs = taxonomyCategoryBriefsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected TaxonomyCategoryBrief[] taxonomyCategoryBriefs;
+
+	public Long[] getTaxonomyCategoryIds() {
+		return taxonomyCategoryIds;
+	}
+
+	public void setTaxonomyCategoryIds(Long[] taxonomyCategoryIds) {
+		this.taxonomyCategoryIds = taxonomyCategoryIds;
+	}
+
+	public void setTaxonomyCategoryIds(
+		UnsafeSupplier<Long[], Exception> taxonomyCategoryIdsUnsafeSupplier) {
+
+		try {
+			taxonomyCategoryIds = taxonomyCategoryIdsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long[] taxonomyCategoryIds;
 
 	public String getThreadType() {
 		return threadType;
@@ -476,6 +642,11 @@ public class MessageBoardThread {
 	protected ViewableBy viewableBy;
 
 	@Override
+	public MessageBoardThread clone() throws CloneNotSupportedException {
+		return (MessageBoardThread)super.clone();
+	}
+
+	@Override
 	public boolean equals(Object object) {
 		if (this == object) {
 			return true;
@@ -499,6 +670,37 @@ public class MessageBoardThread {
 
 	public String toString() {
 		return MessageBoardThreadSerDes.toJSON(this);
+	}
+
+	public static enum ViewableBy {
+
+		ANYONE("Anyone"), MEMBERS("Members"), OWNER("Owner");
+
+		public static ViewableBy create(String value) {
+			for (ViewableBy viewableBy : values()) {
+				if (Objects.equals(viewableBy.getValue(), value)) {
+					return viewableBy;
+				}
+			}
+
+			return null;
+		}
+
+		public String getValue() {
+			return _value;
+		}
+
+		@Override
+		public String toString() {
+			return _value;
+		}
+
+		private ViewableBy(String value) {
+			_value = value;
+		}
+
+		private final String _value;
+
 	}
 
 }

@@ -148,10 +148,10 @@ public class GogoShellPortlet extends MVCPortlet {
 				throw new Exception(errorContent);
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			hideDefaultErrorMessage(actionRequest);
 
-			SessionErrors.add(actionRequest, "gogo", e);
+			SessionErrors.add(actionRequest, "gogo", exception);
 		}
 		finally {
 			outputUnsyncByteArrayOutputStream.reset();
@@ -249,7 +249,7 @@ public class GogoShellPortlet extends MVCPortlet {
 			new TransientValue<>(outputUnsyncByteArrayOutputStream));
 	}
 
-	private static <T> T _getSessionAttribute(
+	private <T> T _getSessionAttribute(
 		PortletRequest portletRequest, String name) {
 
 		PortletSession portletSession = portletRequest.getPortletSession();

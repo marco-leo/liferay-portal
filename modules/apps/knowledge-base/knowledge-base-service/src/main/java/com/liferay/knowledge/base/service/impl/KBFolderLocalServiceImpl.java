@@ -84,7 +84,7 @@ public class KBFolderLocalServiceImpl extends KBFolderLocalServiceBaseImpl {
 		kbFolder.setDescription(description);
 		kbFolder.setExpandoBridgeAttributes(serviceContext);
 
-		kbFolderPersistence.update(kbFolder);
+		kbFolder = kbFolderPersistence.update(kbFolder);
 
 		// Resources
 
@@ -144,10 +144,12 @@ public class KBFolderLocalServiceImpl extends KBFolderLocalServiceBaseImpl {
 
 	@Override
 	public KBFolder fetchFirstChildKBFolder(
-			long groupId, long kbFolderId, OrderByComparator<KBFolder> obc)
+			long groupId, long kbFolderId,
+			OrderByComparator<KBFolder> orderByComparator)
 		throws PortalException {
 
-		return kbFolderPersistence.fetchByG_P_First(groupId, kbFolderId, obc);
+		return kbFolderPersistence.fetchByG_P_First(
+			groupId, kbFolderId, orderByComparator);
 	}
 
 	@Override

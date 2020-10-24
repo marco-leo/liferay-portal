@@ -31,7 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface BlogsEntry extends BlogsEntryModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.blogs.model.impl.BlogsEntryImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -56,8 +56,14 @@ public interface BlogsEntry extends BlogsEntryModel, PersistedModel {
 
 		};
 
+	public String getCoverImageAlt()
+		throws com.liferay.portal.kernel.exception.PortalException;
+
 	public String getCoverImageURL(
 			com.liferay.portal.kernel.theme.ThemeDisplay themeDisplay)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public String getSmallImageAlt()
 		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public String getSmallImageURL(

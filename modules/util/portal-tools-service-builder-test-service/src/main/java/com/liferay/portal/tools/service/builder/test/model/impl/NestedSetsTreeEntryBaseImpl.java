@@ -32,7 +32,7 @@ import com.liferay.portal.tools.service.builder.test.service.NestedSetsTreeEntry
 public abstract class NestedSetsTreeEntryBaseImpl
 	extends NestedSetsTreeEntryModelImpl implements NestedSetsTreeEntry {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a nested sets tree entry model instance should use the <code>NestedSetsTreeEntry</code> interface instead.

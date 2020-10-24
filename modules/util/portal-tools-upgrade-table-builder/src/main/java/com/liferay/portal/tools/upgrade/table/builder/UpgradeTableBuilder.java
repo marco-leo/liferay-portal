@@ -64,8 +64,8 @@ public class UpgradeTableBuilder {
 				baseDirName, osgiModule, releaseInfoVersion,
 				upgradeTableDirName);
 		}
-		catch (Exception e) {
-			ArgumentsUtil.processMainException(arguments, e);
+		catch (Exception exception) {
+			ArgumentsUtil.processMainException(arguments, exception);
 		}
 	}
 
@@ -275,7 +275,7 @@ public class UpgradeTableBuilder {
 
 		content = content.substring(x, y + 1);
 
-		content = StringUtil.replace(content, "\t", "");
+		content = StringUtil.removeSubstring(content, "\t");
 		content = StringUtil.replace(content, "{ \"", "{\"");
 		content = StringUtil.replace(content, "new Integer(Types.", "Types.");
 		content = StringUtil.replace(content, ") }", "}");

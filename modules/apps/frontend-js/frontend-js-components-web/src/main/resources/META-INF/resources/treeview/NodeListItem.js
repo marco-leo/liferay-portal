@@ -32,15 +32,23 @@ export default function NodeListItem({NodeComponent, node}) {
 	const children = node.children || [];
 
 	const nodeListItemClassNames = classNames('lfr-treeview-node-list-item', {
-		'with-children': children.length > 0
+		'with-children': children.length > 0,
 	});
 
 	const childrenId = `node-list-item-${node.id}-children`;
 
 	const symbol = node.expanded ? 'hr' : 'plus';
 
-	const toggleExpanded = () => {
-		dispatch({nodeId: node.id, type: 'TOGGLE_EXPANDED'});
+	const toggleExpanded = (event) => {
+		if (node.children.length) {
+			event.stopPropagation();
+
+			dispatch({nodeId: node.id, type: 'TOGGLE_EXPANDED'});
+		}
+	};
+
+	const toggleSelected = () => {
+		dispatch({nodeId: node.id, type: 'TOGGLE_SELECT'});
 	};
 
 	return (
@@ -50,9 +58,11 @@ export default function NodeListItem({NodeComponent, node}) {
 				onBlur={() => {
 					return;
 				}}
+				onClick={toggleSelected}
 				onDoubleClick={toggleExpanded}
 				onKeyDown={handleKeyDown}
 				ref={focusable}
+				role="treeitem"
 				tabIndex="-1"
 			>
 				{children.length ? (
@@ -64,6 +74,7 @@ export default function NodeListItem({NodeComponent, node}) {
 						}`}
 						className="lfr-treeview-node-list-item__button"
 						onClick={toggleExpanded}
+						tabIndex="-1"
 						type="button"
 					>
 						<ClayIcon
@@ -93,5 +104,5 @@ export default function NodeListItem({NodeComponent, node}) {
 
 NodeListItem.propTypes = {
 	NodeComponent: PropTypes.func.isRequired,
-	node: PropTypes.shape({children: PropTypes.array})
+	node: PropTypes.shape({children: PropTypes.array}),
 };

@@ -31,12 +31,13 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.test.util.FieldValuesAssert;
 import com.liferay.portal.search.test.util.IndexerFixture;
-import com.liferay.portal.service.test.ServiceTestUtil;
+import com.liferay.portal.search.test.util.SearchTestRule;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -80,7 +81,7 @@ public class JournalArticleIndexerLocalizedContentTest {
 
 		_journalArticles = _journalArticleSearchFixture.getJournalArticles();
 
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		CompanyThreadLocal.setCompanyId(TestPropsValues.getCompanyId());
 	}
@@ -222,7 +223,11 @@ public class JournalArticleIndexerLocalizedContentTest {
 
 		String articleId = journalArticle.getArticleId();
 
-		Map<String, String> titleStrings = Collections.emptyMap();
+		Map<String, String> titleStrings = HashMapBuilder.put(
+			"title_en_US", originalTitle
+		).put(
+			"title_pt_BR", translatedTitle
+		).build();
 
 		Map<String, String> contentStrings = Collections.emptyMap();
 
@@ -345,40 +350,43 @@ public class JournalArticleIndexerLocalizedContentTest {
 
 	@Test
 	public void testJapaneseTitleFullWordOnly() throws Exception {
-		String full = "新規作成";
-		String partial1 = "新大阪";
-		String partial2 = "作戦大成功";
-
-		Stream.of(
-			full, partial1, partial2
-		).forEach(
-			title -> _journalArticleSearchFixture.addArticle(
-				new JournalArticleBlueprint() {
-					{
-						setGroupId(_group.getGroupId());
-						setJournalArticleContent(
-							new JournalArticleContent() {
-								{
-									put(
-										LocaleUtil.JAPAN,
-										RandomTestUtil.randomString());
-
-									setDefaultLocale(LocaleUtil.JAPAN);
-									setName("content");
-								}
-							});
-						setJournalArticleTitle(
-							new JournalArticleTitle() {
-								{
-									put(LocaleUtil.JAPAN, title);
-								}
-							});
-					}
-				})
-		);
-
 		Map<String, String> titleStrings = HashMapBuilder.put(
-			"title_ja_JP", full
+			"title_ja_JP",
+			() -> {
+				String full = "新規作成";
+				String partial1 = "新大阪";
+				String partial2 = "作戦大成功";
+
+				Stream.of(
+					full, partial1, partial2
+				).forEach(
+					title -> _journalArticleSearchFixture.addArticle(
+						new JournalArticleBlueprint() {
+							{
+								setGroupId(_group.getGroupId());
+								setJournalArticleContent(
+									new JournalArticleContent() {
+										{
+											put(
+												LocaleUtil.JAPAN,
+												RandomTestUtil.randomString());
+
+											setDefaultLocale(LocaleUtil.JAPAN);
+											setName("content");
+										}
+									});
+								setJournalArticleTitle(
+									new JournalArticleTitle() {
+										{
+											put(LocaleUtil.JAPAN, title);
+										}
+									});
+							}
+						})
+				);
+
+				return full;
+			}
 		).build();
 
 		String word1 = "新規";
@@ -397,6 +405,9 @@ public class JournalArticleIndexerLocalizedContentTest {
 		);
 	}
 
+	@Rule
+	public SearchTestRule searchTestRule = new SearchTestRule();
+
 	protected void assertSearchOneDocumentOneField(
 		String fieldValue, Locale locale, String fieldPrefix,
 		String fieldName) {
@@ -408,9 +419,7 @@ public class JournalArticleIndexerLocalizedContentTest {
 			document, document.toString());
 	}
 
-	private static Map<String, String> _withSortableValues(
-		Map<String, String> map) {
-
+	private Map<String, String> _withSortableValues(Map<String, String> map) {
 		Set<Map.Entry<String, String>> entrySet = map.entrySet();
 
 		Stream<Map.Entry<String, String>> entries = entrySet.stream();

@@ -26,7 +26,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class DataLayoutColumn {
+public class DataLayoutColumn implements Cloneable {
+
+	public static DataLayoutColumn toDTO(String json) {
+		return DataLayoutColumnSerDes.toDTO(json);
+	}
 
 	public Integer getColumnSize() {
 		return columnSize;
@@ -69,6 +73,11 @@ public class DataLayoutColumn {
 	}
 
 	protected String[] fieldNames;
+
+	@Override
+	public DataLayoutColumn clone() throws CloneNotSupportedException {
+		return (DataLayoutColumn)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

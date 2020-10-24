@@ -82,12 +82,12 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 
 			ps.executeUpdate();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			_log.error(
 				"Unable to add dynamic data mapping structure link for file " +
 					"entry type " + classPK);
 
-			throw e;
+			throw exception;
 		}
 	}
 
@@ -151,17 +151,6 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 		}
 	}
 
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #hasFileEntry(long, long, long, String, String)}
-	 */
-	@Deprecated
-	protected boolean hasFileEntry(long groupId, long folderId, String fileName)
-		throws Exception {
-
-		throw new UnsupportedOperationException();
-	}
-
 	protected void updateFileEntryFileNames() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			runSQL("alter table DLFileEntry add fileName VARCHAR(255) null");
@@ -206,22 +195,13 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 		}
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	protected void updateFileEntryTypeFileEntryTypeKeys() throws Exception {
-	}
-
 	protected void updateFileEntryTypeNamesAndDescriptions() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
 			PreparedStatement ps = connection.prepareStatement(
 				"select companyId, groupId from Group_ where classNameId = " +
 					"?")) {
 
-			long classNameId = PortalUtil.getClassNameId(Company.class);
-
-			ps.setLong(1, classNameId);
+			ps.setLong(1, PortalUtil.getClassNameId(Company.class));
 
 			try (ResultSet rs = ps.executeQuery()) {
 				while (rs.next()) {
@@ -577,15 +557,12 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 
 			while (rs.next()) {
 				long fileEntryId = rs.getLong("fileEntryId");
+
 				String extension = GetterUtil.getString(
 					rs.getString("extension"));
 				String title = GetterUtil.getString(rs.getString("title"));
 
-				int availableLength = 254 - extension.length();
-
-				String fileName =
-					title.substring(0, availableLength) + StringPool.PERIOD +
-						extension;
+				String fileName = DLUtil.getSanitizedFileName(title, extension);
 
 				ps2.setString(1, fileName);
 

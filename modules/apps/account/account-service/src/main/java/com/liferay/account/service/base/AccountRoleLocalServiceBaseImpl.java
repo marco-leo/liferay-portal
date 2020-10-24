@@ -18,6 +18,7 @@ import com.liferay.account.model.AccountRole;
 import com.liferay.account.service.AccountRoleLocalService;
 import com.liferay.account.service.persistence.AccountEntryPersistence;
 import com.liferay.account.service.persistence.AccountRolePersistence;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -37,6 +38,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -64,7 +66,7 @@ public abstract class AccountRoleLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements AccountRoleLocalService, AopService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>AccountRoleLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.account.service.AccountRoleLocalServiceUtil</code>.
@@ -72,6 +74,10 @@ public abstract class AccountRoleLocalServiceBaseImpl
 
 	/**
 	 * Adds the account role to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AccountRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param accountRole the account role
 	 * @return the account role that was added
@@ -99,6 +105,10 @@ public abstract class AccountRoleLocalServiceBaseImpl
 	/**
 	 * Deletes the account role with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AccountRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param accountRoleId the primary key of the account role
 	 * @return the account role that was removed
 	 * @throws PortalException if a account role with the primary key could not be found
@@ -114,6 +124,10 @@ public abstract class AccountRoleLocalServiceBaseImpl
 	/**
 	 * Deletes the account role from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AccountRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param accountRole the account role
 	 * @return the account role that was removed
 	 * @throws PortalException
@@ -124,6 +138,11 @@ public abstract class AccountRoleLocalServiceBaseImpl
 		throws PortalException {
 
 		return accountRolePersistence.remove(accountRole);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return accountRolePersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -278,6 +297,16 @@ public abstract class AccountRoleLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return accountRolePersistence.create(((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -285,6 +314,14 @@ public abstract class AccountRoleLocalServiceBaseImpl
 			(AccountRole)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<AccountRole> getBasePersistence() {
+		return accountRolePersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -320,6 +357,10 @@ public abstract class AccountRoleLocalServiceBaseImpl
 
 	/**
 	 * Updates the account role in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AccountRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param accountRole the account role
 	 * @return the account role that was updated
@@ -380,8 +421,8 @@ public abstract class AccountRoleLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

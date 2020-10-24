@@ -38,6 +38,10 @@ public class WorkflowMetricsSLADefinitionVersionLocalServiceWrapper
 	/**
 	 * Adds the workflow metrics sla definition version to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WorkflowMetricsSLADefinitionVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param workflowMetricsSLADefinitionVersion the workflow metrics sla definition version
 	 * @return the workflow metrics sla definition version that was added
 	 */
@@ -52,6 +56,18 @@ public class WorkflowMetricsSLADefinitionVersionLocalServiceWrapper
 		return _workflowMetricsSLADefinitionVersionLocalService.
 			addWorkflowMetricsSLADefinitionVersion(
 				workflowMetricsSLADefinitionVersion);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _workflowMetricsSLADefinitionVersionLocalService.
+			createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -86,6 +102,10 @@ public class WorkflowMetricsSLADefinitionVersionLocalServiceWrapper
 	/**
 	 * Deletes the workflow metrics sla definition version with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WorkflowMetricsSLADefinitionVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param workflowMetricsSLADefinitionVersionId the primary key of the workflow metrics sla definition version
 	 * @return the workflow metrics sla definition version that was removed
 	 * @throws PortalException if a workflow metrics sla definition version with the primary key could not be found
@@ -105,6 +125,10 @@ public class WorkflowMetricsSLADefinitionVersionLocalServiceWrapper
 	/**
 	 * Deletes the workflow metrics sla definition version from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WorkflowMetricsSLADefinitionVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param workflowMetricsSLADefinitionVersion the workflow metrics sla definition version
 	 * @return the workflow metrics sla definition version that was removed
 	 */
@@ -119,6 +143,12 @@ public class WorkflowMetricsSLADefinitionVersionLocalServiceWrapper
 		return _workflowMetricsSLADefinitionVersionLocalService.
 			deleteWorkflowMetricsSLADefinitionVersion(
 				workflowMetricsSLADefinitionVersion);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _workflowMetricsSLADefinitionVersionLocalService.dslQuery(
+			dslQuery);
 	}
 
 	@Override
@@ -280,6 +310,9 @@ public class WorkflowMetricsSLADefinitionVersionLocalServiceWrapper
 			getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -379,11 +412,28 @@ public class WorkflowMetricsSLADefinitionVersionLocalServiceWrapper
 		<com.liferay.portal.workflow.metrics.model.
 			WorkflowMetricsSLADefinitionVersion>
 				getWorkflowMetricsSLADefinitionVersions(
-					long companyId, java.util.Date createDate, int status) {
+					long companyId, java.util.Date createDate, Long processId,
+					int status) {
 
 		return _workflowMetricsSLADefinitionVersionLocalService.
 			getWorkflowMetricsSLADefinitionVersions(
-				companyId, createDate, status);
+				companyId, createDate, processId, status);
+	}
+
+	@Override
+	public java.util.List
+		<com.liferay.portal.workflow.metrics.model.
+			WorkflowMetricsSLADefinitionVersion>
+				getWorkflowMetricsSLADefinitionVersions(
+					long workflowMetricsSLADefinitionId,
+					com.liferay.portal.kernel.util.OrderByComparator
+						<com.liferay.portal.workflow.metrics.model.
+							WorkflowMetricsSLADefinitionVersion>
+								orderByComparator) {
+
+		return _workflowMetricsSLADefinitionVersionLocalService.
+			getWorkflowMetricsSLADefinitionVersions(
+				workflowMetricsSLADefinitionId, orderByComparator);
 	}
 
 	/**
@@ -444,6 +494,10 @@ public class WorkflowMetricsSLADefinitionVersionLocalServiceWrapper
 
 	/**
 	 * Updates the workflow metrics sla definition version in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WorkflowMetricsSLADefinitionVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param workflowMetricsSLADefinitionVersion the workflow metrics sla definition version
 	 * @return the workflow metrics sla definition version that was updated

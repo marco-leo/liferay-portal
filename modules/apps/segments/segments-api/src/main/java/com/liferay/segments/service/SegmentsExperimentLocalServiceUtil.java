@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class SegmentsExperimentLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.segments.service.impl.SegmentsExperimentLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SegmentsExperimentLocalServiceUtil} to access the segments experiment local service. Add custom service methods to <code>com.liferay.segments.service.impl.SegmentsExperimentLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.segments.model.SegmentsExperiment
 			addSegmentsExperiment(
@@ -58,6 +52,10 @@ public class SegmentsExperimentLocalServiceUtil {
 	/**
 	 * Adds the segments experiment to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SegmentsExperimentLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param segmentsExperiment the segments experiment
 	 * @return the segments experiment that was added
 	 */
@@ -66,6 +64,16 @@ public class SegmentsExperimentLocalServiceUtil {
 			com.liferay.segments.model.SegmentsExperiment segmentsExperiment) {
 
 		return getService().addSegmentsExperiment(segmentsExperiment);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -94,6 +102,10 @@ public class SegmentsExperimentLocalServiceUtil {
 	/**
 	 * Deletes the segments experiment with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SegmentsExperimentLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param segmentsExperimentId the primary key of the segments experiment
 	 * @return the segments experiment that was removed
 	 * @throws PortalException if a segments experiment with the primary key could not be found
@@ -107,6 +119,10 @@ public class SegmentsExperimentLocalServiceUtil {
 
 	/**
 	 * Deletes the segments experiment from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SegmentsExperimentLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param segmentsExperiment the segments experiment
 	 * @return the segments experiment that was removed
@@ -137,6 +153,12 @@ public class SegmentsExperimentLocalServiceUtil {
 
 		getService().deleteSegmentsExperiments(
 			segmentsExperienceId, classNameId, classPK);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -290,6 +312,9 @@ public class SegmentsExperimentLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -470,6 +495,10 @@ public class SegmentsExperimentLocalServiceUtil {
 
 	/**
 	 * Updates the segments experiment in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SegmentsExperimentLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param segmentsExperiment the segments experiment
 	 * @return the segments experiment that was updated

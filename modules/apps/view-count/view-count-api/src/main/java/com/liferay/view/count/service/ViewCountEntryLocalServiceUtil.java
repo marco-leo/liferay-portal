@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class ViewCountEntryLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.view.count.service.impl.ViewCountEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -41,6 +41,10 @@ public class ViewCountEntryLocalServiceUtil {
 	/**
 	 * Adds the view count entry to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ViewCountEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param viewCountEntry the view count entry
 	 * @return the view count entry that was added
 	 */
@@ -48,6 +52,16 @@ public class ViewCountEntryLocalServiceUtil {
 		com.liferay.view.count.model.ViewCountEntry viewCountEntry) {
 
 		return getService().addViewCountEntry(viewCountEntry);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -84,6 +98,10 @@ public class ViewCountEntryLocalServiceUtil {
 	/**
 	 * Deletes the view count entry from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ViewCountEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param viewCountEntry the view count entry
 	 * @return the view count entry that was removed
 	 */
@@ -97,6 +115,10 @@ public class ViewCountEntryLocalServiceUtil {
 	/**
 	 * Deletes the view count entry with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ViewCountEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param viewCountEntryPK the primary key of the view count entry
 	 * @return the view count entry that was removed
 	 * @throws PortalException if a view count entry with the primary key could not be found
@@ -108,6 +130,12 @@ public class ViewCountEntryLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deleteViewCountEntry(viewCountEntryPK);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -225,6 +253,9 @@ public class ViewCountEntryLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -286,8 +317,20 @@ public class ViewCountEntryLocalServiceUtil {
 			companyId, classNameId, classPK, increment);
 	}
 
+	public static boolean isViewCountEnabled() {
+		return getService().isViewCountEnabled();
+	}
+
+	public static boolean isViewCountEnabled(long classNameId) {
+		return getService().isViewCountEnabled(classNameId);
+	}
+
 	/**
 	 * Updates the view count entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ViewCountEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param viewCountEntry the view count entry
 	 * @return the view count entry that was updated

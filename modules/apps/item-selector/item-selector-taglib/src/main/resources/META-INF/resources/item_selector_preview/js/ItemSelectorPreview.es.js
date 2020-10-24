@@ -14,7 +14,7 @@
 
 import {useIsMounted} from 'frontend-js-react-web';
 import PropTypes from 'prop-types';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import ReactDOM from 'react-dom';
 
 import Carousel from './Carousel.es';
@@ -24,7 +24,7 @@ import Header from './Header.es';
 const KEY_CODE = {
 	ESC: 27,
 	LEFT: 37,
-	RIGTH: 39
+	RIGTH: 39,
 };
 
 const ItemSelectorPreview = ({
@@ -35,10 +35,11 @@ const ItemSelectorPreview = ({
 	headerTitle,
 	items,
 	uploadItemReturnType,
-	uploadItemURL
+	uploadItemURL,
 }) => {
 	const [currentItemIndex, setCurrentItemIndex] = useState(currentIndex);
 	const [itemList, setItemList] = useState(items);
+	const [reloadOnHide, setReloadOnHide] = useState(false);
 
 	const infoButtonRef = React.createRef();
 
@@ -47,21 +48,12 @@ const ItemSelectorPreview = ({
 	useEffect(() => {
 		document.documentElement.addEventListener('keydown', handleOnKeyDown);
 
-		const sidenavToggle = infoButtonRef.current;
-
-		if (sidenavToggle) {
-			Liferay.SideNavigation.initialize(sidenavToggle, {
-				container: '.sidenav-container',
-				position: 'right',
-				typeMobile: 'fixed',
-				width: '320px'
-			});
-		}
-
 		const updateCurrentItemHandler = Liferay.on(
 			'updateCurrentItem',
 			updateCurrentItem
 		);
+
+		Liferay.component('ItemSelectorPreview', ItemSelectorPreview);
 
 		return () => {
 			document.documentElement.removeEventListener(
@@ -70,17 +62,46 @@ const ItemSelectorPreview = ({
 			);
 
 			Liferay.detach(updateCurrentItemHandler);
+			Liferay.component('ItemSelectorPreview', null);
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [itemList]);
+	}, [handleOnKeyDown, updateCurrentItem]);
 
-	const close = () => {
+	useEffect(() => {
+		const sidenavToggle = infoButtonRef.current;
+
+		if (sidenavToggle) {
+			Liferay.SideNavigation.initialize(sidenavToggle, {
+				container: '.sidenav-container',
+				position: 'right',
+				typeMobile: 'fixed',
+				width: '320px',
+			});
+		}
+	}, [infoButtonRef]);
+
+	const close = useCallback(() => {
 		ReactDOM.unmountComponentAtNode(container);
+	}, [container]);
+
+	const handleClickBack = () => {
+		close();
+
+		if (reloadOnHide) {
+			const frame = window.frameElement;
+
+			if (frame) {
+				frame.contentWindow.location.reload();
+			}
+		}
 	};
 
 	const handleClickDone = () => {
-		handleSelectedItem(currentItem);
+
+		// LPS-120692
+
 		close();
+
+		handleSelectedItem(currentItem);
 	};
 
 	const handleClickEdit = () => {
@@ -89,23 +110,13 @@ const ItemSelectorPreview = ({
 			'edit'
 		)} ${itemTitle} (${Liferay.Language.get('copy')})`;
 
-		let editEntityBaseZIndex = Liferay.zIndex.WINDOW;
-
-		const iframeModalEl = window.parent.document.getElementsByClassName(
-			'dialog-iframe-modal'
-		);
-
-		if (iframeModalEl) {
-			editEntityBaseZIndex = window
-				.getComputedStyle(iframeModalEl[0])
-				.getPropertyValue('z-index');
-		}
+		const editEntityBaseZIndex = Liferay.zIndex.WINDOW;
 
 		Liferay.Util.editEntity(
 			{
 				dialog: {
 					destroyOnHide: true,
-					zIndex: editEntityBaseZIndex + 100
+					zIndex: editEntityBaseZIndex + 100,
 				},
 				id: 'Edit_' + itemTitle,
 				stack: false,
@@ -113,56 +124,69 @@ const ItemSelectorPreview = ({
 				uri: editItemURL,
 				urlParams: {
 					entityURL: currentItem.url,
+					saveFileEntryId: currentItem.fileentryid,
 					saveFileName: itemTitle,
 					saveParamName: 'imageSelectorFileName',
-					saveURL: uploadItemURL
-				}
+					saveURL: uploadItemURL,
+				},
 			},
 			handleSaveEdit
 		);
 	};
 
-	const handleClickNext = () => {
+	const handleClickNext = useCallback(() => {
 		if (itemList.length > 1) {
-			setCurrentItemIndex(index => {
+			setCurrentItemIndex((index) => {
 				const lastIndex = itemList.length - 1;
 				const shouldResetIndex = index === lastIndex;
+
 				return shouldResetIndex ? 0 : index + 1;
 			});
 		}
-	};
+	}, [itemList.length]);
 
-	const handleClickPrevious = () => {
+	const handleClickPrevious = useCallback(() => {
 		if (itemList.length > 1) {
-			setCurrentItemIndex(index => {
+			setCurrentItemIndex((index) => {
 				const lastIndex = itemList.length - 1;
 				const shouldResetIndex = index === 0;
+
 				return shouldResetIndex ? lastIndex : index - 1;
 			});
 		}
+	}, [itemList.length]);
+
+	const handleOnKeyDown = useCallback(
+		(e) => {
+			if (!isMounted()) {
+				return;
+			}
+
+			switch (e.which || e.keyCode) {
+				case KEY_CODE.LEFT:
+					handleClickPrevious();
+					break;
+				case KEY_CODE.RIGTH:
+					handleClickNext();
+					break;
+				case KEY_CODE.ESC:
+					e.preventDefault();
+					e.stopPropagation();
+					close();
+					break;
+				default:
+					break;
+			}
+		},
+		[close, handleClickNext, handleClickPrevious, isMounted]
+	);
+
+	const updateItemList = (newItemList) => {
+		setItemList(newItemList);
+		setReloadOnHide(true);
 	};
 
-	const handleOnKeyDown = e => {
-		if (!isMounted()) return;
-
-		switch (e.which || e.keyCode) {
-			case KEY_CODE.LEFT:
-				handleClickPrevious();
-				break;
-			case KEY_CODE.RIGTH:
-				handleClickNext();
-				break;
-			case KEY_CODE.ESC:
-				e.preventDefault();
-				e.stopPropagation();
-				close();
-				break;
-			default:
-				break;
-		}
-	};
-
-	const handleSaveEdit = e => {
+	const handleSaveEdit = (e) => {
 		const itemData = e.data.file;
 
 		const editedItemMetadata = {
@@ -171,40 +195,44 @@ const ItemSelectorPreview = ({
 					data: [
 						{
 							key: Liferay.Language.get('format'),
-							value: itemData.type
+							value: itemData.type,
 						},
 						{
 							key: Liferay.Language.get('name'),
-							value: itemData.title
-						}
+							value: itemData.title,
+						},
 					],
-					title: Liferay.Language.get('file-info')
-				}
-			]
+					title: Liferay.Language.get('file-info'),
+				},
+			],
 		};
 
 		const editedItem = {
+			fileentryid: currentItem.fileentryid,
 			metadata: JSON.stringify(editedItemMetadata),
 			returntype: uploadItemReturnType,
 			title: itemData.title,
 			url: itemData.url,
-			value: itemData.resolvedValue
+			value: itemData.resolvedValue,
 		};
 
 		const updatedItemList = [...itemList, editedItem];
-		setItemList(updatedItemList);
+		updateItemList(updatedItemList);
 		setCurrentItemIndex(updatedItemList.length - 1);
 	};
 
-	const updateCurrentItem = ({url, value}) => {
-		if (isMounted()) {
-			const newItemList = [...itemList];
+	const updateCurrentItem = useCallback(
+		({url, value}) => {
+			if (isMounted()) {
+				const newItemList = [...itemList];
 
-			newItemList[currentItemIndex] = {...currentItem, url, value};
+				newItemList[currentItemIndex] = {...currentItem, url, value};
 
-			setItemList(newItemList);
-		}
-	};
+				updateItemList(newItemList);
+			}
+		},
+		[currentItem, currentItemIndex, isMounted, itemList]
+	);
 
 	const currentItem = itemList[currentItemIndex];
 
@@ -213,7 +241,7 @@ const ItemSelectorPreview = ({
 			<Header
 				disabledAddButton={!currentItem.url}
 				handleClickAdd={handleClickDone}
-				handleClickClose={close}
+				handleClickBack={handleClickBack}
 				handleClickEdit={handleClickEdit}
 				headerTitle={headerTitle}
 				infoButtonRef={infoButtonRef}
@@ -250,11 +278,11 @@ ItemSelectorPreview.propTypes = {
 			returntype: PropTypes.string.isRequired,
 			title: PropTypes.string.isRequired,
 			url: PropTypes.string,
-			value: PropTypes.oneOfType([PropTypes.string, PropTypes.object])
+			value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 		})
 	).isRequired,
 	uploadItemReturnType: PropTypes.string,
-	uploadItemURL: PropTypes.string
+	uploadItemURL: PropTypes.string,
 };
 
 export default ItemSelectorPreview;

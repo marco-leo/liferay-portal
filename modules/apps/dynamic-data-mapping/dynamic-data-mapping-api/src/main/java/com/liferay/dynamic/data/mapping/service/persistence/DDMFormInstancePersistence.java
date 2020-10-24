@@ -17,6 +17,7 @@ package com.liferay.dynamic.data.mapping.service.persistence;
 import com.liferay.dynamic.data.mapping.exception.NoSuchFormInstanceException;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -33,9 +34,9 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface DDMFormInstancePersistence
-	extends BasePersistence<DDMFormInstance> {
+	extends BasePersistence<DDMFormInstance>, CTPersistence<DDMFormInstance> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link DDMFormInstanceUtil} to access the ddm form instance persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

@@ -36,13 +36,13 @@ import org.osgi.util.tracker.ServiceTracker;
  * Caching information and settings can be found in <code>portal.properties</code>
  * </p>
  *
- * @author Alessio Antonio Rendina
+ * @author Matija Petanjek
  * @see DispatchLogPersistence
  * @generated
  */
 public class DispatchLogUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.

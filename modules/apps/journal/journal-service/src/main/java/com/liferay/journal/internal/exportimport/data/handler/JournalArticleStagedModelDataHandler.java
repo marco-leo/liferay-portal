@@ -36,19 +36,19 @@ import com.liferay.exportimport.kernel.lar.PortletDataHandlerControl;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelModifiedDateComparator;
-import com.liferay.exportimport.kernel.staging.StagingConstants;
+import com.liferay.exportimport.kernel.staging.constants.StagingConstants;
 import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.journal.configuration.JournalGroupServiceConfiguration;
 import com.liferay.journal.configuration.JournalServiceConfiguration;
+import com.liferay.journal.constants.JournalArticleConstants;
 import com.liferay.journal.constants.JournalConstants;
+import com.liferay.journal.constants.JournalFolderConstants;
 import com.liferay.journal.internal.exportimport.creation.strategy.JournalCreationStrategy;
 import com.liferay.journal.internal.util.JournalUtil;
 import com.liferay.journal.model.JournalArticle;
-import com.liferay.journal.model.JournalArticleConstants;
 import com.liferay.journal.model.JournalArticleResource;
 import com.liferay.journal.model.JournalFolder;
-import com.liferay.journal.model.JournalFolderConstants;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.service.JournalArticleResourceLocalService;
 import com.liferay.petra.string.StringBundler;
@@ -200,7 +200,7 @@ public class JournalArticleStagedModelDataHandler
 			List<JournalFolder> ancestorFolders = folder.getAncestors();
 
 			StringBundler sb = new StringBundler(
-				4 * ancestorFolders.size() + 5);
+				(4 * ancestorFolders.size()) + 5);
 
 			Collections.reverse(ancestorFolders);
 
@@ -219,9 +219,9 @@ public class JournalArticleStagedModelDataHandler
 
 			return sb.toString();
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(pe, pe);
+				_log.warn(portalException, portalException);
 			}
 		}
 
@@ -245,19 +245,20 @@ public class JournalArticleStagedModelDataHandler
 		try {
 			articleResourceUuid = article.getArticleResourceUuid();
 		}
-		catch (Exception e) {
-			ExportImportRuntimeException eire =
-				new ExportImportRuntimeException(StringPool.BLANK, e);
+		catch (Exception exception) {
+			ExportImportRuntimeException exportImportRuntimeException =
+				new ExportImportRuntimeException(StringPool.BLANK, exception);
 
-			eire.setMessageKey(
+			exportImportRuntimeException.setMessageKey(
 				"unable-to-find-article-resource-x-while-gathering-reference-" +
 					"attributes");
-			eire.setData(String.valueOf(article.getArticleId()));
+			exportImportRuntimeException.setData(
+				String.valueOf(article.getArticleId()));
 
-			eire.setClassName(
+			exportImportRuntimeException.setClassName(
 				JournalArticleStagedModelDataHandler.class.getName());
 
-			throw eire;
+			throw exportImportRuntimeException;
 		}
 
 		Map<String, String> referenceAttributes = HashMapBuilder.put(
@@ -272,9 +273,9 @@ public class JournalArticleStagedModelDataHandler
 			defaultUserId = _userLocalService.getDefaultUserId(
 				article.getCompanyId());
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(e, e);
+				_log.warn(exception, exception);
 			}
 
 			return referenceAttributes;
@@ -435,7 +436,7 @@ public class JournalArticleStagedModelDataHandler
 		if (article.isSmallImage()) {
 			if (Validator.isNotNull(article.getSmallImageURL())) {
 				String smallImageURL =
-					_journalArticleExportImportContentProcessor.
+					_dlReferencesExportImportContentProcessor.
 						replaceExportContentReferences(
 							portletDataContext, article,
 							article.getSmallImageURL() + StringPool.SPACE, true,
@@ -779,7 +780,7 @@ public class JournalArticleStagedModelDataHandler
 
 				if (Validator.isNotNull(article.getSmallImageURL())) {
 					String smallImageURL =
-						_journalArticleExportImportContentProcessor.
+						_dlReferencesExportImportContentProcessor.
 							replaceImportContentReferences(
 								portletDataContext, article,
 								article.getSmallImageURL());
@@ -830,13 +831,13 @@ public class JournalArticleStagedModelDataHandler
 								inputStream = FileEntryUtil.getContentStream(
 									fileEntry);
 							}
-							catch (NoSuchFileException nsfe) {
+							catch (NoSuchFileException noSuchFileException) {
 								if (_log.isDebugEnabled()) {
 									_log.debug(
 										"Unable to import attachment for " +
 											"file entry " +
 												fileEntry.getFileEntryId(),
-										nsfe);
+										noSuchFileException);
 								}
 							}
 						}
@@ -1002,6 +1003,12 @@ public class JournalArticleStagedModelDataHandler
 				serviceContext.getAssetTagNames(),
 				serviceContext.getAssetLinkEntryIds(),
 				serviceContext.getAssetPriority());
+
+			if (article.isExpired() || importedArticle.isExpired()) {
+				_journalArticleLocalService.expireArticle(
+					userId, importedArticle.getGroupId(),
+					importedArticle.getArticleId(), articleURL, serviceContext);
+			}
 
 			serviceContext.setModifiedDate(importedArticle.getModifiedDate());
 
@@ -1333,7 +1340,7 @@ public class JournalArticleStagedModelDataHandler
 
 	private void _exportAssetDisplayPage(
 			PortletDataContext portletDataContext, JournalArticle article)
-		throws PortletDataException {
+		throws Exception {
 
 		AssetDisplayPageEntry assetDisplayPageEntry =
 			_assetDisplayPageEntryLocalService.fetchAssetDisplayPageEntry(
@@ -1350,13 +1357,12 @@ public class JournalArticleStagedModelDataHandler
 
 	private void _exportFriendlyURLEntries(
 			PortletDataContext portletDataContext, JournalArticle article)
-		throws PortletDataException {
-
-		long classNameId = _portal.getClassNameId(JournalArticle.class);
+		throws Exception {
 
 		List<FriendlyURLEntry> friendlyURLEntries =
 			_friendlyURLEntryLocalService.getFriendlyURLEntries(
-				article.getGroupId(), classNameId,
+				article.getGroupId(),
+				_portal.getClassNameId(JournalArticle.class),
 				article.getResourcePrimKey());
 
 		for (FriendlyURLEntry friendlyURLEntry : friendlyURLEntries) {
@@ -1614,7 +1620,7 @@ public class JournalArticleStagedModelDataHandler
 						subscriptionSender.sendEmailNotification(
 							userNotificationEvent.getUserId());
 					}
-					catch (Exception e) {
+					catch (Exception exception) {
 						if (_log.isWarnEnabled()) {
 							_log.warn(
 								"Unable to send email notification for " +
@@ -1626,7 +1632,7 @@ public class JournalArticleStagedModelDataHandler
 		try {
 			actionableDynamicQuery.performActions();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					"Unable to send email notification for article " +
@@ -1676,6 +1682,10 @@ public class JournalArticleStagedModelDataHandler
 	private ConfigurationProvider _configurationProvider;
 	private DDMStructureLocalService _ddmStructureLocalService;
 	private DDMTemplateLocalService _ddmTemplateLocalService;
+
+	@Reference(target = "(content.processor.type=DLReferences)")
+	private ExportImportContentProcessor<String>
+		_dlReferencesExportImportContentProcessor;
 
 	@Reference
 	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;

@@ -60,7 +60,7 @@ if (fixedHeader) {
 				List entries = Collections.emptyList();
 
 				if (!firstResultRows.isEmpty()) {
-					com.liferay.portal.kernel.dao.search.ResultRow row = (com.liferay.portal.kernel.dao.search.ResultRow)firstResultRows.get(0);
+					com.liferay.portal.kernel.dao.search.ResultRow row = firstResultRows.get(0);
 
 					entries = row.getEntries();
 				}
@@ -77,7 +77,7 @@ if (fixedHeader) {
 					}
 
 					if (Validator.isNotNull(normalizedHeaderName)) {
-						cssClass = (normalizedHeaderName.equals("rowChecker")) ? "lfr-checkbox-column" : "lfr-" + normalizedHeaderName + "-column";
+						cssClass = normalizedHeaderName.equals("rowChecker") ? "lfr-checkbox-column" : "lfr-" + normalizedHeaderName + "-column";
 					}
 					else {
 						normalizedHeaderName = String.valueOf(i + 1);
@@ -136,11 +136,17 @@ if (fixedHeader) {
 							headerNameValue = LanguageUtil.get(resourceBundle, HtmlUtil.escape(headerName));
 						}
 						else {
-							headerNameValue = headerName;
+							headerNameValue = HtmlUtil.escape(headerName);
 						}
 
 						if (Validator.isNull(headerNameValue)) {
 							headerNameValue = StringPool.NBSP;
+						}
+
+						String helpMessage = null;
+
+						if (helpMessages != null) {
+							helpMessage = helpMessages.get(headerName);
 						}
 						%>
 
@@ -153,10 +159,18 @@ if (fixedHeader) {
 							<c:when test="<%= truncate %>">
 								<span class="text-truncate">
 									<%= headerNameValue %>
+
+									<c:if test="<%= Validator.isNotNull(helpMessage) %>">
+										<liferay-ui:icon-help message="<%= helpMessage %>" />
+									</c:if>
 								</span>
 							</c:when>
 							<c:otherwise>
 								<%= headerNameValue %>
+
+								<c:if test="<%= Validator.isNotNull(helpMessage) %>">
+									<liferay-ui:icon-help message="<%= helpMessage %>" />
+								</c:if>
 							</c:otherwise>
 						</c:choose>
 					</th>
@@ -209,7 +223,7 @@ if (fixedHeader) {
 				boolean allRowsIsChecked = true;
 
 				for (int i = 0; i < curResultRows.size(); i++) {
-					com.liferay.portal.kernel.dao.search.ResultRow row = (com.liferay.portal.kernel.dao.search.ResultRow)curResultRows.get(i);
+					com.liferay.portal.kernel.dao.search.ResultRow row = curResultRows.get(i);
 
 					primaryKeysJSONArray.put(row.getPrimaryKey());
 
@@ -296,7 +310,7 @@ if (fixedHeader) {
 								normalizedColumnName = normalizedHeaderNames.get(j);
 
 								if (!Validator.isBlank(normalizedColumnName)) {
-									columnClassName += (normalizedColumnName.equals("rowChecker")) ? " lfr-checkbox-column" : " lfr-" + normalizedColumnName + "-column";
+									columnClassName += normalizedColumnName.equals("rowChecker") ? " lfr-checkbox-column" : " lfr-" + normalizedColumnName + "-column";
 								}
 							}
 

@@ -34,7 +34,7 @@ import com.liferay.portal.tools.service.builder.test.service.LVEntryLocalService
 public abstract class LVEntryBaseImpl
 	extends LVEntryModelImpl implements LVEntry {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a lv entry model instance should use the <code>LVEntry</code> interface instead.
@@ -48,8 +48,8 @@ public abstract class LVEntryBaseImpl
 			try {
 				LVEntryLocalServiceUtil.updateLVEntry(this);
 			}
-			catch (PortalException pe) {
-				throw new SystemException(pe);
+			catch (PortalException portalException) {
+				throw new SystemException(portalException);
 			}
 		}
 	}

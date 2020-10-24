@@ -29,12 +29,12 @@ import com.liferay.document.library.opener.service.DLOpenerFileEntryReferenceLoc
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTaskConstants;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskExecutor;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskResult;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatusMessageSender;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskThreadLocal;
 import com.liferay.portal.kernel.backgroundtask.BaseBackgroundTaskExecutor;
+import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
 import com.liferay.portal.kernel.backgroundtask.display.BackgroundTaskDisplay;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
@@ -42,10 +42,10 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.ResourceBundleLoader;
 
 import com.microsoft.graph.concurrency.ChunkedUploadProvider;
 import com.microsoft.graph.concurrency.IProgressCallback;
@@ -128,7 +128,9 @@ public class UploadOneDriveDocumentBackgroundTaskExecutor
 	}
 
 	@Override
-	public String handleException(BackgroundTask backgroundTask, Exception e) {
+	public String handleException(
+		BackgroundTask backgroundTask, Exception exception) {
+
 		Map<String, Serializable> taskContextMap =
 			backgroundTask.getTaskContextMap();
 
@@ -141,8 +143,8 @@ public class UploadOneDriveDocumentBackgroundTaskExecutor
 					DLOpenerOneDriveConstants.ONE_DRIVE_REFERENCE_TYPE,
 					_dlAppLocalService.getFileEntry(fileEntryId));
 		}
-		catch (PortalException pe) {
-			_log.error(pe, pe);
+		catch (PortalException portalException) {
+			_log.error(portalException, portalException);
 		}
 
 		return StringPool.BLANK;
@@ -179,7 +181,7 @@ public class UploadOneDriveDocumentBackgroundTaskExecutor
 	}
 
 	private AccessToken _getAccessToken(long companyId, long userId)
-		throws PortalException {
+		throws Exception {
 
 		Optional<AccessToken> accessTokenOptional =
 			_oAuth2Manager.getAccessTokenOptional(companyId, userId);
@@ -217,7 +219,7 @@ public class UploadOneDriveDocumentBackgroundTaskExecutor
 	}
 
 	private void _uploadFile(long userId, FileEntry fileEntry, Locale locale)
-		throws PortalException {
+		throws Exception {
 
 		AccessToken accessToken = _getAccessToken(
 			fileEntry.getCompanyId(), userId);
@@ -239,9 +241,9 @@ public class UploadOneDriveDocumentBackgroundTaskExecutor
 		jsonObject.add("file", new JsonObject());
 		jsonObject.add("name", new JsonPrimitive(fileEntry.getFileName()));
 
-		JsonObject responseJSONObject = customRequest.post(jsonObject);
+		JsonObject responseJsonObject = customRequest.post(jsonObject);
 
-		JsonPrimitive jsonPrimitive = responseJSONObject.getAsJsonPrimitive(
+		JsonPrimitive jsonPrimitive = responseJsonObject.getAsJsonPrimitive(
 			"id");
 
 		if (fileEntry.getSize() > 0) {
@@ -277,8 +279,8 @@ public class UploadOneDriveDocumentBackgroundTaskExecutor
 					OneDriveBackgroundTaskConstants.PORTAL_END, fileEntry,
 					BackgroundTaskConstants.STATUS_IN_PROGRESS);
 			}
-			catch (IOException ioe) {
-				throw new PortalException(ioe);
+			catch (IOException ioException) {
+				throw new PortalException(ioException);
 			}
 		}
 		else if (Objects.equals(
@@ -305,11 +307,12 @@ public class UploadOneDriveDocumentBackgroundTaskExecutor
 				iDriveItemStreamRequest.put(
 					byteArrayOutputStream.toByteArray());
 			}
-			catch (GraphServiceException gse) {
-				throw GraphServiceExceptionPortalExceptionMapper.map(gse);
+			catch (GraphServiceException graphServiceException) {
+				throw GraphServiceExceptionPortalExceptionMapper.map(
+					graphServiceException);
 			}
-			catch (IOException ioe) {
-				throw new PortalException(ioe);
+			catch (IOException ioException) {
+				throw new PortalException(ioException);
 			}
 		}
 

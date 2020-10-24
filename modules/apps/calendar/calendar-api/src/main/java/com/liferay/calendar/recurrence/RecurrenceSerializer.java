@@ -22,6 +22,7 @@ import com.google.ical.values.RRule;
 import com.google.ical.values.WeekdayNum;
 
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -102,8 +103,8 @@ public class RecurrenceSerializer {
 
 			return recurrence;
 		}
-		catch (ParseException pe) {
-			_log.error("Unable to parse data " + data, pe);
+		catch (ParseException parseException) {
+			_log.error("Unable to parse data " + data, parseException);
 		}
 
 		return null;
@@ -180,11 +181,8 @@ public class RecurrenceSerializer {
 			rDateList.setDatesUtc(dateValues);
 			rDateList.setName(_EXDATE);
 
-			data = data.concat(
-				StringPool.NEW_LINE
-			).concat(
-				rDateList.toIcal()
-			);
+			data = StringBundler.concat(
+				data, StringPool.NEW_LINE, rDateList.toIcal());
 		}
 
 		return data;

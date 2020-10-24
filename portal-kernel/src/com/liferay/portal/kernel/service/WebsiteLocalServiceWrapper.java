@@ -28,11 +28,6 @@ public class WebsiteLocalServiceWrapper
 		_websiteLocalService = websiteLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link WebsiteLocalServiceUtil} to access the website local service. Add custom service methods to <code>com.liferay.portal.service.impl.WebsiteLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.portal.kernel.model.Website addWebsite(
 			long userId, java.lang.String className, long classPK,
@@ -47,6 +42,10 @@ public class WebsiteLocalServiceWrapper
 	/**
 	 * Adds the website to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WebsiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param website the website
 	 * @return the website that was added
 	 */
@@ -55,6 +54,17 @@ public class WebsiteLocalServiceWrapper
 		com.liferay.portal.kernel.model.Website website) {
 
 		return _websiteLocalService.addWebsite(website);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _websiteLocalService.createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -84,6 +94,10 @@ public class WebsiteLocalServiceWrapper
 	/**
 	 * Deletes the website with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WebsiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param websiteId the primary key of the website
 	 * @return the website that was removed
 	 * @throws PortalException if a website with the primary key could not be found
@@ -97,6 +111,10 @@ public class WebsiteLocalServiceWrapper
 
 	/**
 	 * Deletes the website from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WebsiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param website the website
 	 * @return the website that was removed
@@ -113,6 +131,11 @@ public class WebsiteLocalServiceWrapper
 		long companyId, java.lang.String className, long classPK) {
 
 		_websiteLocalService.deleteWebsites(companyId, className, classPK);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _websiteLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -260,6 +283,9 @@ public class WebsiteLocalServiceWrapper
 		return _websiteLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -352,6 +378,10 @@ public class WebsiteLocalServiceWrapper
 
 	/**
 	 * Updates the website in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WebsiteLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param website the website
 	 * @return the website that was updated

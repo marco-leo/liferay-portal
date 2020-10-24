@@ -60,11 +60,8 @@ public class AuthVerifierPipeline {
 		String simpleClassName = StringUtil.extractLast(
 			className, StringPool.PERIOD);
 
-		return PropsKeys.AUTH_VERIFIER.concat(
-			simpleClassName
-		).concat(
-			StringPool.PERIOD
-		);
+		return StringBundler.concat(
+			PropsKeys.AUTH_VERIFIER, simpleClassName, StringPool.PERIOD);
 	}
 
 	public static AuthVerifierResult verifyRequest(
@@ -118,13 +115,15 @@ public class AuthVerifierPipeline {
 
 		String contextPath = httpServletRequest.getContextPath();
 
-		requestURI = requestURI.substring(contextPath.length());
+		if (requestURI.equals(contextPath)) {
+			requestURI += "/";
+		}
 
 		for (AuthVerifierConfiguration authVerifierConfiguration :
 				_authVerifierConfigurations) {
 
 			authVerifierConfiguration = _mergeAuthVerifierConfiguration(
-				authVerifierConfiguration, accessControlContext);
+				authVerifierConfiguration, accessControlContext, contextPath);
 
 			if (_isMatchingRequestURI(authVerifierConfiguration, requestURI)) {
 				authVerifierConfigurations.add(authVerifierConfiguration);
@@ -165,7 +164,7 @@ public class AuthVerifierPipeline {
 
 	private AuthVerifierConfiguration _mergeAuthVerifierConfiguration(
 		AuthVerifierConfiguration authVerifierConfiguration,
-		AccessControlContext accessControlContext) {
+		AccessControlContext accessControlContext, String contextPath) {
 
 		Map<String, Object> settings = accessControlContext.getSettings();
 
@@ -204,13 +203,29 @@ public class AuthVerifierPipeline {
 		for (Map.Entry<String, Object> entry : settings.entrySet()) {
 			String settingsKey = entry.getKey();
 
-			if (settingsKey.startsWith(authVerifierSettingsKey)) {
-				Object settingsValue = entry.getValue();
+			if (!settingsKey.startsWith(authVerifierSettingsKey)) {
+				continue;
+			}
 
-				if (settingsValue instanceof String) {
-					String propertiesKey = settingsKey.substring(
-						authVerifierSettingsKey.length());
+			Object settingsValue = entry.getValue();
 
+			if (settingsValue instanceof String) {
+				String propertiesKey = settingsKey.substring(
+					authVerifierSettingsKey.length());
+
+				if (propertiesKey.equals("urls.includes") ||
+					propertiesKey.equals("urls.excludes")) {
+
+					String settingsValueString = (String)settingsValue;
+
+					if (settingsValueString.charAt(0) != '/') {
+						settingsValueString = "/" + settingsValueString;
+					}
+
+					mergedProperties.setProperty(
+						propertiesKey, contextPath + settingsValueString);
+				}
+				else {
 					mergedProperties.setProperty(
 						propertiesKey, (String)settingsValue);
 				}
@@ -262,11 +277,12 @@ public class AuthVerifierPipeline {
 				authVerifierResult = authVerifier.verify(
 					accessControlContext, properties);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
 					Class<?> authVerifierClass = authVerifier.getClass();
 
-					_log.debug("Skipping " + authVerifierClass.getName(), e);
+					_log.debug(
+						"Skipping " + authVerifierClass.getName(), exception);
 				}
 
 				continue;
@@ -282,46 +298,46 @@ public class AuthVerifierPipeline {
 				continue;
 			}
 
-			if (authVerifierResult.getState() !=
+			if (authVerifierResult.getState() ==
 					AuthVerifierResult.State.NOT_APPLICABLE) {
 
-				User user = UserLocalServiceUtil.fetchUser(
-					authVerifierResult.getUserId());
+				continue;
+			}
 
-				if ((user == null) || !user.isActive()) {
-					if (_log.isDebugEnabled()) {
-						Class<?> authVerifierClass = authVerifier.getClass();
+			User user = UserLocalServiceUtil.fetchUser(
+				authVerifierResult.getUserId());
 
-						if (user == null) {
-							_log.debug(
-								StringBundler.concat(
-									"Auth verifier ",
-									authVerifierClass.getName(),
-									" returned null user",
-									authVerifierResult.getUserId()));
-						}
-						else {
-							_log.debug(
-								StringBundler.concat(
-									"Auth verifier ",
-									authVerifierClass.getName(),
-									" returned inactive user",
-									authVerifierResult.getUserId()));
-						}
+			if ((user == null) || !user.isActive()) {
+				if (_log.isDebugEnabled()) {
+					Class<?> authVerifierClass = authVerifier.getClass();
+
+					if (user == null) {
+						_log.debug(
+							StringBundler.concat(
+								"Auth verifier ", authVerifierClass.getName(),
+								" returned null user",
+								authVerifierResult.getUserId()));
 					}
-
-					continue;
+					else {
+						_log.debug(
+							StringBundler.concat(
+								"Auth verifier ", authVerifierClass.getName(),
+								" returned inactive user",
+								authVerifierResult.getUserId()));
+					}
 				}
 
-				Map<String, Object> settings = _mergeSettings(
-					properties, authVerifierResult.getSettings());
-
-				settings.put(AUTH_TYPE, authVerifier.getAuthType());
-
-				authVerifierResult.setSettings(settings);
-
-				return authVerifierResult;
+				continue;
 			}
+
+			Map<String, Object> settings = _mergeSettings(
+				properties, authVerifierResult.getSettings());
+
+			settings.put(AUTH_TYPE, authVerifier.getAuthType());
+
+			authVerifierResult.setSettings(settings);
+
+			return authVerifierResult;
 		}
 
 		return _createGuestVerificationResult(accessControlContext);

@@ -238,9 +238,9 @@ public class AMImageEntryProcessor implements DLProcessor, ImageProcessor {
 
 			return false;
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(pe, pe);
+				_log.warn(portalException, portalException);
 			}
 
 			return false;
@@ -276,7 +276,8 @@ public class AMImageEntryProcessor implements DLProcessor, ImageProcessor {
 	@Override
 	public void storeThumbnail(
 		long companyId, long groupId, long fileEntryId, long fileVersionId,
-		long custom1ImageId, long custom2ImageId, InputStream is, String type) {
+		long custom1ImageId, long custom2ImageId, InputStream inputStream,
+		String type) {
 	}
 
 	@Override
@@ -374,11 +375,11 @@ public class AMImageEntryProcessor implements DLProcessor, ImageProcessor {
 				new SafeFileVersion(fileVersion),
 				String.valueOf(fileVersion.getFileVersionId()));
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			_log.error(
 				"Unable to create lazy adaptive media for file version " +
 					fileVersion.getFileVersionId(),
-				pe);
+				portalException);
 		}
 	}
 

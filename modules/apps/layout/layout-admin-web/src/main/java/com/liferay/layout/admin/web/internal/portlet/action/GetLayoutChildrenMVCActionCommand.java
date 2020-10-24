@@ -14,14 +14,14 @@
 
 package com.liferay.layout.admin.web.internal.portlet.action;
 
-import com.liferay.document.library.util.DLURLHelper;
-import com.liferay.dynamic.data.mapping.storage.StorageEngine;
 import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
+import com.liferay.layout.admin.web.internal.configuration.LayoutConverterConfiguration;
 import com.liferay.layout.admin.web.internal.display.context.LayoutsAdminDisplayContext;
-import com.liferay.layout.seo.canonical.url.LayoutSEOCanonicalURLProvider;
-import com.liferay.layout.seo.kernel.LayoutSEOLinkManager;
+import com.liferay.layout.admin.web.internal.display.context.MillerColumnsDisplayContext;
+import com.liferay.layout.util.LayoutCopyHelper;
+import com.liferay.layout.util.template.LayoutConverterRegistry;
+import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.json.JSONArray;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
@@ -30,17 +30,23 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.staging.StagingGroupHelper;
+
+import java.util.Map;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Eudaldo Alonso
  */
 @Component(
+	configurationPid = "com.liferay.layout.admin.web.internal.configuration.LayoutConverterConfiguration",
 	immediate = true,
 	property = {
 		"javax.portlet.name=" + LayoutAdminPortletKeys.GROUP_PAGES,
@@ -49,6 +55,13 @@ import org.osgi.service.component.annotations.Reference;
 	service = MVCActionCommand.class
 )
 public class GetLayoutChildrenMVCActionCommand extends BaseMVCActionCommand {
+
+	@Activate
+	@Modified
+	protected void activate(Map<String, Object> properties) {
+		_layoutConverterConfiguration = ConfigurableUtil.createConfigurable(
+			LayoutConverterConfiguration.class, properties);
+	}
 
 	@Override
 	protected void doProcessAction(
@@ -61,36 +74,40 @@ public class GetLayoutChildrenMVCActionCommand extends BaseMVCActionCommand {
 
 		LayoutsAdminDisplayContext layoutsAdminDisplayContext =
 			new LayoutsAdminDisplayContext(
-				_dlurlHelper, _layoutSEOCanonicalURLProvider,
-				_layoutSEOLinkManager,
+				_layoutConverterConfiguration, _layoutConverterRegistry,
+				_layoutCopyHelper,
+				_portal.getLiferayPortletRequest(actionRequest),
+				_portal.getLiferayPortletResponse(actionResponse),
+				_stagingGroupHelper);
+
+		MillerColumnsDisplayContext millerColumnsDisplayContext =
+			new MillerColumnsDisplayContext(
+				layoutsAdminDisplayContext,
 				_portal.getLiferayPortletRequest(actionRequest),
 				_portal.getLiferayPortletResponse(actionResponse));
 
-		JSONArray jsonArray = layoutsAdminDisplayContext.getLayoutsJSONArray(
+		JSONArray jsonArray = millerColumnsDisplayContext.getLayoutsJSONArray(
 			layout.getLayoutId(), layout.isPrivateLayout());
 
-		JSONObject jsonObject = JSONUtil.put("children", jsonArray);
-
 		JSONPortletResponseUtil.writeJSON(
-			actionRequest, actionResponse, jsonObject);
+			actionRequest, actionResponse, JSONUtil.put("children", jsonArray));
 	}
 
+	private volatile LayoutConverterConfiguration _layoutConverterConfiguration;
+
 	@Reference
-	private DLURLHelper _dlurlHelper;
+	private LayoutConverterRegistry _layoutConverterRegistry;
+
+	@Reference
+	private LayoutCopyHelper _layoutCopyHelper;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
 
 	@Reference
-	private LayoutSEOCanonicalURLProvider _layoutSEOCanonicalURLProvider;
-
-	@Reference
-	private LayoutSEOLinkManager _layoutSEOLinkManager;
-
-	@Reference
 	private Portal _portal;
 
 	@Reference
-	private StorageEngine _storageEngine;
+	private StagingGroupHelper _stagingGroupHelper;
 
 }

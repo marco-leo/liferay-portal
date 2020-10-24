@@ -49,7 +49,7 @@ const InfoPanel = ({metadata}) => {
 	});
 
 	const itemsContent = imageData.groups.map((group, index) => {
-		const itemContentTab = group.data.map(item => {
+		const itemContentTab = group.data.map((item) => {
 			return (
 				<React.Fragment key={item.key}>
 					<dt className="sidebar-dt">{item.key}</dt>
@@ -86,7 +86,7 @@ const Carousel = ({
 	currentItem,
 	handleClickNext,
 	handleClickPrevious,
-	showArrows = true
+	showArrows = true,
 }) => (
 	<div className="carousel closed sidenav-container">
 		<InfoPanel metadata={currentItem.metadata} />

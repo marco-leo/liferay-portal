@@ -51,67 +51,76 @@ if (portletTitleBasedNavigation) {
 		/>
 	</c:if>
 
-	<div class="card card-row-padded main-content-card">
-		<c:choose>
-			<c:when test="<%= DLFolderPermission.contains(permissionChecker, scopeGroupId, folderId, ActionKeys.ADD_DOCUMENT) %>">
-				<aui:row>
-					<aui:col width="<%= 50 %>">
-						<aui:form name="fm1">
-							<div class="lfr-dynamic-uploader">
-								<div class="lfr-upload-container" id="<portlet:namespace />fileUpload"></div>
+	<div class="card main-content-card">
+		<div class="card-body">
+			<c:choose>
+				<c:when test="<%= DLFolderPermission.contains(permissionChecker, scopeGroupId, folderId, ActionKeys.ADD_DOCUMENT) %>">
+					<clay:row>
+						<clay:col
+							md="6"
+						>
+							<aui:form name="fm1">
+								<div class="lfr-dynamic-uploader">
+									<div class="lfr-upload-container" id="<portlet:namespace />fileUpload"></div>
+								</div>
+							</aui:form>
+
+							<aui:script use="liferay-upload">
+								new Liferay.Upload({
+									boundingBox: '#<portlet:namespace />fileUpload',
+
+									<%
+									DecimalFormatSymbols decimalFormatSymbols = DecimalFormatSymbols.getInstance(locale);
+									%>
+
+									decimalSeparator: '<%= decimalFormatSymbols.getDecimalSeparator() %>',
+
+									deleteFile:
+										'<liferay-portlet:actionURL name="/document_library/upload_multiple_file_entries"><portlet:param name="<%= Constants.CMD %>" value="<%= Constants.DELETE_TEMP %>" /><portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" /></liferay-portlet:actionURL>',
+									fileDescription:
+										'<%= StringUtil.merge(dlConfiguration.fileExtensions()) %>',
+									maxFileSize: '<%= dlConfiguration.fileMaxSize() %> B',
+									metadataContainer: '#<portlet:namespace />commonFileMetadataContainer',
+									metadataExplanationContainer:
+										'#<portlet:namespace />metadataExplanationContainer',
+									namespace: '<portlet:namespace />',
+									tempFileURL: {
+										method: Liferay.Service.bind('/dlapp/get-temp-file-names'),
+										params: {
+											folderId: <%= folderId %>,
+											folderName: '<%= EditFileEntryMVCActionCommand.TEMP_FOLDER_NAME %>',
+											groupId: <%= scopeGroupId %>,
+										},
+									},
+									tempRandomSuffix: '<%= TempFileEntryUtil.TEMP_RANDOM_SUFFIX %>',
+									uploadFile:
+										'<liferay-portlet:actionURL name="/document_library/upload_multiple_file_entries"><portlet:param name="<%= Constants.CMD %>" value="<%= Constants.ADD_TEMP %>" /><portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" /></liferay-portlet:actionURL>',
+								});
+							</aui:script>
+						</clay:col>
+
+						<clay:col
+							md="6"
+						>
+							<div class="common-file-metadata-container hide selected" id="<portlet:namespace />commonFileMetadataContainer">
+								<liferay-util:include page="/document_library/upload_multiple_file_entries_resources.jsp" servletContext="<%= application %>" />
 							</div>
-						</aui:form>
 
-						<aui:script use="liferay-upload">
-							new Liferay.Upload({
-								boundingBox: '#<portlet:namespace />fileUpload',
+							<%
+							DLBreadcrumbUtil.addPortletBreadcrumbEntries(folderId, request, renderResponse);
 
-								<%
-								DecimalFormatSymbols decimalFormatSymbols = DecimalFormatSymbols.getInstance(locale);
-								%>
+							PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "add-multiple-file-entries"), currentURL);
+							%>
 
-								decimalSeparator: '<%= decimalFormatSymbols.getDecimalSeparator() %>',
+							<aui:script use="aui-base,aui-loading-mask-deprecated,node-load">
+								Liferay.on('tempFileRemoved', function () {
+									Liferay.Util.openToast({
+										message:
+											'<%= LanguageUtil.get(request, "your-request-completed-successfully") %>',
+									});
+								});
 
-								deleteFile:
-									'<liferay-portlet:actionURL name="/document_library/upload_multiple_file_entries"><portlet:param name="<%= Constants.CMD %>" value="<%= Constants.DELETE_TEMP %>" /><portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" /></liferay-portlet:actionURL>',
-								fileDescription:
-									'<%= StringUtil.merge(dlConfiguration.fileExtensions()) %>',
-								maxFileSize: '<%= dlConfiguration.fileMaxSize() %> B',
-								metadataContainer: '#<portlet:namespace />commonFileMetadataContainer',
-								metadataExplanationContainer:
-									'#<portlet:namespace />metadataExplanationContainer',
-								namespace: '<portlet:namespace />',
-								tempFileURL: {
-									method: Liferay.Service.bind('/dlapp/get-temp-file-names'),
-									params: {
-										folderId: <%= folderId %>,
-										folderName: '<%= EditFileEntryMVCActionCommand.TEMP_FOLDER_NAME %>',
-										groupId: <%= scopeGroupId %>
-									}
-								},
-								tempRandomSuffix: '<%= TempFileEntryUtil.TEMP_RANDOM_SUFFIX %>',
-								uploadFile:
-									'<liferay-portlet:actionURL name="/document_library/upload_multiple_file_entries"><portlet:param name="<%= Constants.CMD %>" value="<%= Constants.ADD_TEMP %>" /><portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" /></liferay-portlet:actionURL>'
-							});
-						</aui:script>
-					</aui:col>
-
-					<aui:col width="<%= 50 %>">
-						<div class="common-file-metadata-container hide selected" id="<portlet:namespace />commonFileMetadataContainer">
-							<liferay-util:include page="/document_library/upload_multiple_file_entries_resources.jsp" servletContext="<%= application %>" />
-						</div>
-
-						<%
-						DLBreadcrumbUtil.addPortletBreadcrumbEntries(folderId, request, renderResponse);
-
-						PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "add-multiple-file-entries"), currentURL);
-						%>
-
-						<aui:script use="aui-base,aui-loading-mask-deprecated,node-load">
-							Liferay.provide(
-								window,
-								'<portlet:namespace />updateMultipleFiles',
-								function() {
+								window['<portlet:namespace />updateMultipleFiles'] = function () {
 									var Lang = A.Lang;
 
 									var commonFileMetadataContainer = A.one(
@@ -160,12 +169,12 @@ if (portletTitleBasedNavigation) {
 
 									Liferay.Util.fetch(document.<portlet:namespace />fm2.action, {
 										body: new FormData(document.<portlet:namespace />fm2),
-										method: 'POST'
+										method: 'POST',
 									})
-										.then(function(response) {
+										.then(function (response) {
 											return response.json();
 										})
-										.then(function(response) {
+										.then(function (response) {
 											var itemFailed = false;
 
 											for (var i = 0; i < response.length; i++) {
@@ -200,13 +209,15 @@ if (portletTitleBasedNavigation) {
 													if (originalFileName === item.fileName) {
 														childHTML =
 															'<span class="card-bottom success-message"><%= UnicodeLanguageUtil.get(request, "successfully-saved") %></span>';
-													} else {
+													}
+													else {
 														childHTML =
 															'<span class="card-bottom success-message"><%= UnicodeLanguageUtil.get(request, "successfully-saved") %> (' +
 															item.fileName +
 															')</span>';
 													}
-												} else {
+												}
+												else {
 													cssClass = 'upload-error';
 
 													childHTML =
@@ -228,7 +239,8 @@ if (portletTitleBasedNavigation) {
 
 											if (commonFileMetadataContainer.io) {
 												commonFileMetadataContainer.io.start();
-											} else {
+											}
+											else {
 												commonFileMetadataContainer.load(
 													'<%= uploadMultipleFileEntries %>'
 												);
@@ -242,7 +254,7 @@ if (portletTitleBasedNavigation) {
 												location.href = '<%= HtmlUtil.escapeJS(redirect) %>';
 											}
 										})
-										.catch(function(error) {
+										.catch(function (error) {
 											var selectedItems = A.all(
 												'#<portlet:namespace />fileUpload li.selected'
 											);
@@ -260,18 +272,17 @@ if (portletTitleBasedNavigation) {
 
 											commonFileMetadataContainer.loadingmask.hide();
 										});
-								},
-								['aui-base']
-							);
-						</aui:script>
-					</aui:col>
-				</aui:row>
-			</c:when>
-			<c:otherwise>
-				<div class="alert alert-danger">
-					<liferay-ui:message key="you-do-not-have-the-required-permissions-to-access-this-application" />
-				</div>
-			</c:otherwise>
-		</c:choose>
+								};
+							</aui:script>
+						</clay:col>
+					</clay:row>
+				</c:when>
+				<c:otherwise>
+					<div class="alert alert-danger">
+						<liferay-ui:message key="you-do-not-have-the-required-permissions-to-access-this-application" />
+					</div>
+				</c:otherwise>
+			</c:choose>
+		</div>
 	</div>
 </div>

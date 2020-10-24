@@ -35,7 +35,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface DLFileVersion
 	extends DLFileVersionModel, PersistedModel, TreeModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.portlet.documentlibrary.model.impl.DLFileVersionImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -89,6 +89,6 @@ public interface DLFileVersion
 
 	public void setExtraSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties
-			extraSettingsProperties);
+			extraSettingsUnicodeProperties);
 
 }

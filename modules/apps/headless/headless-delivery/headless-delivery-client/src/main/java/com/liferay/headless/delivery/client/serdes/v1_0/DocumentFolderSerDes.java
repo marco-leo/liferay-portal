@@ -63,6 +63,30 @@ public class DocumentFolderSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (documentFolder.getActions() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"actions\": ");
+
+			sb.append(_toJSON(documentFolder.getActions()));
+		}
+
+		if (documentFolder.getAssetLibraryKey() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"assetLibraryKey\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(documentFolder.getAssetLibraryKey()));
+
+			sb.append("\"");
+		}
+
 		if (documentFolder.getCreator() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -183,6 +207,16 @@ public class DocumentFolderSerDes {
 			sb.append(documentFolder.getNumberOfDocuments());
 		}
 
+		if (documentFolder.getParentDocumentFolderId() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"parentDocumentFolderId\": ");
+
+			sb.append(documentFolder.getParentDocumentFolderId());
+		}
+
 		if (documentFolder.getSiteId() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -239,6 +273,22 @@ public class DocumentFolderSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (documentFolder.getActions() == null) {
+			map.put("actions", null);
+		}
+		else {
+			map.put("actions", String.valueOf(documentFolder.getActions()));
+		}
+
+		if (documentFolder.getAssetLibraryKey() == null) {
+			map.put("assetLibraryKey", null);
+		}
+		else {
+			map.put(
+				"assetLibraryKey",
+				String.valueOf(documentFolder.getAssetLibraryKey()));
+		}
+
 		if (documentFolder.getCreator() == null) {
 			map.put("creator", null);
 		}
@@ -255,13 +305,25 @@ public class DocumentFolderSerDes {
 				String.valueOf(documentFolder.getCustomFields()));
 		}
 
-		map.put(
-			"dateCreated",
-			liferayToJSONDateFormat.format(documentFolder.getDateCreated()));
+		if (documentFolder.getDateCreated() == null) {
+			map.put("dateCreated", null);
+		}
+		else {
+			map.put(
+				"dateCreated",
+				liferayToJSONDateFormat.format(
+					documentFolder.getDateCreated()));
+		}
 
-		map.put(
-			"dateModified",
-			liferayToJSONDateFormat.format(documentFolder.getDateModified()));
+		if (documentFolder.getDateModified() == null) {
+			map.put("dateModified", null);
+		}
+		else {
+			map.put(
+				"dateModified",
+				liferayToJSONDateFormat.format(
+					documentFolder.getDateModified()));
+		}
 
 		if (documentFolder.getDescription() == null) {
 			map.put("description", null);
@@ -301,6 +363,15 @@ public class DocumentFolderSerDes {
 			map.put(
 				"numberOfDocuments",
 				String.valueOf(documentFolder.getNumberOfDocuments()));
+		}
+
+		if (documentFolder.getParentDocumentFolderId() == null) {
+			map.put("parentDocumentFolderId", null);
+		}
+		else {
+			map.put(
+				"parentDocumentFolderId",
+				String.valueOf(documentFolder.getParentDocumentFolderId()));
 		}
 
 		if (documentFolder.getSiteId() == null) {
@@ -347,7 +418,20 @@ public class DocumentFolderSerDes {
 			DocumentFolder documentFolder, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "creator")) {
+			if (Objects.equals(jsonParserFieldName, "actions")) {
+				if (jsonParserFieldValue != null) {
+					documentFolder.setActions(
+						(Map)DocumentFolderSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "assetLibraryKey")) {
+				if (jsonParserFieldValue != null) {
+					documentFolder.setAssetLibraryKey(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "creator")) {
 				if (jsonParserFieldValue != null) {
 					documentFolder.setCreator(
 						CreatorSerDes.toDTO((String)jsonParserFieldValue));
@@ -407,6 +491,14 @@ public class DocumentFolderSerDes {
 						Integer.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "parentDocumentFolderId")) {
+
+				if (jsonParserFieldValue != null) {
+					documentFolder.setParentDocumentFolderId(
+						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "siteId")) {
 				if (jsonParserFieldValue != null) {
 					documentFolder.setSiteId(
@@ -425,9 +517,8 @@ public class DocumentFolderSerDes {
 							(String)jsonParserFieldValue));
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -483,10 +574,13 @@ public class DocumentFolderSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

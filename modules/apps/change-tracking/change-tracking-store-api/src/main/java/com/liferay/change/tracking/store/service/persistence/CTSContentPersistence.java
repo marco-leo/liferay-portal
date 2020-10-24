@@ -36,7 +36,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface CTSContentPersistence
 	extends BasePersistence<CTSContent>, CTPersistence<CTSContent> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link CTSContentUtil} to access the cts content persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

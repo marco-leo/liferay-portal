@@ -16,10 +16,10 @@ package com.liferay.journal.internal.trash;
 
 import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.journal.constants.JournalFolderConstants;
 import com.liferay.journal.exception.InvalidDDMStructureException;
 import com.liferay.journal.internal.util.JournalUtil;
 import com.liferay.journal.model.JournalFolder;
-import com.liferay.journal.model.JournalFolderConstants;
 import com.liferay.journal.service.JournalFolderLocalService;
 import com.liferay.journal.util.JournalHelper;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -29,7 +29,7 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionHelper;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashRenderer;
@@ -159,7 +159,7 @@ public class JournalFolderTrashHandler extends JournalBaseTrashHandler {
 		throws PortalException {
 
 		if (trashActionId.equals(TrashActionKeys.MOVE)) {
-			return ModelResourcePermissionHelper.contains(
+			return ModelResourcePermissionUtil.contains(
 				_journalFolderModelResourcePermission, permissionChecker,
 				groupId, classPK, ActionKeys.ADD_FOLDER);
 		}
@@ -267,14 +267,15 @@ public class JournalFolderTrashHandler extends JournalBaseTrashHandler {
 			folder.getGroupId(), containerModelId, originalTitle);
 
 		if (duplicateFolder != null) {
-			RestoreEntryException ree = new RestoreEntryException(
-				RestoreEntryException.DUPLICATE);
+			RestoreEntryException restoreEntryException =
+				new RestoreEntryException(RestoreEntryException.DUPLICATE);
 
-			ree.setDuplicateEntryId(duplicateFolder.getFolderId());
-			ree.setOldName(duplicateFolder.getName());
-			ree.setTrashEntryId(trashEntryId);
+			restoreEntryException.setDuplicateEntryId(
+				duplicateFolder.getFolderId());
+			restoreEntryException.setOldName(duplicateFolder.getName());
+			restoreEntryException.setTrashEntryId(trashEntryId);
 
-			throw ree;
+			throw restoreEntryException;
 		}
 	}
 
@@ -296,9 +297,10 @@ public class JournalFolderTrashHandler extends JournalBaseTrashHandler {
 			_journalFolderLocalService.validateFolderDDMStructures(
 				classPK, containerModelId);
 		}
-		catch (InvalidDDMStructureException iddmse) {
+		catch (InvalidDDMStructureException invalidDDMStructureException) {
 			throw new RestoreEntryException(
-				RestoreEntryException.INVALID_CONTAINER, iddmse);
+				RestoreEntryException.INVALID_CONTAINER,
+				invalidDDMStructureException);
 		}
 	}
 

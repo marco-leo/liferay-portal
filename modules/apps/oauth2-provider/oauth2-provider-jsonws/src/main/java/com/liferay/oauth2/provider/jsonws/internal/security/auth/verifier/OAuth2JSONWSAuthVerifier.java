@@ -22,8 +22,8 @@ import com.liferay.oauth2.provider.model.OAuth2Authorization;
 import com.liferay.oauth2.provider.model.OAuth2ScopeGrant;
 import com.liferay.oauth2.provider.rest.spi.bearer.token.provider.BearerTokenProvider;
 import com.liferay.oauth2.provider.rest.spi.bearer.token.provider.BearerTokenProviderAccessor;
-import com.liferay.oauth2.provider.scope.liferay.OAuth2ProviderScopeLiferayConstants;
 import com.liferay.oauth2.provider.scope.liferay.ScopeLocator;
+import com.liferay.oauth2.provider.scope.liferay.constants.OAuth2ProviderScopeLiferayConstants;
 import com.liferay.oauth2.provider.scope.spi.scope.finder.ScopeFinder;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationScopeAliasesLocalService;
@@ -157,9 +157,9 @@ public class OAuth2JSONWSAuthVerifier implements AuthVerifier {
 
 			return authVerifierResult;
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug("Unable to verify OAuth2 access token", e);
+				_log.debug("Unable to verify OAuth2 access token", exception);
 			}
 
 			return authVerifierResult;

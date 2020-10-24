@@ -9,92 +9,95 @@
  * distribution rights of the Software.
  */
 
-import {cleanup, render} from '@testing-library/react';
+import {render, waitForElement} from '@testing-library/react';
 import React from 'react';
 
 import PerformanceByStepPage from '../../../src/main/resources/META-INF/resources/js/components/performance-by-step-page/PerformanceByStepPage.es';
+import {jsonSessionStorage} from '../../../src/main/resources/META-INF/resources/js/shared/util/storage.es';
 import {MockRouter} from '../../mock/MockRouter.es';
 
-const data = {
-	items: [
-		{
-			breachedInstanceCount: 4,
-			durationAvg: 0,
-			instanceCount: 4,
-			key: 'review',
-			name: 'Review',
-			onTimeInstanceCount: 0,
-			overdueInstanceCount: 4
-		}
-	],
-	totalCount: 1
-};
+import '@testing-library/jest-dom/extend-expect';
 
-const clientMock = {
-	get: jest.fn()
-};
-
-const wrapper = ({children}) => (
-	<MockRouter client={clientMock}>{children}</MockRouter>
-);
-
-describe('The performance by step page should', () => {
+describe('The PerformanceByStepPage component having data should', () => {
 	let getAllByTestId;
 
-	afterEach(cleanup);
+	const items = [
+		{
+			breachedInstanceCount: 4,
+			durationAvg: 10800000,
+			instanceCount: 4,
+			node: {key: 'review', label: 'Review', name: 'Review'},
+			onTimeInstanceCount: 4,
+			overdueInstanceCount: 4,
+		},
+		{
+			breachedInstanceCount: 2,
+			durationAvg: 475200000,
+			instanceCount: 2,
+			node: {key: 'update', label: 'Update', name: 'Update'},
+			onTimeInstanceCount: 2,
+			overdueInstanceCount: 2,
+		},
+	];
 
-	beforeEach(() => {
-		clientMock.get.mockResolvedValue({data});
+	const data = {items, totalCount: items.length};
 
+	const timeRangeData = {
+		items: [
+			{
+				dateEnd: '2019-12-09T00:00:00Z',
+				dateStart: '2019-12-03T00:00:00Z',
+				defaultTimeRange: false,
+				id: 7,
+				name: 'Last 7 Days',
+			},
+			{
+				dateEnd: '2019-12-09T00:00:00Z',
+				dateStart: '2019-11-10T00:00:00Z',
+				defaultTimeRange: true,
+				id: 30,
+				name: 'Last 30 Days',
+			},
+		],
+		totalCount: 2,
+	};
+
+	const clientMock = {
+		get: jest.fn().mockResolvedValue({data}).mockResolvedValueOnce({data}),
+	};
+
+	const wrapper = ({children}) => (
+		<MockRouter client={clientMock}>{children}</MockRouter>
+	);
+
+	beforeAll(() => {
+		jsonSessionStorage.set('timeRanges', timeRangeData);
 		const renderResult = render(
-			<PerformanceByStepPage
-				page={1}
-				pageSize={10}
-				processId="12345"
-				sort="overdueInstanceCount:desc"
-			/>,
+			<PerformanceByStepPage routeParams={{processId: '1234'}} />,
 			{wrapper}
 		);
 
 		getAllByTestId = renderResult.getAllByTestId;
 	});
 
-	test('Be rendered with 1 item on table', async () => {
-		const stepNameCell = await getAllByTestId('stepName');
+	test('Be rendered with step names', async () => {
+		const stepName = await waitForElement(() => getAllByTestId('stepName'));
 
-		expect(stepNameCell[0].innerHTML).toBe('Review');
-	});
-});
-
-describe('The performance by step page, when there is no item, should', () => {
-	let getByTestId;
-
-	afterEach(cleanup);
-
-	beforeEach(() => {
-		clientMock.get.mockResolvedValue({data: {}});
-
-		const renderResult = render(
-			<PerformanceByStepPage
-				page={1}
-				pageSize={10}
-				processId="12345"
-				query="?search=update"
-				sort="overdueInstanceCount:desc"
-			/>,
-			{
-				wrapper
-			}
-		);
-
-		getByTestId = renderResult.getByTestId;
+		expect(stepName[0]).toHaveTextContent('Review');
+		expect(stepName[1]).toHaveTextContent('Update');
 	});
 
-	test('Be rendered with empty view after search', () => {
-		const performanceByStepBody = getByTestId('performanceByStepBody');
+	test('Be rendered with SLA Breached (%)', () => {
+		const slas = getAllByTestId('stepSla');
 
-		expect(
-			performanceByStepBody.children[0].children[1].children[0].innerHTML
-		).toBe('no-results-were-found');
+		expect(slas[0]).toHaveTextContent('4 (0%)');
+		expect(slas[1]).toHaveTextContent('2 (0%)');
+	});
+
+	test('Be rendered with average completion time', () => {
+		const durations = getAllByTestId('durationTaskAvg');
+
+		expect(durations[0]).toHaveTextContent('3h');
+		expect(durations[1]).toHaveTextContent('5d 12h');
 	});
 });

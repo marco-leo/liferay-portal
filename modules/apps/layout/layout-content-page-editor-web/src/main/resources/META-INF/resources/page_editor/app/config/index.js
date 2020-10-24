@@ -12,13 +12,12 @@
  * details.
  */
 
-import React from 'react';
-
 const DEFAULT_CONFIG = {
-	toolbarId: 'pageEditorToolbar'
+	toolbarId: 'pageEditorToolbar',
 };
 
-export const ConfigContext = React.createContext(DEFAULT_CONFIG);
+/** @type {import('../../types/config').Config} */
+export let config = DEFAULT_CONFIG;
 
 /**
  * Extracts the immutable parts from the server data.
@@ -26,22 +25,29 @@ export const ConfigContext = React.createContext(DEFAULT_CONFIG);
  * Unlike data in the store, this config does not change over the lifetime of
  * the app, so we can safely store is as a variable.
  */
-export function getConfig(config) {
-	const {portletNamespace, sidebarPanels} = config;
+export function initializeConfig(backendConfig) {
+	const {pluginsRootPath, portletNamespace, sidebarPanels} = backendConfig;
 	const toolbarId = `${portletNamespace}${DEFAULT_CONFIG.toolbarId}`;
 
 	// Special items requiring augmentation, creation, or transformation.
+
+	const augmentedPanels = augmentPanelData(pluginsRootPath, sidebarPanels);
+
 	const syntheticItems = {
-		sidebarPanels: partitionPanels(augmentPanelData(sidebarPanels)),
+		marginOptions: [...backendConfig.paddingOptions],
+		panels: generatePanels(augmentedPanels),
+		sidebarPanels: partitionPanels(augmentedPanels),
 		toolbarId,
-		toolbarPlugins: getToolbarPlugins(toolbarId)
+		toolbarPlugins: getToolbarPlugins(pluginsRootPath, toolbarId),
 	};
 
-	return {
+	config = {
 		...DEFAULT_CONFIG,
-		...config,
-		...syntheticItems
+		...backendConfig,
+		...syntheticItems,
 	};
+
+	return config;
 }
 
 /**
@@ -49,26 +55,11 @@ export function getConfig(config) {
  * of a plugin. Here we deal with the exceptions by mapping IDs to
  * plugin names.
  */
-const SIDEBAR_PANEL_IDS_TO_PLUGINS = {
-	elements: 'fragments',
+const SIDEBAR_PANEL_IDS_TO_PLUGINS = {};
 
-	lookAndFeel: 'look-and-feel'
-};
-
-/**
- * Until we decompose the layout-content-page-editor module into a
- * set of smaller OSGi plugins, we "fake" it here to show how we would
- * lazily-load components from elsewhere by injecting an additional
- * "pluginEntryPoint" property.
- *
- * Note that in the final version we'll be using NPMResolver to obtain these
- * paths dynamically.
- */
-const PLUGIN_ROOT = 'layout-content-page-editor-web@2.0.0/page_editor/plugins';
-
-function augmentPanelData(sidebarPanels) {
-	return sidebarPanels.map(panel => {
-		if (isSeparator(panel)) {
+function augmentPanelData(pluginsRootPath, sidebarPanels) {
+	return sidebarPanels.map((panel) => {
+		if (isSeparator(panel) || panel.isLink) {
 			return panel;
 		}
 
@@ -80,13 +71,28 @@ function augmentPanelData(sidebarPanels) {
 			...panel,
 
 			// https://github.com/liferay/liferay-js-toolkit/issues/324
-			pluginEntryPoint: `${PLUGIN_ROOT}/${sidebarPanelId}/index`,
 
-			rendersSidebarContent: rendersSidebarContent(sidebarPanelId),
+			pluginEntryPoint: `${pluginsRootPath}/${sidebarPanelId}/index`,
 
-			sidebarPanelId
+			sidebarPanelId,
 		};
 	});
+}
+
+function generatePanels(sidebarPanels) {
+	return sidebarPanels.reduce(
+		(groups, panel) => {
+			if (isSeparator(panel)) {
+				groups.push([]);
+			}
+			else {
+				groups[groups.length - 1].push(panel.sidebarPanelId);
+			}
+
+			return groups;
+		},
+		[[]]
+	);
 }
 
 /**
@@ -94,7 +100,7 @@ function augmentPanelData(sidebarPanels) {
  * server data. In the future we may choose to encapsulate it better and
  * deal with it inside the plugin.
  */
-function getToolbarPlugins(toolbarId) {
+function getToolbarPlugins(pluginsRootPath, toolbarId) {
 	const toolbarPluginId = 'experience';
 	const selectId = `${toolbarId}_${toolbarPluginId}`;
 
@@ -110,9 +116,9 @@ function getToolbarPlugins(toolbarId) {
 					</select>
 				</div>
 			`,
-			pluginEntryPoint: `${PLUGIN_ROOT}/experience/index`,
-			toolbarPluginId: 'experience'
-		}
+			pluginEntryPoint: `${pluginsRootPath}/experience/index`,
+			toolbarPluginId: 'experience',
+		},
 	];
 }
 
@@ -125,20 +131,12 @@ function isSeparator(panel) {
  * array into an array of arrays; we'll draw a separator between each group.
  */
 function partitionPanels(panels) {
-	return panels.reduce(
-		(groups, panel) => {
-			if (isSeparator(panel)) {
-				groups.push([]);
-			} else {
-				groups[groups.length - 1].push(panel);
-			}
+	return panels.reduce((map, panel) => {
+		const {sidebarPanelId} = panel;
+		if (!isSeparator(panel)) {
+			map[sidebarPanelId] = panel;
+		}
 
-			return groups;
-		},
-		[[]]
-	);
-}
-
-function rendersSidebarContent(sidebarPanelId) {
-	return sidebarPanelId !== 'look-and-feel';
+		return map;
+	}, {});
 }

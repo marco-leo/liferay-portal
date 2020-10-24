@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class LayoutPageTemplateEntryLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.layout.page.template.service.impl.LayoutPageTemplateEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link LayoutPageTemplateEntryLocalServiceUtil} to access the layout page template entry local service. Add custom service methods to <code>com.liferay.layout.page.template.service.impl.LayoutPageTemplateEntryLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.layout.page.template.model.LayoutPageTemplateEntry
 			addGlobalLayoutPageTemplateEntry(
@@ -53,6 +47,10 @@ public class LayoutPageTemplateEntryLocalServiceUtil {
 
 	/**
 	 * Adds the layout page template entry to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPageTemplateEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPageTemplateEntry the layout page template entry
 	 * @return the layout page template entry that was added
@@ -199,7 +197,21 @@ public class LayoutPageTemplateEntryLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the layout page template entry from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPageTemplateEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPageTemplateEntry the layout page template entry
 	 * @return the layout page template entry that was removed
@@ -217,6 +229,10 @@ public class LayoutPageTemplateEntryLocalServiceUtil {
 
 	/**
 	 * Deletes the layout page template entry with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPageTemplateEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPageTemplateEntryId the primary key of the layout page template entry
 	 * @return the layout page template entry that was removed
@@ -239,6 +255,12 @@ public class LayoutPageTemplateEntryLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -346,6 +368,14 @@ public class LayoutPageTemplateEntryLocalServiceUtil {
 
 		return getService().fetchLayoutPageTemplateEntry(
 			layoutPageTemplateEntryId);
+	}
+
+	public static com.liferay.layout.page.template.model.LayoutPageTemplateEntry
+		fetchLayoutPageTemplateEntry(
+			long groupId, String layoutPageTemplateEntryKey) {
+
+		return getService().fetchLayoutPageTemplateEntry(
+			groupId, layoutPageTemplateEntryKey);
 	}
 
 	public static com.liferay.layout.page.template.model.LayoutPageTemplateEntry
@@ -612,6 +642,9 @@ public class LayoutPageTemplateEntryLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -621,6 +654,10 @@ public class LayoutPageTemplateEntryLocalServiceUtil {
 
 	/**
 	 * Updates the layout page template entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPageTemplateEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPageTemplateEntry the layout page template entry
 	 * @return the layout page template entry that was updated

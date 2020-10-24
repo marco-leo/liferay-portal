@@ -19,6 +19,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -42,6 +44,7 @@ public class DDMStorageLinkWrapper
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
 		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
 		attributes.put("storageLinkId", getStorageLinkId());
 		attributes.put("companyId", getCompanyId());
@@ -59,6 +62,12 @@ public class DDMStorageLinkWrapper
 
 		if (mvccVersion != null) {
 			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
 		}
 
 		String uuid = (String)attributes.get("uuid");
@@ -145,6 +154,16 @@ public class DDMStorageLinkWrapper
 	}
 
 	/**
+	 * Returns the ct collection ID of this ddm storage link.
+	 *
+	 * @return the ct collection ID of this ddm storage link
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
+	}
+
+	/**
 	 * Returns the mvcc version of this ddm storage link.
 	 *
 	 * @return the mvcc version of this ddm storage link
@@ -218,11 +237,6 @@ public class DDMStorageLinkWrapper
 		return model.getUuid();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a ddm storage link model instance should use the <code>DDMStorageLink</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -261,6 +275,16 @@ public class DDMStorageLinkWrapper
 	@Override
 	public void setCompanyId(long companyId) {
 		model.setCompanyId(companyId);
+	}
+
+	/**
+	 * Sets the ct collection ID of this ddm storage link.
+	 *
+	 * @param ctCollectionId the ct collection ID of this ddm storage link
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -321,6 +345,20 @@ public class DDMStorageLinkWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
+	}
+
+	@Override
+	public Map<String, Function<DDMStorageLink, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<DDMStorageLink, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

@@ -46,8 +46,8 @@ public class FormatSourceMojo extends AbstractMojo {
 				SourceFormatterArgs.OUTPUT_KEY_MODIFIED_FILES,
 				sourceFormatter.getModifiedFileNames());
 		}
-		catch (Exception e) {
-			throw new MojoExecutionException(e.getMessage(), e);
+		catch (Exception exception) {
+			throw new MojoExecutionException(exception.getMessage(), exception);
 		}
 	}
 
@@ -63,6 +63,20 @@ public class FormatSourceMojo extends AbstractMojo {
 	 */
 	public void setBaseDir(String baseDir) {
 		_sourceFormatterArgs.setBaseDirName(baseDir);
+	}
+
+	/**
+	 * @parameter
+	 */
+	public void setFailOnAutoFix(boolean failOnAutoFix) {
+		_sourceFormatterArgs.setFailOnAutoFix(failOnAutoFix);
+	}
+
+	/**
+	 * @parameter
+	 */
+	public void setFailOnHasWarning(boolean failOnHasWarning) {
+		_sourceFormatterArgs.setFailOnHasWarning(failOnHasWarning);
 	}
 
 	/**
@@ -152,8 +166,8 @@ public class FormatSourceMojo extends AbstractMojo {
 	/**
 	 * @parameter
 	 */
-	public void setThrowException(boolean throwException) {
-		_sourceFormatterArgs.setThrowException(throwException);
+	public void setValidateCommitMessages(boolean validateCommitMessages) {
+		_sourceFormatterArgs.setValidateCommitMessages(validateCommitMessages);
 	}
 
 	private final SourceFormatterArgs _sourceFormatterArgs =

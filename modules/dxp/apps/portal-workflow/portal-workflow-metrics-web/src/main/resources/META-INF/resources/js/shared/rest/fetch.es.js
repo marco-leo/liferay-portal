@@ -19,19 +19,28 @@ import qs from 'qs';
  * import fetch from '@/shared/rest/fetch';
  * fetch.get('/process').then(res => console.log(res));
  */
-const restClient = axios.create({
-	baseURL: '/o/portal-workflow-metrics/v1.0'
-});
-
 axios.defaults.headers.common[
 	'Accept-Language'
 ] = Liferay.ThemeDisplay.getBCP47LanguageId();
 
 axios.defaults.params = {
-	['p_auth']: Liferay.authToken
+	['p_auth']: Liferay.authToken,
 };
 
-axios.defaults.paramsSerializer = params =>
+axios.defaults.paramsSerializer = (params) =>
 	qs.stringify(params, {arrayFormat: 'repeat'});
 
-export default restClient;
+const adminClient = axios.create({
+	baseURL: '/o/headless-admin-workflow/v1.0',
+});
+
+const metricsClient = axios.create({
+	baseURL: '/o/portal-workflow-metrics/v1.0',
+});
+
+const getClient = (admin) => {
+	return admin ? adminClient : metricsClient;
+};
+
+export {getClient};
+export default metricsClient;

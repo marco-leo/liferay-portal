@@ -16,6 +16,7 @@ package com.liferay.portal.kernel.service.persistence;
 
 import com.liferay.portal.kernel.exception.NoSuchRoleException;
 import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -31,9 +32,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface RolePersistence extends BasePersistence<Role> {
+public interface RolePersistence
+	extends BasePersistence<Role>, CTPersistence<Role> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link RoleUtil} to access the role persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

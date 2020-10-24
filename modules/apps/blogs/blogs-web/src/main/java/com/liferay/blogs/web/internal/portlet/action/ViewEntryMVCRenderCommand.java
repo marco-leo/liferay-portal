@@ -21,7 +21,7 @@ import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
-import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderConstants;
+import com.liferay.portal.kernel.portlet.bridges.mvc.constants.MVCRenderConstants;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -70,9 +70,6 @@ public class ViewEntryMVCRenderCommand implements MVCRenderCommand {
 		}
 
 		try {
-			boolean redirectToLastFriendlyURL = ParamUtil.getBoolean(
-				renderRequest, "redirectToLastFriendlyURL", true);
-
 			BlogsEntry entry = ActionUtil.getEntry(renderRequest);
 
 			ThemeDisplay themeDisplay =
@@ -96,6 +93,8 @@ public class ViewEntryMVCRenderCommand implements MVCRenderCommand {
 				_friendlyURLEntryLocalService.getMainFriendlyURLEntry(
 					BlogsEntry.class, entry.getEntryId());
 
+			boolean redirectToLastFriendlyURL = ParamUtil.getBoolean(
+				renderRequest, "redirectToLastFriendlyURL", true);
 			String urlTitle = ParamUtil.getString(renderRequest, "urlTitle");
 
 			if (redirectToLastFriendlyURL && Validator.isNotNull(urlTitle) &&
@@ -132,16 +131,16 @@ public class ViewEntryMVCRenderCommand implements MVCRenderCommand {
 					_portal.getPortalURL(renderRequest) + "/xmlrpc/pingback");
 			}
 		}
-		catch (Exception e) {
-			if (e instanceof NoSuchEntryException ||
-				e instanceof PrincipalException) {
+		catch (Exception exception) {
+			if (exception instanceof NoSuchEntryException ||
+				exception instanceof PrincipalException) {
 
-				SessionErrors.add(renderRequest, e.getClass());
+				SessionErrors.add(renderRequest, exception.getClass());
 
 				return "/blogs/error.jsp";
 			}
 
-			throw new PortletException(e);
+			throw new PortletException(exception);
 		}
 
 		return "/blogs/view_entry.jsp";

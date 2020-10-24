@@ -45,7 +45,7 @@ public abstract class UADPartialEntryServiceBaseImpl
 	extends BaseServiceImpl
 	implements IdentifiableOSGiService, UADPartialEntryService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>UADPartialEntryService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.tools.service.builder.test.service.UADPartialEntryServiceUtil</code>.
@@ -180,8 +180,8 @@ public abstract class UADPartialEntryServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

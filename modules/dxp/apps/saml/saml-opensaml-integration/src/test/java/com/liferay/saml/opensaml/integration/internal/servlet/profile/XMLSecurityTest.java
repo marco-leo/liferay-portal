@@ -14,7 +14,7 @@
 
 package com.liferay.saml.opensaml.integration.internal.servlet.profile;
 
-import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.saml.constants.SamlWebKeys;
 import com.liferay.saml.opensaml.integration.internal.BaseSamlTestCase;
 import com.liferay.saml.opensaml.integration.internal.util.OpenSamlUtil;
@@ -104,9 +104,8 @@ public class XMLSecurityTest extends BaseSamlTestCase {
 	public void testXMLBombBillionLaughs() throws Exception {
 		String redirectURL = getAuthnRequestRedirectURL();
 
-		AuthnRequest authnRequest = getAuthnRequest(redirectURL);
-
-		String authnRequestXML = OpenSamlUtil.marshall(authnRequest);
+		String authnRequestXML = OpenSamlUtil.marshall(
+			getAuthnRequest(redirectURL));
 
 		String samlMessageXML = authnRequestXML.substring(38);
 
@@ -121,8 +120,8 @@ public class XMLSecurityTest extends BaseSamlTestCase {
 				lol += "&lol" + (i - 1) + ";";
 			}
 
-			authnRequestXML =
-				authnRequestXML + " <!ENTITY lol" + i + " \"" + lol + "\">\n";
+			authnRequestXML = StringBundler.concat(
+				authnRequestXML, " <!ENTITY lol", i, " \"", lol, "\">\n");
 		}
 
 		authnRequestXML += "]>" + samlMessageXML;
@@ -138,9 +137,8 @@ public class XMLSecurityTest extends BaseSamlTestCase {
 	public void testXMLBombQuadraticBlowup() throws Exception {
 		String redirectURL = getAuthnRequestRedirectURL();
 
-		AuthnRequest authnRequest = getAuthnRequest(redirectURL);
-
-		String authnRequestXML = OpenSamlUtil.marshall(authnRequest);
+		String authnRequestXML = OpenSamlUtil.marshall(
+			getAuthnRequest(redirectURL));
 
 		String samlMessageXML = authnRequestXML.substring(38);
 
@@ -173,9 +171,8 @@ public class XMLSecurityTest extends BaseSamlTestCase {
 	public void testXXEGeneralEntities1() throws Exception {
 		String redirectURL = getAuthnRequestRedirectURL();
 
-		AuthnRequest authnRequest = getAuthnRequest(redirectURL);
-
-		String authnRequestXML = OpenSamlUtil.marshall(authnRequest);
+		String authnRequestXML = OpenSamlUtil.marshall(
+			getAuthnRequest(redirectURL));
 
 		StringBundler sb = new StringBundler(4);
 
@@ -197,9 +194,8 @@ public class XMLSecurityTest extends BaseSamlTestCase {
 	public void testXXEGeneralEntities2() throws Exception {
 		String redirectURL = getAuthnRequestRedirectURL();
 
-		AuthnRequest authnRequest = getAuthnRequest(redirectURL);
-
-		String authnRequestXML = OpenSamlUtil.marshall(authnRequest);
+		String authnRequestXML = OpenSamlUtil.marshall(
+			getAuthnRequest(redirectURL));
 
 		StringBundler sb = new StringBundler(5);
 
@@ -222,9 +218,8 @@ public class XMLSecurityTest extends BaseSamlTestCase {
 	public void testXXEParameterEntities() throws Exception {
 		String redirectURL = getAuthnRequestRedirectURL();
 
-		AuthnRequest authnRequest = getAuthnRequest(redirectURL);
-
-		String authnRequestXML = OpenSamlUtil.marshall(authnRequest);
+		String authnRequestXML = OpenSamlUtil.marshall(
+			getAuthnRequest(redirectURL));
 
 		StringBundler sb = new StringBundler(4);
 
@@ -233,8 +228,6 @@ public class XMLSecurityTest extends BaseSamlTestCase {
 		sb.append("\"http://localhost/saml-request\">\n%remote;\n]>");
 
 		sb.append(authnRequestXML.substring(38));
-
-		authnRequestXML = sb.toString();
 
 		decodeAuthnRequest(sb.toString(), redirectURL);
 	}
@@ -313,7 +306,7 @@ public class XMLSecurityTest extends BaseSamlTestCase {
 			_webSsoProfileImpl.decodeAuthnRequest(
 				mockHttpServletRequest, mockHttpServletResponse);
 
-		MessageContext samlMessageContext =
+		MessageContext<?> samlMessageContext =
 			samlSsoRequestContext.getSAMLMessageContext();
 
 		InOutOperationContext<AuthnRequest, ?> inOutOperationContext =
@@ -357,7 +350,7 @@ public class XMLSecurityTest extends BaseSamlTestCase {
 		return mockHttpServletResponse.getRedirectedUrl();
 	}
 
-	private static Base64.Encoder _getEncoder() {
+	private Base64.Encoder _getEncoder() {
 		Base64.Encoder encoder = Base64.getEncoder();
 
 		return encoder.withoutPadding();

@@ -27,11 +27,11 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.segments.constants.SegmentsExperienceConstants;
@@ -78,7 +78,7 @@ public class SegmentsExperimentLocalServiceTest {
 
 	@Before
 	public void setUp() throws Exception {
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		_group = GroupTestUtil.addGroup();
 	}
@@ -571,13 +571,11 @@ public class SegmentsExperimentLocalServiceTest {
 	public void testRunSegmentsExperimentWithControlVariant() throws Exception {
 		SegmentsExperiment segmentsExperiment = _addSegmentsExperiment();
 
-		Map<Long, Double> segmentsExperienceIdSplitMap = HashMapBuilder.put(
-			segmentsExperiment.getSegmentsExperienceId(), 1.00
-		).build();
-
 		_segmentsExperimentLocalService.runSegmentsExperiment(
 			segmentsExperiment.getSegmentsExperimentId(), 0.95,
-			segmentsExperienceIdSplitMap);
+			HashMapBuilder.put(
+				segmentsExperiment.getSegmentsExperienceId(), 1.00
+			).build());
 	}
 
 	@Test(expected = SegmentsExperimentConfidenceLevelException.class)
@@ -597,15 +595,13 @@ public class SegmentsExperimentLocalServiceTest {
 			variantSegmentsExperience.getSegmentsExperienceId(),
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
-		Map<Long, Double> segmentsExperienceIdSplitMap = HashMapBuilder.put(
-			segmentsExperiment.getSegmentsExperienceId(), 0.70
-		).put(
-			variantSegmentsExperience.getSegmentsExperienceId(), 0.30
-		).build();
-
 		_segmentsExperimentLocalService.runSegmentsExperiment(
 			segmentsExperiment.getSegmentsExperimentId(), 1.2,
-			segmentsExperienceIdSplitMap);
+			HashMapBuilder.put(
+				segmentsExperiment.getSegmentsExperienceId(), 0.70
+			).put(
+				variantSegmentsExperience.getSegmentsExperienceId(), 0.30
+			).build());
 	}
 
 	@Test(expected = SegmentsExperimentRelSplitException.class)
@@ -625,15 +621,13 @@ public class SegmentsExperimentLocalServiceTest {
 
 		double confidenceLevel = 0.95;
 
-		Map<Long, Double> segmentsExperienceIdSplitMap = HashMapBuilder.put(
-			segmentsExperiment.getSegmentsExperienceId(), 0.70
-		).put(
-			variantSegmentsExperience.getSegmentsExperienceId(), 0.40
-		).build();
-
 		_segmentsExperimentLocalService.runSegmentsExperiment(
 			segmentsExperiment.getSegmentsExperimentId(), confidenceLevel,
-			segmentsExperienceIdSplitMap);
+			HashMapBuilder.put(
+				segmentsExperiment.getSegmentsExperienceId(), 0.70
+			).put(
+				variantSegmentsExperience.getSegmentsExperienceId(), 0.40
+			).build());
 	}
 
 	@Test(expected = LockedSegmentsExperimentException.class)
@@ -657,15 +651,13 @@ public class SegmentsExperimentLocalServiceTest {
 
 		double confidenceLevel = 0.95;
 
-		Map<Long, Double> segmentsExperienceIdSplitMap = HashMapBuilder.put(
-			segmentsExperiment.getSegmentsExperienceId(), 0.70
-		).put(
-			variantSegmentsExperience.getSegmentsExperienceId(), 0.30
-		).build();
-
 		_segmentsExperimentLocalService.runSegmentsExperiment(
 			segmentsExperiment.getSegmentsExperimentId(), confidenceLevel,
-			segmentsExperienceIdSplitMap);
+			HashMapBuilder.put(
+				segmentsExperiment.getSegmentsExperienceId(), 0.70
+			).put(
+				variantSegmentsExperience.getSegmentsExperienceId(), 0.30
+			).build());
 	}
 
 	@Test(expected = LockedSegmentsExperimentException.class)
@@ -973,10 +965,10 @@ public class SegmentsExperimentLocalServiceTest {
 				SegmentsExperimentConstants.Goal.MAX_SCROLL_DEPTH.getLabel(),
 				StringPool.BLANK);
 
-		UnicodeProperties typeSettingsProperties =
+		UnicodeProperties typeSettingsUnicodeProperties =
 			updatedSegmentsExperiment.getTypeSettingsProperties();
 
-		String goal = typeSettingsProperties.getProperty("goal");
+		String goal = typeSettingsUnicodeProperties.getProperty("goal");
 
 		Assert.assertEquals(
 			SegmentsExperimentConstants.Goal.MAX_SCROLL_DEPTH.getLabel(), goal);

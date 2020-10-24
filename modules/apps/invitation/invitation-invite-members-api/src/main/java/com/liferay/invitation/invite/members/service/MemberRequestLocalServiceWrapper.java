@@ -33,11 +33,6 @@ public class MemberRequestLocalServiceWrapper
 		_memberRequestLocalService = memberRequestLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link MemberRequestLocalServiceUtil} to access the member request local service. Add custom service methods to <code>com.liferay.invitation.invite.members.service.impl.MemberRequestLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.invitation.invite.members.model.MemberRequest
 			addMemberRequest(
@@ -54,6 +49,10 @@ public class MemberRequestLocalServiceWrapper
 
 	/**
 	 * Adds the member request to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MemberRequestLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param memberRequest the member request
 	 * @return the member request that was added
@@ -105,7 +104,22 @@ public class MemberRequestLocalServiceWrapper
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _memberRequestLocalService.createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the member request with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MemberRequestLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param memberRequestId the primary key of the member request
 	 * @return the member request that was removed
@@ -121,6 +135,10 @@ public class MemberRequestLocalServiceWrapper
 
 	/**
 	 * Deletes the member request from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MemberRequestLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param memberRequest the member request
 	 * @return the member request that was removed
@@ -143,6 +161,11 @@ public class MemberRequestLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _memberRequestLocalService.deletePersistedModel(persistedModel);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _memberRequestLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -320,6 +343,9 @@ public class MemberRequestLocalServiceWrapper
 		return _memberRequestLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -378,6 +404,10 @@ public class MemberRequestLocalServiceWrapper
 
 	/**
 	 * Updates the member request in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MemberRequestLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param memberRequest the member request
 	 * @return the member request that was updated

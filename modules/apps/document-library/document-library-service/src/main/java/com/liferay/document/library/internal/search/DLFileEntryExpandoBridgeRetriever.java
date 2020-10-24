@@ -37,7 +37,7 @@ public class DLFileEntryExpandoBridgeRetriever
 	implements ExpandoBridgeRetriever {
 
 	@Override
-	public ExpandoBridge getExpandoBridge(BaseModel baseModel) {
+	public ExpandoBridge getExpandoBridge(BaseModel<?> baseModel) {
 		try {
 			DLFileEntry dlFileEntry = (DLFileEntry)baseModel;
 
@@ -47,8 +47,8 @@ public class DLFileEntryExpandoBridgeRetriever
 				dlFileEntry.getCompanyId(), DLFileEntry.class.getName(),
 				dlFileVersion.getFileVersionId());
 		}
-		catch (PortalException pe) {
-			throw new SystemException(pe);
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
 		}
 	}
 

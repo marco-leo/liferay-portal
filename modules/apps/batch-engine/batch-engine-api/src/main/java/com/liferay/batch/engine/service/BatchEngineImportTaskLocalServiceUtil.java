@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class BatchEngineImportTaskLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.batch.engine.service.impl.BatchEngineImportTaskLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class BatchEngineImportTaskLocalServiceUtil {
 
 	/**
 	 * Adds the batch engine import task to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BatchEngineImportTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param batchEngineImportTask the batch engine import task
 	 * @return the batch engine import task that was added
@@ -59,12 +63,12 @@ public class BatchEngineImportTaskLocalServiceUtil {
 			String executeStatus,
 			java.util.Map<String, String> fieldNameMappingMap, String operation,
 			java.util.Map<String, java.io.Serializable> parameters,
-			String version) {
+			String taskItemDelegateName) {
 
 		return getService().addBatchEngineImportTask(
 			companyId, userId, batchSize, callbackURL, className, content,
 			contentType, executeStatus, fieldNameMappingMap, operation,
-			parameters, version);
+			parameters, taskItemDelegateName);
 	}
 
 	/**
@@ -81,7 +85,21 @@ public class BatchEngineImportTaskLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the batch engine import task from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BatchEngineImportTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param batchEngineImportTask the batch engine import task
 	 * @return the batch engine import task that was removed
@@ -96,6 +114,10 @@ public class BatchEngineImportTaskLocalServiceUtil {
 
 	/**
 	 * Deletes the batch engine import task with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BatchEngineImportTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param batchEngineImportTaskId the primary key of the batch engine import task
 	 * @return the batch engine import task that was removed
@@ -118,6 +140,12 @@ public class BatchEngineImportTaskLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -328,6 +356,9 @@ public class BatchEngineImportTaskLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -343,6 +374,10 @@ public class BatchEngineImportTaskLocalServiceUtil {
 
 	/**
 	 * Updates the batch engine import task in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BatchEngineImportTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param batchEngineImportTask the batch engine import task
 	 * @return the batch engine import task that was updated

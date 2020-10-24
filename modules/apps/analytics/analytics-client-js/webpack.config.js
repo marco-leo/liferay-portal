@@ -20,10 +20,15 @@ module.exports = {
 	entry: [
 		'core-js/fn/array/from',
 		'core-js/fn/array/find',
+		'core-js/fn/array/includes',
+		'core-js/fn/math/sign',
+		'core-js/fn/math/trunc',
+		'core-js/fn/string/includes',
+		'core-js/fn/string/pad-start',
 		'core-js/es6/symbol',
 		'core-js/fn/promise',
 		'whatwg-fetch',
-		'./src/analytics.js'
+		'./src/analytics.js',
 	],
 	mode: 'production',
 	module: {
@@ -34,18 +39,18 @@ module.exports = {
 				use: {
 					loader: 'babel-loader',
 					options: {
-						compact: false
-					}
-				}
-			}
-		]
+						compact: false,
+					},
+				},
+			},
+		],
 	},
 	optimization: {
-		minimize: true
+		minimize: true,
 	},
 	output: {
 		filename: buildName,
-		path: buildFolder
+		path: buildFolder,
 	},
-	plugins: [new webpack.optimize.ModuleConcatenationPlugin()]
+	plugins: [new webpack.optimize.ModuleConcatenationPlugin()],
 };

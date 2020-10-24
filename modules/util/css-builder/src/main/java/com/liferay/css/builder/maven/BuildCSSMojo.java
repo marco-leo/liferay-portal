@@ -99,9 +99,7 @@ public class BuildCSSMojo extends AbstractMojo {
 			if (_buildContext.isIncremental()) {
 				Scanner scanner = _buildContext.newScanner(_projectBaseDir);
 
-				String[] includes = {"", "**/*.scss"};
-
-				scanner.setIncludes(includes);
+				scanner.setIncludes(new String[] {"", "**/*.scss"});
 
 				scanner.scan();
 
@@ -115,8 +113,8 @@ public class BuildCSSMojo extends AbstractMojo {
 				_execute();
 			}
 		}
-		catch (Exception e) {
-			throw new MojoExecutionException(e.getMessage(), e);
+		catch (Exception exception) {
+			throw new MojoExecutionException(exception.getMessage(), exception);
 		}
 	}
 

@@ -18,6 +18,7 @@ import com.liferay.oauth2.provider.model.OAuth2ApplicationScopeAliases;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationScopeAliasesLocalService;
 import com.liferay.oauth2.provider.service.persistence.OAuth2ApplicationPersistence;
 import com.liferay.oauth2.provider.service.persistence.OAuth2ApplicationScopeAliasesPersistence;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -37,6 +38,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -65,7 +67,7 @@ public abstract class OAuth2ApplicationScopeAliasesLocalServiceBaseImpl
 	implements AopService, IdentifiableOSGiService,
 			   OAuth2ApplicationScopeAliasesLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>OAuth2ApplicationScopeAliasesLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.oauth2.provider.service.OAuth2ApplicationScopeAliasesLocalServiceUtil</code>.
@@ -73,6 +75,10 @@ public abstract class OAuth2ApplicationScopeAliasesLocalServiceBaseImpl
 
 	/**
 	 * Adds the o auth2 application scope aliases to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ApplicationScopeAliasesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2ApplicationScopeAliases the o auth2 application scope aliases
 	 * @return the o auth2 application scope aliases that was added
@@ -106,6 +112,10 @@ public abstract class OAuth2ApplicationScopeAliasesLocalServiceBaseImpl
 	/**
 	 * Deletes the o auth2 application scope aliases with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ApplicationScopeAliasesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param oAuth2ApplicationScopeAliasesId the primary key of the o auth2 application scope aliases
 	 * @return the o auth2 application scope aliases that was removed
 	 * @throws PortalException if a o auth2 application scope aliases with the primary key could not be found
@@ -123,6 +133,10 @@ public abstract class OAuth2ApplicationScopeAliasesLocalServiceBaseImpl
 	/**
 	 * Deletes the o auth2 application scope aliases from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ApplicationScopeAliasesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param oAuth2ApplicationScopeAliases the o auth2 application scope aliases
 	 * @return the o auth2 application scope aliases that was removed
 	 */
@@ -133,6 +147,11 @@ public abstract class OAuth2ApplicationScopeAliasesLocalServiceBaseImpl
 
 		return oAuth2ApplicationScopeAliasesPersistence.remove(
 			oAuth2ApplicationScopeAliases);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return oAuth2ApplicationScopeAliasesPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -301,6 +320,17 @@ public abstract class OAuth2ApplicationScopeAliasesLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return oAuth2ApplicationScopeAliasesPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -309,6 +339,14 @@ public abstract class OAuth2ApplicationScopeAliasesLocalServiceBaseImpl
 				(OAuth2ApplicationScopeAliases)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<OAuth2ApplicationScopeAliases> getBasePersistence() {
+		return oAuth2ApplicationScopeAliasesPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -347,6 +385,10 @@ public abstract class OAuth2ApplicationScopeAliasesLocalServiceBaseImpl
 
 	/**
 	 * Updates the o auth2 application scope aliases in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ApplicationScopeAliasesLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2ApplicationScopeAliases the o auth2 application scope aliases
 	 * @return the o auth2 application scope aliases that was updated
@@ -412,8 +454,8 @@ public abstract class OAuth2ApplicationScopeAliasesLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

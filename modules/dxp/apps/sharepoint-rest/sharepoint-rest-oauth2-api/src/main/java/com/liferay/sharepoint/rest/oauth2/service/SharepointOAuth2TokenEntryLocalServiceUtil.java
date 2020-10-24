@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class SharepointOAuth2TokenEntryLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.sharepoint.rest.oauth2.service.impl.SharepointOAuth2TokenEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SharepointOAuth2TokenEntryLocalServiceUtil} to access the sharepoint o auth2 token entry local service. Add custom service methods to <code>com.liferay.sharepoint.rest.oauth2.service.impl.SharepointOAuth2TokenEntryLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static
 		com.liferay.sharepoint.rest.oauth2.model.SharepointOAuth2TokenEntry
@@ -58,6 +52,10 @@ public class SharepointOAuth2TokenEntryLocalServiceUtil {
 	/**
 	 * Adds the sharepoint o auth2 token entry to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SharepointOAuth2TokenEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param sharepointOAuth2TokenEntry the sharepoint o auth2 token entry
 	 * @return the sharepoint o auth2 token entry that was added
 	 */
@@ -69,6 +67,16 @@ public class SharepointOAuth2TokenEntryLocalServiceUtil {
 
 		return getService().addSharepointOAuth2TokenEntry(
 			sharepointOAuth2TokenEntry);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -100,6 +108,10 @@ public class SharepointOAuth2TokenEntryLocalServiceUtil {
 	/**
 	 * Deletes the sharepoint o auth2 token entry with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SharepointOAuth2TokenEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param sharepointOAuth2TokenEntryId the primary key of the sharepoint o auth2 token entry
 	 * @return the sharepoint o auth2 token entry that was removed
 	 * @throws PortalException if a sharepoint o auth2 token entry with the primary key could not be found
@@ -124,6 +136,10 @@ public class SharepointOAuth2TokenEntryLocalServiceUtil {
 	/**
 	 * Deletes the sharepoint o auth2 token entry from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SharepointOAuth2TokenEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param sharepointOAuth2TokenEntry the sharepoint o auth2 token entry
 	 * @return the sharepoint o auth2 token entry that was removed
 	 */
@@ -139,6 +155,12 @@ public class SharepointOAuth2TokenEntryLocalServiceUtil {
 
 	public static void deleteUserSharepointOAuth2TokenEntries(long userId) {
 		getService().deleteUserSharepointOAuth2TokenEntries(userId);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -265,6 +287,9 @@ public class SharepointOAuth2TokenEntryLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -331,6 +356,10 @@ public class SharepointOAuth2TokenEntryLocalServiceUtil {
 
 	/**
 	 * Updates the sharepoint o auth2 token entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SharepointOAuth2TokenEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param sharepointOAuth2TokenEntry the sharepoint o auth2 token entry
 	 * @return the sharepoint o auth2 token entry that was updated

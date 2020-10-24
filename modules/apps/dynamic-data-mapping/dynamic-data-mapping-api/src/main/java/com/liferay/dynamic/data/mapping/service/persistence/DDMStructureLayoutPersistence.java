@@ -17,6 +17,7 @@ package com.liferay.dynamic.data.mapping.service.persistence;
 import com.liferay.dynamic.data.mapping.exception.NoSuchStructureLayoutException;
 import com.liferay.dynamic.data.mapping.model.DDMStructureLayout;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -33,9 +34,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface DDMStructureLayoutPersistence
-	extends BasePersistence<DDMStructureLayout> {
+	extends BasePersistence<DDMStructureLayout>,
+			CTPersistence<DDMStructureLayout> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link DDMStructureLayoutUtil} to access the ddm structure layout persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

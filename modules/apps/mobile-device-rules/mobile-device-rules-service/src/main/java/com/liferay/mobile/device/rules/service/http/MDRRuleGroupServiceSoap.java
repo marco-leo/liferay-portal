@@ -61,8 +61,10 @@ import java.util.Map;
  *
  * @author Edward C. Han
  * @see MDRRuleGroupServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class MDRRuleGroupServiceSoap {
 
 	public static com.liferay.mobile.device.rules.model.MDRRuleGroupSoap
@@ -87,10 +89,10 @@ public class MDRRuleGroupServiceSoap {
 			return com.liferay.mobile.device.rules.model.MDRRuleGroupSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -108,10 +110,10 @@ public class MDRRuleGroupServiceSoap {
 			return com.liferay.mobile.device.rules.model.MDRRuleGroupSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -121,10 +123,10 @@ public class MDRRuleGroupServiceSoap {
 		try {
 			MDRRuleGroupServiceUtil.deleteRuleGroup(ruleGroupId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -139,10 +141,10 @@ public class MDRRuleGroupServiceSoap {
 			return com.liferay.mobile.device.rules.model.MDRRuleGroupSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -157,10 +159,10 @@ public class MDRRuleGroupServiceSoap {
 			return com.liferay.mobile.device.rules.model.MDRRuleGroupSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -176,10 +178,10 @@ public class MDRRuleGroupServiceSoap {
 			return com.liferay.mobile.device.rules.model.MDRRuleGroupSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -192,10 +194,10 @@ public class MDRRuleGroupServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -221,10 +223,10 @@ public class MDRRuleGroupServiceSoap {
 			return com.liferay.mobile.device.rules.model.MDRRuleGroupSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

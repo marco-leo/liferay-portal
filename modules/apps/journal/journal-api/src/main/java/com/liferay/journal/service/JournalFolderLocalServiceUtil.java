@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class JournalFolderLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.journal.service.impl.JournalFolderLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link JournalFolderLocalServiceUtil} to access the journal folder local service. Add custom service methods to <code>com.liferay.journal.service.impl.JournalFolderLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.journal.model.JournalFolder addFolder(
 			long userId, long groupId, long parentFolderId, String name,
@@ -55,6 +49,10 @@ public class JournalFolderLocalServiceUtil {
 
 	/**
 	 * Adds the journal folder to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalFolderLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param journalFolder the journal folder
 	 * @return the journal folder that was added
@@ -75,6 +73,16 @@ public class JournalFolderLocalServiceUtil {
 		long folderId) {
 
 		return getService().createJournalFolder(folderId);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	public static com.liferay.journal.model.JournalFolder deleteFolder(
@@ -115,6 +123,10 @@ public class JournalFolderLocalServiceUtil {
 	/**
 	 * Deletes the journal folder from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalFolderLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param journalFolder the journal folder
 	 * @return the journal folder that was removed
 	 */
@@ -126,6 +138,10 @@ public class JournalFolderLocalServiceUtil {
 
 	/**
 	 * Deletes the journal folder with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalFolderLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param folderId the primary key of the journal folder
 	 * @return the journal folder that was removed
@@ -147,6 +163,12 @@ public class JournalFolderLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -357,18 +379,18 @@ public class JournalFolderLocalServiceUtil {
 
 	public static java.util.List<Object> getFoldersAndArticles(
 		long groupId, long folderId, int status, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<?> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<?> orderByComparator) {
 
 		return getService().getFoldersAndArticles(
-			groupId, folderId, status, start, end, obc);
+			groupId, folderId, status, start, end, orderByComparator);
 	}
 
 	public static java.util.List<Object> getFoldersAndArticles(
 		long groupId, long folderId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<?> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<?> orderByComparator) {
 
 		return getService().getFoldersAndArticles(
-			groupId, folderId, start, end, obc);
+			groupId, folderId, start, end, orderByComparator);
 	}
 
 	public static int getFoldersAndArticlesCount(
@@ -522,6 +544,9 @@ public class JournalFolderLocalServiceUtil {
 		return getService().getOverridedDDMStructuresFolderId(folderId);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -596,12 +621,12 @@ public class JournalFolderLocalServiceUtil {
 					int restrictionType, String keywords, int start, int end,
 					com.liferay.portal.kernel.util.OrderByComparator
 						<com.liferay.dynamic.data.mapping.model.DDMStructure>
-							obc)
+							orderByComparator)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().searchDDMStructures(
 			companyId, groupIds, folderId, restrictionType, keywords, start,
-			end, obc);
+			end, orderByComparator);
 	}
 
 	public static void subscribe(long userId, long groupId, long folderId)
@@ -661,6 +686,10 @@ public class JournalFolderLocalServiceUtil {
 
 	/**
 	 * Updates the journal folder in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalFolderLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param journalFolder the journal folder
 	 * @return the journal folder that was updated

@@ -21,10 +21,10 @@ import com.liferay.portal.background.task.internal.BackgroundTaskImpl;
 import com.liferay.portal.background.task.internal.lock.BackgroundTaskLockHelper;
 import com.liferay.portal.background.task.model.BackgroundTask;
 import com.liferay.portal.background.task.service.base.BackgroundTaskLocalServiceBaseImpl;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTaskConstants;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatus;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatusRegistry;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskThreadLocalManager;
+import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
 import com.liferay.portal.kernel.cluster.Clusterable;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.lock.LockManager;
@@ -205,9 +205,7 @@ public class BackgroundTaskLocalServiceImpl
 			backgroundTask.setStatusMessage(statusMessage);
 		}
 
-		backgroundTaskPersistence.update(backgroundTask);
-
-		return backgroundTask;
+		return backgroundTaskPersistence.update(backgroundTask);
 	}
 
 	@Clusterable(onMaster = true)
@@ -220,7 +218,7 @@ public class BackgroundTaskLocalServiceImpl
 			_backgroundTaskLockHelper.unlockBackgroundTask(
 				new BackgroundTaskImpl(backgroundTask));
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		TransactionCommitCallbackUtil.registerCallback(
@@ -261,7 +259,8 @@ public class BackgroundTaskLocalServiceImpl
 				backgroundTask.setCompleted(true);
 				backgroundTask.setStatus(BackgroundTaskConstants.STATUS_FAILED);
 
-				backgroundTaskPersistence.update(backgroundTask);
+				backgroundTask = backgroundTaskPersistence.update(
+					backgroundTask);
 			}
 
 			cleanUpBackgroundTask(
@@ -734,7 +733,7 @@ public class BackgroundTaskLocalServiceImpl
 
 		backgroundTask.setStatus(BackgroundTaskConstants.STATUS_NEW);
 
-		backgroundTaskPersistence.update(backgroundTask);
+		backgroundTask = backgroundTaskPersistence.update(backgroundTask);
 
 		TransactionCommitCallbackUtil.registerCallback(
 			new Callable<Void>() {

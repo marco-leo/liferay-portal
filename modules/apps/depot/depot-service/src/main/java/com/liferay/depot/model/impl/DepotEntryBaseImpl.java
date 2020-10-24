@@ -32,7 +32,7 @@ import com.liferay.depot.service.DepotEntryLocalServiceUtil;
 public abstract class DepotEntryBaseImpl
 	extends DepotEntryModelImpl implements DepotEntry {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a depot entry model instance should use the <code>DepotEntry</code> interface instead.

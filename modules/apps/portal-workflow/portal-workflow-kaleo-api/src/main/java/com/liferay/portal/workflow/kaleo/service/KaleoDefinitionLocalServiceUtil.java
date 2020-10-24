@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class KaleoDefinitionLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.workflow.kaleo.service.impl.KaleoDefinitionLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link KaleoDefinitionLocalServiceUtil} to access the kaleo definition local service. Add custom service methods to <code>com.liferay.portal.workflow.kaleo.service.impl.KaleoDefinitionLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static void activateKaleoDefinition(
 			long kaleoDefinitionId, long kaleoDefinitionVersionId,
@@ -73,6 +67,10 @@ public class KaleoDefinitionLocalServiceUtil {
 	/**
 	 * Adds the kaleo definition to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoDefinitionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param kaleoDefinition the kaleo definition
 	 * @return the kaleo definition that was added
 	 */
@@ -84,6 +82,12 @@ public class KaleoDefinitionLocalServiceUtil {
 		return getService().addKaleoDefinition(kaleoDefinition);
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 #addKaleoDefinition(String, String, String, String, String,
+	 int, ServiceContext)}
+	 */
+	@Deprecated
 	public static com.liferay.portal.workflow.kaleo.model.KaleoDefinition
 			addKaleoDefinition(
 				String name, String title, String description, String content,
@@ -93,6 +97,17 @@ public class KaleoDefinitionLocalServiceUtil {
 
 		return getService().addKaleoDefinition(
 			name, title, description, content, version, serviceContext);
+	}
+
+	public static com.liferay.portal.workflow.kaleo.model.KaleoDefinition
+			addKaleoDefinition(
+				String name, String title, String description, String content,
+				String scope, int version,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().addKaleoDefinition(
+			name, title, description, content, scope, version, serviceContext);
 	}
 
 	/**
@@ -105,6 +120,16 @@ public class KaleoDefinitionLocalServiceUtil {
 		createKaleoDefinition(long kaleoDefinitionId) {
 
 		return getService().createKaleoDefinition(kaleoDefinitionId);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	public static void deactivateKaleoDefinition(
@@ -122,6 +147,10 @@ public class KaleoDefinitionLocalServiceUtil {
 	/**
 	 * Deletes the kaleo definition from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoDefinitionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param kaleoDefinition the kaleo definition
 	 * @return the kaleo definition that was removed
 	 */
@@ -135,6 +164,10 @@ public class KaleoDefinitionLocalServiceUtil {
 
 	/**
 	 * Deletes the kaleo definition with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoDefinitionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoDefinitionId the primary key of the kaleo definition
 	 * @return the kaleo definition that was removed
@@ -164,6 +197,12 @@ public class KaleoDefinitionLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -393,11 +432,36 @@ public class KaleoDefinitionLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	public static java.util.List
+		<com.liferay.portal.workflow.kaleo.model.KaleoDefinition>
+			getScopeKaleoDefinitions(
+				String scope, boolean active, int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.portal.workflow.kaleo.model.KaleoDefinition>
+						orderByComparator,
+				com.liferay.portal.kernel.service.ServiceContext
+					serviceContext) {
+
+		return getService().getScopeKaleoDefinitions(
+			scope, active, start, end, orderByComparator, serviceContext);
+	}
+
+	public static int getScopeKaleoDefinitionsCount(
+		String scope, boolean active,
+		com.liferay.portal.kernel.service.ServiceContext serviceContext) {
+
+		return getService().getScopeKaleoDefinitionsCount(
+			scope, active, serviceContext);
 	}
 
 	public static com.liferay.portal.workflow.kaleo.model.KaleoDefinition
@@ -413,6 +477,10 @@ public class KaleoDefinitionLocalServiceUtil {
 
 	/**
 	 * Updates the kaleo definition in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoDefinitionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoDefinition the kaleo definition
 	 * @return the kaleo definition that was updated

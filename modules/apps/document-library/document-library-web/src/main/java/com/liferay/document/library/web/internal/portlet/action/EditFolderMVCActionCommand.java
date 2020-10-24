@@ -37,16 +37,17 @@ import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
+import com.liferay.portal.kernel.servlet.MultiSessionMessages;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -101,17 +102,27 @@ public class EditFolderMVCActionCommand extends BaseMVCActionCommand {
 			else if (cmd.equals("updateWorkflowDefinitions")) {
 				_updateWorkflowDefinitions(actionRequest);
 			}
+
+			String portletResource = ParamUtil.getString(
+				actionRequest, "portletResource");
+
+			if (Validator.isNotNull(portletResource)) {
+				hideDefaultSuccessMessage(actionRequest);
+
+				MultiSessionMessages.add(
+					actionRequest, portletResource + "requestProcessed");
+			}
 		}
-		catch (NoSuchFolderException | PrincipalException e) {
-			SessionErrors.add(actionRequest, e.getClass());
+		catch (NoSuchFolderException | PrincipalException exception) {
+			SessionErrors.add(actionRequest, exception.getClass());
 
 			actionResponse.setRenderParameter(
 				"mvcPath", "/document_library/error.jsp");
 		}
 		catch (DuplicateFileEntryException | DuplicateFolderNameException |
-			   FolderNameException | RequiredFileEntryTypeException e) {
+			   FolderNameException | RequiredFileEntryTypeException exception) {
 
-			SessionErrors.add(actionRequest, e.getClass());
+			SessionErrors.add(actionRequest, exception.getClass());
 		}
 	}
 
@@ -170,11 +181,11 @@ public class EditFolderMVCActionCommand extends BaseMVCActionCommand {
 		}
 
 		if (moveToTrash && (deleteFolderIds.length > 0)) {
-			Map<String, Object> data = HashMapBuilder.<String, Object>put(
-				"trashedModels", trashedModels
-			).build();
-
-			addDeleteSuccessData(actionRequest, data);
+			addDeleteSuccessData(
+				actionRequest,
+				HashMapBuilder.<String, Object>put(
+					"trashedModels", trashedModels
+				).build());
 		}
 	}
 

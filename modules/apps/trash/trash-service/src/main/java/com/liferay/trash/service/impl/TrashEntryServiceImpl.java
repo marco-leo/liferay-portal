@@ -34,8 +34,8 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.trash.constants.TrashActionKeys;
+import com.liferay.trash.constants.TrashEntryConstants;
 import com.liferay.trash.model.TrashEntry;
-import com.liferay.trash.model.TrashEntryConstants;
 import com.liferay.trash.model.TrashEntryList;
 import com.liferay.trash.model.TrashEntrySoap;
 import com.liferay.trash.model.impl.TrashEntryImpl;
@@ -99,18 +99,19 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 
 				deleteEntry(entry);
 			}
-			catch (TrashPermissionException tpe) {
+			catch (TrashPermissionException trashPermissionException) {
 
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(tpe, tpe);
+					_log.debug(
+						trashPermissionException, trashPermissionException);
 				}
 
 				throwTrashPermissionException = true;
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 		}
 
@@ -134,12 +135,13 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 			try {
 				deleteEntry(entryId);
 			}
-			catch (TrashPermissionException tpe) {
+			catch (TrashPermissionException trashPermissionException) {
 
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(tpe, tpe);
+					_log.debug(
+						trashPermissionException, trashPermissionException);
 				}
 
 				throwTrashPermissionException = true;
@@ -217,17 +219,18 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 	 * @param  start the lower bound of the range of trash entries to return
 	 * @param  end the upper bound of the range of trash entries to return (not
 	 *         inclusive)
-	 * @param  obc the comparator to order the trash entries (optionally
-	 *         <code>null</code>)
+	 * @param  orderByComparator the comparator to order the trash entries
+	 *         (optionally <code>null</code>)
 	 * @return the range of matching trash entries ordered by comparator
-	 *         <code>obc</code>
+	 *         <code>orderByComparator</code>
 	 */
 	@Override
 	public TrashEntryList getEntries(
-			long groupId, int start, int end, OrderByComparator<TrashEntry> obc)
+			long groupId, int start, int end,
+			OrderByComparator<TrashEntry> orderByComparator)
 		throws PrincipalException {
 
-		return getEntries(groupId, null, start, end, obc);
+		return getEntries(groupId, null, start, end, orderByComparator);
 	}
 
 	@Override
@@ -248,15 +251,15 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 	 * @param  start the lower bound of the range of trash entries to return
 	 * @param  end the upper bound of the range of trash entries to return (not
 	 *         inclusive)
-	 * @param  obc the comparator to order the trash entries (optionally
-	 *         <code>null</code>)
+	 * @param  orderByComparator the comparator to order the trash entries
+	 *         (optionally <code>null</code>)
 	 * @return the range of matching trash entries ordered by comparator
-	 *         <code>obc</code>
+	 *         <code>orderByComparator</code>
 	 */
 	@Override
 	public TrashEntryList getEntries(
 			long groupId, String className, int start, int end,
-			OrderByComparator<TrashEntry> obc)
+			OrderByComparator<TrashEntry> orderByComparator)
 		throws PrincipalException {
 
 		TrashEntryList trashEntriesList = new TrashEntryList();
@@ -276,11 +279,12 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 		if (Validator.isNotNull(className)) {
 			entries = trashEntryPersistence.findByG_C(
 				groupId, classNameLocalService.getClassNameId(className), 0,
-				end + PropsValues.TRASH_SEARCH_LIMIT, obc);
+				end + PropsValues.TRASH_SEARCH_LIMIT, orderByComparator);
 		}
 		else {
 			entries = trashEntryPersistence.findByGroupId(
-				groupId, 0, end + PropsValues.TRASH_SEARCH_LIMIT, obc);
+				groupId, 0, end + PropsValues.TRASH_SEARCH_LIMIT,
+				orderByComparator);
 		}
 
 		List<TrashEntry> filteredEntries = filterEntries(entries);
@@ -547,8 +551,8 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 					filteredEntries.add(entry);
 				}
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 		}
 

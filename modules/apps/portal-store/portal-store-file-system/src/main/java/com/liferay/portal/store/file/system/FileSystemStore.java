@@ -62,24 +62,24 @@ public class FileSystemStore implements Store {
 		try {
 			FileUtil.mkdirs(_rootDir);
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 	}
 
 	@Override
 	public void addFile(
 		long companyId, long repositoryId, String fileName, String versionLabel,
-		InputStream is) {
+		InputStream inputStream) {
 
 		try {
 			File fileNameVersionFile = getFileNameVersionFile(
 				companyId, repositoryId, fileName, versionLabel);
 
-			FileUtil.write(fileNameVersionFile, is);
+			FileUtil.write(fileNameVersionFile, inputStream);
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 	}
 
@@ -136,9 +136,9 @@ public class FileSystemStore implements Store {
 		try {
 			return new FileInputStream(fileNameVersionFile);
 		}
-		catch (FileNotFoundException fnfe) {
+		catch (FileNotFoundException fileNotFoundException) {
 			throw new NoSuchFileException(
-				companyId, repositoryId, fileName, fnfe);
+				companyId, repositoryId, fileName, fileNotFoundException);
 		}
 	}
 
@@ -219,9 +219,7 @@ public class FileSystemStore implements Store {
 	protected File getFileNameDir(
 		long companyId, long repositoryId, String fileName) {
 
-		File repositoryDir = getRepositoryDir(companyId, repositoryId);
-
-		return new File(repositoryDir, fileName);
+		return new File(getRepositoryDir(companyId, repositoryId), fileName);
 	}
 
 	protected void getFileNames(
@@ -257,9 +255,8 @@ public class FileSystemStore implements Store {
 	protected File getFileNameVersionFile(
 		long companyId, long repositoryId, String fileName, String version) {
 
-		File fileNameDir = getFileNameDir(companyId, repositoryId, fileName);
-
-		return new File(fileNameDir, version);
+		return new File(
+			getFileNameDir(companyId, repositoryId, fileName), version);
 	}
 
 	protected String getHeadVersionLabel(

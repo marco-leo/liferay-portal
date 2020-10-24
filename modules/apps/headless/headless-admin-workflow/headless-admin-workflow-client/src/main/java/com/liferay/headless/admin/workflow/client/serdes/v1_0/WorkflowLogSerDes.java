@@ -178,16 +178,6 @@ public class WorkflowLogSerDes {
 			sb.append("\"");
 		}
 
-		if (workflowLog.getTaskId() != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"taskId\": ");
-
-			sb.append(workflowLog.getTaskId());
-		}
-
 		if (workflowLog.getType() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -200,6 +190,16 @@ public class WorkflowLogSerDes {
 			sb.append(workflowLog.getType());
 
 			sb.append("\"");
+		}
+
+		if (workflowLog.getWorkflowTaskId() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"workflowTaskId\": ");
+
+			sb.append(workflowLog.getWorkflowTaskId());
 		}
 
 		sb.append("}");
@@ -239,9 +239,14 @@ public class WorkflowLogSerDes {
 			map.put("commentLog", String.valueOf(workflowLog.getCommentLog()));
 		}
 
-		map.put(
-			"dateCreated",
-			liferayToJSONDateFormat.format(workflowLog.getDateCreated()));
+		if (workflowLog.getDateCreated() == null) {
+			map.put("dateCreated", null);
+		}
+		else {
+			map.put(
+				"dateCreated",
+				liferayToJSONDateFormat.format(workflowLog.getDateCreated()));
+		}
 
 		if (workflowLog.getId() == null) {
 			map.put("id", null);
@@ -297,18 +302,20 @@ public class WorkflowLogSerDes {
 			map.put("state", String.valueOf(workflowLog.getState()));
 		}
 
-		if (workflowLog.getTaskId() == null) {
-			map.put("taskId", null);
-		}
-		else {
-			map.put("taskId", String.valueOf(workflowLog.getTaskId()));
-		}
-
 		if (workflowLog.getType() == null) {
 			map.put("type", null);
 		}
 		else {
 			map.put("type", String.valueOf(workflowLog.getType()));
+		}
+
+		if (workflowLog.getWorkflowTaskId() == null) {
+			map.put("workflowTaskId", null);
+		}
+		else {
+			map.put(
+				"workflowTaskId",
+				String.valueOf(workflowLog.getWorkflowTaskId()));
 		}
 
 		return map;
@@ -389,21 +396,20 @@ public class WorkflowLogSerDes {
 					workflowLog.setState((String)jsonParserFieldValue);
 				}
 			}
-			else if (Objects.equals(jsonParserFieldName, "taskId")) {
-				if (jsonParserFieldValue != null) {
-					workflowLog.setTaskId(
-						Long.valueOf((String)jsonParserFieldValue));
-				}
-			}
 			else if (Objects.equals(jsonParserFieldName, "type")) {
 				if (jsonParserFieldValue != null) {
 					workflowLog.setType(
 						WorkflowLog.Type.create((String)jsonParserFieldValue));
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (Objects.equals(jsonParserFieldName, "workflowTaskId")) {
+				if (jsonParserFieldValue != null) {
+					workflowLog.setWorkflowTaskId(
+						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -459,10 +465,13 @@ public class WorkflowLogSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

@@ -16,10 +16,10 @@ package com.liferay.oauth.util;
 
 import com.liferay.oauth.configuration.OAuthConfigurationValues;
 import com.liferay.oauth.constants.OAuthConstants;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.oauth.OAuthException;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.util.StringPool;
 
 import java.io.OutputStream;
 
@@ -31,10 +31,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * @author Ivica Cardic
- * @author Raymond Augé
- * @author Igor Beslic
+ * @author     Ivica Cardic
+ * @author     Raymond Augé
+ * @author     Igor Beslic
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  */
+@Deprecated
 public class OAuthUtil {
 
 	public static String addParameters(String url, String... parameters)
@@ -92,14 +94,14 @@ public class OAuthUtil {
 				Class<?> clazz = Class.forName(
 					OAuthConfigurationValues.OAUTH_CLASS_NAME);
 
-				Constructor oauthConstructor = clazz.getConstructor(
+				Constructor<?> oauthConstructor = clazz.getConstructor(
 					OAuthValidator.class);
 
 				_oAuth = (OAuth)oauthConstructor.newInstance(
 					new DefaultOAuthValidator());
 			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
 			}
 		}
 

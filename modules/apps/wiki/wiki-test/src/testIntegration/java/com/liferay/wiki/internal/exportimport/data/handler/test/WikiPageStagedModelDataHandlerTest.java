@@ -196,12 +196,10 @@ public class WikiPageStagedModelDataHandlerTest
 
 		WikiNode node = (WikiNode)dependentStagedModels.get(0);
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(group.getGroupId());
-
 		WikiPage page = WikiTestUtil.addPage(
 			TestPropsValues.getUserId(), node.getNodeId(), name,
-			RandomTestUtil.randomString(), true, serviceContext);
+			RandomTestUtil.randomString(), true,
+			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
 
 		WikiTestUtil.addWikiAttachment(
 			TestPropsValues.getUserId(), node.getNodeId(), page.getTitle(),
@@ -262,9 +260,10 @@ public class WikiPageStagedModelDataHandlerTest
 			Group group)
 		throws Exception {
 
-		StagedModelDataHandler stagedModelDataHandler =
-			StagedModelDataHandlerRegistryUtil.getStagedModelDataHandler(
-				ExportImportClassedModelUtil.getClassName(stagedModel));
+		StagedModelDataHandler<StagedModel> stagedModelDataHandler =
+			(StagedModelDataHandler<StagedModel>)
+				StagedModelDataHandlerRegistryUtil.getStagedModelDataHandler(
+					ExportImportClassedModelUtil.getClassName(stagedModel));
 
 		stagedModelDataHandler.deleteStagedModel(stagedModel);
 
@@ -274,19 +273,22 @@ public class WikiPageStagedModelDataHandlerTest
 			for (StagedModel dependentStagedModel : dependentStagedModels) {
 				try {
 					stagedModelDataHandler =
-						StagedModelDataHandlerRegistryUtil.
-							getStagedModelDataHandler(
-								ExportImportClassedModelUtil.getClassName(
-									dependentStagedModel));
+						(StagedModelDataHandler<StagedModel>)
+							StagedModelDataHandlerRegistryUtil.
+								getStagedModelDataHandler(
+									ExportImportClassedModelUtil.getClassName(
+										dependentStagedModel));
 
 					stagedModelDataHandler.deleteStagedModel(
 						dependentStagedModel);
 				}
-				catch (NoSuchModelException nsme) {
-					if (!(nsme instanceof NoSuchFileEntryException) &&
-						!(nsme instanceof NoSuchFolderException)) {
+				catch (NoSuchModelException noSuchModelException) {
+					if (!(noSuchModelException instanceof
+							NoSuchFileEntryException) &&
+						!(noSuchModelException instanceof
+							NoSuchFolderException)) {
 
-						throw nsme;
+						throw noSuchModelException;
 					}
 				}
 			}
@@ -341,11 +343,12 @@ public class WikiPageStagedModelDataHandlerTest
 
 		WikiPage page = (WikiPage)stagedModel;
 
-		List<FileEntry> attachmentFileEntries =
+		List<FileEntry> attachmentsFileEntries =
 			page.getAttachmentsFileEntries();
 
 		Assert.assertEquals(
-			attachmentFileEntries.toString(), 1, attachmentFileEntries.size());
+			attachmentsFileEntries.toString(), 1,
+			attachmentsFileEntries.size());
 
 		validateImport(dependentStagedModelsMap, group);
 	}

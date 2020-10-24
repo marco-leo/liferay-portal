@@ -35,7 +35,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface AccountEntryUserRelPersistence
 	extends BasePersistence<AccountEntryUserRel> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link AccountEntryUserRelUtil} to access the account entry user rel persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

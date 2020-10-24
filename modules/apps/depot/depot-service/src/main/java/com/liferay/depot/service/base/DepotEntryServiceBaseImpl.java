@@ -46,7 +46,7 @@ public abstract class DepotEntryServiceBaseImpl
 	extends BaseServiceImpl
 	implements AopService, DepotEntryService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>DepotEntryService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.depot.service.DepotEntryServiceUtil</code>.
@@ -100,8 +100,8 @@ public abstract class DepotEntryServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -117,5 +117,9 @@ public abstract class DepotEntryServiceBaseImpl
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
+
+	@Reference
+	protected com.liferay.portal.kernel.service.ResourceLocalService
+		resourceLocalService;
 
 }

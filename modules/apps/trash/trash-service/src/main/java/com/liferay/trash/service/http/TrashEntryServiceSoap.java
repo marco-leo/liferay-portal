@@ -57,8 +57,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see TrashEntryServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class TrashEntryServiceSoap {
 
 	/**
@@ -71,10 +73,10 @@ public class TrashEntryServiceSoap {
 		try {
 			TrashEntryServiceUtil.deleteEntries(groupId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -87,10 +89,10 @@ public class TrashEntryServiceSoap {
 		try {
 			TrashEntryServiceUtil.deleteEntries(entryIds);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -109,10 +111,10 @@ public class TrashEntryServiceSoap {
 		try {
 			TrashEntryServiceUtil.deleteEntry(entryId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -134,10 +136,10 @@ public class TrashEntryServiceSoap {
 		try {
 			TrashEntryServiceUtil.deleteEntry(className, classPK);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -157,10 +159,10 @@ public class TrashEntryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -171,27 +173,28 @@ public class TrashEntryServiceSoap {
 	 * @param start the lower bound of the range of trash entries to return
 	 * @param end the upper bound of the range of trash entries to return (not
 	 inclusive)
-	 * @param obc the comparator to order the trash entries (optionally
-	 <code>null</code>)
+	 * @param orderByComparator the comparator to order the trash entries
+	 (optionally <code>null</code>)
 	 * @return the range of matching trash entries ordered by comparator
-	 <code>obc</code>
+	 <code>orderByComparator</code>
 	 */
 	public static com.liferay.trash.model.TrashEntryList getEntries(
 			long groupId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.trash.model.TrashEntry> obc)
+				<com.liferay.trash.model.TrashEntry> orderByComparator)
 		throws RemoteException {
 
 		try {
 			com.liferay.trash.model.TrashEntryList returnValue =
-				TrashEntryServiceUtil.getEntries(groupId, start, end, obc);
+				TrashEntryServiceUtil.getEntries(
+					groupId, start, end, orderByComparator);
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -206,10 +209,10 @@ public class TrashEntryServiceSoap {
 			return com.liferay.trash.model.TrashEntrySoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -221,28 +224,28 @@ public class TrashEntryServiceSoap {
 	 * @param start the lower bound of the range of trash entries to return
 	 * @param end the upper bound of the range of trash entries to return (not
 	 inclusive)
-	 * @param obc the comparator to order the trash entries (optionally
-	 <code>null</code>)
+	 * @param orderByComparator the comparator to order the trash entries
+	 (optionally <code>null</code>)
 	 * @return the range of matching trash entries ordered by comparator
-	 <code>obc</code>
+	 <code>orderByComparator</code>
 	 */
 	public static com.liferay.trash.model.TrashEntryList getEntries(
 			long groupId, String className, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.trash.model.TrashEntry> obc)
+				<com.liferay.trash.model.TrashEntry> orderByComparator)
 		throws RemoteException {
 
 		try {
 			com.liferay.trash.model.TrashEntryList returnValue =
 				TrashEntryServiceUtil.getEntries(
-					groupId, className, start, end, obc);
+					groupId, className, start, end, orderByComparator);
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -285,10 +288,10 @@ public class TrashEntryServiceSoap {
 				className, classPK, destinationContainerModelId,
 				serviceContext);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -303,10 +306,10 @@ public class TrashEntryServiceSoap {
 			return com.liferay.trash.model.TrashEntrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -356,10 +359,10 @@ public class TrashEntryServiceSoap {
 			return com.liferay.trash.model.TrashEntrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -374,10 +377,10 @@ public class TrashEntryServiceSoap {
 			return com.liferay.trash.model.TrashEntrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -393,10 +396,10 @@ public class TrashEntryServiceSoap {
 			return com.liferay.trash.model.TrashEntrySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

@@ -141,7 +141,9 @@ public class FragmentRendererTrackerImpl implements FragmentRendererTracker {
 
 				return fragmentRenderer;
 			}
-			catch (FragmentEntryConfigurationException fece) {
+			catch (FragmentEntryConfigurationException
+						fragmentEntryConfigurationException) {
+
 				_log.error(
 					String.format(
 						"Fragment renderer with collection key %s and label " +
@@ -150,7 +152,7 @@ public class FragmentRendererTrackerImpl implements FragmentRendererTracker {
 						fragmentRenderer.getCollectionKey(),
 						fragmentRenderer.getLabel(
 							LocaleUtil.getMostRelevantLocale())),
-					fece);
+					fragmentEntryConfigurationException);
 			}
 
 			return null;
@@ -179,7 +181,11 @@ public class FragmentRendererTrackerImpl implements FragmentRendererTracker {
 				!StringUtil.equals(
 					fragmentRenderer.getKey(),
 					FragmentRendererConstants.
-						FRAGMENT_ENTRY_FRAGMENT_RENDERER_KEY)) {
+						FRAGMENT_ENTRY_FRAGMENT_RENDERER_KEY) &&
+				!StringUtil.equals(
+					fragmentRenderer.getKey(),
+					FragmentRendererConstants.
+						FRAGMENT_ENTRY_FRAGMENT_RENDERER_KEY_REACT)) {
 
 				return false;
 			}

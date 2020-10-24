@@ -59,6 +59,16 @@ public class CommentSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (comment.getActions() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"actions\": ");
+
+			sb.append(_toJSON(comment.getActions()));
+		}
+
 		if (comment.getCreator() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -118,6 +128,16 @@ public class CommentSerDes {
 			sb.append(comment.getNumberOfComments());
 		}
 
+		if (comment.getParentCommentId() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"parentCommentId\": ");
+
+			sb.append(comment.getParentCommentId());
+		}
+
 		if (comment.getText() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -153,6 +173,13 @@ public class CommentSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (comment.getActions() == null) {
+			map.put("actions", null);
+		}
+		else {
+			map.put("actions", String.valueOf(comment.getActions()));
+		}
+
 		if (comment.getCreator() == null) {
 			map.put("creator", null);
 		}
@@ -160,13 +187,23 @@ public class CommentSerDes {
 			map.put("creator", String.valueOf(comment.getCreator()));
 		}
 
-		map.put(
-			"dateCreated",
-			liferayToJSONDateFormat.format(comment.getDateCreated()));
+		if (comment.getDateCreated() == null) {
+			map.put("dateCreated", null);
+		}
+		else {
+			map.put(
+				"dateCreated",
+				liferayToJSONDateFormat.format(comment.getDateCreated()));
+		}
 
-		map.put(
-			"dateModified",
-			liferayToJSONDateFormat.format(comment.getDateModified()));
+		if (comment.getDateModified() == null) {
+			map.put("dateModified", null);
+		}
+		else {
+			map.put(
+				"dateModified",
+				liferayToJSONDateFormat.format(comment.getDateModified()));
+		}
 
 		if (comment.getId() == null) {
 			map.put("id", null);
@@ -182,6 +219,15 @@ public class CommentSerDes {
 			map.put(
 				"numberOfComments",
 				String.valueOf(comment.getNumberOfComments()));
+		}
+
+		if (comment.getParentCommentId() == null) {
+			map.put("parentCommentId", null);
+		}
+		else {
+			map.put(
+				"parentCommentId",
+				String.valueOf(comment.getParentCommentId()));
 		}
 
 		if (comment.getText() == null) {
@@ -211,7 +257,13 @@ public class CommentSerDes {
 			Comment comment, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "creator")) {
+			if (Objects.equals(jsonParserFieldName, "actions")) {
+				if (jsonParserFieldValue != null) {
+					comment.setActions(
+						(Map)CommentSerDes.toMap((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "creator")) {
 				if (jsonParserFieldValue != null) {
 					comment.setCreator(
 						CreatorSerDes.toDTO((String)jsonParserFieldValue));
@@ -240,14 +292,19 @@ public class CommentSerDes {
 						Integer.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "parentCommentId")) {
+				if (jsonParserFieldValue != null) {
+					comment.setParentCommentId(
+						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "text")) {
 				if (jsonParserFieldValue != null) {
 					comment.setText((String)jsonParserFieldValue);
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -303,10 +360,13 @@ public class CommentSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

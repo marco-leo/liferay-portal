@@ -44,8 +44,8 @@ public class DefaultInfoListProviderContext implements InfoListProviderContext {
 		try {
 			_company = CompanyLocalServiceUtil.getCompany(group.getCompanyId());
 		}
-		catch (PortalException pe) {
-			throw new RuntimeException(pe);
+		catch (PortalException portalException) {
+			throw new RuntimeException(portalException);
 		}
 	}
 
@@ -60,7 +60,7 @@ public class DefaultInfoListProviderContext implements InfoListProviderContext {
 	}
 
 	@Override
-	public Optional<InfoDisplayObjectProvider>
+	public Optional<InfoDisplayObjectProvider<?>>
 		getInfoDisplayObjectProviderOptional() {
 
 		return Optional.ofNullable(_infoDisplayObjectProvider);
@@ -77,7 +77,7 @@ public class DefaultInfoListProviderContext implements InfoListProviderContext {
 	}
 
 	public void setInfoDisplayObjectProvider(
-		InfoDisplayObjectProvider infoDisplayObjectProvider) {
+		InfoDisplayObjectProvider<?> infoDisplayObjectProvider) {
 
 		_infoDisplayObjectProvider = infoDisplayObjectProvider;
 	}
@@ -88,7 +88,7 @@ public class DefaultInfoListProviderContext implements InfoListProviderContext {
 
 	private final Company _company;
 	private Group _group;
-	private InfoDisplayObjectProvider _infoDisplayObjectProvider;
+	private InfoDisplayObjectProvider<?> _infoDisplayObjectProvider;
 	private Layout _layout;
 	private final User _user;
 

@@ -61,8 +61,10 @@ import java.util.Map;
  *
  * @author Brian Wing Shun Chan
  * @see AssetCategoryServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class AssetCategoryServiceSoap {
 
 	public static com.liferay.asset.kernel.model.AssetCategorySoap addCategory(
@@ -88,10 +90,10 @@ public class AssetCategoryServiceSoap {
 			return com.liferay.asset.kernel.model.AssetCategorySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -108,10 +110,10 @@ public class AssetCategoryServiceSoap {
 			return com.liferay.asset.kernel.model.AssetCategorySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -121,10 +123,10 @@ public class AssetCategoryServiceSoap {
 		try {
 			AssetCategoryServiceUtil.deleteCategories(categoryIds);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -132,10 +134,10 @@ public class AssetCategoryServiceSoap {
 		try {
 			AssetCategoryServiceUtil.deleteCategory(categoryId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -150,10 +152,10 @@ public class AssetCategoryServiceSoap {
 			return com.liferay.asset.kernel.model.AssetCategorySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -179,10 +181,10 @@ public class AssetCategoryServiceSoap {
 			return com.liferay.asset.kernel.model.AssetCategorySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -198,10 +200,10 @@ public class AssetCategoryServiceSoap {
 			return com.liferay.asset.kernel.model.AssetCategorySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -222,10 +224,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -240,10 +242,10 @@ public class AssetCategoryServiceSoap {
 			return com.liferay.asset.kernel.model.AssetCategorySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -256,10 +258,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -275,10 +277,10 @@ public class AssetCategoryServiceSoap {
 			return com.liferay.asset.kernel.model.AssetCategorySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -288,7 +290,7 @@ public class AssetCategoryServiceSoap {
 	 * @param parentCategoryId the parent category ID
 	 * @param start the lower bound of the range of results
 	 * @param end the upper bound of the range of results (not inclusive)
-	 * @param obc the comparator
+	 * @param orderByComparator the comparator
 	 * @return the matching categories
 	 * @throws PortalException
 	 */
@@ -296,21 +298,22 @@ public class AssetCategoryServiceSoap {
 			getChildCategories(
 				long parentCategoryId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.asset.kernel.model.AssetCategory> obc)
+					<com.liferay.asset.kernel.model.AssetCategory>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.asset.kernel.model.AssetCategory>
 				returnValue = AssetCategoryServiceUtil.getChildCategories(
-					parentCategoryId, start, end, obc);
+					parentCategoryId, start, end, orderByComparator);
 
 			return com.liferay.asset.kernel.model.AssetCategorySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -330,10 +333,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -341,21 +344,22 @@ public class AssetCategoryServiceSoap {
 			getVocabularyCategories(
 				long vocabularyId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.asset.kernel.model.AssetCategory> obc)
+					<com.liferay.asset.kernel.model.AssetCategory>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.asset.kernel.model.AssetCategory>
 				returnValue = AssetCategoryServiceUtil.getVocabularyCategories(
-					vocabularyId, start, end, obc);
+					vocabularyId, start, end, orderByComparator);
 
 			return com.liferay.asset.kernel.model.AssetCategorySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -363,21 +367,23 @@ public class AssetCategoryServiceSoap {
 			getVocabularyCategories(
 				long parentCategoryId, long vocabularyId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.asset.kernel.model.AssetCategory> obc)
+					<com.liferay.asset.kernel.model.AssetCategory>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.asset.kernel.model.AssetCategory>
 				returnValue = AssetCategoryServiceUtil.getVocabularyCategories(
-					parentCategoryId, vocabularyId, start, end, obc);
+					parentCategoryId, vocabularyId, start, end,
+					orderByComparator);
 
 			return com.liferay.asset.kernel.model.AssetCategorySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -386,21 +392,23 @@ public class AssetCategoryServiceSoap {
 				long groupId, long parentCategoryId, long vocabularyId,
 				int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.asset.kernel.model.AssetCategory> obc)
+					<com.liferay.asset.kernel.model.AssetCategory>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.asset.kernel.model.AssetCategory>
 				returnValue = AssetCategoryServiceUtil.getVocabularyCategories(
-					groupId, parentCategoryId, vocabularyId, start, end, obc);
+					groupId, parentCategoryId, vocabularyId, start, end,
+					orderByComparator);
 
 			return com.liferay.asset.kernel.model.AssetCategorySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -409,21 +417,22 @@ public class AssetCategoryServiceSoap {
 				long groupId, String name, long vocabularyId, int start,
 				int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.asset.kernel.model.AssetCategory> obc)
+					<com.liferay.asset.kernel.model.AssetCategory>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.asset.kernel.model.AssetCategory>
 				returnValue = AssetCategoryServiceUtil.getVocabularyCategories(
-					groupId, name, vocabularyId, start, end, obc);
+					groupId, name, vocabularyId, start, end, orderByComparator);
 
 			return com.liferay.asset.kernel.model.AssetCategorySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -438,10 +447,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -456,10 +465,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -474,10 +483,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -485,20 +494,21 @@ public class AssetCategoryServiceSoap {
 			getVocabularyCategoriesDisplay(
 				long vocabularyId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.asset.kernel.model.AssetCategory> obc)
+					<com.liferay.asset.kernel.model.AssetCategory>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			com.liferay.asset.kernel.model.AssetCategoryDisplay returnValue =
 				AssetCategoryServiceUtil.getVocabularyCategoriesDisplay(
-					vocabularyId, start, end, obc);
+					vocabularyId, start, end, orderByComparator);
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -507,20 +517,21 @@ public class AssetCategoryServiceSoap {
 				long groupId, String name, long vocabularyId, int start,
 				int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.asset.kernel.model.AssetCategory> obc)
+					<com.liferay.asset.kernel.model.AssetCategory>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			com.liferay.asset.kernel.model.AssetCategoryDisplay returnValue =
 				AssetCategoryServiceUtil.getVocabularyCategoriesDisplay(
-					groupId, name, vocabularyId, start, end, obc);
+					groupId, name, vocabularyId, start, end, orderByComparator);
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -528,22 +539,23 @@ public class AssetCategoryServiceSoap {
 			getVocabularyRootCategories(
 				long groupId, long vocabularyId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.asset.kernel.model.AssetCategory> obc)
+					<com.liferay.asset.kernel.model.AssetCategory>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.asset.kernel.model.AssetCategory>
 				returnValue =
 					AssetCategoryServiceUtil.getVocabularyRootCategories(
-						groupId, vocabularyId, start, end, obc);
+						groupId, vocabularyId, start, end, orderByComparator);
 
 			return com.liferay.asset.kernel.model.AssetCategorySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -558,10 +570,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -578,10 +590,10 @@ public class AssetCategoryServiceSoap {
 			return com.liferay.asset.kernel.model.AssetCategorySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -589,21 +601,23 @@ public class AssetCategoryServiceSoap {
 			long groupId, String keywords, long vocabularyId, int start,
 			int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.asset.kernel.model.AssetCategory> obc)
+				<com.liferay.asset.kernel.model.AssetCategory>
+					orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.asset.kernel.model.AssetCategory>
 				returnValue = AssetCategoryServiceUtil.search(
-					groupId, keywords, vocabularyId, start, end, obc);
+					groupId, keywords, vocabularyId, start, end,
+					orderByComparator);
 
 			return com.liferay.asset.kernel.model.AssetCategorySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -619,10 +633,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue.toString();
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -638,10 +652,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue.toString();
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -658,10 +672,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -678,10 +692,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -700,10 +714,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -720,10 +734,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -741,10 +755,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -763,10 +777,10 @@ public class AssetCategoryServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -795,10 +809,10 @@ public class AssetCategoryServiceSoap {
 			return com.liferay.asset.kernel.model.AssetCategorySoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

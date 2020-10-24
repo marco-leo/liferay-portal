@@ -14,6 +14,7 @@
 
 package com.liferay.portal.service.base;
 
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -35,6 +36,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.service.PortletLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.PortletPersistence;
 import com.liferay.portal.kernel.service.persistence.PortletPreferencesFinder;
 import com.liferay.portal.kernel.service.persistence.PortletPreferencesPersistence;
@@ -67,7 +69,7 @@ public abstract class PortletLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements IdentifiableOSGiService, PortletLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>PortletLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.PortletLocalServiceUtil</code>.
@@ -75,6 +77,10 @@ public abstract class PortletLocalServiceBaseImpl
 
 	/**
 	 * Adds the portlet to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param portlet the portlet
 	 * @return the portlet that was added
@@ -102,6 +108,10 @@ public abstract class PortletLocalServiceBaseImpl
 	/**
 	 * Deletes the portlet with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param id the primary key of the portlet
 	 * @return the portlet that was removed
 	 * @throws PortalException if a portlet with the primary key could not be found
@@ -115,6 +125,10 @@ public abstract class PortletLocalServiceBaseImpl
 	/**
 	 * Deletes the portlet from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param portlet the portlet
 	 * @return the portlet that was removed
 	 */
@@ -122,6 +136,11 @@ public abstract class PortletLocalServiceBaseImpl
 	@Override
 	public Portlet deletePortlet(Portlet portlet) {
 		return portletPersistence.remove(portlet);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return portletPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -273,12 +292,30 @@ public abstract class PortletLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return portletPersistence.create(((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
 		return portletLocalService.deletePortlet((Portlet)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<Portlet> getBasePersistence() {
+		return portletPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -314,6 +351,10 @@ public abstract class PortletLocalServiceBaseImpl
 
 	/**
 	 * Updates the portlet in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param portlet the portlet
 	 * @return the portlet that was updated
@@ -639,8 +680,8 @@ public abstract class PortletLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

@@ -94,8 +94,8 @@ public class LinksToLayoutsExportImportContentProcessor
 
 			return configuration.validateLayoutReferences();
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 
 		return true;
@@ -144,18 +144,20 @@ public class LinksToLayoutsExportImportContentProcessor
 					stagedModel, entityElement, layout,
 					PortletDataContext.REFERENCE_TYPE_DEPENDENCY, true);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isDebugEnabled() || _log.isWarnEnabled()) {
 					String message = StringBundler.concat(
 						"Unable to get layout with ID ", layoutId, " in group ",
 						portletDataContext.getScopeGroupId());
 
 					if (_log.isDebugEnabled()) {
-						ExportImportContentProcessorException eicpe =
-							new ExportImportContentProcessorException(
-								message, e);
+						ExportImportContentProcessorException
+							exportImportContentProcessorException =
+								new ExportImportContentProcessorException(
+									message, exception);
 
-						_log.debug(message, eicpe);
+						_log.debug(
+							message, exportImportContentProcessorException);
 					}
 					else {
 						_log.warn(message);
@@ -164,11 +166,9 @@ public class LinksToLayoutsExportImportContentProcessor
 			}
 		}
 
-		content = StringUtil.replace(
+		return StringUtil.replace(
 			content, ArrayUtil.toStringArray(oldLinksToLayout.toArray()),
 			ArrayUtil.toStringArray(newLinksToLayout.toArray()));
-
-		return content;
 	}
 
 	protected String replaceImportLinksToLayouts(
@@ -279,11 +279,9 @@ public class LinksToLayoutsExportImportContentProcessor
 			newLinksToLayout.add(newLinkToLayout);
 		}
 
-		content = StringUtil.replace(
+		return StringUtil.replace(
 			content, ArrayUtil.toStringArray(oldLinksToLayout.toArray()),
 			ArrayUtil.toStringArray(newLinksToLayout.toArray()));
-
-		return content;
 	}
 
 	@Reference(unbind = "-")
@@ -311,26 +309,26 @@ public class LinksToLayoutsExportImportContentProcessor
 				groupId, privateLayout, layoutId);
 
 			if (layout == null) {
-				ExportImportContentValidationException eicve =
-					new ExportImportContentValidationException(
-						LinksToLayoutsExportImportContentProcessor.class.
-							getName());
+				ExportImportContentValidationException
+					exportImportContentValidationException =
+						new ExportImportContentValidationException(
+							LinksToLayoutsExportImportContentProcessor.class.
+								getName());
 
-				Map<String, String> layoutReferenceParameters =
-					HashMapBuilder.put(
-						"groupId", String.valueOf(groupId)
-					).put(
-						"layoutId", String.valueOf(layoutId)
-					).put(
-						"privateLayout", String.valueOf(privateLayout)
-					).build();
+				exportImportContentValidationException.
+					setLayoutReferenceParameters(
+						HashMapBuilder.put(
+							"groupId", String.valueOf(groupId)
+						).put(
+							"layoutId", String.valueOf(layoutId)
+						).put(
+							"privateLayout", String.valueOf(privateLayout)
+						).build());
 
-				eicve.setLayoutReferenceParameters(layoutReferenceParameters);
-
-				eicve.setType(
+				exportImportContentValidationException.setType(
 					ExportImportContentValidationException.LAYOUT_NOT_FOUND);
 
-				throw eicve;
+				throw exportImportContentValidationException;
 			}
 		}
 	}

@@ -16,6 +16,7 @@ package com.liferay.segments.service.impl;
 
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -90,8 +91,7 @@ public class SegmentsExperimentServiceImpl
 			segmentsExperimentLocalService.getSegmentsExperiment(
 				segmentsExperimentKey);
 
-		_segmentsExperimentResourcePermission.check(
-			getPermissionChecker(), segmentsExperiment, ActionKeys.DELETE);
+		_checkPermissions(segmentsExperiment, ActionKeys.DELETE);
 
 		return segmentsExperimentLocalService.deleteSegmentsExperiment(
 			segmentsExperiment);
@@ -159,6 +159,21 @@ public class SegmentsExperimentServiceImpl
 	}
 
 	@Override
+	public SegmentsExperiment getSegmentsExperiment(
+			String segmentsExperimentKey)
+		throws PortalException {
+
+		SegmentsExperiment segmentsExperiment =
+			segmentsExperimentLocalService.getSegmentsExperiment(
+				segmentsExperimentKey);
+
+		_segmentsExperimentResourcePermission.check(
+			getPermissionChecker(), segmentsExperiment, ActionKeys.VIEW);
+
+		return segmentsExperiment;
+	}
+
+	@Override
 	public List<SegmentsExperiment> getSegmentsExperiments(
 		long groupId, long classNameId, long classPK) {
 
@@ -204,8 +219,7 @@ public class SegmentsExperimentServiceImpl
 			segmentsExperimentLocalService.getSegmentsExperiment(
 				segmentsExperimentKey);
 
-		_segmentsExperimentResourcePermission.check(
-			getPermissionChecker(), segmentsExperiment, ActionKeys.UPDATE);
+		_checkPermissions(segmentsExperiment, ActionKeys.UPDATE);
 
 		Set<Map.Entry<String, Double>> segmentsExperienceKeySplits =
 			segmentsExperienceKeySplitMap.entrySet();
@@ -298,14 +312,28 @@ public class SegmentsExperimentServiceImpl
 			segmentsExperimentLocalService.getSegmentsExperiment(
 				segmentsExperimentKey);
 
-		_segmentsExperimentResourcePermission.check(
-			getPermissionChecker(), segmentsExperiment, ActionKeys.UPDATE);
+		_checkPermissions(segmentsExperiment, ActionKeys.UPDATE);
 
 		return segmentsExperimentLocalService.updateSegmentsExperimentStatus(
 			segmentsExperiment.getSegmentsExperimentId(),
 			_getSegmentsExperienceId(
 				segmentsExperiment.getGroupId(), winnerSegmentsExperienceKey),
 			status);
+	}
+
+	private void _checkPermissions(
+			SegmentsExperiment segmentsExperiment, String actionId)
+		throws PortalException {
+
+		if (userLocalService.hasRoleUser(
+				segmentsExperiment.getCompanyId(),
+				RoleConstants.ANALYTICS_ADMINISTRATOR, getUserId(), true)) {
+
+			return;
+		}
+
+		_segmentsExperimentResourcePermission.check(
+			getPermissionChecker(), segmentsExperiment, actionId);
 	}
 
 	private long _getSegmentsExperienceId(

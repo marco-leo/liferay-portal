@@ -20,16 +20,15 @@
 LayoutRevision layoutRevision = (LayoutRevision)request.getAttribute(WebKeys.LAYOUT_REVISION);
 LayoutSetBranch layoutSetBranch = (LayoutSetBranch)request.getAttribute(StagingProcessesWebKeys.LAYOUT_SET_BRANCH);
 List<LayoutSetBranch> layoutSetBranches = (List<LayoutSetBranch>)request.getAttribute(StagingProcessesWebKeys.LAYOUT_SET_BRANCHES);
-String stagingURL = (String)request.getAttribute(StagingProcessesWebKeys.STAGING_URL);
 %>
 
-<c:if test="<%= (layoutSetBranches != null) && (layoutSetBranches.size() >= 1) %>">
+<c:if test="<%= (layoutSetBranches != null) && !layoutSetBranches.isEmpty() %>">
 	<div class="control-menu-label staging-variation-label">
 		<liferay-ui:message key="site-pages-variation" />
 	</div>
 
 	<div class="dropdown">
-		<a class="dropdown-toggle layout-set-branch-selector staging-variation-selector" data-toggle="dropdown" href="#1">
+		<a class="dropdown-toggle layout-set-branch-selector staging-variation-selector" data-toggle="liferay-dropdown" href="#1">
 			<liferay-ui:message key="<%= HtmlUtil.escape(layoutSetBranchDisplayContext.getLayoutSetBranchDisplayName(layoutSetBranch)) %>" localizeKey="<%= false %>" />
 
 			<aui:icon image="caret-double-l" markupView="lexicon" />
@@ -43,7 +42,7 @@ String stagingURL = (String)request.getAttribute(StagingProcessesWebKeys.STAGING
 			%>
 
 				<portlet:actionURL name="selectLayoutSetBranch" var="curLayoutSetBranchURL">
-					<portlet:param name="redirect" value="<%= stagingURL %>" />
+					<portlet:param name="redirect" value="<%= (String)request.getAttribute(StagingProcessesWebKeys.STAGING_URL) %>" />
 					<portlet:param name="groupId" value="<%= String.valueOf(curLayoutSetBranch.getGroupId()) %>" />
 					<portlet:param name="privateLayout" value="<%= String.valueOf(layout.isPrivateLayout()) %>" />
 					<portlet:param name="layoutSetBranchId" value="<%= String.valueOf(curLayoutSetBranch.getLayoutSetBranchId()) %>" />

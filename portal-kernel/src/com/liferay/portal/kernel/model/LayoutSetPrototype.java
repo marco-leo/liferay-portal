@@ -31,7 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface LayoutSetPrototype
 	extends LayoutSetPrototypeModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.portal.model.impl.LayoutSetPrototypeImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -74,6 +74,7 @@ public interface LayoutSetPrototype
 	public boolean hasSetModifiedDate();
 
 	public void setSettingsProperties(
-		com.liferay.portal.kernel.util.UnicodeProperties settingsProperties);
+		com.liferay.portal.kernel.util.UnicodeProperties
+			settingsUnicodeProperties);
 
 }

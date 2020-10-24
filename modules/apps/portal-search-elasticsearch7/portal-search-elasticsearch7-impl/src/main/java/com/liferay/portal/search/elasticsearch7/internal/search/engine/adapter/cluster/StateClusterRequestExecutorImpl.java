@@ -43,7 +43,9 @@ public class StateClusterRequestExecutorImpl
 		StateClusterRequest stateClusterRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				stateClusterRequest.getConnectionId(),
+				stateClusterRequest.isPreferLocalCluster());
 
 		RestClient restClient = restHighLevelClient.getLowLevelClient();
 
@@ -58,8 +60,8 @@ public class StateClusterRequestExecutorImpl
 
 			return new StateClusterResponse(responseBody);
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 	}
 

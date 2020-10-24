@@ -83,7 +83,7 @@ public class OptimizeImagesMVCActionCommand extends BaseMVCActionCommand {
 
 	private BackgroundTask _optimizeImages(
 			long userId, long companyId, String jobName)
-		throws PortalException {
+		throws Exception {
 
 		Map<String, Serializable> taskContextMap =
 			HashMapBuilder.<String, Serializable>put(
@@ -99,16 +99,17 @@ public class OptimizeImagesMVCActionCommand extends BaseMVCActionCommand {
 					getName(),
 				taskContextMap, new ServiceContext());
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			throw new PortalException(
-				"Unable to schedule adaptive media images optimization", pe);
+				"Unable to schedule adaptive media images optimization",
+				portalException);
 		}
 	}
 
 	private BackgroundTask _optimizeImagesSingleConfiguration(
 			long userId, long companyId, String jobName,
 			String configurationEntryUuid)
-		throws PortalException {
+		throws Exception {
 
 		Map<String, Serializable> taskContextMap =
 			HashMapBuilder.<String, Serializable>put(
@@ -128,11 +129,11 @@ public class OptimizeImagesMVCActionCommand extends BaseMVCActionCommand {
 					getName(),
 				taskContextMap, new ServiceContext());
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			throw new PortalException(
 				"Unable to schedule adaptive media images optimization for " +
 					"configuration " + configurationEntryUuid,
-				pe);
+				portalException);
 		}
 	}
 

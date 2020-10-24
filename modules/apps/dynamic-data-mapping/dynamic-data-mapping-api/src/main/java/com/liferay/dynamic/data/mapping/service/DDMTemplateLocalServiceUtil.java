@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class DDMTemplateLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.dynamic.data.mapping.service.impl.DDMTemplateLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class DDMTemplateLocalServiceUtil {
 
 	/**
 	 * Adds the ddm template to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMTemplateLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddmTemplate the ddm template
 	 * @return the ddm template that was added
@@ -255,7 +259,21 @@ public class DDMTemplateLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the ddm template from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMTemplateLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddmTemplate the ddm template
 	 * @return the ddm template that was removed
@@ -269,6 +287,10 @@ public class DDMTemplateLocalServiceUtil {
 
 	/**
 	 * Deletes the ddm template with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMTemplateLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param templateId the primary key of the ddm template
 	 * @return the ddm template that was removed
@@ -334,6 +356,12 @@ public class DDMTemplateLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		getService().deleteTemplates(groupId, classNameId);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -622,6 +650,9 @@ public class DDMTemplateLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -798,6 +829,19 @@ public class DDMTemplateLocalServiceUtil {
 
 	public static java.util.List
 		<com.liferay.dynamic.data.mapping.model.DDMTemplate> getTemplates(
+			long companyId, long[] groupIds, long[] classNameIds,
+			long[] classPKs, long resourceClassNameId, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.dynamic.data.mapping.model.DDMTemplate>
+					orderByComparator) {
+
+		return getService().getTemplates(
+			companyId, groupIds, classNameIds, classPKs, resourceClassNameId,
+			start, end, orderByComparator);
+	}
+
+	public static java.util.List
+		<com.liferay.dynamic.data.mapping.model.DDMTemplate> getTemplates(
 			long[] groupIds, long classNameId, long classPK) {
 
 		return getService().getTemplates(groupIds, classNameId, classPK);
@@ -938,6 +982,14 @@ public class DDMTemplateLocalServiceUtil {
 		long groupId, long classNameId, long classPK) {
 
 		return getService().getTemplatesCount(groupId, classNameId, classPK);
+	}
+
+	public static int getTemplatesCount(
+		long companyId, long[] groupIds, long[] classNameIds, long[] classPKs,
+		long resourceClassNameId) {
+
+		return getService().getTemplatesCount(
+			companyId, groupIds, classNameIds, classPKs, resourceClassNameId);
 	}
 
 	/**
@@ -1346,6 +1398,10 @@ public class DDMTemplateLocalServiceUtil {
 
 	/**
 	 * Updates the ddm template in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DDMTemplateLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ddmTemplate the ddm template
 	 * @return the ddm template that was updated

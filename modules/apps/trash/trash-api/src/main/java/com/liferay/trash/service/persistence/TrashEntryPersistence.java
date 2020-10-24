@@ -15,6 +15,7 @@
 package com.liferay.trash.service.persistence;
 
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.trash.exception.NoSuchEntryException;
 import com.liferay.trash.model.TrashEntry;
 
@@ -34,9 +35,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface TrashEntryPersistence extends BasePersistence<TrashEntry> {
+public interface TrashEntryPersistence
+	extends BasePersistence<TrashEntry>, CTPersistence<TrashEntry> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link TrashEntryUtil} to access the trash entry persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

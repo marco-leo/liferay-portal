@@ -19,14 +19,16 @@
 <%
 DepotAdminDisplayContext depotAdminDisplayContext = new DepotAdminDisplayContext(request, liferayPortletRequest, liferayPortletResponse);
 
-DepotAdminManagementToolbarDisplayContext depotAdminManagementToolbarDisplayContext = new DepotAdminManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, depotAdminDisplayContext);
+DepotAdminManagementToolbarDisplayContext depotAdminManagementToolbarDisplayContext = new DepotAdminManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, depotAdminDisplayContext);
 %>
 
 <clay:management-toolbar
 	displayContext="<%= depotAdminManagementToolbarDisplayContext %>"
 />
 
-<div class="closed container-fluid-1280 sidenav-container sidenav-right">
+<clay:container-fluid
+	cssClass="closed sidenav-container sidenav-right"
+>
 	<div class="sidenav-content">
 		<portlet:actionURL name="deleteGroups" var="deleteGroupsURL" />
 
@@ -35,26 +37,29 @@ DepotAdminManagementToolbarDisplayContext depotAdminManagementToolbarDisplayCont
 
 			<liferay-ui:search-container
 				id="<%= depotAdminDisplayContext.getSearchContainerId() %>"
-				searchContainer="<%= depotAdminDisplayContext.getGroupSearch() %>"
+				searchContainer="<%= depotAdminDisplayContext.searchContainer() %>"
 			>
 				<liferay-ui:search-container-row
-					className="com.liferay.portal.kernel.model.Group"
+					className="com.liferay.depot.model.DepotEntry"
 					cssClass="entry-display-style"
 					escapedModel="<%= true %>"
-					keyProperty="classPK"
-					modelVar="curGroup"
-					rowIdProperty="groupId"
+					keyProperty="depotEntryId"
+					rowIdProperty="depotEntryId"
 				>
 
 					<%
-					row.setData(depotAdminManagementToolbarDisplayContext.getRowData(curGroup));
+					DepotEntry depotEntry = (DepotEntry)row.getObject();
+
+					Group depotEntryGroup = depotEntry.getGroup();
+
+					row.setData(depotAdminManagementToolbarDisplayContext.getRowData(depotEntry));
 					%>
 
 					<c:choose>
 						<c:when test="<%= depotAdminDisplayContext.isDisplayStyleDescriptive() %>">
 							<liferay-ui:search-container-column-text>
 								<liferay-ui:search-container-column-icon
-									icon="repository"
+									icon="books"
 									toggleRowChecker="<%= true %>"
 								/>
 							</liferay-ui:search-container-column-text>
@@ -63,16 +68,25 @@ DepotAdminManagementToolbarDisplayContext depotAdminManagementToolbarDisplayCont
 								colspan="<%= 2 %>"
 							>
 								<h5>
-									<aui:a cssClass="selector-button" href="<%= depotAdminDisplayContext.getViewDepotURL(curGroup) %>">
-										<%= HtmlUtil.escape(curGroup.getDescriptiveName(locale)) %>
+									<aui:a cssClass="selector-button" href="<%= depotAdminDisplayContext.getViewDepotURL(depotEntry) %>">
+										<%= HtmlUtil.escape(depotEntryGroup.getDescriptiveName(locale)) %>
 									</aui:a>
 								</h5>
+
+								<h6>
+
+									<%
+									int depotEntryConnectedGroupsCount = depotAdminDisplayContext.getDepotEntryConnectedGroupsCount(depotEntry);
+									%>
+
+									<liferay-ui:message arguments="<%= depotEntryConnectedGroupsCount %>" key='<%= (depotEntryConnectedGroupsCount != 1) ? "x-connected-sites" : "x-connected-site" %>' />
+								</h6>
 							</liferay-ui:search-container-column-text>
 
 							<liferay-ui:search-container-column-text>
 								<clay:dropdown-actions
 									defaultEventHandler="<%= DepotAdminWebKeys.DEPOT_ENTRY_DROPDOWN_DEFAULT_EVENT_HANDLER %>"
-									dropdownItems="<%= depotAdminDisplayContext.getActionDropdownItems(curGroup) %>"
+									dropdownItems="<%= depotAdminDisplayContext.getActionDropdownItems(depotEntry) %>"
 								/>
 							</liferay-ui:search-container-column-text>
 						</c:when>
@@ -84,7 +98,7 @@ DepotAdminManagementToolbarDisplayContext depotAdminManagementToolbarDisplayCont
 
 							<liferay-ui:search-container-column-text>
 								<clay:vertical-card
-									verticalCard="<%= depotAdminDisplayContext.getDepotEntryVerticalCard(curGroup) %>"
+									verticalCard="<%= depotAdminDisplayContext.getDepotEntryVerticalCard(depotEntry) %>"
 								/>
 							</liferay-ui:search-container-column-text>
 						</c:when>
@@ -94,13 +108,19 @@ DepotAdminManagementToolbarDisplayContext depotAdminManagementToolbarDisplayCont
 								name="name"
 								orderable="<%= true %>"
 							>
-								<aui:a href="<%= depotAdminDisplayContext.getViewDepotURL(curGroup) %>" label="<%= HtmlUtil.escape(curGroup.getDescriptiveName(locale)) %>" localizeLabel="<%= false %>" />
+								<aui:a href="<%= depotAdminDisplayContext.getViewDepotURL(depotEntry) %>" label="<%= HtmlUtil.escape(depotEntryGroup.getDescriptiveName(locale)) %>" localizeLabel="<%= false %>" />
 							</liferay-ui:search-container-column-text>
+
+							<liferay-ui:search-container-column-text
+								cssClass="table-cell-expand table-cell-minw-200"
+								name="num-of-connections"
+								value="<%= String.valueOf(depotAdminDisplayContext.getDepotEntryConnectedGroupsCount(depotEntry)) %>"
+							/>
 
 							<liferay-ui:search-container-column-text>
 								<clay:dropdown-actions
 									defaultEventHandler="<%= DepotAdminWebKeys.DEPOT_ENTRY_DROPDOWN_DEFAULT_EVENT_HANDLER %>"
-									dropdownItems="<%= depotAdminDisplayContext.getActionDropdownItems(curGroup) %>"
+									dropdownItems="<%= depotAdminDisplayContext.getActionDropdownItems(depotEntry) %>"
 								/>
 							</liferay-ui:search-container-column-text>
 						</c:otherwise>
@@ -115,7 +135,7 @@ DepotAdminManagementToolbarDisplayContext depotAdminManagementToolbarDisplayCont
 			</liferay-ui:search-container>
 		</aui:form>
 	</div>
-</div>
+</clay:container-fluid>
 
 <liferay-frontend:component
 	componentId="<%= DepotAdminWebKeys.DEPOT_ENTRY_DROPDOWN_DEFAULT_EVENT_HANDLER %>"

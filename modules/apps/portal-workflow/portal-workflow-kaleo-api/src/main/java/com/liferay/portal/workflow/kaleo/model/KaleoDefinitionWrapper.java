@@ -54,6 +54,7 @@ public class KaleoDefinitionWrapper
 		attributes.put("title", getTitle());
 		attributes.put("description", getDescription());
 		attributes.put("content", getContent());
+		attributes.put("scope", getScope());
 		attributes.put("version", getVersion());
 		attributes.put("active", isActive());
 
@@ -132,6 +133,12 @@ public class KaleoDefinitionWrapper
 
 		if (content != null) {
 			setContent(content);
+		}
+
+		String scope = (String)attributes.get("scope");
+
+		if (scope != null) {
+			setScope(scope);
 		}
 
 		Integer version = (Integer)attributes.get("version");
@@ -275,6 +282,16 @@ public class KaleoDefinitionWrapper
 	}
 
 	/**
+	 * Returns the scope of this kaleo definition.
+	 *
+	 * @return the scope of this kaleo definition
+	 */
+	@Override
+	public String getScope() {
+		return model.getScope();
+	}
+
+	/**
 	 * Returns the title of this kaleo definition.
 	 *
 	 * @return the title of this kaleo definition
@@ -400,11 +417,6 @@ public class KaleoDefinitionWrapper
 		return model.isActive();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a kaleo definition model instance should use the <code>KaleoDefinition</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -533,6 +545,16 @@ public class KaleoDefinitionWrapper
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		model.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	 * Sets the scope of this kaleo definition.
+	 *
+	 * @param scope the scope of this kaleo definition
+	 */
+	@Override
+	public void setScope(String scope) {
+		model.setScope(scope);
 	}
 
 	/**

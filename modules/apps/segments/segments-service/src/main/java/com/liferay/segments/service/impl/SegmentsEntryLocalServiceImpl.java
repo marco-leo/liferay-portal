@@ -15,7 +15,10 @@
 package com.liferay.segments.service.impl;
 
 import com.liferay.portal.aop.AopService;
+import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManager;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.messaging.Message;
+import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
@@ -33,6 +36,7 @@ import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.GroupThreadLocal;
@@ -42,9 +46,13 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.segments.constants.SegmentsEntryConstants;
+import com.liferay.segments.criteria.Criteria;
+import com.liferay.segments.criteria.CriteriaSerializer;
 import com.liferay.segments.exception.RequiredSegmentsEntryException;
 import com.liferay.segments.exception.SegmentsEntryKeyException;
 import com.liferay.segments.exception.SegmentsEntryNameException;
+import com.liferay.segments.internal.constants.SegmentsDestinationNames;
+import com.liferay.segments.internal.criteria.contributor.SegmentsEntrySegmentsCriteriaContributor;
 import com.liferay.segments.model.SegmentsEntry;
 import com.liferay.segments.service.SegmentsEntryRelLocalService;
 import com.liferay.segments.service.SegmentsEntryRoleLocalService;
@@ -72,6 +80,18 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class SegmentsEntryLocalServiceImpl
 	extends SegmentsEntryLocalServiceBaseImpl {
+
+	@Override
+	public SegmentsEntry addSegmentsEntry(
+			String segmentsEntryKey, Map<Locale, String> nameMap,
+			Map<Locale, String> descriptionMap, boolean active, String criteria,
+			String type, ServiceContext serviceContext)
+		throws PortalException {
+
+		return segmentsEntryLocalService.addSegmentsEntry(
+			segmentsEntryKey, nameMap, descriptionMap, active, criteria, null,
+			type, serviceContext);
+	}
 
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
@@ -114,23 +134,40 @@ public class SegmentsEntryLocalServiceImpl
 		segmentsEntry.setDescriptionMap(descriptionMap);
 		segmentsEntry.setActive(active);
 		segmentsEntry.setCriteria(criteria);
-
-		if (Validator.isNull(source)) {
-			segmentsEntry.setSource(SegmentsEntryConstants.SOURCE_DEFAULT);
-		}
-		else {
-			segmentsEntry.setSource(source);
-		}
-
+		segmentsEntry.setSource(getSource(criteria, source));
 		segmentsEntry.setType(type);
 
-		segmentsEntryPersistence.update(segmentsEntry);
+		segmentsEntry = segmentsEntryPersistence.update(segmentsEntry);
 
 		// Resources
 
 		resourceLocalService.addModelResources(segmentsEntry, serviceContext);
 
+		// Indexer
+
+		reindexSegmentsEntryRels(segmentsEntry);
+
 		return segmentsEntry;
+	}
+
+	@Override
+	public void addSegmentsEntryClassPKs(
+			long segmentsEntryId, long[] classPKs,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		SegmentsEntry segmentsEntry = getSegmentsEntry(segmentsEntryId);
+
+		_segmentsEntryRelLocalService.addSegmentsEntryRels(
+			segmentsEntryId, _portal.getClassNameId(segmentsEntry.getType()),
+			classPKs, serviceContext);
+
+		segmentsEntry.setModifiedDate(
+			serviceContext.getModifiedDate(new Date()));
+
+		segmentsEntry = segmentsEntryPersistence.update(segmentsEntry);
+
+		reindexSegmentsEntryRels(segmentsEntry);
 	}
 
 	@Override
@@ -204,7 +241,29 @@ public class SegmentsEntryLocalServiceImpl
 		_segmentsEntryRoleLocalService.deleteSegmentsEntryRoles(
 			segmentsEntry.getSegmentsEntryId());
 
+		// Indexer
+
+		reindexSegmentsEntryRels(segmentsEntry);
+
 		return segmentsEntry;
+	}
+
+	@Override
+	public void deleteSegmentsEntryClassPKs(
+			long segmentsEntryId, long[] classPKs)
+		throws PortalException {
+
+		SegmentsEntry segmentsEntry = getSegmentsEntry(segmentsEntryId);
+
+		_segmentsEntryRelLocalService.deleteSegmentsEntryRels(
+			segmentsEntryId, _portal.getClassNameId(segmentsEntry.getType()),
+			classPKs);
+
+		segmentsEntry.setModifiedDate(new Date());
+
+		segmentsEntry = segmentsEntryPersistence.update(segmentsEntry);
+
+		reindexSegmentsEntryRels(segmentsEntry);
 	}
 
 	@Override
@@ -353,6 +412,8 @@ public class SegmentsEntryLocalServiceImpl
 			boolean active, String criteria, ServiceContext serviceContext)
 		throws PortalException {
 
+		// Segments entry
+
 		SegmentsEntry segmentsEntry = segmentsEntryPersistence.findByPrimaryKey(
 			segmentsEntryId);
 
@@ -363,14 +424,22 @@ public class SegmentsEntryLocalServiceImpl
 
 		validateName(segmentsEntry.getGroupId(), nameMap);
 
+		segmentsEntry.setModifiedDate(
+			serviceContext.getModifiedDate(new Date()));
 		segmentsEntry.setSegmentsEntryKey(segmentsEntryKey);
-
 		segmentsEntry.setNameMap(nameMap);
 		segmentsEntry.setDescriptionMap(descriptionMap);
 		segmentsEntry.setActive(active);
 		segmentsEntry.setCriteria(criteria);
+		segmentsEntry.setSource(getSource(criteria, segmentsEntry.getSource()));
 
-		return segmentsEntryPersistence.update(segmentsEntry);
+		segmentsEntry = segmentsEntryPersistence.update(segmentsEntry);
+
+		// Indexer
+
+		reindexSegmentsEntryRels(segmentsEntry);
+
+		return segmentsEntry;
 	}
 
 	protected SearchContext buildSearchContext(
@@ -453,6 +522,38 @@ public class SegmentsEntryLocalServiceImpl
 		return segmentsEntries;
 	}
 
+	protected String getSource(String criteria, String source) {
+		if (Validator.isNotNull(criteria)) {
+			Criteria criteriaObj = CriteriaSerializer.deserialize(criteria);
+
+			String referredFilterString = criteriaObj.getFilterString(
+				Criteria.Type.REFERRED);
+
+			if (Validator.isNotNull(referredFilterString)) {
+				return SegmentsEntryConstants.SOURCE_REFERRED;
+			}
+			else if (SegmentsEntryConstants.SOURCE_REFERRED.equals(source) &&
+					 Validator.isNull(referredFilterString)) {
+
+				return SegmentsEntryConstants.SOURCE_DEFAULT;
+			}
+		}
+
+		if (Validator.isNull(source)) {
+			return SegmentsEntryConstants.SOURCE_DEFAULT;
+		}
+
+		return source;
+	}
+
+	protected void reindexSegmentsEntryRels(SegmentsEntry segmentsEntry)
+		throws PortalException {
+
+		_reindexSegmentsEntryRels(segmentsEntry);
+
+		_reindexReferredSegmentsEntryRels(segmentsEntry);
+	}
+
 	protected void validateKey(
 			long segmentsEntryId, long groupId, String segmentsEntryKey)
 		throws PortalException {
@@ -477,6 +578,55 @@ public class SegmentsEntryLocalServiceImpl
 				"Name is null for locale " + defaultLocale.getDisplayName());
 		}
 	}
+
+	private void _reindexReferredSegmentsEntryRels(SegmentsEntry segmentsEntry)
+		throws PortalException {
+
+		List<SegmentsEntry> referredSegmentsEntries =
+			segmentsEntryPersistence.findBySource(
+				SegmentsEntryConstants.SOURCE_REFERRED);
+
+		for (SegmentsEntry referredSegmentsEntry : referredSegmentsEntries) {
+			Criteria criteria = referredSegmentsEntry.getCriteriaObj();
+
+			Criteria.Criterion criterion = criteria.getCriterion(
+				SegmentsEntrySegmentsCriteriaContributor.KEY);
+
+			if (criterion != null) {
+				String filterString = criterion.getFilterString();
+
+				if (Validator.isNotNull(filterString) &&
+					filterString.contains(
+						String.valueOf(segmentsEntry.getSegmentsEntryId()))) {
+
+					_reindexSegmentsEntryRels(referredSegmentsEntry);
+				}
+			}
+		}
+	}
+
+	private void _reindexSegmentsEntryRels(SegmentsEntry segmentsEntry) {
+		TransactionCommitCallbackUtil.registerCallback(
+			() -> {
+				Message message = new Message();
+
+				message.put("companyId", segmentsEntry.getCompanyId());
+				message.put(
+					"segmentsEntryId", segmentsEntry.getSegmentsEntryId());
+				message.put("type", segmentsEntry.getType());
+
+				_messageBus.sendMessage(
+					SegmentsDestinationNames.SEGMENTS_ENTRY_REINDEX, message);
+
+				return null;
+			});
+	}
+
+	@Reference
+	private BackgroundTaskManager _backgroundTaskManager;
+
+	@Reference
+	private MessageBus _messageBus;
 
 	@Reference
 	private Portal _portal;

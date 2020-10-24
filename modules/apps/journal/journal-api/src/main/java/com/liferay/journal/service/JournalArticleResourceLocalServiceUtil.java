@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class JournalArticleResourceLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.journal.service.impl.JournalArticleResourceLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class JournalArticleResourceLocalServiceUtil {
 
 	/**
 	 * Adds the journal article resource to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalArticleResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param journalArticleResource the journal article resource
 	 * @return the journal article resource that was added
@@ -64,6 +68,16 @@ public class JournalArticleResourceLocalServiceUtil {
 		return getService().createJournalArticleResource(resourcePrimKey);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
 	public static void deleteArticleResource(long groupId, String articleId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -72,6 +86,10 @@ public class JournalArticleResourceLocalServiceUtil {
 
 	/**
 	 * Deletes the journal article resource from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalArticleResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param journalArticleResource the journal article resource
 	 * @return the journal article resource that was removed
@@ -87,6 +105,10 @@ public class JournalArticleResourceLocalServiceUtil {
 
 	/**
 	 * Deletes the journal article resource with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalArticleResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param resourcePrimKey the primary key of the journal article resource
 	 * @return the journal article resource that was removed
@@ -108,6 +130,12 @@ public class JournalArticleResourceLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -370,6 +398,9 @@ public class JournalArticleResourceLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -379,6 +410,10 @@ public class JournalArticleResourceLocalServiceUtil {
 
 	/**
 	 * Updates the journal article resource in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalArticleResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param journalArticleResource the journal article resource
 	 * @return the journal article resource that was updated

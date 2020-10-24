@@ -15,6 +15,7 @@
 package com.liferay.portal.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
@@ -26,23 +27,31 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.NoSuchPreferencesException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.PortalPreferences;
+import com.liferay.portal.kernel.model.PortalPreferencesTable;
 import com.liferay.portal.kernel.service.persistence.PortalPreferencesPersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.impl.PortalPreferencesImpl;
 import com.liferay.portal.model.impl.PortalPreferencesModelImpl;
+import com.liferay.registry.Registry;
+import com.liferay.registry.RegistryUtil;
+import com.liferay.registry.ServiceRegistration;
 
 import java.io.Serializable;
 
 import java.lang.reflect.InvocationHandler;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The persistence implementation for the portal preferences service.
@@ -58,7 +67,7 @@ public class PortalPreferencesPersistenceImpl
 	extends BasePersistenceImpl<PortalPreferences>
 	implements PortalPreferencesPersistence {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>PortalPreferencesUtil</code> to access the portal preferences persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -93,23 +102,23 @@ public class PortalPreferencesPersistenceImpl
 		PortalPreferences portalPreferences = fetchByO_O(ownerId, ownerType);
 
 		if (portalPreferences == null) {
-			StringBundler msg = new StringBundler(6);
+			StringBundler sb = new StringBundler(6);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("ownerId=");
-			msg.append(ownerId);
+			sb.append("ownerId=");
+			sb.append(ownerId);
 
-			msg.append(", ownerType=");
-			msg.append(ownerType);
+			sb.append(", ownerType=");
+			sb.append(ownerType);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchPreferencesException(msg.toString());
+			throw new NoSuchPreferencesException(sb.toString());
 		}
 
 		return portalPreferences;
@@ -163,30 +172,30 @@ public class PortalPreferencesPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_SELECT_PORTALPREFERENCES_WHERE);
+			sb.append(_SQL_SELECT_PORTALPREFERENCES_WHERE);
 
-			query.append(_FINDER_COLUMN_O_O_OWNERID_2);
+			sb.append(_FINDER_COLUMN_O_O_OWNERID_2);
 
-			query.append(_FINDER_COLUMN_O_O_OWNERTYPE_2);
+			sb.append(_FINDER_COLUMN_O_O_OWNERTYPE_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(ownerId);
+				queryPos.add(ownerId);
 
-				qPos.add(ownerType);
+				queryPos.add(ownerType);
 
-				List<PortalPreferences> list = q.list();
+				List<PortalPreferences> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
@@ -217,13 +226,8 @@ public class PortalPreferencesPersistenceImpl
 					cacheResult(portalPreferences);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(
-						_finderPathFetchByO_O, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -271,37 +275,35 @@ public class PortalPreferencesPersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_PORTALPREFERENCES_WHERE);
+			sb.append(_SQL_COUNT_PORTALPREFERENCES_WHERE);
 
-			query.append(_FINDER_COLUMN_O_O_OWNERID_2);
+			sb.append(_FINDER_COLUMN_O_O_OWNERID_2);
 
-			query.append(_FINDER_COLUMN_O_O_OWNERTYPE_2);
+			sb.append(_FINDER_COLUMN_O_O_OWNERTYPE_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(ownerId);
+				queryPos.add(ownerId);
 
-				qPos.add(ownerType);
+				queryPos.add(ownerType);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -322,7 +324,8 @@ public class PortalPreferencesPersistenceImpl
 
 		setModelImplClass(PortalPreferencesImpl.class);
 		setModelPKClass(long.class);
-		setEntityCacheEnabled(PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED);
+
+		setTable(PortalPreferencesTable.INSTANCE);
 	}
 
 	/**
@@ -333,7 +336,6 @@ public class PortalPreferencesPersistenceImpl
 	@Override
 	public void cacheResult(PortalPreferences portalPreferences) {
 		EntityCacheUtil.putResult(
-			PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
 			PortalPreferencesImpl.class, portalPreferences.getPrimaryKey(),
 			portalPreferences);
 
@@ -343,8 +345,6 @@ public class PortalPreferencesPersistenceImpl
 				portalPreferences.getOwnerId(), portalPreferences.getOwnerType()
 			},
 			portalPreferences);
-
-		portalPreferences.resetOriginalValues();
 	}
 
 	/**
@@ -356,14 +356,10 @@ public class PortalPreferencesPersistenceImpl
 	public void cacheResult(List<PortalPreferences> portalPreferenceses) {
 		for (PortalPreferences portalPreferences : portalPreferenceses) {
 			if (EntityCacheUtil.getResult(
-					PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
 					PortalPreferencesImpl.class,
 					portalPreferences.getPrimaryKey()) == null) {
 
 				cacheResult(portalPreferences);
-			}
-			else {
-				portalPreferences.resetOriginalValues();
 			}
 		}
 	}
@@ -394,28 +390,14 @@ public class PortalPreferencesPersistenceImpl
 	@Override
 	public void clearCache(PortalPreferences portalPreferences) {
 		EntityCacheUtil.removeResult(
-			PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
-			PortalPreferencesImpl.class, portalPreferences.getPrimaryKey());
-
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
-		clearUniqueFindersCache(
-			(PortalPreferencesModelImpl)portalPreferences, true);
+			PortalPreferencesImpl.class, portalPreferences);
 	}
 
 	@Override
 	public void clearCache(List<PortalPreferences> portalPreferenceses) {
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
 		for (PortalPreferences portalPreferences : portalPreferenceses) {
 			EntityCacheUtil.removeResult(
-				PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
-				PortalPreferencesImpl.class, portalPreferences.getPrimaryKey());
-
-			clearUniqueFindersCache(
-				(PortalPreferencesModelImpl)portalPreferences, true);
+				PortalPreferencesImpl.class, portalPreferences);
 		}
 	}
 
@@ -427,7 +409,6 @@ public class PortalPreferencesPersistenceImpl
 
 		for (Serializable primaryKey : primaryKeys) {
 			EntityCacheUtil.removeResult(
-				PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
 				PortalPreferencesImpl.class, primaryKey);
 		}
 	}
@@ -444,33 +425,6 @@ public class PortalPreferencesPersistenceImpl
 			_finderPathCountByO_O, args, Long.valueOf(1), false);
 		FinderCacheUtil.putResult(
 			_finderPathFetchByO_O, args, portalPreferencesModelImpl, false);
-	}
-
-	protected void clearUniqueFindersCache(
-		PortalPreferencesModelImpl portalPreferencesModelImpl,
-		boolean clearCurrent) {
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				portalPreferencesModelImpl.getOwnerId(),
-				portalPreferencesModelImpl.getOwnerType()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByO_O, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByO_O, args);
-		}
-
-		if ((portalPreferencesModelImpl.getColumnBitmask() &
-			 _finderPathFetchByO_O.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				portalPreferencesModelImpl.getOriginalOwnerId(),
-				portalPreferencesModelImpl.getOriginalOwnerType()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByO_O, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByO_O, args);
-		}
 	}
 
 	/**
@@ -534,11 +488,11 @@ public class PortalPreferencesPersistenceImpl
 
 			return remove(portalPreferences);
 		}
-		catch (NoSuchPreferencesException nsee) {
-			throw nsee;
+		catch (NoSuchPreferencesException noSuchEntityException) {
+			throw noSuchEntityException;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -564,8 +518,8 @@ public class PortalPreferencesPersistenceImpl
 				session.delete(portalPreferences);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -607,43 +561,30 @@ public class PortalPreferencesPersistenceImpl
 		try {
 			session = openSession();
 
-			if (portalPreferences.isNew()) {
+			if (isNew) {
 				session.save(portalPreferences);
-
-				portalPreferences.setNew(false);
 			}
 			else {
 				portalPreferences = (PortalPreferences)session.merge(
 					portalPreferences);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
 		}
 
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-
-		if (!PortalPreferencesModelImpl.COLUMN_BITMASK_ENABLED) {
-			FinderCacheUtil.clearCache(
-				FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-		}
-		else if (isNew) {
-			FinderCacheUtil.removeResult(
-				_finderPathCountAll, FINDER_ARGS_EMPTY);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindAll, FINDER_ARGS_EMPTY);
-		}
-
 		EntityCacheUtil.putResult(
-			PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
-			PortalPreferencesImpl.class, portalPreferences.getPrimaryKey(),
-			portalPreferences, false);
+			PortalPreferencesImpl.class, portalPreferencesModelImpl, false,
+			true);
 
-		clearUniqueFindersCache(portalPreferencesModelImpl, false);
 		cacheUniqueFindersCache(portalPreferencesModelImpl);
+
+		if (isNew) {
+			portalPreferences.setNew(false);
+		}
 
 		portalPreferences.resetOriginalValues();
 
@@ -789,19 +730,19 @@ public class PortalPreferencesPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 			String sql = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					2 + (orderByComparator.getOrderByFields().length * 2));
 
-				query.append(_SQL_SELECT_PORTALPREFERENCES);
+				sb.append(_SQL_SELECT_PORTALPREFERENCES);
 
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 
-				sql = query.toString();
+				sql = sb.toString();
 			}
 			else {
 				sql = _SQL_SELECT_PORTALPREFERENCES;
@@ -814,10 +755,10 @@ public class PortalPreferencesPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
 				list = (List<PortalPreferences>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -825,12 +766,8 @@ public class PortalPreferencesPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -867,18 +804,15 @@ public class PortalPreferencesPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(_SQL_COUNT_PORTALPREFERENCES);
+				Query query = session.createQuery(_SQL_COUNT_PORTALPREFERENCES);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(
 					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -912,45 +846,48 @@ public class PortalPreferencesPersistenceImpl
 	 * Initializes the portal preferences persistence.
 	 */
 	public void afterPropertiesSet() {
-		_finderPathWithPaginationFindAll = new FinderPath(
-			PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
-			PortalPreferencesModelImpl.FINDER_CACHE_ENABLED,
-			PortalPreferencesImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findAll", new String[0]);
+		Registry registry = RegistryUtil.getRegistry();
 
-		_finderPathWithoutPaginationFindAll = new FinderPath(
-			PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
-			PortalPreferencesModelImpl.FINDER_CACHE_ENABLED,
-			PortalPreferencesImpl.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll",
-			new String[0]);
+		_argumentsResolverServiceRegistration = registry.registerService(
+			ArgumentsResolver.class,
+			new PortalPreferencesModelArgumentsResolver(),
+			HashMapBuilder.<String, Object>put(
+				"model.class.name", PortalPreferences.class.getName()
+			).build());
 
-		_finderPathCountAll = new FinderPath(
-			PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
-			PortalPreferencesModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathWithPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathWithoutPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathCountAll = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
-			new String[0]);
+			new String[0], new String[0], false);
 
-		_finderPathFetchByO_O = new FinderPath(
-			PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
-			PortalPreferencesModelImpl.FINDER_CACHE_ENABLED,
-			PortalPreferencesImpl.class, FINDER_CLASS_NAME_ENTITY, "fetchByO_O",
+		_finderPathFetchByO_O = _createFinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByO_O",
 			new String[] {Long.class.getName(), Integer.class.getName()},
-			PortalPreferencesModelImpl.OWNERID_COLUMN_BITMASK |
-			PortalPreferencesModelImpl.OWNERTYPE_COLUMN_BITMASK);
+			new String[] {"ownerId", "ownerType"}, true);
 
-		_finderPathCountByO_O = new FinderPath(
-			PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
-			PortalPreferencesModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByO_O = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByO_O",
-			new String[] {Long.class.getName(), Integer.class.getName()});
+			new String[] {Long.class.getName(), Integer.class.getName()},
+			new String[] {"ownerId", "ownerType"}, false);
 	}
 
 	public void destroy() {
 		EntityCacheUtil.removeCache(PortalPreferencesImpl.class.getName());
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_ENTITY);
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		_argumentsResolverServiceRegistration.unregister();
+
+		for (ServiceRegistration<FinderPath> serviceRegistration :
+				_serviceRegistrations) {
+
+			serviceRegistration.unregister();
+		}
 	}
 
 	private static final String _SQL_SELECT_PORTALPREFERENCES =
@@ -975,5 +912,110 @@ public class PortalPreferencesPersistenceImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		PortalPreferencesPersistenceImpl.class);
+
+	private FinderPath _createFinderPath(
+		String cacheName, String methodName, String[] params,
+		String[] columnNames, boolean baseModelResult) {
+
+		FinderPath finderPath = new FinderPath(
+			cacheName, methodName, params, columnNames, baseModelResult);
+
+		if (!cacheName.equals(FINDER_CLASS_NAME_LIST_WITH_PAGINATION)) {
+			Registry registry = RegistryUtil.getRegistry();
+
+			_serviceRegistrations.add(
+				registry.registerService(
+					FinderPath.class, finderPath,
+					HashMapBuilder.<String, Object>put(
+						"cache.name", cacheName
+					).build()));
+		}
+
+		return finderPath;
+	}
+
+	private ServiceRegistration<ArgumentsResolver>
+		_argumentsResolverServiceRegistration;
+	private Set<ServiceRegistration<FinderPath>> _serviceRegistrations =
+		new HashSet<>();
+
+	private static class PortalPreferencesModelArgumentsResolver
+		implements ArgumentsResolver {
+
+		@Override
+		public Object[] getArguments(
+			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
+			boolean original) {
+
+			String[] columnNames = finderPath.getColumnNames();
+
+			if ((columnNames == null) || (columnNames.length == 0)) {
+				if (baseModel.isNew()) {
+					return FINDER_ARGS_EMPTY;
+				}
+
+				return null;
+			}
+
+			PortalPreferencesModelImpl portalPreferencesModelImpl =
+				(PortalPreferencesModelImpl)baseModel;
+
+			long columnBitmask = portalPreferencesModelImpl.getColumnBitmask();
+
+			if (!checkColumn || (columnBitmask == 0)) {
+				return _getValue(
+					portalPreferencesModelImpl, columnNames, original);
+			}
+
+			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
+				finderPath);
+
+			if (finderPathColumnBitmask == null) {
+				finderPathColumnBitmask = 0L;
+
+				for (String columnName : columnNames) {
+					finderPathColumnBitmask |=
+						portalPreferencesModelImpl.getColumnBitmask(columnName);
+				}
+
+				_finderPathColumnBitmasksCache.put(
+					finderPath, finderPathColumnBitmask);
+			}
+
+			if ((columnBitmask & finderPathColumnBitmask) != 0) {
+				return _getValue(
+					portalPreferencesModelImpl, columnNames, original);
+			}
+
+			return null;
+		}
+
+		private Object[] _getValue(
+			PortalPreferencesModelImpl portalPreferencesModelImpl,
+			String[] columnNames, boolean original) {
+
+			Object[] arguments = new Object[columnNames.length];
+
+			for (int i = 0; i < arguments.length; i++) {
+				String columnName = columnNames[i];
+
+				if (original) {
+					arguments[i] =
+						portalPreferencesModelImpl.getColumnOriginalValue(
+							columnName);
+				}
+				else {
+					arguments[i] = portalPreferencesModelImpl.getColumnValue(
+						columnName);
+				}
+			}
+
+			return arguments;
+		}
+
+		private static Map<FinderPath, Long> _finderPathColumnBitmasksCache =
+			new ConcurrentHashMap<>();
+
+	}
 
 }

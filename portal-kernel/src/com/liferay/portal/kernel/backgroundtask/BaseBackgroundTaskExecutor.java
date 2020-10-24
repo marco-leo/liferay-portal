@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.backgroundtask;
 
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
@@ -52,8 +53,10 @@ public abstract class BaseBackgroundTaskExecutor
 	}
 
 	@Override
-	public String handleException(BackgroundTask backgroundTask, Exception e) {
-		return "Unable to execute background task: " + e.getMessage();
+	public String handleException(
+		BackgroundTask backgroundTask, Exception exception) {
+
+		return "Unable to execute background task: " + exception.getMessage();
 	}
 
 	@Override
@@ -79,9 +82,9 @@ public abstract class BaseBackgroundTaskExecutor
 					return user.getLocale();
 				}
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug("Unable to get the user's locale", e);
+					_log.debug("Unable to get the user's locale", exception);
 				}
 			}
 		}

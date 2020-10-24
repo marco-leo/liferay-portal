@@ -499,19 +499,17 @@ public abstract class BaseDDMTestCase extends PowerMockito {
 			_defaultDDMFormFieldType
 		);
 
-		Map<String, Object> properties = HashMapBuilder.<String, Object>put(
-			"ddm.form.field.type.icon", "my-icon"
-		).put(
-			"ddm.form.field.type.js.class.name", "myJavaScriptClass"
-		).put(
-			"ddm.form.field.type.js.module", "myJavaScriptModule"
-		).build();
-
 		when(
 			ddmFormFieldTypeServicesTracker.getDDMFormFieldTypeProperties(
 				Matchers.anyString())
 		).thenReturn(
-			properties
+			HashMapBuilder.<String, Object>put(
+				"ddm.form.field.type.icon", "my-icon"
+			).put(
+				"ddm.form.field.type.js.class.name", "myJavaScriptClass"
+			).put(
+				"ddm.form.field.type.js.module", "myJavaScriptModule"
+			).build()
 		);
 
 		return ddmFormFieldTypeServicesTracker;
@@ -521,7 +519,7 @@ public abstract class BaseDDMTestCase extends PowerMockito {
 		try {
 			return DDMStructureLocalServiceUtil.getStructure(structureId);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return null;
 		}
 	}
@@ -530,7 +528,7 @@ public abstract class BaseDDMTestCase extends PowerMockito {
 		try {
 			return DDMStructureLocalServiceUtil.getStructureDDMForm(structure);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return null;
 		}
 	}
@@ -539,7 +537,7 @@ public abstract class BaseDDMTestCase extends PowerMockito {
 		try {
 			return DDMTemplateLocalServiceUtil.getTemplate(templateId);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return null;
 		}
 	}

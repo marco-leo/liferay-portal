@@ -14,10 +14,9 @@
 
 package com.liferay.journal.internal.upgrade.v1_1_0;
 
+import com.liferay.counter.kernel.service.CounterLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.dao.db.DB;
-import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -53,6 +52,12 @@ import java.util.concurrent.Future;
  */
 public class UpgradeJournalArticleLocalizedValues extends UpgradeProcess {
 
+	public UpgradeJournalArticleLocalizedValues(
+		CounterLocalService counterLocalService) {
+
+		_counterLocalService = counterLocalService;
+	}
+
 	@Override
 	protected void doUpgrade() throws Exception {
 		if (!hasColumn("JournalArticle", "title") ||
@@ -76,9 +81,9 @@ public class UpgradeJournalArticleLocalizedValues extends UpgradeProcess {
 		try {
 			runSQL("alter table JournalArticle drop column description");
 		}
-		catch (SQLException sqle) {
+		catch (SQLException sqlException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(sqle, sqle);
+				_log.debug(sqlException, sqlException);
 			}
 		}
 	}
@@ -87,9 +92,9 @@ public class UpgradeJournalArticleLocalizedValues extends UpgradeProcess {
 		try {
 			runSQL("alter table JournalArticle drop column title");
 		}
-		catch (SQLException sqle) {
+		catch (SQLException sqlException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(sqle, sqle);
+				_log.debug(sqlException, sqlException);
 			}
 		}
 	}
@@ -160,10 +165,10 @@ public class UpgradeJournalArticleLocalizedValues extends UpgradeProcess {
 			UpgradeJournalArticleLocalizedValues.class.getResourceAsStream(
 				"dependencies/update.sql"));
 
-		runSQLTemplateString(template, false, false);
+		runSQLTemplateString(template, false);
 	}
 
-	private static Map<Locale, String> _getLocalizationMap(
+	private Map<Locale, String> _getLocalizationMap(
 		String value, String defaultLanguageId) {
 
 		if (Validator.isXml(value)) {
@@ -173,12 +178,6 @@ public class UpgradeJournalArticleLocalizedValues extends UpgradeProcess {
 		return HashMapBuilder.put(
 			LocaleUtil.fromLanguageId(defaultLanguageId), value
 		).build();
-	}
-
-	private static long _increment() {
-		DB db = DBManagerUtil.getDB();
-
-		return db.increment();
 	}
 
 	private void _log(long articleId, String columnName) {
@@ -273,6 +272,7 @@ public class UpgradeJournalArticleLocalizedValues extends UpgradeProcess {
 	private static final Log _log = LogFactoryUtil.getLog(
 		UpgradeJournalArticleLocalizedValues.class);
 
+	private final CounterLocalService _counterLocalService;
 	private final Map<Long, Locale> _defaultSiteLocales = new HashMap<>();
 
 	private class UpdateDefaultLanguageCallable implements Callable<Boolean> {
@@ -300,10 +300,10 @@ public class UpgradeJournalArticleLocalizedValues extends UpgradeProcess {
 
 				runSQL(connection, sb.toString());
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				_log.error(
 					"Unable to update default language ID for article " + _id,
-					e);
+					exception);
 
 				return false;
 			}
@@ -373,7 +373,7 @@ public class UpgradeJournalArticleLocalizedValues extends UpgradeProcess {
 						localizedDescription = safeLocalizedDescription;
 					}
 
-					ps.setLong(1, _increment());
+					ps.setLong(1, _counterLocalService.increment());
 					ps.setLong(2, _companyId);
 					ps.setLong(3, _id);
 					ps.setString(4, localizedTitle);
@@ -386,10 +386,10 @@ public class UpgradeJournalArticleLocalizedValues extends UpgradeProcess {
 				try {
 					ps.executeBatch();
 				}
-				catch (Exception e) {
+				catch (Exception exception) {
 					_log.error(
 						"Unable to update localized fields for article " + _id,
-						e);
+						exception);
 
 					return false;
 				}

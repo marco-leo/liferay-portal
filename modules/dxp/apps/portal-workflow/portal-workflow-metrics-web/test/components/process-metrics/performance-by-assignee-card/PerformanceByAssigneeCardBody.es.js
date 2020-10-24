@@ -9,97 +9,64 @@
  * distribution rights of the Software.
  */
 
-import {cleanup, render, waitForElement} from '@testing-library/react';
+import '@testing-library/jest-dom/extend-expect';
+import {cleanup, render} from '@testing-library/react';
 import React from 'react';
 
-import {ProcessStepContext} from '../../../../src/main/resources/META-INF/resources/js/components/process-metrics/filter/store/ProcessStepStore.es';
-import {TimeRangeContext} from '../../../../src/main/resources/META-INF/resources/js/components/process-metrics/filter/store/TimeRangeStore.es';
+import {AppContext} from '../../../../src/main/resources/META-INF/resources/js/components/AppContext.es';
 import PerformanceByAssigneeCard from '../../../../src/main/resources/META-INF/resources/js/components/process-metrics/performance-by-assignee-card/PerformanceByAssigneeCard.es';
-import Request from '../../../../src/main/resources/META-INF/resources/js/shared/components/request/Request.es';
 import {MockRouter} from '../../../mock/MockRouter.es';
 
-const clientMock = {
-	get: jest.fn().mockResolvedValue({data: {}})
-};
-
-const processStepContextMock = {
-	getSelectedProcessSteps: () => [{key: 'review'}]
-};
-
-const timeRange = {
-	dateEnd: new Date('2019-01-07'),
-	dateStart: new Date('2019-01-01'),
-	id: 7,
-	name: 'Last 7 days'
-};
-const timeRangeContextMock = {
-	getSelectedTimeRange: () => timeRange
-};
+const wrapper = ({children}) => (
+	<AppContext.Provider value={{defaultDelta: 20}}>
+		<MockRouter>{children}</MockRouter>
+	</AppContext.Provider>
+);
 
 describe('The performance by assignee body component with data should', () => {
-	let getAllByTestId;
-	let getByTestId;
+	let container;
 
 	const items = [
 		{
+			assignee: {
+				image: 'path/to/image',
+				name: 'User Test First',
+			},
 			durationTaskAvg: 10800000,
-			image: 'path/to/image',
-			name: 'User Test First',
-			taskCount: 10
+			taskCount: 10,
 		},
 		{
+			assignee: {
+				image: 'path/to/image',
+				name: 'User Test Second',
+			},
 			durationTaskAvg: 475200000,
-			image: 'path/to/image',
-			name: 'User Test Second',
-			taskCount: 31
+			taskCount: 31,
 		},
 		{
+			assignee: {
+				name: 'User Test Third',
+			},
 			durationTaskAvg: 0,
-			name: 'User Test Third',
-			taskCount: 1
-		}
+			taskCount: 1,
+		},
 	];
 	const data = {items, totalCount: items.length};
 
-	afterEach(() => cleanup);
+	afterEach(cleanup);
 
 	beforeEach(() => {
-		clientMock.get.mockResolvedValueOnce({
-			data
-		});
-
-		const wrapper = ({children}) => (
-			<Request>
-				<MockRouter client={clientMock}>
-					<ProcessStepContext.Provider value={processStepContextMock}>
-						<TimeRangeContext.Provider value={timeRangeContextMock}>
-							{children}
-						</TimeRangeContext.Provider>
-					</ProcessStepContext.Provider>
-				</MockRouter>
-			</Request>
-		);
-
 		const renderResult = render(
-			<PerformanceByAssigneeCard.Body data={data} processId={123456} />,
+			<PerformanceByAssigneeCard.Body {...data} />,
 			{wrapper}
 		);
 
-		getAllByTestId = renderResult.getAllByTestId;
-		getByTestId = renderResult.getByTestId;
+		container = renderResult.container;
 	});
 
-	test('Be rendered with "View All Steps" button and total "(3)"', async () => {
-		const viewAllAssigneesButton = await waitForElement(() =>
-			getByTestId('viewAllAssignees')
-		);
-
-		expect(viewAllAssigneesButton.innerHTML).toBe('view-all-assignees (3)');
-	});
-
-	test('Be rendered with user avatar or lexicon user icon', async () => {
-		const assigneeProfileInfo = await waitForElement(() =>
-			getAllByTestId('assigneeProfileInfo')
+	test('Be rendered with user avatar or lexicon user icon', () => {
+		const assigneeProfileInfo = container.querySelectorAll(
+			'.assignee-name'
 		);
 
 		expect(assigneeProfileInfo[0].children[0].innerHTML).toContain(
@@ -113,63 +80,44 @@ describe('The performance by assignee body component with data should', () => {
 		);
 	});
 
-	test('Be rendered with assignee name', async () => {
-		const assigneeName = await waitForElement(() =>
-			getAllByTestId('assigneeName')
-		);
+	test('Be rendered with assignee name', () => {
+		const assigneeName = container.querySelectorAll('.assignee-name');
 
-		expect(assigneeName[0].innerHTML).toEqual('User Test First');
-		expect(assigneeName[1].innerHTML).toEqual('User Test Second');
-		expect(assigneeName[2].innerHTML).toEqual('User Test Third');
+		expect(assigneeName[0]).toHaveTextContent('User Test First');
+		expect(assigneeName[1]).toHaveTextContent('User Test Second');
+		expect(assigneeName[2]).toHaveTextContent('User Test Third');
 	});
 
-	test('Be rendered with average completion time', async () => {
-		const durations = await getAllByTestId('durationTaskAvg');
+	test('Be rendered with average completion time', () => {
+		const durations = container.querySelectorAll('.task-count-value');
 
-		expect(durations[0].innerHTML).toEqual('3h');
-		expect(durations[1].innerHTML).toEqual('5d 12h');
-		expect(durations[2].innerHTML).toEqual('0min');
+		expect(durations[1].innerHTML).toEqual('3h');
+		expect(durations[3].innerHTML).toEqual('5d 12h');
+		expect(durations[5].innerHTML).toEqual('0min');
 	});
 });
 
 describe('The performance by assignee body component without data should', () => {
-	let getByTestId;
+	let getByText;
 
 	const items = [];
-	const data = {items, totalCount: items.length};
 
-	afterEach(() => cleanup);
+	const data = {items, totalCount: 0};
+
+	afterEach(cleanup);
 
 	beforeEach(() => {
-		clientMock.get.mockResolvedValueOnce({
-			data
-		});
-
-		const wrapper = ({children}) => (
-			<Request>
-				<MockRouter client={clientMock}>
-					<ProcessStepContext.Provider value={processStepContextMock}>
-						<TimeRangeContext.Provider value={timeRangeContextMock}>
-							{children}
-						</TimeRangeContext.Provider>
-					</ProcessStepContext.Provider>
-				</MockRouter>
-			</Request>
-		);
-
 		const renderResult = render(
-			<PerformanceByAssigneeCard.Body data={data} processId={123456} />,
+			<PerformanceByAssigneeCard.Body {...data} />,
 			{wrapper}
 		);
 
-		getByTestId = renderResult.getByTestId;
+		getByText = renderResult.getByText;
 	});
 
-	test('Render empty state', async () => {
-		const emptyState = await waitForElement(() =>
-			getByTestId('emptyState')
-		);
+	test('Render empty state', () => {
+		const emptyStateMessage = getByText('there-is-no-data-at-the-moment');
 
-		expect(emptyState).not.toBeNull();
+		expect(emptyStateMessage).toBeTruthy();
 	});
 });

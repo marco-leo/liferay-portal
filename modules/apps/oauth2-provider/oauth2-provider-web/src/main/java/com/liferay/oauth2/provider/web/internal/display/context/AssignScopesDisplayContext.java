@@ -18,10 +18,10 @@ import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.oauth2.provider.configuration.OAuth2ProviderConfiguration;
 import com.liferay.oauth2.provider.model.OAuth2Application;
 import com.liferay.oauth2.provider.model.OAuth2ScopeGrant;
-import com.liferay.oauth2.provider.scope.liferay.ApplicationDescriptorLocator;
 import com.liferay.oauth2.provider.scope.liferay.LiferayOAuth2Scope;
-import com.liferay.oauth2.provider.scope.liferay.ScopeDescriptorLocator;
 import com.liferay.oauth2.provider.scope.liferay.ScopeLocator;
+import com.liferay.oauth2.provider.scope.liferay.spi.ApplicationDescriptorLocator;
+import com.liferay.oauth2.provider.scope.liferay.spi.ScopeDescriptorLocator;
 import com.liferay.oauth2.provider.scope.spi.application.descriptor.ApplicationDescriptor;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationScopeAliasesLocalService;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationService;
@@ -63,21 +63,22 @@ public class AssignScopesDisplayContext
 	extends OAuth2AdminPortletDisplayContext {
 
 	public AssignScopesDisplayContext(
-			OAuth2ApplicationService oAuth2ApplicationService,
+			ApplicationDescriptorLocator applicationDescriptorLocator,
+			DLURLHelper dlURLHelper,
 			OAuth2ApplicationScopeAliasesLocalService
 				oAuth2ApplicationScopeAliasesLocalService,
-			OAuth2ScopeGrantLocalService oAuth2ScopeGrantLocalService,
+			OAuth2ApplicationService oAuth2ApplicationService,
 			OAuth2ProviderConfiguration oAuth2ProviderConfiguration,
-			PortletRequest portletRequest, ThemeDisplay themeDisplay,
-			ApplicationDescriptorLocator applicationDescriptorLocator,
+			OAuth2ScopeGrantLocalService oAuth2ScopeGrantLocalService,
+			PortletRequest portletRequest,
 			ScopeDescriptorLocator scopeDescriptorLocator,
-			ScopeLocator scopeLocator, DLURLHelper dlURLHelper)
+			ScopeLocator scopeLocator, ThemeDisplay themeDisplay)
 		throws PortalException {
 
 		super(
-			oAuth2ApplicationService, oAuth2ApplicationScopeAliasesLocalService,
-			oAuth2ProviderConfiguration, portletRequest, themeDisplay,
-			dlURLHelper);
+			dlURLHelper, oAuth2ApplicationScopeAliasesLocalService,
+			oAuth2ApplicationService, oAuth2ProviderConfiguration,
+			portletRequest, themeDisplay);
 
 		_applicationDescriptorLocator = applicationDescriptorLocator;
 		_companyId = themeDisplay.getCompanyId();
@@ -337,16 +338,16 @@ public class AssignScopesDisplayContext
 		}
 
 		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
+		public boolean equals(Object object) {
+			if (this == object) {
 				return true;
 			}
 
-			if ((o == null) || (getClass() != o.getClass())) {
+			if ((object == null) || (getClass() != object.getClass())) {
 				return false;
 			}
 
-			Relations relations = (Relations)o;
+			Relations relations = (Relations)object;
 
 			if (Objects.equals(
 					_globalAssignableScopes,
@@ -481,16 +482,6 @@ public class AssignScopesDisplayContext
 			});
 	}
 
-	private static <K, V> Map<V, K> _invertMap(Map<K, V> map) {
-		Map<V, K> ret = new HashMap<>();
-
-		for (Map.Entry<K, V> entry : map.entrySet()) {
-			ret.put(entry.getValue(), entry.getKey());
-		}
-
-		return ret;
-	}
-
 	private void _indexAssignableScopes(
 		AssignableScopes assignableScopes, Set<String> assignedApplicationNames,
 		boolean indexAsGlobalAssignableScopes) {
@@ -523,6 +514,16 @@ public class AssignScopesDisplayContext
 
 			assignableScopesSet.add(assignableScopes);
 		}
+	}
+
+	private <K, V> Map<V, K> _invertMap(Map<K, V> map) {
+		Map<V, K> ret = new HashMap<>();
+
+		for (Map.Entry<K, V> entry : map.entrySet()) {
+			ret.put(entry.getValue(), entry.getKey());
+		}
+
+		return ret;
 	}
 
 	private Map<AssignableScopes, Relations> _normalize(

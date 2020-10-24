@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class ReleaseLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.ReleaseLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -38,6 +38,10 @@ public class ReleaseLocalServiceUtil {
 
 	/**
 	 * Adds the release to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ReleaseLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param release the release
 	 * @return the release that was added
@@ -58,6 +62,16 @@ public class ReleaseLocalServiceUtil {
 		String servletContextName, String schemaVersion) {
 
 		return getService().addRelease(servletContextName, schemaVersion);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -94,6 +108,10 @@ public class ReleaseLocalServiceUtil {
 	/**
 	 * Deletes the release with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ReleaseLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param releaseId the primary key of the release
 	 * @return the release that was removed
 	 * @throws PortalException if a release with the primary key could not be found
@@ -108,6 +126,10 @@ public class ReleaseLocalServiceUtil {
 	/**
 	 * Deletes the release from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ReleaseLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param release the release
 	 * @return the release that was removed
 	 */
@@ -115,6 +137,12 @@ public class ReleaseLocalServiceUtil {
 		com.liferay.portal.kernel.model.Release release) {
 
 		return getService().deleteRelease(release);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -246,6 +274,9 @@ public class ReleaseLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -305,6 +336,10 @@ public class ReleaseLocalServiceUtil {
 	/**
 	 * Updates the release in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ReleaseLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param release the release
 	 * @return the release that was updated
 	 */
@@ -314,6 +349,23 @@ public class ReleaseLocalServiceUtil {
 		return getService().updateRelease(release);
 	}
 
+	public static void updateRelease(
+			String servletContextName,
+			java.util.List<com.liferay.portal.kernel.upgrade.UpgradeProcess>
+				upgradeProcesses,
+			int buildNumber, int previousBuildNumber)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		getService().updateRelease(
+			servletContextName, upgradeProcesses, buildNumber,
+			previousBuildNumber);
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 #updateRelease(String, List, int, int)}
+	 */
+	@Deprecated
 	public static void updateRelease(
 			String servletContextName,
 			java.util.List<com.liferay.portal.kernel.upgrade.UpgradeProcess>

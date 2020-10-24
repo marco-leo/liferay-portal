@@ -83,8 +83,8 @@ public class SearchBarPortlet extends MVCPortlet {
 
 		SearchBarPortletDisplayContext searchBarPortletDisplayContext =
 			buildDisplayContext(
-				searchBarPortletPreferences, portletSharedSearchResponse,
-				renderRequest);
+				portletSharedSearchResponse, renderRequest,
+				searchBarPortletPreferences);
 
 		renderRequest.setAttribute(
 			WebKeys.PORTLET_DISPLAY_CONTEXT, searchBarPortletDisplayContext);
@@ -98,13 +98,14 @@ public class SearchBarPortlet extends MVCPortlet {
 	}
 
 	protected SearchBarPortletDisplayContext buildDisplayContext(
-		SearchBarPortletPreferences searchBarPortletPreferences,
-		PortletSharedSearchResponse portletSharedSearchResponse,
-		RenderRequest renderRequest) {
+			PortletSharedSearchResponse portletSharedSearchResponse,
+			RenderRequest renderRequest,
+			SearchBarPortletPreferences searchBarPortletPreferences)
+		throws PortletException {
 
 		SearchBarPortletDisplayBuilder searchBarPortletDisplayBuilder =
 			new SearchBarPortletDisplayBuilder(
-				http, layoutLocalService, portal);
+				http, layoutLocalService, portal, renderRequest);
 
 		ThemeDisplay themeDisplay = portletSharedSearchResponse.getThemeDisplay(
 			renderRequest);
@@ -113,8 +114,14 @@ public class SearchBarPortlet extends MVCPortlet {
 			portletSharedSearchResponse.getSearchSettings(),
 			searchBarPortletPreferences, themeDisplay);
 
-		String scopeParameterName =
-			searchBarPortletPreferences.getScopeParameterName();
+		String scopeParameterName = getScopeParameterName(
+			portletSharedSearchResponse.getSearchSettings(),
+			searchBarPortletPreferences, themeDisplay);
+
+		SearchResponse searchResponse = getSearchResponse(
+			portletSharedSearchResponse, searchBarPortletPreferences);
+
+		SearchRequest searchRequest = searchResponse.getRequest();
 
 		return searchBarPortletDisplayBuilder.setDestination(
 			searchBarPortletPreferences.getDestinationString()
@@ -123,11 +130,11 @@ public class SearchBarPortlet extends MVCPortlet {
 		).setInvisible(
 			searchBarPortletPreferences.isInvisible()
 		).setKeywords(
-			portletSharedSearchResponse.getKeywordsOptional()
+			Optional.ofNullable(searchRequest.getQueryString())
 		).setKeywordsParameterName(
 			keywordsParameterName
 		).setPaginationStartParameterName(
-			getPaginationStartParameterName(portletSharedSearchResponse)
+			searchRequest.getPaginationStartParameterName()
 		).setScopeParameterName(
 			scopeParameterName
 		).setScopeParameterValue(
@@ -157,15 +164,29 @@ public class SearchBarPortlet extends MVCPortlet {
 			searchBarPortletPreferences.getKeywordsParameterName());
 	}
 
-	protected String getPaginationStartParameterName(
-		PortletSharedSearchResponse portletSharedSearchResponse) {
+	protected String getScopeParameterName(
+		SearchSettings searchSettings,
+		SearchBarPortletPreferences searchBarPortletPreferences,
+		ThemeDisplay themeDisplay) {
 
-		SearchResponse searchResponse =
-			portletSharedSearchResponse.getSearchResponse();
+		if (!SearchBarPortletDestinationUtil.isSameDestination(
+				searchBarPortletPreferences, themeDisplay)) {
 
-		SearchRequest request = searchResponse.getRequest();
+			return searchBarPortletPreferences.getScopeParameterName();
+		}
 
-		return request.getPaginationStartParameterName();
+		Optional<String> optional = searchSettings.getScopeParameterName();
+
+		return optional.orElse(
+			searchBarPortletPreferences.getScopeParameterName());
+	}
+
+	protected SearchResponse getSearchResponse(
+		PortletSharedSearchResponse portletSharedSearchResponse,
+		SearchBarPortletPreferences searchBarPortletPreferences) {
+
+		return portletSharedSearchResponse.getFederatedSearchResponse(
+			searchBarPortletPreferences.getFederatedSearchKeyOptional());
 	}
 
 	protected boolean isEmptySearchEnabled(
@@ -174,9 +195,9 @@ public class SearchBarPortlet extends MVCPortlet {
 		SearchResponse searchResponse =
 			portletSharedSearchResponse.getSearchResponse();
 
-		SearchRequest request = searchResponse.getRequest();
+		SearchRequest searchRequest = searchResponse.getRequest();
 
-		return request.isEmptySearchEnabled();
+		return searchRequest.isEmptySearchEnabled();
 	}
 
 	@Reference

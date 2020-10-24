@@ -58,10 +58,11 @@ public class DBInspectorTest {
 		_db.runSQL(
 			StringBundler.concat(
 				"create table ", _TABLE_NAME, " (id LONG not null primary ",
-				"key, typeBlob BLOB, typeBoolean BOOLEAN, typeDate DATE null, ",
-				"typeDouble DOUBLE, typeInteger INTEGER, typeLong LONG null, ",
-				"typeSBlob SBLOB, typeString STRING null, typeText TEXT null, ",
-				"typeVarchar VARCHAR(75) null);"));
+				"key, notNilColumn VARCHAR(75) not null, nilColumn ",
+				"VARCHAR(75) null, typeBlob BLOB, typeBoolean BOOLEAN,",
+				"typeDate DATE null, typeDouble DOUBLE, typeInteger INTEGER, ",
+				"typeLong LONG null, typeSBlob SBLOB, typeString STRING null, ",
+				"typeText TEXT null, typeVarchar VARCHAR(75) null);"));
 	}
 
 	@AfterClass
@@ -170,6 +171,34 @@ public class DBInspectorTest {
 	}
 
 	@Test
+	public void testHasNotNullColumnTypeNotNull() throws Exception {
+		Assert.assertTrue(
+			_dbInspector.hasColumnType(
+				_TABLE_NAME, "notNilColumn", "VARCHAR(75) not null"));
+	}
+
+	@Test
+	public void testHasNotNullColumnTypeNull() throws Exception {
+		Assert.assertFalse(
+			_dbInspector.hasColumnType(
+				_TABLE_NAME, "notNilColumn", "VARCHAR(75) null"));
+	}
+
+	@Test
+	public void testHasNullColumnTypeNotNull() throws Exception {
+		Assert.assertFalse(
+			_dbInspector.hasColumnType(
+				_TABLE_NAME, "nilColumn", "VARCHAR(75) not null"));
+	}
+
+	@Test
+	public void testHasNullColumnTypeNull() throws Exception {
+		Assert.assertTrue(
+			_dbInspector.hasColumnType(
+				_TABLE_NAME, "nilColumn", "VARCHAR(75) null"));
+	}
+
+	@Test
 	public void testHasTable() throws Exception {
 		Assert.assertTrue(_dbInspector.hasTable(_TABLE_NAME));
 	}
@@ -186,7 +215,7 @@ public class DBInspectorTest {
 
 	@Test
 	public void testHasTableNonexisting() throws Exception {
-		Assert.assertTrue(!_dbInspector.hasTable(_TABLE_NAME_NONEXISTING));
+		Assert.assertFalse(_dbInspector.hasTable(_TABLE_NAME_NONEXISTING));
 	}
 
 	@Test
@@ -197,6 +226,17 @@ public class DBInspectorTest {
 
 		Assert.assertTrue(
 			_dbInspector.hasTable(StringUtil.toUpperCase(_TABLE_NAME)));
+	}
+
+	@Test
+	public void testIsNotNullColumnNullable() throws Exception {
+		Assert.assertTrue(_dbInspector.isNullable(_TABLE_NAME, "nilColumn"));
+	}
+
+	@Test
+	public void testIsNullableColumnNullable() throws Exception {
+		Assert.assertFalse(
+			_dbInspector.isNullable(_TABLE_NAME, "notNilColumn"));
 	}
 
 	private static final String _COLUMN_NAME = "id";

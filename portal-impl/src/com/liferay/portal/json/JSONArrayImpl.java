@@ -56,8 +56,8 @@ public class JSONArrayImpl implements JSONArray {
 
 			_jsonArray = new org.json.JSONArray(json);
 		}
-		catch (Exception e) {
-			throw new JSONException(e);
+		catch (Exception exception) {
+			throw new JSONException(exception);
 		}
 	}
 
@@ -148,8 +148,8 @@ public class JSONArrayImpl implements JSONArray {
 		try {
 			return _jsonArray.join(separator);
 		}
-		catch (Exception e) {
-			throw new JSONException(e);
+		catch (Exception exception) {
+			throw new JSONException(exception);
 		}
 	}
 
@@ -170,9 +170,9 @@ public class JSONArrayImpl implements JSONArray {
 		try {
 			_jsonArray.put(value);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(e, e);
+				_log.warn(exception, exception);
 			}
 		}
 
@@ -187,8 +187,8 @@ public class JSONArrayImpl implements JSONArray {
 	}
 
 	@Override
-	public JSONArray put(JSONArray value) {
-		JSONArrayImpl jsonArrayImpl = (JSONArrayImpl)value;
+	public JSONArray put(JSONArray jsonArray) {
+		JSONArrayImpl jsonArrayImpl = (JSONArrayImpl)jsonArray;
 
 		_jsonArray.put(jsonArrayImpl.getJSONArray());
 
@@ -196,8 +196,8 @@ public class JSONArrayImpl implements JSONArray {
 	}
 
 	@Override
-	public JSONArray put(JSONObject value) {
-		JSONObjectImpl jsonObjectImpl = (JSONObjectImpl)value;
+	public JSONArray put(JSONObject jsonObject) {
+		JSONObjectImpl jsonObjectImpl = (JSONObjectImpl)jsonObject;
 
 		_jsonArray.put(jsonObjectImpl.getJSONObject());
 
@@ -239,8 +239,8 @@ public class JSONArrayImpl implements JSONArray {
 			_jsonArray = new org.json.JSONArray(
 				(String)objectInput.readObject());
 		}
-		catch (Exception e) {
-			throw new IOException(e);
+		catch (Exception exception) {
+			throw new IOException(exception);
 		}
 	}
 
@@ -259,8 +259,8 @@ public class JSONArrayImpl implements JSONArray {
 		try {
 			return _jsonArray.toString(indentFactor);
 		}
-		catch (Exception e) {
-			throw new JSONException(e);
+		catch (Exception exception) {
+			throw new JSONException(exception);
 		}
 	}
 
@@ -269,8 +269,8 @@ public class JSONArrayImpl implements JSONArray {
 		try {
 			return _jsonArray.write(writer);
 		}
-		catch (Exception e) {
-			throw new JSONException(e);
+		catch (Exception exception) {
+			throw new JSONException(exception);
 		}
 	}
 

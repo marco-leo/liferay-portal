@@ -23,17 +23,11 @@ TimeZone calendarBookingTimeZone = userTimeZone;
 
 boolean allDay = BeanParamUtil.getBoolean(calendarBooking, request, "allDay");
 
-if (allDay) {
-	calendarBookingTimeZone = utcTimeZone;
-}
-
 java.util.Calendar defaultStartTimeJCalendar = CalendarFactoryUtil.getCalendar(calendarBookingTimeZone);
 
 defaultStartTimeJCalendar.add(java.util.Calendar.HOUR, 1);
 
 defaultStartTimeJCalendar.set(java.util.Calendar.MINUTE, 0);
-
-long date = ParamUtil.getLong(request, "date", defaultStartTimeJCalendar.getTimeInMillis());
 
 long calendarBookingId = BeanPropertiesUtil.getLong(calendarBooking, "calendarBookingId");
 
@@ -210,7 +204,7 @@ while (manageableCalendarsIterator.hasNext()) {
 %>
 
 <aui:script use="liferay-calendar-container,liferay-calendar-remote-services,liferay-component">
-	Liferay.component('<portlet:namespace />calendarContainer', function() {
+	Liferay.component('<portlet:namespace />calendarContainer', function () {
 		var calendarContainer = new Liferay.CalendarContainer({
 			groupCalendarResourceId: <%= groupCalendarResource.getCalendarResourceId() %>,
 
@@ -218,10 +212,10 @@ while (manageableCalendarsIterator.hasNext()) {
 				userCalendarResourceId: <%= userCalendarResource.getCalendarResourceId() %>,
 			</c:if>
 
-			namespace: '<portlet:namespace />'
+			namespace: '<portlet:namespace />',
 		});
 
-		var destroyInstance = function(event) {
+		var destroyInstance = function (event) {
 			if (event.portletId === '<%= portletDisplay.getId() %>') {
 				calendarContainer.destroy();
 
@@ -235,17 +229,17 @@ while (manageableCalendarsIterator.hasNext()) {
 		return calendarContainer;
 	});
 
-	Liferay.component('<portlet:namespace />remoteServices', function() {
+	Liferay.component('<portlet:namespace />remoteServices', function () {
 		var remoteServices = new Liferay.CalendarRemoteServices({
 			baseActionURL:
 				'<%= PortletURLFactoryUtil.create(request, portletDisplay.getId(), PortletRequest.ACTION_PHASE) %>',
 			baseResourceURL:
 				'<%= PortletURLFactoryUtil.create(request, portletDisplay.getId(), PortletRequest.RESOURCE_PHASE) %>',
 			invokerURL: themeDisplay.getPathContext() + '/api/jsonws/invoke',
-			namespace: '<portlet:namespace />'
+			namespace: '<portlet:namespace />',
 		});
 
-		var destroyInstance = function(event) {
+		var destroyInstance = function (event) {
 			if (event.portletId === '<%= portletDisplay.getId() %>') {
 				remoteServices.destroy();
 
@@ -263,7 +257,7 @@ while (manageableCalendarsIterator.hasNext()) {
 
 <liferay-portlet:actionURL name="updateFormCalendarBooking" var="updateFormCalendarBookingURL" />
 
-<aui:form action="<%= updateFormCalendarBookingURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "updateCalendarBooking();" %>'>
+<aui:form action="<%= updateFormCalendarBookingURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "updateCalendarBooking();" %>'>
 	<aui:input name="mvcPath" type="hidden" value="/edit_calendar_booking.jsp" />
 
 	<liferay-portlet:renderURL var="redirectURL">
@@ -281,7 +275,7 @@ while (manageableCalendarsIterator.hasNext()) {
 	<aui:input name="workflowAction" type="hidden" value="<%= WorkflowConstants.ACTION_PUBLISH %>" />
 
 	<div class="lfr-form-content">
-		<div class="sheet sheet-lg">
+		<clay:sheet>
 			<liferay-ui:error exception="<%= CalendarBookingDurationException.class %>" message="please-enter-a-start-date-that-comes-before-the-end-date" />
 			<liferay-ui:error exception="<%= CalendarBookingRecurrenceException.class %>" message="the-last-repeating-date-should-come-after-the-event-start-date" />
 
@@ -391,42 +385,54 @@ while (manageableCalendarsIterator.hasNext()) {
 							<div class="separator"><!-- --></div>
 						</c:if>
 
-						<aui:row cssClass="calendar-booking-invitations">
-							<aui:col width="<%= (calendarBooking != null) ? 25 : 33 %>">
+						<clay:row
+							cssClass="calendar-booking-invitations"
+						>
+							<clay:col
+								md="<%= (calendarBooking != null) ? String.valueOf(3) : String.valueOf(4) %>"
+							>
 								<label class="field-label">
 									<liferay-ui:message key="pending[calendar]" /> (<span id="<portlet:namespace />pendingCounter"><%= pendingCalendarsJSONArray.length() %></span>)
 								</label>
 
 								<div class="calendar-portlet-calendar-list" id="<portlet:namespace />calendarListPending"></div>
-							</aui:col>
+							</clay:col>
 
-							<aui:col width="<%= (calendarBooking != null) ? 25 : 33 %>">
+							<clay:col
+								md="<%= (calendarBooking != null) ? String.valueOf(3) : String.valueOf(4) %>"
+							>
 								<label class="field-label">
 									<liferay-ui:message key="accepted" /> (<span id="<portlet:namespace />acceptedCounter"><%= acceptedCalendarsJSONArray.length() %></span>)
 								</label>
 
 								<div class="calendar-portlet-calendar-list" id="<portlet:namespace />calendarListAccepted"></div>
-							</aui:col>
+							</clay:col>
 
-							<aui:col width="<%= (calendarBooking != null) ? 25 : 33 %>">
+							<clay:col
+								md="<%= (calendarBooking != null) ? String.valueOf(3) : String.valueOf(4) %>"
+							>
 								<label class="field-label">
 									<liferay-ui:message key="declined" /> (<span id="<portlet:namespace />declinedCounter"><%= declinedCalendarsJSONArray.length() %></span>)
 								</label>
 
 								<div class="calendar-portlet-calendar-list" id="<portlet:namespace />calendarListDeclined"></div>
-							</aui:col>
+							</clay:col>
 
 							<c:if test="<%= calendarBooking != null %>">
-								<aui:col width="<%= 25 %>">
+								<clay:col
+									md="6"
+								>
 									<label class="field-label">
 										<liferay-ui:message key="maybe" /> (<span id="<portlet:namespace />maybeCounter"><%= maybeCalendarsJSONArray.length() %></span>)
 									</label>
 
 									<div class="calendar-portlet-calendar-list" id="<portlet:namespace />calendarListMaybe"></div>
-								</aui:col>
+								</clay:col>
 							</c:if>
 
-							<aui:col width="<%= 100 %>">
+							<clay:col
+								size="12"
+							>
 								<div class="calendar-portlet-list-header toggler-header-collapsed" id="<portlet:namespace />checkAvailability">
 									<span class="calendar-portlet-list-arrow"></span>
 
@@ -440,7 +446,7 @@ while (manageableCalendarsIterator.hasNext()) {
 										<liferay-util:include page="/scheduler.jsp" servletContext="<%= application %>">
 											<liferay-util:param name="activeView" value="<%= activeView %>" />
 											<liferay-util:param name="date" value="<%= String.valueOf(startTime) %>" />
-											<liferay-util:param name="filterCalendarBookings" value='<%= renderResponse.getNamespace() + "filterCalendarBookings" %>' />
+											<liferay-util:param name="filterCalendarBookings" value='<%= liferayPortletResponse.getNamespace() + "filterCalendarBookings" %>' />
 											<liferay-util:param name="hideAgendaView" value="<%= Boolean.TRUE.toString() %>" />
 											<liferay-util:param name="hideMonthView" value="<%= Boolean.TRUE.toString() %>" />
 											<liferay-util:param name="preventPersistence" value="<%= Boolean.TRUE.toString() %>" />
@@ -448,8 +454,8 @@ while (manageableCalendarsIterator.hasNext()) {
 										</liferay-util:include>
 									</div>
 								</div>
-							</aui:col>
-						</aui:row>
+							</clay:col>
+						</clay:row>
 					</liferay-ui:panel>
 
 					<liferay-ui:panel
@@ -476,6 +482,7 @@ while (manageableCalendarsIterator.hasNext()) {
 						<liferay-asset:asset-categories-selector
 							className="<%= CalendarBooking.class.getName() %>"
 							classPK="<%= calendarBookingId %>"
+							visibilityTypes="<%= AssetVocabularyConstants.VISIBILITY_TYPES %>"
 						/>
 
 						<liferay-asset:asset-tags-selector
@@ -502,7 +509,7 @@ while (manageableCalendarsIterator.hasNext()) {
 			</aui:fieldset>
 
 			<%@ include file="/calendar_booking_recurrence_container.jspf" %>
-		</div>
+		</clay:sheet>
 	</div>
 
 	<aui:button-row cssClass="d-block">
@@ -560,7 +567,7 @@ while (manageableCalendarsIterator.hasNext()) {
 	Liferay.provide(
 		window,
 		'<portlet:namespace />updateCalendarBooking',
-		function() {
+		function () {
 			var A = AUI();
 
 			<c:if test="<%= invitable %>">
@@ -593,7 +600,7 @@ while (manageableCalendarsIterator.hasNext()) {
 				hasChild: <%= hasChildCalendarBookings %>,
 				masterBooking: <%= masterBooking %>,
 				recurring: <%= recurring %>,
-				resolver: <portlet:namespace />resolver
+				resolver: <portlet:namespace />resolver,
 			});
 		},
 		['liferay-calendar-message-util', 'json']
@@ -624,19 +631,19 @@ while (manageableCalendarsIterator.hasNext()) {
 
 	var scheduler = window.<portlet:namespace />scheduler;
 
-	A.one('#<portlet:namespace />saveButton').on('click', function() {
+	A.one('#<portlet:namespace />saveButton').on('click', function () {
 		A.one('#<portlet:namespace />workflowAction').val(
 			'<%= WorkflowConstants.ACTION_SAVE_DRAFT %>'
 		);
 	});
 
-	A.one('#<portlet:namespace />publishButton').on('click', function() {
+	A.one('#<portlet:namespace />publishButton').on('click', function () {
 		A.one('#<portlet:namespace />workflowAction').val(
 			'<%= WorkflowConstants.ACTION_PUBLISH %>'
 		);
 	});
 
-	var syncCalendarsMap = function() {
+	var syncCalendarsMap = function () {
 		calendarContainer.syncCalendarsMap([
 			window.<portlet:namespace />calendarListAccepted,
 			window.<portlet:namespace />calendarListDeclined,
@@ -645,10 +652,10 @@ while (manageableCalendarsIterator.hasNext()) {
 				window.<portlet:namespace />calendarListMaybe,
 			</c:if>
 
-			window.<portlet:namespace />calendarListPending
+			window.<portlet:namespace />calendarListPending,
 		]);
 
-		A.each(calendarContainer.get('availableCalendars'), function(item, index) {
+		A.each(calendarContainer.get('availableCalendars'), function (item, index) {
 			item.set('disabled', true);
 		});
 	};
@@ -658,12 +665,12 @@ while (manageableCalendarsIterator.hasNext()) {
 		defaultCalendarId: defaultCalendarId,
 		header: '#<portlet:namespace />checkAvailability',
 		invitable: <%= invitable %>,
-		scheduler: scheduler
+		scheduler: scheduler,
 	});
 
 	window.<portlet:namespace />calendarListPending = new Liferay.CalendarList({
 		after: {
-			calendarsChange: function(event) {
+			calendarsChange: function (event) {
 				var instance = this;
 
 				A.one('#<portlet:namespace />pendingCounter').html(
@@ -674,20 +681,20 @@ while (manageableCalendarsIterator.hasNext()) {
 
 				scheduler.load();
 			},
-			'scheduler-calendar:visibleChange': syncCalendarsMap
+			'scheduler-calendar:visibleChange': syncCalendarsMap,
 		},
 		boundingBox: '#<portlet:namespace />calendarListPending',
 		calendars: <%= pendingCalendarsJSONArray %>,
 		scheduler: <portlet:namespace />scheduler,
 		simpleMenu: calendarsMenu,
 		strings: {
-			emptyMessage: '<liferay-ui:message key="no-pending-invites" />'
-		}
+			emptyMessage: '<liferay-ui:message key="no-pending-invites" />',
+		},
 	}).render();
 
 	window.<portlet:namespace />calendarListAccepted = new Liferay.CalendarList({
 		after: {
-			calendarsChange: function(event) {
+			calendarsChange: function (event) {
 				var instance = this;
 
 				A.one('#<portlet:namespace />acceptedCounter').html(
@@ -698,22 +705,22 @@ while (manageableCalendarsIterator.hasNext()) {
 
 				scheduler.load();
 			},
-			'scheduler-calendar:visibleChange': syncCalendarsMap
+			'scheduler-calendar:visibleChange': syncCalendarsMap,
 		},
 		boundingBox: '#<portlet:namespace />calendarListAccepted',
 		calendars: <%= acceptedCalendarsJSONArray %>,
 		scheduler: <portlet:namespace />scheduler,
 		simpleMenu: calendarsMenu,
 		strings: {
-			emptyMessage: '<liferay-ui:message key="no-accepted-invites" />'
-		}
+			emptyMessage: '<liferay-ui:message key="no-accepted-invites" />',
+		},
 	}).render();
 
 	window.<portlet:namespace />reinvitableCalendarIds = [];
 
 	window.<portlet:namespace />calendarListDeclined = new Liferay.CalendarList({
 		after: {
-			calendarRemoved: function(event) {
+			calendarRemoved: function (event) {
 				var calendar = event.calendar;
 
 				if (calendar) {
@@ -724,7 +731,7 @@ while (manageableCalendarsIterator.hasNext()) {
 					);
 				}
 			},
-			calendarsChange: function(event) {
+			calendarsChange: function (event) {
 				var instance = this;
 
 				A.one('#<portlet:namespace />declinedCounter').html(
@@ -735,21 +742,21 @@ while (manageableCalendarsIterator.hasNext()) {
 
 				scheduler.load();
 			},
-			'scheduler-calendar:visibleChange': syncCalendarsMap
+			'scheduler-calendar:visibleChange': syncCalendarsMap,
 		},
 		boundingBox: '#<portlet:namespace />calendarListDeclined',
 		calendars: <%= declinedCalendarsJSONArray %>,
 		scheduler: <portlet:namespace />scheduler,
 		simpleMenu: calendarsMenu,
 		strings: {
-			emptyMessage: '<liferay-ui:message key="no-declined-invites" />'
-		}
+			emptyMessage: '<liferay-ui:message key="no-declined-invites" />',
+		},
 	}).render();
 
 	<c:if test="<%= calendarBooking != null %>">
 		window.<portlet:namespace />calendarListMaybe = new Liferay.CalendarList({
 			after: {
-				calendarsChange: function(event) {
+				calendarsChange: function (event) {
 					var instance = this;
 
 					A.one('#<portlet:namespace />maybeCounter').html(
@@ -760,15 +767,15 @@ while (manageableCalendarsIterator.hasNext()) {
 
 					scheduler.load();
 				},
-				'scheduler-calendar:visibleChange': syncCalendarsMap
+				'scheduler-calendar:visibleChange': syncCalendarsMap,
 			},
 			boundingBox: '#<portlet:namespace />calendarListMaybe',
 			calendars: <%= maybeCalendarsJSONArray %>,
 			scheduler: <portlet:namespace />scheduler,
 			simpleMenu: calendarsMenu,
 			strings: {
-				emptyMessage: '<liferay-ui:message key="no-outstanding-invites" />'
-			}
+				emptyMessage: '<liferay-ui:message key="no-outstanding-invites" />',
+			},
 		}).render();
 	</c:if>
 
@@ -777,7 +784,7 @@ while (manageableCalendarsIterator.hasNext()) {
 	new Liferay.DatePickerSanitizer({
 		datePickers: [
 			Liferay.component('<portlet:namespace />endTimeDatePicker'),
-			Liferay.component('<portlet:namespace />endTimeDatePicker')
+			Liferay.component('<portlet:namespace />endTimeDatePicker'),
 		],
 		defaultDate: new Date(
 			<%= endTimeYear %>,
@@ -787,7 +794,7 @@ while (manageableCalendarsIterator.hasNext()) {
 			<%= endTimeMinute %>
 		),
 		maximumDate: new Date(2099, 11, 31, 23, 59, 59, 999),
-		minimumDate: new Date(0)
+		minimumDate: new Date(0),
 	});
 
 	var intervalSelector = new Liferay.IntervalSelector({
@@ -800,7 +807,7 @@ while (manageableCalendarsIterator.hasNext()) {
 		),
 		startTimePicker: Liferay.component(
 			'<portlet:namespace />startTimeTimeTimePicker'
-		)
+		),
 	});
 
 	var placeholderSchedulerEvent = new Liferay.SchedulerEvent({
@@ -825,15 +832,15 @@ while (manageableCalendarsIterator.hasNext()) {
 			<%= startTimeDay %>,
 			<%= startTimeHour %>,
 			<%= startTimeMinute %>
-		)
+		),
 	});
 
 	new Liferay.IntervalSelectorSchedulerEventLink({
 		intervalSelector: intervalSelector,
-		schedulerEvent: placeholderSchedulerEvent
+		schedulerEvent: placeholderSchedulerEvent,
 	});
 
-	scheduler.after('*:load', function(event) {
+	scheduler.after('*:load', function (event) {
 		scheduler.addEvents(placeholderSchedulerEvent);
 
 		scheduler.syncEventsUI();
@@ -843,12 +850,12 @@ while (manageableCalendarsIterator.hasNext()) {
 		var manageableCalendars = {};
 
 		<%= CalendarUtil.toCalendarsJSONArray(themeDisplay, manageableCalendars) %>.forEach(
-			function(item, index) {
+			function (item, index) {
 				manageableCalendars[item.calendarId] = item;
 			}
 		);
 
-		A.one('#<portlet:namespace />calendarId').on('valueChange', function(event) {
+		A.one('#<portlet:namespace />calendarId').on('valueChange', function (event) {
 			var calendarId = parseInt(event.target.val(), 10);
 
 			var calendar = manageableCalendars[calendarId];
@@ -861,8 +868,8 @@ while (manageableCalendarsIterator.hasNext()) {
 					<portlet:namespace />calendarListMaybe,
 				</c:if>
 
-				<portlet:namespace />calendarListPending
-			].forEach(function(calendarList) {
+				<portlet:namespace />calendarListPending,
+			].forEach(function (calendarList) {
 				calendarList.remove(calendarList.getCalendar(calendarId));
 				calendarList.remove(calendarList.getCalendar(defaultCalendarId));
 			});
@@ -879,7 +886,8 @@ while (manageableCalendarsIterator.hasNext()) {
 				A.one('#<portlet:namespace />publishButton').setContent(
 					'<%= HtmlUtil.escapeJS(LanguageUtil.get(request, "submit-for-publication")) %>'
 				);
-			} else {
+			}
+			else {
 				A.one('#<portlet:namespace />approvalProcessAlert').toggleClass(
 					'hide',
 					true
@@ -897,7 +905,7 @@ while (manageableCalendarsIterator.hasNext()) {
 		calendarContainer.createCalendarsAutoComplete(
 			'<%= calendarResourcesURL %>',
 			inviteResourcesInput,
-			function(event) {
+			function (event) {
 				var calendar = event.result.raw;
 
 				calendar.disabled = true;
@@ -908,7 +916,7 @@ while (manageableCalendarsIterator.hasNext()) {
 			}
 		);
 
-		var addToList = function(calendar) {
+		var addToList = function (calendar) {
 			if (
 				calendar.classNameId ==
 				<%= ClassNameLocalServiceUtil.getClassNameId(CalendarResource.class) %>
@@ -921,15 +929,17 @@ while (manageableCalendarsIterator.hasNext()) {
 					calendar.calendarId,
 					placeholderSchedulerEvent.get('startDate'),
 					placeholderSchedulerEvent.get('endDate'),
-					function(result) {
+					function (result) {
 						if (result) {
 							<portlet:namespace />calendarListDeclined.add(calendar);
-						} else {
+						}
+						else {
 							<portlet:namespace />calendarListPending.add(calendar);
 						}
 					}
 				);
-			} else {
+			}
+			else {
 				<portlet:namespace />calendarListPending.add(calendar);
 			}
 		};
@@ -941,13 +951,13 @@ while (manageableCalendarsIterator.hasNext()) {
 		values: [
 			{
 				interval: <%= firstReminder %>,
-				type: '<%= HtmlUtil.escapeJS(firstReminderType) %>'
+				type: '<%= HtmlUtil.escapeJS(firstReminderType) %>',
 			},
 			{
 				interval: <%= secondReminder %>,
-				type: '<%= HtmlUtil.escapeJS(secondReminderType) %>'
-			}
-		]
+				type: '<%= HtmlUtil.escapeJS(secondReminderType) %>',
+			},
+		],
 	});
 
 	var allDayCheckbox = A.one('#<portlet:namespace />allDay');
@@ -963,7 +973,7 @@ while (manageableCalendarsIterator.hasNext()) {
 	A.one('#<portlet:namespace />endTime').set('maxLength', maxLength);
 	A.one('#<portlet:namespace />startTime').set('maxLength', maxLength);
 
-	allDayCheckbox.after('click', function() {
+	allDayCheckbox.after('click', function () {
 		var endDateContainer = A.one('#<portlet:namespace />endDateContainer');
 		var startDateContainer = A.one('#<portlet:namespace />startDateContainer');
 
@@ -981,7 +991,8 @@ while (manageableCalendarsIterator.hasNext()) {
 			startTimeMinutes = 0;
 			endTimeHours = 23;
 			endTimeMinutes = 59;
-		} else {
+		}
+		else {
 			placeholderSchedulerEvent.set('allDay', false);
 
 			endDateContainer.show();
@@ -1005,7 +1016,7 @@ while (manageableCalendarsIterator.hasNext()) {
 		scheduler.syncEventsUI();
 	});
 
-	var updateTimePickersValues = function(
+	var updateTimePickersValues = function (
 		startTimeHours,
 		startTimeMinutes,
 		endTimeHours,

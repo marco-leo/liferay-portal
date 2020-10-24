@@ -59,6 +59,16 @@ public class RatingSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (rating.getActions() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"actions\": ");
+
+			sb.append(_toJSON(rating.getActions()));
+		}
+
 		if (rating.getBestRating() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -158,6 +168,13 @@ public class RatingSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (rating.getActions() == null) {
+			map.put("actions", null);
+		}
+		else {
+			map.put("actions", String.valueOf(rating.getActions()));
+		}
+
 		if (rating.getBestRating() == null) {
 			map.put("bestRating", null);
 		}
@@ -172,13 +189,23 @@ public class RatingSerDes {
 			map.put("creator", String.valueOf(rating.getCreator()));
 		}
 
-		map.put(
-			"dateCreated",
-			liferayToJSONDateFormat.format(rating.getDateCreated()));
+		if (rating.getDateCreated() == null) {
+			map.put("dateCreated", null);
+		}
+		else {
+			map.put(
+				"dateCreated",
+				liferayToJSONDateFormat.format(rating.getDateCreated()));
+		}
 
-		map.put(
-			"dateModified",
-			liferayToJSONDateFormat.format(rating.getDateModified()));
+		if (rating.getDateModified() == null) {
+			map.put("dateModified", null);
+		}
+		else {
+			map.put(
+				"dateModified",
+				liferayToJSONDateFormat.format(rating.getDateModified()));
+		}
 
 		if (rating.getId() == null) {
 			map.put("id", null);
@@ -221,7 +248,13 @@ public class RatingSerDes {
 			Rating rating, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "bestRating")) {
+			if (Objects.equals(jsonParserFieldName, "actions")) {
+				if (jsonParserFieldValue != null) {
+					rating.setActions(
+						(Map)RatingSerDes.toMap((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "bestRating")) {
 				if (jsonParserFieldValue != null) {
 					rating.setBestRating(
 						Double.valueOf((String)jsonParserFieldValue));
@@ -261,9 +294,8 @@ public class RatingSerDes {
 						Double.valueOf((String)jsonParserFieldValue));
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -319,10 +351,13 @@ public class RatingSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

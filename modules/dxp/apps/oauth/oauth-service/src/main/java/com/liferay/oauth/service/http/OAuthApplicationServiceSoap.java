@@ -57,8 +57,10 @@ import java.rmi.RemoteException;
  *
  * @author Ivica Cardic
  * @see OAuthApplicationServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class OAuthApplicationServiceSoap {
 
 	public static com.liferay.oauth.model.OAuthApplicationSoap
@@ -78,10 +80,10 @@ public class OAuthApplicationServiceSoap {
 			return com.liferay.oauth.model.OAuthApplicationSoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -91,10 +93,10 @@ public class OAuthApplicationServiceSoap {
 		try {
 			OAuthApplicationServiceUtil.deleteLogo(oAuthApplicationId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -110,10 +112,10 @@ public class OAuthApplicationServiceSoap {
 			return com.liferay.oauth.model.OAuthApplicationSoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -134,10 +136,10 @@ public class OAuthApplicationServiceSoap {
 			return com.liferay.oauth.model.OAuthApplicationSoap.toSoapModel(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

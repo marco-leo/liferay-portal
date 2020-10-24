@@ -1,6 +1,6 @@
 buildCSS {
 	imports = [
-		new File(npmInstall.nodeModulesDir, "clay-css/src/scss")
+		new File(npmInstall.nodeModulesDir, "@clayui/css/src/scss")
 	]
 }
 
@@ -11,4 +11,5 @@ dependencies {
 	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.3.0"
 	compileOnly group: "org.osgi", name: "osgi.core", version: "6.0.0"
 	compileOnly project(":apps:portal-url-builder:portal-url-builder-api")
+	compileOnly project(":core:petra:petra-string")
 }

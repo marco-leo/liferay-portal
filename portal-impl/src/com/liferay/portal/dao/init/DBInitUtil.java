@@ -16,6 +16,7 @@ package com.liferay.portal.dao.init;
 
 import com.liferay.petra.io.StreamUtil;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.db.partition.DBPartitionUtil;
 import com.liferay.portal.events.StartupHelperUtil;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManager;
@@ -51,8 +52,9 @@ public class DBInitUtil {
 	}
 
 	public static void init() throws Exception {
-		_dataSource = DataSourceFactoryUtil.initDataSource(
-			PropsUtil.getProperties("jdbc.default.", true));
+		_dataSource = DBPartitionUtil.wrapDataSource(
+			DataSourceFactoryUtil.initDataSource(
+				PropsUtil.getProperties("jdbc.default.", true)));
 
 		DB db = DBManagerUtil.getDB(
 			DBManagerUtil.getDBType(DialectDetector.getDialect(_dataSource)),
@@ -75,9 +77,9 @@ public class DBInitUtil {
 					"alter table Release_ add mvccVersion LONG default 0 not " +
 						"null");
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(e.getMessage());
+					_log.debug(exception.getMessage());
 				}
 			}
 
@@ -86,9 +88,9 @@ public class DBInitUtil {
 					connection,
 					"alter table Release_ add schemaVersion VARCHAR(75) null");
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(e.getMessage());
+					_log.debug(exception.getMessage());
 				}
 			}
 
@@ -149,13 +151,15 @@ public class DBInitUtil {
 
 			if (!rs.next()) {
 				_addReleaseInfo(connection);
+
+				StartupHelperUtil.setDbNew(true);
 			}
 
 			return true;
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(e.getMessage(), e);
+				_log.debug(exception.getMessage(), exception);
 			}
 		}
 
@@ -212,7 +216,7 @@ public class DBInitUtil {
 			StreamUtil.toString(
 				classLoader.getResourceAsStream(
 					"com/liferay/portal/tools/sql/dependencies/".concat(path))),
-			false, false);
+			false);
 	}
 
 	private static void _setSupportsStringCaseSensitiveQuery(

@@ -16,7 +16,6 @@ package com.liferay.dynamic.data.mapping.form.field.type.internal.grid;
 
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldValueValidationException;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldValueValidator;
-import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.Value;
@@ -27,6 +26,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
@@ -67,23 +67,27 @@ public class GridDDMFormFieldValueValidator
 				"Rows and columns must contain at least one alternative each");
 		}
 
-		DDMForm ddmForm = ddmFormField.getDDMForm();
+		if (value == null) {
+			return;
+		}
 
-		validateSelectedValue(
-			ddmFormField, rowValues, columnValues,
-			value.getString(ddmForm.getDefaultLocale()));
+		for (Locale availableLocale : value.getAvailableLocales()) {
+			validateSelectedValue(
+				ddmFormField, rowValues, columnValues,
+				value.getString(availableLocale));
+		}
 	}
 
 	protected JSONObject createJSONObject(String fieldName, String json) {
 		try {
 			return jsonFactory.createJSONObject(json);
 		}
-		catch (JSONException jsone) {
+		catch (JSONException jsonException) {
 
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(jsone, jsone);
+				_log.debug(jsonException, jsonException);
 			}
 
 			throw new IllegalStateException(
@@ -102,10 +106,10 @@ public class GridDDMFormFieldValueValidator
 		JSONObject jsonObject = createJSONObject(
 			ddmFormFieldName, selectedValues);
 
-		Iterator<String> keys = jsonObject.keys();
+		Iterator<String> iterator = jsonObject.keys();
 
-		while (keys.hasNext()) {
-			String key = keys.next();
+		while (iterator.hasNext()) {
+			String key = iterator.next();
 
 			String value = jsonObject.getString(key);
 

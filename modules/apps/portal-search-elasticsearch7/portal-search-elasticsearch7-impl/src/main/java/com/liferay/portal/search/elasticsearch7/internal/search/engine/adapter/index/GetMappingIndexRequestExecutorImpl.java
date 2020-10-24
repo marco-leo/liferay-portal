@@ -23,13 +23,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
-import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
+import org.elasticsearch.client.indices.GetMappingsRequest;
+import org.elasticsearch.client.indices.GetMappingsResponse;
+import org.elasticsearch.cluster.metadata.MappingMetadata;
 import org.elasticsearch.common.compress.CompressedXContent;
 
 import org.osgi.service.component.annotations.Component;
@@ -50,21 +49,16 @@ public class GetMappingIndexRequestExecutorImpl
 			getMappingIndexRequest);
 
 		GetMappingsResponse getMappingsResponse = getGetMappingsResponse(
-			getMappingsRequest);
+			getMappingsRequest, getMappingIndexRequest);
 
-		ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>>
-			mappings = getMappingsResponse.mappings();
+		Map<String, MappingMetadata> mappings = getMappingsResponse.mappings();
 
 		Map<String, String> indexMappings = new HashMap<>();
 
 		for (String indexName : getMappingIndexRequest.getIndexNames()) {
-			ImmutableOpenMap<String, MappingMetaData> indexMapping =
-				mappings.get(indexName);
+			MappingMetadata mappingMetadata = mappings.get(indexName);
 
-			MappingMetaData mappingMetaData = indexMapping.get(
-				getMappingIndexRequest.getMappingName());
-
-			CompressedXContent mappingContent = mappingMetaData.source();
+			CompressedXContent mappingContent = mappingMetadata.source();
 
 			indexMappings.put(indexName, mappingContent.toString());
 		}
@@ -78,16 +72,18 @@ public class GetMappingIndexRequestExecutorImpl
 		GetMappingsRequest getMappingsRequest = new GetMappingsRequest();
 
 		getMappingsRequest.indices(getMappingIndexRequest.getIndexNames());
-		getMappingsRequest.types(getMappingIndexRequest.getMappingName());
 
 		return getMappingsRequest;
 	}
 
 	protected GetMappingsResponse getGetMappingsResponse(
-		GetMappingsRequest getMappingsRequest) {
+		GetMappingsRequest getMappingsRequest,
+		GetMappingIndexRequest getMappingIndexRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				getMappingIndexRequest.getConnectionId(),
+				getMappingIndexRequest.isPreferLocalCluster());
 
 		IndicesClient indicesClient = restHighLevelClient.indices();
 
@@ -95,8 +91,8 @@ public class GetMappingIndexRequestExecutorImpl
 			return indicesClient.getMapping(
 				getMappingsRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

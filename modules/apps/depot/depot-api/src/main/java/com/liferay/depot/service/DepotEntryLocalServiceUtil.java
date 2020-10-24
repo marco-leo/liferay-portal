@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class DepotEntryLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.depot.service.impl.DepotEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -41,6 +41,10 @@ public class DepotEntryLocalServiceUtil {
 	/**
 	 * Adds the depot entry to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DepotEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param depotEntry the depot entry
 	 * @return the depot entry that was added
 	 */
@@ -48,6 +52,14 @@ public class DepotEntryLocalServiceUtil {
 		com.liferay.depot.model.DepotEntry depotEntry) {
 
 		return getService().addDepotEntry(depotEntry);
+	}
+
+	public static com.liferay.depot.model.DepotEntry addDepotEntry(
+			com.liferay.portal.kernel.model.Group group,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().addDepotEntry(group, serviceContext);
 	}
 
 	public static com.liferay.depot.model.DepotEntry addDepotEntry(
@@ -73,7 +85,21 @@ public class DepotEntryLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the depot entry from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DepotEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param depotEntry the depot entry
 	 * @return the depot entry that was removed
@@ -86,6 +112,10 @@ public class DepotEntryLocalServiceUtil {
 
 	/**
 	 * Deletes the depot entry with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DepotEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param depotEntryId the primary key of the depot entry
 	 * @return the depot entry that was removed
@@ -107,6 +137,12 @@ public class DepotEntryLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -213,6 +249,12 @@ public class DepotEntryLocalServiceUtil {
 		return getService().fetchDepotEntryByUuidAndGroupId(uuid, groupId);
 	}
 
+	public static com.liferay.depot.model.DepotEntry fetchGroupDepotEntry(
+		long groupId) {
+
+		return getService().fetchGroupDepotEntry(groupId);
+	}
+
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
 		getActionableDynamicQuery() {
 
@@ -307,12 +349,40 @@ public class DepotEntryLocalServiceUtil {
 		return getService().getDepotEntryByUuidAndGroupId(uuid, groupId);
 	}
 
+	public static java.util.List<com.liferay.depot.model.DepotEntry>
+		getDepotEntryGroupRelsByUuidAndCompanyId(String uuid, long companyId) {
+
+		return getService().getDepotEntryGroupRelsByUuidAndCompanyId(
+			uuid, companyId);
+	}
+
 	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery
 		getExportActionableDynamicQuery(
 			com.liferay.exportimport.kernel.lar.PortletDataContext
 				portletDataContext) {
 
 		return getService().getExportActionableDynamicQuery(portletDataContext);
+	}
+
+	public static java.util.List<com.liferay.depot.model.DepotEntry>
+			getGroupConnectedDepotEntries(
+				long groupId, boolean ddmStructuresAvailable, int start,
+				int end)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().getGroupConnectedDepotEntries(
+			groupId, ddmStructuresAvailable, start, end);
+	}
+
+	public static java.util.List<com.liferay.depot.model.DepotEntry>
+			getGroupConnectedDepotEntries(long groupId, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().getGroupConnectedDepotEntries(groupId, start, end);
+	}
+
+	public static int getGroupConnectedDepotEntriesCount(long groupId) {
+		return getService().getGroupConnectedDepotEntriesCount(groupId);
 	}
 
 	public static com.liferay.depot.model.DepotEntry getGroupDepotEntry(
@@ -338,6 +408,9 @@ public class DepotEntryLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -347,6 +420,10 @@ public class DepotEntryLocalServiceUtil {
 
 	/**
 	 * Updates the depot entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DepotEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param depotEntry the depot entry
 	 * @return the depot entry that was updated
@@ -360,14 +437,15 @@ public class DepotEntryLocalServiceUtil {
 	public static com.liferay.depot.model.DepotEntry updateDepotEntry(
 			long depotEntryId, java.util.Map<java.util.Locale, String> nameMap,
 			java.util.Map<java.util.Locale, String> descriptionMap,
+			java.util.Map<String, Boolean> depotAppCustomizationMap,
 			com.liferay.portal.kernel.util.UnicodeProperties
-				typeSettingsProperties,
+				typeSettingsUnicodeProperties,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().updateDepotEntry(
-			depotEntryId, nameMap, descriptionMap, typeSettingsProperties,
-			serviceContext);
+			depotEntryId, nameMap, descriptionMap, depotAppCustomizationMap,
+			typeSettingsUnicodeProperties, serviceContext);
 	}
 
 	public static DepotEntryLocalService getService() {

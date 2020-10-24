@@ -21,12 +21,13 @@ import com.liferay.fragment.web.internal.security.permission.resource.FragmentPe
 import com.liferay.fragment.web.internal.servlet.taglib.util.BasicFragmentEntryActionDropdownItemsProvider;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItem;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItemList;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItemListBuilder;
 import com.liferay.portal.kernel.dao.search.RowChecker;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.Date;
 import java.util.List;
@@ -65,9 +66,9 @@ public class BasicFragmentEntryVerticalCard extends FragmentEntryVerticalCard {
 			return basicFragmentEntryActionDropdownItemsProvider.
 				getActionDropdownItems();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
+				_log.debug(exception, exception);
 			}
 		}
 
@@ -107,13 +108,20 @@ public class BasicFragmentEntryVerticalCard extends FragmentEntryVerticalCard {
 
 	@Override
 	public List<LabelItem> getLabels() {
-		return new LabelItemList() {
-			{
-				add(
-					labelItem -> labelItem.setStatus(
-						fragmentEntry.getStatus()));
-			}
-		};
+		if (fragmentEntry.isApproved() &&
+			(fragmentEntry.fetchDraftFragmentEntry() != null)) {
+
+			return LabelItemListBuilder.add(
+				labelItem -> labelItem.setStatus(
+					WorkflowConstants.STATUS_APPROVED)
+			).add(
+				labelItem -> labelItem.setStatus(WorkflowConstants.STATUS_DRAFT)
+			).build();
+		}
+
+		return LabelItemListBuilder.add(
+			labelItem -> labelItem.setStatus(fragmentEntry.getStatus())
+		).build();
 	}
 
 	@Override

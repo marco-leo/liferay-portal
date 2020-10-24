@@ -33,11 +33,6 @@ public class ReadingTimeEntryLocalServiceWrapper
 		_readingTimeEntryLocalService = readingTimeEntryLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link ReadingTimeEntryLocalServiceUtil} to access the reading time entry local service. Add custom service methods to <code>com.liferay.reading.time.service.impl.ReadingTimeEntryLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.reading.time.model.ReadingTimeEntry addReadingTimeEntry(
 		com.liferay.portal.kernel.model.GroupedModel groupedModel,
@@ -59,6 +54,10 @@ public class ReadingTimeEntryLocalServiceWrapper
 	/**
 	 * Adds the reading time entry to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ReadingTimeEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param readingTimeEntry the reading time entry
 	 * @return the reading time entry that was added
 	 */
@@ -68,6 +67,18 @@ public class ReadingTimeEntryLocalServiceWrapper
 
 		return _readingTimeEntryLocalService.addReadingTimeEntry(
 			readingTimeEntry);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _readingTimeEntryLocalService.createPersistedModel(
+			primaryKeyObj);
 	}
 
 	/**
@@ -108,6 +119,10 @@ public class ReadingTimeEntryLocalServiceWrapper
 	/**
 	 * Deletes the reading time entry with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ReadingTimeEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param readingTimeEntryId the primary key of the reading time entry
 	 * @return the reading time entry that was removed
 	 * @throws PortalException if a reading time entry with the primary key could not be found
@@ -132,6 +147,10 @@ public class ReadingTimeEntryLocalServiceWrapper
 	/**
 	 * Deletes the reading time entry from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ReadingTimeEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param readingTimeEntry the reading time entry
 	 * @return the reading time entry that was removed
 	 */
@@ -142,6 +161,11 @@ public class ReadingTimeEntryLocalServiceWrapper
 
 		return _readingTimeEntryLocalService.deleteReadingTimeEntry(
 			readingTimeEntry);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _readingTimeEntryLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -319,6 +343,9 @@ public class ReadingTimeEntryLocalServiceWrapper
 		return _readingTimeEntryLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -447,6 +474,10 @@ public class ReadingTimeEntryLocalServiceWrapper
 
 	/**
 	 * Updates the reading time entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ReadingTimeEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param readingTimeEntry the reading time entry
 	 * @return the reading time entry that was updated

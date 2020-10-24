@@ -16,6 +16,7 @@ package com.liferay.portal.kernel.service.persistence;
 
 import com.liferay.portal.kernel.exception.NoSuchSystemEventException;
 import com.liferay.portal.kernel.model.SystemEvent;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -31,9 +32,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface SystemEventPersistence extends BasePersistence<SystemEvent> {
+public interface SystemEventPersistence
+	extends BasePersistence<SystemEvent>, CTPersistence<SystemEvent> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link SystemEventUtil} to access the system event persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

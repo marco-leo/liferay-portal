@@ -19,6 +19,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -44,6 +46,7 @@ public class JournalContentSearchWrapper
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
 		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("contentSearchId", getContentSearchId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -61,6 +64,12 @@ public class JournalContentSearchWrapper
 
 		if (mvccVersion != null) {
 			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
 		}
 
 		Long contentSearchId = (Long)attributes.get("contentSearchId");
@@ -137,6 +146,16 @@ public class JournalContentSearchWrapper
 	}
 
 	/**
+	 * Returns the ct collection ID of this journal content search.
+	 *
+	 * @return the ct collection ID of this journal content search
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
+	}
+
+	/**
 	 * Returns the group ID of this journal content search.
 	 *
 	 * @return the group ID of this journal content search
@@ -206,11 +225,6 @@ public class JournalContentSearchWrapper
 		return model.isPrivateLayout();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a journal content search model instance should use the <code>JournalContentSearch</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -244,6 +258,16 @@ public class JournalContentSearchWrapper
 	@Override
 	public void setContentSearchId(long contentSearchId) {
 		model.setContentSearchId(contentSearchId);
+	}
+
+	/**
+	 * Sets the ct collection ID of this journal content search.
+	 *
+	 * @param ctCollectionId the ct collection ID of this journal content search
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -304,6 +328,20 @@ public class JournalContentSearchWrapper
 	@Override
 	public void setPrivateLayout(boolean privateLayout) {
 		model.setPrivateLayout(privateLayout);
+	}
+
+	@Override
+	public Map<String, Function<JournalContentSearch, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<JournalContentSearch, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

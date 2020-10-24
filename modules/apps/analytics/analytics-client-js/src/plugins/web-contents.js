@@ -12,27 +12,27 @@
  * details.
  */
 
-import {getClosestAssetElement, getNumberOfWords} from '../utils/assets';
-import {onReady} from '../utils/events.js';
+import {getNumberOfWords} from '../utils/assets';
+import {clickEvent, onReady} from '../utils/events';
 
 const applicationId = 'WebContent';
 
 /**
  * Returns analytics payload with WebContent information.
- * @param {object} webContent The webContent DOM element
- * @return {object} The payload with webContent information
+ * @param {Object} webContent The webContent DOM element
+ * @returns {Object} The payload with webContent information
  */
 function getWebContentPayload(webContent) {
 	const {dataset} = webContent;
 
 	let payload = {
-		articleId: dataset.analyticsAssetId
+		articleId: dataset.analyticsAssetId,
 	};
 
 	if (dataset.analyticsAssetTitle) {
 		payload = {
 			...payload,
-			title: dataset.analyticsAssetTitle
+			title: dataset.analyticsAssetTitle,
 		};
 	}
 
@@ -41,8 +41,8 @@ function getWebContentPayload(webContent) {
 
 /**
  * Wether a WebContent is trackable or not.
- * @param {object} element The WebContent DOM element
- * @return {boolean} True if the element is trackable.
+ * @param {Object} element The WebContent DOM element
+ * @returns {boolean} True if the element is trackable.
  */
 function isTrackableWebContent(element) {
 	return element && 'analyticsAssetId' in element.dataset;
@@ -50,41 +50,22 @@ function isTrackableWebContent(element) {
 
 /**
  * Sends information when user clicks on a Web Content.
- * @param {object} The Analytics client instance
+ * @param {Object} The Analytics client instance
  */
 function trackWebContentClicked(analytics) {
-	const onClick = ({target}) => {
-		const webContentElement = getClosestAssetElement(target, 'web-content');
-
-		if (!isTrackableWebContent(webContentElement)) {
-			return;
-		}
-
-		const tagName = target.tagName.toLowerCase();
-
-		const payload = {
-			...getWebContentPayload(webContentElement),
-			tagName
-		};
-
-		if (tagName === 'a') {
-			payload.href = target.href;
-			payload.text = target.innerText;
-		} else if (tagName === 'img') {
-			payload.src = target.src;
-		}
-
-		analytics.send('webContentClicked', applicationId, payload);
-	};
-
-	document.addEventListener('click', onClick);
-
-	return () => document.removeEventListener('click', onClick);
+	return clickEvent({
+		analytics,
+		applicationId,
+		eventType: 'webContentClicked',
+		getPayload: getWebContentPayload,
+		isTrackable: isTrackableWebContent,
+		type: 'web-content',
+	});
 }
 
 /**
  * Sends information when user scrolls on a WebContent.
- * @param {object} The Analytics client instance
+ * @param {Object} The Analytics client instance
  */
 function trackWebContentViewed(analytics) {
 	const stopTrackingOnReady = onReady(() => {
@@ -94,26 +75,27 @@ function trackWebContentViewed(analytics) {
 					'[data-analytics-asset-type="web-content"]'
 				)
 			)
-			.filter(element => isTrackableWebContent(element))
-			.forEach(element => {
+			.filter((element) => isTrackableWebContent(element))
+			.forEach((element) => {
 				const numberOfWords = getNumberOfWords(element);
 
 				let payload = getWebContentPayload(element);
 
 				payload = {
 					...payload,
-					numberOfWords
+					numberOfWords,
 				};
 
 				analytics.send('webContentViewed', applicationId, payload);
 			});
 	});
+
 	return () => stopTrackingOnReady();
 }
 
 /**
  * Plugin function that registers listeners for Web Content events
- * @param {object} analytics The Analytics client
+ * @param {Object} analytics The Analytics client
  */
 function webContent(analytics) {
 	const stopTrackingWebContentClicked = trackWebContentClicked(analytics);

@@ -105,30 +105,33 @@ public class MBMessageModelDocumentContributor
 		}
 
 		document.addKeyword("threadId", mbMessage.getThreadId());
+		document.addKeywordSortable("urlSubject", mbMessage.getUrlSubject());
 
-		if (mbMessage.isDiscussion()) {
-			List<RelatedEntryIndexer> relatedEntryIndexers =
-				RelatedEntryIndexerRegistryUtil.getRelatedEntryIndexers(
-					mbMessage.getClassName());
+		if (!mbMessage.isDiscussion()) {
+			return;
+		}
 
-			if (relatedEntryIndexers != null) {
-				for (RelatedEntryIndexer relatedEntryIndexer :
-						relatedEntryIndexers) {
+		List<RelatedEntryIndexer> relatedEntryIndexers =
+			RelatedEntryIndexerRegistryUtil.getRelatedEntryIndexers(
+				mbMessage.getClassName());
 
-					Comment comment = commentManager.fetchComment(
-						mbMessage.getMessageId());
+		if (relatedEntryIndexers != null) {
+			for (RelatedEntryIndexer relatedEntryIndexer :
+					relatedEntryIndexers) {
 
-					if (comment != null) {
-						try {
-							relatedEntryIndexer.addRelatedEntryFields(
-								document, comment);
-						}
-						catch (Exception e) {
-							throw new SystemException(e);
-						}
+				Comment comment = commentManager.fetchComment(
+					mbMessage.getMessageId());
 
-						document.addKeyword(Field.RELATED_ENTRY, true);
+				if (comment != null) {
+					try {
+						relatedEntryIndexer.addRelatedEntryFields(
+							document, comment);
 					}
+					catch (Exception exception) {
+						throw new SystemException(exception);
+					}
+
+					document.addKeyword(Field.RELATED_ENTRY, true);
 				}
 			}
 		}
@@ -142,17 +145,15 @@ public class MBMessageModelDocumentContributor
 				content = BBCodeTranslatorUtil.getHTML(content);
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			_log.error(
 				StringBundler.concat(
 					"Unable to parse message ", message.getMessageId(), ": ",
-					e.getMessage()),
-				e);
+					exception.getMessage()),
+				exception);
 		}
 
-		content = HtmlUtil.extractText(content);
-
-		return content;
+		return HtmlUtil.extractText(content);
 	}
 
 	@Reference

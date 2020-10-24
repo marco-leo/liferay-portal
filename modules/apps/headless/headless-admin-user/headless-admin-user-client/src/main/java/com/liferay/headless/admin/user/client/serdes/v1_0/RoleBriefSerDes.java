@@ -77,6 +77,16 @@ public class RoleBriefSerDes {
 			sb.append("\"");
 		}
 
+		if (roleBrief.getName_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"name_i18n\": ");
+
+			sb.append(_toJSON(roleBrief.getName_i18n()));
+		}
+
 		sb.append("}");
 
 		return sb.toString();
@@ -109,6 +119,13 @@ public class RoleBriefSerDes {
 			map.put("name", String.valueOf(roleBrief.getName()));
 		}
 
+		if (roleBrief.getName_i18n() == null) {
+			map.put("name_i18n", null);
+		}
+		else {
+			map.put("name_i18n", String.valueOf(roleBrief.getName_i18n()));
+		}
+
 		return map;
 	}
 
@@ -139,9 +156,15 @@ public class RoleBriefSerDes {
 					roleBrief.setName((String)jsonParserFieldValue);
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (Objects.equals(jsonParserFieldName, "name_i18n")) {
+				if (jsonParserFieldValue != null) {
+					roleBrief.setName_i18n(
+						(Map)RoleBriefSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -197,10 +220,13 @@ public class RoleBriefSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

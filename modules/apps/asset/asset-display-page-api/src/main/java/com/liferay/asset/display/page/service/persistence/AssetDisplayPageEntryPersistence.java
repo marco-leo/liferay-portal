@@ -17,6 +17,7 @@ package com.liferay.asset.display.page.service.persistence;
 import com.liferay.asset.display.page.exception.NoSuchDisplayPageEntryException;
 import com.liferay.asset.display.page.model.AssetDisplayPageEntry;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -33,9 +34,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface AssetDisplayPageEntryPersistence
-	extends BasePersistence<AssetDisplayPageEntry> {
+	extends BasePersistence<AssetDisplayPageEntry>,
+			CTPersistence<AssetDisplayPageEntry> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link AssetDisplayPageEntryUtil} to access the asset display page entry persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

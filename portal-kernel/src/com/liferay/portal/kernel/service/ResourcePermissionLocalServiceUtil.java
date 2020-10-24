@@ -30,16 +30,10 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class ResourcePermissionLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.ResourcePermissionLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link ResourcePermissionLocalServiceUtil} to access the resource permission local service. Add custom service methods to <code>com.liferay.portal.service.impl.ResourcePermissionLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static void addModelResourcePermissions(
 			com.liferay.portal.kernel.model.AuditedModel auditedModel,
@@ -133,6 +127,10 @@ public class ResourcePermissionLocalServiceUtil {
 	/**
 	 * Adds the resource permission to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ResourcePermissionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param resourcePermission the resource permission
 	 * @return the resource permission that was added
 	 */
@@ -207,6 +205,16 @@ public class ResourcePermissionLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Creates a new resource permission with the primary key. Does not add the resource permission to the database.
 	 *
 	 * @param resourcePermissionId the primary key for the new resource permission
@@ -232,6 +240,10 @@ public class ResourcePermissionLocalServiceUtil {
 	/**
 	 * Deletes the resource permission with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ResourcePermissionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param resourcePermissionId the primary key of the resource permission
 	 * @return the resource permission that was removed
 	 * @throws PortalException if a resource permission with the primary key could not be found
@@ -245,6 +257,10 @@ public class ResourcePermissionLocalServiceUtil {
 
 	/**
 	 * Deletes the resource permission from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ResourcePermissionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param resourcePermission the resource permission
 	 * @return the resource permission that was removed
@@ -311,6 +327,12 @@ public class ResourcePermissionLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		getService().deleteResourcePermissions(companyId, name, scope, primKey);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -459,6 +481,14 @@ public class ResourcePermissionLocalServiceUtil {
 		return getService().getIndexableActionableDynamicQuery();
 	}
 
+	public static java.util.Map
+		<String,
+		 java.util.List<com.liferay.portal.kernel.model.ResourcePermission>>
+			getIndividualPortletResourcePermissions(long companyId) {
+
+		return getService().getIndividualPortletResourcePermissions(companyId);
+	}
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -468,6 +498,9 @@ public class ResourcePermissionLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -1002,6 +1035,10 @@ public class ResourcePermissionLocalServiceUtil {
 
 	/**
 	 * Updates the resource permission in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ResourcePermissionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param resourcePermission the resource permission
 	 * @return the resource permission that was updated

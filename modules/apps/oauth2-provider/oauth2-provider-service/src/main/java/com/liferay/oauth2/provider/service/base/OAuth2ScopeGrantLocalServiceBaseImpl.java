@@ -16,9 +16,11 @@ package com.liferay.oauth2.provider.service.base;
 
 import com.liferay.oauth2.provider.model.OAuth2ScopeGrant;
 import com.liferay.oauth2.provider.service.OAuth2ScopeGrantLocalService;
+import com.liferay.oauth2.provider.service.persistence.OAuth2AuthorizationFinder;
 import com.liferay.oauth2.provider.service.persistence.OAuth2AuthorizationPersistence;
 import com.liferay.oauth2.provider.service.persistence.OAuth2ScopeGrantFinder;
 import com.liferay.oauth2.provider.service.persistence.OAuth2ScopeGrantPersistence;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -38,6 +40,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -66,7 +69,7 @@ public abstract class OAuth2ScopeGrantLocalServiceBaseImpl
 	implements AopService, IdentifiableOSGiService,
 			   OAuth2ScopeGrantLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>OAuth2ScopeGrantLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.oauth2.provider.service.OAuth2ScopeGrantLocalServiceUtil</code>.
@@ -74,6 +77,10 @@ public abstract class OAuth2ScopeGrantLocalServiceBaseImpl
 
 	/**
 	 * Adds the o auth2 scope grant to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ScopeGrantLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2ScopeGrant the o auth2 scope grant
 	 * @return the o auth2 scope grant that was added
@@ -103,6 +110,10 @@ public abstract class OAuth2ScopeGrantLocalServiceBaseImpl
 	/**
 	 * Deletes the o auth2 scope grant with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ScopeGrantLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param oAuth2ScopeGrantId the primary key of the o auth2 scope grant
 	 * @return the o auth2 scope grant that was removed
 	 * @throws PortalException if a o auth2 scope grant with the primary key could not be found
@@ -118,6 +129,10 @@ public abstract class OAuth2ScopeGrantLocalServiceBaseImpl
 	/**
 	 * Deletes the o auth2 scope grant from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ScopeGrantLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param oAuth2ScopeGrant the o auth2 scope grant
 	 * @return the o auth2 scope grant that was removed
 	 */
@@ -127,6 +142,11 @@ public abstract class OAuth2ScopeGrantLocalServiceBaseImpl
 		OAuth2ScopeGrant oAuth2ScopeGrant) {
 
 		return oAuth2ScopeGrantPersistence.remove(oAuth2ScopeGrant);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return oAuth2ScopeGrantPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -284,6 +304,17 @@ public abstract class OAuth2ScopeGrantLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return oAuth2ScopeGrantPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -291,6 +322,14 @@ public abstract class OAuth2ScopeGrantLocalServiceBaseImpl
 			(OAuth2ScopeGrant)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<OAuth2ScopeGrant> getBasePersistence() {
+		return oAuth2ScopeGrantPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -326,6 +365,10 @@ public abstract class OAuth2ScopeGrantLocalServiceBaseImpl
 
 	/**
 	 * Updates the o auth2 scope grant in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuth2ScopeGrantLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuth2ScopeGrant the o auth2 scope grant
 	 * @return the o auth2 scope grant that was updated
@@ -563,8 +606,8 @@ public abstract class OAuth2ScopeGrantLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -582,5 +625,8 @@ public abstract class OAuth2ScopeGrantLocalServiceBaseImpl
 
 	@Reference
 	protected OAuth2AuthorizationPersistence oAuth2AuthorizationPersistence;
+
+	@Reference
+	protected OAuth2AuthorizationFinder oAuth2AuthorizationFinder;
 
 }

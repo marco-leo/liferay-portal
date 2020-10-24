@@ -68,12 +68,12 @@ public class PreviewSegmentsEntryUsersDisplayContext {
 			WebKeys.THEME_DISPLAY);
 	}
 
-	public SearchContainer getSearchContainer() {
+	public SearchContainer<User> getSearchContainer() {
 		if (_userSearchContainer != null) {
 			return _userSearchContainer;
 		}
 
-		SearchContainer userSearchContainer = new SearchContainer(
+		SearchContainer<User> userSearchContainer = new SearchContainer(
 			_renderRequest, getPortletURL(), null,
 			"no-users-have-been-assigned-to-this-segment");
 
@@ -118,10 +118,10 @@ public class PreviewSegmentsEntryUsersDisplayContext {
 						userSearchContainer.getStart(),
 						userSearchContainer.getEnd());
 
-				LongStream segmentsEntryClassPKsStream = Arrays.stream(
+				LongStream segmentsEntryClassPKsLongStream = Arrays.stream(
 					segmentsEntryClassPKs);
 
-				users = segmentsEntryClassPKsStream.boxed(
+				users = segmentsEntryClassPKsLongStream.boxed(
 				).map(
 					userId -> _userLocalService.fetchUser(userId)
 				).collect(
@@ -129,10 +129,11 @@ public class PreviewSegmentsEntryUsersDisplayContext {
 				);
 			}
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
-					"Unable to obtain a preview of the segment users", pe);
+					"Unable to obtain a preview of the segment users",
+					portalException);
 			}
 		}
 
@@ -147,8 +148,13 @@ public class PreviewSegmentsEntryUsersDisplayContext {
 	protected Criteria getCriteriaFromSession() {
 		PortletSession portletSession = _renderRequest.getPortletSession();
 
-		return (Criteria)portletSession.getAttribute(
+		Criteria criteria = (Criteria)portletSession.getAttribute(
 			SegmentsWebKeys.PREVIEW_SEGMENTS_ENTRY_CRITERIA);
+
+		portletSession.removeAttribute(
+			SegmentsWebKeys.PREVIEW_SEGMENTS_ENTRY_CRITERIA);
+
+		return criteria;
 	}
 
 	protected PortletURL getPortletURL() {
@@ -181,9 +187,10 @@ public class PreviewSegmentsEntryUsersDisplayContext {
 				_segmentsEntry = _segmentsEntryService.getSegmentsEntry(
 					segmentsEntryId);
 			}
-			catch (PortalException pe) {
+			catch (PortalException portalException) {
 				_log.error(
-					"Unable to get segment entry " + segmentsEntryId, pe);
+					"Unable to get segment entry " + segmentsEntryId,
+					portalException);
 
 				return null;
 			}
@@ -204,6 +211,6 @@ public class PreviewSegmentsEntryUsersDisplayContext {
 	private final ThemeDisplay _themeDisplay;
 	private final UserLocalService _userLocalService;
 	private final ODataRetriever<User> _userODataRetriever;
-	private SearchContainer _userSearchContainer;
+	private SearchContainer<User> _userSearchContainer;
 
 }

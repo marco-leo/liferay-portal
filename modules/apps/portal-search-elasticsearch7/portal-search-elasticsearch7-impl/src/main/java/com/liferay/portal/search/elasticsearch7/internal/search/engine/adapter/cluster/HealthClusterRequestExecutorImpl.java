@@ -14,9 +14,12 @@
 
 package com.liferay.portal.search.elasticsearch7.internal.search.engine.adapter.cluster;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.search.elasticsearch7.internal.connection.ElasticsearchClientResolver;
 import com.liferay.portal.search.engine.adapter.cluster.HealthClusterRequest;
 import com.liferay.portal.search.engine.adapter.cluster.HealthClusterResponse;
+
+import java.io.IOException;
 
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
@@ -44,7 +47,7 @@ public class HealthClusterRequestExecutorImpl
 			healthClusterRequest);
 
 		ClusterHealthResponse clusterHealthResponse = getClusterHealthResponse(
-			clusterHealthRequest);
+			clusterHealthRequest, healthClusterRequest);
 
 		ClusterHealthStatus clusterHealthStatus =
 			clusterHealthResponse.getStatus();
@@ -57,8 +60,11 @@ public class HealthClusterRequestExecutorImpl
 	protected ClusterHealthRequest createClusterHealthRequest(
 		HealthClusterRequest healthClusterRequest) {
 
-		ClusterHealthRequest clusterHealthRequest = new ClusterHealthRequest(
-			healthClusterRequest.getIndexNames());
+		ClusterHealthRequest clusterHealthRequest = new ClusterHealthRequest();
+
+		if (ArrayUtil.isNotEmpty(healthClusterRequest.getIndexNames())) {
+			clusterHealthRequest.indices(healthClusterRequest.getIndexNames());
+		}
 
 		long timeout = healthClusterRequest.getTimeout();
 
@@ -78,10 +84,13 @@ public class HealthClusterRequestExecutorImpl
 	}
 
 	protected ClusterHealthResponse getClusterHealthResponse(
-		ClusterHealthRequest clusterHealthRequest) {
+		ClusterHealthRequest clusterHealthRequest,
+		HealthClusterRequest healthClusterRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				healthClusterRequest.getConnectionId(),
+				healthClusterRequest.isPreferLocalCluster());
 
 		ClusterClient clusterClient = restHighLevelClient.cluster();
 
@@ -89,8 +98,8 @@ public class HealthClusterRequestExecutorImpl
 			return clusterClient.health(
 				clusterHealthRequest, RequestOptions.DEFAULT);
 		}
-		catch (Exception ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

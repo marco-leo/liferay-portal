@@ -291,8 +291,8 @@ public class ClusterMasterExecutorImplTest extends BaseClusterTestCase {
 
 				Assert.fail();
 			}
-			catch (SystemException se) {
-				Throwable throwable = se.getCause();
+			catch (SystemException systemException) {
+				Throwable throwable = systemException.getCause();
 
 				Assert.assertSame(
 					NullPointerException.class, throwable.getClass());
@@ -343,11 +343,11 @@ public class ClusterMasterExecutorImplTest extends BaseClusterTestCase {
 
 			Assert.fail();
 		}
-		catch (SystemException se) {
+		catch (SystemException systemException) {
 			Assert.assertEquals(
 				"Unable to execute on master " +
 					mockClusterExecutor.getLocalClusterNodeId(),
-				se.getMessage());
+				systemException.getMessage());
 		}
 	}
 
@@ -579,7 +579,6 @@ public class ClusterMasterExecutorImplTest extends BaseClusterTestCase {
 		Assert.assertFalse(clusterMasterExecutorImpl.isMaster());
 	}
 
-	@AdviseWith(adviceClasses = SPIUtilAdvice.class)
 	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testMisc() {
@@ -657,7 +656,7 @@ public class ClusterMasterExecutorImplTest extends BaseClusterTestCase {
 				return _clusterNodeIdExchanger.exchange(
 					null, 1000, TimeUnit.MILLISECONDS);
 			}
-			catch (TimeoutException te) {
+			catch (TimeoutException timeoutException) {
 				return "null";
 			}
 		}
@@ -693,21 +692,6 @@ public class ClusterMasterExecutorImplTest extends BaseClusterTestCase {
 		private static final Exchanger<String> _clusterNodeIdExchanger =
 			new Exchanger<>();
 		private static volatile Semaphore _semaphore;
-
-	}
-
-	@Aspect
-	public static class SPIUtilAdvice {
-
-		@Around(
-			"execution(public static boolean com.liferay.portal.kernel." +
-				"resiliency.spi.SPIUtil.isSPI())"
-		)
-		public boolean isSPI(ProceedingJoinPoint proceedingJoinPoint)
-			throws Throwable {
-
-			return true;
-		}
 
 	}
 

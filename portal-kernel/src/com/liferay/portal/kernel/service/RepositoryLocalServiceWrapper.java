@@ -30,28 +30,27 @@ public class RepositoryLocalServiceWrapper
 		_repositoryLocalService = repositoryLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link RepositoryLocalServiceUtil} to access the repository local service. Add custom service methods to <code>com.liferay.portal.service.impl.RepositoryLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.portal.kernel.model.Repository addRepository(
 			long userId, long groupId, long classNameId, long parentFolderId,
 			java.lang.String name, java.lang.String description,
 			java.lang.String portletId,
 			com.liferay.portal.kernel.util.UnicodeProperties
-				typeSettingsProperties,
+				typeSettingsUnicodeProperties,
 			boolean hidden, ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _repositoryLocalService.addRepository(
 			userId, groupId, classNameId, parentFolderId, name, description,
-			portletId, typeSettingsProperties, hidden, serviceContext);
+			portletId, typeSettingsUnicodeProperties, hidden, serviceContext);
 	}
 
 	/**
 	 * Adds the repository to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RepositoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param repository the repository
 	 * @return the repository that was added
@@ -66,6 +65,17 @@ public class RepositoryLocalServiceWrapper
 	@Override
 	public void checkRepository(long repositoryId) {
 		_repositoryLocalService.checkRepository(repositoryId);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _repositoryLocalService.createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -102,6 +112,10 @@ public class RepositoryLocalServiceWrapper
 	/**
 	 * Deletes the repository with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RepositoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param repositoryId the primary key of the repository
 	 * @return the repository that was removed
 	 * @throws PortalException if a repository with the primary key could not be found
@@ -117,6 +131,10 @@ public class RepositoryLocalServiceWrapper
 	/**
 	 * Deletes the repository from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RepositoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param repository the repository
 	 * @return the repository that was removed
 	 */
@@ -125,6 +143,11 @@ public class RepositoryLocalServiceWrapper
 		com.liferay.portal.kernel.model.Repository repository) {
 
 		return _repositoryLocalService.deleteRepository(repository);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _repositoryLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -295,6 +318,9 @@ public class RepositoryLocalServiceWrapper
 		return _repositoryLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -439,15 +465,19 @@ public class RepositoryLocalServiceWrapper
 	public void updateRepository(
 			long repositoryId,
 			com.liferay.portal.kernel.util.UnicodeProperties
-				typeSettingsProperties)
+				typeSettingsUnicodeProperties)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_repositoryLocalService.updateRepository(
-			repositoryId, typeSettingsProperties);
+			repositoryId, typeSettingsUnicodeProperties);
 	}
 
 	/**
 	 * Updates the repository in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RepositoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param repository the repository
 	 * @return the repository that was updated

@@ -17,12 +17,9 @@ package com.liferay.source.formatter.checkstyle.checks;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.source.formatter.checks.util.SourceUtil;
-import com.liferay.source.formatter.checkstyle.util.DetailASTUtil;
 import com.liferay.source.formatter.util.FileUtil;
 
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
-import com.puppycrawl.tools.checkstyle.api.FileContents;
 import com.puppycrawl.tools.checkstyle.api.FullIdent;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
 
@@ -53,8 +50,7 @@ public class ListUtilCheck extends BaseCheck {
 			return;
 		}
 
-		if (!Objects.equals(
-				DetailASTUtil.getTypeName(detailAST, false), "List") ||
+		if (!Objects.equals(getTypeName(detailAST, false), "List") ||
 			!_isAssignNewArrayList(detailAST)) {
 
 			return;
@@ -118,12 +114,7 @@ public class ListUtilCheck extends BaseCheck {
 			}
 		}
 
-		FileContents fileContents = getFileContents();
-
-		String fileName = StringUtil.replace(
-			fileContents.getFileName(), CharPool.BACK_SLASH, CharPool.SLASH);
-
-		String absolutePath = SourceUtil.getAbsolutePath(fileName);
+		String absolutePath = getAbsolutePath();
 
 		if (absolutePath.contains("/modules/")) {
 			String buildGradleContent = _getBuildGradleContent(absolutePath);
@@ -154,7 +145,7 @@ public class ListUtilCheck extends BaseCheck {
 		DetailAST elistDetailAST = methodCallDetailAST.findFirstToken(
 			TokenTypes.ELIST);
 
-		List<DetailAST> exprDetailASTList = DetailASTUtil.getAllChildTokens(
+		List<DetailAST> exprDetailASTList = getAllChildTokens(
 			elistDetailAST, false, TokenTypes.EXPR);
 
 		if (exprDetailASTList.size() != 1) {
@@ -206,7 +197,7 @@ public class ListUtilCheck extends BaseCheck {
 
 					return buildGradleContent;
 				}
-				catch (IOException ioe) {
+				catch (IOException ioException) {
 					return null;
 				}
 			}
@@ -221,7 +212,7 @@ public class ListUtilCheck extends BaseCheck {
 
 		List<DetailAST> identDetailASTList = new ArrayList<>();
 
-		List<DetailAST> childDetailASTList = DetailASTUtil.getAllChildTokens(
+		List<DetailAST> childDetailASTList = getAllChildTokens(
 			detailAST, true, TokenTypes.IDENT);
 
 		for (DetailAST childDetailAST : childDetailASTList) {

@@ -20,7 +20,7 @@
 page import="com.liferay.taglib.ui.SearchIteratorTag" %>
 
 <%
-SearchContainer searchContainer = (SearchContainer)request.getAttribute("liferay-ui:search:searchContainer");
+SearchContainer<?> searchContainer = (SearchContainer<?>)request.getAttribute("liferay-ui:search:searchContainer");
 
 boolean compactEmptyResultsMessage = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:search:compactEmptyResultsMessage"));
 String displayStyle = GetterUtil.getString((String)request.getAttribute("liferay-ui:search-iterator:displayStyle"), SearchIteratorTag.DEFAULT_DISPLAY_STYLE);
@@ -36,6 +36,7 @@ String id = searchContainer.getId(request, namespace);
 String emptyResultsMessage = searchContainer.getEmptyResultsMessage();
 String emptyResultsMessageCssClass = searchContainer.getEmptyResultsMessageCssClass();
 List<String> headerNames = searchContainer.getHeaderNames();
+Map<String, String> helpMessages = searchContainer.getHelpMessages();
 List<String> normalizedHeaderNames = searchContainer.getNormalizedHeaderNames();
 Map orderableHeaders = searchContainer.getOrderableHeaders();
 RowChecker rowChecker = searchContainer.getRowChecker();

@@ -262,11 +262,13 @@ public class AbsolutePortalURLBuilderImpl implements AbsolutePortalURLBuilder {
 		try {
 			cdnHost = _portal.getCDNHost(httpServletRequest);
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			cdnHost = StringPool.BLANK;
 
 			if (_log.isWarnEnabled()) {
-				_log.warn("Unable to retrieve CDN host from request", pe);
+				_log.warn(
+					"Unable to retrieve CDN host from request",
+					portalException);
 			}
 		}
 
@@ -301,10 +303,8 @@ public class AbsolutePortalURLBuilderImpl implements AbsolutePortalURLBuilder {
 	private boolean _ignorePathProxy;
 
 	/**
-	 * Points to the web context path of the Portal's webapp (doesn't contain
-	 * the proxy, CDN, or any other kind of configurable path.
-	 *
-	 * @review
+	 * Portal web app's web context path (doesn't contain the proxy, CDN, or any
+	 * other kind of configurable path.
 	 */
 	private final String _pathContext;
 

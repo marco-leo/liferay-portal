@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class KaleoNotificationLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.workflow.kaleo.service.impl.KaleoNotificationLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class KaleoNotificationLocalServiceUtil {
 
 	/**
 	 * Adds the kaleo notification to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoNotificationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoNotification the kaleo notification
 	 * @return the kaleo notification that was added
@@ -55,15 +59,17 @@ public class KaleoNotificationLocalServiceUtil {
 	public static com.liferay.portal.workflow.kaleo.model.KaleoNotification
 			addKaleoNotification(
 				String kaleoClassName, long kaleoClassPK,
-				long kaleoDefinitionVersionId, String kaleoNodeName,
+				long kaleoDefinitionId, long kaleoDefinitionVersionId,
+				String kaleoNodeName,
 				com.liferay.portal.workflow.kaleo.definition.Notification
 					notification,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().addKaleoNotification(
-			kaleoClassName, kaleoClassPK, kaleoDefinitionVersionId,
-			kaleoNodeName, notification, serviceContext);
+			kaleoClassName, kaleoClassPK, kaleoDefinitionId,
+			kaleoDefinitionVersionId, kaleoNodeName, notification,
+			serviceContext);
 	}
 
 	/**
@@ -76,6 +82,16 @@ public class KaleoNotificationLocalServiceUtil {
 		createKaleoNotification(long kaleoNotificationId) {
 
 		return getService().createKaleoNotification(kaleoNotificationId);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	public static void deleteCompanyKaleoNotifications(long companyId) {
@@ -92,6 +108,10 @@ public class KaleoNotificationLocalServiceUtil {
 	/**
 	 * Deletes the kaleo notification from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoNotificationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param kaleoNotification the kaleo notification
 	 * @return the kaleo notification that was removed
 	 */
@@ -105,6 +125,10 @@ public class KaleoNotificationLocalServiceUtil {
 
 	/**
 	 * Deletes the kaleo notification with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoNotificationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoNotificationId the primary key of the kaleo notification
 	 * @return the kaleo notification that was removed
@@ -126,6 +150,12 @@ public class KaleoNotificationLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -299,6 +329,9 @@ public class KaleoNotificationLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -308,6 +341,10 @@ public class KaleoNotificationLocalServiceUtil {
 
 	/**
 	 * Updates the kaleo notification in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoNotificationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoNotification the kaleo notification
 	 * @return the kaleo notification that was updated

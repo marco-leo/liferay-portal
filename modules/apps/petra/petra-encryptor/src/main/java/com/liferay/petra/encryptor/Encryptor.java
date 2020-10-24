@@ -97,8 +97,8 @@ public class Encryptor {
 				return cipher.doFinal(encryptedBytes);
 			}
 		}
-		catch (Exception e) {
-			throw new EncryptorException(e);
+		catch (Exception exception) {
+			throw new EncryptorException(exception);
 		}
 	}
 
@@ -112,8 +112,8 @@ public class Encryptor {
 
 			return new String(decryptedBytes, ENCODING);
 		}
-		catch (Exception e) {
-			throw new EncryptorException(e);
+		catch (Exception exception) {
+			throw new EncryptorException(exception);
 		}
 	}
 
@@ -165,8 +165,8 @@ public class Encryptor {
 				return cipher.doFinal(plainBytes);
 			}
 		}
-		catch (Exception e) {
-			throw new EncryptorException(e);
+		catch (Exception exception) {
+			throw new EncryptorException(exception);
 		}
 	}
 
@@ -178,8 +178,8 @@ public class Encryptor {
 
 			return encryptUnencoded(key, decryptedBytes);
 		}
-		catch (Exception e) {
-			throw new EncryptorException(e);
+		catch (Exception exception) {
+			throw new EncryptorException(exception);
 		}
 	}
 
@@ -195,8 +195,8 @@ public class Encryptor {
 
 			return keyGenerator.generateKey();
 		}
-		catch (Exception e) {
-			throw new EncryptorException(e);
+		catch (Exception exception) {
+			throw new EncryptorException(exception);
 		}
 	}
 
@@ -219,20 +219,21 @@ public class Encryptor {
 			try {
 				providerClass = Class.forName(PROVIDER_CLASS);
 			}
-			catch (ClassNotFoundException cnfe) {
+			catch (ClassNotFoundException classNotFoundException1) {
 				try {
 					if (PROVIDER_CLASS.equals(SUN_PROVIDER_CLASS)) {
 						providerClass = Class.forName(IBM_PROVIDER_CLASS);
 					}
 				}
-				catch (ClassNotFoundException cnfe2) {
-					cnfe.addSuppressed(cnfe2);
+				catch (ClassNotFoundException classNotFoundException2) {
+					classNotFoundException1.addSuppressed(
+						classNotFoundException2);
 				}
 
 				if (providerClass == null) {
 					throw new IllegalStateException(
 						"Unable to find provider class: " + PROVIDER_CLASS,
-						cnfe);
+						classNotFoundException1);
 				}
 			}
 
@@ -240,8 +241,8 @@ public class Encryptor {
 
 			Security.addProvider(_provider);
 		}
-		catch (ReflectiveOperationException roe) {
-			throw new ExceptionInInitializerError(roe);
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			throw new ExceptionInInitializerError(reflectiveOperationException);
 		}
 	}
 

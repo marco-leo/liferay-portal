@@ -14,25 +14,34 @@
 
 import ClayButton from '@clayui/button';
 import classNames from 'classnames';
-import React, {useContext} from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 
-import {ConfigContext} from '../../app/config/index';
+import {config} from '../../app/config/index';
+import {useId} from '../../app/utils/useId';
 
-const SELECTORS = {
-	backgroundColorCssClass: 'backgroundColorCssClass'
-};
-
-export default function ColorPalette({clearButton, label, onColorSelect}) {
-	const {themeColorsCssClasses} = useContext(ConfigContext);
+export default function ColorPalette({
+	label,
+	onClear,
+	onColorSelect,
+	selectedColor,
+}) {
+	const colorPaletteId = useId();
 
 	return (
-		<>
-			<label htmlFor="colorPalette">{label}</label>
+		<div className="page-editor__color-palette">
+			{label && <label htmlFor={colorPaletteId}>{label}</label>}
 
-			<div className="palette-container" id="colorPalette">
+			<div className="palette-container" id={colorPaletteId}>
 				<ul className="list-unstyled palette-items-container">
-					{themeColorsCssClasses.map(color => (
-						<li className="palette-item" key={color}>
+					{config.themeColorsCssClasses.map((color) => (
+						<li
+							className={classNames('palette-item', {
+								'palette-item-selected':
+									color === selectedColor,
+							})}
+							key={color}
+						>
 							<ClayButton
 								block
 								className={classNames(
@@ -42,12 +51,7 @@ export default function ColorPalette({clearButton, label, onColorSelect}) {
 									'rounded-circle'
 								)}
 								displayType="unstyled"
-								onClick={() =>
-									onColorSelect(
-										SELECTORS.backgroundColorCssClass,
-										color
-									)
-								}
+								onClick={(event) => onColorSelect(color, event)}
 								small
 							/>
 						</li>
@@ -55,11 +59,18 @@ export default function ColorPalette({clearButton, label, onColorSelect}) {
 				</ul>
 			</div>
 
-			{clearButton && (
-				<ClayButton displayType="secondary" small>
+			{onClear && (
+				<ClayButton displayType="secondary" onClick={onClear} small>
 					{Liferay.Language.get('clear')}
 				</ClayButton>
 			)}
-		</>
+		</div>
 	);
 }
+
+ColorPalette.propTypes = {
+	label: PropTypes.string,
+	onClear: PropTypes.func,
+	onColorSelect: PropTypes.func.isRequired,
+	selectedColor: PropTypes.string,
+};

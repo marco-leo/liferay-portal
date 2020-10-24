@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.base;
 
+import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -35,10 +37,12 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
 import com.liferay.portal.kernel.service.persistence.UserFinder;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
 import com.liferay.portal.kernel.service.persistence.WorkflowDefinitionLinkPersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -64,7 +68,7 @@ public abstract class WorkflowDefinitionLinkLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements IdentifiableOSGiService, WorkflowDefinitionLinkLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>WorkflowDefinitionLinkLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalServiceUtil</code>.
@@ -72,6 +76,10 @@ public abstract class WorkflowDefinitionLinkLocalServiceBaseImpl
 
 	/**
 	 * Adds the workflow definition link to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WorkflowDefinitionLinkLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param workflowDefinitionLink the workflow definition link
 	 * @return the workflow definition link that was added
@@ -104,6 +112,10 @@ public abstract class WorkflowDefinitionLinkLocalServiceBaseImpl
 	/**
 	 * Deletes the workflow definition link with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WorkflowDefinitionLinkLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param workflowDefinitionLinkId the primary key of the workflow definition link
 	 * @return the workflow definition link that was removed
 	 * @throws PortalException if a workflow definition link with the primary key could not be found
@@ -121,6 +133,10 @@ public abstract class WorkflowDefinitionLinkLocalServiceBaseImpl
 	/**
 	 * Deletes the workflow definition link from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WorkflowDefinitionLinkLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param workflowDefinitionLink the workflow definition link
 	 * @return the workflow definition link that was removed
 	 */
@@ -130,6 +146,11 @@ public abstract class WorkflowDefinitionLinkLocalServiceBaseImpl
 		WorkflowDefinitionLink workflowDefinitionLink) {
 
 		return workflowDefinitionLinkPersistence.remove(workflowDefinitionLink);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return workflowDefinitionLinkPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -296,6 +317,17 @@ public abstract class WorkflowDefinitionLinkLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return workflowDefinitionLinkPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -303,6 +335,14 @@ public abstract class WorkflowDefinitionLinkLocalServiceBaseImpl
 			(WorkflowDefinitionLink)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<WorkflowDefinitionLink> getBasePersistence() {
+		return workflowDefinitionLinkPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -341,6 +381,10 @@ public abstract class WorkflowDefinitionLinkLocalServiceBaseImpl
 
 	/**
 	 * Updates the workflow definition link in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WorkflowDefinitionLinkLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param workflowDefinitionLink the workflow definition link
 	 * @return the workflow definition link that was updated
@@ -544,8 +588,23 @@ public abstract class WorkflowDefinitionLinkLocalServiceBaseImpl
 		return WorkflowDefinitionLinkLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<WorkflowDefinitionLink> getCTPersistence() {
+		return workflowDefinitionLinkPersistence;
+	}
+
+	@Override
+	public Class<WorkflowDefinitionLink> getModelClass() {
 		return WorkflowDefinitionLink.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<WorkflowDefinitionLink>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(workflowDefinitionLinkPersistence);
 	}
 
 	protected String getModelClassName() {
@@ -572,8 +631,8 @@ public abstract class WorkflowDefinitionLinkLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

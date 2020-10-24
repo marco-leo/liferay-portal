@@ -61,6 +61,7 @@ import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -456,7 +457,7 @@ public class DLImpl implements DL {
 			try {
 				entries.add(DLAppLocalServiceUtil.getFileEntry(fileEntryId));
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
 						"Documents and Media search index is stale and " +
@@ -733,13 +734,7 @@ public class DLImpl implements DL {
 	@Override
 	public String getTempFileId(long id, String version, String languageId) {
 		if (Validator.isNull(languageId)) {
-			return String.valueOf(
-				id
-			).concat(
-				StringPool.PERIOD
-			).concat(
-				version
-			);
+			return StringBundler.concat(id, StringPool.PERIOD, version);
 		}
 
 		StringBundler sb = new StringBundler(5);
@@ -879,7 +874,7 @@ public class DLImpl implements DL {
 				uniqueFileName = FileUtil.appendParentheticalSuffix(
 					fileName, String.valueOf(i));
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				break;
 			}
 		}
@@ -998,8 +993,7 @@ public class DLImpl implements DL {
 
 	@Override
 	public boolean hasWorkflowDefinitionLink(
-			long companyId, long groupId, long folderId, long fileEntryTypeId)
-		throws Exception {
+		long companyId, long groupId, long folderId, long fileEntryTypeId) {
 
 		while (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 			DLFolder dlFolder = DLFolderLocalServiceUtil.fetchDLFolder(
@@ -1228,6 +1222,7 @@ public class DLImpl implements DL {
 					SetUtil.fromArray(
 						PropsUtil.getArray(
 							PropsKeys.DL_FILE_ENTRY_PREVIEW_IMAGE_MIME_TYPES)));
+				add(ContentTypes.IMAGE_SVG_XML);
 			}
 		};
 
@@ -1238,9 +1233,9 @@ public class DLImpl implements DL {
 			try {
 				fileIcons = PropsUtil.getArray(PropsKeys.DL_FILE_ICONS);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(e, e);
+					_log.debug(exception, exception);
 				}
 
 				fileIcons = new String[] {StringPool.BLANK};

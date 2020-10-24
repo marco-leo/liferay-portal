@@ -26,7 +26,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class Role {
+public class Role implements Cloneable {
+
+	public static Role toDTO(String json) {
+		return RoleSerDes.toDTO(json);
+	}
 
 	public Long getId() {
 		return id;
@@ -65,6 +69,11 @@ public class Role {
 	}
 
 	protected String name;
+
+	@Override
+	public Role clone() throws CloneNotSupportedException {
+		return (Role)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

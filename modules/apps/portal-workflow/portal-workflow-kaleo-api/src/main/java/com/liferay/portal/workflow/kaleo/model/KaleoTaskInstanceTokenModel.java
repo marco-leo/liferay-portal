@@ -40,7 +40,7 @@ public interface KaleoTaskInstanceTokenModel
 	extends BaseModel<KaleoTaskInstanceToken>, GroupedModel, MVCCModel,
 			ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo task instance token model instance should use the {@link KaleoTaskInstanceToken} interface instead.
@@ -202,6 +202,20 @@ public interface KaleoTaskInstanceTokenModel
 	 */
 	@Override
 	public void setModifiedDate(Date modifiedDate);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo task instance token.
+	 *
+	 * @return the kaleo definition ID of this kaleo task instance token
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo task instance token.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo task instance token
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo task instance token.

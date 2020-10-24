@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CamelCaseUtil;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MethodParameter;
@@ -35,6 +36,9 @@ import com.liferay.registry.RegistryUtil;
 import com.liferay.registry.ServiceReference;
 import com.liferay.registry.ServiceTracker;
 import com.liferay.registry.util.StringPlus;
+
+import java.io.File;
+import java.io.IOException;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -87,18 +91,18 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 		}
 
 		Object result = null;
-		Exception exception = null;
+		Exception exception1 = null;
 
 		try {
 			result = _invokeActionMethod();
 		}
-		catch (Exception e) {
-			exception = e;
+		catch (Exception exception2) {
+			exception1 = exception2;
 
-			_log.error(e, e);
+			_log.error(exception2, exception2);
 		}
 
-		return new JSONRPCResponse(jsonRPCRequest, result, exception);
+		return new JSONRPCResponse(jsonRPCRequest, result, exception1);
 	}
 
 	private void _checkTypeIsAssignable(
@@ -193,7 +197,7 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 			outputObject = TypeConverterManager.convertType(
 				inputObject, targetType);
 		}
-		catch (TypeConversionException tce) {
+		catch (TypeConversionException typeConversionException) {
 			if (inputObject instanceof Map) {
 				try {
 					if (targetType.isInterface()) {
@@ -208,7 +212,7 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 						try {
 							targetType = classLoader.loadClass(modelClassName);
 						}
-						catch (ClassNotFoundException cnfe) {
+						catch (ClassNotFoundException classNotFoundException) {
 							Class<?> actionClass =
 								_jsonWebServiceActionConfig.getActionClass();
 
@@ -227,12 +231,12 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 
 					return outputObject;
 				}
-				catch (Exception e) {
-					throw new TypeConversionException(e);
+				catch (Exception exception) {
+					throw new TypeConversionException(exception);
 				}
 			}
 
-			throw tce;
+			throw typeConversionException;
 		}
 
 		return outputObject;
@@ -247,6 +251,17 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 				return value;
 			}
 
+			if (value instanceof File) {
+				try {
+					return FileUtil.getBytes((File)value);
+				}
+				catch (IOException ioException) {
+					_log.error(ioException, ioException);
+
+					return null;
+				}
+			}
+
 			List<?> list = null;
 
 			if (value instanceof List) {
@@ -258,11 +273,9 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 				valueString = valueString.trim();
 
 				if (!valueString.startsWith(StringPool.OPEN_BRACKET)) {
-					valueString = StringPool.OPEN_BRACKET.concat(
-						valueString
-					).concat(
-						StringPool.CLOSE_BRACKET
-					);
+					valueString = StringBundler.concat(
+						StringPool.OPEN_BRACKET, valueString,
+						StringPool.CLOSE_BRACKET);
 				}
 
 				list = JSONFactoryUtil.looseDeserialize(
@@ -301,11 +314,9 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 				valueString = valueString.trim();
 
 				if (!valueString.startsWith(StringPool.OPEN_BRACKET)) {
-					valueString = StringPool.OPEN_BRACKET.concat(
-						valueString
-					).concat(
-						StringPool.CLOSE_BRACKET
-					);
+					valueString = StringBundler.concat(
+						StringPool.OPEN_BRACKET, valueString,
+						StringPool.CLOSE_BRACKET);
 				}
 
 				list = JSONFactoryUtil.looseDeserialize(
@@ -344,19 +355,19 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 			try {
 				parameterValue = _convertType(value, parameterType);
 			}
-			catch (Exception e1) {
+			catch (Exception exception1) {
 				if (value instanceof Map) {
 					try {
 						parameterValue = _createDefaultParameterValue(
 							null, parameterType);
 					}
-					catch (Exception e2) {
-						ClassCastException cce = new ClassCastException(
-							e1.getMessage());
+					catch (Exception exception2) {
+						ClassCastException classCastException =
+							new ClassCastException(exception1.getMessage());
 
-						cce.addSuppressed(e2);
+						classCastException.addSuppressed(exception2);
 
-						throw cce;
+						throw classCastException;
 					}
 
 					BeanCopy beanCopy = BeanCopy.beans(value, parameterValue);
@@ -369,7 +380,7 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 					valueString = valueString.trim();
 
 					if (!valueString.startsWith(StringPool.OPEN_CURLY_BRACE)) {
-						throw new ClassCastException(e1.getMessage());
+						throw new ClassCastException(exception1.getMessage());
 					}
 
 					parameterValue = JSONFactoryUtil.looseDeserialize(
@@ -469,13 +480,13 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 					parameterValue, innerParameter.getName(),
 					innerParameter.getValue());
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
 					_log.debug(
 						StringBundler.concat(
 							"Unable to set inner parameter ", parameterName,
 							".", innerParameter.getName()),
-						e);
+						exception);
 				}
 			}
 		}

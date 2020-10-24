@@ -15,7 +15,6 @@
 package com.liferay.source.formatter.checkstyle.checks;
 
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.source.formatter.checkstyle.util.DetailASTUtil;
 
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
@@ -49,13 +48,60 @@ public class OperatorOperandCheck extends BaseCheck {
 	private void _checkOperand(
 		DetailAST operatorDetailAST, DetailAST detailAST, String side) {
 
+		if (detailAST == null) {
+			return;
+		}
+
+		DetailAST exprDetailAST = getParentWithTokenType(
+			detailAST, TokenTypes.EXPR);
+
+		if (exprDetailAST != null) {
+			DetailAST parentDetailAST = exprDetailAST.getParent();
+
+			if (parentDetailAST.getType() == TokenTypes.LITERAL_WHILE) {
+				return;
+			}
+		}
+
+		if (detailAST.getType() == TokenTypes.LPAREN) {
+			DetailAST nextSiblingDetailAST = detailAST.getNextSibling();
+
+			nextSiblingDetailAST = nextSiblingDetailAST.getNextSibling();
+
+			if ((nextSiblingDetailAST.getType() == TokenTypes.RPAREN) &&
+				(detailAST.getLineNo() != nextSiblingDetailAST.getLineNo())) {
+
+				log(
+					detailAST, _MSG_IMPROVE_READABILITY, side,
+					operatorDetailAST.getText());
+			}
+
+			return;
+		}
+
+		if (detailAST.getType() == TokenTypes.RPAREN) {
+			DetailAST previousSiblingDetailAST = detailAST.getPreviousSibling();
+
+			previousSiblingDetailAST =
+				previousSiblingDetailAST.getPreviousSibling();
+
+			if ((previousSiblingDetailAST.getType() == TokenTypes.LPAREN) &&
+				(detailAST.getLineNo() !=
+					previousSiblingDetailAST.getLineNo())) {
+
+				log(
+					detailAST, _MSG_IMPROVE_READABILITY, side,
+					operatorDetailAST.getText());
+			}
+
+			return;
+		}
+
 		if (detailAST.getType() != TokenTypes.METHOD_CALL) {
 			return;
 		}
 
-		if (DetailASTUtil.isAtLineEnd(
-				detailAST, getLine(detailAST.getLineNo() - 1))) {
-
+		if (isAtLineEnd(detailAST, getLine(detailAST.getLineNo() - 1))) {
 			log(
 				detailAST, _MSG_IMPROVE_READABILITY, side,
 				operatorDetailAST.getText());
@@ -66,7 +112,7 @@ public class OperatorOperandCheck extends BaseCheck {
 		DetailAST firstChildDetailAST = detailAST.getFirstChild();
 
 		if ((firstChildDetailAST.getType() == TokenTypes.DOT) &&
-			DetailASTUtil.isAtLineEnd(
+			isAtLineEnd(
 				firstChildDetailAST,
 				getLine(firstChildDetailAST.getLineNo() - 1))) {
 

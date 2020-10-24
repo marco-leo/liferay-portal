@@ -30,7 +30,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface Layout extends LayoutModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.portal.model.impl.LayoutImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -73,6 +73,8 @@ public interface Layout extends LayoutModel, PersistedModel {
 			}
 
 		};
+
+	public Layout fetchDraftLayout();
 
 	/**
 	 * Returns all layouts that are direct or indirect children of the current
@@ -412,6 +414,10 @@ public interface Layout extends LayoutModel, PersistedModel {
 	 */
 	public boolean isSupportsEmbeddedPortlets();
 
+	public boolean isTypeAssetDisplay();
+
+	public boolean isTypeContent();
+
 	public boolean isTypeControlPanel();
 
 	public boolean isTypeEmbedded();
@@ -432,6 +438,6 @@ public interface Layout extends LayoutModel, PersistedModel {
 
 	public void setTypeSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties
-			typeSettingsProperties);
+			typeSettingsUnicodeProperties);
 
 }

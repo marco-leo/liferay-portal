@@ -79,6 +79,16 @@ public class FormFieldOptionSerDes {
 			sb.append("\"");
 		}
 
+		if (formFieldOption.getLabel_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"label_i18n\": ");
+
+			sb.append(_toJSON(formFieldOption.getLabel_i18n()));
+		}
+
 		if (formFieldOption.getValue() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -126,6 +136,14 @@ public class FormFieldOptionSerDes {
 			map.put("label", String.valueOf(formFieldOption.getLabel()));
 		}
 
+		if (formFieldOption.getLabel_i18n() == null) {
+			map.put("label_i18n", null);
+		}
+		else {
+			map.put(
+				"label_i18n", String.valueOf(formFieldOption.getLabel_i18n()));
+		}
+
 		if (formFieldOption.getValue() == null) {
 			map.put("value", null);
 		}
@@ -165,14 +183,20 @@ public class FormFieldOptionSerDes {
 					formFieldOption.setLabel((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "label_i18n")) {
+				if (jsonParserFieldValue != null) {
+					formFieldOption.setLabel_i18n(
+						(Map)FormFieldOptionSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "value")) {
 				if (jsonParserFieldValue != null) {
 					formFieldOption.setValue((String)jsonParserFieldValue);
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -228,10 +252,13 @@ public class FormFieldOptionSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

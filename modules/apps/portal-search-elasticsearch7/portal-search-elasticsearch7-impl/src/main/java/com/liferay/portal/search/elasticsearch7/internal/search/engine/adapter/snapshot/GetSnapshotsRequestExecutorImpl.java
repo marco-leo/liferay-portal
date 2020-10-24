@@ -49,7 +49,8 @@ public class GetSnapshotsRequestExecutorImpl
 			createGetSnapshotsRequest(getSnapshotsRequest);
 
 		GetSnapshotsResponse elasticsearchGetSnapshotsResponse =
-			getGetSnapshotsResponse(elasticsearchGetSnapshotsRequest);
+			getGetSnapshotsResponse(
+				elasticsearchGetSnapshotsRequest, getSnapshotsRequest);
 
 		com.liferay.portal.search.engine.adapter.snapshot.GetSnapshotsResponse
 			getSnapshotsResponse =
@@ -90,10 +91,14 @@ public class GetSnapshotsRequestExecutorImpl
 	}
 
 	protected GetSnapshotsResponse getGetSnapshotsResponse(
-		GetSnapshotsRequest elasticsearchGetSnapshotsRequest) {
+		GetSnapshotsRequest elasticsearchGetSnapshotsRequest,
+		com.liferay.portal.search.engine.adapter.snapshot.GetSnapshotsRequest
+			getSnapshotsRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				getSnapshotsRequest.getConnectionId(),
+				getSnapshotsRequest.isPreferLocalCluster());
 
 		SnapshotClient snapshotClient = restHighLevelClient.snapshot();
 
@@ -101,8 +106,8 @@ public class GetSnapshotsRequestExecutorImpl
 			return snapshotClient.get(
 				elasticsearchGetSnapshotsRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

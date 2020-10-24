@@ -56,6 +56,26 @@ public class ContentFieldSerDes {
 
 		sb.append("{");
 
+		if (contentField.getContentFieldValue() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"contentFieldValue\": ");
+
+			sb.append(String.valueOf(contentField.getContentFieldValue()));
+		}
+
+		if (contentField.getContentFieldValue_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"contentFieldValue_i18n\": ");
+
+			sb.append(_toJSON(contentField.getContentFieldValue_i18n()));
+		}
+
 		if (contentField.getDataType() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -96,6 +116,16 @@ public class ContentFieldSerDes {
 			sb.append(_escape(contentField.getLabel()));
 
 			sb.append("\"");
+		}
+
+		if (contentField.getLabel_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"label_i18n\": ");
+
+			sb.append(_toJSON(contentField.getLabel_i18n()));
 		}
 
 		if (contentField.getName() != null) {
@@ -145,16 +175,6 @@ public class ContentFieldSerDes {
 			sb.append(contentField.getRepeatable());
 		}
 
-		if (contentField.getValue() != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"value\": ");
-
-			sb.append(String.valueOf(contentField.getValue()));
-		}
-
 		sb.append("}");
 
 		return sb.toString();
@@ -173,6 +193,24 @@ public class ContentFieldSerDes {
 		}
 
 		Map<String, String> map = new TreeMap<>();
+
+		if (contentField.getContentFieldValue() == null) {
+			map.put("contentFieldValue", null);
+		}
+		else {
+			map.put(
+				"contentFieldValue",
+				String.valueOf(contentField.getContentFieldValue()));
+		}
+
+		if (contentField.getContentFieldValue_i18n() == null) {
+			map.put("contentFieldValue_i18n", null);
+		}
+		else {
+			map.put(
+				"contentFieldValue_i18n",
+				String.valueOf(contentField.getContentFieldValue_i18n()));
+		}
 
 		if (contentField.getDataType() == null) {
 			map.put("dataType", null);
@@ -194,6 +232,13 @@ public class ContentFieldSerDes {
 		}
 		else {
 			map.put("label", String.valueOf(contentField.getLabel()));
+		}
+
+		if (contentField.getLabel_i18n() == null) {
+			map.put("label_i18n", null);
+		}
+		else {
+			map.put("label_i18n", String.valueOf(contentField.getLabel_i18n()));
 		}
 
 		if (contentField.getName() == null) {
@@ -219,13 +264,6 @@ public class ContentFieldSerDes {
 			map.put("repeatable", String.valueOf(contentField.getRepeatable()));
 		}
 
-		if (contentField.getValue() == null) {
-			map.put("value", null);
-		}
-		else {
-			map.put("value", String.valueOf(contentField.getValue()));
-		}
-
 		return map;
 	}
 
@@ -247,7 +285,23 @@ public class ContentFieldSerDes {
 			ContentField contentField, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "dataType")) {
+			if (Objects.equals(jsonParserFieldName, "contentFieldValue")) {
+				if (jsonParserFieldValue != null) {
+					contentField.setContentFieldValue(
+						ContentFieldValueSerDes.toDTO(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "contentFieldValue_i18n")) {
+
+				if (jsonParserFieldValue != null) {
+					contentField.setContentFieldValue_i18n(
+						(Map)ContentFieldSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "dataType")) {
 				if (jsonParserFieldValue != null) {
 					contentField.setDataType((String)jsonParserFieldValue);
 				}
@@ -260,6 +314,13 @@ public class ContentFieldSerDes {
 			else if (Objects.equals(jsonParserFieldName, "label")) {
 				if (jsonParserFieldValue != null) {
 					contentField.setLabel((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "label_i18n")) {
+				if (jsonParserFieldValue != null) {
+					contentField.setLabel_i18n(
+						(Map)ContentFieldSerDes.toMap(
+							(String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "name")) {
@@ -286,15 +347,8 @@ public class ContentFieldSerDes {
 					contentField.setRepeatable((Boolean)jsonParserFieldValue);
 				}
 			}
-			else if (Objects.equals(jsonParserFieldName, "value")) {
-				if (jsonParserFieldValue != null) {
-					contentField.setValue(
-						ValueSerDes.toDTO((String)jsonParserFieldValue));
-				}
-			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -350,10 +404,13 @@ public class ContentFieldSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

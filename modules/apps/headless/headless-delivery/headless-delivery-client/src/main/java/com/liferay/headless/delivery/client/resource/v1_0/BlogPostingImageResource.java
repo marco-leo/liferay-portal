@@ -18,11 +18,13 @@ import com.liferay.headless.delivery.client.dto.v1_0.BlogPostingImage;
 import com.liferay.headless.delivery.client.http.HttpInvoker;
 import com.liferay.headless.delivery.client.pagination.Page;
 import com.liferay.headless.delivery.client.pagination.Pagination;
+import com.liferay.headless.delivery.client.problem.Problem;
 import com.liferay.headless.delivery.client.serdes.v1_0.BlogPostingImageSerDes;
 
 import java.io.File;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
@@ -48,6 +50,13 @@ public interface BlogPostingImageResource {
 			Long blogPostingImageId)
 		throws Exception;
 
+	public void deleteBlogPostingImageBatch(String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse deleteBlogPostingImageBatchHttpResponse(
+			String callbackURL, Object object)
+		throws Exception;
+
 	public BlogPostingImage getBlogPostingImage(Long blogPostingImageId)
 		throws Exception;
 
@@ -56,13 +65,13 @@ public interface BlogPostingImageResource {
 		throws Exception;
 
 	public Page<BlogPostingImage> getSiteBlogPostingImagesPage(
-			Long siteId, String search, String filterString,
-			Pagination pagination, String sortString)
+			Long siteId, String search, List<String> aggregations,
+			String filterString, Pagination pagination, String sortString)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse getSiteBlogPostingImagesPageHttpResponse(
-			Long siteId, String search, String filterString,
-			Pagination pagination, String sortString)
+			Long siteId, String search, List<String> aggregations,
+			String filterString, Pagination pagination, String sortString)
 		throws Exception;
 
 	public BlogPostingImage postSiteBlogPostingImage(
@@ -73,6 +82,16 @@ public interface BlogPostingImageResource {
 	public HttpInvoker.HttpResponse postSiteBlogPostingImageHttpResponse(
 			Long siteId, BlogPostingImage blogPostingImage,
 			Map<String, File> multipartFiles)
+		throws Exception;
+
+	public void postSiteBlogPostingImageBatch(
+			Long siteId, BlogPostingImage blogPostingImage,
+			Map<String, File> multipartFiles, String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse postSiteBlogPostingImageBatchHttpResponse(
+			Long siteId, BlogPostingImage blogPostingImage,
+			Map<String, File> multipartFiles, String callbackURL, Object object)
 		throws Exception;
 
 	public static class Builder {
@@ -120,8 +139,8 @@ public interface BlogPostingImageResource {
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
-		private String _login = "test@liferay.com";
-		private String _password = "test";
+		private String _login = "";
+		private String _password = "";
 		private Map<String, String> _parameters = new LinkedHashMap<>();
 		private int _port = 8080;
 		private String _scheme = "http";
@@ -144,6 +163,17 @@ public interface BlogPostingImageResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse deleteBlogPostingImageHttpResponse(
@@ -183,6 +213,63 @@ public interface BlogPostingImageResource {
 			return httpInvoker.invoke();
 		}
 
+		public void deleteBlogPostingImageBatch(
+				String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				deleteBlogPostingImageBatchHttpResponse(callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse deleteBlogPostingImageBatchHttpResponse(
+				String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.DELETE);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/blog-posting-images/batch");
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public BlogPostingImage getBlogPostingImage(Long blogPostingImageId)
 			throws Exception {
 
@@ -205,7 +292,7 @@ public interface BlogPostingImageResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -247,13 +334,14 @@ public interface BlogPostingImageResource {
 		}
 
 		public Page<BlogPostingImage> getSiteBlogPostingImagesPage(
-				Long siteId, String search, String filterString,
-				Pagination pagination, String sortString)
+				Long siteId, String search, List<String> aggregations,
+				String filterString, Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
 				getSiteBlogPostingImagesPageHttpResponse(
-					siteId, search, filterString, pagination, sortString);
+					siteId, search, aggregations, filterString, pagination,
+					sortString);
 
 			String content = httpResponse.getContent();
 
@@ -263,13 +351,23 @@ public interface BlogPostingImageResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return Page.of(content, BlogPostingImageSerDes::toDTO);
+			try {
+				return Page.of(content, BlogPostingImageSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse
 				getSiteBlogPostingImagesPageHttpResponse(
-					Long siteId, String search, String filterString,
-					Pagination pagination, String sortString)
+					Long siteId, String search, List<String> aggregations,
+					String filterString, Pagination pagination,
+					String sortString)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -349,7 +447,7 @@ public interface BlogPostingImageResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -393,6 +491,73 @@ public interface BlogPostingImageResource {
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
 						"/o/headless-delivery/v1.0/sites/{siteId}/blog-posting-images",
+				siteId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void postSiteBlogPostingImageBatch(
+				Long siteId, BlogPostingImage blogPostingImage,
+				Map<String, File> multipartFiles, String callbackURL,
+				Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postSiteBlogPostingImageBatchHttpResponse(
+					siteId, blogPostingImage, multipartFiles, callbackURL,
+					object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				postSiteBlogPostingImageBatchHttpResponse(
+					Long siteId, BlogPostingImage blogPostingImage,
+					Map<String, File> multipartFiles, String callbackURL,
+					Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/sites/{siteId}/blog-posting-images/batch",
 				siteId);
 
 			httpInvoker.userNameAndPassword(

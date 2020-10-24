@@ -16,12 +16,15 @@ package com.liferay.message.boards.service.persistence.impl;
 
 import com.liferay.message.boards.exception.NoSuchMailingListException;
 import com.liferay.message.boards.model.MBMailingList;
+import com.liferay.message.boards.model.MBMailingListTable;
 import com.liferay.message.boards.model.impl.MBMailingListImpl;
 import com.liferay.message.boards.model.impl.MBMailingListModelImpl;
 import com.liferay.message.boards.service.persistence.MBMailingListPersistence;
 import com.liferay.message.boards.service.persistence.impl.constants.MBPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
+import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -32,11 +35,13 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -47,15 +52,23 @@ import java.io.Serializable;
 
 import java.lang.reflect.InvocationHandler;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -76,7 +89,7 @@ public class MBMailingListPersistenceImpl
 	extends BasePersistenceImpl<MBMailingList>
 	implements MBMailingListPersistence {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>MBMailingListUtil</code> to access the message boards mailing list persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -168,25 +181,28 @@ public class MBMailingListPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			MBMailingList.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindByUuid;
 				finderArgs = new Object[] {uuid};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByUuid;
 			finderArgs = new Object[] {uuid, start, end, orderByComparator};
 		}
 
 		List<MBMailingList> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<MBMailingList>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -202,67 +218,63 @@ public class MBMailingListPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
+			sb.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_UUID_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(MBMailingListModelImpl.ORDER_BY_JPQL);
+				sb.append(MBMailingListModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
 				list = (List<MBMailingList>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -292,16 +304,16 @@ public class MBMailingListPersistenceImpl
 			return mbMailingList;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchMailingListException(msg.toString());
+		throw new NoSuchMailingListException(sb.toString());
 	}
 
 	/**
@@ -343,16 +355,16 @@ public class MBMailingListPersistenceImpl
 			return mbMailingList;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchMailingListException(msg.toString());
+		throw new NoSuchMailingListException(sb.toString());
 	}
 
 	/**
@@ -418,8 +430,8 @@ public class MBMailingListPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -430,28 +442,28 @@ public class MBMailingListPersistenceImpl
 		Session session, MBMailingList mbMailingList, String uuid,
 		OrderByComparator<MBMailingList> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
+		sb.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_UUID_3);
+			sb.append(_FINDER_COLUMN_UUID_UUID_3);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_UUID_2);
+			sb.append(_FINDER_COLUMN_UUID_UUID_2);
 		}
 
 		if (orderByComparator != null) {
@@ -459,72 +471,72 @@ public class MBMailingListPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(MBMailingListModelImpl.ORDER_BY_JPQL);
+			sb.append(MBMailingListModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
 		if (orderByComparator != null) {
@@ -532,11 +544,11 @@ public class MBMailingListPersistenceImpl
 					orderByComparator.getOrderByConditionValues(
 						mbMailingList)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<MBMailingList> list = q.list();
+		List<MBMailingList> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -570,51 +582,61 @@ public class MBMailingListPersistenceImpl
 	public int countByUuid(String uuid) {
 		uuid = Objects.toString(uuid, "");
 
-		FinderPath finderPath = _finderPathCountByUuid;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			MBMailingList.class);
 
-		Object[] finderArgs = new Object[] {uuid};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByUuid;
+
+			finderArgs = new Object[] {uuid};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs, this);
+		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_MBMAILINGLIST_WHERE);
+			sb.append(_SQL_COUNT_MBMAILINGLIST_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_UUID_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -648,23 +670,23 @@ public class MBMailingListPersistenceImpl
 		MBMailingList mbMailingList = fetchByUUID_G(uuid, groupId);
 
 		if (mbMailingList == null) {
-			StringBundler msg = new StringBundler(6);
+			StringBundler sb = new StringBundler(6);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("uuid=");
-			msg.append(uuid);
+			sb.append("uuid=");
+			sb.append(uuid);
 
-			msg.append(", groupId=");
-			msg.append(groupId);
+			sb.append(", groupId=");
+			sb.append(groupId);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchMailingListException(msg.toString());
+			throw new NoSuchMailingListException(sb.toString());
 		}
 
 		return mbMailingList;
@@ -696,15 +718,18 @@ public class MBMailingListPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			MBMailingList.class);
+
 		Object[] finderArgs = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			finderArgs = new Object[] {uuid, groupId};
 		}
 
 		Object result = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			result = finderCache.getResult(
 				_finderPathFetchByUUID_G, finderArgs, this);
 		}
@@ -720,44 +745,44 @@ public class MBMailingListPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
+			sb.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_G_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_G_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
+			sb.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				List<MBMailingList> list = q.list();
+				List<MBMailingList> list = query.list();
 
 				if (list.isEmpty()) {
-					if (useFinderCache) {
+					if (useFinderCache && productionMode) {
 						finderCache.putResult(
 							_finderPathFetchByUUID_G, finderArgs, list);
 					}
@@ -770,13 +795,8 @@ public class MBMailingListPersistenceImpl
 					cacheResult(mbMailingList);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(
-						_finderPathFetchByUUID_G, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -818,55 +838,65 @@ public class MBMailingListPersistenceImpl
 	public int countByUUID_G(String uuid, long groupId) {
 		uuid = Objects.toString(uuid, "");
 
-		FinderPath finderPath = _finderPathCountByUUID_G;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			MBMailingList.class);
 
-		Object[] finderArgs = new Object[] {uuid, groupId};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByUUID_G;
+
+			finderArgs = new Object[] {uuid, groupId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs, this);
+		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_MBMAILINGLIST_WHERE);
+			sb.append(_SQL_COUNT_MBMAILINGLIST_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_G_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_G_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
+			sb.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -968,18 +998,21 @@ public class MBMailingListPersistenceImpl
 
 		uuid = Objects.toString(uuid, "");
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			MBMailingList.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindByUuid_C;
 				finderArgs = new Object[] {uuid, companyId};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByUuid_C;
 			finderArgs = new Object[] {
 				uuid, companyId, start, end, orderByComparator
@@ -988,7 +1021,7 @@ public class MBMailingListPersistenceImpl
 
 		List<MBMailingList> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<MBMailingList>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -1006,71 +1039,67 @@ public class MBMailingListPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
+			sb.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(MBMailingListModelImpl.ORDER_BY_JPQL);
+				sb.append(MBMailingListModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				list = (List<MBMailingList>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1102,19 +1131,19 @@ public class MBMailingListPersistenceImpl
 			return mbMailingList;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append(", companyId=");
-		msg.append(companyId);
+		sb.append(", companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchMailingListException(msg.toString());
+		throw new NoSuchMailingListException(sb.toString());
 	}
 
 	/**
@@ -1162,19 +1191,19 @@ public class MBMailingListPersistenceImpl
 			return mbMailingList;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append(", companyId=");
-		msg.append(companyId);
+		sb.append(", companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchMailingListException(msg.toString());
+		throw new NoSuchMailingListException(sb.toString());
 	}
 
 	/**
@@ -1245,8 +1274,8 @@ public class MBMailingListPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1258,117 +1287,117 @@ public class MBMailingListPersistenceImpl
 		long companyId, OrderByComparator<MBMailingList> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
+		sb.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 		}
 
-		query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(MBMailingListModelImpl.ORDER_BY_JPQL);
+			sb.append(MBMailingListModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						mbMailingList)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<MBMailingList> list = q.list();
+		List<MBMailingList> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1406,55 +1435,65 @@ public class MBMailingListPersistenceImpl
 	public int countByUuid_C(String uuid, long companyId) {
 		uuid = Objects.toString(uuid, "");
 
-		FinderPath finderPath = _finderPathCountByUuid_C;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			MBMailingList.class);
 
-		Object[] finderArgs = new Object[] {uuid, companyId};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByUuid_C;
+
+			finderArgs = new Object[] {uuid, companyId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs, this);
+		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_MBMAILINGLIST_WHERE);
+			sb.append(_SQL_COUNT_MBMAILINGLIST_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1548,25 +1587,28 @@ public class MBMailingListPersistenceImpl
 		OrderByComparator<MBMailingList> orderByComparator,
 		boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			MBMailingList.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindByActive;
 				finderArgs = new Object[] {active};
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindByActive;
 			finderArgs = new Object[] {active, start, end, orderByComparator};
 		}
 
 		List<MBMailingList> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<MBMailingList>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -1582,56 +1624,52 @@ public class MBMailingListPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
+			sb.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
 
-			query.append(_FINDER_COLUMN_ACTIVE_ACTIVE_2);
+			sb.append(_FINDER_COLUMN_ACTIVE_ACTIVE_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(MBMailingListModelImpl.ORDER_BY_JPQL);
+				sb.append(MBMailingListModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(active);
+				queryPos.add(active);
 
 				list = (List<MBMailingList>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1661,16 +1699,16 @@ public class MBMailingListPersistenceImpl
 			return mbMailingList;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("active=");
-		msg.append(active);
+		sb.append("active=");
+		sb.append(active);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchMailingListException(msg.toString());
+		throw new NoSuchMailingListException(sb.toString());
 	}
 
 	/**
@@ -1714,16 +1752,16 @@ public class MBMailingListPersistenceImpl
 			return mbMailingList;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("active=");
-		msg.append(active);
+		sb.append("active=");
+		sb.append(active);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchMailingListException(msg.toString());
+		throw new NoSuchMailingListException(sb.toString());
 	}
 
 	/**
@@ -1787,8 +1825,8 @@ public class MBMailingListPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1799,102 +1837,102 @@ public class MBMailingListPersistenceImpl
 		Session session, MBMailingList mbMailingList, boolean active,
 		OrderByComparator<MBMailingList> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
+		sb.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
 
-		query.append(_FINDER_COLUMN_ACTIVE_ACTIVE_2);
+		sb.append(_FINDER_COLUMN_ACTIVE_ACTIVE_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(MBMailingListModelImpl.ORDER_BY_JPQL);
+			sb.append(MBMailingListModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(active);
+		queryPos.add(active);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						mbMailingList)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<MBMailingList> list = q.list();
+		List<MBMailingList> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1927,40 +1965,50 @@ public class MBMailingListPersistenceImpl
 	 */
 	@Override
 	public int countByActive(boolean active) {
-		FinderPath finderPath = _finderPathCountByActive;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			MBMailingList.class);
 
-		Object[] finderArgs = new Object[] {active};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByActive;
+
+			finderArgs = new Object[] {active};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs, this);
+		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_MBMAILINGLIST_WHERE);
+			sb.append(_SQL_COUNT_MBMAILINGLIST_WHERE);
 
-			query.append(_FINDER_COLUMN_ACTIVE_ACTIVE_2);
+			sb.append(_FINDER_COLUMN_ACTIVE_ACTIVE_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(active);
+				queryPos.add(active);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1991,23 +2039,23 @@ public class MBMailingListPersistenceImpl
 		MBMailingList mbMailingList = fetchByG_C(groupId, categoryId);
 
 		if (mbMailingList == null) {
-			StringBundler msg = new StringBundler(6);
+			StringBundler sb = new StringBundler(6);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("groupId=");
-			msg.append(groupId);
+			sb.append("groupId=");
+			sb.append(groupId);
 
-			msg.append(", categoryId=");
-			msg.append(categoryId);
+			sb.append(", categoryId=");
+			sb.append(categoryId);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchMailingListException(msg.toString());
+			throw new NoSuchMailingListException(sb.toString());
 		}
 
 		return mbMailingList;
@@ -2037,15 +2085,18 @@ public class MBMailingListPersistenceImpl
 	public MBMailingList fetchByG_C(
 		long groupId, long categoryId, boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			MBMailingList.class);
+
 		Object[] finderArgs = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			finderArgs = new Object[] {groupId, categoryId};
 		}
 
 		Object result = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			result = finderCache.getResult(
 				_finderPathFetchByG_C, finderArgs, this);
 		}
@@ -2061,33 +2112,33 @@ public class MBMailingListPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
+			sb.append(_SQL_SELECT_MBMAILINGLIST_WHERE);
 
-			query.append(_FINDER_COLUMN_G_C_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_C_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_C_CATEGORYID_2);
+			sb.append(_FINDER_COLUMN_G_C_CATEGORYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(categoryId);
+				queryPos.add(categoryId);
 
-				List<MBMailingList> list = q.list();
+				List<MBMailingList> list = query.list();
 
 				if (list.isEmpty()) {
-					if (useFinderCache) {
+					if (useFinderCache && productionMode) {
 						finderCache.putResult(
 							_finderPathFetchByG_C, finderArgs, list);
 					}
@@ -2100,12 +2151,8 @@ public class MBMailingListPersistenceImpl
 					cacheResult(mbMailingList);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(_finderPathFetchByG_C, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2145,44 +2192,54 @@ public class MBMailingListPersistenceImpl
 	 */
 	@Override
 	public int countByG_C(long groupId, long categoryId) {
-		FinderPath finderPath = _finderPathCountByG_C;
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			MBMailingList.class);
 
-		Object[] finderArgs = new Object[] {groupId, categoryId};
+		FinderPath finderPath = null;
+		Object[] finderArgs = null;
 
-		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
+		Long count = null;
+
+		if (productionMode) {
+			finderPath = _finderPathCountByG_C;
+
+			finderArgs = new Object[] {groupId, categoryId};
+
+			count = (Long)finderCache.getResult(finderPath, finderArgs, this);
+		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_MBMAILINGLIST_WHERE);
+			sb.append(_SQL_COUNT_MBMAILINGLIST_WHERE);
 
-			query.append(_FINDER_COLUMN_G_C_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_C_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_C_CATEGORYID_2);
+			sb.append(_FINDER_COLUMN_G_C_CATEGORYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(categoryId);
+				queryPos.add(categoryId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(finderPath, finderArgs, count);
+				if (productionMode) {
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2199,17 +2256,19 @@ public class MBMailingListPersistenceImpl
 		"mbMailingList.categoryId = ?";
 
 	public MBMailingListPersistenceImpl() {
-		setModelClass(MBMailingList.class);
-
-		setModelImplClass(MBMailingListImpl.class);
-		setModelPKClass(long.class);
-
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
 		dbColumnNames.put("uuid", "uuid_");
 		dbColumnNames.put("active", "active_");
 
 		setDBColumnNames(dbColumnNames);
+
+		setModelClass(MBMailingList.class);
+
+		setModelImplClass(MBMailingListImpl.class);
+		setModelPKClass(long.class);
+
+		setTable(MBMailingListTable.INSTANCE);
 	}
 
 	/**
@@ -2219,9 +2278,13 @@ public class MBMailingListPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(MBMailingList mbMailingList) {
+		if (mbMailingList.getCtCollectionId() != 0) {
+			return;
+		}
+
 		entityCache.putResult(
-			entityCacheEnabled, MBMailingListImpl.class,
-			mbMailingList.getPrimaryKey(), mbMailingList);
+			MBMailingListImpl.class, mbMailingList.getPrimaryKey(),
+			mbMailingList);
 
 		finderCache.putResult(
 			_finderPathFetchByUUID_G,
@@ -2234,8 +2297,6 @@ public class MBMailingListPersistenceImpl
 				mbMailingList.getGroupId(), mbMailingList.getCategoryId()
 			},
 			mbMailingList);
-
-		mbMailingList.resetOriginalValues();
 	}
 
 	/**
@@ -2246,14 +2307,15 @@ public class MBMailingListPersistenceImpl
 	@Override
 	public void cacheResult(List<MBMailingList> mbMailingLists) {
 		for (MBMailingList mbMailingList : mbMailingLists) {
+			if (mbMailingList.getCtCollectionId() != 0) {
+				continue;
+			}
+
 			if (entityCache.getResult(
-					entityCacheEnabled, MBMailingListImpl.class,
-					mbMailingList.getPrimaryKey()) == null) {
+					MBMailingListImpl.class, mbMailingList.getPrimaryKey()) ==
+						null) {
 
 				cacheResult(mbMailingList);
-			}
-			else {
-				mbMailingList.resetOriginalValues();
 			}
 		}
 	}
@@ -2283,28 +2345,13 @@ public class MBMailingListPersistenceImpl
 	 */
 	@Override
 	public void clearCache(MBMailingList mbMailingList) {
-		entityCache.removeResult(
-			entityCacheEnabled, MBMailingListImpl.class,
-			mbMailingList.getPrimaryKey());
-
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
-		clearUniqueFindersCache((MBMailingListModelImpl)mbMailingList, true);
+		entityCache.removeResult(MBMailingListImpl.class, mbMailingList);
 	}
 
 	@Override
 	public void clearCache(List<MBMailingList> mbMailingLists) {
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
 		for (MBMailingList mbMailingList : mbMailingLists) {
-			entityCache.removeResult(
-				entityCacheEnabled, MBMailingListImpl.class,
-				mbMailingList.getPrimaryKey());
-
-			clearUniqueFindersCache(
-				(MBMailingListModelImpl)mbMailingList, true);
+			entityCache.removeResult(MBMailingListImpl.class, mbMailingList);
 		}
 	}
 
@@ -2315,8 +2362,7 @@ public class MBMailingListPersistenceImpl
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
 		for (Serializable primaryKey : primaryKeys) {
-			entityCache.removeResult(
-				entityCacheEnabled, MBMailingListImpl.class, primaryKey);
+			entityCache.removeResult(MBMailingListImpl.class, primaryKey);
 		}
 	}
 
@@ -2342,54 +2388,6 @@ public class MBMailingListPersistenceImpl
 			_finderPathCountByG_C, args, Long.valueOf(1), false);
 		finderCache.putResult(
 			_finderPathFetchByG_C, args, mbMailingListModelImpl, false);
-	}
-
-	protected void clearUniqueFindersCache(
-		MBMailingListModelImpl mbMailingListModelImpl, boolean clearCurrent) {
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				mbMailingListModelImpl.getUuid(),
-				mbMailingListModelImpl.getGroupId()
-			};
-
-			finderCache.removeResult(_finderPathCountByUUID_G, args);
-			finderCache.removeResult(_finderPathFetchByUUID_G, args);
-		}
-
-		if ((mbMailingListModelImpl.getColumnBitmask() &
-			 _finderPathFetchByUUID_G.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				mbMailingListModelImpl.getOriginalUuid(),
-				mbMailingListModelImpl.getOriginalGroupId()
-			};
-
-			finderCache.removeResult(_finderPathCountByUUID_G, args);
-			finderCache.removeResult(_finderPathFetchByUUID_G, args);
-		}
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				mbMailingListModelImpl.getGroupId(),
-				mbMailingListModelImpl.getCategoryId()
-			};
-
-			finderCache.removeResult(_finderPathCountByG_C, args);
-			finderCache.removeResult(_finderPathFetchByG_C, args);
-		}
-
-		if ((mbMailingListModelImpl.getColumnBitmask() &
-			 _finderPathFetchByG_C.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				mbMailingListModelImpl.getOriginalGroupId(),
-				mbMailingListModelImpl.getOriginalCategoryId()
-			};
-
-			finderCache.removeResult(_finderPathCountByG_C, args);
-			finderCache.removeResult(_finderPathFetchByG_C, args);
-		}
 	}
 
 	/**
@@ -2458,11 +2456,11 @@ public class MBMailingListPersistenceImpl
 
 			return remove(mbMailingList);
 		}
-		catch (NoSuchMailingListException nsee) {
-			throw nsee;
+		catch (NoSuchMailingListException noSuchEntityException) {
+			throw noSuchEntityException;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2481,12 +2479,14 @@ public class MBMailingListPersistenceImpl
 					MBMailingListImpl.class, mbMailingList.getPrimaryKeyObj());
 			}
 
-			if (mbMailingList != null) {
+			if ((mbMailingList != null) &&
+				ctPersistenceHelper.isRemove(mbMailingList)) {
+
 				session.delete(mbMailingList);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2558,122 +2558,44 @@ public class MBMailingListPersistenceImpl
 		try {
 			session = openSession();
 
-			if (mbMailingList.isNew()) {
-				session.save(mbMailingList);
+			if (ctPersistenceHelper.isInsert(mbMailingList)) {
+				if (!isNew) {
+					session.evict(
+						MBMailingListImpl.class,
+						mbMailingList.getPrimaryKeyObj());
+				}
 
-				mbMailingList.setNew(false);
+				session.save(mbMailingList);
 			}
 			else {
 				mbMailingList = (MBMailingList)session.merge(mbMailingList);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
 		}
 
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-
-		if (!_columnBitmaskEnabled) {
-			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-		}
-		else if (isNew) {
-			Object[] args = new Object[] {mbMailingListModelImpl.getUuid()};
-
-			finderCache.removeResult(_finderPathCountByUuid, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByUuid, args);
-
-			args = new Object[] {
-				mbMailingListModelImpl.getUuid(),
-				mbMailingListModelImpl.getCompanyId()
-			};
-
-			finderCache.removeResult(_finderPathCountByUuid_C, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByUuid_C, args);
-
-			args = new Object[] {mbMailingListModelImpl.isActive()};
-
-			finderCache.removeResult(_finderPathCountByActive, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByActive, args);
-
-			finderCache.removeResult(_finderPathCountAll, FINDER_ARGS_EMPTY);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindAll, FINDER_ARGS_EMPTY);
-		}
-		else {
-			if ((mbMailingListModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByUuid.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					mbMailingListModelImpl.getOriginalUuid()
-				};
-
-				finderCache.removeResult(_finderPathCountByUuid, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByUuid, args);
-
-				args = new Object[] {mbMailingListModelImpl.getUuid()};
-
-				finderCache.removeResult(_finderPathCountByUuid, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByUuid, args);
+		if (mbMailingList.getCtCollectionId() != 0) {
+			if (isNew) {
+				mbMailingList.setNew(false);
 			}
 
-			if ((mbMailingListModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByUuid_C.getColumnBitmask()) !=
-					 0) {
+			mbMailingList.resetOriginalValues();
 
-				Object[] args = new Object[] {
-					mbMailingListModelImpl.getOriginalUuid(),
-					mbMailingListModelImpl.getOriginalCompanyId()
-				};
-
-				finderCache.removeResult(_finderPathCountByUuid_C, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByUuid_C, args);
-
-				args = new Object[] {
-					mbMailingListModelImpl.getUuid(),
-					mbMailingListModelImpl.getCompanyId()
-				};
-
-				finderCache.removeResult(_finderPathCountByUuid_C, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByUuid_C, args);
-			}
-
-			if ((mbMailingListModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByActive.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					mbMailingListModelImpl.getOriginalActive()
-				};
-
-				finderCache.removeResult(_finderPathCountByActive, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByActive, args);
-
-				args = new Object[] {mbMailingListModelImpl.isActive()};
-
-				finderCache.removeResult(_finderPathCountByActive, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByActive, args);
-			}
+			return mbMailingList;
 		}
 
 		entityCache.putResult(
-			entityCacheEnabled, MBMailingListImpl.class,
-			mbMailingList.getPrimaryKey(), mbMailingList, false);
+			MBMailingListImpl.class, mbMailingListModelImpl, false, true);
 
-		clearUniqueFindersCache(mbMailingListModelImpl, false);
 		cacheUniqueFindersCache(mbMailingListModelImpl);
+
+		if (isNew) {
+			mbMailingList.setNew(false);
+		}
 
 		mbMailingList.resetOriginalValues();
 
@@ -2722,12 +2644,121 @@ public class MBMailingListPersistenceImpl
 	/**
 	 * Returns the message boards mailing list with the primary key or returns <code>null</code> if it could not be found.
 	 *
+	 * @param primaryKey the primary key of the message boards mailing list
+	 * @return the message boards mailing list, or <code>null</code> if a message boards mailing list with the primary key could not be found
+	 */
+	@Override
+	public MBMailingList fetchByPrimaryKey(Serializable primaryKey) {
+		if (ctPersistenceHelper.isProductionMode(MBMailingList.class)) {
+			return super.fetchByPrimaryKey(primaryKey);
+		}
+
+		MBMailingList mbMailingList = null;
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			mbMailingList = (MBMailingList)session.get(
+				MBMailingListImpl.class, primaryKey);
+
+			if (mbMailingList != null) {
+				cacheResult(mbMailingList);
+			}
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return mbMailingList;
+	}
+
+	/**
+	 * Returns the message boards mailing list with the primary key or returns <code>null</code> if it could not be found.
+	 *
 	 * @param mailingListId the primary key of the message boards mailing list
 	 * @return the message boards mailing list, or <code>null</code> if a message boards mailing list with the primary key could not be found
 	 */
 	@Override
 	public MBMailingList fetchByPrimaryKey(long mailingListId) {
 		return fetchByPrimaryKey((Serializable)mailingListId);
+	}
+
+	@Override
+	public Map<Serializable, MBMailingList> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+
+		if (ctPersistenceHelper.isProductionMode(MBMailingList.class)) {
+			return super.fetchByPrimaryKeys(primaryKeys);
+		}
+
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, MBMailingList> map =
+			new HashMap<Serializable, MBMailingList>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			MBMailingList mbMailingList = fetchByPrimaryKey(primaryKey);
+
+			if (mbMailingList != null) {
+				map.put(primaryKey, mbMailingList);
+			}
+
+			return map;
+		}
+
+		StringBundler sb = new StringBundler((primaryKeys.size() * 2) + 1);
+
+		sb.append(getSelectSQL());
+		sb.append(" WHERE ");
+		sb.append(getPKDBName());
+		sb.append(" IN (");
+
+		for (Serializable primaryKey : primaryKeys) {
+			sb.append((long)primaryKey);
+
+			sb.append(",");
+		}
+
+		sb.setIndex(sb.index() - 1);
+
+		sb.append(")");
+
+		String sql = sb.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query query = session.createQuery(sql);
+
+			for (MBMailingList mbMailingList :
+					(List<MBMailingList>)query.list()) {
+
+				map.put(mbMailingList.getPrimaryKeyObj(), mbMailingList);
+
+				cacheResult(mbMailingList);
+			}
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
@@ -2794,43 +2825,46 @@ public class MBMailingListPersistenceImpl
 		int start, int end, OrderByComparator<MBMailingList> orderByComparator,
 		boolean useFinderCache) {
 
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			MBMailingList.class);
+
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
 
-			if (useFinderCache) {
+			if (useFinderCache && productionMode) {
 				finderPath = _finderPathWithoutPaginationFindAll;
 				finderArgs = FINDER_ARGS_EMPTY;
 			}
 		}
-		else if (useFinderCache) {
+		else if (useFinderCache && productionMode) {
 			finderPath = _finderPathWithPaginationFindAll;
 			finderArgs = new Object[] {start, end, orderByComparator};
 		}
 
 		List<MBMailingList> list = null;
 
-		if (useFinderCache) {
+		if (useFinderCache && productionMode) {
 			list = (List<MBMailingList>)finderCache.getResult(
 				finderPath, finderArgs, this);
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 			String sql = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					2 + (orderByComparator.getOrderByFields().length * 2));
 
-				query.append(_SQL_SELECT_MBMAILINGLIST);
+				sb.append(_SQL_SELECT_MBMAILINGLIST);
 
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 
-				sql = query.toString();
+				sql = sb.toString();
 			}
 			else {
 				sql = _SQL_SELECT_MBMAILINGLIST;
@@ -2843,23 +2877,19 @@ public class MBMailingListPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
 				list = (List<MBMailingList>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
-				if (useFinderCache) {
+				if (useFinderCache && productionMode) {
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2887,8 +2917,15 @@ public class MBMailingListPersistenceImpl
 	 */
 	@Override
 	public int countAll() {
-		Long count = (Long)finderCache.getResult(
-			_finderPathCountAll, FINDER_ARGS_EMPTY, this);
+		boolean productionMode = ctPersistenceHelper.isProductionMode(
+			MBMailingList.class);
+
+		Long count = null;
+
+		if (productionMode) {
+			count = (Long)finderCache.getResult(
+				_finderPathCountAll, FINDER_ARGS_EMPTY, this);
+		}
 
 		if (count == null) {
 			Session session = null;
@@ -2896,18 +2933,17 @@ public class MBMailingListPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(_SQL_COUNT_MBMAILINGLIST);
+				Query query = session.createQuery(_SQL_COUNT_MBMAILINGLIST);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
-				finderCache.putResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
+				if (productionMode) {
+					finderCache.putResult(
+						_finderPathCountAll, FINDER_ARGS_EMPTY, count);
+				}
 			}
-			catch (Exception e) {
-				finderCache.removeResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2938,122 +2974,200 @@ public class MBMailingListPersistenceImpl
 	}
 
 	@Override
-	protected Map<String, Integer> getTableColumnsMap() {
+	public Set<String> getCTColumnNames(
+		CTColumnResolutionType ctColumnResolutionType) {
+
+		return _ctColumnNamesMap.get(ctColumnResolutionType);
+	}
+
+	@Override
+	public List<String> getMappingTableNames() {
+		return _mappingTableNames;
+	}
+
+	@Override
+	public Map<String, Integer> getTableColumnsMap() {
 		return MBMailingListModelImpl.TABLE_COLUMNS_MAP;
+	}
+
+	@Override
+	public String getTableName() {
+		return "MBMailingList";
+	}
+
+	@Override
+	public List<String[]> getUniqueIndexColumnNames() {
+		return _uniqueIndexColumnNames;
+	}
+
+	private static final Map<CTColumnResolutionType, Set<String>>
+		_ctColumnNamesMap = new EnumMap<CTColumnResolutionType, Set<String>>(
+			CTColumnResolutionType.class);
+	private static final List<String> _mappingTableNames =
+		new ArrayList<String>();
+	private static final List<String[]> _uniqueIndexColumnNames =
+		new ArrayList<String[]>();
+
+	static {
+		Set<String> ctControlColumnNames = new HashSet<String>();
+		Set<String> ctIgnoreColumnNames = new HashSet<String>();
+		Set<String> ctMergeColumnNames = new HashSet<String>();
+		Set<String> ctStrictColumnNames = new HashSet<String>();
+
+		ctControlColumnNames.add("mvccVersion");
+		ctControlColumnNames.add("ctCollectionId");
+		ctStrictColumnNames.add("uuid_");
+		ctStrictColumnNames.add("groupId");
+		ctStrictColumnNames.add("companyId");
+		ctStrictColumnNames.add("userId");
+		ctStrictColumnNames.add("userName");
+		ctStrictColumnNames.add("createDate");
+		ctIgnoreColumnNames.add("modifiedDate");
+		ctStrictColumnNames.add("categoryId");
+		ctStrictColumnNames.add("emailAddress");
+		ctStrictColumnNames.add("inProtocol");
+		ctStrictColumnNames.add("inServerName");
+		ctStrictColumnNames.add("inServerPort");
+		ctStrictColumnNames.add("inUseSSL");
+		ctStrictColumnNames.add("inUserName");
+		ctStrictColumnNames.add("inPassword");
+		ctStrictColumnNames.add("inReadInterval");
+		ctStrictColumnNames.add("outEmailAddress");
+		ctStrictColumnNames.add("outCustom");
+		ctStrictColumnNames.add("outServerName");
+		ctStrictColumnNames.add("outServerPort");
+		ctStrictColumnNames.add("outUseSSL");
+		ctStrictColumnNames.add("outUserName");
+		ctStrictColumnNames.add("outPassword");
+		ctStrictColumnNames.add("allowAnonymous");
+		ctStrictColumnNames.add("active_");
+
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.CONTROL, ctControlColumnNames);
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.IGNORE, ctIgnoreColumnNames);
+		_ctColumnNamesMap.put(CTColumnResolutionType.MERGE, ctMergeColumnNames);
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.PK, Collections.singleton("mailingListId"));
+		_ctColumnNamesMap.put(
+			CTColumnResolutionType.STRICT, ctStrictColumnNames);
+
+		_uniqueIndexColumnNames.add(new String[] {"uuid_", "groupId"});
+
+		_uniqueIndexColumnNames.add(new String[] {"groupId", "categoryId"});
 	}
 
 	/**
 	 * Initializes the message boards mailing list persistence.
 	 */
 	@Activate
-	public void activate() {
-		MBMailingListModelImpl.setEntityCacheEnabled(entityCacheEnabled);
-		MBMailingListModelImpl.setFinderCacheEnabled(finderCacheEnabled);
+	public void activate(BundleContext bundleContext) {
+		_bundleContext = bundleContext;
 
-		_finderPathWithPaginationFindAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, MBMailingListImpl.class,
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0]);
+		_argumentsResolverServiceRegistration = _bundleContext.registerService(
+			ArgumentsResolver.class, new MBMailingListModelArgumentsResolver(),
+			MapUtil.singletonDictionary(
+				"model.class.name", MBMailingList.class.getName()));
 
-		_finderPathWithoutPaginationFindAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, MBMailingListImpl.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll",
-			new String[0]);
+		_finderPathWithPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
+			new String[0], true);
 
-		_finderPathCountAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathWithoutPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathCountAll = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
-			new String[0]);
+			new String[0], new String[0], false);
 
-		_finderPathWithPaginationFindByUuid = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, MBMailingListImpl.class,
+		_finderPathWithPaginationFindByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid",
 			new String[] {
 				String.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"uuid_"}, true);
 
-		_finderPathWithoutPaginationFindByUuid = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, MBMailingListImpl.class,
+		_finderPathWithoutPaginationFindByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid",
-			new String[] {String.class.getName()},
-			MBMailingListModelImpl.UUID_COLUMN_BITMASK);
+			new String[] {String.class.getName()}, new String[] {"uuid_"},
+			true);
 
-		_finderPathCountByUuid = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid",
-			new String[] {String.class.getName()});
+			new String[] {String.class.getName()}, new String[] {"uuid_"},
+			false);
 
-		_finderPathFetchByUUID_G = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, MBMailingListImpl.class,
+		_finderPathFetchByUUID_G = _createFinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByUUID_G",
 			new String[] {String.class.getName(), Long.class.getName()},
-			MBMailingListModelImpl.UUID_COLUMN_BITMASK |
-			MBMailingListModelImpl.GROUPID_COLUMN_BITMASK);
+			new String[] {"uuid_", "groupId"}, true);
 
-		_finderPathCountByUUID_G = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByUUID_G = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUUID_G",
-			new String[] {String.class.getName(), Long.class.getName()});
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"uuid_", "groupId"}, false);
 
-		_finderPathWithPaginationFindByUuid_C = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, MBMailingListImpl.class,
+		_finderPathWithPaginationFindByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid_C",
 			new String[] {
 				String.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"uuid_", "companyId"}, true);
 
-		_finderPathWithoutPaginationFindByUuid_C = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, MBMailingListImpl.class,
+		_finderPathWithoutPaginationFindByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid_C",
 			new String[] {String.class.getName(), Long.class.getName()},
-			MBMailingListModelImpl.UUID_COLUMN_BITMASK |
-			MBMailingListModelImpl.COMPANYID_COLUMN_BITMASK);
+			new String[] {"uuid_", "companyId"}, true);
 
-		_finderPathCountByUuid_C = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid_C",
-			new String[] {String.class.getName(), Long.class.getName()});
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"uuid_", "companyId"}, false);
 
-		_finderPathWithPaginationFindByActive = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, MBMailingListImpl.class,
+		_finderPathWithPaginationFindByActive = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByActive",
 			new String[] {
 				Boolean.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"active_"}, true);
 
-		_finderPathWithoutPaginationFindByActive = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, MBMailingListImpl.class,
+		_finderPathWithoutPaginationFindByActive = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByActive",
-			new String[] {Boolean.class.getName()},
-			MBMailingListModelImpl.ACTIVE_COLUMN_BITMASK);
+			new String[] {Boolean.class.getName()}, new String[] {"active_"},
+			true);
 
-		_finderPathCountByActive = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByActive = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByActive",
-			new String[] {Boolean.class.getName()});
+			new String[] {Boolean.class.getName()}, new String[] {"active_"},
+			false);
 
-		_finderPathFetchByG_C = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, MBMailingListImpl.class,
+		_finderPathFetchByG_C = _createFinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByG_C",
 			new String[] {Long.class.getName(), Long.class.getName()},
-			MBMailingListModelImpl.GROUPID_COLUMN_BITMASK |
-			MBMailingListModelImpl.CATEGORYID_COLUMN_BITMASK);
+			new String[] {"groupId", "categoryId"}, true);
 
-		_finderPathCountByG_C = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByG_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_C",
-			new String[] {Long.class.getName(), Long.class.getName()});
+			new String[] {Long.class.getName(), Long.class.getName()},
+			new String[] {"groupId", "categoryId"}, false);
 	}
 
 	@Deactivate
 	public void deactivate() {
 		entityCache.removeCache(MBMailingListImpl.class.getName());
-		finderCache.removeCache(FINDER_CLASS_NAME_ENTITY);
-		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		_argumentsResolverServiceRegistration.unregister();
+
+		for (ServiceRegistration<FinderPath> serviceRegistration :
+				_serviceRegistrations) {
+
+			serviceRegistration.unregister();
+		}
 	}
 
 	@Override
@@ -3062,12 +3176,6 @@ public class MBMailingListPersistenceImpl
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
-		super.setConfiguration(configuration);
-
-		_columnBitmaskEnabled = GetterUtil.getBoolean(
-			configuration.get(
-				"value.object.column.bitmask.enabled.com.liferay.message.boards.model.MBMailingList"),
-			true);
 	}
 
 	@Override
@@ -3088,7 +3196,10 @@ public class MBMailingListPersistenceImpl
 		super.setSessionFactory(sessionFactory);
 	}
 
-	private boolean _columnBitmaskEnabled;
+	private BundleContext _bundleContext;
+
+	@Reference
+	protected CTPersistenceHelper ctPersistenceHelper;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -3126,9 +3237,108 @@ public class MBMailingListPersistenceImpl
 		try {
 			Class.forName(MBPersistenceConstants.class.getName());
 		}
-		catch (ClassNotFoundException cnfe) {
-			throw new ExceptionInInitializerError(cnfe);
+		catch (ClassNotFoundException classNotFoundException) {
+			throw new ExceptionInInitializerError(classNotFoundException);
 		}
+	}
+
+	private FinderPath _createFinderPath(
+		String cacheName, String methodName, String[] params,
+		String[] columnNames, boolean baseModelResult) {
+
+		FinderPath finderPath = new FinderPath(
+			cacheName, methodName, params, columnNames, baseModelResult);
+
+		if (!cacheName.equals(FINDER_CLASS_NAME_LIST_WITH_PAGINATION)) {
+			_serviceRegistrations.add(
+				_bundleContext.registerService(
+					FinderPath.class, finderPath,
+					MapUtil.singletonDictionary("cache.name", cacheName)));
+		}
+
+		return finderPath;
+	}
+
+	private ServiceRegistration<ArgumentsResolver>
+		_argumentsResolverServiceRegistration;
+	private Set<ServiceRegistration<FinderPath>> _serviceRegistrations =
+		new HashSet<>();
+
+	private static class MBMailingListModelArgumentsResolver
+		implements ArgumentsResolver {
+
+		@Override
+		public Object[] getArguments(
+			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
+			boolean original) {
+
+			String[] columnNames = finderPath.getColumnNames();
+
+			if ((columnNames == null) || (columnNames.length == 0)) {
+				if (baseModel.isNew()) {
+					return FINDER_ARGS_EMPTY;
+				}
+
+				return null;
+			}
+
+			MBMailingListModelImpl mbMailingListModelImpl =
+				(MBMailingListModelImpl)baseModel;
+
+			long columnBitmask = mbMailingListModelImpl.getColumnBitmask();
+
+			if (!checkColumn || (columnBitmask == 0)) {
+				return _getValue(mbMailingListModelImpl, columnNames, original);
+			}
+
+			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
+				finderPath);
+
+			if (finderPathColumnBitmask == null) {
+				finderPathColumnBitmask = 0L;
+
+				for (String columnName : columnNames) {
+					finderPathColumnBitmask |=
+						mbMailingListModelImpl.getColumnBitmask(columnName);
+				}
+
+				_finderPathColumnBitmasksCache.put(
+					finderPath, finderPathColumnBitmask);
+			}
+
+			if ((columnBitmask & finderPathColumnBitmask) != 0) {
+				return _getValue(mbMailingListModelImpl, columnNames, original);
+			}
+
+			return null;
+		}
+
+		private Object[] _getValue(
+			MBMailingListModelImpl mbMailingListModelImpl, String[] columnNames,
+			boolean original) {
+
+			Object[] arguments = new Object[columnNames.length];
+
+			for (int i = 0; i < arguments.length; i++) {
+				String columnName = columnNames[i];
+
+				if (original) {
+					arguments[i] =
+						mbMailingListModelImpl.getColumnOriginalValue(
+							columnName);
+				}
+				else {
+					arguments[i] = mbMailingListModelImpl.getColumnValue(
+						columnName);
+				}
+			}
+
+			return arguments;
+		}
+
+		private static Map<FinderPath, Long> _finderPathColumnBitmasksCache =
+			new ConcurrentHashMap<>();
+
 	}
 
 }

@@ -158,10 +158,10 @@ public class MBMessageStagedModelDataHandlerTest
 			stagingGroup.getGroupId(), mbCategory.getCategoryId(),
 			mbThread.getThreadId());
 
-		MBMessage movedMbMessage = (MBMessage)getStagedModel(
+		MBMessage movedMBMessage = (MBMessage)getStagedModel(
 			mbMessage.getUuid(), stagingGroup);
 
-		exportImportStagedModel(movedMbMessage);
+		exportImportStagedModel(movedMBMessage);
 
 		MBMessage importedMBMessage = (MBMessage)getStagedModel(
 			mbMessage.getUuid(), liveGroup);
@@ -307,11 +307,13 @@ public class MBMessageStagedModelDataHandlerTest
 					stagedModelDataHandler.deleteStagedModel(
 						dependentStagedModel);
 				}
-				catch (NoSuchModelException nsme) {
-					if (!(nsme instanceof NoSuchFileEntryException) &&
-						!(nsme instanceof NoSuchFolderException)) {
+				catch (NoSuchModelException noSuchModelException) {
+					if (!(noSuchModelException instanceof
+							NoSuchFileEntryException) &&
+						!(noSuchModelException instanceof
+							NoSuchFolderException)) {
 
-						throw nsme;
+						throw noSuchModelException;
 					}
 				}
 			}

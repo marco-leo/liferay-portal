@@ -26,6 +26,8 @@ import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -49,6 +51,7 @@ import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.service.persistence.AddressPersistence;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.CompanyPersistence;
 import com.liferay.portal.kernel.service.persistence.CountryPersistence;
 import com.liferay.portal.kernel.service.persistence.EmailAddressPersistence;
@@ -67,6 +70,7 @@ import com.liferay.portal.kernel.service.persistence.UserGroupRoleFinder;
 import com.liferay.portal.kernel.service.persistence.UserGroupRolePersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
 import com.liferay.portal.kernel.service.persistence.WebsitePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -92,7 +96,7 @@ public abstract class OrganizationLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements IdentifiableOSGiService, OrganizationLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>OrganizationLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.OrganizationLocalServiceUtil</code>.
@@ -100,6 +104,10 @@ public abstract class OrganizationLocalServiceBaseImpl
 
 	/**
 	 * Adds the organization to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OrganizationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param organization the organization
 	 * @return the organization that was added
@@ -127,6 +135,10 @@ public abstract class OrganizationLocalServiceBaseImpl
 	/**
 	 * Deletes the organization with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OrganizationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param organizationId the primary key of the organization
 	 * @return the organization that was removed
 	 * @throws PortalException if a organization with the primary key could not be found
@@ -142,6 +154,10 @@ public abstract class OrganizationLocalServiceBaseImpl
 	/**
 	 * Deletes the organization from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OrganizationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param organization the organization
 	 * @return the organization that was removed
 	 * @throws PortalException
@@ -152,6 +168,11 @@ public abstract class OrganizationLocalServiceBaseImpl
 		throws PortalException {
 
 		return organizationPersistence.remove(organization);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return organizationPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -402,6 +423,17 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return organizationPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -409,6 +441,14 @@ public abstract class OrganizationLocalServiceBaseImpl
 			(Organization)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<Organization> getBasePersistence() {
+		return organizationPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -461,6 +501,10 @@ public abstract class OrganizationLocalServiceBaseImpl
 
 	/**
 	 * Updates the organization in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OrganizationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param organization the organization
 	 * @return the organization that was updated
@@ -1657,8 +1701,23 @@ public abstract class OrganizationLocalServiceBaseImpl
 		return OrganizationLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<Organization> getCTPersistence() {
+		return organizationPersistence;
+	}
+
+	@Override
+	public Class<Organization> getModelClass() {
 		return Organization.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<Organization>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(organizationPersistence);
 	}
 
 	protected String getModelClassName() {
@@ -1684,8 +1743,8 @@ public abstract class OrganizationLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

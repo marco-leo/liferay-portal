@@ -23,7 +23,7 @@ import org.osgi.annotation.versioning.ProviderType;
 /**
  * The extended model interface for the DispatchLog service. Represents a row in the &quot;DispatchLog&quot; database table, with each column mapped to a property of this class.
  *
- * @author Alessio Antonio Rendina
+ * @author Matija Petanjek
  * @see DispatchLogModel
  * @generated
  */
@@ -31,7 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface DispatchLog extends DispatchLogModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.dispatch.model.impl.DispatchLogImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.

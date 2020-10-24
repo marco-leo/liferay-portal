@@ -42,8 +42,6 @@ public class UpdatePortletTitleAction extends JSONAction {
 			HttpServletResponse httpServletResponse)
 		throws Exception {
 
-		HttpSession session = httpServletRequest.getSession();
-
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
@@ -62,6 +60,8 @@ public class UpdatePortletTitleAction extends JSONAction {
 			return null;
 		}
 
+		HttpSession session = httpServletRequest.getSession();
+
 		String languageId = LanguageUtil.getLanguageId(httpServletRequest);
 		String title = ParamUtil.getString(httpServletRequest, "title");
 
@@ -72,6 +72,23 @@ public class UpdatePortletTitleAction extends JSONAction {
 		portletSetup.setValue("portletSetupUseCustomTitle", "true");
 
 		portletSetup.store();
+
+		if (layout.isTypeContent()) {
+			Layout draftLayout = layout.fetchDraftLayout();
+
+			if (draftLayout != null) {
+				PortletPreferences draftLayoutPortletSetup =
+					themeDisplay.getStrictLayoutPortletSetup(
+						draftLayout, portletId);
+
+				draftLayoutPortletSetup.setValue(
+					"portletSetupTitle_" + languageId, title);
+				draftLayoutPortletSetup.setValue(
+					"portletSetupUseCustomTitle", "true");
+
+				draftLayoutPortletSetup.store();
+			}
+		}
 
 		InvokerPortletUtil.clearResponse(
 			session, layout.getPrimaryKey(), portletId,

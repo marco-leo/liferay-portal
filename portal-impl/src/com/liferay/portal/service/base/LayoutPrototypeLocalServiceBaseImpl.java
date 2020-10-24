@@ -19,6 +19,7 @@ import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -41,6 +42,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.LayoutPrototypeLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.GroupFinder;
 import com.liferay.portal.kernel.service.persistence.GroupPersistence;
 import com.liferay.portal.kernel.service.persistence.LayoutFinder;
@@ -73,7 +75,7 @@ public abstract class LayoutPrototypeLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements IdentifiableOSGiService, LayoutPrototypeLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>LayoutPrototypeLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.LayoutPrototypeLocalServiceUtil</code>.
@@ -81,6 +83,10 @@ public abstract class LayoutPrototypeLocalServiceBaseImpl
 
 	/**
 	 * Adds the layout prototype to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPrototypeLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPrototype the layout prototype
 	 * @return the layout prototype that was added
@@ -108,6 +114,10 @@ public abstract class LayoutPrototypeLocalServiceBaseImpl
 	/**
 	 * Deletes the layout prototype with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPrototypeLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param layoutPrototypeId the primary key of the layout prototype
 	 * @return the layout prototype that was removed
 	 * @throws PortalException if a layout prototype with the primary key could not be found
@@ -123,6 +133,10 @@ public abstract class LayoutPrototypeLocalServiceBaseImpl
 	/**
 	 * Deletes the layout prototype from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPrototypeLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param layoutPrototype the layout prototype
 	 * @return the layout prototype that was removed
 	 * @throws PortalException
@@ -134,6 +148,11 @@ public abstract class LayoutPrototypeLocalServiceBaseImpl
 		throws PortalException {
 
 		return layoutPrototypePersistence.remove(layoutPrototype);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return layoutPrototypePersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -369,6 +388,17 @@ public abstract class LayoutPrototypeLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return layoutPrototypePersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -376,6 +406,14 @@ public abstract class LayoutPrototypeLocalServiceBaseImpl
 			(LayoutPrototype)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<LayoutPrototype> getBasePersistence() {
+		return layoutPrototypePersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -428,6 +466,10 @@ public abstract class LayoutPrototypeLocalServiceBaseImpl
 
 	/**
 	 * Updates the layout prototype in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPrototypeLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPrototype the layout prototype
 	 * @return the layout prototype that was updated
@@ -749,8 +791,8 @@ public abstract class LayoutPrototypeLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

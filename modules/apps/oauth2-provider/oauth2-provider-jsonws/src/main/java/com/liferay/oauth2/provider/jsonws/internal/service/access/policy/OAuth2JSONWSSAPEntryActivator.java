@@ -22,10 +22,10 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
+import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.util.ResourceBundleLoader;
-import com.liferay.portal.kernel.util.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.security.service.access.policy.model.SAPEntry;
 import com.liferay.portal.security.service.access.policy.service.SAPEntryLocalService;
@@ -135,11 +135,11 @@ public class OAuth2JSONWSSAPEntryActivator {
 			try {
 				addSAPEntries(company.getCompanyId());
 			}
-			catch (PortalException pe) {
+			catch (PortalException portalException) {
 				_log.error(
 					"Unable to add service access policy entry for company " +
 						company.getCompanyId(),
-					pe);
+					portalException);
 			}
 		}
 

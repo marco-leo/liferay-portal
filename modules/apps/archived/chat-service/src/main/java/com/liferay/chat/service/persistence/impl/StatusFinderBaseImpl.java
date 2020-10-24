@@ -58,7 +58,6 @@ public abstract class StatusFinderBaseImpl extends BasePersistenceImpl<Status> {
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
-		super.setConfiguration(configuration);
 	}
 
 	@Override
@@ -89,8 +88,8 @@ public abstract class StatusFinderBaseImpl extends BasePersistenceImpl<Status> {
 		try {
 			Class.forName(ChatPersistenceConstants.class.getName());
 		}
-		catch (ClassNotFoundException cnfe) {
-			throw new ExceptionInInitializerError(cnfe);
+		catch (ClassNotFoundException classNotFoundException) {
+			throw new ExceptionInInitializerError(classNotFoundException);
 		}
 	}
 

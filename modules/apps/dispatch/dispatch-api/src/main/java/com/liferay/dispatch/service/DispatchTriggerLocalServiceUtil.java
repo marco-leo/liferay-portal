@@ -26,13 +26,13 @@ import org.osgi.util.tracker.ServiceTracker;
  * based on the propagated JAAS credentials because this service can only be
  * accessed from within the same VM.
  *
- * @author Alessio Antonio Rendina
+ * @author Matija Petanjek
  * @see DispatchTriggerLocalService
  * @generated
  */
 public class DispatchTriggerLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.dispatch.service.impl.DispatchTriggerLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -41,6 +41,10 @@ public class DispatchTriggerLocalServiceUtil {
 	/**
 	 * Adds the dispatch trigger to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DispatchTriggerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param dispatchTrigger the dispatch trigger
 	 * @return the dispatch trigger that was added
 	 */
@@ -48,6 +52,17 @@ public class DispatchTriggerLocalServiceUtil {
 		com.liferay.dispatch.model.DispatchTrigger dispatchTrigger) {
 
 		return getService().addDispatchTrigger(dispatchTrigger);
+	}
+
+	public static com.liferay.dispatch.model.DispatchTrigger addDispatchTrigger(
+			long userId, String name, boolean system,
+			com.liferay.portal.kernel.util.UnicodeProperties
+				taskSettingsUnicodeProperties,
+			String taskType)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().addDispatchTrigger(
+			userId, name, system, taskSettingsUnicodeProperties, taskType);
 	}
 
 	/**
@@ -63,20 +78,40 @@ public class DispatchTriggerLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the dispatch trigger from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DispatchTriggerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dispatchTrigger the dispatch trigger
 	 * @return the dispatch trigger that was removed
+	 * @throws PortalException
 	 */
 	public static com.liferay.dispatch.model.DispatchTrigger
-		deleteDispatchTrigger(
-			com.liferay.dispatch.model.DispatchTrigger dispatchTrigger) {
+			deleteDispatchTrigger(
+				com.liferay.dispatch.model.DispatchTrigger dispatchTrigger)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deleteDispatchTrigger(dispatchTrigger);
 	}
 
 	/**
 	 * Deletes the dispatch trigger with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DispatchTriggerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dispatchTriggerId the primary key of the dispatch trigger
 	 * @return the dispatch trigger that was removed
@@ -98,6 +133,12 @@ public class DispatchTriggerLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -191,6 +232,12 @@ public class DispatchTriggerLocalServiceUtil {
 		return getService().fetchDispatchTrigger(dispatchTriggerId);
 	}
 
+	public static com.liferay.dispatch.model.DispatchTrigger
+		fetchDispatchTrigger(long companyId, String name) {
+
+		return getService().fetchDispatchTrigger(companyId, name);
+	}
+
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
 		getActionableDynamicQuery() {
 
@@ -228,6 +275,12 @@ public class DispatchTriggerLocalServiceUtil {
 		return getService().getDispatchTriggers(start, end);
 	}
 
+	public static java.util.List<com.liferay.dispatch.model.DispatchTrigger>
+		getDispatchTriggers(long companyId, int start, int end) {
+
+		return getService().getDispatchTriggers(companyId, start, end);
+	}
+
 	/**
 	 * Returns the number of dispatch triggers.
 	 *
@@ -237,11 +290,19 @@ public class DispatchTriggerLocalServiceUtil {
 		return getService().getDispatchTriggersCount();
 	}
 
+	public static int getDispatchTriggersCount(long companyId) {
+		return getService().getDispatchTriggersCount(companyId);
+	}
+
 	public static
 		com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery
 			getIndexableActionableDynamicQuery() {
 
 		return getService().getIndexableActionableDynamicQuery();
+	}
+
+	public static java.util.Date getNextFireDate(long dispatchTriggerId) {
+		return getService().getNextFireDate(dispatchTriggerId);
 	}
 
 	/**
@@ -253,6 +314,9 @@ public class DispatchTriggerLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -260,8 +324,30 @@ public class DispatchTriggerLocalServiceUtil {
 		return getService().getPersistedModel(primaryKeyObj);
 	}
 
+	public static java.util.Date getPreviousFireDate(long dispatchTriggerId) {
+		return getService().getPreviousFireDate(dispatchTriggerId);
+	}
+
+	public static java.util.List<com.liferay.dispatch.model.DispatchTrigger>
+		getUserDispatchTriggers(
+			long companyId, long userId, int start, int end) {
+
+		return getService().getUserDispatchTriggers(
+			companyId, userId, start, end);
+	}
+
+	public static int getUserDispatchTriggersCount(
+		long companyId, long userId) {
+
+		return getService().getUserDispatchTriggersCount(companyId, userId);
+	}
+
 	/**
 	 * Updates the dispatch trigger in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DispatchTriggerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dispatchTrigger the dispatch trigger
 	 * @return the dispatch trigger that was updated
@@ -271,6 +357,33 @@ public class DispatchTriggerLocalServiceUtil {
 			com.liferay.dispatch.model.DispatchTrigger dispatchTrigger) {
 
 		return getService().updateDispatchTrigger(dispatchTrigger);
+	}
+
+	public static com.liferay.dispatch.model.DispatchTrigger
+			updateDispatchTrigger(
+				long dispatchTriggerId, boolean active, String cronExpression,
+				int endDateMonth, int endDateDay, int endDateYear,
+				int endDateHour, int endDateMinute, boolean neverEnd,
+				boolean overlapAllowed, int startDateMonth, int startDateDay,
+				int startDateYear, int startDateHour, int startDateMinute)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().updateDispatchTrigger(
+			dispatchTriggerId, active, cronExpression, endDateMonth, endDateDay,
+			endDateYear, endDateHour, endDateMinute, neverEnd, overlapAllowed,
+			startDateMonth, startDateDay, startDateYear, startDateHour,
+			startDateMinute);
+	}
+
+	public static com.liferay.dispatch.model.DispatchTrigger
+			updateDispatchTrigger(
+				long dispatchTriggerId, String name,
+				com.liferay.portal.kernel.util.UnicodeProperties
+					taskSettingsUnicodeProperties)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().updateDispatchTrigger(
+			dispatchTriggerId, name, taskSettingsUnicodeProperties);
 	}
 
 	public static DispatchTriggerLocalService getService() {

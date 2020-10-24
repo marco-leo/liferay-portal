@@ -31,11 +31,6 @@ public class RecentLayoutRevisionLocalServiceWrapper
 		_recentLayoutRevisionLocalService = recentLayoutRevisionLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link RecentLayoutRevisionLocalServiceUtil} to access the recent layout revision local service. Add custom service methods to <code>com.liferay.portal.service.impl.RecentLayoutRevisionLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.portal.kernel.model.RecentLayoutRevision
 			addRecentLayoutRevision(
@@ -50,6 +45,10 @@ public class RecentLayoutRevisionLocalServiceWrapper
 	/**
 	 * Adds the recent layout revision to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RecentLayoutRevisionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param recentLayoutRevision the recent layout revision
 	 * @return the recent layout revision that was added
 	 */
@@ -61,6 +60,18 @@ public class RecentLayoutRevisionLocalServiceWrapper
 
 		return _recentLayoutRevisionLocalService.addRecentLayoutRevision(
 			recentLayoutRevision);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _recentLayoutRevisionLocalService.createPersistedModel(
+			primaryKeyObj);
 	}
 
 	/**
@@ -92,6 +103,10 @@ public class RecentLayoutRevisionLocalServiceWrapper
 	/**
 	 * Deletes the recent layout revision with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RecentLayoutRevisionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param recentLayoutRevisionId the primary key of the recent layout revision
 	 * @return the recent layout revision that was removed
 	 * @throws PortalException if a recent layout revision with the primary key could not be found
@@ -107,6 +122,10 @@ public class RecentLayoutRevisionLocalServiceWrapper
 
 	/**
 	 * Deletes the recent layout revision from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RecentLayoutRevisionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param recentLayoutRevision the recent layout revision
 	 * @return the recent layout revision that was removed
@@ -131,6 +150,11 @@ public class RecentLayoutRevisionLocalServiceWrapper
 	public void deleteUserRecentLayoutRevisions(long userId) {
 		_recentLayoutRevisionLocalService.deleteUserRecentLayoutRevisions(
 			userId);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _recentLayoutRevisionLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -267,6 +291,9 @@ public class RecentLayoutRevisionLocalServiceWrapper
 		return _recentLayoutRevisionLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -324,6 +351,10 @@ public class RecentLayoutRevisionLocalServiceWrapper
 
 	/**
 	 * Updates the recent layout revision in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RecentLayoutRevisionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param recentLayoutRevision the recent layout revision
 	 * @return the recent layout revision that was updated

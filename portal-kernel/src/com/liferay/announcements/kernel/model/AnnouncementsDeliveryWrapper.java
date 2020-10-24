@@ -236,11 +236,6 @@ public class AnnouncementsDeliveryWrapper
 		return model.isWebsite();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a announcements delivery model instance should use the <code>AnnouncementsDelivery</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();

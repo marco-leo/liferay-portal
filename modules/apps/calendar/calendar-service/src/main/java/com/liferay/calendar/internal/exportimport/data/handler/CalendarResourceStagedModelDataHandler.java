@@ -55,7 +55,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	immediate = true,
-	property = "javax.portlet.name=" + CalendarPortletKeys.CALENDAR,
+	property = "javax.portlet.name=" + CalendarPortletKeys.CALENDAR_ADMIN,
 	service = StagedModelDataHandler.class
 )
 public class CalendarResourceStagedModelDataHandler
@@ -239,7 +239,8 @@ public class CalendarResourceStagedModelDataHandler
 						calendarResource.getDescriptionMap(),
 						calendarResource.isActive(), serviceContext);
 			}
-			catch (DuplicateCalendarResourceException dcre) {
+			catch (DuplicateCalendarResourceException
+						duplicateCalendarResourceException) {
 
 				// The calendar resource for the site's default calendar is
 				// always generated beforehand, so we only want to add it once
@@ -275,12 +276,10 @@ public class CalendarResourceStagedModelDataHandler
 		Group scopeGroup = _groupLocalService.getGroup(
 			portletDataContext.getScopeGroupId());
 
-		Map<Locale, String> calendarResourceNameMap = HashMapBuilder.put(
-			LocaleUtil.getSiteDefault(), scopeGroup.getDescriptiveName()
-		).build();
-
 		return LocalizationUtil.populateLocalizationMap(
-			calendarResourceNameMap,
+			HashMapBuilder.put(
+				LocaleUtil.getSiteDefault(), scopeGroup.getDescriptiveName()
+			).build(),
 			LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault()),
 			scopeGroup.getGroupId());
 	}

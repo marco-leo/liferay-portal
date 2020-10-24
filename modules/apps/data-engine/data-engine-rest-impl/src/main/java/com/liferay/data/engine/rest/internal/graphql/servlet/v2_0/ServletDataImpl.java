@@ -16,10 +16,10 @@ package com.liferay.data.engine.rest.internal.graphql.servlet.v2_0;
 
 import com.liferay.data.engine.rest.internal.graphql.mutation.v2_0.Mutation;
 import com.liferay.data.engine.rest.internal.graphql.query.v2_0.Query;
+import com.liferay.data.engine.rest.resource.v2_0.DataDefinitionFieldLinkResource;
 import com.liferay.data.engine.rest.resource.v2_0.DataDefinitionResource;
 import com.liferay.data.engine.rest.resource.v2_0.DataLayoutResource;
 import com.liferay.data.engine.rest.resource.v2_0.DataListViewResource;
-import com.liferay.data.engine.rest.resource.v2_0.DataModelPermissionResource;
 import com.liferay.data.engine.rest.resource.v2_0.DataRecordCollectionResource;
 import com.liferay.data.engine.rest.resource.v2_0.DataRecordResource;
 import com.liferay.portal.vulcan.graphql.servlet.ServletData;
@@ -49,8 +49,6 @@ public class ServletDataImpl implements ServletData {
 			_dataLayoutResourceComponentServiceObjects);
 		Mutation.setDataListViewResourceComponentServiceObjects(
 			_dataListViewResourceComponentServiceObjects);
-		Mutation.setDataModelPermissionResourceComponentServiceObjects(
-			_dataModelPermissionResourceComponentServiceObjects);
 		Mutation.setDataRecordResourceComponentServiceObjects(
 			_dataRecordResourceComponentServiceObjects);
 		Mutation.setDataRecordCollectionResourceComponentServiceObjects(
@@ -58,12 +56,12 @@ public class ServletDataImpl implements ServletData {
 
 		Query.setDataDefinitionResourceComponentServiceObjects(
 			_dataDefinitionResourceComponentServiceObjects);
+		Query.setDataDefinitionFieldLinkResourceComponentServiceObjects(
+			_dataDefinitionFieldLinkResourceComponentServiceObjects);
 		Query.setDataLayoutResourceComponentServiceObjects(
 			_dataLayoutResourceComponentServiceObjects);
 		Query.setDataListViewResourceComponentServiceObjects(
 			_dataListViewResourceComponentServiceObjects);
-		Query.setDataModelPermissionResourceComponentServiceObjects(
-			_dataModelPermissionResourceComponentServiceObjects);
 		Query.setDataRecordResourceComponentServiceObjects(
 			_dataRecordResourceComponentServiceObjects);
 		Query.setDataRecordCollectionResourceComponentServiceObjects(
@@ -75,11 +73,7 @@ public class ServletDataImpl implements ServletData {
 		return new Mutation();
 	}
 
-	/**
-	 * @deprecated
-	 */
 	@Override
-	@Deprecated
 	public String getPath() {
 		return "/data-engine-graphql/v2_0";
 	}
@@ -102,15 +96,15 @@ public class ServletDataImpl implements ServletData {
 		_dataListViewResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
-	private ComponentServiceObjects<DataModelPermissionResource>
-		_dataModelPermissionResourceComponentServiceObjects;
-
-	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<DataRecordResource>
 		_dataRecordResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<DataRecordCollectionResource>
 		_dataRecordCollectionResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<DataDefinitionFieldLinkResource>
+		_dataDefinitionFieldLinkResourceComponentServiceObjects;
 
 }

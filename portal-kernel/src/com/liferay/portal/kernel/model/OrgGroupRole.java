@@ -24,13 +24,15 @@ import org.osgi.annotation.versioning.ProviderType;
  *
  * @author Brian Wing Shun Chan
  * @see OrgGroupRoleModel
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 @ImplementationClassName("com.liferay.portal.model.impl.OrgGroupRoleImpl")
 @ProviderType
 public interface OrgGroupRole extends OrgGroupRoleModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.portal.model.impl.OrgGroupRoleImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.

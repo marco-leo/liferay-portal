@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class DLFileEntryLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portlet.documentlibrary.service.impl.DLFileEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -38,6 +38,10 @@ public class DLFileEntryLocalServiceUtil {
 
 	/**
 	 * Adds the document library file entry to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dlFileEntry the document library file entry
 	 * @return the document library file entry that was added
@@ -58,14 +62,14 @@ public class DLFileEntryLocalServiceUtil {
 					<String,
 					 com.liferay.dynamic.data.mapping.kernel.DDMFormValues>
 						ddmFormValuesMap,
-				java.io.File file, java.io.InputStream is, long size,
+				java.io.File file, java.io.InputStream inputStream, long size,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().addFileEntry(
 			userId, groupId, repositoryId, folderId, sourceFileName, mimeType,
 			title, description, changeLog, fileEntryTypeId, ddmFormValuesMap,
-			file, is, size, serviceContext);
+			file, inputStream, size, serviceContext);
 	}
 
 	public static com.liferay.document.library.kernel.model.DLFileVersion
@@ -182,7 +186,21 @@ public class DLFileEntryLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the document library file entry from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dlFileEntry the document library file entry
 	 * @return the document library file entry that was removed
@@ -196,6 +214,10 @@ public class DLFileEntryLocalServiceUtil {
 
 	/**
 	 * Deletes the document library file entry with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param fileEntryId the primary key of the document library file entry
 	 * @return the document library file entry that was removed
@@ -282,6 +304,12 @@ public class DLFileEntryLocalServiceUtil {
 
 		getService().deleteRepositoryFileEntries(
 			repositoryId, folderId, includeTrashedEntries);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -551,20 +579,6 @@ public class DLFileEntryLocalServiceUtil {
 		return getService().getExtraSettingsFileEntriesCount();
 	}
 
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 #getFileAsStream(long, String, boolean)}
-	 */
-	@Deprecated
-	public static java.io.InputStream getFileAsStream(
-			long userId, long fileEntryId, String version,
-			boolean incrementCounter)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return getService().getFileAsStream(
-			userId, fileEntryId, version, incrementCounter);
-	}
-
 	public static java.io.InputStream getFileAsStream(
 			long fileEntryId, String version)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -607,19 +621,22 @@ public class DLFileEntryLocalServiceUtil {
 		<com.liferay.document.library.kernel.model.DLFileEntry> getFileEntries(
 			long groupId, long folderId, int status, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.document.library.kernel.model.DLFileEntry> obc) {
+				<com.liferay.document.library.kernel.model.DLFileEntry>
+					orderByComparator) {
 
 		return getService().getFileEntries(
-			groupId, folderId, status, start, end, obc);
+			groupId, folderId, status, start, end, orderByComparator);
 	}
 
 	public static java.util.List
 		<com.liferay.document.library.kernel.model.DLFileEntry> getFileEntries(
 			long groupId, long folderId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.document.library.kernel.model.DLFileEntry> obc) {
+				<com.liferay.document.library.kernel.model.DLFileEntry>
+					orderByComparator) {
 
-		return getService().getFileEntries(groupId, folderId, start, end, obc);
+		return getService().getFileEntries(
+			groupId, folderId, start, end, orderByComparator);
 	}
 
 	public static java.util.List
@@ -732,9 +749,10 @@ public class DLFileEntryLocalServiceUtil {
 				long groupId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
 					<com.liferay.document.library.kernel.model.DLFileEntry>
-						obc) {
+						orderByComparator) {
 
-		return getService().getGroupFileEntries(groupId, start, end, obc);
+		return getService().getGroupFileEntries(
+			groupId, start, end, orderByComparator);
 	}
 
 	public static java.util.List
@@ -750,10 +768,10 @@ public class DLFileEntryLocalServiceUtil {
 				long groupId, long userId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
 					<com.liferay.document.library.kernel.model.DLFileEntry>
-						obc) {
+						orderByComparator) {
 
 		return getService().getGroupFileEntries(
-			groupId, userId, start, end, obc);
+			groupId, userId, start, end, orderByComparator);
 	}
 
 	public static java.util.List
@@ -763,10 +781,10 @@ public class DLFileEntryLocalServiceUtil {
 				int end,
 				com.liferay.portal.kernel.util.OrderByComparator
 					<com.liferay.document.library.kernel.model.DLFileEntry>
-						obc) {
+						orderByComparator) {
 
 		return getService().getGroupFileEntries(
-			groupId, userId, rootFolderId, start, end, obc);
+			groupId, userId, rootFolderId, start, end, orderByComparator);
 	}
 
 	public static java.util.List
@@ -776,10 +794,11 @@ public class DLFileEntryLocalServiceUtil {
 				int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
 					<com.liferay.document.library.kernel.model.DLFileEntry>
-						obc) {
+						orderByComparator) {
 
 		return getService().getGroupFileEntries(
-			groupId, userId, repositoryId, rootFolderId, start, end, obc);
+			groupId, userId, repositoryId, rootFolderId, start, end,
+			orderByComparator);
 	}
 
 	public static int getGroupFileEntriesCount(long groupId) {
@@ -813,6 +832,9 @@ public class DLFileEntryLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -932,6 +954,10 @@ public class DLFileEntryLocalServiceUtil {
 	/**
 	 * Updates the document library file entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param dlFileEntry the document library file entry
 	 * @return the document library file entry that was updated
 	 */
@@ -940,32 +966,6 @@ public class DLFileEntryLocalServiceUtil {
 			com.liferay.document.library.kernel.model.DLFileEntry dlFileEntry) {
 
 		return getService().updateDLFileEntry(dlFileEntry);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 #updateFileEntry(long, long, String, String, String, String,
-	 String, DLVersionNumberIncrease, long, Map, File,
-	 InputStream, long, ServiceContext)}
-	 */
-	@Deprecated
-	public static com.liferay.document.library.kernel.model.DLFileEntry
-			updateFileEntry(
-				long userId, long fileEntryId, String sourceFileName,
-				String mimeType, String title, String description,
-				String changeLog, boolean majorVersion, long fileEntryTypeId,
-				java.util.Map
-					<String,
-					 com.liferay.dynamic.data.mapping.kernel.DDMFormValues>
-						ddmFormValuesMap,
-				java.io.File file, java.io.InputStream is, long size,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return getService().updateFileEntry(
-			userId, fileEntryId, sourceFileName, mimeType, title, description,
-			changeLog, majorVersion, fileEntryTypeId, ddmFormValuesMap, file,
-			is, size, serviceContext);
 	}
 
 	public static com.liferay.document.library.kernel.model.DLFileEntry
@@ -980,14 +980,14 @@ public class DLFileEntryLocalServiceUtil {
 					<String,
 					 com.liferay.dynamic.data.mapping.kernel.DDMFormValues>
 						ddmFormValuesMap,
-				java.io.File file, java.io.InputStream is, long size,
+				java.io.File file, java.io.InputStream inputStream, long size,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().updateFileEntry(
 			userId, fileEntryId, sourceFileName, mimeType, title, description,
 			changeLog, dlVersionNumberIncrease, fileEntryTypeId,
-			ddmFormValuesMap, file, is, size, serviceContext);
+			ddmFormValuesMap, file, inputStream, size, serviceContext);
 	}
 
 	public static com.liferay.document.library.kernel.model.DLFileEntry

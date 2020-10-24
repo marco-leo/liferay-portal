@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.util.Html;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -67,7 +68,8 @@ public class SharingJavaScriptFactoryImpl implements SharingJavaScriptFactory {
 			"Liferay.Sharing.share(",
 			_classNameLocalService.getClassNameId(className), ", ", classPK,
 			", '",
-			_getSharingDialogTitle(className, classPK, httpServletRequest),
+			HtmlUtil.escapeJS(
+				_getSharingDialogTitle(className, classPK, httpServletRequest)),
 			"')");
 	}
 
@@ -97,12 +99,12 @@ public class SharingJavaScriptFactoryImpl implements SharingJavaScriptFactory {
 
 			return assetRenderer.getTitle(locale);
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					"Unable to get asset renderer with class primary key " +
 						classPK,
-					pe);
+					portalException);
 			}
 
 			return null;
@@ -120,8 +122,7 @@ public class SharingJavaScriptFactoryImpl implements SharingJavaScriptFactory {
 		String title = _getAssetTitle(className, classPK, locale);
 
 		if (Validator.isNotNull(title)) {
-			return _language.format(
-				resourceBundle, "share-x", _html.escapeJS(title));
+			return _language.format(resourceBundle, "share-x", title);
 		}
 
 		return _language.get(resourceBundle, "share");

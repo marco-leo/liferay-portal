@@ -37,7 +37,7 @@ import java.util.List;
 public abstract class DLFolderBaseImpl
 	extends DLFolderModelImpl implements DLFolder {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a document library folder model instance should use the <code>DLFolder</code> interface instead.
@@ -66,7 +66,7 @@ public abstract class DLFolderBaseImpl
 				dlFolder.getParentFolderId());
 		}
 
-		StringBundler sb = new StringBundler(dlFolders.size() * 2 + 1);
+		StringBundler sb = new StringBundler((dlFolders.size() * 2) + 1);
 
 		sb.append("/");
 

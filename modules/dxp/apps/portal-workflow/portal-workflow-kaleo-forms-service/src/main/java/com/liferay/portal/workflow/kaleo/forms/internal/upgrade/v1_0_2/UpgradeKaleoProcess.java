@@ -21,6 +21,7 @@ import com.liferay.dynamic.data.lists.service.DDLRecordLocalService;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetLocalService;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
@@ -32,7 +33,6 @@ import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.upgrade.util.UpgradeProcessUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.workflow.kaleo.forms.model.KaleoProcess;
@@ -115,11 +115,12 @@ public class UpgradeKaleoProcess extends UpgradeProcess {
 		try {
 			locale = UpgradeProcessUtil.getDefaultLanguageId(companyId);
 		}
-		catch (SQLException sqle) {
+		catch (SQLException sqlException) {
 			_log.error(
-				"Unable to get default locale for company " + companyId, sqle);
+				"Unable to get default locale for company " + companyId,
+				sqlException);
 
-			throw new RuntimeException(sqle);
+			throw new RuntimeException(sqlException);
 		}
 
 		return LocaleUtil.fromLanguageId(locale);
@@ -148,7 +149,7 @@ public class UpgradeKaleoProcess extends UpgradeProcess {
 			(DDLRecord ddlRecord) -> _assetEntryLocalService.updateEntry(
 				userId, groupId, createDate, modifiedDate,
 				KaleoProcess.class.getName(), ddlRecord.getRecordId(), uuid, 0,
-				null, null, true, true, null, null, null,
+				null, null, true, true, null, null, null, null,
 				ContentTypes.TEXT_HTML, title, null, StringPool.BLANK, null,
 				null, 0, 0, null));
 

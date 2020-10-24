@@ -94,11 +94,8 @@ public class AddDisplayPageMVCActionCommand extends BaseMVCActionCommand {
 			LayoutPageTemplateEntry layoutPageTemplateEntry)
 		throws PortalException {
 
-		Layout layout = _layoutLocalService.getLayout(
+		Layout draftLayout = _layoutLocalService.fetchDraftLayout(
 			layoutPageTemplateEntry.getPlid());
-
-		Layout draftLayout = _layoutLocalService.fetchLayout(
-			_portal.getClassNameId(Layout.class), layout.getPlid());
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -148,14 +145,14 @@ public class AddDisplayPageMVCActionCommand extends BaseMVCActionCommand {
 				"redirectURL",
 				getRedirectURL(actionRequest, layoutPageTemplateEntry));
 		}
-		catch (PortalException pe) {
-			if (pe instanceof NoSuchClassNameException) {
+		catch (PortalException portalException) {
+			if (portalException instanceof NoSuchClassNameException) {
 				errorJSONObject = JSONUtil.put(
 					"classNameId",
 					ResourceBundleUtil.getString(
 						resourceBundle, "invalid-content-type"));
 			}
-			else if (pe instanceof NoSuchClassTypeException) {
+			else if (portalException instanceof NoSuchClassTypeException) {
 				errorJSONObject = JSONUtil.put(
 					"classTypeId",
 					ResourceBundleUtil.getString(
@@ -164,7 +161,7 @@ public class AddDisplayPageMVCActionCommand extends BaseMVCActionCommand {
 			else {
 				JSONObject jsonObject =
 					_layoutPageTemplateEntryExceptionRequestHandler.
-						createErrorJSONObject(actionRequest, pe);
+						createErrorJSONObject(actionRequest, portalException);
 
 				errorJSONObject = JSONUtil.put("name", jsonObject.get("error"));
 			}

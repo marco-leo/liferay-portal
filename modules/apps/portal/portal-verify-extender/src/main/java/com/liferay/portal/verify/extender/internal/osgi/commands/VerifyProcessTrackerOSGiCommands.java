@@ -84,7 +84,7 @@ public class VerifyProcessTrackerOSGiCommands {
 		try {
 			getVerifyProcesses(_verifyProcesses, verifyProcessName);
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			System.out.println(
 				"No verify process with name " + verifyProcessName);
 
@@ -163,7 +163,7 @@ public class VerifyProcessTrackerOSGiCommands {
 		try {
 			getVerifyProcesses(_verifyProcesses, verifyProcessName);
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			System.out.println(
 				"No verify process with name " + verifyProcessName);
 
@@ -218,8 +218,8 @@ public class VerifyProcessTrackerOSGiCommands {
 		try {
 			outputStream.close();
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 
@@ -247,11 +247,6 @@ public class VerifyProcessTrackerOSGiCommands {
 
 		List<VerifyProcess> verifyProcesses = getVerifyProcesses(
 			verifyProcessTrackerMap, verifyProcessName);
-
-		boolean indexReadOnly = indexStatusManager.isIndexReadOnly();
-
-		indexStatusManager.setIndexReadOnly(
-			_verifyProcessTrackerConfiguration.indexReadOnly());
 
 		NotificationThreadLocal.setEnabled(false);
 		StagingAdvicesThreadLocal.setEnabled(false);
@@ -284,20 +279,20 @@ public class VerifyProcessTrackerOSGiCommands {
 			printWriter.println(
 				"Executing verifiers registered for " + verifyProcessName);
 
-			VerifyException verifyException = null;
+			VerifyException verifyException1 = null;
 
 			for (VerifyProcess verifyProcess : verifyProcesses) {
 				try {
 					verifyProcess.verify();
 				}
-				catch (VerifyException ve) {
-					_log.error(ve, ve);
+				catch (VerifyException verifyException2) {
+					_log.error(verifyException2, verifyException2);
 
-					verifyException = ve;
+					verifyException1 = verifyException2;
 				}
 			}
 
-			if (verifyException == null) {
+			if (verifyException1 == null) {
 				release.setVerified(true);
 				release.setState(ReleaseConstants.STATE_GOOD);
 
@@ -306,14 +301,13 @@ public class VerifyProcessTrackerOSGiCommands {
 				_registerMarkerObject(verifyProcessName);
 			}
 			else {
-				release.setState(ReleaseConstants.STATE_VERIFY_FAILURE);
 				release.setVerified(false);
+				release.setState(ReleaseConstants.STATE_VERIFY_FAILURE);
 
 				releaseLocalService.updateRelease(release);
 			}
 		}
 		finally {
-			indexStatusManager.setIndexReadOnly(indexReadOnly);
 			NotificationThreadLocal.setEnabled(true);
 			StagingAdvicesThreadLocal.setEnabled(true);
 			WorkflowThreadLocal.setEnabled(true);

@@ -16,6 +16,7 @@ package com.liferay.asset.list.service.base;
 
 import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.list.service.AssetListEntryService;
+import com.liferay.asset.list.service.persistence.AssetListEntryAssetEntryRelFinder;
 import com.liferay.asset.list.service.persistence.AssetListEntryAssetEntryRelPersistence;
 import com.liferay.asset.list.service.persistence.AssetListEntryPersistence;
 import com.liferay.asset.list.service.persistence.AssetListEntrySegmentsEntryRelPersistence;
@@ -48,7 +49,7 @@ public abstract class AssetListEntryServiceBaseImpl
 	extends BaseServiceImpl
 	implements AopService, AssetListEntryService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>AssetListEntryService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.asset.list.service.AssetListEntryServiceUtil</code>.
@@ -102,8 +103,8 @@ public abstract class AssetListEntryServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -134,6 +135,10 @@ public abstract class AssetListEntryServiceBaseImpl
 	@Reference
 	protected AssetListEntryAssetEntryRelPersistence
 		assetListEntryAssetEntryRelPersistence;
+
+	@Reference
+	protected AssetListEntryAssetEntryRelFinder
+		assetListEntryAssetEntryRelFinder;
 
 	@Reference
 	protected AssetListEntrySegmentsEntryRelPersistence

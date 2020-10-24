@@ -18,7 +18,7 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.soy.BaseBaseClayCard;
 import com.liferay.frontend.taglib.clay.servlet.taglib.soy.VerticalCard;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItem;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItemList;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItemListBuilder;
 import com.liferay.layout.page.template.admin.web.internal.constants.LayoutPageTemplateAdminWebKeys;
 import com.liferay.layout.page.template.admin.web.internal.servlet.taglib.util.LayoutPrototypeActionDropdownItemsProvider;
 import com.liferay.portal.kernel.dao.search.RowChecker;
@@ -72,7 +72,7 @@ public class LayoutPrototypeVerticalCard
 			return layoutPrototypeActionDropdownItemsProvider.
 				getActionDropdownItems();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		return null;
@@ -99,7 +99,7 @@ public class LayoutPrototypeVerticalCard
 			return HttpUtil.setParameter(
 				layoutFullURL, "p_l_back_url", _themeDisplay.getURLCurrent());
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		return null;
@@ -112,29 +112,26 @@ public class LayoutPrototypeVerticalCard
 
 	@Override
 	public List<LabelItem> getLabels() {
-		return new LabelItemList() {
-			{
-				add(
-					labelItem -> {
-						String label = "not-active";
+		return LabelItemListBuilder.add(
+			labelItem -> {
+				String label = "not-active";
 
-						if (_layoutPrototype.isActive()) {
-							label = "active";
-						}
+				if (_layoutPrototype.isActive()) {
+					label = "active";
+				}
 
-						labelItem.setLabel(
-							LanguageUtil.get(_httpServletRequest, label));
+				labelItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, label));
 
-						String style = "warning";
+				String style = "warning";
 
-						if (_layoutPrototype.isActive()) {
-							style = "success";
-						}
+				if (_layoutPrototype.isActive()) {
+					style = "success";
+				}
 
-						labelItem.setStyle(style);
-					});
+				labelItem.setStyle(style);
 			}
-		};
+		).build();
 	}
 
 	@Override

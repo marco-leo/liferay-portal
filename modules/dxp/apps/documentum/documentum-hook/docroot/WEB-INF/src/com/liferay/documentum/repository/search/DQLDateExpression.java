@@ -14,8 +14,8 @@
 
 package com.liferay.documentum.repository.search;
 
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

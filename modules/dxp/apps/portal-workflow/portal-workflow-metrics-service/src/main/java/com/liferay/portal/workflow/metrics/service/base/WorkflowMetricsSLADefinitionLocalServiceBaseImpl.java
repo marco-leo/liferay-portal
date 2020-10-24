@@ -21,6 +21,7 @@ import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerRegistryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -46,6 +47,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -80,7 +82,7 @@ public abstract class WorkflowMetricsSLADefinitionLocalServiceBaseImpl
 	implements AopService, IdentifiableOSGiService,
 			   WorkflowMetricsSLADefinitionLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>WorkflowMetricsSLADefinitionLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.workflow.metrics.service.WorkflowMetricsSLADefinitionLocalServiceUtil</code>.
@@ -88,6 +90,10 @@ public abstract class WorkflowMetricsSLADefinitionLocalServiceBaseImpl
 
 	/**
 	 * Adds the workflow metrics sla definition to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WorkflowMetricsSLADefinitionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param workflowMetricsSLADefinition the workflow metrics sla definition
 	 * @return the workflow metrics sla definition that was added
@@ -121,6 +127,10 @@ public abstract class WorkflowMetricsSLADefinitionLocalServiceBaseImpl
 	/**
 	 * Deletes the workflow metrics sla definition with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WorkflowMetricsSLADefinitionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param workflowMetricsSLADefinitionId the primary key of the workflow metrics sla definition
 	 * @return the workflow metrics sla definition that was removed
 	 * @throws PortalException if a workflow metrics sla definition with the primary key could not be found
@@ -138,6 +148,10 @@ public abstract class WorkflowMetricsSLADefinitionLocalServiceBaseImpl
 	/**
 	 * Deletes the workflow metrics sla definition from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WorkflowMetricsSLADefinitionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param workflowMetricsSLADefinition the workflow metrics sla definition
 	 * @return the workflow metrics sla definition that was removed
 	 */
@@ -148,6 +162,11 @@ public abstract class WorkflowMetricsSLADefinitionLocalServiceBaseImpl
 
 		return workflowMetricsSLADefinitionPersistence.remove(
 			workflowMetricsSLADefinition);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return workflowMetricsSLADefinitionPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -438,6 +457,17 @@ public abstract class WorkflowMetricsSLADefinitionLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return workflowMetricsSLADefinitionPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -446,6 +476,14 @@ public abstract class WorkflowMetricsSLADefinitionLocalServiceBaseImpl
 				(WorkflowMetricsSLADefinition)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<WorkflowMetricsSLADefinition> getBasePersistence() {
+		return workflowMetricsSLADefinitionPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -539,6 +577,10 @@ public abstract class WorkflowMetricsSLADefinitionLocalServiceBaseImpl
 	/**
 	 * Updates the workflow metrics sla definition in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WorkflowMetricsSLADefinitionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param workflowMetricsSLADefinition the workflow metrics sla definition
 	 * @return the workflow metrics sla definition that was updated
 	 */
@@ -603,8 +645,8 @@ public abstract class WorkflowMetricsSLADefinitionLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

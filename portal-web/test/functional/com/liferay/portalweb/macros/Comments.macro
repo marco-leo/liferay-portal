@@ -35,7 +35,7 @@ definition {
 			locator1 = "Button#REPLY_AS",
 			value1 = "Reply as...");
 
-		SelectFrame(locator1 = "IFrame#DIALOG");
+		SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
 		AssertClick(
 			locator1 = "Link#GUEST",
@@ -127,6 +127,8 @@ definition {
 	}
 
 	macro subscribePG {
+		AssertElementPresent.pauseAssertVisible(locator1 = "Comments#COMMENT_FIELD");
+
 		AssertClick(
 			locator1 = "Button#SUBSCRIBE",
 			value1 = "Subscribe");
@@ -172,7 +174,8 @@ definition {
 
 	macro viewSubscribedPG {
 		AssertTextEquals(
-			locator1 = "Button#UNSUBSCRIBE",
+			key_text = "Unsubscribe",
+			locator1 = "Button#ANY",
 			value1 = "Unsubscribe");
 	}
 

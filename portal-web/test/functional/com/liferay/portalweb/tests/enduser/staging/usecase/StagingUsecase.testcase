@@ -12,21 +12,11 @@ definition {
 
 		JSONGroup.addGroup(groupName = "Site Name");
 
-		SitePages.openPagesAdmin(siteURLKey = "Site Name");
+		JSONLayout.addPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Staging Test Page");
 
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
-
-		SitePages.addPublicPage(pageName = "Staging Test Page");
-
-		SitePages.openPagesAdmin(siteURLKey = "Site Name");
-
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Staging.openStagingAdmin(siteURLKey = "site-name");
 
 		Staging.activateStagingCP(siteName = "Site Name");
 	}
@@ -318,7 +308,7 @@ definition {
 
 		Staging.publishToLive();
 
-		ProductMenu.gotoLiveSite();
+		ProductMenu.gotoLiveSite(site = "Site Name");
 
 		Polls.viewPollOnLivingSite(
 			pollsQuestion = "Test Poll Display",
@@ -327,7 +317,7 @@ definition {
 			pollsQuestionVoteCount = "0",
 			pollsQuestionVotePercent = "0%");
 
-		ProductMenu.gotoStagingSite();
+		ProductMenu.gotoStagingSite(site = "Site Name");
 
 		Polls.DeletePollCP(pollsQuestionTitle = "Polls Name");
 
@@ -337,7 +327,7 @@ definition {
 
 		AssertTextNotPresent(value1 = "Test Poll Display");
 
-		ProductMenu.gotoLiveSite();
+		ProductMenu.gotoLiveSite(site = "Site Name");
 
 		Polls.viewPollOnLivingSite(
 			pollsQuestion = "Test Poll Display",
@@ -350,12 +340,7 @@ definition {
 	@description = "This is a use case for LPS-95516."
 	@priority = "3"
 	test AssertWebContentNotBeDeletedOnLiveViaSAP {
-		ProductMenu.gotoStagingSite();
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
 
 		WebContentNavigator.gotoAddCP();
 
@@ -371,23 +356,13 @@ definition {
 			confirmMessage = "Are you sure you want to publish the selected web content?",
 			entry = "WC WebContent Title 1");
 
-		ProductMenu.gotoLiveSite();
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 
 		WebContent.viewTitle(
 			onLive = "true",
 			webContentTitle = "WC WebContent Title 1");
 
-		ProductMenu.gotoStagingSite();
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
 
 		WebContent.deleteStagedCP(
 			pageName = "Staging Test Page",
@@ -408,12 +383,7 @@ definition {
 			confirmMessage = "Are you sure you want to publish the selected web content?",
 			entry = "WC WebContent Title 2");
 
-		ProductMenu.gotoLiveSite();
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 
 		WebContent.viewTitle(
 			onLive = "true",
@@ -430,31 +400,23 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Categorization",
-			panel = "Site Administration",
 			portlet = "Tags");
 
 		Staging.viewAddButtonDoesNotExist();
 
 		ProductMenu.gotoPortlet(
 			category = "Categorization",
-			panel = "Site Administration",
 			portlet = "Categories");
 
 		Staging.viewAddButtonDoesNotExist();
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 
 		NavItem.gotoTemplates();
 
 		Staging.viewAddButtonDoesNotExist();
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 
 		NavItem.gotoStructures();
 
@@ -465,14 +427,7 @@ definition {
 	test DeleteLivePage {
 		property portal.acceptance = "true";
 
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
-
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
+		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
 
 		SitePages.addPublicPage(pageName = "Delete Live Page");
 
@@ -488,10 +443,7 @@ definition {
 			pageName = "Delete Live Page",
 			siteName = "Site Name");
 
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
+		SitePages.openPagesAdmin(siteURLKey = "site-name");
 
 		SitePages.deletePage(pageName = "Delete Live Page");
 
@@ -504,23 +456,9 @@ definition {
 
 	@priority = "4"
 	test EditPublishTemplate {
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Blogs");
+		property test.name.skip.portal.instance = "StagingUsecase#EditPublishTemplate";
 
-		Blogs.addEntry(
-			entryContent = "Blogs Entry Content",
-			entryTitle = "Blogs Entry Title");
-
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
-
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
+		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
 
 		SitePages.addPublicPage(pageName = "Page Name 2");
 
@@ -536,10 +474,13 @@ definition {
 
 		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
 
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "site-name-staging");
+
+		Blogs.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
 		Staging.addPublishTemplate(
 			publishTemplateDescription = "Publish Template Description",
@@ -553,13 +494,16 @@ definition {
 			publishTemplateDescription = "Publish Template Description",
 			publishTemplateName = "Publish Template Name");
 
+		Staging.openStagingAdmin(siteURLKey = "site-name-staging");
+
+		Staging.viewPublishTemplate(
+			publishTemplateDescription = "Publish Template Description",
+			publishTemplateName = "Publish Template Name",
+			uncheckContentNameList = "Blogs");
+
 		Navigator.gotoStagedSitePage(
 			pageName = "Staging Test Page",
 			siteName = "Site Name");
-
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
 
 		Staging.gotoPublishToLive();
 
@@ -575,21 +519,11 @@ definition {
 
 		Page.viewNoPG(pageName = "Page Name 2");
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Blogs");
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "site-name");
 
 		BlogsEntry.viewNoCP(entryTitle = "Blogs Entry Title");
 
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
-
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
 		Staging.viewPublishTemplate(
 			publishTemplateDescription = "Publish Template Description",
@@ -612,10 +546,6 @@ definition {
 			pageName = "Staging Test Page",
 			siteName = "Site Name");
 
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
-
 		Staging.gotoPublishToLive();
 
 		Staging.publishToLivePublishTemplate(
@@ -636,10 +566,7 @@ definition {
 
 		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Blogs");
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "site-name");
 
 		BlogsEntry.viewContent(entryTitle = "Blogs Entry Title");
 	}
@@ -679,10 +606,7 @@ definition {
 			locator1 = "WCD#WEB_CONTENT_CONTENT_3",
 			value1 = "Vaccinations and Physical Check-Ups Health Any members of faculty or staff planning to leave Earth are required to have up-to-date vaccinations. Please check with the Health Center on your status. In addition, each and every Earth departure requires a physical check-up. The Health Center is happy to give both vaccinations and physical check-ups free of charge.");
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 
 		for (var webContentTitle : list "Meet and Greet,Orientation,Physicals") {
 			WebContent.viewTitle(
@@ -690,17 +614,10 @@ definition {
 				webContentTitle = "${webContentTitle}");
 		}
 
-		Navigator.gotoStagedSitePage(
-			pageName = "Staging Test Page",
-			siteName = "Site Name");
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
 
 		LAR.importPortlet(
-			larFileName = "HR_WebContent.lar",
+			larFileName = "HR_WebContent_master.lar",
 			uploadFrom = "dependencies");
 
 		Navigator.gotoStagedSitePage(
@@ -714,6 +631,12 @@ definition {
 		Portlet.deletePG(portletName = "Web Content Display");
 
 		Portlet.deletePG(portletName = "Web Content Display");
+
+		takeScreenshot();
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive();
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Home",
@@ -771,10 +694,7 @@ definition {
 			locator1 = "WCD#WEB_CONTENT_CONTENT_2",
 			value1 = "Faculty Meet-and-Greet Brunch");
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 
 		for (var webContentTitle : list "Meet and Greet,Orientation,Physicals,Enrollment Features,The SPACE Family") {
 			WebContent.viewTitle(
@@ -785,14 +705,7 @@ definition {
 
 	@priority = "4"
 	test MoveToTheRecycleBinAndRestorePublishTemplate {
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
-
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
 		Staging.addPublishTemplate(
 			publishTemplateDescription = "Publish Template Description",
@@ -802,27 +715,13 @@ definition {
 			publishTemplateDescription = "Publish Template Description",
 			publishTemplateName = "Publish Template Name");
 
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
-
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
 		Staging.viewPublishTemplate(
 			publishTemplateDescription = "Publish Template Description",
 			publishTemplateName = "Publish Template Name");
 
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
-
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
 		Staging.moveToTheRecycleBinPublishTemplate(publishTemplateName = "Publish Template Name");
 
@@ -832,7 +731,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Recycle Bin",
-			panel = "Site Administration",
 			portlet = "Recycle Bin");
 
 		RecycleBin.viewCP(
@@ -842,14 +740,7 @@ definition {
 
 		RecycleBin.restoreCP(assetName = "Publish Template Name");
 
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
-
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
 		Staging.viewPublishTemplate(
 			publishTemplateDescription = "Publish Template Description",
@@ -858,17 +749,9 @@ definition {
 
 	@priority = "5"
 	test PublishPortlet {
-		property portal.acceptance = "true";
 		property testray.component.names = "Training";
 
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
 
 		WebContentNavigator.gotoAddCP();
 
@@ -889,7 +772,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "People",
-			panel = "Site Administration",
 			portlet = "Teams");
 
 		Team.addCP(
@@ -898,7 +780,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "People",
-			panel = "Site Administration",
 			portlet = "Teams");
 
 		Staging.publishToLiveNowViaPortletCP();
@@ -907,7 +788,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "People",
-			panel = "Site Administration",
 			portlet = "Teams");
 
 		Team.viewCP(
@@ -917,14 +797,7 @@ definition {
 
 	@priority = "3"
 	test PublishWebContentFriendlyURLEncoding {
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
 
 		WebContentNavigator.gotoAddCP();
 
@@ -944,12 +817,7 @@ definition {
 
 		Staging.publishCustomPublication();
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/site-name");
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 
 		WebContent.viewTitle(
 			onLive = "true",
@@ -965,7 +833,7 @@ definition {
 	test PublishWebContentWithFeeds {
 		property test.name.skip.portal.instance = "StagingUsecase#PublishWebContentWithFeeds";
 
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
 			panel = "Control Panel",
 			portlet = "System Settings");
@@ -1028,6 +896,7 @@ definition {
 
 		var webContentFeedUrl = selenium.getAttribute("//a[contains(@href,'rss') and contains(.,'Preview')]@href");
 		var stagingFeedId = StringUtil.extractLast("${webContentFeedUrl}", "/");
+		var entryExternalURL = StringUtil.replace("${webContentFeedUrl}", "http://", "");
 
 		echo("## * Staging FeedId: ${stagingFeedId}");
 
@@ -1035,11 +904,12 @@ definition {
 
 		WebContentNavigator.gotoAddCP();
 
-		WebContent.addCP(
-			webContentContent = "${webContentFeedUrl}",
-			webContentTitle = "Web Content Title");
+		PortletEntry.inputTitle(title = "Web Content Title");
 
-		AlloyEditor.addEntryExternalURL(entryExternalURL = "${webContentFeedUrl}");
+		CKEditor.addEntryExternalURL(
+			displayText = "${webContentFeedUrl}",
+			entryExternalURL = "${entryExternalURL}",
+			fieldLabel = "content");
 
 		Button.clickPublish();
 
@@ -1071,12 +941,20 @@ definition {
 		}
 	}
 
+	@description = "This is a use case for LPS-84418 and LPS-117578."
+	@priority = "5"
+	test PublishWithImpossibleDateRange {
+		Navigator.openStagingSiteURL(siteName = "Site Name");
+
+		Staging.addRepeatEvent(
+			failureExpected = "true",
+			frequency = "Monthly",
+			scheduleTitleName = "Event Monthly Name");
+	}
+
 	@priority = "4"
 	test SearchPublishTemplate {
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
 		Staging.addPublishTemplate(
 			publishTemplateDescription = "Publish Template Description",
@@ -1086,10 +964,7 @@ definition {
 			publishTemplateDescription = "Publish Template Description",
 			publishTemplateName = "First Template");
 
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
 		Staging.addPublishTemplate(
 			publishTemplateDescription = "Publish Template Description 2",
@@ -1103,14 +978,7 @@ definition {
 			pageName = "Staging Test Page",
 			siteName = "Site Name");
 
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
-
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
 		Staging.searchPublishTemplate(searchTerm = "Second");
 	}
@@ -1124,13 +992,9 @@ definition {
 
 		Portlet.addPG(portletName = "Blogs");
 
-		Portlet.gotoPortletOptions(
+		Portlet.selectScopePG(
 			portletName = "Blogs",
-			portletOption = "Configuration");
-
-		IFrame.selectConfigurationFrame();
-
-		Portlet.selectScope(scope = "Staging Test Page (Create New)");
+			scope = "Staging Test Page");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Staging Test Page",
@@ -1138,7 +1002,6 @@ definition {
 
 		ProductMenu.gotoScopedPortlet(
 			category = "Content &amp; Data",
-			panel = "Site Administration",
 			portlet = "Blogs",
 			scope = "Staging Test Page");
 
@@ -1158,7 +1021,6 @@ definition {
 	test StagingPublishAssetPublisherConfiguredTagsFilter {
 		ProductMenu.gotoPortlet(
 			category = "Categorization",
-			panel = "Site Administration",
 			portlet = "Tags");
 
 		Tag.addCP(tagName = "tag1");
@@ -1169,16 +1031,11 @@ definition {
 
 		Portlet.addPG(portletName = "Asset Publisher");
 
-		AssetPublisherPortlet.configureTagsFilterPG(tagNameList = "tag1");
+		AssetPublisherPortlet.configureTagsFilterPG(
+			queryAndOperator = "Any",
+			tagNameList = "tag1");
 
-		Navigator.gotoStagedSitePage(
-			pageName = "Staging Test Page",
-			siteName = "Site Name");
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
 
 		WebContentNavigator.gotoAddCP();
 
@@ -1195,7 +1052,7 @@ definition {
 
 		Staging.publishToLive();
 
-		ProductMenu.gotoLiveSite();
+		ProductMenu.gotoLiveSite(site = "Site Name");
 
 		WebContent.viewPGViaAP(
 			webContentContent = "Web Content With Tag1",
@@ -1207,15 +1064,11 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Categorization",
-			panel = "Site Administration",
 			portlet = "Tags");
 
 		Tag.addCP(tagName = "tag2");
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
 
 		WebContentNavigator.gotoAddCP();
 
@@ -1228,7 +1081,7 @@ definition {
 			pageName = "Staging Test Page",
 			siteName = "Site Name");
 
-		AssetPublisherPortlet.editConfigureTagsFilterPG(
+		AssetPublisherPortlet.configureTagsFilterPG(
 			queryAndOperator = "All",
 			tagNameList = "tag1,tag2");
 
@@ -1240,7 +1093,7 @@ definition {
 
 		Staging.publishToLive();
 
-		ProductMenu.gotoLiveSite();
+		ProductMenu.gotoLiveSite(site = "Site Name");
 
 		WebContent.viewPGViaAP(
 			webContentContent = "Web Content With Tag1 and Tag2",
@@ -1249,14 +1102,7 @@ definition {
 
 	@priority = "4"
 	test StagingPublishChildSiteWithReference {
-		Navigator.gotoStagedSitePage(
-			pageName = "Staging Test Page",
-			siteName = "Site Name");
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
 
 		WebContentNavigator.gotoAddCP();
 
@@ -1274,19 +1120,11 @@ definition {
 
 		Staging.publishToLive();
 
-		ProductMenu.gotoPortlet(
-			category = "Sites",
-			panel = "Control Panel",
-			portlet = "Sites");
+		JSONGroup.addChildSite(
+			groupName = "Child Site",
+			parentGroupName = "Site Name");
 
-		Site.addBlankCP(
-			parentSiteName = "Site Name",
-			siteName = "Child Site");
-
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
+		SitePages.openPagesAdmin(siteURLKey = "child-site");
 
 		SitePages.addPublicPage(pageName = "Page 1");
 
@@ -1300,24 +1138,14 @@ definition {
 			otherSiteName = "Site Name",
 			webContentTitle = "Web Content Title");
 
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Staging.openStagingAdmin(siteURLKey = "child-site");
 
 		Staging.activateStagingCP(siteName = "Child Site");
 	}
 
 	@priority = "4"
 	test StagingPublishOnlySelectedPage {
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
-
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
+		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
 
 		SitePages.addPublicPage(pageName = "Page 1");
 
@@ -1355,14 +1183,7 @@ definition {
 
 		Portlet.addPG(portletName = "Asset Publisher");
 
-		Navigator.gotoStagedSitePage(
-			pageName = "Staging Test Page",
-			siteName = "Site Name");
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
 
 		WebContentNavigator.gotoAddCP();
 
@@ -1395,10 +1216,7 @@ definition {
 			templateFieldNames = "Web Content",
 			templateName = "Template Name");
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
 
 		WebContentNavigator.gotoAddWithStructureCP(structureName = "Structure Name");
 
@@ -1424,16 +1242,13 @@ definition {
 
 		Staging.publishToLive();
 
-		ProductMenu.gotoLiveSite();
+		ProductMenu.gotoLiveSite(site = "Site Name");
 
 		AssetPublisherPortlet.viewAssetPG(
 			assetContent = "WC WebContent 1 Description",
 			assetTitle = "WC WebContent 1 Title");
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 
 		WebContent.viewTitle(
 			onLive = "true",
@@ -1462,14 +1277,7 @@ definition {
 
 		WebContent.viewPGViaWCD(webContentContent = "Web Content Content");
 
-		Navigator.gotoStagedSitePage(
-			pageName = "Staging Test Page",
-			siteName = "Site Name");
-
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
 		Staging.addPublishTemplate(
 			publishTemplateDescription = "Publish Template Description",
@@ -1499,6 +1307,7 @@ definition {
 	@priority = "5"
 	test TrashEntryReferencePublishing {
 		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "StagingUsecase#TrashEntryReferencePublishing";
 		property testray.component.names = "Training";
 
 		Navigator.gotoStagedSitePage(
@@ -1507,7 +1316,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Content &amp; Data",
-			panel = "Site Administration",
 			portlet = "Documents and Media");
 
 		DMDocument.addCP(
@@ -1515,10 +1323,7 @@ definition {
 			dmDocumentFile = "Document_1.jpg",
 			dmDocumentTitle = "DM Document Title");
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
 
 		WebContentNavigator.gotoAddCP();
 
@@ -1565,7 +1370,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Content &amp; Data",
-			panel = "Site Administration",
 			portlet = "Documents and Media");
 
 		DMDocument.deleteCP(dmDocumentTitle = "DM Document Title");
@@ -1603,7 +1407,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Content &amp; Data",
-			panel = "Site Administration",
 			portlet = "Documents and Media");
 
 		DMDocument.viewPG(dmDocumentTitle = "DM Document Title");

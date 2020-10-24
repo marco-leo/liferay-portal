@@ -15,14 +15,10 @@
 package com.liferay.portal.kernel.upgrade;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBInspector;
-import com.liferay.portal.kernel.dao.db.DBManagerUtil;
-import com.liferay.portal.kernel.dao.db.DBType;
 import com.liferay.portal.kernel.util.LoggingTimer;
 
 import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 /**
@@ -72,24 +68,29 @@ public class UpgradeCTModel extends UpgradeProcess {
 			}
 		}
 
-		String primaryKeyColumnName = null;
+		String primaryKeyColumnName1 = null;
+		String primaryKeyColumnName2 = null;
 
 		try (ResultSet rs = databaseMetaData.getPrimaryKeys(
 				dbInspector.getCatalog(), dbInspector.getSchema(),
 				normalizedTableName)) {
 
 			if (rs.next()) {
-				primaryKeyColumnName = rs.getString("COLUMN_NAME");
-			}
+				primaryKeyColumnName1 = rs.getString("COLUMN_NAME");
 
-			if (rs.next()) {
-				throw new UpgradeException(
-					"Single column primary key is required to upgrade " +
-						normalizedTableName);
+				if (rs.next()) {
+					primaryKeyColumnName2 = rs.getString("COLUMN_NAME");
+
+					if (rs.next()) {
+						throw new UpgradeException(
+							"Too many primary key columns to upgrade " +
+								normalizedTableName);
+					}
+				}
 			}
 		}
 
-		if (primaryKeyColumnName == null) {
+		if (primaryKeyColumnName1 == null) {
 			throw new UpgradeException(
 				"No primary key column found for " + normalizedTableName);
 		}
@@ -99,64 +100,32 @@ public class UpgradeCTModel extends UpgradeProcess {
 				"alter table ", normalizedTableName,
 				" add ctCollectionId LONG default 0 not null"));
 
-		DB db = DBManagerUtil.getDB();
+		// Assume table is a mapping table
 
-		DBType dbType = db.getDBType();
-
-		if ((dbType == DBType.SQLSERVER) || (dbType == DBType.SYBASE)) {
-			String primaryKeyConstraintName = null;
-
-			if (dbType == DBType.SQLSERVER) {
-				try (PreparedStatement ps = connection.prepareStatement(
-						StringBundler.concat(
-							"select name from sys.key_constraints where type ",
-							"= 'PK' and OBJECT_NAME(parent_object_id) = '",
-							normalizedTableName, "'"));
-					ResultSet rs = ps.executeQuery()) {
-
-					if (rs.next()) {
-						primaryKeyConstraintName = rs.getString("name");
-					}
-				}
-			}
-			else {
-				try (PreparedStatement ps = connection.prepareStatement(
-						"sp_helpconstraint " + normalizedTableName);
-					ResultSet rs = ps.executeQuery()) {
-
-					while (rs.next()) {
-						String definition = rs.getString("definition");
-
-						if (definition.startsWith("PRIMARY KEY INDEX")) {
-							primaryKeyConstraintName = rs.getString("name");
-
-							break;
-						}
-					}
-				}
-			}
-
-			if (primaryKeyConstraintName == null) {
-				throw new UpgradeException(
-					"No primary key constraint found for " +
-						normalizedTableName);
-			}
-
+		if (primaryKeyColumnName2 != null) {
 			runSQL(
 				StringBundler.concat(
-					"alter table ", normalizedTableName, " drop constraint ",
-					primaryKeyConstraintName));
-		}
-		else {
-			runSQL(
-				StringBundler.concat(
-					"alter table ", normalizedTableName, " drop primary key"));
+					"alter table ", normalizedTableName,
+					" add ctChangeType BOOLEAN default null"));
 		}
 
-		runSQL(
-			StringBundler.concat(
-				"alter table ", normalizedTableName, " add primary key (",
-				primaryKeyColumnName, ", ctCollectionId)"));
+		removePrimaryKey(tableName);
+
+		StringBundler sb = new StringBundler(7);
+
+		sb.append("alter table ");
+		sb.append(normalizedTableName);
+		sb.append(" add primary key (");
+		sb.append(primaryKeyColumnName1);
+
+		if (primaryKeyColumnName2 != null) {
+			sb.append(", ");
+			sb.append(primaryKeyColumnName2);
+		}
+
+		sb.append(", ctCollectionId)");
+
+		runSQL(sb.toString());
 	}
 
 	private final String[] _tableNames;

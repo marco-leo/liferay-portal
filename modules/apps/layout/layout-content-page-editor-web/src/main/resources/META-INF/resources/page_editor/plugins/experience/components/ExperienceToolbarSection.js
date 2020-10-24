@@ -12,76 +12,74 @@
  * details.
  */
 
-import React, {useContext, useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 
-import {ConfigContext} from '../../../app/config/index';
-import {StoreContext} from '../../../app/store/index';
-import API, {APIContext} from '../API';
+import togglePermissions from '../../../app/actions/togglePermission';
+import {config} from '../../../app/config/index';
+import {useDispatch, useSelector} from '../../../app/store/index';
 import ExperienceSelector from './ExperienceSelector';
 
 // TODO: show how to colocate CSS with plugins (may use loaders)
+
 export default function ExperienceToolbarSection({selectId}) {
-	const {availableSegmentsExperiences, segmentsExperienceId} = useContext(
-		StoreContext
+	const availableSegmentsExperiences = useSelector(
+		(state) => state.availableSegmentsExperiences
 	);
-	const {
-		availableSegmentsEntries,
-		classNameId,
-		classPK,
-		defaultSegmentsEntryId,
-		editSegmentsEntryURL
-	} = useContext(ConfigContext);
+	const dispatch = useDispatch();
+
+	const segmentsExperienceId = useSelector(
+		(state) => state.segmentsExperienceId
+	);
 
 	const experiences = useMemo(
 		() =>
 			Object.values(availableSegmentsExperiences)
 				.sort((a, b) => b.priority - a.priority)
-				.map(experience => {
+				.map((experience) => {
 					const segmentsEntryName =
-						availableSegmentsEntries[experience.segmentsEntryId]
-							.name;
+						config.availableSegmentsEntries[
+							experience.segmentsEntryId
+						].name;
 
 					return {
 						...experience,
-						segmentsEntryName
+						segmentsEntryName,
 					};
 				}),
-		[availableSegmentsExperiences, availableSegmentsEntries]
+		[availableSegmentsExperiences]
 	);
-	const segments = useMemo(() => Object.values(availableSegmentsEntries), [
-		availableSegmentsEntries
-	]).filter(segment => segment.segmentsEntryId !== defaultSegmentsEntryId);
-
-	// TODO get endpoints URL from the display context
-	const APIService = useMemo(() => {
-		return API({
-			addSegmentsExperience: '/',
-			classNameId,
-			classPK,
-			editSegmentsExperiencePriorityURL: '/',
-			editSegmentsExperienceURL: '/',
-			removeSegmentsExperienceURL: '/'
-		});
-	}, [classNameId, classPK]);
+	const segments = useMemo(
+		() => Object.values(config.availableSegmentsEntries),
+		[]
+	).filter(
+		(segment) => segment.segmentsEntryId !== config.defaultSegmentsEntryId
+	);
 
 	const selectedExperience =
 		availableSegmentsExperiences[segmentsExperienceId];
 
-	return (
-		<APIContext.Provider value={APIService}>
-			<div className="mr-2 page-editor-toolbar-experience">
-				<label className="mr-2" htmlFor={selectId}>
-					{Liferay.Language.get('experience')}
-				</label>
+	useEffect(() => {
+		dispatch(
+			togglePermissions(
+				'LOCKED_SEGMENTS_EXPERIMENT',
+				selectedExperience.hasLockedSegmentsExperiment
+			)
+		);
+	}, [dispatch, selectedExperience.hasLockedSegmentsExperiment]);
 
-				<ExperienceSelector
-					editSegmentsEntryURL={editSegmentsEntryURL}
-					experiences={experiences}
-					segments={segments}
-					selectedExperience={selectedExperience}
-					selectId={selectId}
-				/>
-			</div>
-		</APIContext.Provider>
+	return (
+		<div className="mr-2 page-editor__toolbar-experience">
+			<label className="d-lg-block d-none mr-2" htmlFor={selectId}>
+				{Liferay.Language.get('experience')}
+			</label>
+
+			<ExperienceSelector
+				editSegmentsEntryURL={config.editSegmentsEntryURL}
+				experiences={experiences}
+				segments={segments}
+				selectId={selectId}
+				selectedExperience={selectedExperience}
+			/>
+		</div>
 	);
 }

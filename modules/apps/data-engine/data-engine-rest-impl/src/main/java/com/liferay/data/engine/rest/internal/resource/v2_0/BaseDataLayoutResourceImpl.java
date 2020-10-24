@@ -15,15 +15,26 @@
 package com.liferay.data.engine.rest.internal.resource.v2_0;
 
 import com.liferay.data.engine.rest.dto.v2_0.DataLayout;
-import com.liferay.data.engine.rest.dto.v2_0.DataLayoutPermission;
+import com.liferay.data.engine.rest.dto.v2_0.DataLayoutRenderingContext;
 import com.liferay.data.engine.rest.resource.v2_0.DataLayoutResource;
 import com.liferay.petra.function.UnsafeFunction;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.ResourceActionLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
+import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
+import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
+import com.liferay.portal.vulcan.resource.EntityModelResource;
+import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
 
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,8 +43,12 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
 
+import java.io.Serializable;
+
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.annotation.Generated;
 
@@ -52,6 +67,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 /**
@@ -60,7 +78,28 @@ import javax.ws.rs.core.UriInfo;
  */
 @Generated("")
 @Path("/v2.0")
-public abstract class BaseDataLayoutResourceImpl implements DataLayoutResource {
+public abstract class BaseDataLayoutResourceImpl
+	implements DataLayoutResource, EntityModelResource,
+			   VulcanBatchEngineTaskItemDelegate<DataLayout> {
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'DELETE' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-layouts'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@DELETE
+	@Parameters(
+		value = {@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId")}
+	)
+	@Path("/data-definitions/{dataDefinitionId}/data-layouts")
+	@Produces({"application/json", "application/xml"})
+	@Tags(value = {@Tag(name = "DataLayout")})
+	public void deleteDataLayoutsDataDefinition(
+			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
+				Long dataDefinitionId)
+		throws Exception {
+	}
 
 	/**
 	 * Invoke this method with the command line:
@@ -94,7 +133,7 @@ public abstract class BaseDataLayoutResourceImpl implements DataLayoutResource {
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-layouts' -d $'{"dataDefinitionId": ___, "dataLayoutKey": ___, "dataLayoutPages": ___, "dateCreated": ___, "dateModified": ___, "description": ___, "id": ___, "name": ___, "paginationMode": ___, "siteId": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-layouts' -d $'{"contentType": ___, "dataDefinitionId": ___, "dataLayoutKey": ___, "dataLayoutPages": ___, "dataRules": ___, "dateCreated": ___, "dateModified": ___, "description": ___, "id": ___, "name": ___, "paginationMode": ___, "siteId": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
 	@Override
 	@Consumes({"application/json", "application/xml"})
@@ -117,6 +156,47 @@ public abstract class BaseDataLayoutResourceImpl implements DataLayoutResource {
 	/**
 	 * Invoke this method with the command line:
 	 *
+	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-layouts/batch'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@Consumes("application/json")
+	@POST
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId"),
+			@Parameter(in = ParameterIn.QUERY, name = "callbackURL")
+		}
+	)
+	@Path("/data-definitions/{dataDefinitionId}/data-layouts/batch")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "DataLayout")})
+	public Response postDataDefinitionDataLayoutBatch(
+			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
+				Long dataDefinitionId,
+			@Parameter(hidden = true) @QueryParam("callbackURL") String
+				callbackURL,
+			Object object)
+		throws Exception {
+
+		vulcanBatchEngineImportTaskResource.setContextAcceptLanguage(
+			contextAcceptLanguage);
+		vulcanBatchEngineImportTaskResource.setContextCompany(contextCompany);
+		vulcanBatchEngineImportTaskResource.setContextHttpServletRequest(
+			contextHttpServletRequest);
+		vulcanBatchEngineImportTaskResource.setContextUriInfo(contextUriInfo);
+		vulcanBatchEngineImportTaskResource.setContextUser(contextUser);
+
+		Response.ResponseBuilder responseBuilder = Response.accepted();
+
+		return responseBuilder.entity(
+			vulcanBatchEngineImportTaskResource.postImportTask(
+				DataLayout.class.getName(), callbackURL, null, object)
+		).build();
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/data-engine/v2.0/data-layouts/{dataLayoutId}'  -u 'test@liferay.com:test'
 	 */
 	@Override
@@ -125,12 +205,48 @@ public abstract class BaseDataLayoutResourceImpl implements DataLayoutResource {
 		value = {@Parameter(in = ParameterIn.PATH, name = "dataLayoutId")}
 	)
 	@Path("/data-layouts/{dataLayoutId}")
-	@Produces("application/json")
+	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "DataLayout")})
 	public void deleteDataLayout(
 			@NotNull @Parameter(hidden = true) @PathParam("dataLayoutId") Long
 				dataLayoutId)
 		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'DELETE' 'http://localhost:8080/o/data-engine/v2.0/data-layouts/batch'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@Consumes("application/json")
+	@DELETE
+	@Parameters(
+		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	)
+	@Path("/data-layouts/batch")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "DataLayout")})
+	public Response deleteDataLayoutBatch(
+			@Parameter(hidden = true) @QueryParam("callbackURL") String
+				callbackURL,
+			Object object)
+		throws Exception {
+
+		vulcanBatchEngineImportTaskResource.setContextAcceptLanguage(
+			contextAcceptLanguage);
+		vulcanBatchEngineImportTaskResource.setContextCompany(contextCompany);
+		vulcanBatchEngineImportTaskResource.setContextHttpServletRequest(
+			contextHttpServletRequest);
+		vulcanBatchEngineImportTaskResource.setContextUriInfo(contextUriInfo);
+		vulcanBatchEngineImportTaskResource.setContextUser(contextUser);
+
+		Response.ResponseBuilder responseBuilder = Response.accepted();
+
+		return responseBuilder.entity(
+			vulcanBatchEngineImportTaskResource.deleteImportTask(
+				DataLayout.class.getName(), callbackURL, object)
+		).build();
 	}
 
 	/**
@@ -157,7 +273,7 @@ public abstract class BaseDataLayoutResourceImpl implements DataLayoutResource {
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-layouts/{dataLayoutId}' -d $'{"dataDefinitionId": ___, "dataLayoutKey": ___, "dataLayoutPages": ___, "dateCreated": ___, "dateModified": ___, "description": ___, "id": ___, "name": ___, "paginationMode": ___, "siteId": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-layouts/{dataLayoutId}' -d $'{"contentType": ___, "dataDefinitionId": ___, "dataLayoutKey": ___, "dataLayoutPages": ___, "dataRules": ___, "dateCreated": ___, "dateModified": ___, "description": ___, "id": ___, "name": ___, "paginationMode": ___, "siteId": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
 	@Override
 	@Consumes({"application/json", "application/xml"})
@@ -180,100 +296,87 @@ public abstract class BaseDataLayoutResourceImpl implements DataLayoutResource {
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-layouts/{dataLayoutId}/data-layout-permissions' -d $'{"addDataLayout": ___, "definePermissions": ___, "delete": ___, "roleNames": ___, "update": ___, "view": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-layouts/batch'  -u 'test@liferay.com:test'
 	 */
 	@Override
-	@Consumes({"application/json", "application/xml"})
-	@POST
+	@Consumes("application/json")
+	@PUT
 	@Parameters(
-		value = {
-			@Parameter(in = ParameterIn.PATH, name = "dataLayoutId"),
-			@Parameter(in = ParameterIn.QUERY, name = "operation")
-		}
+		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
 	)
-	@Path("/data-layouts/{dataLayoutId}/data-layout-permissions")
+	@Path("/data-layouts/batch")
 	@Produces("application/json")
 	@Tags(value = {@Tag(name = "DataLayout")})
-	public void postDataLayoutDataLayoutPermission(
-			@NotNull @Parameter(hidden = true) @PathParam("dataLayoutId") Long
-				dataLayoutId,
-			@NotNull @Parameter(hidden = true) @QueryParam("operation") String
-				operation,
-			DataLayoutPermission dataLayoutPermission)
+	public Response putDataLayoutBatch(
+			@Parameter(hidden = true) @QueryParam("callbackURL") String
+				callbackURL,
+			Object object)
 		throws Exception {
+
+		vulcanBatchEngineImportTaskResource.setContextAcceptLanguage(
+			contextAcceptLanguage);
+		vulcanBatchEngineImportTaskResource.setContextCompany(contextCompany);
+		vulcanBatchEngineImportTaskResource.setContextHttpServletRequest(
+			contextHttpServletRequest);
+		vulcanBatchEngineImportTaskResource.setContextUriInfo(contextUriInfo);
+		vulcanBatchEngineImportTaskResource.setContextUser(contextUser);
+
+		Response.ResponseBuilder responseBuilder = Response.accepted();
+
+		return responseBuilder.entity(
+			vulcanBatchEngineImportTaskResource.putImportTask(
+				DataLayout.class.getName(), callbackURL, object)
+		).build();
 	}
 
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-layout-permissions' -d $'{"addDataLayout": ___, "definePermissions": ___, "delete": ___, "roleNames": ___, "update": ___, "view": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-layouts/{dataLayoutId}/context' -d $'{"containerId": ___, "dataRecordValues": ___, "namespace": ___, "pathThemeImages": ___, "readOnly": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
 	@Override
 	@Consumes({"application/json", "application/xml"})
 	@POST
 	@Parameters(
-		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "operation")
-		}
+		value = {@Parameter(in = ParameterIn.PATH, name = "dataLayoutId")}
 	)
-	@Path("/sites/{siteId}/data-layout-permissions")
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "DataLayout")})
-	public void postSiteDataLayoutPermission(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@NotNull @Parameter(hidden = true) @QueryParam("operation") String
-				operation,
-			DataLayoutPermission dataLayoutPermission)
-		throws Exception {
-	}
-
-	/**
-	 * Invoke this method with the command line:
-	 *
-	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-layouts'  -u 'test@liferay.com:test'
-	 */
-	@Override
-	@GET
-	@Parameters(
-		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "keywords"),
-			@Parameter(in = ParameterIn.QUERY, name = "page"),
-			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-			@Parameter(in = ParameterIn.QUERY, name = "sort")
-		}
-	)
-	@Path("/sites/{siteId}/data-layouts")
+	@Path("/data-layouts/{dataLayoutId}/context")
 	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "DataLayout")})
-	public Page<DataLayout> getSiteDataLayoutsPage(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@Parameter(hidden = true) @QueryParam("keywords") String keywords,
-			@Context Pagination pagination, @Context Sort[] sorts)
+	public Response postDataLayoutContext(
+			@NotNull @Parameter(hidden = true) @PathParam("dataLayoutId") Long
+				dataLayoutId,
+			DataLayoutRenderingContext dataLayoutRenderingContext)
 		throws Exception {
 
-		return Page.of(Collections.emptyList());
+		Response.ResponseBuilder responseBuilder = Response.ok();
+
+		return responseBuilder.build();
 	}
 
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-layouts/{dataLayoutKey}'  -u 'test@liferay.com:test'
+	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-layouts/by-content-type/{contentType}/by-data-layout-key/{dataLayoutKey}'  -u 'test@liferay.com:test'
 	 */
 	@Override
 	@GET
 	@Parameters(
 		value = {
 			@Parameter(in = ParameterIn.PATH, name = "siteId"),
+			@Parameter(in = ParameterIn.PATH, name = "contentType"),
 			@Parameter(in = ParameterIn.PATH, name = "dataLayoutKey")
 		}
 	)
-	@Path("/sites/{siteId}/data-layouts/{dataLayoutKey}")
+	@Path(
+		"/sites/{siteId}/data-layouts/by-content-type/{contentType}/by-data-layout-key/{dataLayoutKey}"
+	)
 	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "DataLayout")})
-	public DataLayout getSiteDataLayout(
+	public DataLayout getSiteDataLayoutByContentTypeByDataLayoutKey(
 			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
+			@NotNull @Parameter(hidden = true) @PathParam("contentType") String
+				contentType,
 			@NotNull @Parameter(hidden = true) @PathParam("dataLayoutKey")
 				String dataLayoutKey)
 		throws Exception {
@@ -281,11 +384,100 @@ public abstract class BaseDataLayoutResourceImpl implements DataLayoutResource {
 		return new DataLayout();
 	}
 
+	@Override
+	@SuppressWarnings("PMD.UnusedLocalVariable")
+	public void create(
+			java.util.Collection<DataLayout> dataLayouts,
+			Map<String, Serializable> parameters)
+		throws Exception {
+
+		for (DataLayout dataLayout : dataLayouts) {
+			postDataDefinitionDataLayout(
+				Long.valueOf((String)parameters.get("dataDefinitionId")),
+				dataLayout);
+		}
+	}
+
+	@Override
+	public void delete(
+			java.util.Collection<DataLayout> dataLayouts,
+			Map<String, Serializable> parameters)
+		throws Exception {
+
+		for (DataLayout dataLayout : dataLayouts) {
+			deleteDataLayout(dataLayout.getId());
+		}
+	}
+
+	@Override
+	public EntityModel getEntityModel(Map<String, List<String>> multivaluedMap)
+		throws Exception {
+
+		return getEntityModel(
+			new MultivaluedHashMap<String, Object>(multivaluedMap));
+	}
+
+	@Override
+	public EntityModel getEntityModel(MultivaluedMap multivaluedMap)
+		throws Exception {
+
+		return null;
+	}
+
+	@Override
+	public Page<DataLayout> read(
+			Filter filter, Pagination pagination, Sort[] sorts,
+			Map<String, Serializable> parameters, String search)
+		throws Exception {
+
+		return getDataDefinitionDataLayoutsPage(
+			(Long)parameters.get("dataDefinitionId"),
+			(String)parameters.get("keywords"), pagination, sorts);
+	}
+
+	@Override
+	public void setLanguageId(String languageId) {
+		this.contextAcceptLanguage = new AcceptLanguage() {
+
+			@Override
+			public List<Locale> getLocales() {
+				return null;
+			}
+
+			@Override
+			public String getPreferredLanguageId() {
+				return languageId;
+			}
+
+			@Override
+			public Locale getPreferredLocale() {
+				return LocaleUtil.fromLanguageId(languageId);
+			}
+
+		};
+	}
+
+	@Override
+	public void update(
+			java.util.Collection<DataLayout> dataLayouts,
+			Map<String, Serializable> parameters)
+		throws Exception {
+
+		for (DataLayout dataLayout : dataLayouts) {
+			putDataLayout(
+				dataLayout.getId() != null ? dataLayout.getId() :
+				(Long)parameters.get("dataLayoutId"),
+				dataLayout);
+		}
+	}
+
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {
 		this.contextAcceptLanguage = contextAcceptLanguage;
 	}
 
-	public void setContextCompany(Company contextCompany) {
+	public void setContextCompany(
+		com.liferay.portal.kernel.model.Company contextCompany) {
+
 		this.contextCompany = contextCompany;
 	}
 
@@ -305,12 +497,52 @@ public abstract class BaseDataLayoutResourceImpl implements DataLayoutResource {
 		this.contextUriInfo = contextUriInfo;
 	}
 
-	public void setContextUser(User contextUser) {
+	public void setContextUser(
+		com.liferay.portal.kernel.model.User contextUser) {
+
 		this.contextUser = contextUser;
 	}
 
-	protected void preparePatch(
-		DataLayout dataLayout, DataLayout existingDataLayout) {
+	public void setGroupLocalService(GroupLocalService groupLocalService) {
+		this.groupLocalService = groupLocalService;
+	}
+
+	public void setRoleLocalService(RoleLocalService roleLocalService) {
+		this.roleLocalService = roleLocalService;
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, GroupedModel groupedModel, String methodName) {
+
+		return ActionUtil.addAction(
+			actionName, getClass(), groupedModel, methodName,
+			contextScopeChecker, contextUriInfo);
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, Long id, String methodName, Long ownerId,
+		String permissionName, Long siteId) {
+
+		return ActionUtil.addAction(
+			actionName, getClass(), id, methodName, contextScopeChecker,
+			ownerId, permissionName, siteId, contextUriInfo);
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, Long id, String methodName,
+		ModelResourcePermission modelResourcePermission) {
+
+		return ActionUtil.addAction(
+			actionName, getClass(), id, methodName, contextScopeChecker,
+			modelResourcePermission, contextUriInfo);
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, String methodName, String permissionName,
+		Long siteId) {
+
+		return addAction(
+			actionName, siteId, methodName, null, permissionName, siteId);
 	}
 
 	protected <T, R> List<R> transform(
@@ -342,10 +574,17 @@ public abstract class BaseDataLayoutResourceImpl implements DataLayoutResource {
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
-	protected Company contextCompany;
+	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;
+	protected Object contextScopeChecker;
 	protected UriInfo contextUriInfo;
-	protected User contextUser;
+	protected com.liferay.portal.kernel.model.User contextUser;
+	protected GroupLocalService groupLocalService;
+	protected ResourceActionLocalService resourceActionLocalService;
+	protected ResourcePermissionLocalService resourcePermissionLocalService;
+	protected RoleLocalService roleLocalService;
+	protected VulcanBatchEngineImportTaskResource
+		vulcanBatchEngineImportTaskResource;
 
 }

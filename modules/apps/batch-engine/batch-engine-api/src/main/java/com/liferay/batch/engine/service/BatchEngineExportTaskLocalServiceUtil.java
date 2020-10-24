@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class BatchEngineExportTaskLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.batch.engine.service.impl.BatchEngineExportTaskLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class BatchEngineExportTaskLocalServiceUtil {
 
 	/**
 	 * Adds the batch engine export task to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BatchEngineExportTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param batchEngineExportTask the batch engine export task
 	 * @return the batch engine export task that was added
@@ -58,11 +62,11 @@ public class BatchEngineExportTaskLocalServiceUtil {
 			String contentType, String executeStatus,
 			java.util.List<String> fieldNamesList,
 			java.util.Map<String, java.io.Serializable> parameters,
-			String version) {
+			String taskItemDelegateName) {
 
 		return getService().addBatchEngineExportTask(
 			companyId, userId, callbackURL, className, contentType,
-			executeStatus, fieldNamesList, parameters, version);
+			executeStatus, fieldNamesList, parameters, taskItemDelegateName);
 	}
 
 	/**
@@ -79,7 +83,21 @@ public class BatchEngineExportTaskLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the batch engine export task from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BatchEngineExportTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param batchEngineExportTask the batch engine export task
 	 * @return the batch engine export task that was removed
@@ -94,6 +112,10 @@ public class BatchEngineExportTaskLocalServiceUtil {
 
 	/**
 	 * Deletes the batch engine export task with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BatchEngineExportTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param batchEngineExportTaskId the primary key of the batch engine export task
 	 * @return the batch engine export task that was removed
@@ -116,6 +138,12 @@ public class BatchEngineExportTaskLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -326,6 +354,9 @@ public class BatchEngineExportTaskLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -341,6 +372,10 @@ public class BatchEngineExportTaskLocalServiceUtil {
 
 	/**
 	 * Updates the batch engine export task in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BatchEngineExportTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param batchEngineExportTask the batch engine export task
 	 * @return the batch engine export task that was updated

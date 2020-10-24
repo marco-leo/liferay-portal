@@ -32,11 +32,6 @@ public class OAuthUserLocalServiceWrapper
 		_oAuthUserLocalService = oAuthUserLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link OAuthUserLocalServiceUtil} to access the o auth user local service. Add custom service methods to <code>com.liferay.oauth.service.impl.OAuthUserLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.oauth.model.OAuthUser addOAuthUser(
 			long userId, long oAuthApplicationId, String accessToken,
@@ -51,6 +46,10 @@ public class OAuthUserLocalServiceWrapper
 
 	/**
 	 * Adds the o auth user to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuthUserLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuthUser the o auth user
 	 * @return the o auth user that was added
@@ -74,7 +73,22 @@ public class OAuthUserLocalServiceWrapper
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuthUserLocalService.createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the o auth user with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuthUserLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuthUserId the primary key of the o auth user
 	 * @return the o auth user that was removed
@@ -99,6 +113,10 @@ public class OAuthUserLocalServiceWrapper
 	/**
 	 * Deletes the o auth user from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuthUserLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param oAuthUser the o auth user
 	 * @return the o auth user that was removed
 	 * @throws PortalException
@@ -120,6 +138,11 @@ public class OAuthUserLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _oAuthUserLocalService.deletePersistedModel(persistedModel);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _oAuthUserLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -251,7 +274,7 @@ public class OAuthUserLocalServiceWrapper
 		getOAuthApplicationOAuthUsers(
 			long oAuthApplicationId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				orderByComparator) {
+				<com.liferay.oauth.model.OAuthUser> orderByComparator) {
 
 		return _oAuthUserLocalService.getOAuthApplicationOAuthUsers(
 			oAuthApplicationId, start, end, orderByComparator);
@@ -330,6 +353,9 @@ public class OAuthUserLocalServiceWrapper
 		return _oAuthUserLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -341,7 +367,8 @@ public class OAuthUserLocalServiceWrapper
 	@Override
 	public java.util.List<com.liferay.oauth.model.OAuthUser> getUserOAuthUsers(
 		long userId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		com.liferay.portal.kernel.util.OrderByComparator
+			<com.liferay.oauth.model.OAuthUser> orderByComparator) {
 
 		return _oAuthUserLocalService.getUserOAuthUsers(
 			userId, start, end, orderByComparator);
@@ -366,6 +393,10 @@ public class OAuthUserLocalServiceWrapper
 
 	/**
 	 * Updates the o auth user in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuthUserLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuthUser the o auth user
 	 * @return the o auth user that was updated

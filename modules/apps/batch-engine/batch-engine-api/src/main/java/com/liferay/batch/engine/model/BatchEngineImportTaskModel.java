@@ -45,7 +45,7 @@ public interface BatchEngineImportTaskModel
 	extends BaseModel<BatchEngineImportTask>, MVCCModel, ShardedModel,
 			StagedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a batch engine import task model instance should use the {@link BatchEngineImportTask} interface instead.
@@ -363,18 +363,18 @@ public interface BatchEngineImportTaskModel
 	public void setStartTime(Date startTime);
 
 	/**
-	 * Returns the version of this batch engine import task.
+	 * Returns the task item delegate name of this batch engine import task.
 	 *
-	 * @return the version of this batch engine import task
+	 * @return the task item delegate name of this batch engine import task
 	 */
 	@AutoEscape
-	public String getVersion();
+	public String getTaskItemDelegateName();
 
 	/**
-	 * Sets the version of this batch engine import task.
+	 * Sets the task item delegate name of this batch engine import task.
 	 *
-	 * @param version the version of this batch engine import task
+	 * @param taskItemDelegateName the task item delegate name of this batch engine import task
 	 */
-	public void setVersion(String version);
+	public void setTaskItemDelegateName(String taskItemDelegateName);
 
 }

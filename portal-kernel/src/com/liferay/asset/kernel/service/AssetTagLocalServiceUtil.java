@@ -30,16 +30,10 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class AssetTagLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portlet.asset.service.impl.AssetTagLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link AssetTagLocalServiceUtil} to access the asset tag local service. Add custom service methods to <code>com.liferay.portlet.asset.service.impl.AssetTagLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static void addAssetEntryAssetTag(
 		long entryId, com.liferay.asset.kernel.model.AssetTag assetTag) {
@@ -64,6 +58,10 @@ public class AssetTagLocalServiceUtil {
 
 	/**
 	 * Adds the asset tag to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetTagLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetTag the asset tag
 	 * @return the asset tag that was added
@@ -151,6 +149,16 @@ public class AssetTagLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Decrements the number of assets to which the asset tag has been applied.
 	 *
 	 * @param tagId the primary key of the asset tag
@@ -189,6 +197,10 @@ public class AssetTagLocalServiceUtil {
 	/**
 	 * Deletes the asset tag from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetTagLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param assetTag the asset tag
 	 * @return the asset tag that was removed
 	 */
@@ -200,6 +212,10 @@ public class AssetTagLocalServiceUtil {
 
 	/**
 	 * Deletes the asset tag with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetTagLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param tagId the primary key of the asset tag
 	 * @return the asset tag that was removed
@@ -255,6 +271,12 @@ public class AssetTagLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		getService().deleteTag(tagId);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -589,6 +611,9 @@ public class AssetTagLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -867,6 +892,10 @@ public class AssetTagLocalServiceUtil {
 
 	/**
 	 * Updates the asset tag in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AssetTagLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param assetTag the asset tag
 	 * @return the asset tag that was updated

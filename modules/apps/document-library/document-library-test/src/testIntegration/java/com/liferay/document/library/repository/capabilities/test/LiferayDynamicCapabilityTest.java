@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.repository.event.RepositoryEventAware;
 import com.liferay.portal.kernel.repository.event.RepositoryEventType;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.test.constants.TestDataConstants;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
@@ -409,13 +410,11 @@ public class LiferayDynamicCapabilityTest {
 	private FileEntry _addRandomFileEntry(ServiceContext serviceContext)
 		throws PortalException {
 
-		String content = StringUtil.randomString();
-
 		return DLAppLocalServiceUtil.addFileEntry(
 			TestPropsValues.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			StringUtil.randomString(), ContentTypes.APPLICATION_OCTET_STREAM,
-			content.getBytes(), serviceContext);
+			TestDataConstants.TEST_BYTE_ARRAY, serviceContext);
 	}
 
 	private Map<String, Object> _getCapabilityProperties(

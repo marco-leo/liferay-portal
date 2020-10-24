@@ -15,6 +15,7 @@
 package com.liferay.portal.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
@@ -26,22 +27,30 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.NoSuchClassNameException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.ClassName;
+import com.liferay.portal.kernel.model.ClassNameTable;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.model.impl.ClassNameImpl;
 import com.liferay.portal.model.impl.ClassNameModelImpl;
+import com.liferay.registry.Registry;
+import com.liferay.registry.RegistryUtil;
+import com.liferay.registry.ServiceRegistration;
 
 import java.io.Serializable;
 
 import java.lang.reflect.InvocationHandler;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The persistence implementation for the class name service.
@@ -56,7 +65,7 @@ import java.util.Set;
 public class ClassNamePersistenceImpl
 	extends BasePersistenceImpl<ClassName> implements ClassNamePersistence {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>ClassNameUtil</code> to access the class name persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -88,20 +97,20 @@ public class ClassNamePersistenceImpl
 		ClassName className = fetchByValue(value);
 
 		if (className == null) {
-			StringBundler msg = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("value=");
-			msg.append(value);
+			sb.append("value=");
+			sb.append(value);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchClassNameException(msg.toString());
+			throw new NoSuchClassNameException(sb.toString());
 		}
 
 		return className;
@@ -151,37 +160,37 @@ public class ClassNamePersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_SELECT_CLASSNAME_WHERE);
+			sb.append(_SQL_SELECT_CLASSNAME_WHERE);
 
 			boolean bindValue = false;
 
 			if (value.isEmpty()) {
-				query.append(_FINDER_COLUMN_VALUE_VALUE_3);
+				sb.append(_FINDER_COLUMN_VALUE_VALUE_3);
 			}
 			else {
 				bindValue = true;
 
-				query.append(_FINDER_COLUMN_VALUE_VALUE_2);
+				sb.append(_FINDER_COLUMN_VALUE_VALUE_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindValue) {
-					qPos.add(value);
+					queryPos.add(value);
 				}
 
-				List<ClassName> list = q.list();
+				List<ClassName> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
@@ -197,13 +206,8 @@ public class ClassNamePersistenceImpl
 					cacheResult(className);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(
-						_finderPathFetchByValue, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -251,44 +255,42 @@ public class ClassNamePersistenceImpl
 			finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_CLASSNAME_WHERE);
+			sb.append(_SQL_COUNT_CLASSNAME_WHERE);
 
 			boolean bindValue = false;
 
 			if (value.isEmpty()) {
-				query.append(_FINDER_COLUMN_VALUE_VALUE_3);
+				sb.append(_FINDER_COLUMN_VALUE_VALUE_3);
 			}
 			else {
 				bindValue = true;
 
-				query.append(_FINDER_COLUMN_VALUE_VALUE_2);
+				sb.append(_FINDER_COLUMN_VALUE_VALUE_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindValue) {
-					qPos.add(value);
+					queryPos.add(value);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -309,7 +311,8 @@ public class ClassNamePersistenceImpl
 
 		setModelImplClass(ClassNameImpl.class);
 		setModelPKClass(long.class);
-		setEntityCacheEnabled(ClassNameModelImpl.ENTITY_CACHE_ENABLED);
+
+		setTable(ClassNameTable.INSTANCE);
 	}
 
 	/**
@@ -320,14 +323,11 @@ public class ClassNamePersistenceImpl
 	@Override
 	public void cacheResult(ClassName className) {
 		EntityCacheUtil.putResult(
-			ClassNameModelImpl.ENTITY_CACHE_ENABLED, ClassNameImpl.class,
-			className.getPrimaryKey(), className);
+			ClassNameImpl.class, className.getPrimaryKey(), className);
 
 		FinderCacheUtil.putResult(
 			_finderPathFetchByValue, new Object[] {className.getValue()},
 			className);
-
-		className.resetOriginalValues();
 	}
 
 	/**
@@ -339,13 +339,9 @@ public class ClassNamePersistenceImpl
 	public void cacheResult(List<ClassName> classNames) {
 		for (ClassName className : classNames) {
 			if (EntityCacheUtil.getResult(
-					ClassNameModelImpl.ENTITY_CACHE_ENABLED,
 					ClassNameImpl.class, className.getPrimaryKey()) == null) {
 
 				cacheResult(className);
-			}
-			else {
-				className.resetOriginalValues();
 			}
 		}
 	}
@@ -375,27 +371,13 @@ public class ClassNamePersistenceImpl
 	 */
 	@Override
 	public void clearCache(ClassName className) {
-		EntityCacheUtil.removeResult(
-			ClassNameModelImpl.ENTITY_CACHE_ENABLED, ClassNameImpl.class,
-			className.getPrimaryKey());
-
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
-		clearUniqueFindersCache((ClassNameModelImpl)className, true);
+		EntityCacheUtil.removeResult(ClassNameImpl.class, className);
 	}
 
 	@Override
 	public void clearCache(List<ClassName> classNames) {
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
 		for (ClassName className : classNames) {
-			EntityCacheUtil.removeResult(
-				ClassNameModelImpl.ENTITY_CACHE_ENABLED, ClassNameImpl.class,
-				className.getPrimaryKey());
-
-			clearUniqueFindersCache((ClassNameModelImpl)className, true);
+			EntityCacheUtil.removeResult(ClassNameImpl.class, className);
 		}
 	}
 
@@ -406,9 +388,7 @@ public class ClassNamePersistenceImpl
 		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
 		for (Serializable primaryKey : primaryKeys) {
-			EntityCacheUtil.removeResult(
-				ClassNameModelImpl.ENTITY_CACHE_ENABLED, ClassNameImpl.class,
-				primaryKey);
+			EntityCacheUtil.removeResult(ClassNameImpl.class, primaryKey);
 		}
 	}
 
@@ -421,28 +401,6 @@ public class ClassNamePersistenceImpl
 			_finderPathCountByValue, args, Long.valueOf(1), false);
 		FinderCacheUtil.putResult(
 			_finderPathFetchByValue, args, classNameModelImpl, false);
-	}
-
-	protected void clearUniqueFindersCache(
-		ClassNameModelImpl classNameModelImpl, boolean clearCurrent) {
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {classNameModelImpl.getValue()};
-
-			FinderCacheUtil.removeResult(_finderPathCountByValue, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByValue, args);
-		}
-
-		if ((classNameModelImpl.getColumnBitmask() &
-			 _finderPathFetchByValue.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				classNameModelImpl.getOriginalValue()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByValue, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByValue, args);
-		}
 	}
 
 	/**
@@ -503,11 +461,11 @@ public class ClassNamePersistenceImpl
 
 			return remove(className);
 		}
-		catch (NoSuchClassNameException nsee) {
-			throw nsee;
+		catch (NoSuchClassNameException noSuchEntityException) {
+			throw noSuchEntityException;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -530,8 +488,8 @@ public class ClassNamePersistenceImpl
 				session.delete(className);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -571,41 +529,28 @@ public class ClassNamePersistenceImpl
 		try {
 			session = openSession();
 
-			if (className.isNew()) {
+			if (isNew) {
 				session.save(className);
-
-				className.setNew(false);
 			}
 			else {
 				className = (ClassName)session.merge(className);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
 		}
 
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-
-		if (!ClassNameModelImpl.COLUMN_BITMASK_ENABLED) {
-			FinderCacheUtil.clearCache(
-				FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-		}
-		else if (isNew) {
-			FinderCacheUtil.removeResult(
-				_finderPathCountAll, FINDER_ARGS_EMPTY);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindAll, FINDER_ARGS_EMPTY);
-		}
-
 		EntityCacheUtil.putResult(
-			ClassNameModelImpl.ENTITY_CACHE_ENABLED, ClassNameImpl.class,
-			className.getPrimaryKey(), className, false);
+			ClassNameImpl.class, classNameModelImpl, false, true);
 
-		clearUniqueFindersCache(classNameModelImpl, false);
 		cacheUniqueFindersCache(classNameModelImpl);
+
+		if (isNew) {
+			className.setNew(false);
+		}
 
 		className.resetOriginalValues();
 
@@ -749,19 +694,19 @@ public class ClassNamePersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 			String sql = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					2 + (orderByComparator.getOrderByFields().length * 2));
 
-				query.append(_SQL_SELECT_CLASSNAME);
+				sb.append(_SQL_SELECT_CLASSNAME);
 
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 
-				sql = query.toString();
+				sql = sb.toString();
 			}
 			else {
 				sql = _SQL_SELECT_CLASSNAME;
@@ -774,10 +719,10 @@ public class ClassNamePersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
 				list = (List<ClassName>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -785,12 +730,8 @@ public class ClassNamePersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -827,18 +768,15 @@ public class ClassNamePersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(_SQL_COUNT_CLASSNAME);
+				Query query = session.createQuery(_SQL_COUNT_CLASSNAME);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				FinderCacheUtil.putResult(
 					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
 			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -872,42 +810,47 @@ public class ClassNamePersistenceImpl
 	 * Initializes the class name persistence.
 	 */
 	public void afterPropertiesSet() {
-		_finderPathWithPaginationFindAll = new FinderPath(
-			ClassNameModelImpl.ENTITY_CACHE_ENABLED,
-			ClassNameModelImpl.FINDER_CACHE_ENABLED, ClassNameImpl.class,
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0]);
+		Registry registry = RegistryUtil.getRegistry();
 
-		_finderPathWithoutPaginationFindAll = new FinderPath(
-			ClassNameModelImpl.ENTITY_CACHE_ENABLED,
-			ClassNameModelImpl.FINDER_CACHE_ENABLED, ClassNameImpl.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll",
-			new String[0]);
+		_argumentsResolverServiceRegistration = registry.registerService(
+			ArgumentsResolver.class, new ClassNameModelArgumentsResolver(),
+			HashMapBuilder.<String, Object>put(
+				"model.class.name", ClassName.class.getName()
+			).build());
 
-		_finderPathCountAll = new FinderPath(
-			ClassNameModelImpl.ENTITY_CACHE_ENABLED,
-			ClassNameModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathWithPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathWithoutPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathCountAll = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
-			new String[0]);
+			new String[0], new String[0], false);
 
-		_finderPathFetchByValue = new FinderPath(
-			ClassNameModelImpl.ENTITY_CACHE_ENABLED,
-			ClassNameModelImpl.FINDER_CACHE_ENABLED, ClassNameImpl.class,
+		_finderPathFetchByValue = _createFinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByValue",
-			new String[] {String.class.getName()},
-			ClassNameModelImpl.VALUE_COLUMN_BITMASK);
+			new String[] {String.class.getName()}, new String[] {"value"},
+			true);
 
-		_finderPathCountByValue = new FinderPath(
-			ClassNameModelImpl.ENTITY_CACHE_ENABLED,
-			ClassNameModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByValue = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByValue",
-			new String[] {String.class.getName()});
+			new String[] {String.class.getName()}, new String[] {"value"},
+			false);
 	}
 
 	public void destroy() {
 		EntityCacheUtil.removeCache(ClassNameImpl.class.getName());
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_ENTITY);
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		_argumentsResolverServiceRegistration.unregister();
+
+		for (ServiceRegistration<FinderPath> serviceRegistration :
+				_serviceRegistrations) {
+
+			serviceRegistration.unregister();
+		}
 	}
 
 	private static final String _SQL_SELECT_CLASSNAME =
@@ -932,5 +875,107 @@ public class ClassNamePersistenceImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ClassNamePersistenceImpl.class);
+
+	private FinderPath _createFinderPath(
+		String cacheName, String methodName, String[] params,
+		String[] columnNames, boolean baseModelResult) {
+
+		FinderPath finderPath = new FinderPath(
+			cacheName, methodName, params, columnNames, baseModelResult);
+
+		if (!cacheName.equals(FINDER_CLASS_NAME_LIST_WITH_PAGINATION)) {
+			Registry registry = RegistryUtil.getRegistry();
+
+			_serviceRegistrations.add(
+				registry.registerService(
+					FinderPath.class, finderPath,
+					HashMapBuilder.<String, Object>put(
+						"cache.name", cacheName
+					).build()));
+		}
+
+		return finderPath;
+	}
+
+	private ServiceRegistration<ArgumentsResolver>
+		_argumentsResolverServiceRegistration;
+	private Set<ServiceRegistration<FinderPath>> _serviceRegistrations =
+		new HashSet<>();
+
+	private static class ClassNameModelArgumentsResolver
+		implements ArgumentsResolver {
+
+		@Override
+		public Object[] getArguments(
+			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
+			boolean original) {
+
+			String[] columnNames = finderPath.getColumnNames();
+
+			if ((columnNames == null) || (columnNames.length == 0)) {
+				if (baseModel.isNew()) {
+					return FINDER_ARGS_EMPTY;
+				}
+
+				return null;
+			}
+
+			ClassNameModelImpl classNameModelImpl =
+				(ClassNameModelImpl)baseModel;
+
+			long columnBitmask = classNameModelImpl.getColumnBitmask();
+
+			if (!checkColumn || (columnBitmask == 0)) {
+				return _getValue(classNameModelImpl, columnNames, original);
+			}
+
+			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
+				finderPath);
+
+			if (finderPathColumnBitmask == null) {
+				finderPathColumnBitmask = 0L;
+
+				for (String columnName : columnNames) {
+					finderPathColumnBitmask |=
+						classNameModelImpl.getColumnBitmask(columnName);
+				}
+
+				_finderPathColumnBitmasksCache.put(
+					finderPath, finderPathColumnBitmask);
+			}
+
+			if ((columnBitmask & finderPathColumnBitmask) != 0) {
+				return _getValue(classNameModelImpl, columnNames, original);
+			}
+
+			return null;
+		}
+
+		private Object[] _getValue(
+			ClassNameModelImpl classNameModelImpl, String[] columnNames,
+			boolean original) {
+
+			Object[] arguments = new Object[columnNames.length];
+
+			for (int i = 0; i < arguments.length; i++) {
+				String columnName = columnNames[i];
+
+				if (original) {
+					arguments[i] = classNameModelImpl.getColumnOriginalValue(
+						columnName);
+				}
+				else {
+					arguments[i] = classNameModelImpl.getColumnValue(
+						columnName);
+				}
+			}
+
+			return arguments;
+		}
+
+		private static Map<FinderPath, Long> _finderPathColumnBitmasksCache =
+			new ConcurrentHashMap<>();
+
+	}
 
 }

@@ -31,7 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface FragmentEntry extends FragmentEntryModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.fragment.model.impl.FragmentEntryImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -56,9 +56,13 @@ public interface FragmentEntry extends FragmentEntryModel, PersistedModel {
 
 		};
 
+	public FragmentEntry fetchDraftFragmentEntry();
+
 	public String getContent();
 
 	public int getGlobalUsageCount();
+
+	public String getIcon();
 
 	public String getImagePreviewURL(
 		com.liferay.portal.kernel.theme.ThemeDisplay themeDisplay);
@@ -70,6 +74,8 @@ public interface FragmentEntry extends FragmentEntryModel, PersistedModel {
 	public void populateZipWriter(
 			com.liferay.portal.kernel.zip.ZipWriter zipWriter, String path)
 		throws Exception;
+
+	public void setIcon(String icon);
 
 	public void setImagePreviewURL(String imagePreviewURL);
 

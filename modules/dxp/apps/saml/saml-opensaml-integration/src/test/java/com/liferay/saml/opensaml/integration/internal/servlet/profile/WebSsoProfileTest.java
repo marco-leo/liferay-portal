@@ -32,6 +32,7 @@ import org.junit.Test;
 public class WebSsoProfileTest extends BaseSamlTestCase {
 
 	@Before
+	@Override
 	public void setUp() throws Exception {
 		super.setUp();
 
@@ -59,9 +60,9 @@ public class WebSsoProfileTest extends BaseSamlTestCase {
 
 			Assert.fail("Date verification failed");
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(portalException, portalException);
 			}
 		}
 	}
@@ -96,9 +97,9 @@ public class WebSsoProfileTest extends BaseSamlTestCase {
 
 			Assert.fail("Date verification failed");
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(portalException, portalException);
 			}
 		}
 	}

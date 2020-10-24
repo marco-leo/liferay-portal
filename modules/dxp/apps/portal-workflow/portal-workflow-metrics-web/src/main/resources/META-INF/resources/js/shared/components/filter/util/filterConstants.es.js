@@ -11,53 +11,40 @@
 
 const filterConstants = {
 	assignee: {
-		key: 'assigneeUserIds',
-		title: Liferay.Language.get('assignee')
+		key: 'assigneeIds',
+		pinned: false,
+		title: Liferay.Language.get('assignee'),
 	},
 	processStatus: {
 		key: 'statuses',
-		title: Liferay.Language.get('process-status')
+		pinned: false,
+		title: Liferay.Language.get('process-status'),
 	},
 	processStep: {
-		key: 'taskKeys',
-		title: Liferay.Language.get('process-step')
+		key: 'taskNames',
+		pinned: false,
+		title: Liferay.Language.get('process-step'),
 	},
 	roles: {
 		key: 'roleIds',
-		title: Liferay.Language.get('roles')
+		pinned: false,
+		title: Liferay.Language.get('roles'),
 	},
 	slaStatus: {
 		key: 'slaStatuses',
-		title: Liferay.Language.get('sla-status')
+		pinned: false,
+		title: Liferay.Language.get('sla-status'),
 	},
 	timeRange: {
 		key: 'timeRange',
-		title: Liferay.Language.get('completion-period')
+		pinned: true,
+		title: Liferay.Language.get('completion-period'),
 	},
 	velocityUnit: {
 		key: 'velocityUnit',
-		title: Liferay.Language.get('velocity-unit')
-	}
+		pinned: false,
+		title: Liferay.Language.get('velocity-unit'),
+	},
 };
 
-const filterKeys = {
-	assignee: 'assigneeUserIds',
-	processStatus: 'statuses',
-	processStep: 'taskKeys',
-	roles: 'roleIds',
-	slaStatus: 'slaStatuses',
-	timeRange: 'timeRange',
-	timeRangeDateEnd: 'dateEnd',
-	timeRangeDateStart: 'dateStart'
-};
-
-const filterTitles = {
-	assignee: Liferay.Language.get('assignee'),
-	processStatus: Liferay.Language.get('process-status'),
-	processStep: Liferay.Language.get('process-step'),
-	roles: Liferay.Language.get('roles'),
-	slaStatus: Liferay.Language.get('sla-status')
-};
-
-export {filterKeys, filterTitles};
 export default filterConstants;

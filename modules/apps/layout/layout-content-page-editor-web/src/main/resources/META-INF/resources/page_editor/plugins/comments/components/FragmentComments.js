@@ -15,21 +15,26 @@
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import PropTypes from 'prop-types';
-import React, {useContext} from 'react';
+import React from 'react';
 
-import {StoreContext} from '../../../app/store/index';
+import editFragmentEntryComment from '../../../app/actions/editFragmentEntryLinkComment';
+import {useSelectItem} from '../../../app/components/Controls';
+import {useDispatch, useSelector} from '../../../app/store/index';
 import SidebarPanelContent from '../../../common/components/SidebarPanelContent';
 import SidebarPanelHeader from '../../../common/components/SidebarPanelHeader';
-import AppContext from '../../../core/AppContext';
 import AddCommentForm from './AddCommentForm';
 import FragmentComment from './FragmentComment';
 import ResolvedCommentsToggle from './ResolvedCommentsToggle';
 
 export default function FragmentComments({fragmentEntryLink}) {
-	const {comments, fragmentEntryLinkId, name} = fragmentEntryLink;
+	const {comments = [], fragmentEntryLinkId, name} = fragmentEntryLink;
 
-	const {dispatch} = useContext(AppContext);
-	const {showResolvedComments} = useContext(StoreContext);
+	const selectItem = useSelectItem();
+
+	const dispatch = useDispatch();
+	const showResolvedComments = useSelector(
+		(state) => state.showResolvedComments
+	);
 
 	const fragmentEntryLinkComments = showResolvedComments
 		? comments
@@ -37,11 +42,15 @@ export default function FragmentComments({fragmentEntryLink}) {
 
 	return (
 		<>
-			<SidebarPanelHeader className="comments-sidebar-title">
+			<SidebarPanelHeader
+				className="comments-sidebar-title"
+				padded={false}
+			>
 				<ClayButton
 					borderless
-					className="text-dark"
-					onClick={() => dispatch({type: 'clearActiveItem'})}
+					className="mx-1 text-dark"
+					displayType="secondary"
+					onClick={() => selectItem(null)}
 					small
 				>
 					<ClayIcon symbol="angle-left" />
@@ -50,7 +59,7 @@ export default function FragmentComments({fragmentEntryLink}) {
 				<span>{name}</span>
 			</SidebarPanelHeader>
 
-			<SidebarPanelContent>
+			<SidebarPanelContent padded={false}>
 				<ResolvedCommentsToggle />
 
 				<div>
@@ -67,27 +76,14 @@ export default function FragmentComments({fragmentEntryLink}) {
 								comment={comment}
 								fragmentEntryLinkId={fragmentEntryLinkId}
 								key={comment.commentId}
-								onDelete={({commentId}) =>
-									dispatch({
-										commentId,
-										fragmentEntryLinkId,
-										type: 'deleteFragmentEntryLinkComment'
-									})
+								onEdit={(fragmentEntryLinkComment) =>
+									dispatch(
+										editFragmentEntryComment({
+											fragmentEntryLinkComment,
+											fragmentEntryLinkId,
+										})
+									)
 								}
-								onEdit={({commentId}) =>
-									dispatch({
-										commentId,
-										fragmentEntryLinkId,
-										type: 'editComment'
-									})
-								}
-								onEditReply={parentCommentId => ({commentId}) =>
-									dispatch({
-										commentId,
-										fragmentEntryLinkId,
-										parentCommentId,
-										type: 'editCommentReply'
-									})}
 							/>
 						);
 					})}
@@ -98,5 +94,5 @@ export default function FragmentComments({fragmentEntryLink}) {
 }
 
 FragmentComments.propTypes = {
-	fragmentEntryLink: PropTypes.object.isRequired
+	fragmentEntryLink: PropTypes.object.isRequired,
 };

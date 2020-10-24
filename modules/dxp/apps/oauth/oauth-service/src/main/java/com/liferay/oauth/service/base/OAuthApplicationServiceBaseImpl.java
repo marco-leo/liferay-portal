@@ -47,7 +47,7 @@ public abstract class OAuthApplicationServiceBaseImpl
 	extends BaseServiceImpl
 	implements AopService, IdentifiableOSGiService, OAuthApplicationService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>OAuthApplicationService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.oauth.service.OAuthApplicationServiceUtil</code>.
@@ -101,8 +101,8 @@ public abstract class OAuthApplicationServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

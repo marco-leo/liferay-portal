@@ -135,11 +135,11 @@ public class StagingUtil {
 	}
 
 	public static JSONObject getExceptionMessagesJSONObject(
-		Locale locale, Exception e,
+		Locale locale, Exception exception,
 		ExportImportConfiguration exportImportConfiguration) {
 
 		return _staging.getExceptionMessagesJSONObject(
-			locale, e, exportImportConfiguration);
+			locale, exception, exportImportConfiguration);
 	}
 
 	public static Group getLiveGroup(Group group) {
@@ -184,6 +184,13 @@ public class StagingUtil {
 
 	public static long getRecentLayoutSetBranchId(User user, long layoutSetId) {
 		return _staging.getRecentLayoutSetBranchId(user, layoutSetId);
+	}
+
+	public static Layout getRemoteLayout(
+			long userId, long stagingGroupId, long plid)
+		throws PortalException {
+
+		return _staging.getRemoteLayout(userId, stagingGroupId, plid);
 	}
 
 	public static long getRemoteLayoutPlid(
@@ -231,6 +238,13 @@ public class StagingUtil {
 		throws PortalException {
 
 		return _staging.getWorkflowTask(userId, layoutRevision);
+	}
+
+	public static boolean hasRemoteLayout(
+			long userId, long stagingGroupId, long plid)
+		throws PortalException {
+
+		return _staging.hasRemoteLayout(userId, stagingGroupId, plid);
 	}
 
 	public static boolean hasWorkflowTask(
@@ -452,6 +466,15 @@ public class StagingUtil {
 
 		_staging.setRecentLayoutSetBranchId(
 			user, layoutSetId, layoutSetBranchId);
+	}
+
+	public static void setRemoteSiteURL(
+			Group stagingGroup, boolean overrideRemoteSiteURL,
+			String remoteSiteURL)
+		throws PortalException {
+
+		_staging.setRemoteSiteURL(
+			stagingGroup, overrideRemoteSiteURL, remoteSiteURL);
 	}
 
 	public static String stripProtocolFromRemoteAddress(String remoteAddress) {

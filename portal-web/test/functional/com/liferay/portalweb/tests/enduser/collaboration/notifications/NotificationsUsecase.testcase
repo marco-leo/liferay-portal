@@ -31,81 +31,50 @@ definition {
 
 	@priority = "4"
 	test MarkNotificationAsReadAndAcceptRequest {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
 			userFirstName = "userfn",
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
-		User.editPasswordCP(
-			password = "password",
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
-
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.assignRegularRoleCP(
+		JSONRole.assignRoleToUser(
 			roleTitle = "Administrator",
-			userScreenName = "usersn");
+			userEmailAddress = "userea@liferay.com");
 
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Blogs Page");
 
-		SitePages.addPublicPage(
-			pageName = "Blogs Page",
-			sitePageType = "Widget Page");
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Blogs Page",
+			widgetName = "Blogs");
 
-		Navigator.gotoPage(pageName = "Blogs Page");
+		JSONGroup.addGroup(groupName = "Test Site Name");
 
-		Portlet.addPG(portletName = "Blogs");
-
-		Navigator.gotoPage(pageName = "Blogs Page");
-
-		ProductMenu.gotoPortlet(
-			category = "Sites",
-			panel = "Control Panel",
-			portlet = "Sites");
-
-		Site.addCP(
-			siteName = "Community Site Name",
-			siteType = "Community");
-
-		Navigator.gotoSitePage(
-			pageName = "Home",
-			siteName = "Community Site Name");
-
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
-
-		SitePages.addPublicPage(
-			pageName = "Blank Page",
-			sitePageType = "Widget Page");
-
-		SitePages.addPublicPage(
-			pageName = "Invite Members Page",
-			sitePageType = "Widget Page");
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Invite Members Page");
 
 		Navigator.gotoSitePage(
 			pageName = "Invite Members Page",
-			siteName = "Community Site Name");
+			siteName = "Test Site Name");
 
 		Portlet.addPG(portletName = "Invite Members");
 
 		Navigator.gotoSitePage(
 			pageName = "Invite Members Page",
-			siteName = "Community Site Name");
+			siteName = "Test Site Name");
 
 		InviteMembers.inviteMembers(inviteUserFullName = "userfn userln");
 
@@ -146,9 +115,9 @@ definition {
 			contentBody = "Blogs Entry Title",
 			user = "Test Test");
 
-		Notifications.viewRequest(requestsTitle = "Test Test invited you to join Community Site Name.");
+		Notifications.viewRequest(requestsTitle = "Test Test invited you to join Test Site Name.");
 
-		Notifications.acceptRequest(requestsTitle = "Test Test invited you to join Community Site Name.");
+		Notifications.acceptRequest(requestsTitle = "Test Test invited you to join Test Site Name.");
 
 		Refresh();
 
@@ -166,6 +135,8 @@ definition {
 	@description = "This test covers LPS-102749. It views a notification of the edited Web Content Article when staging is turned on."
 	@priority = "4"
 	test StagingViewEditedArticleNotification {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
 		JSONGroup.addGroup(groupName = "Subscribe Site");
 
 		JSONLayout.addPublicLayout(
@@ -176,7 +147,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Publishing",
-			panel = "Site Administration",
 			portlet = "Staging");
 
 		Staging.activateStagingCP(siteName = "Subscribe Site");
@@ -187,17 +157,12 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
-		User.editPasswordCP(
-			password = "password",
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
-
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -212,11 +177,10 @@ definition {
 
 		Navigator.openSiteURL(siteName = "Subscribe Site");
 
-		ProductMenu.gotoLiveSite();
+		ProductMenu.gotoLiveSite(site = "Site Name");
 
 		ProductMenu.gotoPortlet(
 			category = "Content &amp; Data",
-			panel = "Site Administration",
 			portlet = "Web Content");
 
 		WebContent.subscribeToCurrentFolderCP();
@@ -233,7 +197,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Content &amp; Data",
-			panel = "Site Administration",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoAddCP();
@@ -252,7 +215,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Content &amp; Data",
-			panel = "Site Administration",
 			portlet = "Web Content");
 
 		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
@@ -285,22 +247,11 @@ definition {
 		AssertConsoleTextNotPresent(value1 = "java.lang.IllegalArgumentException");
 	}
 
-	@priority = "3"
-	test ViewDefaultNotificationsPortletDeliveryOptions {
-		property osgi.app.includes = "bookmarks";
-
-		Navigator.openURL();
-
-		NotificationsPortlet.gotoNotificationDelivery(notificationPG = "true");
-
-		IFrame.selectConfigurationFrame();
-
-		NotificationsPortlet.viewDefaultNotificationDeliveries();
-	}
-
 	@description = "This test covers LPS-104398. It views a notification of a web content article created in a folder."
 	@priority = "4"
 	test ViewFolderArticleNotification {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
 		JSONGroup.addGroup(groupName = "Test Site Name");
 
 		JSONLayout.addPublicLayout(
@@ -313,17 +264,12 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
-		User.editPasswordCP(
-			password = "password",
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
-
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");

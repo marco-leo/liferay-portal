@@ -88,7 +88,8 @@ components:
                     type: integer
 info:
     description:
-        ""
+        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
+        'com.liferay.bulk.rest.client', and version '2.0.6'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -121,7 +122,6 @@ paths:
             tags: ["Selection"]
     "/keywords/batch":
         patch:
-            operationId: patchKeywordBatch
             requestBody:
                 content:
                     application/json:
@@ -138,7 +138,6 @@ paths:
                         ""
             tags: ["Keyword"]
         put:
-            operationId: putKeywordBatch
             requestBody:
                 content:
                     application/json:
@@ -232,7 +231,6 @@ paths:
             tags: ["Status"]
     "/taxonomy-categories/batch":
         patch:
-            operationId: patchTaxonomyCategoryBatch
             requestBody:
                 content:
                     application/json:
@@ -249,7 +247,6 @@ paths:
                         ""
             tags: ["TaxonomyCategory"]
         put:
-            operationId: putTaxonomyCategoryBatch
             requestBody:
                 content:
                     application/json:

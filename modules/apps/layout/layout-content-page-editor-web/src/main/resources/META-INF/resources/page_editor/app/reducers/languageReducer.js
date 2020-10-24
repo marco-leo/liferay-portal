@@ -12,22 +12,16 @@
  * details.
  */
 
-import {TYPES} from '../actions/index';
+import * as TYPES from '../actions/types';
 
-export default function languageReducer(state, action) {
-	let nextState = state;
+export const INITIAL_STATE = 'en-US';
 
+export default function languageReducer(languageId = INITIAL_STATE, action) {
 	switch (action.type) {
 		case TYPES.UPDATE_LANGUAGE_ID:
-			nextState = {
-				...nextState,
-				languageId: action.languageId
-			};
-			break;
+			return action.languageId;
 
 		default:
-			break;
+			return languageId;
 	}
-
-	return nextState;
 }

@@ -4,6 +4,7 @@ definition {
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Fragments";
+	property testray.component.name = "Theme";
 
 	setUp {
 		task ("Set up instance and sign in") {
@@ -66,12 +67,15 @@ definition {
 			FragmentsAdmin.viewEntryPresent(entry = "Fragment Name");
 		}
 
-		task ("Navigate to pages admin") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
-		}
-
 		task ("Add a content page") {
-			ContentPages.addPage(pageName = "Test Content Page Name");
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Content Page Name",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
 		}
 
 		task ("Add the section fragment to the content page") {
@@ -92,13 +96,11 @@ definition {
 			AssertVisible(
 				key_content = "Submit",
 				key_fragmentClass = "footer",
-				key_position = "1",
 				locator1 = "Fragment#FRAGMENT");
 
 			AssertVisible(
 				key_content = "Cancel",
 				key_fragmentClass = "footer",
-				key_position = "1",
 				locator1 = "Fragment#FRAGMENT");
 
 			AssertElementPresent(locator1 = "Button#SUBMIT");
@@ -134,6 +136,8 @@ definition {
 		task ("Navigate to the section fragment") {
 			FragmentsAdminNavigator.gotoEntry(entry = "Fragment Name");
 		}
+
+		Pause(locator1 = "1000");
 
 		task ("Assert the edits to the section fragment persist by asserting that the preview displays the Title fragment") {
 			FragmentsEditor.assertFragmentPreview(

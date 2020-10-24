@@ -27,10 +27,11 @@ import org.osgi.service.component.annotations.Component;
 	immediate = true,
 	property = {
 		"ddm.form.field.type.description=document-library-field-type-description",
-		"ddm.form.field.type.display.order:Integer=9",
+		"ddm.form.field.type.display.order:Integer=8",
 		"ddm.form.field.type.group=basic", "ddm.form.field.type.icon=upload",
 		"ddm.form.field.type.label=document-library-field-type-label",
-		"ddm.form.field.type.name=document_library"
+		"ddm.form.field.type.name=document_library",
+		"ddm.form.field.type.scope=app-builder,forms"
 	},
 	service = DDMFormFieldType.class
 )

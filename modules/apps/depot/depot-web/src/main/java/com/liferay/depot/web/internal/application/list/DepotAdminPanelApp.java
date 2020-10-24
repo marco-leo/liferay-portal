@@ -16,14 +16,11 @@ package com.liferay.depot.web.internal.application.list;
 
 import com.liferay.application.list.BasePanelApp;
 import com.liferay.application.list.PanelApp;
-import com.liferay.depot.web.internal.constants.DepotAdminPanelCategoryKeys;
+import com.liferay.application.list.constants.PanelCategoryKeys;
 import com.liferay.depot.web.internal.constants.DepotPortletKeys;
-import com.liferay.depot.web.internal.util.DepotSupportChecker;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Portlet;
-import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,7 +35,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"panel.app.order:Integer=100",
-		"panel.category.key=" + DepotAdminPanelCategoryKeys.CONTROL_PANEL_DEPOT_ADMIN
+		"panel.category.key=" + PanelCategoryKeys.APPLICATIONS_MENU_APPLICATIONS_CONTENT
 	},
 	service = PanelApp.class
 )
@@ -47,11 +44,6 @@ public class DepotAdminPanelApp extends BasePanelApp {
 	@Override
 	public String getPortletId() {
 		return DepotPortletKeys.DEPOT_ADMIN;
-	}
-
-	@Override
-	public boolean isShow(PermissionChecker permissionChecker, Group group) {
-		return _depotSupportChecker.isEnabled();
 	}
 
 	@Override
@@ -71,11 +63,5 @@ public class DepotAdminPanelApp extends BasePanelApp {
 
 		return themeDisplay.getControlPanelGroup();
 	}
-
-	@Reference
-	private DepotSupportChecker _depotSupportChecker;
-
-	@Reference
-	private Portal _portal;
 
 }

@@ -67,6 +67,16 @@ public class LocationSerDes {
 			sb.append("\"");
 		}
 
+		if (location.getAddressCountry_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"addressCountry_i18n\": ");
+
+			sb.append(_toJSON(location.getAddressCountry_i18n()));
+		}
+
 		if (location.getAddressRegion() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -117,6 +127,15 @@ public class LocationSerDes {
 				"addressCountry", String.valueOf(location.getAddressCountry()));
 		}
 
+		if (location.getAddressCountry_i18n() == null) {
+			map.put("addressCountry_i18n", null);
+		}
+		else {
+			map.put(
+				"addressCountry_i18n",
+				String.valueOf(location.getAddressCountry_i18n()));
+		}
+
 		if (location.getAddressRegion() == null) {
 			map.put("addressRegion", null);
 		}
@@ -157,6 +176,15 @@ public class LocationSerDes {
 					location.setAddressCountry((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "addressCountry_i18n")) {
+
+				if (jsonParserFieldValue != null) {
+					location.setAddressCountry_i18n(
+						(Map)LocationSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "addressRegion")) {
 				if (jsonParserFieldValue != null) {
 					location.setAddressRegion((String)jsonParserFieldValue);
@@ -167,9 +195,8 @@ public class LocationSerDes {
 					location.setId(Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -225,10 +252,13 @@ public class LocationSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

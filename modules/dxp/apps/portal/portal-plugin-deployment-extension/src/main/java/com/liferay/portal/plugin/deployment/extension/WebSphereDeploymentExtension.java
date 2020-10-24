@@ -15,6 +15,8 @@
 package com.liferay.portal.plugin.deployment.extension;
 
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.deploy.DeployUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -22,8 +24,6 @@ import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.OSDetector;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ServerDetector;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.tools.deploy.BaseDeployer;
@@ -33,6 +33,7 @@ import com.liferay.portal.util.PropsValues;
 import java.io.File;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -73,7 +74,7 @@ public class WebSphereDeploymentExtension implements DeploymentExtension {
 		}
 
 		String wsadminContent = FileUtil.read(
-			DeployUtil.getResourcePath("wsadmin.py"));
+			DeployUtil.getResourcePath(new HashSet<>(), "wsadmin.py"));
 
 		String adminAppListOptions =
 			PropsValues.AUTO_DEPLOY_WEBSPHERE_WSADMIN_APP_MANAGER_LIST_OPTIONS;
@@ -151,7 +152,7 @@ public class WebSphereDeploymentExtension implements DeploymentExtension {
 		commands.add(wsadminFileName);
 
 		if (_log.isInfoEnabled()) {
-			StringBundler sb = new StringBundler(commands.size() * 2 + 1);
+			StringBundler sb = new StringBundler((commands.size() * 2) + 1);
 
 			sb.append("Installing plugin by executing");
 
@@ -190,7 +191,7 @@ public class WebSphereDeploymentExtension implements DeploymentExtension {
 							"of " + exitValue);
 				}
 			}
-			catch (IllegalThreadStateException itse) {
+			catch (IllegalThreadStateException illegalThreadStateException) {
 				_log.info("Process did not terminate");
 			}
 		}

@@ -26,7 +26,7 @@ import java.util.Map;
  * This class is a wrapper for {@link DispatchTrigger}.
  * </p>
  *
- * @author Alessio Antonio Rendina
+ * @author Matija Petanjek
  * @see DispatchTrigger
  * @generated
  */
@@ -53,10 +53,11 @@ public class DispatchTriggerWrapper
 		attributes.put("cronExpression", getCronExpression());
 		attributes.put("endDate", getEndDate());
 		attributes.put("name", getName());
+		attributes.put("overlapAllowed", isOverlapAllowed());
 		attributes.put("startDate", getStartDate());
 		attributes.put("system", isSystem());
-		attributes.put("type", getType());
-		attributes.put("typeSettings", getTypeSettings());
+		attributes.put("taskSettings", getTaskSettings());
+		attributes.put("taskType", getTaskType());
 
 		return attributes;
 	}
@@ -129,6 +130,12 @@ public class DispatchTriggerWrapper
 			setName(name);
 		}
 
+		Boolean overlapAllowed = (Boolean)attributes.get("overlapAllowed");
+
+		if (overlapAllowed != null) {
+			setOverlapAllowed(overlapAllowed);
+		}
+
 		Date startDate = (Date)attributes.get("startDate");
 
 		if (startDate != null) {
@@ -141,16 +148,16 @@ public class DispatchTriggerWrapper
 			setSystem(system);
 		}
 
-		String type = (String)attributes.get("type");
+		String taskSettings = (String)attributes.get("taskSettings");
 
-		if (type != null) {
-			setType(type);
+		if (taskSettings != null) {
+			setTaskSettings(taskSettings);
 		}
 
-		String typeSettings = (String)attributes.get("typeSettings");
+		String taskType = (String)attributes.get("taskType");
 
-		if (typeSettings != null) {
-			setTypeSettings(typeSettings);
+		if (taskType != null) {
+			setTaskType(taskType);
 		}
 	}
 
@@ -245,6 +252,16 @@ public class DispatchTriggerWrapper
 	}
 
 	/**
+	 * Returns the overlap allowed of this dispatch trigger.
+	 *
+	 * @return the overlap allowed of this dispatch trigger
+	 */
+	@Override
+	public boolean getOverlapAllowed() {
+		return model.getOverlapAllowed();
+	}
+
+	/**
 	 * Returns the primary key of this dispatch trigger.
 	 *
 	 * @return the primary key of this dispatch trigger
@@ -275,23 +292,30 @@ public class DispatchTriggerWrapper
 	}
 
 	/**
-	 * Returns the type of this dispatch trigger.
+	 * Returns the task settings of this dispatch trigger.
 	 *
-	 * @return the type of this dispatch trigger
+	 * @return the task settings of this dispatch trigger
 	 */
 	@Override
-	public String getType() {
-		return model.getType();
+	public String getTaskSettings() {
+		return model.getTaskSettings();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.util.UnicodeProperties
+		getTaskSettingsUnicodeProperties() {
+
+		return model.getTaskSettingsUnicodeProperties();
 	}
 
 	/**
-	 * Returns the type settings of this dispatch trigger.
+	 * Returns the task type of this dispatch trigger.
 	 *
-	 * @return the type settings of this dispatch trigger
+	 * @return the task type of this dispatch trigger
 	 */
 	@Override
-	public String getTypeSettings() {
-		return model.getTypeSettings();
+	public String getTaskType() {
+		return model.getTaskType();
 	}
 
 	/**
@@ -335,6 +359,16 @@ public class DispatchTriggerWrapper
 	}
 
 	/**
+	 * Returns <code>true</code> if this dispatch trigger is overlap allowed.
+	 *
+	 * @return <code>true</code> if this dispatch trigger is overlap allowed; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isOverlapAllowed() {
+		return model.isOverlapAllowed();
+	}
+
+	/**
 	 * Returns <code>true</code> if this dispatch trigger is system.
 	 *
 	 * @return <code>true</code> if this dispatch trigger is system; <code>false</code> otherwise
@@ -344,11 +378,6 @@ public class DispatchTriggerWrapper
 		return model.isSystem();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a dispatch trigger model instance should use the <code>DispatchTrigger</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -445,6 +474,16 @@ public class DispatchTriggerWrapper
 	}
 
 	/**
+	 * Sets whether this dispatch trigger is overlap allowed.
+	 *
+	 * @param overlapAllowed the overlap allowed of this dispatch trigger
+	 */
+	@Override
+	public void setOverlapAllowed(boolean overlapAllowed) {
+		model.setOverlapAllowed(overlapAllowed);
+	}
+
+	/**
 	 * Sets the primary key of this dispatch trigger.
 	 *
 	 * @param primaryKey the primary key of this dispatch trigger
@@ -475,23 +514,31 @@ public class DispatchTriggerWrapper
 	}
 
 	/**
-	 * Sets the type of this dispatch trigger.
+	 * Sets the task settings of this dispatch trigger.
 	 *
-	 * @param type the type of this dispatch trigger
+	 * @param taskSettings the task settings of this dispatch trigger
 	 */
 	@Override
-	public void setType(String type) {
-		model.setType(type);
+	public void setTaskSettings(String taskSettings) {
+		model.setTaskSettings(taskSettings);
+	}
+
+	@Override
+	public void setTaskSettingsUnicodeProperties(
+		com.liferay.portal.kernel.util.UnicodeProperties
+			taskSettingsUnicodeProperties) {
+
+		model.setTaskSettingsUnicodeProperties(taskSettingsUnicodeProperties);
 	}
 
 	/**
-	 * Sets the type settings of this dispatch trigger.
+	 * Sets the task type of this dispatch trigger.
 	 *
-	 * @param typeSettings the type settings of this dispatch trigger
+	 * @param taskType the task type of this dispatch trigger
 	 */
 	@Override
-	public void setTypeSettings(String typeSettings) {
-		model.setTypeSettings(typeSettings);
+	public void setTaskType(String taskType) {
+		model.setTaskType(taskType);
 	}
 
 	/**

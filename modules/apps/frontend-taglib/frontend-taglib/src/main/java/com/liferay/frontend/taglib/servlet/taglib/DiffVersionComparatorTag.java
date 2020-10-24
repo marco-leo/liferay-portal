@@ -209,14 +209,15 @@ public class DiffVersionComparatorTag extends IncludeTag {
 					JSONFactoryUtil.createJSONArray();
 
 				for (Locale availableLocale : _availableLocales) {
-					JSONObject availableLocaleJSONObject = JSONUtil.put(
-						"displayName",
-						availableLocale.getDisplayName(themeDisplay.getLocale())
-					).put(
-						"languageId", LocaleUtil.toLanguageId(availableLocale)
-					);
-
-					availableLocalesJSONArray.put(availableLocaleJSONObject);
+					availableLocalesJSONArray.put(
+						JSONUtil.put(
+							"displayName",
+							availableLocale.getDisplayName(
+								themeDisplay.getLocale())
+						).put(
+							"languageId",
+							LocaleUtil.toLanguageId(availableLocale)
+						));
 				}
 
 				data.put("availableLocales", availableLocalesJSONArray);
@@ -272,9 +273,9 @@ public class DiffVersionComparatorTag extends IncludeTag {
 			data.put("sourceVersion", String.valueOf(_sourceVersion));
 			data.put("targetVersion", String.valueOf(_targetVersion));
 		}
-		catch (PortalException | PortletException e) {
+		catch (PortalException | PortletException exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
+				_log.debug(exception, exception);
 			}
 		}
 

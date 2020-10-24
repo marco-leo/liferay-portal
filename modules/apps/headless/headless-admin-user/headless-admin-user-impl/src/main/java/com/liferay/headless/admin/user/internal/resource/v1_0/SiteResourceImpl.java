@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
+import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import javax.validation.ValidationException;
 
@@ -45,8 +46,15 @@ import org.osgi.service.component.annotations.ServiceScope;
 public class SiteResourceImpl extends BaseSiteResourceImpl {
 
 	@Override
-	public Page<Site> getMyUserAccountSitesPage(Pagination pagination) {
-		return Page.of(transform(contextUser.getGroups(), this::_toSite));
+	public Page<Site> getMyUserAccountSitesPage(Pagination pagination)
+		throws Exception {
+
+		return Page.of(
+			transform(
+				_groupService.getUserSitesGroups(
+					contextUser.getUserId(), pagination.getStartPosition(),
+					pagination.getEndPosition()),
+				this::_toSite));
 	}
 
 	@Override
@@ -78,15 +86,22 @@ public class SiteResourceImpl extends BaseSiteResourceImpl {
 					group.getAvailableLanguageIds());
 				creator = CreatorUtil.toCreator(
 					_portal,
-					_userLocalService.getUserById(group.getCreatorUserId()));
+					_userLocalService.fetchUser(group.getCreatorUserId()));
 				description = group.getDescription(
 					contextAcceptLanguage.getPreferredLocale());
+				description_i18n = LocalizedMapUtil.getI18nMap(
+					contextAcceptLanguage.isAcceptAllLanguages(),
+					group.getDescriptionMap());
 				friendlyUrlPath = group.getFriendlyURL();
 				id = group.getGroupId();
 				key = group.getGroupKey();
 				membershipType = group.getTypeLabel();
 				name = group.getName(
 					contextAcceptLanguage.getPreferredLocale());
+				name_i18n = LocalizedMapUtil.getI18nMap(
+					contextAcceptLanguage.isAcceptAllLanguages(),
+					group.getNameMap());
+				parentSiteId = group.getParentGroupId();
 				sites = transformToArray(
 					_groupService.getGroups(
 						group.getCompanyId(), group.getGroupId(), true),

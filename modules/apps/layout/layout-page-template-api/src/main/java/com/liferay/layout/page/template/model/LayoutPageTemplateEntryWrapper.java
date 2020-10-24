@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -46,6 +48,7 @@ public class LayoutPageTemplateEntryWrapper
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
 		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
 		attributes.put(
 			"layoutPageTemplateEntryId", getLayoutPageTemplateEntryId());
@@ -58,6 +61,8 @@ public class LayoutPageTemplateEntryWrapper
 		attributes.put(
 			"layoutPageTemplateCollectionId",
 			getLayoutPageTemplateCollectionId());
+		attributes.put(
+			"layoutPageTemplateEntryKey", getLayoutPageTemplateEntryKey());
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classTypeId", getClassTypeId());
 		attributes.put("name", getName());
@@ -81,6 +86,12 @@ public class LayoutPageTemplateEntryWrapper
 
 		if (mvccVersion != null) {
 			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
 		}
 
 		String uuid = (String)attributes.get("uuid");
@@ -137,6 +148,13 @@ public class LayoutPageTemplateEntryWrapper
 
 		if (layoutPageTemplateCollectionId != null) {
 			setLayoutPageTemplateCollectionId(layoutPageTemplateCollectionId);
+		}
+
+		String layoutPageTemplateEntryKey = (String)attributes.get(
+			"layoutPageTemplateEntryKey");
+
+		if (layoutPageTemplateEntryKey != null) {
+			setLayoutPageTemplateEntryKey(layoutPageTemplateEntryKey);
 		}
 
 		Long classNameId = (Long)attributes.get("classNameId");
@@ -258,6 +276,10 @@ public class LayoutPageTemplateEntryWrapper
 		return model.getCompanyId();
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public String getContent()
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -273,6 +295,16 @@ public class LayoutPageTemplateEntryWrapper
 	@Override
 	public Date getCreateDate() {
 		return model.getCreateDate();
+	}
+
+	/**
+	 * Returns the ct collection ID of this layout page template entry.
+	 *
+	 * @return the ct collection ID of this layout page template entry
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
 	}
 
 	/**
@@ -330,6 +362,16 @@ public class LayoutPageTemplateEntryWrapper
 	@Override
 	public long getLayoutPageTemplateEntryId() {
 		return model.getLayoutPageTemplateEntryId();
+	}
+
+	/**
+	 * Returns the layout page template entry key of this layout page template entry.
+	 *
+	 * @return the layout page template entry key of this layout page template entry
+	 */
+	@Override
+	public String getLayoutPageTemplateEntryKey() {
+		return model.getLayoutPageTemplateEntryKey();
 	}
 
 	/**
@@ -592,11 +634,6 @@ public class LayoutPageTemplateEntryWrapper
 		return model.isScheduled();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a layout page template entry model instance should use the <code>LayoutPageTemplateEntry</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -645,6 +682,16 @@ public class LayoutPageTemplateEntryWrapper
 	@Override
 	public void setCreateDate(Date createDate) {
 		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets the ct collection ID of this layout page template entry.
+	 *
+	 * @param ctCollectionId the ct collection ID of this layout page template entry
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -697,6 +744,18 @@ public class LayoutPageTemplateEntryWrapper
 	@Override
 	public void setLayoutPageTemplateEntryId(long layoutPageTemplateEntryId) {
 		model.setLayoutPageTemplateEntryId(layoutPageTemplateEntryId);
+	}
+
+	/**
+	 * Sets the layout page template entry key of this layout page template entry.
+	 *
+	 * @param layoutPageTemplateEntryKey the layout page template entry key of this layout page template entry
+	 */
+	@Override
+	public void setLayoutPageTemplateEntryKey(
+		String layoutPageTemplateEntryKey) {
+
+		model.setLayoutPageTemplateEntryKey(layoutPageTemplateEntryKey);
 	}
 
 	/**
@@ -867,6 +926,20 @@ public class LayoutPageTemplateEntryWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
+	}
+
+	@Override
+	public Map<String, Function<LayoutPageTemplateEntry, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<LayoutPageTemplateEntry, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

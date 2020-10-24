@@ -14,6 +14,7 @@
 
 package com.liferay.portal.background.task.service.base;
 
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.background.task.model.BackgroundTask;
 import com.liferay.portal.background.task.service.BackgroundTaskLocalService;
@@ -37,6 +38,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -64,7 +66,7 @@ public abstract class BackgroundTaskLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements AopService, BackgroundTaskLocalService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>BackgroundTaskLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.background.task.service.BackgroundTaskLocalServiceUtil</code>.
@@ -72,6 +74,10 @@ public abstract class BackgroundTaskLocalServiceBaseImpl
 
 	/**
 	 * Adds the background task to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BackgroundTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param backgroundTask the background task
 	 * @return the background task that was added
@@ -99,6 +105,10 @@ public abstract class BackgroundTaskLocalServiceBaseImpl
 	/**
 	 * Deletes the background task with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BackgroundTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param backgroundTaskId the primary key of the background task
 	 * @return the background task that was removed
 	 * @throws PortalException if a background task with the primary key could not be found
@@ -114,6 +124,10 @@ public abstract class BackgroundTaskLocalServiceBaseImpl
 	/**
 	 * Deletes the background task from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BackgroundTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param backgroundTask the background task
 	 * @return the background task that was removed
 	 * @throws PortalException
@@ -124,6 +138,11 @@ public abstract class BackgroundTaskLocalServiceBaseImpl
 		throws PortalException {
 
 		return backgroundTaskPersistence.remove(backgroundTask);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return backgroundTaskPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -278,6 +297,17 @@ public abstract class BackgroundTaskLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return backgroundTaskPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -285,6 +315,14 @@ public abstract class BackgroundTaskLocalServiceBaseImpl
 			(BackgroundTask)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<BackgroundTask> getBasePersistence() {
+		return backgroundTaskPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -320,6 +358,10 @@ public abstract class BackgroundTaskLocalServiceBaseImpl
 
 	/**
 	 * Updates the background task in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BackgroundTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param backgroundTask the background task
 	 * @return the background task that was updated
@@ -380,8 +422,8 @@ public abstract class BackgroundTaskLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

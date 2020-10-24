@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.model.change.tracking.CTModel;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +31,10 @@ public interface CTPersistence<T extends CTModel<T>>
 
 	public Set<String> getCTColumnNames(
 		CTColumnResolutionType ctColumnResolutionType);
+
+	public default List<String> getMappingTableNames() {
+		return Collections.emptyList();
+	}
 
 	public Map<String, Integer> getTableColumnsMap();
 

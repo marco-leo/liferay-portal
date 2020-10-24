@@ -39,7 +39,7 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionHelper;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashRenderer;
@@ -133,9 +133,9 @@ public class DLFileShortcutTrashHandler extends DLBaseTrashHandler {
 		try {
 			return getDLFileShortcut(classPK);
 		}
-		catch (PortalException | UnsupportedCapabilityException e) {
+		catch (PortalException | UnsupportedCapabilityException exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
+				_log.debug(exception, exception);
 			}
 
 			return null;
@@ -154,7 +154,7 @@ public class DLFileShortcutTrashHandler extends DLBaseTrashHandler {
 		throws PortalException {
 
 		if (trashActionId.equals(TrashActionKeys.MOVE)) {
-			return ModelResourcePermissionHelper.contains(
+			return ModelResourcePermissionUtil.contains(
 				_folderModelResourcePermission, permissionChecker, groupId,
 				classPK, ActionKeys.ADD_SHORTCUT);
 		}
@@ -172,9 +172,9 @@ public class DLFileShortcutTrashHandler extends DLBaseTrashHandler {
 
 			return parentFolder.isInTrash();
 		}
-		catch (NoSuchFolderException nsfe) {
+		catch (NoSuchFolderException noSuchFolderException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(nsfe, nsfe);
+				_log.debug(noSuchFolderException, noSuchFolderException);
 			}
 
 			return true;
@@ -188,9 +188,9 @@ public class DLFileShortcutTrashHandler extends DLBaseTrashHandler {
 		try {
 			dlFileShortcut.getFolder();
 		}
-		catch (NoSuchFolderException nsfe) {
+		catch (NoSuchFolderException noSuchFolderException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(nsfe, nsfe);
+				_log.debug(noSuchFolderException, noSuchFolderException);
 			}
 
 			return false;

@@ -89,7 +89,6 @@ public class BufferedIncrementConfigurationTest {
 
 	@Test
 	public void testValidSetting() {
-		_properties.put(PropsKeys.BUFFERED_INCREMENT_ENABLED, "false");
 		_properties.put(
 			PropsKeys.BUFFERED_INCREMENT_STANDBY_QUEUE_THRESHOLD, "10");
 		_properties.put(
@@ -101,7 +100,6 @@ public class BufferedIncrementConfigurationTest {
 		BufferedIncrementConfiguration bufferedIncrementConfiguration =
 			new BufferedIncrementConfiguration(StringPool.BLANK);
 
-		Assert.assertFalse(bufferedIncrementConfiguration.isEnabled());
 		Assert.assertEquals(
 			10, bufferedIncrementConfiguration.getStandbyQueueThreshold());
 		Assert.assertEquals(
@@ -115,8 +113,10 @@ public class BufferedIncrementConfigurationTest {
 		try {
 			bufferedIncrementConfiguration.calculateStandbyTime(-1);
 		}
-		catch (IllegalArgumentException iae) {
-			Assert.assertEquals("Negative queue length -1", iae.getMessage());
+		catch (IllegalArgumentException illegalArgumentException) {
+			Assert.assertEquals(
+				"Negative queue length -1",
+				illegalArgumentException.getMessage());
 		}
 
 		int standbyQueueThreshold =
@@ -151,8 +151,6 @@ public class BufferedIncrementConfigurationTest {
 	}
 
 	private CaptureHandler _testInvalidSetting(Level level) {
-		_properties.put(PropsKeys.BUFFERED_INCREMENT_ENABLED, "false");
-
 		if (level == Level.OFF) {
 			_properties.put(
 				PropsKeys.BUFFERED_INCREMENT_STANDBY_QUEUE_THRESHOLD, "1");
@@ -176,8 +174,6 @@ public class BufferedIncrementConfigurationTest {
 		BufferedIncrementConfiguration bufferedIncrementConfiguration =
 			new BufferedIncrementConfiguration(StringPool.BLANK);
 
-		Assert.assertFalse(bufferedIncrementConfiguration.isEnabled());
-
 		if (level == Level.OFF) {
 			Assert.assertEquals(
 				1, bufferedIncrementConfiguration.getStandbyQueueThreshold());
@@ -200,8 +196,9 @@ public class BufferedIncrementConfigurationTest {
 		try {
 			bufferedIncrementConfiguration.calculateStandbyTime(0);
 		}
-		catch (IllegalStateException ise) {
-			Assert.assertEquals("Standby is disabled", ise.getMessage());
+		catch (IllegalStateException illegalStateException) {
+			Assert.assertEquals(
+				"Standby is disabled", illegalStateException.getMessage());
 		}
 
 		return captureHandler;

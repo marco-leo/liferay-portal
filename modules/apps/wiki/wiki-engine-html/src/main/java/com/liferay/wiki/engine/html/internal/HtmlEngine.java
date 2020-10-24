@@ -20,9 +20,9 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
 import com.liferay.portal.kernel.portlet.Router;
+import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
+import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.ResourceBundleLoader;
-import com.liferay.portal.kernel.util.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.wiki.configuration.WikiGroupServiceConfiguration;
@@ -82,8 +82,8 @@ public class HtmlEngine extends BaseWikiEngine {
 		try {
 			return _getOutgoingLinks(page);
 		}
-		catch (PortalException pe) {
-			throw new PageContentException(pe);
+		catch (PortalException portalException) {
+			throw new PageContentException(portalException);
 		}
 	}
 
@@ -195,9 +195,9 @@ public class HtmlEngine extends BaseWikiEngine {
 
 				links.put(StringUtil.toLowerCase(title), Boolean.TRUE);
 			}
-			catch (NoSuchNodeException nsne) {
+			catch (NoSuchNodeException noSuchNodeException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(nsne.getMessage());
+					_log.warn(noSuchNodeException.getMessage());
 				}
 			}
 		}

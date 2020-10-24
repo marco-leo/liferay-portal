@@ -23,6 +23,8 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.cache.thread.local.ThreadLocalCachable;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.increment.BufferedIncrement;
+import com.liferay.portal.kernel.increment.NumberIncrement;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.SystemEventConstants;
@@ -58,7 +60,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Provides the local service for accessing, adding, checking, deleting,
@@ -113,9 +114,7 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 
 		tag.setName(name);
 
-		assetTagPersistence.update(tag);
-
-		return tag;
+		return assetTagPersistence.update(tag);
 	}
 
 	/**
@@ -197,9 +196,7 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 
 		tag.setAssetCount(Math.max(0, tag.getAssetCount() - 1));
 
-		assetTagPersistence.update(tag);
-
-		return tag;
+		return assetTagPersistence.update(tag);
 	}
 
 	/**
@@ -595,6 +592,7 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 	 *         tag is being applied
 	 * @return the asset tag
 	 */
+	@BufferedIncrement(incrementClass = NumberIncrement.class)
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public AssetTag incrementAssetCount(long tagId, long classNameId)
@@ -604,9 +602,7 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 
 		tag.setAssetCount(tag.getAssetCount() + 1);
 
-		assetTagPersistence.update(tag);
-
-		return tag;
+		return assetTagPersistence.update(tag);
 	}
 
 	/**
@@ -714,7 +710,7 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 
 		tag.setName(name);
 
-		assetTagPersistence.update(tag);
+		tag = assetTagPersistence.update(tag);
 
 		// Indexer
 
@@ -734,12 +730,10 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 
 		SearchContext searchContext = new SearchContext();
 
-		Map<String, Serializable> attributes =
+		searchContext.setAttributes(
 			HashMapBuilder.<String, Serializable>put(
 				Field.NAME, name
-			).build();
-
-		searchContext.setAttributes(attributes);
+			).build());
 
 		searchContext.setCompanyId(companyId);
 		searchContext.setEnd(end);

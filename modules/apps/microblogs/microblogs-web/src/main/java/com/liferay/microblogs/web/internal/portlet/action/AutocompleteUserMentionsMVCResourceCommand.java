@@ -68,7 +68,7 @@ public class AutocompleteUserMentionsMVCResourceCommand
 				(ThemeDisplay)resourceRequest.getAttribute(
 					WebKeys.THEME_DISPLAY);
 
-			JSONArray jsonArray = MicroblogsWebUtil.getJSONRecipients(
+			JSONArray jsonArray = MicroblogsWebUtil.getRecipientsJSONArray(
 				userId, themeDisplay);
 
 			HttpServletResponse httpServletResponse =
@@ -79,8 +79,8 @@ public class AutocompleteUserMentionsMVCResourceCommand
 			ServletResponseUtil.write(
 				httpServletResponse, jsonArray.toString());
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 	}
 

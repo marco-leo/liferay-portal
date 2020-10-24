@@ -74,7 +74,7 @@ public class ConfigurableUtil {
 						classLoader, snapshotClassName, snapshotClassData, 0,
 						snapshotClassData.length);
 				}
-				catch (InvocationTargetException ite) {
+				catch (InvocationTargetException invocationTargetException) {
 					snapshotClass = (Class<T>)classLoader.loadClass(
 						snapshotClassName);
 				}
@@ -85,9 +85,10 @@ public class ConfigurableUtil {
 
 			return snapshotClassConstructor.newInstance(configurable);
 		}
-		catch (Throwable t) {
+		catch (Throwable throwable) {
 			throw new RuntimeException(
-				"Unable to create snapshot class for " + interfaceClass, t);
+				"Unable to create snapshot class for " + interfaceClass,
+				throwable);
 		}
 	}
 
@@ -212,8 +213,8 @@ public class ConfigurableUtil {
 			_findLoadedClassMethod = ReflectionUtil.getDeclaredMethod(
 				ClassLoader.class, "findLoadedClass", String.class);
 		}
-		catch (Throwable t) {
-			throw new ExceptionInInitializerError(t);
+		catch (Throwable throwable) {
+			throw new ExceptionInInitializerError(throwable);
 		}
 	}
 

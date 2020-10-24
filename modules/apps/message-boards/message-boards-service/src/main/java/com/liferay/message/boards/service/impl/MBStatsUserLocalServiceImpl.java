@@ -15,11 +15,13 @@
 package com.liferay.message.boards.service.impl;
 
 import com.liferay.message.boards.internal.util.MBThreadUtil;
+import com.liferay.message.boards.internal.util.MBUserRankUtil;
 import com.liferay.message.boards.model.MBStatsUser;
 import com.liferay.message.boards.model.MBThread;
 import com.liferay.message.boards.service.base.MBStatsUserLocalServiceBaseImpl;
 import com.liferay.message.boards.service.persistence.MBMessagePersistence;
 import com.liferay.message.boards.service.persistence.MBThreadPersistence;
+import com.liferay.message.boards.settings.MBGroupServiceSettings;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.Disjunction;
@@ -64,9 +66,9 @@ public class MBStatsUserLocalServiceImpl
 		statsUser.setUserId(userId);
 
 		try {
-			mbStatsUserPersistence.update(statsUser);
+			statsUser = mbStatsUserPersistence.update(statsUser);
 		}
-		catch (SystemException se) {
+		catch (SystemException systemException) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					StringBundler.concat(
@@ -78,7 +80,7 @@ public class MBStatsUserLocalServiceImpl
 				groupId, userId, false);
 
 			if (statsUser == null) {
-				throw se;
+				throw systemException;
 			}
 		}
 
@@ -240,6 +242,15 @@ public class MBStatsUserLocalServiceImpl
 	}
 
 	@Override
+	public String[] getUserRank(long groupId, String languageId, long userId)
+		throws PortalException {
+
+		return MBUserRankUtil.getUserRank(
+			MBGroupServiceSettings.getInstance(groupId), languageId,
+			getStatsUser(groupId, userId));
+	}
+
+	@Override
 	public MBStatsUser updateStatsUser(long groupId, long userId) {
 		return updateStatsUser(
 			groupId, userId, getLastPostDateByUserId(groupId, userId));
@@ -267,9 +278,7 @@ public class MBStatsUserLocalServiceImpl
 			statsUser.setLastPostDate(lastPostDate);
 		}
 
-		mbStatsUserPersistence.update(statsUser);
-
-		return statsUser;
+		return mbStatsUserPersistence.update(statsUser);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

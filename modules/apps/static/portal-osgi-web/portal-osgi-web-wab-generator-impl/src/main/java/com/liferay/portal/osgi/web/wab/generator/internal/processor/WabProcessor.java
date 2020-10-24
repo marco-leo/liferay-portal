@@ -125,8 +125,8 @@ public class WabProcessor {
 				outputFile = transformToOSGiBundle(jar);
 			}
 		}
-		catch (Exception e) {
-			ReflectionUtil.throwException(e);
+		catch (Exception exception) {
+			ReflectionUtil.throwException(exception);
 		}
 
 		if (PropsValues.MODULE_FRAMEWORK_WEB_GENERATOR_GENERATED_WABS_STORE) {
@@ -200,8 +200,8 @@ public class WabProcessor {
 				try (Jar jar = new Jar(file)) {
 					jar.expand(deployDir);
 				}
-				catch (Exception e) {
-					ReflectionUtil.throwException(e);
+				catch (Exception exception) {
+					ReflectionUtil.throwException(exception);
 				}
 			}
 		}
@@ -243,16 +243,14 @@ public class WabProcessor {
 		try {
 			DependencyManagementThreadLocal.setEnabled(false);
 
-			List<AutoDeployListener> autoDeployListeners =
-				GlobalStartupAction.getAutoDeployListeners(false);
-
 			AutoDeployListener autoDeployListener = getAutoDeployListener(
-				autoDeploymentContext, autoDeployListeners);
+				autoDeploymentContext,
+				GlobalStartupAction.getAutoDeployListeners(false));
 
 			autoDeployListener.deploy(autoDeploymentContext);
 		}
-		catch (AutoDeployException ade) {
-			throw new RuntimeException(ade);
+		catch (AutoDeployException autoDeployException) {
+			throw new RuntimeException(autoDeployException);
 		}
 		finally {
 			DependencyManagementThreadLocal.setEnabled(enabled);
@@ -265,8 +263,8 @@ public class WabProcessor {
 		try {
 			FileUtil.write(file, document.formattedString("  "));
 		}
-		catch (Exception e) {
-			throw new IOException(e);
+		catch (Exception exception) {
+			throw new IOException(exception);
 		}
 	}
 
@@ -283,8 +281,8 @@ public class WabProcessor {
 					deployableAutoDeployListeners.add(autoDeployListener);
 				}
 			}
-			catch (AutoDeployException ade) {
-				throw new RuntimeException(ade);
+			catch (AutoDeployException autoDeployException) {
+				throw new RuntimeException(autoDeployException);
 			}
 		}
 
@@ -326,7 +324,7 @@ public class WabProcessor {
 		try {
 			return PropertiesUtil.load(FileUtil.read(file));
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 			return new Properties();
 		}
 	}
@@ -581,10 +579,10 @@ public class WabProcessor {
 		Properties properties = PropsUtil.getProperties(
 			PropsKeys.MODULE_FRAMEWORK_WEB_GENERATOR_HEADERS, true);
 
-		Enumeration<Object> keys = properties.keys();
+		Enumeration<Object> enumeration = properties.keys();
 
-		while (keys.hasMoreElements()) {
-			String key = (String)keys.nextElement();
+		while (enumeration.hasMoreElements()) {
+			String key = (String)enumeration.nextElement();
 
 			String value = properties.getProperty(key);
 
@@ -856,7 +854,7 @@ public class WabProcessor {
 				processClass(analyzer, value);
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 
 			// Ignore this case
 
@@ -948,8 +946,8 @@ public class WabProcessor {
 			_importPackageParameters.add(
 				"com.liferay.portal.osgi.web.wab.generator", _optionalAttrs);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 	}
 
@@ -1126,98 +1124,99 @@ public class WabProcessor {
 
 			return UnsecureSAXReaderUtil.read(content);
 		}
-		catch (Exception de) {
+		catch (Exception exception) {
 			return SAXReaderUtil.createDocument();
 		}
 	}
 
 	protected File transformToOSGiBundle(Jar jar) throws IOException {
-		Builder analyzer = new Builder();
+		try (Builder analyzer = new Builder()) {
+			analyzer.setBase(_pluginDir);
+			analyzer.setJar(jar);
+			analyzer.setProperty("-jsp", "*.jsp,*.jspf");
+			analyzer.setProperty("Web-ContextPath", getWebContextPath());
 
-		analyzer.setBase(_pluginDir);
-		analyzer.setJar(jar);
-		analyzer.setProperty("-jsp", "*.jsp,*.jspf");
-		analyzer.setProperty("Web-ContextPath", getWebContextPath());
+			List<Object> disabledPlugins = new ArrayList<>();
+			Properties properties = PropsUtil.getProperties(
+				"module.framework.web.generator.bnd.plugin.enabled[", true);
 
-		List<Object> disabledPlugins = new ArrayList<>();
-		Properties properties = PropsUtil.getProperties(
-			"module.framework.web.generator.bnd.plugin.enabled[", true);
+			Set<Object> plugins = analyzer.getPlugins();
 
-		Set<Object> plugins = analyzer.getPlugins();
+			for (Object plugin : plugins) {
+				if (plugin instanceof DSAnnotations ||
+					plugin instanceof ServiceComponent) {
 
-		for (Object plugin : plugins) {
-			if (plugin instanceof DSAnnotations ||
-				plugin instanceof ServiceComponent) {
+					disabledPlugins.add(plugin);
 
-				disabledPlugins.add(plugin);
+					continue;
+				}
 
-				continue;
+				Class<?> clazz = plugin.getClass();
+
+				String name = clazz.getName() + "]";
+
+				if (!GetterUtil.getBoolean(
+						properties.getProperty(name), true)) {
+
+					disabledPlugins.add(plugin);
+				}
 			}
 
-			Class<?> clazz = plugin.getClass();
+			plugins.removeAll(disabledPlugins);
 
-			String name = clazz.getName() + "]";
+			plugins.add(new JspAnalyzerPlugin());
 
-			if (!GetterUtil.getBoolean(properties.getProperty(name), true)) {
-				disabledPlugins.add(plugin);
+			Properties pluginPackageProperties = getPluginPackageProperties();
+
+			if (pluginPackageProperties.containsKey("portal-dependency-jars") &&
+				_log.isWarnEnabled()) {
+
+				_log.warn(
+					"The property \"portal-dependency-jars\" is deprecated. " +
+						"Specified JARs may not be included in the class " +
+							"path.");
 			}
-		}
 
-		plugins.removeAll(disabledPlugins);
+			processBundleVersion(analyzer);
+			processBundleClasspath(analyzer, pluginPackageProperties);
+			processBundleSymbolicName(analyzer);
+			processExtraHeaders(analyzer);
+			processPluginPackagePropertiesExportImportPackages(
+				pluginPackageProperties);
 
-		plugins.add(new JspAnalyzerPlugin());
+			processBundleManifestVersion(analyzer);
 
-		Properties pluginPackageProperties = getPluginPackageProperties();
+			processLiferayPortletXML();
+			processWebXML("WEB-INF/web.xml");
+			processWebXML("WEB-INF/liferay-web.xml");
 
-		if (pluginPackageProperties.containsKey("portal-dependency-jars") &&
-			_log.isWarnEnabled()) {
+			processDeclarativeReferences(analyzer);
 
-			_log.warn(
-				"The property \"portal-dependency-jars\" is deprecated. " +
-					"Specified JARs may not be included in the class path.");
-		}
+			processExtraRequirements();
 
-		processBundleVersion(analyzer);
-		processBundleClasspath(analyzer, pluginPackageProperties);
-		processBundleSymbolicName(analyzer);
-		processExtraHeaders(analyzer);
-		processPluginPackagePropertiesExportImportPackages(
-			pluginPackageProperties);
+			processPackageNames(analyzer);
 
-		processBundleManifestVersion(analyzer);
+			processRequiredDeploymentContexts(analyzer);
 
-		processLiferayPortletXML();
-		processWebXML("WEB-INF/web.xml");
-		processWebXML("WEB-INF/liferay-web.xml");
+			_processExcludedJSPs(analyzer);
 
-		processDeclarativeReferences(analyzer);
+			analyzer.setProperties(pluginPackageProperties);
 
-		processExtraRequirements();
+			processBeans(analyzer);
 
-		processPackageNames(analyzer);
+			try {
+				jar = analyzer.build();
 
-		processRequiredDeploymentContexts(analyzer);
+				File outputFile = analyzer.getOutputFile(null);
 
-		_processExcludedJSPs(analyzer);
+				jar.write(outputFile);
 
-		analyzer.setProperties(pluginPackageProperties);
-
-		processBeans(analyzer);
-
-		try {
-			jar = analyzer.build();
-
-			File outputFile = analyzer.getOutputFile(null);
-
-			jar.write(outputFile);
-
-			return outputFile;
-		}
-		catch (Exception e) {
-			throw new IOException("Unable to calculate the manifest", e);
-		}
-		finally {
-			analyzer.close();
+				return outputFile;
+			}
+			catch (Exception exception) {
+				throw new IOException(
+					"Unable to calculate the manifest", exception);
+			}
 		}
 	}
 
@@ -1248,8 +1247,8 @@ public class WabProcessor {
 		try (Jar jar = new Jar(pluginDir)) {
 			jar.write(new File(dir, sb.toString()));
 		}
-		catch (Exception e) {
-			_log.error("Unable to write JAR file for " + pluginDir, e);
+		catch (Exception exception) {
+			_log.error("Unable to write JAR file for " + pluginDir, exception);
 		}
 	}
 

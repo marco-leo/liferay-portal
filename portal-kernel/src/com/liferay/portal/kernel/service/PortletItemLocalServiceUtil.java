@@ -30,16 +30,10 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class PortletItemLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.PortletItemLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link PortletItemLocalServiceUtil} to access the portlet item local service. Add custom service methods to <code>com.liferay.portal.service.impl.PortletItemLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.portal.kernel.model.PortletItem addPortletItem(
 			long userId, long groupId, String name, String portletId,
@@ -53,6 +47,10 @@ public class PortletItemLocalServiceUtil {
 	/**
 	 * Adds the portlet item to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletItemLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param portletItem the portlet item
 	 * @return the portlet item that was added
 	 */
@@ -60,6 +58,16 @@ public class PortletItemLocalServiceUtil {
 		com.liferay.portal.kernel.model.PortletItem portletItem) {
 
 		return getService().addPortletItem(portletItem);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -88,6 +96,10 @@ public class PortletItemLocalServiceUtil {
 	/**
 	 * Deletes the portlet item with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletItemLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param portletItemId the primary key of the portlet item
 	 * @return the portlet item that was removed
 	 * @throws PortalException if a portlet item with the primary key could not be found
@@ -102,6 +114,10 @@ public class PortletItemLocalServiceUtil {
 	/**
 	 * Deletes the portlet item from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletItemLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param portletItem the portlet item
 	 * @return the portlet item that was removed
 	 */
@@ -109,6 +125,12 @@ public class PortletItemLocalServiceUtil {
 		com.liferay.portal.kernel.model.PortletItem portletItem) {
 
 		return getService().deletePortletItem(portletItem);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -224,6 +246,9 @@ public class PortletItemLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -301,6 +326,10 @@ public class PortletItemLocalServiceUtil {
 
 	/**
 	 * Updates the portlet item in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect PortletItemLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param portletItem the portlet item
 	 * @return the portlet item that was updated

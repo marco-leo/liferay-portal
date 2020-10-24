@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.site.navigation.admin.constants.SiteNavigationAdminPortletKeys;
 import com.liferay.site.navigation.menu.item.util.SiteNavigationMenuItemUtil;
+import com.liferay.site.navigation.model.SiteNavigationMenuItem;
 import com.liferay.site.navigation.service.SiteNavigationMenuItemService;
 
 import javax.portlet.ActionRequest;
@@ -54,22 +55,23 @@ public class EditSiteNavigationMenuItemMVCActionCommand
 		long siteNavigationMenuItemId = ParamUtil.getLong(
 			actionRequest, "siteNavigationMenuItemId");
 
-		UnicodeProperties typeSettingsProperties =
+		UnicodeProperties typeSettingsUnicodeProperties =
 			SiteNavigationMenuItemUtil.getSiteNavigationMenuItemProperties(
 				actionRequest, "TypeSettingsProperties--");
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			actionRequest);
+			SiteNavigationMenuItem.class.getName(), actionRequest);
 
 		try {
 			_siteNavigationMenuItemService.updateSiteNavigationMenuItem(
-				siteNavigationMenuItemId, typeSettingsProperties.toString(),
-				serviceContext);
+				siteNavigationMenuItemId,
+				typeSettingsUnicodeProperties.toString(), serviceContext);
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			hideDefaultErrorMessage(actionRequest);
 
-			SessionErrors.add(actionRequest, pe.getClass(), pe);
+			SessionErrors.add(
+				actionRequest, portalException.getClass(), portalException);
 
 			sendRedirect(actionRequest, actionResponse);
 		}

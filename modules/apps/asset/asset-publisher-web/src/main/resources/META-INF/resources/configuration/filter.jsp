@@ -28,13 +28,20 @@
 		<%
 		dqre = (DuplicateQueryRuleException)errorException;
 
-		String name = dqre.getName();
+		String name = "categories";
+
+		if (Objects.equals(dqre.getName(), "assetTags")) {
+			name = "tags";
+		}
+		else if (Objects.equals(dqre.getName(), "keywords")) {
+			name = "keywords";
+		}
 		%>
 
 		<liferay-util:buffer
 			var="messageArgument"
 		>
-			<em>(<liferay-ui:message key='<%= dqre.isContains() ? "contains" : "does-not-contain" %>' /> - <liferay-ui:message key='<%= dqre.isAndOperator() ? "all" : "any" %>' /> - <liferay-ui:message key='<%= name.equals("assetTags") ? "tags" : "categories" %>' />)</em>
+			<em>(<liferay-ui:message key='<%= dqre.isContains() ? "contains" : "does-not-contain" %>' /> - <liferay-ui:message key='<%= dqre.isAndOperator() ? "all" : "any" %>' /> - <liferay-ui:message key="<%= name %>" />)</em>
 		</liferay-util:buffer>
 
 		<liferay-ui:message arguments="<%= messageArgument %>" key="only-one-rule-with-the-combination-x-is-supported" translateArguments="<%= false %>" />
@@ -45,21 +52,26 @@
 
 <div>
 
-	<%
-	Map<String, Object> data = new HashMap<>();
-
-	data.put("categorySelectorURL", assetPublisherDisplayContext.getCategorySelectorURL());
-	data.put("groupIds", ListUtil.toList(assetPublisherDisplayContext.getReferencedModelsGroupIds()));
-	data.put("id", "autofield");
-	data.put("namespace", liferayPortletResponse.getNamespace());
-	data.put("pathThemeImages", themeDisplay.getPathThemeImages());
-	data.put("rules", assetPublisherDisplayContext.getAutoFieldRulesJSONArray());
-	data.put("tagSelectorURL", assetPublisherDisplayContext.getTagSelectorURL());
-	data.put("vocabularyIds", assetPublisherDisplayContext.getVocabularyIds());
-	%>
-
 	<react:component
-		data="<%= data %>"
 		module="auto_field/index"
+		props='<%=
+			HashMapBuilder.<String, Object>put(
+				"categorySelectorURL", assetPublisherDisplayContext.getCategorySelectorURL()
+			).put(
+				"groupIds", ListUtil.toList(assetPublisherDisplayContext.getReferencedModelsGroupIds())
+			).put(
+				"id", "autofield"
+			).put(
+				"namespace", liferayPortletResponse.getNamespace()
+			).put(
+				"pathThemeImages", themeDisplay.getPathThemeImages()
+			).put(
+				"rules", assetPublisherDisplayContext.getAutoFieldRulesJSONArray()
+			).put(
+				"tagSelectorURL", assetPublisherDisplayContext.getTagSelectorURL()
+			).put(
+				"vocabularyIds", assetPublisherDisplayContext.getVocabularyIds()
+			).build()
+		%>'
 	/>
 </div>

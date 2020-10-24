@@ -17,6 +17,8 @@ export const FETCH_VISIBLE_DOCUMENTS_URL = 'https://getVisible';
 
 export const FORM_NAME = 'testForm';
 
+export const VALIDATE_FORM_URL = 'https://getValidate';
+
 export function getMockResultsData(
 	size = 10,
 	startId = 0,
@@ -32,7 +34,8 @@ export function getMockResultsData(
 
 	if (searchBarTerm === '') {
 		LEVEL = hidden ? 200 : 100;
-	} else {
+	}
+	else {
 		LEVEL = 300;
 	}
 
@@ -54,13 +57,13 @@ export function getMockResultsData(
 			pinned: hidden ? false : k < PINNED_AMOUNT,
 			title: `${k + LEVEL} This is a ${typeOfItem} Example`,
 			type: typeOfItem,
-			...properties
+			...properties,
 		});
 	}
 
 	return {
 		documents: mockData,
-		total: 100
+		total: 100,
 	};
 }
 
@@ -82,6 +85,6 @@ export function mockDocument(id = 1, properties) {
 		pinned: false,
 		title: 'Test Title',
 		type: 'Document',
-		...properties
+		...properties,
 	};
 }

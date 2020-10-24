@@ -9,115 +9,76 @@
  * distribution rights of the Software.
  */
 
-import React, {useContext, useMemo} from 'react';
+import React, {useMemo} from 'react';
 
-import filterConstants from '../../shared/components/filter/util/filterConstants.es';
-import {
-	getFiltersParam,
-	getFilterValues
-} from '../../shared/components/filter/util/filterUtil.es';
-import PromisesResolver from '../../shared/components/request/PromisesResolver.es';
-import Request from '../../shared/components/request/Request.es';
+import PromisesResolver from '../../shared/components/promises-resolver/PromisesResolver.es';
 import {parse} from '../../shared/components/router/queryString.es';
-import {useFetch} from '../../shared/hooks/useFetch.es';
 import {useFilter} from '../../shared/hooks/useFilter.es';
+import {usePost} from '../../shared/hooks/usePost.es';
 import {useProcessTitle} from '../../shared/hooks/useProcessTitle.es';
-import {
-	TimeRangeContext,
-	TimeRangeProvider
-} from '../process-metrics/filter/store/TimeRangeStore.es';
+import {useTimeRangeFetch} from '../filter/hooks/useTimeRangeFetch.es';
+import {getTimeRangeParams} from '../filter/util/timeRangeUtil.es';
 import {Body} from './PerformanceByAssigneePageBody.es';
 import {Header} from './PerformanceByAssigneePageHeader.es';
 
-const Container = ({filtersParam, query, routeParams, timeRangeKeys}) => {
-	const {getSelectedTimeRange} = useContext(TimeRangeContext);
-	const {processId} = routeParams;
+const PerformanceByAssigneePage = ({query, routeParams}) => {
+	useTimeRangeFetch();
+
+	const {processId, ...paginationParams} = routeParams;
+	const {search = null} = parse(query);
+	const filterKeys = ['processStep', 'roles'];
 
 	useProcessTitle(processId, Liferay.Language.get('performance-by-assignee'));
 
-	const filterKeys = ['processStep', 'roles'];
-
 	const {
-		dispatch,
-		filterValues: {roleIds, taskKeys},
-		selectedFilters
-	} = useFilter(filterKeys);
+		filterValues: {dateEnd, dateStart, roleIds, taskNames},
+		prefixedKeys,
+		selectedFilters,
+	} = useFilter({filterKeys});
 
-	const timeRange = getSelectedTimeRange(
-		timeRangeKeys,
-		filtersParam.dateEnd,
-		filtersParam.dateStart
-	);
+	const timeRange = useMemo(() => getTimeRangeParams(dateStart, dateEnd), [
+		dateEnd,
+		dateStart,
+	]);
 
-	const isValidDate = date => date && !isNaN(date);
-	const timeRangeParams = {};
-
-	if (
-		timeRange &&
-		isValidDate(timeRange.dateEnd) &&
-		isValidDate(timeRange.dateStart)
-	) {
-		const {dateEnd, dateStart} = timeRange;
-
-		timeRangeParams.dateEnd = dateEnd.toISOString();
-		timeRangeParams.dateStart = dateStart.toISOString();
-	}
-
-	const {search = null} = parse(query);
-
-	const {data, fetchData} = useFetch(
-		`/processes/${processId}/assignee-users`,
-		{
+	const {data, postData} = usePost({
+		body: {
 			completed: true,
 			keywords: search,
 			roleIds,
-			taskKeys,
-			...routeParams,
-			...timeRangeParams
-		}
-	);
+			taskNames,
+			...timeRange,
+		},
+		params: paginationParams,
+		url: `/processes/${processId}/assignees/metrics`,
+	});
 
-	const promises = useMemo(() => [fetchData()], [fetchData]);
+	const promises = useMemo(() => {
+		if (timeRange.dateEnd && timeRange.dateStart) {
+			return [postData()];
+		}
+
+		return [new Promise((_, reject) => reject())];
+	}, [postData, timeRange.dateEnd, timeRange.dateStart]);
 
 	return (
 		<PromisesResolver promises={promises}>
 			<PerformanceByAssigneePage.Header
-				dispatch={dispatch}
+				filterKeys={prefixedKeys}
 				routeParams={{...routeParams, search}}
 				selectedFilters={selectedFilters}
 				totalCount={data.totalCount}
 			/>
 
 			<PerformanceByAssigneePage.Body
-				data={data}
+				{...data}
 				filtered={search || selectedFilters.length > 0}
 			/>
 		</PromisesResolver>
 	);
 };
 
-const PerformanceByAssigneePage = props => {
-	const filtersParam = getFiltersParam(props.query);
-	const timeRangeKeys = getFilterValues(
-		filterConstants.timeRange.key,
-		filtersParam
-	);
-
-	return (
-		<Request>
-			<TimeRangeProvider timeRangeKeys={timeRangeKeys}>
-				<PerformanceByAssigneePage.Container
-					filtersParam={filtersParam}
-					timeRangeKeys={timeRangeKeys}
-					{...props}
-				/>
-			</TimeRangeProvider>
-		</Request>
-	);
-};
-
 PerformanceByAssigneePage.Body = Body;
-PerformanceByAssigneePage.Container = Container;
 PerformanceByAssigneePage.Header = Header;
 
 export default PerformanceByAssigneePage;

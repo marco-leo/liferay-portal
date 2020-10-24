@@ -43,6 +43,7 @@ public class CTMessageWrapper
 
 		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("ctMessageId", getCtMessageId());
+		attributes.put("companyId", getCompanyId());
 		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("messageContent", getMessageContent());
 
@@ -63,6 +64,12 @@ public class CTMessageWrapper
 			setCtMessageId(ctMessageId);
 		}
 
+		Long companyId = (Long)attributes.get("companyId");
+
+		if (companyId != null) {
+			setCompanyId(companyId);
+		}
+
 		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
 
 		if (ctCollectionId != null) {
@@ -74,6 +81,16 @@ public class CTMessageWrapper
 		if (messageContent != null) {
 			setMessageContent(messageContent);
 		}
+	}
+
+	/**
+	 * Returns the company ID of this ct message.
+	 *
+	 * @return the company ID of this ct message
+	 */
+	@Override
+	public long getCompanyId() {
+		return model.getCompanyId();
 	}
 
 	/**
@@ -126,14 +143,19 @@ public class CTMessageWrapper
 		return model.getPrimaryKey();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a ct message model instance should use the <code>CTMessage</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
+	}
+
+	/**
+	 * Sets the company ID of this ct message.
+	 *
+	 * @param companyId the company ID of this ct message
+	 */
+	@Override
+	public void setCompanyId(long companyId) {
+		model.setCompanyId(companyId);
 	}
 
 	/**

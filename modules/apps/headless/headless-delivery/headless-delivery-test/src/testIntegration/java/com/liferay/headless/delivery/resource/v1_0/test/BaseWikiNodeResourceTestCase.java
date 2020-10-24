@@ -29,6 +29,7 @@ import com.liferay.headless.delivery.client.pagination.Pagination;
 import com.liferay.headless.delivery.client.resource.v1_0.WikiNodeResource;
 import com.liferay.headless.delivery.client.serdes.v1_0.WikiNodeSerDes;
 import com.liferay.petra.function.UnsafeTriConsumer;
+import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONDeserializer;
@@ -48,12 +49,14 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.search.test.util.SearchTestRule;
 import com.liferay.portal.test.log.CaptureAppender;
 import com.liferay.portal.test.log.Log4JLoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -117,7 +120,9 @@ public abstract class BaseWikiNodeResourceTestCase {
 
 		WikiNodeResource.Builder builder = WikiNodeResource.builder();
 
-		wikiNodeResource = builder.locale(
+		wikiNodeResource = builder.authentication(
+			"test@liferay.com", "test"
+		).locale(
 			LocaleUtil.getDefault()
 		).build();
 	}
@@ -204,7 +209,7 @@ public abstract class BaseWikiNodeResourceTestCase {
 	public void testGetSiteWikiNodesPage() throws Exception {
 		Page<WikiNode> page = wikiNodeResource.getSiteWikiNodesPage(
 			testGetSiteWikiNodesPage_getSiteId(), RandomTestUtil.randomString(),
-			null, Pagination.of(1, 2), null);
+			null, null, Pagination.of(1, 2), null);
 
 		Assert.assertEquals(0, page.getTotalCount());
 
@@ -216,7 +221,7 @@ public abstract class BaseWikiNodeResourceTestCase {
 				irrelevantSiteId, randomIrrelevantWikiNode());
 
 			page = wikiNodeResource.getSiteWikiNodesPage(
-				irrelevantSiteId, null, null, Pagination.of(1, 2), null);
+				irrelevantSiteId, null, null, null, Pagination.of(1, 2), null);
 
 			Assert.assertEquals(1, page.getTotalCount());
 
@@ -233,7 +238,7 @@ public abstract class BaseWikiNodeResourceTestCase {
 			siteId, randomWikiNode());
 
 		page = wikiNodeResource.getSiteWikiNodesPage(
-			siteId, null, null, Pagination.of(1, 2), null);
+			siteId, null, null, null, Pagination.of(1, 2), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -266,7 +271,7 @@ public abstract class BaseWikiNodeResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<WikiNode> page = wikiNodeResource.getSiteWikiNodesPage(
-				siteId, null,
+				siteId, null, null,
 				getFilterString(entityField, "between", wikiNode1),
 				Pagination.of(1, 2), null);
 
@@ -298,7 +303,8 @@ public abstract class BaseWikiNodeResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<WikiNode> page = wikiNodeResource.getSiteWikiNodesPage(
-				siteId, null, getFilterString(entityField, "eq", wikiNode1),
+				siteId, null, null,
+				getFilterString(entityField, "eq", wikiNode1),
 				Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -321,14 +327,14 @@ public abstract class BaseWikiNodeResourceTestCase {
 			siteId, randomWikiNode());
 
 		Page<WikiNode> page1 = wikiNodeResource.getSiteWikiNodesPage(
-			siteId, null, null, Pagination.of(1, 2), null);
+			siteId, null, null, null, Pagination.of(1, 2), null);
 
 		List<WikiNode> wikiNodes1 = (List<WikiNode>)page1.getItems();
 
 		Assert.assertEquals(wikiNodes1.toString(), 2, wikiNodes1.size());
 
 		Page<WikiNode> page2 = wikiNodeResource.getSiteWikiNodesPage(
-			siteId, null, null, Pagination.of(2, 2), null);
+			siteId, null, null, null, Pagination.of(2, 2), null);
 
 		Assert.assertEquals(3, page2.getTotalCount());
 
@@ -337,7 +343,7 @@ public abstract class BaseWikiNodeResourceTestCase {
 		Assert.assertEquals(wikiNodes2.toString(), 1, wikiNodes2.size());
 
 		Page<WikiNode> page3 = wikiNodeResource.getSiteWikiNodesPage(
-			siteId, null, null, Pagination.of(1, 3), null);
+			siteId, null, null, null, Pagination.of(1, 3), null);
 
 		assertEqualsIgnoringOrder(
 			Arrays.asList(wikiNode1, wikiNode2, wikiNode3),
@@ -372,25 +378,46 @@ public abstract class BaseWikiNodeResourceTestCase {
 			(entityField, wikiNode1, wikiNode2) -> {
 				Class<?> clazz = wikiNode1.getClass();
 
+				String entityFieldName = entityField.getName();
+
 				Method method = clazz.getMethod(
-					"get" +
-						StringUtil.upperCaseFirstLetter(entityField.getName()));
+					"get" + StringUtil.upperCaseFirstLetter(entityFieldName));
 
 				Class<?> returnType = method.getReturnType();
 
 				if (returnType.isAssignableFrom(Map.class)) {
 					BeanUtils.setProperty(
-						wikiNode1, entityField.getName(),
+						wikiNode1, entityFieldName,
 						Collections.singletonMap("Aaa", "Aaa"));
 					BeanUtils.setProperty(
-						wikiNode2, entityField.getName(),
+						wikiNode2, entityFieldName,
 						Collections.singletonMap("Bbb", "Bbb"));
+				}
+				else if (entityFieldName.contains("email")) {
+					BeanUtils.setProperty(
+						wikiNode1, entityFieldName,
+						"aaa" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()) +
+									"@liferay.com");
+					BeanUtils.setProperty(
+						wikiNode2, entityFieldName,
+						"bbb" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()) +
+									"@liferay.com");
 				}
 				else {
 					BeanUtils.setProperty(
-						wikiNode1, entityField.getName(), "Aaa");
+						wikiNode1, entityFieldName,
+						"aaa" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()));
 					BeanUtils.setProperty(
-						wikiNode2, entityField.getName(), "Bbb");
+						wikiNode2, entityFieldName,
+						"bbb" +
+							StringUtil.toLowerCase(
+								RandomTestUtil.randomString()));
 				}
 			});
 	}
@@ -422,7 +449,7 @@ public abstract class BaseWikiNodeResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<WikiNode> ascPage = wikiNodeResource.getSiteWikiNodesPage(
-				siteId, null, null, Pagination.of(1, 2),
+				siteId, null, null, null, Pagination.of(1, 2),
 				entityField.getName() + ":asc");
 
 			assertEquals(
@@ -430,7 +457,7 @@ public abstract class BaseWikiNodeResourceTestCase {
 				(List<WikiNode>)ascPage.getItems());
 
 			Page<WikiNode> descPage = wikiNodeResource.getSiteWikiNodesPage(
-				siteId, null, null, Pagination.of(1, 2),
+				siteId, null, null, null, Pagination.of(1, 2),
 				entityField.getName() + ":desc");
 
 			assertEquals(
@@ -458,55 +485,40 @@ public abstract class BaseWikiNodeResourceTestCase {
 
 	@Test
 	public void testGraphQLGetSiteWikiNodesPage() throws Exception {
-		List<GraphQLField> graphQLFields = new ArrayList<>();
-
-		List<GraphQLField> itemsGraphQLFields = getGraphQLFields();
-
-		graphQLFields.add(
-			new GraphQLField(
-				"items", itemsGraphQLFields.toArray(new GraphQLField[0])));
-
-		graphQLFields.add(new GraphQLField("page"));
-		graphQLFields.add(new GraphQLField("totalCount"));
+		Long siteId = testGetSiteWikiNodesPage_getSiteId();
 
 		GraphQLField graphQLField = new GraphQLField(
-			"query",
-			new GraphQLField(
-				"wikiNodes",
-				new HashMap<String, Object>() {
-					{
-						put("page", 1);
-						put("pageSize", 2);
-						put("siteKey", "\"" + testGroup.getGroupId() + "\"");
-					}
-				},
-				graphQLFields.toArray(new GraphQLField[0])));
+			"wikiNodes",
+			new HashMap<String, Object>() {
+				{
+					put("page", 1);
+					put("pageSize", 2);
 
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
-			invoke(graphQLField.toString()));
+					put("siteKey", "\"" + siteId + "\"");
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 
-		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
-
-		JSONObject wikiNodesJSONObject = dataJSONObject.getJSONObject(
-			"wikiNodes");
+		JSONObject wikiNodesJSONObject = JSONUtil.getValueAsJSONObject(
+			invokeGraphQLQuery(graphQLField), "JSONObject/data",
+			"JSONObject/wikiNodes");
 
 		Assert.assertEquals(0, wikiNodesJSONObject.get("totalCount"));
 
 		WikiNode wikiNode1 = testGraphQLWikiNode_addWikiNode();
 		WikiNode wikiNode2 = testGraphQLWikiNode_addWikiNode();
 
-		jsonObject = JSONFactoryUtil.createJSONObject(
-			invoke(graphQLField.toString()));
-
-		dataJSONObject = jsonObject.getJSONObject("data");
-
-		wikiNodesJSONObject = dataJSONObject.getJSONObject("wikiNodes");
+		wikiNodesJSONObject = JSONUtil.getValueAsJSONObject(
+			invokeGraphQLQuery(graphQLField), "JSONObject/data",
+			"JSONObject/wikiNodes");
 
 		Assert.assertEquals(2, wikiNodesJSONObject.get("totalCount"));
 
-		assertEqualsJSONArray(
+		assertEqualsIgnoringOrder(
 			Arrays.asList(wikiNode1, wikiNode2),
-			wikiNodesJSONObject.getJSONArray("items"));
+			Arrays.asList(
+				WikiNodeSerDes.toDTOs(wikiNodesJSONObject.getString("items"))));
 	}
 
 	@Test
@@ -533,11 +545,145 @@ public abstract class BaseWikiNodeResourceTestCase {
 
 		WikiNode wikiNode = testGraphQLWikiNode_addWikiNode(randomWikiNode);
 
+		Assert.assertTrue(equals(randomWikiNode, wikiNode));
+	}
+
+	@Test
+	public void testDeleteWikiNode() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		WikiNode wikiNode = testDeleteWikiNode_addWikiNode();
+
+		assertHttpResponseStatusCode(
+			204, wikiNodeResource.deleteWikiNodeHttpResponse(wikiNode.getId()));
+
+		assertHttpResponseStatusCode(
+			404, wikiNodeResource.getWikiNodeHttpResponse(wikiNode.getId()));
+
+		assertHttpResponseStatusCode(
+			404, wikiNodeResource.getWikiNodeHttpResponse(0L));
+	}
+
+	protected WikiNode testDeleteWikiNode_addWikiNode() throws Exception {
+		return wikiNodeResource.postSiteWikiNode(
+			testGroup.getGroupId(), randomWikiNode());
+	}
+
+	@Test
+	public void testGraphQLDeleteWikiNode() throws Exception {
+		WikiNode wikiNode = testGraphQLWikiNode_addWikiNode();
+
 		Assert.assertTrue(
-			equalsJSONObject(
-				randomWikiNode,
-				JSONFactoryUtil.createJSONObject(
-					JSONFactoryUtil.serialize(wikiNode))));
+			JSONUtil.getValueAsBoolean(
+				invokeGraphQLMutation(
+					new GraphQLField(
+						"deleteWikiNode",
+						new HashMap<String, Object>() {
+							{
+								put("wikiNodeId", wikiNode.getId());
+							}
+						})),
+				"JSONObject/data", "Object/deleteWikiNode"));
+
+		try (CaptureAppender captureAppender =
+				Log4JLoggerTestUtil.configureLog4JLogger(
+					"graphql.execution.SimpleDataFetcherExceptionHandler",
+					Level.WARN)) {
+
+			JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
+				invokeGraphQLQuery(
+					new GraphQLField(
+						"wikiNode",
+						new HashMap<String, Object>() {
+							{
+								put("wikiNodeId", wikiNode.getId());
+							}
+						},
+						new GraphQLField("id"))),
+				"JSONArray/errors");
+
+			Assert.assertTrue(errorsJSONArray.length() > 0);
+		}
+	}
+
+	@Test
+	public void testGetWikiNode() throws Exception {
+		WikiNode postWikiNode = testGetWikiNode_addWikiNode();
+
+		WikiNode getWikiNode = wikiNodeResource.getWikiNode(
+			postWikiNode.getId());
+
+		assertEquals(postWikiNode, getWikiNode);
+		assertValid(getWikiNode);
+	}
+
+	protected WikiNode testGetWikiNode_addWikiNode() throws Exception {
+		return wikiNodeResource.postSiteWikiNode(
+			testGroup.getGroupId(), randomWikiNode());
+	}
+
+	@Test
+	public void testGraphQLGetWikiNode() throws Exception {
+		WikiNode wikiNode = testGraphQLWikiNode_addWikiNode();
+
+		Assert.assertTrue(
+			equals(
+				wikiNode,
+				WikiNodeSerDes.toDTO(
+					JSONUtil.getValueAsString(
+						invokeGraphQLQuery(
+							new GraphQLField(
+								"wikiNode",
+								new HashMap<String, Object>() {
+									{
+										put("wikiNodeId", wikiNode.getId());
+									}
+								},
+								getGraphQLFields())),
+						"JSONObject/data", "Object/wikiNode"))));
+	}
+
+	@Test
+	public void testGraphQLGetWikiNodeNotFound() throws Exception {
+		Long irrelevantWikiNodeId = RandomTestUtil.randomLong();
+
+		Assert.assertEquals(
+			"Not Found",
+			JSONUtil.getValueAsString(
+				invokeGraphQLQuery(
+					new GraphQLField(
+						"wikiNode",
+						new HashMap<String, Object>() {
+							{
+								put("wikiNodeId", irrelevantWikiNodeId);
+							}
+						},
+						getGraphQLFields())),
+				"JSONArray/errors", "Object/0", "JSONObject/extensions",
+				"Object/code"));
+	}
+
+	@Test
+	public void testPutWikiNode() throws Exception {
+		WikiNode postWikiNode = testPutWikiNode_addWikiNode();
+
+		WikiNode randomWikiNode = randomWikiNode();
+
+		WikiNode putWikiNode = wikiNodeResource.putWikiNode(
+			postWikiNode.getId(), randomWikiNode);
+
+		assertEquals(randomWikiNode, putWikiNode);
+		assertValid(putWikiNode);
+
+		WikiNode getWikiNode = wikiNodeResource.getWikiNode(
+			putWikiNode.getId());
+
+		assertEquals(randomWikiNode, getWikiNode);
+		assertValid(getWikiNode);
+	}
+
+	protected WikiNode testPutWikiNode_addWikiNode() throws Exception {
+		return wikiNodeResource.postSiteWikiNode(
+			testGroup.getGroupId(), randomWikiNode());
 	}
 
 	@Test
@@ -580,136 +726,53 @@ public abstract class BaseWikiNodeResourceTestCase {
 			testGroup.getGroupId(), randomWikiNode());
 	}
 
-	@Test
-	public void testDeleteWikiNode() throws Exception {
-		WikiNode wikiNode = testDeleteWikiNode_addWikiNode();
+	@Rule
+	public SearchTestRule searchTestRule = new SearchTestRule();
 
-		assertHttpResponseStatusCode(
-			204, wikiNodeResource.deleteWikiNodeHttpResponse(wikiNode.getId()));
+	protected void appendGraphQLFieldValue(StringBuilder sb, Object value)
+		throws Exception {
 
-		assertHttpResponseStatusCode(
-			404, wikiNodeResource.getWikiNodeHttpResponse(wikiNode.getId()));
+		if (value instanceof Object[]) {
+			StringBuilder arraySB = new StringBuilder("[");
 
-		assertHttpResponseStatusCode(
-			404, wikiNodeResource.getWikiNodeHttpResponse(0L));
-	}
+			for (Object object : (Object[])value) {
+				if (arraySB.length() > 1) {
+					arraySB.append(",");
+				}
 
-	protected WikiNode testDeleteWikiNode_addWikiNode() throws Exception {
-		return wikiNodeResource.postSiteWikiNode(
-			testGroup.getGroupId(), randomWikiNode());
-	}
+				arraySB.append("{");
 
-	@Test
-	public void testGraphQLDeleteWikiNode() throws Exception {
-		WikiNode wikiNode = testGraphQLWikiNode_addWikiNode();
+				Class<?> clazz = object.getClass();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"mutation",
-			new GraphQLField(
-				"deleteWikiNode",
-				new HashMap<String, Object>() {
-					{
-						put("wikiNodeId", wikiNode.getId());
-					}
-				}));
+				for (Field field :
+						ReflectionUtil.getDeclaredFields(
+							clazz.getSuperclass())) {
 
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
-			invoke(graphQLField.toString()));
+					arraySB.append(field.getName());
+					arraySB.append(": ");
 
-		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+					appendGraphQLFieldValue(arraySB, field.get(object));
 
-		Assert.assertTrue(dataJSONObject.getBoolean("deleteWikiNode"));
+					arraySB.append(",");
+				}
 
-		try (CaptureAppender captureAppender =
-				Log4JLoggerTestUtil.configureLog4JLogger(
-					"graphql.execution.SimpleDataFetcherExceptionHandler",
-					Level.WARN)) {
+				arraySB.setLength(arraySB.length() - 1);
 
-			graphQLField = new GraphQLField(
-				"query",
-				new GraphQLField(
-					"wikiNode",
-					new HashMap<String, Object>() {
-						{
-							put("wikiNodeId", wikiNode.getId());
-						}
-					},
-					new GraphQLField("id")));
+				arraySB.append("}");
+			}
 
-			jsonObject = JSONFactoryUtil.createJSONObject(
-				invoke(graphQLField.toString()));
+			arraySB.append("]");
 
-			JSONArray errorsJSONArray = jsonObject.getJSONArray("errors");
-
-			Assert.assertTrue(errorsJSONArray.length() > 0);
+			sb.append(arraySB.toString());
 		}
-	}
-
-	@Test
-	public void testGetWikiNode() throws Exception {
-		WikiNode postWikiNode = testGetWikiNode_addWikiNode();
-
-		WikiNode getWikiNode = wikiNodeResource.getWikiNode(
-			postWikiNode.getId());
-
-		assertEquals(postWikiNode, getWikiNode);
-		assertValid(getWikiNode);
-	}
-
-	protected WikiNode testGetWikiNode_addWikiNode() throws Exception {
-		return wikiNodeResource.postSiteWikiNode(
-			testGroup.getGroupId(), randomWikiNode());
-	}
-
-	@Test
-	public void testGraphQLGetWikiNode() throws Exception {
-		WikiNode wikiNode = testGraphQLWikiNode_addWikiNode();
-
-		List<GraphQLField> graphQLFields = getGraphQLFields();
-
-		GraphQLField graphQLField = new GraphQLField(
-			"query",
-			new GraphQLField(
-				"wikiNode",
-				new HashMap<String, Object>() {
-					{
-						put("wikiNodeId", wikiNode.getId());
-					}
-				},
-				graphQLFields.toArray(new GraphQLField[0])));
-
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
-			invoke(graphQLField.toString()));
-
-		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
-
-		Assert.assertTrue(
-			equalsJSONObject(
-				wikiNode, dataJSONObject.getJSONObject("wikiNode")));
-	}
-
-	@Test
-	public void testPutWikiNode() throws Exception {
-		WikiNode postWikiNode = testPutWikiNode_addWikiNode();
-
-		WikiNode randomWikiNode = randomWikiNode();
-
-		WikiNode putWikiNode = wikiNodeResource.putWikiNode(
-			postWikiNode.getId(), randomWikiNode);
-
-		assertEquals(randomWikiNode, putWikiNode);
-		assertValid(putWikiNode);
-
-		WikiNode getWikiNode = wikiNodeResource.getWikiNode(
-			putWikiNode.getId());
-
-		assertEquals(randomWikiNode, getWikiNode);
-		assertValid(getWikiNode);
-	}
-
-	protected WikiNode testPutWikiNode_addWikiNode() throws Exception {
-		return wikiNodeResource.postSiteWikiNode(
-			testGroup.getGroupId(), randomWikiNode());
+		else if (value instanceof String) {
+			sb.append("\"");
+			sb.append(value);
+			sb.append("\"");
+		}
+		else {
+			sb.append(value);
+		}
 	}
 
 	protected WikiNode testGraphQLWikiNode_addWikiNode() throws Exception {
@@ -719,120 +782,26 @@ public abstract class BaseWikiNodeResourceTestCase {
 	protected WikiNode testGraphQLWikiNode_addWikiNode(WikiNode wikiNode)
 		throws Exception {
 
+		JSONDeserializer<WikiNode> jsonDeserializer =
+			JSONFactoryUtil.createJSONDeserializer();
+
 		StringBuilder sb = new StringBuilder("{");
 
-		for (String additionalAssertFieldName :
-				getAdditionalAssertFieldNames()) {
+		for (Field field : ReflectionUtil.getDeclaredFields(WikiNode.class)) {
+			if (!ArrayUtil.contains(
+					getAdditionalAssertFieldNames(), field.getName())) {
 
-			if (Objects.equals("description", additionalAssertFieldName)) {
-				sb.append(additionalAssertFieldName);
-				sb.append(": ");
+				continue;
+			}
 
-				Object value = wikiNode.getDescription();
-
-				if (value instanceof String) {
-					sb.append("\"");
-					sb.append(value);
-					sb.append("\"");
-				}
-				else {
-					sb.append(value);
-				}
-
+			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			if (Objects.equals("id", additionalAssertFieldName)) {
-				sb.append(additionalAssertFieldName);
-				sb.append(": ");
+			sb.append(field.getName());
+			sb.append(": ");
 
-				Object value = wikiNode.getId();
-
-				if (value instanceof String) {
-					sb.append("\"");
-					sb.append(value);
-					sb.append("\"");
-				}
-				else {
-					sb.append(value);
-				}
-
-				sb.append(", ");
-			}
-
-			if (Objects.equals("name", additionalAssertFieldName)) {
-				sb.append(additionalAssertFieldName);
-				sb.append(": ");
-
-				Object value = wikiNode.getName();
-
-				if (value instanceof String) {
-					sb.append("\"");
-					sb.append(value);
-					sb.append("\"");
-				}
-				else {
-					sb.append(value);
-				}
-
-				sb.append(", ");
-			}
-
-			if (Objects.equals(
-					"numberOfWikiPages", additionalAssertFieldName)) {
-
-				sb.append(additionalAssertFieldName);
-				sb.append(": ");
-
-				Object value = wikiNode.getNumberOfWikiPages();
-
-				if (value instanceof String) {
-					sb.append("\"");
-					sb.append(value);
-					sb.append("\"");
-				}
-				else {
-					sb.append(value);
-				}
-
-				sb.append(", ");
-			}
-
-			if (Objects.equals("siteId", additionalAssertFieldName)) {
-				sb.append(additionalAssertFieldName);
-				sb.append(": ");
-
-				Object value = wikiNode.getSiteId();
-
-				if (value instanceof String) {
-					sb.append("\"");
-					sb.append(value);
-					sb.append("\"");
-				}
-				else {
-					sb.append(value);
-				}
-
-				sb.append(", ");
-			}
-
-			if (Objects.equals("subscribed", additionalAssertFieldName)) {
-				sb.append(additionalAssertFieldName);
-				sb.append(": ");
-
-				Object value = wikiNode.getSubscribed();
-
-				if (value instanceof String) {
-					sb.append("\"");
-					sb.append(value);
-					sb.append("\"");
-				}
-				else {
-					sb.append(value);
-				}
-
-				sb.append(", ");
-			}
+			appendGraphQLFieldValue(sb, field.get(wikiNode));
 		}
 
 		sb.append("}");
@@ -841,29 +810,21 @@ public abstract class BaseWikiNodeResourceTestCase {
 
 		graphQLFields.add(new GraphQLField("id"));
 
-		GraphQLField graphQLField = new GraphQLField(
-			"mutation",
-			new GraphQLField(
-				"createSiteWikiNode",
-				new HashMap<String, Object>() {
-					{
-						put("siteKey", "\"" + testGroup.getGroupId() + "\"");
-						put("wikiNode", sb.toString());
-					}
-				},
-				graphQLFields.toArray(new GraphQLField[0])));
-
-		JSONDeserializer<WikiNode> jsonDeserializer =
-			JSONFactoryUtil.createJSONDeserializer();
-
-		String object = invoke(graphQLField.toString());
-
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(object);
-
-		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
-
 		return jsonDeserializer.deserialize(
-			String.valueOf(dataJSONObject.getJSONObject("createSiteWikiNode")),
+			JSONUtil.getValueAsString(
+				invokeGraphQLMutation(
+					new GraphQLField(
+						"createSiteWikiNode",
+						new HashMap<String, Object>() {
+							{
+								put(
+									"siteKey",
+									"\"" + testGroup.getGroupId() + "\"");
+								put("wikiNode", sb.toString());
+							}
+						},
+						graphQLFields)),
+				"JSONObject/data", "JSONObject/createSiteWikiNode"),
 			WikiNode.class);
 	}
 
@@ -915,26 +876,7 @@ public abstract class BaseWikiNodeResourceTestCase {
 		}
 	}
 
-	protected void assertEqualsJSONArray(
-		List<WikiNode> wikiNodes, JSONArray jsonArray) {
-
-		for (WikiNode wikiNode : wikiNodes) {
-			boolean contains = false;
-
-			for (Object object : jsonArray) {
-				if (equalsJSONObject(wikiNode, (JSONObject)object)) {
-					contains = true;
-
-					break;
-				}
-			}
-
-			Assert.assertTrue(
-				jsonArray + " does not contain " + wikiNode, contains);
-		}
-	}
-
-	protected void assertValid(WikiNode wikiNode) {
+	protected void assertValid(WikiNode wikiNode) throws Exception {
 		boolean valid = true;
 
 		if (wikiNode.getDateCreated() == null) {
@@ -955,6 +897,14 @@ public abstract class BaseWikiNodeResourceTestCase {
 
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
+
+			if (Objects.equals("actions", additionalAssertFieldName)) {
+				if (wikiNode.getActions() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
 
 			if (Objects.equals("creator", additionalAssertFieldName)) {
 				if (wikiNode.getCreator() == null) {
@@ -1035,13 +985,51 @@ public abstract class BaseWikiNodeResourceTestCase {
 		return new String[0];
 	}
 
-	protected List<GraphQLField> getGraphQLFields() {
+	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		for (String additionalAssertFieldName :
-				getAdditionalAssertFieldNames()) {
+		graphQLFields.add(new GraphQLField("siteId"));
 
-			graphQLFields.add(new GraphQLField(additionalAssertFieldName));
+		for (Field field :
+				ReflectionUtil.getDeclaredFields(
+					com.liferay.headless.delivery.dto.v1_0.WikiNode.class)) {
+
+			if (!ArrayUtil.contains(
+					getAdditionalAssertFieldNames(), field.getName())) {
+
+				continue;
+			}
+
+			graphQLFields.addAll(getGraphQLFields(field));
+		}
+
+		return graphQLFields;
+	}
+
+	protected List<GraphQLField> getGraphQLFields(Field... fields)
+		throws Exception {
+
+		List<GraphQLField> graphQLFields = new ArrayList<>();
+
+		for (Field field : fields) {
+			com.liferay.portal.vulcan.graphql.annotation.GraphQLField
+				vulcanGraphQLField = field.getAnnotation(
+					com.liferay.portal.vulcan.graphql.annotation.GraphQLField.
+						class);
+
+			if (vulcanGraphQLField != null) {
+				Class<?> clazz = field.getType();
+
+				if (clazz.isArray()) {
+					clazz = clazz.getComponentType();
+				}
+
+				List<GraphQLField> childrenGraphQLFields = getGraphQLFields(
+					ReflectionUtil.getDeclaredFields(clazz));
+
+				graphQLFields.add(
+					new GraphQLField(field.getName(), childrenGraphQLFields));
+			}
 		}
 
 		return graphQLFields;
@@ -1062,6 +1050,17 @@ public abstract class BaseWikiNodeResourceTestCase {
 
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
+
+			if (Objects.equals("actions", additionalAssertFieldName)) {
+				if (!equals(
+						(Map)wikiNode1.getActions(),
+						(Map)wikiNode2.getActions())) {
+
+					return false;
+				}
+
+				continue;
+			}
 
 			if (Objects.equals("creator", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
@@ -1165,68 +1164,30 @@ public abstract class BaseWikiNodeResourceTestCase {
 		return true;
 	}
 
-	protected boolean equalsJSONObject(
-		WikiNode wikiNode, JSONObject jsonObject) {
+	protected boolean equals(
+		Map<String, Object> map1, Map<String, Object> map2) {
 
-		for (String fieldName : getAdditionalAssertFieldNames()) {
-			if (Objects.equals("description", fieldName)) {
-				if (!Objects.deepEquals(
-						wikiNode.getDescription(),
-						jsonObject.getString("description"))) {
+		if (Objects.equals(map1.keySet(), map2.keySet())) {
+			for (Map.Entry<String, Object> entry : map1.entrySet()) {
+				if (entry.getValue() instanceof Map) {
+					if (!equals(
+							(Map)entry.getValue(),
+							(Map)map2.get(entry.getKey()))) {
+
+						return false;
+					}
+				}
+				else if (!Objects.deepEquals(
+							entry.getValue(), map2.get(entry.getKey()))) {
 
 					return false;
 				}
-
-				continue;
 			}
 
-			if (Objects.equals("id", fieldName)) {
-				if (!Objects.deepEquals(
-						wikiNode.getId(), jsonObject.getLong("id"))) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("name", fieldName)) {
-				if (!Objects.deepEquals(
-						wikiNode.getName(), jsonObject.getString("name"))) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("numberOfWikiPages", fieldName)) {
-				if (!Objects.deepEquals(
-						wikiNode.getNumberOfWikiPages(),
-						jsonObject.getInt("numberOfWikiPages"))) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("subscribed", fieldName)) {
-				if (!Objects.deepEquals(
-						wikiNode.getSubscribed(),
-						jsonObject.getBoolean("subscribed"))) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			throw new IllegalArgumentException(
-				"Invalid field name " + fieldName);
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
 	protected java.util.Collection<EntityField> getEntityFields()
@@ -1278,6 +1239,11 @@ public abstract class BaseWikiNodeResourceTestCase {
 		sb.append(" ");
 		sb.append(operator);
 		sb.append(" ");
+
+		if (entityFieldName.equals("actions")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
 
 		if (entityFieldName.equals("creator")) {
 			throw new IllegalArgumentException(
@@ -1408,14 +1374,35 @@ public abstract class BaseWikiNodeResourceTestCase {
 		return httpResponse.getContent();
 	}
 
+	protected JSONObject invokeGraphQLMutation(GraphQLField graphQLField)
+		throws Exception {
+
+		GraphQLField mutationGraphQLField = new GraphQLField(
+			"mutation", graphQLField);
+
+		return JSONFactoryUtil.createJSONObject(
+			invoke(mutationGraphQLField.toString()));
+	}
+
+	protected JSONObject invokeGraphQLQuery(GraphQLField graphQLField)
+		throws Exception {
+
+		GraphQLField queryGraphQLField = new GraphQLField(
+			"query", graphQLField);
+
+		return JSONFactoryUtil.createJSONObject(
+			invoke(queryGraphQLField.toString()));
+	}
+
 	protected WikiNode randomWikiNode() throws Exception {
 		return new WikiNode() {
 			{
 				dateCreated = RandomTestUtil.nextDate();
 				dateModified = RandomTestUtil.nextDate();
-				description = RandomTestUtil.randomString();
+				description = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
 				id = RandomTestUtil.randomLong();
-				name = RandomTestUtil.randomString();
+				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				numberOfWikiPages = RandomTestUtil.randomInt();
 				siteId = testGroup.getGroupId();
 				subscribed = RandomTestUtil.randomBoolean();
@@ -1446,9 +1433,22 @@ public abstract class BaseWikiNodeResourceTestCase {
 			this(key, new HashMap<>(), graphQLFields);
 		}
 
+		public GraphQLField(String key, List<GraphQLField> graphQLFields) {
+			this(key, new HashMap<>(), graphQLFields);
+		}
+
 		public GraphQLField(
 			String key, Map<String, Object> parameterMap,
 			GraphQLField... graphQLFields) {
+
+			_key = key;
+			_parameterMap = parameterMap;
+			_graphQLFields = Arrays.asList(graphQLFields);
+		}
+
+		public GraphQLField(
+			String key, Map<String, Object> parameterMap,
+			List<GraphQLField> graphQLFields) {
 
 			_key = key;
 			_parameterMap = parameterMap;
@@ -1476,7 +1476,7 @@ public abstract class BaseWikiNodeResourceTestCase {
 				sb.append(")");
 			}
 
-			if (_graphQLFields.length > 0) {
+			if (!_graphQLFields.isEmpty()) {
 				sb.append("{");
 
 				for (GraphQLField graphQLField : _graphQLFields) {
@@ -1492,7 +1492,7 @@ public abstract class BaseWikiNodeResourceTestCase {
 			return sb.toString();
 		}
 
-		private final GraphQLField[] _graphQLFields;
+		private final List<GraphQLField> _graphQLFields;
 		private final String _key;
 		private final Map<String, Object> _parameterMap;
 

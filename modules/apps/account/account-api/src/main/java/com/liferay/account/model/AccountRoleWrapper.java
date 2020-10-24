@@ -157,11 +157,6 @@ public class AccountRoleWrapper
 		return model.getRoleName();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a account role model instance should use the <code>AccountRole</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();

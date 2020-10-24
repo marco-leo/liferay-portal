@@ -49,9 +49,9 @@ public class ThemeHotDeployListener extends BaseHotDeployListener {
 		try {
 			doInvokeDeploy(hotDeployEvent);
 		}
-		catch (Throwable t) {
+		catch (Throwable throwable) {
 			throwHotDeployException(
-				hotDeployEvent, "Error registering themes for ", t);
+				hotDeployEvent, "Error registering themes for ", throwable);
 		}
 	}
 
@@ -62,9 +62,9 @@ public class ThemeHotDeployListener extends BaseHotDeployListener {
 		try {
 			doInvokeUndeploy(hotDeployEvent);
 		}
-		catch (Throwable t) {
+		catch (Throwable throwable) {
 			throwHotDeployException(
-				hotDeployEvent, "Error unregistering themes for ", t);
+				hotDeployEvent, "Error unregistering themes for ", throwable);
 		}
 	}
 
@@ -139,8 +139,8 @@ public class ThemeHotDeployListener extends BaseHotDeployListener {
 			try {
 				ThemeLocalServiceUtil.uninstallThemes(themes);
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 		}
 		else {

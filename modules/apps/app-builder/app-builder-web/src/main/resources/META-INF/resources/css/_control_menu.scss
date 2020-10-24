@@ -2,8 +2,8 @@
 
 .edit-entry .app-builder-control-menu {
 	&.standalone {
-		margin-left: calc(-2.25rem - 1px);
-		margin-right: calc(-2.25rem - 1px);
+		margin-left: calc(-1.5rem - 1px);
+		margin-right: calc(-1.5rem - 1px);
 		margin-top: calc(-4.5em - 1px);
 	}
 }
@@ -19,10 +19,10 @@
 	}
 
 	&.widget {
-		background-color: #ffffff;
+		background-color: #fff;
 		border-color: #e7e7ed;
 		border-style: solid;
-		border-width: 0 0 0.0625rem 0;
+		border-width: 0 0 0.0625rem;
 	}
 
 	.control-menu-back-button {
@@ -32,7 +32,7 @@
 		width: 40px;
 
 		&.standalone {
-			color: #ffffff;
+			color: #fff;
 			margin: calc(1rem - 1px);
 
 			&:hover {
@@ -49,7 +49,7 @@
 
 	.control-menu-title {
 		&.standalone {
-			color: #ffffff;
+			color: #fff;
 			font-size: 24px;
 		}
 

@@ -16,20 +16,13 @@ definition {
 			groupName = "Site Name",
 			layoutName = "Staging Test Page");
 
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Staging.openStagingAdmin(siteURLKey = "site-name");
 
 		Staging.activateStagingCP(
 			pageVersioningEnabled = "true",
 			siteName = "Site Name");
 
-		Navigator.gotoStagedSitePage(
-			pageName = "Staging Test Page",
-			siteName = "Site Name");
+		Navigator.openStagingSiteURL(siteName = "Site Name");
 	}
 
 	tearDown {
@@ -45,9 +38,16 @@ definition {
 
 	@priority = "4"
 	test AddEventRepeatDaily {
-		Staging.addEventRepeatDaily(
+		Staging.addRepeatEvent(
+			frequency = "Daily",
 			scheduleTitleName = "Event Daily Name",
-			siteName = "Site Name");
+			siteName = "Site Name",
+			startOnTomorrow = "true");
+
+		Staging.viewRepeatingEventDetails(
+			endDate = "No End Date",
+			scheduleTitleName = "Event Daily Name",
+			siteName = "site-name-staging");
 	}
 
 	@priority = "5"
@@ -58,18 +58,11 @@ definition {
 
 		Staging.addPageVariationPG(pageVariationName = "Page Variation Name");
 
-		Navigator.gotoStagedSitePage(
-			pageName = "Staging Test Page",
-			siteName = "Site Name");
+		Navigator.openStagingSiteURL(siteName = "Site Name");
 
 		Staging.viewPageVariationPG(pageVariationName = "Page Variation Name");
 
-		Navigator.openStagingSiteURL(siteName = "Site Name");
-
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
+		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
 
 		SitePages.gotoPageMenuItem(
 			menuItem = "Configure",
@@ -85,10 +78,7 @@ definition {
 
 		Alert.viewSuccessMessage();
 
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
+		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
 
 		SitePages.gotoPageMenuItem(
 			menuItem = "Configure",
@@ -101,14 +91,7 @@ definition {
 
 	@priority = "5"
 	test AddPageWithPageVersioningEnabled {
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		ProductMenu.gotoStagingSite();
-
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
+		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
 
 		SitePages.addPublicPage(pageName = "Staging Page Versioning");
 
@@ -120,9 +103,7 @@ definition {
 
 		Staging.markAsReadyForPublication();
 
-		Navigator.openSiteURL(siteName = "Site Name");
-
-		Navigator.gotoStagedView();
+		Navigator.openStagingSiteURL(siteName = "Site Name");
 
 		Staging.gotoPublishToLive();
 
@@ -139,9 +120,7 @@ definition {
 	test AddSitePagesVariation {
 		Staging.addSitePagesVariationPG(sitePagesVariationName = "Site Pages Variation Name");
 
-		Navigator.gotoStagedSitePage(
-			pageName = "Staging Test Page",
-			siteName = "Site Name");
+		Navigator.openStagingSiteURL(siteName = "Site Name");
 
 		Staging.viewSitePagesVariationPG(sitePagesVariationName = "Site Pages Variation Name");
 	}

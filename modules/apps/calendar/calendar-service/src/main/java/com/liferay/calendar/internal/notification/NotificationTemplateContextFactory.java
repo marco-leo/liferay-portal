@@ -103,6 +103,8 @@ public class NotificationTemplateContextFactory {
 
 		Map<String, Serializable> attributes =
 			HashMapBuilder.<String, Serializable>put(
+				"calendarName", calendar.getName(user.getLocale(), true)
+			).put(
 				"endTime",
 				StringBundler.concat(
 					userDateTimeFormat.format(calendarBooking.getEndTime()),
@@ -125,12 +127,24 @@ public class NotificationTemplateContextFactory {
 						user.getLocale(), "com.liferay.calendar.web"),
 					"javax.portlet.title.".concat(CalendarPortletKeys.CALENDAR))
 			).put(
+				"siteName",
+				() -> {
+					Group calendarGroup = _groupLocalService.getGroup(
+						calendar.getGroupId());
+
+					if (calendarGroup.isSite()) {
+						return calendarGroup.getName(user.getLocale(), true);
+					}
+
+					return StringPool.BLANK;
+				}
+			).put(
 				"startTime",
 				StringBundler.concat(
 					userDateTimeFormat.format(calendarBooking.getStartTime()),
 					StringPool.SPACE, userTimezoneDisplayName)
 			).put(
-				"title", calendarBooking.getTitle(user.getLocale())
+				"title", calendarBooking.getTitle(user.getLocale(), true)
 			).put(
 				"url",
 				_getCalendarBookingURL(
@@ -196,7 +210,7 @@ public class NotificationTemplateContextFactory {
 
 	private static String _getCalendarBookingURL(
 			User user, long calendarBookingId)
-		throws PortalException {
+		throws Exception {
 
 		Group group = _groupLocalService.getGroup(
 			user.getCompanyId(), GroupConstants.GUEST);
@@ -239,20 +253,20 @@ public class NotificationTemplateContextFactory {
 	private static Format _getUserDateTimeFormat(
 		CalendarBooking calendarBooking, User user) {
 
-		TimeZone userTimezone = user.getTimeZone();
+		TimeZone userTimeZone = user.getTimeZone();
 
 		if ((calendarBooking != null) && calendarBooking.isAllDay()) {
-			userTimezone = TimeZone.getTimeZone(StringPool.UTC);
+			userTimeZone = TimeZone.getTimeZone(StringPool.UTC);
 		}
 
 		return FastDateFormatFactoryUtil.getDateTime(
-			user.getLocale(), userTimezone);
+			user.getLocale(), userTimeZone);
 	}
 
 	private static String _getUserTimezoneDisplayName(User user) {
-		TimeZone userTimezone = user.getTimeZone();
+		TimeZone userTimeZone = user.getTimeZone();
 
-		return userTimezone.getDisplayName(
+		return userTimeZone.getDisplayName(
 			false, TimeZone.SHORT, user.getLocale());
 	}
 

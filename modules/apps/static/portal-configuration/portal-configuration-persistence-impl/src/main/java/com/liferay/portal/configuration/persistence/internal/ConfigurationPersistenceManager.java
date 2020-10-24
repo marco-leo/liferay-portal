@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.util.PropsValues;
 
 import java.io.File;
@@ -78,7 +79,7 @@ public class ConfigurationPersistenceManager
 		ConfigurationModelListener configurationModelListener = null;
 
 		if (!pid.endsWith("factory") && hasPid(pid)) {
-			Dictionary dictionary = getDictionary(pid);
+			Dictionary<?, ?> dictionary = getDictionary(pid);
 
 			String pidKey = (String)dictionary.get(
 				ConfigurationAdmin.SERVICE_FACTORYPID);
@@ -180,10 +181,10 @@ public class ConfigurationPersistenceManager
 
 	public void start() {
 		try {
-			createConfigurationTable();
-		}
-		catch (IOException | SQLException e) {
 			populateDictionaries();
+		}
+		catch (IOException | SQLException exception) {
+			createConfigurationTable();
 		}
 	}
 
@@ -210,6 +211,11 @@ public class ConfigurationPersistenceManager
 
 			if (pidKey == null) {
 				pidKey = pid;
+			}
+
+			if (pidKey.endsWith(".scoped")) {
+				pidKey = StringUtil.replaceLast(
+					pidKey, ".scoped", StringPool.BLANK);
 			}
 
 			configurationModelListener = _getConfigurationModelListener(pidKey);
@@ -252,7 +258,7 @@ public class ConfigurationPersistenceManager
 		}
 	}
 
-	protected void createConfigurationTable() throws IOException, SQLException {
+	protected void createConfigurationTable() {
 		try (Connection connection = _dataSource.getConnection();
 			Statement statement = connection.createStatement()) {
 
@@ -260,6 +266,9 @@ public class ConfigurationPersistenceManager
 				_db.buildSQL(
 					"create table Configuration_ (configurationId " +
 						"VARCHAR(255) not null primary key, dictionary TEXT)"));
+		}
+		catch (IOException | SQLException exception) {
+			ReflectionUtil.throwException(exception);
 		}
 	}
 
@@ -273,8 +282,8 @@ public class ConfigurationPersistenceManager
 
 			preparedStatement.executeUpdate();
 		}
-		catch (SQLException sqle) {
-			throw new IOException(sqle);
+		catch (SQLException sqlException) {
+			throw new IOException(sqlException);
 		}
 	}
 
@@ -295,8 +304,8 @@ public class ConfigurationPersistenceManager
 
 			return _emptyDictionary;
 		}
-		catch (SQLException sqle) {
-			return ReflectionUtil.throwException(sqle);
+		catch (SQLException sqlException) {
+			return ReflectionUtil.throwException(sqlException);
 		}
 	}
 
@@ -323,12 +332,12 @@ public class ConfigurationPersistenceManager
 
 			return false;
 		}
-		catch (IOException | SQLException e) {
-			return ReflectionUtil.throwException(e);
+		catch (IOException | SQLException exception) {
+			return ReflectionUtil.throwException(exception);
 		}
 	}
 
-	protected void populateDictionaries() {
+	protected void populateDictionaries() throws IOException, SQLException {
 		try (Connection connection = _dataSource.getConnection();
 			PreparedStatement preparedStatement = connection.prepareStatement(
 				_db.buildSQL(
@@ -347,9 +356,6 @@ public class ConfigurationPersistenceManager
 				}
 			}
 		}
-		catch (IOException | SQLException e) {
-			ReflectionUtil.throwException(e);
-		}
 	}
 
 	protected void store(ResultSet resultSet, Dictionary<?, ?> dictionary)
@@ -365,10 +371,10 @@ public class ConfigurationPersistenceManager
 	protected void storeInDatabase(String pid, Dictionary<?, ?> dictionary)
 		throws IOException {
 
-		UnsyncByteArrayOutputStream outputStream =
+		UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 			new UnsyncByteArrayOutputStream();
 
-		ConfigurationHandler.write(outputStream, dictionary);
+		ConfigurationHandler.write(unsyncByteArrayOutputStream, dictionary);
 
 		try (Connection connection = _dataSource.getConnection()) {
 			connection.setAutoCommit(false);
@@ -378,7 +384,7 @@ public class ConfigurationPersistenceManager
 						"update Configuration_ set dictionary = ? where " +
 							"configurationId = ?"))) {
 
-				ps1.setString(1, outputStream.toString());
+				ps1.setString(1, unsyncByteArrayOutputStream.toString());
 				ps1.setString(2, pid);
 
 				if (ps1.executeUpdate() == 0) {
@@ -389,7 +395,8 @@ public class ConfigurationPersistenceManager
 										"?)"))) {
 
 						ps2.setString(1, pid);
-						ps2.setString(2, outputStream.toString());
+						ps2.setString(
+							2, unsyncByteArrayOutputStream.toString());
 
 						ps2.executeUpdate();
 					}
@@ -398,8 +405,8 @@ public class ConfigurationPersistenceManager
 
 			connection.commit();
 		}
-		catch (SQLException sqle) {
-			ReflectionUtil.throwException(sqle);
+		catch (SQLException sqlException) {
+			ReflectionUtil.throwException(sqlException);
 		}
 	}
 
@@ -418,10 +425,7 @@ public class ConfigurationPersistenceManager
 		String fileName = dictionary.get(_FELIX_FILE_INSTALL_FILENAME);
 
 		if (fileName != null) {
-			File file = new File(
-				PropsValues.MODULE_FRAMEWORK_CONFIGS_DIR, fileName);
-
-			file = file.getAbsoluteFile();
+			File file = _getCanonicalConfigFile(fileName);
 
 			URI uri = file.toURI();
 
@@ -436,15 +440,22 @@ public class ConfigurationPersistenceManager
 
 		Dictionary<Object, Object> newDictionary = new HashMapDictionary<>();
 
-		Enumeration<?> keys = dictionary.keys();
+		Enumeration<?> enumeration = dictionary.keys();
 
-		while (keys.hasMoreElements()) {
-			Object key = keys.nextElement();
+		while (enumeration.hasMoreElements()) {
+			Object key = enumeration.nextElement();
 
 			newDictionary.put(key, dictionary.get(key));
 		}
 
 		return newDictionary;
+	}
+
+	private File _getCanonicalConfigFile(String fileName) throws IOException {
+		File configFile = new File(
+			PropsValues.MODULE_FRAMEWORK_CONFIGS_DIR, fileName);
+
+		return configFile.getCanonicalFile();
 	}
 
 	private ConfigurationModelListener _getConfigurationModelListener(
@@ -462,6 +473,10 @@ public class ConfigurationPersistenceManager
 	private Dictionary<String, String> _verifyDictionary(
 			String pid, String dictionaryString)
 		throws IOException {
+
+		if (dictionaryString == null) {
+			return new HashMapDictionary<>();
+		}
 
 		Dictionary<String, String> dictionary = ConfigurationHandler.read(
 			new UnsyncByteArrayInputStream(
@@ -485,7 +500,12 @@ public class ConfigurationPersistenceManager
 		File configFile = null;
 
 		if (felixFileInstallFileName.startsWith("file:")) {
-			configFile = new File(URI.create(felixFileInstallFileName));
+			try {
+				configFile = new File(URI.create(felixFileInstallFileName));
+			}
+			catch (Exception exception) {
+				configFile = new File(felixFileInstallFileName);
+			}
 
 			dictionary.put(_FELIX_FILE_INSTALL_FILENAME, configFile.getName());
 
@@ -497,11 +517,7 @@ public class ConfigurationPersistenceManager
 			needSave = false;
 		}
 		else {
-			configFile = new File(
-				PropsValues.MODULE_FRAMEWORK_CONFIGS_DIR,
-				felixFileInstallFileName);
-
-			configFile = configFile.getAbsoluteFile();
+			configFile = _getCanonicalConfigFile(felixFileInstallFileName);
 
 			URI uri = configFile.toURI();
 

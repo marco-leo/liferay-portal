@@ -25,10 +25,8 @@ import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.IndexWriter;
 import com.liferay.portal.kernel.search.SearchContext;
-import com.liferay.portal.kernel.search.filter.BooleanFilter;
-import com.liferay.portal.kernel.search.filter.TermFilter;
 import com.liferay.portal.kernel.search.generic.BooleanQueryImpl;
-import com.liferay.portal.kernel.search.generic.MatchAllQuery;
+import com.liferay.portal.kernel.search.generic.TermQueryImpl;
 import com.liferay.portal.kernel.search.suggest.SpellCheckIndexWriter;
 import com.liferay.portal.kernel.util.PortalRunMode;
 import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
@@ -75,12 +73,12 @@ public class SolrIndexWriter extends BaseIndexWriter {
 
 			_searchEngineAdapter.execute(indexDocumentRequest);
 		}
-		catch (RuntimeException re) {
+		catch (RuntimeException runtimeException) {
 			if (_logExceptionsOnly) {
-				_log.error(re, re);
+				_log.error(runtimeException, runtimeException);
 			}
 			else {
-				throw re;
+				throw runtimeException;
 			}
 		}
 	}
@@ -119,12 +117,12 @@ public class SolrIndexWriter extends BaseIndexWriter {
 				}
 			}
 		}
-		catch (RuntimeException re) {
+		catch (RuntimeException runtimeException) {
 			if (_logExceptionsOnly) {
-				_log.error(re, re);
+				_log.error(runtimeException, runtimeException);
 			}
 			else {
-				throw re;
+				throw runtimeException;
 			}
 		}
 	}
@@ -137,12 +135,12 @@ public class SolrIndexWriter extends BaseIndexWriter {
 		try {
 			_searchEngineAdapter.execute(refreshIndexRequest);
 		}
-		catch (RuntimeException re) {
+		catch (RuntimeException runtimeException) {
 			if (_logExceptionsOnly) {
-				_log.error(re, re);
+				_log.error(runtimeException, runtimeException);
 			}
 			else {
-				throw re;
+				throw runtimeException;
 			}
 		}
 	}
@@ -159,12 +157,12 @@ public class SolrIndexWriter extends BaseIndexWriter {
 		try {
 			_searchEngineAdapter.execute(deleteDocumentRequest);
 		}
-		catch (RuntimeException re) {
+		catch (RuntimeException runtimeException) {
 			if (_logExceptionsOnly) {
-				_log.error(re, re);
+				_log.error(runtimeException, runtimeException);
 			}
 			else {
-				throw re;
+				throw runtimeException;
 			}
 		}
 	}
@@ -203,12 +201,12 @@ public class SolrIndexWriter extends BaseIndexWriter {
 				}
 			}
 		}
-		catch (RuntimeException re) {
+		catch (RuntimeException runtimeException) {
 			if (_logExceptionsOnly) {
-				_log.error(re, re);
+				_log.error(runtimeException, runtimeException);
 			}
 			else {
-				throw re;
+				throw runtimeException;
 			}
 		}
 	}
@@ -220,23 +218,18 @@ public class SolrIndexWriter extends BaseIndexWriter {
 		try {
 			BooleanQuery booleanQuery = new BooleanQueryImpl();
 
-			booleanQuery.add(new MatchAllQuery(), BooleanClauseOccur.MUST);
-
-			BooleanFilter booleanFilter = new BooleanFilter();
-
 			long companyId = searchContext.getCompanyId();
 
 			if (companyId > 0) {
-				booleanFilter.add(
-					new TermFilter(Field.COMPANY_ID, String.valueOf(companyId)),
+				booleanQuery.add(
+					new TermQueryImpl(
+						Field.COMPANY_ID, String.valueOf(companyId)),
 					BooleanClauseOccur.MUST);
 			}
 
-			booleanFilter.add(
-				new TermFilter(Field.ENTRY_CLASS_NAME, className),
+			booleanQuery.add(
+				new TermQueryImpl(Field.ENTRY_CLASS_NAME, className),
 				BooleanClauseOccur.MUST);
-
-			booleanQuery.setPreBooleanFilter(booleanFilter);
 
 			DeleteByQueryDocumentRequest deleteByQueryDocumentRequest =
 				new DeleteByQueryDocumentRequest(
@@ -250,16 +243,16 @@ public class SolrIndexWriter extends BaseIndexWriter {
 
 			_searchEngineAdapter.execute(deleteByQueryDocumentRequest);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_logExceptionsOnly) {
-				_log.error(e, e);
+				_log.error(exception, exception);
 			}
 			else {
-				if (e instanceof RuntimeException) {
-					throw (RuntimeException)e;
+				if (exception instanceof RuntimeException) {
+					throw (RuntimeException)exception;
 				}
 
-				throw new SystemException(e.getMessage(), e);
+				throw new SystemException(exception.getMessage(), exception);
 			}
 		}
 	}
@@ -281,12 +274,12 @@ public class SolrIndexWriter extends BaseIndexWriter {
 
 			_searchEngineAdapter.execute(updateDocumentRequest);
 		}
-		catch (RuntimeException re) {
+		catch (RuntimeException runtimeException) {
 			if (_logExceptionsOnly) {
-				_log.error(re, re);
+				_log.error(runtimeException, runtimeException);
 			}
 			else {
-				throw re;
+				throw runtimeException;
 			}
 		}
 	}
@@ -326,12 +319,12 @@ public class SolrIndexWriter extends BaseIndexWriter {
 				}
 			}
 		}
-		catch (RuntimeException re) {
+		catch (RuntimeException runtimeException) {
 			if (_logExceptionsOnly) {
-				_log.error(re, re);
+				_log.error(runtimeException, runtimeException);
 			}
 			else {
-				throw re;
+				throw runtimeException;
 			}
 		}
 	}
@@ -390,12 +383,12 @@ public class SolrIndexWriter extends BaseIndexWriter {
 				}
 			}
 		}
-		catch (RuntimeException re) {
+		catch (RuntimeException runtimeException) {
 			if (_logExceptionsOnly) {
-				_log.error(re, re);
+				_log.error(runtimeException, runtimeException);
 			}
 			else {
-				throw re;
+				throw runtimeException;
 			}
 		}
 	}

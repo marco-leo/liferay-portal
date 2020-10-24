@@ -16,35 +16,33 @@ package com.liferay.talend.properties.batch;
 
 import static org.talend.daikon.properties.presentation.Widget.widget;
 
-import com.liferay.talend.LiferayBaseComponentDefinition;
+import com.liferay.talend.LiferayDefinition;
 import com.liferay.talend.common.daikon.DaikonUtil;
 import com.liferay.talend.common.oas.OASException;
 import com.liferay.talend.common.oas.OASExplorer;
-import com.liferay.talend.common.oas.OASSource;
 import com.liferay.talend.common.schema.SchemaBuilder;
 import com.liferay.talend.common.schema.constants.BatchSchemaConstants;
-import com.liferay.talend.connection.LiferayConnectionProperties;
-import com.liferay.talend.resource.LiferayOutputResourceProperties;
-import com.liferay.talend.source.LiferayOASSource;
+import com.liferay.talend.internal.oas.LiferayOASSource;
+import com.liferay.talend.properties.resource.LiferayResourceProperties;
+import com.liferay.talend.tliferaybatchfile.TLiferayBatchFileDefinition;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.json.JsonObject;
 
 import org.apache.avro.Schema;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.talend.components.api.component.Connector;
 import org.talend.components.api.component.PropertyPathConnector;
+import org.talend.components.api.properties.ComponentReferenceProperties;
 import org.talend.components.common.FixedConnectorsComponentProperties;
-import org.talend.components.common.SchemaProperties;
-import org.talend.daikon.i18n.GlobalI18N;
-import org.talend.daikon.i18n.I18nMessageProvider;
-import org.talend.daikon.i18n.I18nMessages;
 import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
@@ -65,41 +63,33 @@ public class LiferayBatchFileProperties
 	}
 
 	public LiferayBatchFileProperties(
-		String batchFilePath, Schema entitySchema, String name,
+		String filePath, Schema entitySchema, String name,
 		JsonObject oasJsonObject) {
 
 		this(name);
 
-		_setBatchFilePathValue(batchFilePath);
+		batchFilePath.setValue(filePath);
 
-		_setEntitySchemaValue(entitySchema);
+		resource.setInboundSchema(entitySchema);
 
 		_oasJsonObject = oasJsonObject;
 	}
 
 	public ValidationResult afterEntity() {
-		_logger.info("After string property {entity}");
-
 		SchemaBuilder schemaBuilder = new SchemaBuilder();
 
-		Property<Schema> entitySchemaProperty = entitySchema.schema;
-
-		entitySchemaProperty.setValue(
+		resource.setInboundSchema(
 			schemaBuilder.getEntitySchema(
 				_getEntityName(), _getOASJsonObject()));
 
-		OASExplorer oasExplorer = new OASExplorer();
+		return ValidationResult.OK;
+	}
 
-		entityVersion.setValue(oasExplorer.getVersion(_getOASJsonObject()));
-
-		_logger.info("After string property {entity}");
-
-		return null;
+	public void afterLiferayBatchFileReferenceProperties() {
+		refreshLayout(getForm(Form.REFERENCE));
 	}
 
 	public ValidationResult beforeEntity() {
-		_logger.info("Before string property {entity}");
-
 		OASExplorer oasExplorer = new OASExplorer();
 
 		try {
@@ -109,15 +99,16 @@ public class LiferayBatchFileProperties
 			if (entitySchemaNames.isEmpty()) {
 				return new ValidationResult(
 					ValidationResult.Result.ERROR,
-					_i18nMessages.getMessage("error.validation.resources"));
+					"Unable to find any exposed resources");
 			}
 
 			entity.setPossibleNamedThingValues(
-				DaikonUtil.toNamedThings(entitySchemaNames));
+				DaikonUtil.toNamedThings(
+					_initializeEntityClassNames(entitySchemaNames)));
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return new ValidationResult(
-				ValidationResult.Result.ERROR, e.getMessage());
+				ValidationResult.Result.ERROR, exception.getMessage());
 		}
 
 		return null;
@@ -127,64 +118,86 @@ public class LiferayBatchFileProperties
 		return batchFilePath.getStringValue();
 	}
 
+	public LiferayBatchFileProperties getEffectiveLiferayBatchFileProperties() {
+		LiferayBatchFileProperties liferayBatchFileProperties =
+			liferayBatchFileReferenceProperties.getReference();
+
+		if (liferayBatchFileProperties != null) {
+			return liferayBatchFileProperties;
+		}
+
+		return this;
+	}
+
 	public String getEntityClassName() {
 		return entity.getValue();
 	}
 
 	public Schema getEntitySchema() {
-		Property<Schema> schemaProperty = entitySchema.schema;
-
-		return schemaProperty.getValue();
+		return resource.getInboundSchema();
 	}
 
-	public String getEntityVersion() {
-		return entityVersion.getValue();
+	public boolean isLiferayBatchFileReferenceProperties() {
+		Property<String> componentInstanceIdProperty =
+			liferayBatchFileReferenceProperties.componentInstanceId;
+
+		String componentInstanceId =
+			componentInstanceIdProperty.getStringValue();
+
+		if ((componentInstanceId != null) &&
+			componentInstanceId.startsWith(
+				TLiferayBatchFileDefinition.COMPONENT_NAME)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public void refreshLayout(Form form) {
+		super.refreshLayout(form);
+
+		if (!Objects.equals(form.getName(), Form.REFERENCE)) {
+			return;
+		}
+
+		if (!isLiferayBatchFileReferenceProperties()) {
+			form.setHidden(false);
+
+			return;
+		}
+
+		form.setHidden(true);
+
+		Widget widget = form.getWidget(
+			liferayBatchFileReferenceProperties.getName());
+
+		widget.setVisible();
 	}
 
 	@Override
 	public void setupLayout() {
-		Form mainForm = new Form(this, Form.MAIN);
+		_setupLayout(new Form(this, Form.MAIN));
 
-		mainForm.addRow(connection.getForm(Form.REFERENCE));
-
-		Widget entitySelectWidget = Widget.widget(entity);
-
-		entitySelectWidget.setCallAfter(true);
-		entitySelectWidget.setLongRunning(true);
-		entitySelectWidget.setWidgetType(
-			Widget.NAME_SELECTION_REFERENCE_WIDGET_TYPE);
-
-		mainForm.addRow(entitySelectWidget);
-
-		mainForm.addColumn(entityVersion);
-
-		mainForm.addRow(entitySchema.getForm(Form.REFERENCE));
-
-		Widget bulkFilePathWidget = widget(batchFilePath);
-
-		bulkFilePathWidget.setWidgetType(Widget.FILE_WIDGET_TYPE);
-
-		mainForm.addRow(bulkFilePathWidget);
+		_setupLayout(new Form(this, Form.REFERENCE));
 	}
 
 	@Override
 	public void setupProperties() {
-		super.setupProperties();
-
-		Property<Schema> flowSchemaProperty = flowSchema.schema;
-
-		flowSchemaProperty.setValue(BatchSchemaConstants.SCHEMA);
+		resource.setOutboundSchema(BatchSchemaConstants.SCHEMA);
 	}
 
 	public Property<String> batchFilePath = PropertyFactory.newProperty(
 		"batchFilePath");
-	public LiferayConnectionProperties connection =
-		new LiferayConnectionProperties("connection");
 	public StringProperty entity = new StringProperty("entity");
-	public SchemaProperties entitySchema = new SchemaProperties("entitySchema");
-	public StringProperty entityVersion = new StringProperty("entityVersion");
-	public SchemaProperties flowSchema = new SchemaProperties("flowSchema");
-	public SchemaProperties rejectSchema = new SchemaProperties("rejectSchema");
+	public ComponentReferenceProperties<LiferayBatchFileProperties>
+		liferayBatchFileReferenceProperties =
+			new ComponentReferenceProperties<>(
+				"liferayBatchFileReferenceProperties",
+				TLiferayBatchFileDefinition.COMPONENT_NAME);
+	public LiferayResourceProperties resource = new LiferayResourceProperties(
+		"resource");
 
 	@Override
 	protected Set<PropertyPathConnector> getAllSchemaPropertiesConnectors(
@@ -192,21 +205,24 @@ public class LiferayBatchFileProperties
 
 		if (!outputConnection) {
 			return Collections.singleton(
-				new PropertyPathConnector(Connector.MAIN_NAME, "entitySchema"));
+				new PropertyPathConnector(
+					Connector.MAIN_NAME, "resource.inboundSchemaProperties"));
 		}
 
 		Set<PropertyPathConnector> schemaPropertiesConnectors = new HashSet<>();
 
 		schemaPropertiesConnectors.add(
-			new PropertyPathConnector(Connector.MAIN_NAME, "flowSchema"));
+			new PropertyPathConnector(
+				Connector.MAIN_NAME, "resource.outboundSchemaProperties"));
 		schemaPropertiesConnectors.add(
-			new PropertyPathConnector(Connector.REJECT_NAME, "rejectSchema"));
+			new PropertyPathConnector(
+				Connector.REJECT_NAME, "resource.rejectSchemaProperties"));
 
 		return Collections.unmodifiableSet(schemaPropertiesConnectors);
 	}
 
 	private String _getEntityName() {
-		return entity.getValue();
+		return entity.getPossibleValuesDisplayName(entity.getValue());
 	}
 
 	private JsonObject _getOASJsonObject() {
@@ -215,43 +231,69 @@ public class LiferayBatchFileProperties
 		}
 
 		LiferayOASSource liferayOASSource =
-			LiferayBaseComponentDefinition.getLiferayOASSource(
-				connection.getEffectiveLiferayConnectionProperties());
+			LiferayDefinition.getLiferayOASSource(resource);
 
 		if (!liferayOASSource.isValid()) {
 			throw new OASException("Unable to obtain OpenAPI specification");
 		}
 
-		OASSource oasSource = liferayOASSource.getOASSource();
-
-		_oasJsonObject = oasSource.getOASJsonObject();
+		_oasJsonObject = liferayOASSource.getOASJsonObject(
+			resource.getOpenAPIUrl());
 
 		return _oasJsonObject;
 	}
 
-	private void _setBatchFilePathValue(String value) {
-		batchFilePath.setValue(value);
+	private Map<String, String> _initializeEntityClassNames(Set<String> names) {
+		SortedMap<String, String> entityClassNames = new TreeMap<>();
+
+		for (String name : names) {
+			Optional<String> optionalEntityClassName =
+				_oasExplorer.getEntityClassNameOptional(
+					name, _getOASJsonObject());
+
+			if (optionalEntityClassName.isPresent()) {
+				entityClassNames.put(name, optionalEntityClassName.get());
+
+				continue;
+			}
+
+			entityClassNames.put(name, name);
+		}
+
+		return Collections.unmodifiableSortedMap(entityClassNames);
 	}
 
-	private void _setEntitySchemaValue(Schema value) {
-		Property<Schema> schemaProperty = entitySchema.schema;
+	private void _setupLayout(Form form) {
+		if (Objects.equals(form.getName(), Form.REFERENCE)) {
+			Widget referencedComponentWidget = Widget.widget(
+				liferayBatchFileReferenceProperties);
 
-		schemaProperty.setValue(value);
+			referencedComponentWidget.setWidgetType(
+				Widget.COMPONENT_REFERENCE_WIDGET_TYPE);
+
+			form.addRow(referencedComponentWidget);
+		}
+
+		form.addRow(resource.connection.getForm(Form.REFERENCE));
+		form.addRow(resource.getForm("EndpointInfo"));
+
+		Widget entitySelectWidget = Widget.widget(entity);
+
+		entitySelectWidget.setCallAfter(true);
+		entitySelectWidget.setLongRunning(true);
+		entitySelectWidget.setWidgetType(
+			Widget.NAME_SELECTION_REFERENCE_WIDGET_TYPE);
+
+		form.addRow(entitySelectWidget);
+
+		Widget bulkFilePathWidget = widget(batchFilePath);
+
+		bulkFilePathWidget.setWidgetType(Widget.FILE_WIDGET_TYPE);
+
+		form.addRow(bulkFilePathWidget);
 	}
 
-	private static Logger _logger = LoggerFactory.getLogger(
-		LiferayBatchFileProperties.class);
-
-	private static final I18nMessages _i18nMessages;
-
-	static {
-		I18nMessageProvider i18nMessageProvider =
-			GlobalI18N.getI18nMessageProvider();
-
-		_i18nMessages = i18nMessageProvider.getI18nMessages(
-			LiferayOutputResourceProperties.class);
-	}
-
+	private transient OASExplorer _oasExplorer = new OASExplorer();
 	private transient JsonObject _oasJsonObject;
 
 }

@@ -19,11 +19,15 @@ import com.liferay.fragment.service.FragmentCollectionServiceUtil;
 import com.liferay.fragment.web.internal.util.FragmentPortletUtil;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
+import com.liferay.portal.kernel.model.CompanyConstants;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.util.PortalInstances;
 
 import java.util.List;
 
@@ -39,12 +43,12 @@ import javax.servlet.http.HttpServletRequest;
 public class FragmentCollectionsDisplayContext {
 
 	public FragmentCollectionsDisplayContext(
-		RenderRequest renderRequest, RenderResponse renderResponse,
-		HttpServletRequest httpServletRequest) {
+		HttpServletRequest httpServletRequest, RenderRequest renderRequest,
+		RenderResponse renderResponse) {
 
+		_httpServletRequest = httpServletRequest;
 		_renderRequest = renderRequest;
 		_renderResponse = renderResponse;
-		_httpServletRequest = httpServletRequest;
 	}
 
 	public String getEventName() {
@@ -70,7 +74,7 @@ public class FragmentCollectionsDisplayContext {
 		return _orderByType;
 	}
 
-	public SearchContainer getSearchContainer() {
+	public SearchContainer<FragmentCollection> getSearchContainer() {
 		if (_searchContainer != null) {
 			return _searchContainer;
 		}
@@ -79,8 +83,10 @@ public class FragmentCollectionsDisplayContext {
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		SearchContainer searchContainer = new SearchContainer(
-			_renderRequest, _getPortletURL(), null, "there-are-no-collections");
+		SearchContainer<FragmentCollection> searchContainer =
+			new SearchContainer(
+				_renderRequest, _getPortletURL(), null,
+				"there-are-no-collections");
 
 		searchContainer.setRowChecker(
 			new EmptyOnClickRowChecker(_renderResponse));
@@ -104,6 +110,15 @@ public class FragmentCollectionsDisplayContext {
 			groupIds = new long[] {
 				themeDisplay.getScopeGroupId(), themeDisplay.getCompanyGroupId()
 			};
+		}
+
+		Group scopeGroup = themeDisplay.getScopeGroup();
+
+		if ((themeDisplay.getCompanyId() ==
+				PortalInstances.getDefaultCompanyId()) &&
+			scopeGroup.isCompany()) {
+
+			groupIds = ArrayUtil.append(groupIds, CompanyConstants.SYSTEM);
 		}
 
 		if (_isSearch()) {
@@ -215,6 +230,6 @@ public class FragmentCollectionsDisplayContext {
 	private String _orderByType;
 	private final RenderRequest _renderRequest;
 	private final RenderResponse _renderResponse;
-	private SearchContainer _searchContainer;
+	private SearchContainer<FragmentCollection> _searchContainer;
 
 }

@@ -31,11 +31,6 @@ public class UserNotificationEventLocalServiceWrapper
 		_userNotificationEventLocalService = userNotificationEventLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link UserNotificationEventLocalServiceUtil} to access the user notification event local service. Add custom service methods to <code>com.liferay.portal.service.impl.UserNotificationEventLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.portal.kernel.model.UserNotificationEvent
 			addUserNotificationEvent(
@@ -124,6 +119,10 @@ public class UserNotificationEventLocalServiceWrapper
 	/**
 	 * Adds the user notification event to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserNotificationEventLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param userNotificationEvent the user notification event
 	 * @return the user notification event that was added
 	 */
@@ -160,6 +159,18 @@ public class UserNotificationEventLocalServiceWrapper
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _userNotificationEventLocalService.createPersistedModel(
+			primaryKeyObj);
+	}
+
+	/**
 	 * Creates a new user notification event with the primary key. Does not add the user notification event to the database.
 	 *
 	 * @param userNotificationEventId the primary key for the new user notification event
@@ -188,6 +199,10 @@ public class UserNotificationEventLocalServiceWrapper
 	/**
 	 * Deletes the user notification event with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserNotificationEventLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param userNotificationEventId the primary key of the user notification event
 	 * @return the user notification event that was removed
 	 * @throws PortalException if a user notification event with the primary key could not be found
@@ -211,6 +226,10 @@ public class UserNotificationEventLocalServiceWrapper
 
 	/**
 	 * Deletes the user notification event from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserNotificationEventLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param userNotificationEvent the user notification event
 	 * @return the user notification event that was removed
@@ -236,6 +255,11 @@ public class UserNotificationEventLocalServiceWrapper
 	@Override
 	public void deleteUserNotificationEvents(long userId) {
 		_userNotificationEventLocalService.deleteUserNotificationEvents(userId);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _userNotificationEventLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -436,12 +460,13 @@ public class UserNotificationEventLocalServiceWrapper
 			long userId, int deliveryType, boolean delivered,
 			boolean actionRequired, boolean archived, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.portal.kernel.model.UserNotificationEvent> obc) {
+				<com.liferay.portal.kernel.model.UserNotificationEvent>
+					orderByComparator) {
 
 		return _userNotificationEventLocalService.
 			getArchivedUserNotificationEvents(
 				userId, deliveryType, delivered, actionRequired, archived,
-				start, end, obc);
+				start, end, orderByComparator);
 	}
 
 	@Override
@@ -461,12 +486,13 @@ public class UserNotificationEventLocalServiceWrapper
 			long userId, int deliveryType, boolean actionRequired,
 			boolean archived, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.portal.kernel.model.UserNotificationEvent> obc) {
+				<com.liferay.portal.kernel.model.UserNotificationEvent>
+					orderByComparator) {
 
 		return _userNotificationEventLocalService.
 			getArchivedUserNotificationEvents(
 				userId, deliveryType, actionRequired, archived, start, end,
-				obc);
+				orderByComparator);
 	}
 
 	@Override
@@ -610,12 +636,13 @@ public class UserNotificationEventLocalServiceWrapper
 			long userId, int deliveryType, boolean delivered,
 			boolean actionRequired, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.portal.kernel.model.UserNotificationEvent> obc) {
+				<com.liferay.portal.kernel.model.UserNotificationEvent>
+					orderByComparator) {
 
 		return _userNotificationEventLocalService.
 			getDeliveredUserNotificationEvents(
 				userId, deliveryType, delivered, actionRequired, start, end,
-				obc);
+				orderByComparator);
 	}
 
 	@Override
@@ -683,6 +710,9 @@ public class UserNotificationEventLocalServiceWrapper
 		return _userNotificationEventLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -821,11 +851,11 @@ public class UserNotificationEventLocalServiceWrapper
 	@Override
 	public int getUserNotificationEventsCount(
 		long userId, java.lang.String type, int deliveryType,
-		boolean archived) {
+		boolean delivered) {
 
 		return _userNotificationEventLocalService.
 			getUserNotificationEventsCount(
-				userId, type, deliveryType, archived);
+				userId, type, deliveryType, delivered);
 	}
 
 	@Override
@@ -836,6 +866,15 @@ public class UserNotificationEventLocalServiceWrapper
 		return _userNotificationEventLocalService.
 			getUserNotificationEventsCount(
 				userId, type, deliveryType, delivered, archived);
+	}
+
+	@Override
+	public int getUserNotificationEventsCount(
+		long userId, java.lang.String type,
+		java.util.Map<java.lang.String, java.lang.String> payloadParameters) {
+
+		return _userNotificationEventLocalService.
+			getUserNotificationEventsCount(userId, type, payloadParameters);
 	}
 
 	@Override
@@ -889,6 +928,10 @@ public class UserNotificationEventLocalServiceWrapper
 
 	/**
 	 * Updates the user notification event in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserNotificationEventLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param userNotificationEvent the user notification event
 	 * @return the user notification event that was updated

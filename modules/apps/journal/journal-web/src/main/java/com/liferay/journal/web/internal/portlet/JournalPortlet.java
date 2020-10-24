@@ -19,9 +19,11 @@ import com.liferay.asset.kernel.exception.AssetCategoryException;
 import com.liferay.asset.kernel.exception.AssetTagException;
 import com.liferay.document.library.kernel.exception.DuplicateFileEntryException;
 import com.liferay.document.library.kernel.exception.FileSizeException;
+import com.liferay.dynamic.data.mapping.configuration.DDMWebConfiguration;
 import com.liferay.dynamic.data.mapping.exception.NoSuchStructureException;
 import com.liferay.dynamic.data.mapping.exception.NoSuchTemplateException;
 import com.liferay.dynamic.data.mapping.exception.StorageFieldRequiredException;
+import com.liferay.dynamic.data.mapping.util.DDMFormValuesToMapConverter;
 import com.liferay.dynamic.data.mapping.util.DDMTemplateHelper;
 import com.liferay.exportimport.kernel.exception.ExportImportContentValidationException;
 import com.liferay.item.selector.ItemSelector;
@@ -56,8 +58,8 @@ import com.liferay.journal.util.JournalContent;
 import com.liferay.journal.util.JournalConverter;
 import com.liferay.journal.web.internal.configuration.JournalDDMEditorConfiguration;
 import com.liferay.journal.web.internal.configuration.JournalWebConfiguration;
+import com.liferay.journal.web.internal.helper.JournalDDMTemplateHelper;
 import com.liferay.journal.web.internal.portlet.action.ActionUtil;
-import com.liferay.journal.web.internal.util.JournalDDMTemplateUtil;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -94,6 +96,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	configurationPid = {
+		"com.liferay.dynamic.data.mapping.configuration.DDMWebConfiguration",
 		"com.liferay.journal.web.internal.configuration.JournalDDMEditorConfiguration",
 		"com.liferay.journal.web.internal.configuration.JournalWebConfiguration"
 	},
@@ -104,7 +107,6 @@ import org.osgi.service.component.annotations.Reference;
 		"com.liferay.portlet.display-category=category.hidden",
 		"com.liferay.portlet.header-portlet-css=/css/ddm_form.css",
 		"com.liferay.portlet.header-portlet-css=/css/main.css",
-		"com.liferay.portlet.header-portlet-css=/css/tree.css",
 		"com.liferay.portlet.icon=/icons/journal.png",
 		"com.liferay.portlet.layout-cacheable=true",
 		"com.liferay.portlet.preferences-owned-by-group=true",
@@ -152,10 +154,15 @@ public class JournalPortlet extends MVCPortlet {
 			renderRequest.setAttribute(
 				DDMTemplateHelper.class.getName(), _ddmTemplateHelper);
 			renderRequest.setAttribute(
-				JournalDDMTemplateUtil.class.getName(),
-				_journalDDMTemplateUtil);
+				JournalDDMTemplateHelper.class.getName(),
+				_journalDDMTemplateHelper);
 		}
 
+		renderRequest.setAttribute(
+			DDMFormValuesToMapConverter.class.getName(),
+			_ddmFormValuesToMapConverter);
+		renderRequest.setAttribute(
+			DDMWebConfiguration.class.getName(), _ddmWebConfiguration);
 		renderRequest.setAttribute(
 			JournalDDMEditorConfiguration.class.getName(),
 			_journalDDMEditorConfiguration);
@@ -195,6 +202,8 @@ public class JournalPortlet extends MVCPortlet {
 	@Activate
 	@Modified
 	protected void activate(Map<String, Object> properties) {
+		_ddmWebConfiguration = ConfigurableUtil.createConfigurable(
+			DDMWebConfiguration.class, properties);
 		_journalDDMEditorConfiguration = ConfigurableUtil.createConfigurable(
 			JournalDDMEditorConfiguration.class, properties);
 		_journalFileUploadsConfiguration = ConfigurableUtil.createConfigurable(
@@ -220,10 +229,10 @@ public class JournalPortlet extends MVCPortlet {
 				ActionUtil.getFolder(renderRequest);
 			}
 		}
-		catch (Exception e) {
-			_log.error(e.getMessage());
+		catch (Exception exception) {
+			_log.error(exception.getMessage());
 
-			SessionErrors.add(renderRequest, e.getClass());
+			SessionErrors.add(renderRequest, exception.getClass());
 		}
 
 		if (SessionErrors.contains(
@@ -252,38 +261,38 @@ public class JournalPortlet extends MVCPortlet {
 	}
 
 	@Override
-	protected boolean isSessionErrorException(Throwable cause) {
-		if (cause instanceof ArticleContentException ||
-			cause instanceof ArticleContentSizeException ||
-			cause instanceof ArticleDisplayDateException ||
-			cause instanceof ArticleExpirationDateException ||
-			cause instanceof ArticleIdException ||
-			cause instanceof ArticleSmallImageNameException ||
-			cause instanceof ArticleSmallImageSizeException ||
-			cause instanceof ArticleTitleException ||
-			cause instanceof ArticleVersionException ||
-			cause instanceof AssetCategoryException ||
-			cause instanceof AssetTagException ||
-			cause instanceof DuplicateArticleIdException ||
-			cause instanceof DuplicateFeedIdException ||
-			cause instanceof DuplicateFileEntryException ||
-			cause instanceof DuplicateFolderNameException ||
-			cause instanceof ExportImportContentValidationException ||
-			cause instanceof FeedContentFieldException ||
-			cause instanceof FeedIdException ||
-			cause instanceof FeedNameException ||
-			cause instanceof FeedTargetLayoutFriendlyUrlException ||
-			cause instanceof FeedTargetPortletIdException ||
-			cause instanceof FileSizeException ||
-			cause instanceof FolderNameException ||
-			cause instanceof InvalidDDMStructureException ||
-			cause instanceof InvalidFolderException ||
-			cause instanceof LiferayFileItemException ||
-			cause instanceof LocaleException ||
-			cause instanceof MaxAddMenuFavItemsException ||
-			cause instanceof StorageFieldRequiredException ||
-			cause instanceof SystemException ||
-			super.isSessionErrorException(cause)) {
+	protected boolean isSessionErrorException(Throwable throwable) {
+		if (throwable instanceof ArticleContentException ||
+			throwable instanceof ArticleContentSizeException ||
+			throwable instanceof ArticleDisplayDateException ||
+			throwable instanceof ArticleExpirationDateException ||
+			throwable instanceof ArticleIdException ||
+			throwable instanceof ArticleSmallImageNameException ||
+			throwable instanceof ArticleSmallImageSizeException ||
+			throwable instanceof ArticleTitleException ||
+			throwable instanceof ArticleVersionException ||
+			throwable instanceof AssetCategoryException ||
+			throwable instanceof AssetTagException ||
+			throwable instanceof DuplicateArticleIdException ||
+			throwable instanceof DuplicateFeedIdException ||
+			throwable instanceof DuplicateFileEntryException ||
+			throwable instanceof DuplicateFolderNameException ||
+			throwable instanceof ExportImportContentValidationException ||
+			throwable instanceof FeedContentFieldException ||
+			throwable instanceof FeedIdException ||
+			throwable instanceof FeedNameException ||
+			throwable instanceof FeedTargetLayoutFriendlyUrlException ||
+			throwable instanceof FeedTargetPortletIdException ||
+			throwable instanceof FileSizeException ||
+			throwable instanceof FolderNameException ||
+			throwable instanceof InvalidDDMStructureException ||
+			throwable instanceof InvalidFolderException ||
+			throwable instanceof LiferayFileItemException ||
+			throwable instanceof LocaleException ||
+			throwable instanceof MaxAddMenuFavItemsException ||
+			throwable instanceof StorageFieldRequiredException ||
+			throwable instanceof SystemException ||
+			super.isSessionErrorException(throwable)) {
 
 			return true;
 		}
@@ -305,7 +314,12 @@ public class JournalPortlet extends MVCPortlet {
 		_assetDisplayPageFriendlyURLProvider;
 
 	@Reference
+	private DDMFormValuesToMapConverter _ddmFormValuesToMapConverter;
+
+	@Reference
 	private DDMTemplateHelper _ddmTemplateHelper;
+
+	private volatile DDMWebConfiguration _ddmWebConfiguration;
 
 	@Reference
 	private ItemSelector _itemSelector;
@@ -320,7 +334,7 @@ public class JournalPortlet extends MVCPortlet {
 		_journalDDMEditorConfiguration;
 
 	@Reference
-	private JournalDDMTemplateUtil _journalDDMTemplateUtil;
+	private JournalDDMTemplateHelper _journalDDMTemplateHelper;
 
 	private volatile JournalFileUploadsConfiguration
 		_journalFileUploadsConfiguration;

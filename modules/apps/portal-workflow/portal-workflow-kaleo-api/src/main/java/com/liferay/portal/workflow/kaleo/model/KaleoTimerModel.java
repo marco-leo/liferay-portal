@@ -39,7 +39,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface KaleoTimerModel
 	extends BaseModel<KaleoTimer>, GroupedModel, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo timer model instance should use the {@link KaleoTimer} interface instead.
@@ -230,6 +230,20 @@ public interface KaleoTimerModel
 	 * @param kaleoClassPK the kaleo class pk of this kaleo timer
 	 */
 	public void setKaleoClassPK(long kaleoClassPK);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo timer.
+	 *
+	 * @return the kaleo definition ID of this kaleo timer
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo timer.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo timer
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo timer.

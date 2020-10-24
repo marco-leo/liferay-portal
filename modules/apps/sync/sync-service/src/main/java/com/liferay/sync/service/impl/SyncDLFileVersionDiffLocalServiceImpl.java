@@ -85,16 +85,15 @@ public class SyncDLFileVersionDiffLocalServiceImpl
 
 		Date expirationDate = new Date();
 
-		expirationDate.setTime(
-			expirationDate.getTime() +
-				SyncServiceConfigurationValues.
-					SYNC_FILE_DIFF_CACHE_EXPIRATION_TIME * 3600000);
+		long cacheExpirationTime =
+			SyncServiceConfigurationValues.
+				SYNC_FILE_DIFF_CACHE_EXPIRATION_TIME * 3600000;
+
+		expirationDate.setTime(expirationDate.getTime() + cacheExpirationTime);
 
 		syncDLFileVersionDiff.setExpirationDate(expirationDate);
 
-		syncDLFileVersionDiffPersistence.update(syncDLFileVersionDiff);
-
-		return syncDLFileVersionDiff;
+		return syncDLFileVersionDiffPersistence.update(syncDLFileVersionDiff);
 	}
 
 	@Override
@@ -118,7 +117,7 @@ public class SyncDLFileVersionDiffLocalServiceImpl
 			_portletFileRepository.deletePortletFileEntry(
 				syncDLFileVersionDiff.getDataFileEntryId());
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					"Unable to delete file entry " +
@@ -161,10 +160,11 @@ public class SyncDLFileVersionDiffLocalServiceImpl
 
 		Date expirationDate = new Date();
 
-		expirationDate.setTime(
-			expirationDate.getTime() +
-				SyncServiceConfigurationValues.
-					SYNC_FILE_DIFF_CACHE_EXPIRATION_TIME * 3600000);
+		long cacheExpirationTime =
+			SyncServiceConfigurationValues.
+				SYNC_FILE_DIFF_CACHE_EXPIRATION_TIME * 3600000;
+
+		expirationDate.setTime(expirationDate.getTime() + cacheExpirationTime);
 
 		syncDLFileVersionDiff.setExpirationDate(expirationDate);
 

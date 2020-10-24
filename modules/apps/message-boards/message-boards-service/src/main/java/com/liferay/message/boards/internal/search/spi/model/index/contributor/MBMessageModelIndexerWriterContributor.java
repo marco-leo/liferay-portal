@@ -58,12 +58,12 @@ public class MBMessageModelIndexerWriterContributor
 			dynamicQuery -> {
 				Property statusProperty = PropertyFactoryUtil.forName("status");
 
-				Integer[] statuses = {
-					WorkflowConstants.STATUS_APPROVED,
-					WorkflowConstants.STATUS_IN_TRASH
-				};
-
-				dynamicQuery.add(statusProperty.in(statuses));
+				dynamicQuery.add(
+					statusProperty.in(
+						new Integer[] {
+							WorkflowConstants.STATUS_APPROVED,
+							WorkflowConstants.STATUS_IN_TRASH
+						}));
 			});
 		batchIndexingActionable.setPerformActionMethod(
 			(MBMessage mbMessage) -> {
@@ -124,11 +124,11 @@ public class MBMessageModelIndexerWriterContributor
 				indexer.reindex((DLFileEntry)attachmentsFileEntry.getModel());
 			}
 		}
-		catch (SearchException se) {
-			throw new SystemException(se);
+		catch (SearchException searchException) {
+			throw new SystemException(searchException);
 		}
-		catch (PortalException pe) {
-			throw new SystemException(pe);
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
 		}
 	}
 

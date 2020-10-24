@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author Carlos Lancha
  */
-public class CreationMenu extends HashMap {
+public class CreationMenu extends HashMap<String, Object> {
 
 	public CreationMenu() {
 		put("primaryItems", _primaryDropdownItems);
@@ -46,8 +46,8 @@ public class CreationMenu extends HashMap {
 		try {
 			unsafeConsumer.accept(dropdownItem);
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
 		}
 
 		_favoriteDropdownItems.add(dropdownItem);
@@ -65,8 +65,8 @@ public class CreationMenu extends HashMap {
 		try {
 			unsafeConsumer.accept(dropdownItem);
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
 		}
 
 		_primaryDropdownItems.add(dropdownItem);
@@ -82,8 +82,8 @@ public class CreationMenu extends HashMap {
 		try {
 			unsafeConsumer.accept(dropdownItem);
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
 		}
 
 		_restDropdownItems.add(dropdownItem);
@@ -91,6 +91,17 @@ public class CreationMenu extends HashMap {
 		put("secondaryItems", _buildSecondaryDropdownItems());
 
 		return this;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		if (_favoriteDropdownItems.isEmpty() &&
+			_primaryDropdownItems.isEmpty() && _restDropdownItems.isEmpty()) {
+
+			return true;
+		}
+
+		return super.isEmpty();
 	}
 
 	public void setCaption(String caption) {

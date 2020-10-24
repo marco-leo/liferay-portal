@@ -22,6 +22,8 @@ import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.message.boards.model.MBBan;
 import com.liferay.message.boards.service.MBBanLocalService;
 import com.liferay.message.boards.service.persistence.MBBanPersistence;
+import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -42,6 +44,9 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.change.tracking.CTService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -69,7 +74,7 @@ public abstract class MBBanLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements AopService, IdentifiableOSGiService, MBBanLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>MBBanLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.message.boards.service.MBBanLocalServiceUtil</code>.
@@ -77,6 +82,10 @@ public abstract class MBBanLocalServiceBaseImpl
 
 	/**
 	 * Adds the message boards ban to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBBanLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param mbBan the message boards ban
 	 * @return the message boards ban that was added
@@ -104,6 +113,10 @@ public abstract class MBBanLocalServiceBaseImpl
 	/**
 	 * Deletes the message boards ban with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBBanLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param banId the primary key of the message boards ban
 	 * @return the message boards ban that was removed
 	 * @throws PortalException if a message boards ban with the primary key could not be found
@@ -117,6 +130,10 @@ public abstract class MBBanLocalServiceBaseImpl
 	/**
 	 * Deletes the message boards ban from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBBanLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param mbBan the message boards ban
 	 * @return the message boards ban that was removed
 	 */
@@ -124,6 +141,11 @@ public abstract class MBBanLocalServiceBaseImpl
 	@Override
 	public MBBan deleteMBBan(MBBan mbBan) {
 		return mbBanPersistence.remove(mbBan);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return mbBanPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -351,12 +373,30 @@ public abstract class MBBanLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return mbBanPersistence.create(((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
 		return mbBanLocalService.deleteMBBan((MBBan)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<MBBan> getBasePersistence() {
+		return mbBanPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -441,6 +481,10 @@ public abstract class MBBanLocalServiceBaseImpl
 	/**
 	 * Updates the message boards ban in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBBanLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param mbBan the message boards ban
 	 * @return the message boards ban that was updated
 	 */
@@ -454,7 +498,7 @@ public abstract class MBBanLocalServiceBaseImpl
 	public Class<?>[] getAopInterfaces() {
 		return new Class<?>[] {
 			MBBanLocalService.class, IdentifiableOSGiService.class,
-			PersistedModelLocalService.class
+			CTService.class, PersistedModelLocalService.class
 		};
 	}
 
@@ -473,8 +517,22 @@ public abstract class MBBanLocalServiceBaseImpl
 		return MBBanLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<MBBan> getCTPersistence() {
+		return mbBanPersistence;
+	}
+
+	@Override
+	public Class<MBBan> getModelClass() {
 		return MBBan.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<MBBan>, R, E> updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(mbBanPersistence);
 	}
 
 	protected String getModelClassName() {
@@ -500,8 +558,8 @@ public abstract class MBBanLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

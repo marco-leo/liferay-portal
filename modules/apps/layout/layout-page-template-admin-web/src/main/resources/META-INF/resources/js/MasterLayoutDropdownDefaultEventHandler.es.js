@@ -14,8 +14,9 @@
 
 import {
 	DefaultEventHandler,
-	ItemSelectorDialog,
-	openSimpleInputModal
+	openModal,
+	openSelectionModal,
+	openSimpleInputModal,
 } from 'frontend-js-web';
 import {Config} from 'metal-state';
 
@@ -38,6 +39,36 @@ class MasterLayoutDropdownDefaultEventHandler extends DefaultEventHandler {
 		this._send(itemData.deleteMasterLayoutPreviewURL);
 	}
 
+	discardDraft(itemData) {
+		if (
+			confirm(
+				Liferay.Language.get(
+					'are-you-sure-you-want-to-discard-current-draft-and-apply-latest-published-changes'
+				)
+			)
+		) {
+			this._send(itemData.discardDraftURL);
+		}
+	}
+
+	markAsDefaultMasterLayout(itemData) {
+		if (itemData.message !== '') {
+			if (confirm(Liferay.Language.get(itemData.message))) {
+				this._send(itemData.markAsDefaultMasterLayoutURL);
+			}
+		}
+		else {
+			this._send(itemData.markAsDefaultMasterLayoutURL);
+		}
+	}
+
+	permissionsMasterLayout(itemData) {
+		openModal({
+			title: Liferay.Language.get('permissions'),
+			url: itemData.permissionsMasterLayoutURL,
+		});
+	}
+
 	renameMasterLayout(itemData) {
 		openSimpleInputModal({
 			dialogTitle: Liferay.Language.get('rename-master-page'),
@@ -49,33 +80,27 @@ class MasterLayoutDropdownDefaultEventHandler extends DefaultEventHandler {
 			mainFieldPlaceholder: Liferay.Language.get('name'),
 			mainFieldValue: itemData.layoutPageTemplateEntryName,
 			namespace: this.namespace,
-			spritemap: this.spritemap
+			spritemap: this.spritemap,
 		});
 	}
 
 	updateMasterLayoutPreview(itemData) {
-		const itemSelectorDialog = new ItemSelectorDialog({
-			eventName: this.ns('changePreview'),
-			singleSelect: true,
+		openSelectionModal({
+			onSelect: (selectedItem) => {
+				if (selectedItem) {
+					const itemValue = JSON.parse(selectedItem.value);
+
+					this.one('#layoutPageTemplateEntryId').value =
+						itemData.layoutPageTemplateEntryId;
+					this.one('#fileEntryId').value = itemValue.fileEntryId;
+
+					submitForm(this.one('#masterLayoutPreviewFm'));
+				}
+			},
+			selectEventName: this.ns('changePreview'),
 			title: Liferay.Language.get('master-page-thumbnail'),
-			url: itemData.itemSelectorURL
+			url: itemData.itemSelectorURL,
 		});
-
-		itemSelectorDialog.on('selectedItemChange', event => {
-			const selectedItem = event.selectedItem;
-
-			if (selectedItem) {
-				const itemValue = JSON.parse(selectedItem.value);
-
-				this.one('#layoutPageTemplateEntryId').value =
-					itemData.layoutPageTemplateEntryId;
-				this.one('#fileEntryId').value = itemValue.fileEntryId;
-
-				submitForm(this.one('#masterLayoutPreviewFm'));
-			}
-		});
-
-		itemSelectorDialog.open();
 	}
 
 	_send(url) {
@@ -84,7 +109,7 @@ class MasterLayoutDropdownDefaultEventHandler extends DefaultEventHandler {
 }
 
 MasterLayoutDropdownDefaultEventHandler.STATE = {
-	spritemap: Config.string()
+	spritemap: Config.string(),
 };
 
 export default MasterLayoutDropdownDefaultEventHandler;

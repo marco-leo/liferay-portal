@@ -83,7 +83,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 * @param  statusOVPs the primary keys and statuses of any of the entry's
 	 *         versions (e.g., {@link
 	 *         com.liferay.portlet.documentlibrary.model.DLFileVersion})
-	 * @param  typeSettingsProperties the type settings properties
+	 * @param  typeSettingsUnicodeProperties the type settings properties
 	 * @return the trashEntry
 	 */
 	@Override
@@ -91,7 +91,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 			long userId, long groupId, String className, long classPK,
 			String classUuid, String referrerClassName, int status,
 			List<ObjectValuePair<Long, Integer>> statusOVPs,
-			UnicodeProperties typeSettingsProperties)
+			UnicodeProperties typeSettingsUnicodeProperties)
 		throws PortalException {
 
 		long classNameId = classNameLocalService.getClassNameId(className);
@@ -129,13 +129,13 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 			trashEntry.setSystemEventSetKey(systemEvent.getSystemEventSetKey());
 		}
 
-		if (typeSettingsProperties != null) {
-			trashEntry.setTypeSettingsProperties(typeSettingsProperties);
+		if (typeSettingsUnicodeProperties != null) {
+			trashEntry.setTypeSettingsProperties(typeSettingsUnicodeProperties);
 		}
 
 		trashEntry.setStatus(status);
 
-		trashEntryPersistence.update(trashEntry);
+		trashEntry = trashEntryPersistence.update(trashEntry);
 
 		if (statusOVPs != null) {
 			for (ObjectValuePair<Long, Integer> statusOVP : statusOVPs) {
@@ -186,8 +186,8 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 							trashHandler.deleteTrashEntry(
 								trashEntry.getClassPK());
 						}
-						catch (Exception e) {
-							_log.error(e, e);
+						catch (Exception exception) {
+							_log.error(exception, exception);
 						}
 					}
 				}
@@ -219,8 +219,8 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 					try {
 						trashHandler.deleteTrashEntry(entry.getClassPK());
 					}
-					catch (Exception e) {
-						_log.error(e, e);
+					catch (Exception exception) {
+						_log.error(exception, exception);
 					}
 				}
 			}
@@ -326,16 +326,18 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 * @param  start the lower bound of the range of trash entries to return
 	 * @param  end the upper bound of the range of trash entries to return (not
 	 *         inclusive)
-	 * @param  obc the comparator to order the trash entries (optionally
-	 *         <code>null</code>)
+	 * @param  orderByComparator the comparator to order the trash entries
+	 *         (optionally <code>null</code>)
 	 * @return the range of matching trash entries ordered by comparator
-	 *         <code>obc</code>
+	 *         <code>orderByComparator</code>
 	 */
 	@Override
 	public List<TrashEntry> getEntries(
-		long groupId, int start, int end, OrderByComparator<TrashEntry> obc) {
+		long groupId, int start, int end,
+		OrderByComparator<TrashEntry> orderByComparator) {
 
-		return trashEntryPersistence.findByGroupId(groupId, start, end, obc);
+		return trashEntryPersistence.findByGroupId(
+			groupId, start, end, orderByComparator);
 	}
 
 	@Override
@@ -395,8 +397,8 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 
 			return indexer.search(searchContext);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -418,8 +420,8 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 
 			return new BaseModelSearchResult<>(trashEntries, hits.getLength());
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -431,8 +433,8 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 
 		searchContext.setCompanyId(companyId);
 		searchContext.setEnd(end);
-		searchContext.setKeywords(keywords);
 		searchContext.setGroupIds(new long[] {groupId});
+		searchContext.setKeywords(keywords);
 
 		if (sort != null) {
 			searchContext.setSorts(sort);
@@ -454,9 +456,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 
 		calendar.setTime(new Date());
 
-		int maxAge = TrashUtil.getMaxAge(group);
-
-		calendar.add(Calendar.MINUTE, -maxAge);
+		calendar.add(Calendar.MINUTE, -TrashUtil.getMaxAge(group));
 
 		return calendar.getTime();
 	}
@@ -512,7 +512,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 
 				entries.add(entry);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
 						StringBundler.concat(

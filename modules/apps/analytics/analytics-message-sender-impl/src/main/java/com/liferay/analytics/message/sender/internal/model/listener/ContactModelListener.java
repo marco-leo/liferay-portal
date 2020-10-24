@@ -14,13 +14,13 @@
 
 package com.liferay.analytics.message.sender.internal.model.listener;
 
+import com.liferay.analytics.message.sender.model.listener.BaseEntityModelListener;
+import com.liferay.analytics.message.sender.model.listener.EntityModelListener;
 import com.liferay.analytics.settings.configuration.AnalyticsConfiguration;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Contact;
 import com.liferay.portal.kernel.model.ModelListener;
-import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ContactLocalService;
+import com.liferay.portal.kernel.util.ArrayUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,17 +31,28 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Rachael Koestartyo
  */
-@Component(immediate = true, service = ModelListener.class)
+@Component(
+	immediate = true, service = {EntityModelListener.class, ModelListener.class}
+)
 public class ContactModelListener extends BaseEntityModelListener<Contact> {
 
 	@Override
-	protected List<String> getAttributeNames() {
-		return _attributeNames;
+	public List<String> getAttributeNames(long companyId) {
+		AnalyticsConfiguration analyticsConfiguration =
+			analyticsConfigurationTracker.getAnalyticsConfiguration(companyId);
+
+		if (ArrayUtil.isEmpty(
+				analyticsConfiguration.syncedContactFieldNames())) {
+
+			return _attributeNames;
+		}
+
+		return Arrays.asList(analyticsConfiguration.syncedContactFieldNames());
 	}
 
 	@Override
-	protected Contact getOriginalModel(Contact contact) throws Exception {
-		return _contactLocalService.getContact(contact.getContactId());
+	protected Contact getModel(long id) throws Exception {
+		return _contactLocalService.getContact(id);
 	}
 
 	@Override
@@ -51,38 +62,16 @@ public class ContactModelListener extends BaseEntityModelListener<Contact> {
 
 	@Override
 	protected boolean isExcluded(Contact contact) {
-		AnalyticsConfiguration analyticsConfiguration =
-			analyticsConfigurationTracker.getAnalyticsConfiguration(
-				contact.getCompanyId());
-
-		if (analyticsConfiguration.syncAllContacts()) {
-			return false;
-		}
-
-		try {
-			User user = userLocalService.getUser(contact.getClassPK());
-
-			return isExcluded(analyticsConfiguration, user);
-		}
-		catch (Exception e) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
-			}
-
-			return true;
-		}
+		return isUserExcluded(userLocalService.fetchUser(contact.getClassPK()));
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		ContactModelListener.class);
 
 	private static final List<String> _attributeNames = Arrays.asList(
 		"accountId", "birthday", "classNameId", "classPK", "companyId",
 		"createDate", "emailAddress", "employeeNumber", "employeeStatusId",
 		"facebookSn", "firstName", "hoursOfOperation", "jabberSn", "jobClass",
-		"jobTitle", "lastName", "male", "middleName", "parentContactId",
-		"prefixId", "skypeSn", "smsSn", "suffixId", "twitterSn", "userId",
-		"userName");
+		"jobTitle", "lastName", "male", "middleName", "modifiedDate",
+		"parentContactId", "prefixId", "skypeSn", "smsSn", "suffixId",
+		"twitterSn", "userId", "userName");
 
 	@Reference
 	private ContactLocalService _contactLocalService;

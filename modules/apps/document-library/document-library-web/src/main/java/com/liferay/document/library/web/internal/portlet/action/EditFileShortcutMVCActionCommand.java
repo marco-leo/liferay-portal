@@ -35,8 +35,6 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 
-import java.util.Map;
-
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 
@@ -76,14 +74,16 @@ public class EditFileShortcutMVCActionCommand extends BaseMVCActionCommand {
 				_deleteFileShortcut(actionRequest, true);
 			}
 		}
-		catch (NoSuchFileShortcutException | PrincipalException e) {
-			SessionErrors.add(actionRequest, e.getClass());
+		catch (NoSuchFileShortcutException | PrincipalException exception) {
+			SessionErrors.add(actionRequest, exception.getClass());
 
 			actionResponse.setRenderParameter(
 				"mvcPath", "/document_library/error.jsp");
 		}
-		catch (FileShortcutPermissionException | NoSuchFileEntryException e) {
-			SessionErrors.add(actionRequest, e.getClass());
+		catch (FileShortcutPermissionException | NoSuchFileEntryException
+					exception) {
+
+			SessionErrors.add(actionRequest, exception.getClass());
 		}
 	}
 
@@ -104,12 +104,12 @@ public class EditFileShortcutMVCActionCommand extends BaseMVCActionCommand {
 				return;
 			}
 
-			Map<String, Object> data = HashMapBuilder.<String, Object>put(
-				"trashedModels",
-				ListUtil.fromArray((TrashedModel)fileShortcut.getModel())
-			).build();
-
-			addDeleteSuccessData(actionRequest, data);
+			addDeleteSuccessData(
+				actionRequest,
+				HashMapBuilder.<String, Object>put(
+					"trashedModels",
+					ListUtil.fromArray((TrashedModel)fileShortcut.getModel())
+				).build());
 		}
 		else {
 			_dlAppService.deleteFileShortcut(fileShortcutId);

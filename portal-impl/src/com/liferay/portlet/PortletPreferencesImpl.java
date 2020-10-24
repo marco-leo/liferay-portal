@@ -72,17 +72,17 @@ public class PortletPreferencesImpl
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+	public boolean equals(Object object) {
+		if (this == object) {
 			return true;
 		}
 
-		if (!(obj instanceof PortletPreferencesImpl)) {
+		if (!(object instanceof PortletPreferencesImpl)) {
 			return false;
 		}
 
 		PortletPreferencesImpl portletPreferencesImpl =
-			(PortletPreferencesImpl)obj;
+			(PortletPreferencesImpl)object;
 
 		if ((companyId == portletPreferencesImpl.companyId) &&
 			(getOwnerId() == portletPreferencesImpl.getOwnerId()) &&
@@ -126,9 +126,9 @@ public class PortletPreferencesImpl
 					PortletPreferencesLocalServiceUtil.getDefaultPreferences(
 						companyId, _portletId);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(e, e);
+					_log.warn(exception, exception);
 				}
 			}
 		}
@@ -176,8 +176,8 @@ public class PortletPreferencesImpl
 			PortletPreferencesLocalServiceUtil.updatePreferences(
 				getOwnerId(), getOwnerType(), _plid, _portletId, this);
 		}
-		catch (SystemException se) {
-			throw new IOException(se);
+		catch (SystemException systemException) {
+			throw new IOException(systemException);
 		}
 	}
 

@@ -57,25 +57,20 @@ public class CommentsContentPageEditorSidebarPanel
 	}
 
 	@Override
-	public boolean includeSeparator() {
-		return true;
-	}
-
-	@Override
 	public boolean isVisible(
-		PermissionChecker permissionChecker, long plid,
-		boolean pageIsDisplayPage) {
+		PermissionChecker permissionChecker, long plid, int layoutType) {
 
 		try {
 			if (LayoutPermissionUtil.contains(
-					permissionChecker, plid, ActionKeys.UPDATE)) {
+					permissionChecker, plid,
+					ActionKeys.UPDATE_LAYOUT_CONTENT)) {
 
 				return true;
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
+				_log.debug(exception, exception);
 			}
 		}
 

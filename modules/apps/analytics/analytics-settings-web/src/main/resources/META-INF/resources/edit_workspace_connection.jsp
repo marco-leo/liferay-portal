@@ -18,11 +18,12 @@
 
 <%
 AnalyticsConfiguration analyticsConfiguration = (AnalyticsConfiguration)request.getAttribute(AnalyticsSettingsWebKeys.ANALYTICS_CONFIGURATION);
+AnalyticsUsersManager analyticsUsersManager = (AnalyticsUsersManager)request.getAttribute(AnalyticsSettingsWebKeys.ANALYTICS_USERS_MANAGER);
 
 boolean connected = false;
-
 String[] syncedGroupIds = new String[0];
 String token = "";
+long totalContactsSelected = 0;
 
 if (analyticsConfiguration != null) {
 	syncedGroupIds = analyticsConfiguration.syncedGroupIds();
@@ -31,19 +32,40 @@ if (analyticsConfiguration != null) {
 	if (!Validator.isBlank(token)) {
 		connected = true;
 	}
+
+	if (analyticsConfiguration.syncAllContacts()) {
+		totalContactsSelected = analyticsUsersManager.getCompanyUsersCount(themeDisplay.getCompanyId());
+	}
+	else {
+		String[] syncedOrganizationIds = GetterUtil.getStringValues(analyticsConfiguration.syncedOrganizationIds());
+
+		long[] syncedOrganizationIdsLong = new long[syncedOrganizationIds.length];
+
+		for (int i = 0; i < syncedOrganizationIds.length; i++) {
+			syncedOrganizationIdsLong[i] = GetterUtil.getLong(syncedOrganizationIds[i]);
+		}
+
+		String[] syncedUserGroupIds = GetterUtil.getStringValues(analyticsConfiguration.syncedUserGroupIds());
+
+		long[] syncedUserGroupIdsLong = new long[syncedUserGroupIds.length];
+
+		for (int i = 0; i < syncedUserGroupIds.length; i++) {
+			syncedUserGroupIdsLong[i] = GetterUtil.getLong(syncedUserGroupIds[i]);
+		}
+
+		totalContactsSelected = analyticsUsersManager.getOrganizationsAndUserGroupsUsersCount(syncedOrganizationIdsLong, syncedUserGroupIdsLong);
+	}
 }
 %>
 
-<portlet:actionURL name="/analytics/edit_workspace_connection" var="editWorkspaceConnectionURL" />
+<portlet:actionURL name="/analytics_settings/edit_workspace_connection" var="editWorkspaceConnectionURL" />
 
-<div class="sheet sheet-lg">
-	<h2 class="autofit-row">
-		<span class="autofit-col autofit-col-expand">
-			<liferay-ui:message key="connect-analytics-cloud" />
-		</span>
+<clay:sheet>
+	<h2>
+		<liferay-ui:message key="connect-analytics-cloud" />
 	</h2>
 
-	<aui:form action="<%= editWorkspaceConnectionURL %>" data-senna-off="true" method="post" name="fm" onSubmit='<%= renderResponse.getNamespace() + "confirmation(event);" %>'>
+	<aui:form action="<%= editWorkspaceConnectionURL %>" data-senna-off="true" method="post" name="fm" onSubmit='<%= liferayPortletResponse.getNamespace() + "confirmation(event);" %>'>
 		<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 
 		<c:if test="<%= connected %>">
@@ -51,14 +73,37 @@ if (analyticsConfiguration != null) {
 		</c:if>
 
 		<aui:fieldset>
-			<aui:input label="analytics-cloud-token" name="token" placeholder="paste-token-here" value="<%= token %>" />
+			<c:if test="<%= !connected %>">
+				<aui:input autocomplete="off" label="analytics-cloud-token" name="token" oninput='<%= liferayPortletResponse.getNamespace() + "validateTokenButton();" %>' placeholder="paste-token-here" value="<%= token %>" wrapperCssClass="mb-1" />
 
-			<div class="form-text">
-				<liferay-ui:message key="analytics-cloud-token-help" />
-			</div>
+				<div class="form-text">
+					<liferay-ui:message key="analytics-cloud-token-help" />
+				</div>
+			</c:if>
 
-			<aui:button-row>
-				<aui:button primary="<%= connected ? false : true %>" type="submit" value='<%= connected ? "disconnect" : "connect" %>' />
+			<c:if test="<%= connected %>">
+				<label class="control-label d-block mb-2">
+					<liferay-ui:message key="analytics-cloud-token" />
+				</label>
+
+				<label class="control-label d-block">
+					<liferay-ui:message key="your-dxp-instance-is-connected-to-analytics-cloud" />
+				</label>
+			</c:if>
+
+			<aui:button-row cssClass="mt-2">
+				<c:if test="<%= connected %>">
+					<a class="btn btn-primary mr-2" href="<%= analyticsConfiguration.liferayAnalyticsURL() %>" target="_blank">
+						<span class="lfr-btn-label"><liferay-ui:message key="go-to-workspace" /></span>
+
+						<liferay-ui:icon
+							icon="shortcut"
+							markupView="lexicon"
+						/>
+					</a>
+				</c:if>
+
+				<aui:button id="tokenButton" primary="<%= connected ? false : true %>" type="submit" value='<%= connected ? "disconnect" : "connect" %>' />
 			</aui:button-row>
 		</aui:fieldset>
 	</aui:form>
@@ -81,12 +126,10 @@ if (analyticsConfiguration != null) {
 		<aui:button-row>
 			<liferay-portlet:renderURL varImpl="selectSitesURL">
 				<portlet:param name="mvcRenderCommandName" value="/view_configuration_screen" />
-				<portlet:param name="configurationScreenKey" value="synced-sites" />
+				<portlet:param name="configurationScreenKey" value="1-synced-sites" />
 			</liferay-portlet:renderURL>
 
-			<a href="<%= selectSitesURL.toString() %>">
-				<aui:button disabled="<%= !connected %>" primary="<%= true %>" value="select-sites" />
-			</a>
+			<aui:button disabled="<%= !connected %>" href="<%= selectSitesURL.toString() %>" primary="<%= true %>" value="select-sites" />
 		</aui:button-row>
 	</aui:fieldset>
 
@@ -101,26 +144,24 @@ if (analyticsConfiguration != null) {
 
 		<small>
 			<strong>
-				<liferay-ui:message arguments="<%= 0 %>" key="total-contacts-selected-x" />
+				<liferay-ui:message arguments="<%= totalContactsSelected %>" key="total-contacts-selected-x" />
 			</strong>
 		</small>
 
 		<aui:button-row>
 			<liferay-portlet:renderURL varImpl="selectContactsURL">
 				<portlet:param name="mvcRenderCommandName" value="/view_configuration_screen" />
-				<portlet:param name="configurationScreenKey" value="synced-contacts" />
+				<portlet:param name="configurationScreenKey" value="2-synced-contacts" />
 			</liferay-portlet:renderURL>
 
-			<a href="<%= selectContactsURL.toString() %>">
-				<aui:button disabled="<%= !connected %>" primary="<%= true %>" value="select-contacts" />
-			</a>
+			<aui:button disabled="<%= !connected %>" href="<%= selectContactsURL.toString() %>" primary="<%= true %>" value="select-contacts" />
 		</aui:button-row>
 	</aui:fieldset>
-</div>
+</clay:sheet>
 
 <script>
 	function <portlet:namespace />confirmation(event) {
-		<c:if test="<%=connected%>">
+		<c:if test="<%= connected %>">
 			if (
 				!confirm(
 					'<liferay-ui:message key="are-you-sure-you-want-to-disconnect-your-analytics-cloud-workspace-from-this-dxp-instance" />'
@@ -130,4 +171,19 @@ if (analyticsConfiguration != null) {
 			}
 		</c:if>
 	}
+
+	function <portlet:namespace />validateTokenButton() {
+		var token = document.getElementById('<portlet:namespace />token');
+		var tokenButton = document.getElementById(
+			'<portlet:namespace />tokenButton'
+		);
+
+		var value = token.value;
+
+		tokenButton.disabled = value.length === 0;
+	}
+
+	<c:if test="<%= !connected %>">
+		<portlet:namespace />validateTokenButton();
+	</c:if>
 </script>

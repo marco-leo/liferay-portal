@@ -59,7 +59,6 @@ public abstract class MBMessageFinderBaseImpl
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
-		super.setConfiguration(configuration);
 	}
 
 	@Override
@@ -90,8 +89,8 @@ public abstract class MBMessageFinderBaseImpl
 		try {
 			Class.forName(MBPersistenceConstants.class.getName());
 		}
-		catch (ClassNotFoundException cnfe) {
-			throw new ExceptionInInitializerError(cnfe);
+		catch (ClassNotFoundException classNotFoundException) {
+			throw new ExceptionInInitializerError(classNotFoundException);
 		}
 	}
 

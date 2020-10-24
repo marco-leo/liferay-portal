@@ -483,11 +483,6 @@ public class LayoutSetBranchWrapper
 		return model.isPrivateLayout();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a layout set branch model instance should use the <code>LayoutSetBranch</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -667,9 +662,10 @@ public class LayoutSetBranchWrapper
 
 	@Override
 	public void setSettingsProperties(
-		com.liferay.portal.kernel.util.UnicodeProperties settingsProperties) {
+		com.liferay.portal.kernel.util.UnicodeProperties
+			settingsUnicodeProperties) {
 
-		model.setSettingsProperties(settingsProperties);
+		model.setSettingsProperties(settingsUnicodeProperties);
 	}
 
 	/**

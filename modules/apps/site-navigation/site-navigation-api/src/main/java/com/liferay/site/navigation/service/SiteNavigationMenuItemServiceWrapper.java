@@ -33,11 +33,6 @@ public class SiteNavigationMenuItemServiceWrapper
 		_siteNavigationMenuItemService = siteNavigationMenuItemService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SiteNavigationMenuItemServiceUtil} to access the site navigation menu item remote service. Add custom service methods to <code>com.liferay.site.navigation.service.impl.SiteNavigationMenuItemServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.site.navigation.model.SiteNavigationMenuItem
 			addSiteNavigationMenuItem(
@@ -86,6 +81,18 @@ public class SiteNavigationMenuItemServiceWrapper
 
 		return _siteNavigationMenuItemService.getSiteNavigationMenuItems(
 			siteNavigationMenuId);
+	}
+
+	@Override
+	public java.util.List
+		<com.liferay.site.navigation.model.SiteNavigationMenuItem>
+				getSiteNavigationMenuItems(
+					long siteNavigationMenuId,
+					long parentSiteNavigationMenuItemId)
+			throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _siteNavigationMenuItemService.getSiteNavigationMenuItems(
+			siteNavigationMenuId, parentSiteNavigationMenuItemId);
 	}
 
 	@Override

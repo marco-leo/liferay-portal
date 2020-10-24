@@ -69,8 +69,8 @@ public class JournalTemplateHandler extends BaseDDMTemplateHandler {
 
 			contextObjects.put("journalContentUtil", _journalContent);
 		}
-		catch (SecurityException se) {
-			_log.error(se, se);
+		catch (SecurityException securityException) {
+			_log.error(securityException, securityException);
 		}
 
 		return contextObjects;
@@ -102,6 +102,15 @@ public class JournalTemplateHandler extends BaseDDMTemplateHandler {
 
 		Map<String, TemplateVariableGroup> templateVariableGroups =
 			super.getTemplateVariableGroups(classPK, language, locale);
+
+		TemplateVariableGroup fieldsTemplateVariableGroup =
+			templateVariableGroups.get("fields");
+
+		if (fieldsTemplateVariableGroup != null) {
+			fieldsTemplateVariableGroup.addVariable(
+				"friendly-url", String.class,
+				"friendlyURLs[themeDisplay.getLanguageId()]!\"\"");
+		}
 
 		String[] restrictedVariables = getRestrictedVariables(language);
 

@@ -15,9 +15,9 @@
 package com.liferay.source.formatter;
 
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.source.formatter.util.FileUtil;
@@ -69,8 +69,9 @@ public abstract class BaseSourceProcessorTestCase {
 		SourceFormatterArgs sourceFormatterArgs = new SourceFormatterArgs();
 
 		sourceFormatterArgs.setAutoFix(true);
+		sourceFormatterArgs.setFailOnAutoFix(false);
+		sourceFormatterArgs.setFailOnHasWarning(false);
 		sourceFormatterArgs.setPrintErrors(false);
-		sourceFormatterArgs.setThrowException(false);
 
 		return sourceFormatterArgs;
 	}

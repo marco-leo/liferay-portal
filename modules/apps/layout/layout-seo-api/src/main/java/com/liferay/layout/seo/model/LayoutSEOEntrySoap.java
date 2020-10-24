@@ -24,8 +24,10 @@ import java.util.List;
  * This class is used by SOAP remote services, specifically {@link com.liferay.layout.seo.service.http.LayoutSEOEntryServiceSoap}.
  *
  * @author Brian Wing Shun Chan
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class LayoutSEOEntrySoap implements Serializable {
 
 	public static LayoutSEOEntrySoap toSoapModel(LayoutSEOEntry model) {
@@ -48,6 +50,7 @@ public class LayoutSEOEntrySoap implements Serializable {
 		soapModel.setOpenGraphDescription(model.getOpenGraphDescription());
 		soapModel.setOpenGraphDescriptionEnabled(
 			model.isOpenGraphDescriptionEnabled());
+		soapModel.setOpenGraphImageAlt(model.getOpenGraphImageAlt());
 		soapModel.setOpenGraphImageFileEntryId(
 			model.getOpenGraphImageFileEntryId());
 		soapModel.setOpenGraphTitle(model.getOpenGraphTitle());
@@ -253,6 +256,14 @@ public class LayoutSEOEntrySoap implements Serializable {
 		_openGraphDescriptionEnabled = openGraphDescriptionEnabled;
 	}
 
+	public String getOpenGraphImageAlt() {
+		return _openGraphImageAlt;
+	}
+
+	public void setOpenGraphImageAlt(String openGraphImageAlt) {
+		_openGraphImageAlt = openGraphImageAlt;
+	}
+
 	public long getOpenGraphImageFileEntryId() {
 		return _openGraphImageFileEntryId;
 	}
@@ -305,6 +316,7 @@ public class LayoutSEOEntrySoap implements Serializable {
 	private long _DDMStorageId;
 	private String _openGraphDescription;
 	private boolean _openGraphDescriptionEnabled;
+	private String _openGraphImageAlt;
 	private long _openGraphImageFileEntryId;
 	private String _openGraphTitle;
 	private boolean _openGraphTitleEnabled;

@@ -43,7 +43,7 @@ public class NodeDefaultsPlugin extends BaseDefaultsPlugin<NodePlugin> {
 	public static final Plugin<Project> INSTANCE = new NodeDefaultsPlugin();
 
 	@Override
-	protected void configureDefaults(Project project, NodePlugin nodePlugin) {
+	protected void applyPluginDefaults(Project project, NodePlugin nodePlugin) {
 		String portalVersion = PortalTools.getPortalVersion(project);
 
 		_configureNode(project, portalVersion);
@@ -74,8 +74,8 @@ public class NodeDefaultsPlugin extends BaseDefaultsPlugin<NodePlugin> {
 			NodeExtension nodeExtension = GradleUtil.getExtension(
 				project, NodeExtension.class);
 
-			nodeExtension.setNodeVersion("8.10.0");
-			nodeExtension.setNpmVersion("5.7.1");
+			nodeExtension.setNodeVersion("8.15.0");
+			nodeExtension.setNpmVersion("6.4.1");
 		}
 	}
 

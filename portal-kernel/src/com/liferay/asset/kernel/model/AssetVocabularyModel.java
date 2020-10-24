@@ -45,7 +45,7 @@ public interface AssetVocabularyModel
 	extends BaseModel<AssetVocabulary>, CTModel<AssetVocabulary>,
 			LocalizedModel, MVCCModel, ShardedModel, StagedGroupedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a asset vocabulary model instance should use the {@link AssetVocabulary} interface instead.
@@ -487,6 +487,20 @@ public interface AssetVocabularyModel
 	 * @param settings the settings of this asset vocabulary
 	 */
 	public void setSettings(String settings);
+
+	/**
+	 * Returns the visibility type of this asset vocabulary.
+	 *
+	 * @return the visibility type of this asset vocabulary
+	 */
+	public int getVisibilityType();
+
+	/**
+	 * Sets the visibility type of this asset vocabulary.
+	 *
+	 * @param visibilityType the visibility type of this asset vocabulary
+	 */
+	public void setVisibilityType(int visibilityType);
 
 	/**
 	 * Returns the last publish date of this asset vocabulary.

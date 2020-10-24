@@ -22,7 +22,10 @@ import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.segments.constants.SegmentsEntryConstants;
 import com.liferay.segments.field.Field;
 import com.liferay.segments.field.customizer.SegmentsFieldCustomizer;
 import com.liferay.segments.model.SegmentsEntry;
@@ -74,7 +77,7 @@ public class SegmentsEntrySegmentsFieldCustomizer
 		SegmentsEntry segmentsEntry = _getSegmentsEntry(fieldValue);
 
 		if (segmentsEntry == null) {
-			return fieldValue;
+			return null;
 		}
 
 		return segmentsEntry.getName(locale);
@@ -97,6 +100,19 @@ public class SegmentsEntrySegmentsFieldCustomizer
 			}
 
 			portletURL.setParameter("eventName", "selectEntity");
+
+			long segmentsEntryId = ParamUtil.getLong(
+				portletRequest, "segmentsEntryId");
+
+			if (segmentsEntryId > 0) {
+				portletURL.setParameter(
+					"excludedSegmentsEntryIds",
+					String.valueOf(segmentsEntryId));
+			}
+
+			portletURL.setParameter(
+				"excludedSources",
+				StringUtil.toLowerCase(SegmentsEntryConstants.SOURCE_REFERRED));
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 
 			return new Field.SelectEntity(
@@ -106,9 +122,9 @@ public class SegmentsEntrySegmentsFieldCustomizer
 					SegmentsEntry.class.getName()),
 				portletURL.toString(), false);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn("Unable to get select entity", e);
+				_log.warn("Unable to get select entity", exception);
 			}
 
 			return null;
@@ -129,7 +145,7 @@ public class SegmentsEntrySegmentsFieldCustomizer
 		SegmentsEntrySegmentsFieldCustomizer.class);
 
 	private static final List<String> _fieldNames = ListUtil.fromArray(
-		"segmentsEntryId");
+		"segmentsEntryIds");
 
 	@Reference
 	private Portal _portal;

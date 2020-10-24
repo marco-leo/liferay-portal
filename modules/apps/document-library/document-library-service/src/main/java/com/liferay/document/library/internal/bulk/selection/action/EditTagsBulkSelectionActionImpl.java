@@ -97,9 +97,9 @@ public class EditTagsBulkSelectionActionImpl
 						assetEntry.getClassName(), assetEntry.getClassPK(),
 						assetEntry.getCategoryIds(), newTagNames);
 				}
-				catch (PortalException pe) {
+				catch (PortalException portalException) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(pe, pe);
+						_log.warn(portalException, portalException);
 					}
 				}
 			});
@@ -109,7 +109,7 @@ public class EditTagsBulkSelectionActionImpl
 			AssetEntry assetEntry, PermissionChecker permissionChecker)
 		throws PortalException {
 
-		AssetRenderer assetRenderer = assetEntry.getAssetRenderer();
+		AssetRenderer<?> assetRenderer = assetEntry.getAssetRenderer();
 
 		if (assetRenderer != null) {
 			return assetRenderer.hasEditPermission(permissionChecker);

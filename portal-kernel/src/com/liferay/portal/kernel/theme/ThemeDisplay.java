@@ -19,6 +19,7 @@ import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.mobile.device.rules.kernel.MDRRuleGroupInstance;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.reflect.ReflectionUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSON;
@@ -144,8 +145,8 @@ public class ThemeDisplay
 			try {
 				_account = _company.getAccount();
 			}
-			catch (PortalException pe) {
-				ReflectionUtil.throwException(pe);
+			catch (PortalException portalException) {
+				ReflectionUtil.throwException(portalException);
 			}
 		}
 
@@ -175,8 +176,8 @@ public class ThemeDisplay
 			try {
 				portalURL = PortalUtil.getPortalURL(getLayout(), this);
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 
 			host = portalURL;
@@ -299,8 +300,8 @@ public class ThemeDisplay
 			try {
 				_contact = _user.getContact();
 			}
-			catch (PortalException pe) {
-				ReflectionUtil.throwException(pe);
+			catch (PortalException portalException) {
+				ReflectionUtil.throwException(portalException);
 			}
 		}
 
@@ -313,8 +314,8 @@ public class ThemeDisplay
 				_controlPanelGroup = GroupLocalServiceUtil.getGroup(
 					_company.getCompanyId(), GroupConstants.CONTROL_PANEL);
 			}
-			catch (PortalException pe) {
-				ReflectionUtil.throwException(pe);
+			catch (PortalException portalException) {
+				ReflectionUtil.throwException(portalException);
 			}
 		}
 
@@ -455,11 +456,9 @@ public class ThemeDisplay
 
 			Group group = layout.getGroup();
 
-			return VirtualLayoutConstants.CANONICAL_URL_SEPARATOR.concat(
-				group.getFriendlyURL()
-			).concat(
-				_getFriendlyURL(layout)
-			);
+			return StringBundler.concat(
+				VirtualLayoutConstants.CANONICAL_URL_SEPARATOR,
+				group.getFriendlyURL(), _getFriendlyURL(layout));
 		}
 
 		return _getFriendlyURL(layout);
@@ -1457,8 +1456,8 @@ public class ThemeDisplay
 			try {
 				portalURL = PortalUtil.getPortalURL(getLayout(), this);
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 
 			dynamicResourcesHost = portalURL;
@@ -1607,8 +1606,8 @@ public class ThemeDisplay
 			try {
 				_refererGroup = GroupLocalServiceUtil.getGroup(_refererGroupId);
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 		}
 	}
@@ -1632,8 +1631,8 @@ public class ThemeDisplay
 			try {
 				_scopeGroup = GroupLocalServiceUtil.getGroup(_scopeGroupId);
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 		}
 	}
@@ -1719,8 +1718,8 @@ public class ThemeDisplay
 			try {
 				_siteGroup = GroupLocalServiceUtil.getGroup(_siteGroupId);
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 		}
 	}
@@ -1820,8 +1819,8 @@ public class ThemeDisplay
 		try {
 			return (ThemeDisplay)clone();
 		}
-		catch (CloneNotSupportedException cnse) {
-			throw new RuntimeException(cnse);
+		catch (CloneNotSupportedException cloneNotSupportedException) {
+			throw new RuntimeException(cloneNotSupportedException);
 		}
 	}
 

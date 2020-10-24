@@ -30,16 +30,10 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class PasswordPolicyServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.PasswordPolicyServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link PasswordPolicyServiceUtil} to access the password policy remote service. Add custom service methods to <code>com.liferay.portal.service.impl.PasswordPolicyServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.portal.kernel.model.PasswordPolicy
 			addPasswordPolicy(
@@ -89,9 +83,11 @@ public class PasswordPolicyServiceUtil {
 		search(
 			long companyId, String name, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.portal.kernel.model.PasswordPolicy> obc) {
+				<com.liferay.portal.kernel.model.PasswordPolicy>
+					orderByComparator) {
 
-		return getService().search(companyId, name, start, end, obc);
+		return getService().search(
+			companyId, name, start, end, orderByComparator);
 	}
 
 	public static int searchCount(long companyId, String name) {

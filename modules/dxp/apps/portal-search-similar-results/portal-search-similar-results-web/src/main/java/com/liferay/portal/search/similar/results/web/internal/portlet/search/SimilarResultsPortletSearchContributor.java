@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.search.filter.ComplexQueryPart;
 import com.liferay.portal.search.filter.ComplexQueryPartBuilderFactory;
@@ -30,6 +31,7 @@ import com.liferay.portal.search.similar.results.web.internal.builder.SimilarRes
 import com.liferay.portal.search.similar.results.web.internal.constants.SimilarResultsPortletKeys;
 import com.liferay.portal.search.similar.results.web.internal.portlet.SimilarResultsPortletPreferences;
 import com.liferay.portal.search.similar.results.web.internal.portlet.SimilarResultsPortletPreferencesImpl;
+import com.liferay.portal.search.similar.results.web.internal.util.SearchStringUtil;
 import com.liferay.portal.search.similar.results.web.spi.contributor.SimilarResultsContributor;
 import com.liferay.portal.search.similar.results.web.spi.contributor.helper.CriteriaHelper;
 import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchContributor;
@@ -85,7 +87,9 @@ public class SimilarResultsPortletSearchContributor
 					similarResultsPortletPreferences.getFederatedSearchKey()));
 
 		filterByEntryClassName(
-			criteria, searchRequestBuilder, portletSharedSearchSettings);
+			criteria, portletSharedSearchSettings, searchRequestBuilder);
+
+		filterByGroupId(portletSharedSearchSettings, searchRequestBuilder);
 
 		searchRequestBuilder.query(
 			getMoreLikeThisQuery(
@@ -100,8 +104,9 @@ public class SimilarResultsPortletSearchContributor
 	}
 
 	protected void filterByEntryClassName(
-		Criteria criteria, SearchRequestBuilder searchRequestBuilder,
-		PortletSharedSearchSettings portletSharedSearchSettings) {
+		Criteria criteria,
+		PortletSharedSearchSettings portletSharedSearchSettings,
+		SearchRequestBuilder searchRequestBuilder) {
 
 		Optional<String> optional =
 			portletSharedSearchSettings.getParameterOptional(
@@ -120,6 +125,15 @@ public class SimilarResultsPortletSearchContributor
 						getComplexQueryPart(getEntryClassNameQuery(className)));
 				}
 			});
+	}
+
+	protected void filterByGroupId(
+		PortletSharedSearchSettings portletSharedSearchSettings,
+		SearchRequestBuilder searchRequestBuilder) {
+
+		searchRequestBuilder.withSearchContext(
+			searchContext -> searchContext.setGroupIds(
+				new long[] {getGroupId(portletSharedSearchSettings)}));
 	}
 
 	protected ComplexQueryPart getComplexQueryPart(Query query) {
@@ -195,14 +209,24 @@ public class SimilarResultsPortletSearchContributor
 	protected SimilarResultsContributorsRegistry
 		similarResultsContributorsRegistry;
 
-	private static void _populate(
+	private void _populate(
 		MoreLikeThisQuery moreLikeThisQuery,
 		SimilarResultsPortletPreferences similarResultsPortletPreferences) {
+
+		String fields = similarResultsPortletPreferences.getFields();
+
+		if (!Validator.isBlank(fields)) {
+			moreLikeThisQuery.addFields(
+				SearchStringUtil.splitAndUnquote(
+					SearchStringUtil.maybe(fields)));
+		}
 
 		String stopWords = similarResultsPortletPreferences.getStopWords();
 
 		if (!Validator.isBlank(stopWords)) {
-			moreLikeThisQuery.addStopWords(stopWords);
+			moreLikeThisQuery.addStopWords(
+				SearchStringUtil.splitAndUnquote(
+					SearchStringUtil.maybe(StringUtil.toLowerCase(stopWords))));
 		}
 
 		moreLikeThisQuery.setAnalyzer(

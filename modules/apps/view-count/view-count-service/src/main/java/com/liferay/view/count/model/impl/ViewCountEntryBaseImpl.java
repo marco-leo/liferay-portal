@@ -32,7 +32,7 @@ import com.liferay.view.count.service.ViewCountEntryLocalServiceUtil;
 public abstract class ViewCountEntryBaseImpl
 	extends ViewCountEntryModelImpl implements ViewCountEntry {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a view count entry model instance should use the <code>ViewCountEntry</code> interface instead.

@@ -20,22 +20,16 @@
 JournalManagementToolbarDisplayContext journalManagementToolbarDisplayContext = null;
 
 if (!journalDisplayContext.isSearch() || journalDisplayContext.isWebContentTabSelected()) {
-	journalManagementToolbarDisplayContext = new JournalManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, journalDisplayContext, trashHelper);
+	journalManagementToolbarDisplayContext = new JournalManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, journalDisplayContext, trashHelper);
 }
 else if (journalDisplayContext.isVersionsTabSelected()) {
-	journalManagementToolbarDisplayContext = new JournalArticleVersionsManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, journalDisplayContext, trashHelper);
+	journalManagementToolbarDisplayContext = new JournalArticleVersionsManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, journalDisplayContext, trashHelper);
 }
 else if (journalDisplayContext.isCommentsTabSelected()) {
-	journalManagementToolbarDisplayContext = new JournalArticleCommentsManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, journalDisplayContext, trashHelper);
+	journalManagementToolbarDisplayContext = new JournalArticleCommentsManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, journalDisplayContext, trashHelper);
 }
 else {
-	journalManagementToolbarDisplayContext = new JournalManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, journalDisplayContext, trashHelper);
-}
-
-String title = journalDisplayContext.getFolderTitle();
-
-if (Validator.isNotNull(title)) {
-	renderResponse.setTitle(journalDisplayContext.getFolderTitle());
+	journalManagementToolbarDisplayContext = new JournalManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, journalDisplayContext, trashHelper);
 }
 %>
 
@@ -47,7 +41,7 @@ if (Validator.isNotNull(title)) {
 
 <clay:navigation-bar
 	inverted="<%= true %>"
-	navigationItems='<%= journalDisplayContext.getNavigationBarItems("web-content") %>'
+	navigationItems='<%= journalDisplayContext.getNavigationItems("web-content") %>'
 />
 
 <clay:management-toolbar
@@ -60,7 +54,10 @@ if (Validator.isNotNull(title)) {
 	module="js/ManagementToolbarDefaultEventHandler.es"
 />
 
-<div class="closed container-fluid-1280 sidenav-container sidenav-right" id="<portlet:namespace />infoPanelId">
+<clay:container-fluid
+	cssClass="closed sidenav-container sidenav-right"
+	id='<%= liferayPortletResponse.getNamespace() + "infoPanelId" %>'
+>
 	<c:if test="<%= journalDisplayContext.isShowInfoButton() %>">
 		<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="/journal/info_panel" var="sidebarPanelURL">
 			<portlet:param name="folderId" value="<%= String.valueOf(journalDisplayContext.getFolderId()) %>" />
@@ -143,4 +140,11 @@ if (Validator.isNotNull(title)) {
 			</c:choose>
 		</aui:form>
 	</div>
-</div>
+
+	<div>
+		<react:component
+			module="js/export_translation/ExportTranslation.es"
+			props="<%= journalDisplayContext.getExportTranslationData() %>"
+		/>
+	</div>
+</clay:container-fluid>

@@ -20,7 +20,6 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cache.SingleVMPool;
-import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.template.TemplateException;
@@ -33,8 +32,6 @@ import com.liferay.portal.template.TemplateContextHelper;
 import com.liferay.portal.template.velocity.configuration.VelocityEngineConfiguration;
 import com.liferay.taglib.util.VelocityTaglib;
 import com.liferay.taglib.util.VelocityTaglibImpl;
-
-import java.lang.reflect.Method;
 
 import java.util.Map;
 
@@ -63,9 +60,13 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class VelocityManager extends BaseTemplateManager {
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	@Override
-	public void addTaglibTheme(
-		Map<String, Object> contextObjects, String themeName,
+	public void addTaglibSupport(
+		Map<String, Object> contextObjects,
 		HttpServletRequest httpServletRequest,
 		HttpServletResponse httpServletResponse) {
 
@@ -73,9 +74,7 @@ public class VelocityManager extends BaseTemplateManager {
 			httpServletRequest.getServletContext(), httpServletRequest,
 			httpServletResponse, contextObjects);
 
-		contextObjects.put(themeName, velocityTaglib);
-
-		contextObjects.put("velocityTaglib_layoutIcon", _layoutIconMethod);
+		contextObjects.put("taglibLiferay", velocityTaglib);
 
 		// Legacy support
 
@@ -244,8 +243,8 @@ public class VelocityManager extends BaseTemplateManager {
 
 			_velocityEngine.init();
 		}
-		catch (Exception e) {
-			throw new TemplateException(e);
+		catch (Exception exception) {
+			throw new TemplateException(exception);
 		}
 		finally {
 			currentThread.setContextClassLoader(contextClassLoader);
@@ -310,19 +309,8 @@ public class VelocityManager extends BaseTemplateManager {
 		return sb.toString();
 	}
 
-	private static final Method _layoutIconMethod;
 	private static volatile VelocityEngineConfiguration
 		_velocityEngineConfiguration;
-
-	static {
-		try {
-			_layoutIconMethod = VelocityTaglib.class.getMethod(
-				"layoutIcon", new Class<?>[] {Layout.class});
-		}
-		catch (NoSuchMethodException nsme) {
-			throw new ExceptionInInitializerError(nsme);
-		}
-	}
 
 	@Reference
 	private SingleVMPool _singleVMPool;

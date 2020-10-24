@@ -53,6 +53,7 @@ public class KaleoTaskInstanceTokenWrapper
 		attributes.put("userName", getUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
+		attributes.put("kaleoDefinitionId", getKaleoDefinitionId());
 		attributes.put(
 			"kaleoDefinitionVersionId", getKaleoDefinitionVersionId());
 		attributes.put("kaleoInstanceId", getKaleoInstanceId());
@@ -119,6 +120,12 @@ public class KaleoTaskInstanceTokenWrapper
 
 		if (modifiedDate != null) {
 			setModifiedDate(modifiedDate);
+		}
+
+		Long kaleoDefinitionId = (Long)attributes.get("kaleoDefinitionId");
+
+		if (kaleoDefinitionId != null) {
+			setKaleoDefinitionId(kaleoDefinitionId);
 		}
 
 		Long kaleoDefinitionVersionId = (Long)attributes.get(
@@ -302,6 +309,16 @@ public class KaleoTaskInstanceTokenWrapper
 	}
 
 	/**
+	 * Returns the kaleo definition ID of this kaleo task instance token.
+	 *
+	 * @return the kaleo definition ID of this kaleo task instance token
+	 */
+	@Override
+	public long getKaleoDefinitionId() {
+		return model.getKaleoDefinitionId();
+	}
+
+	/**
 	 * Returns the kaleo definition version ID of this kaleo task instance token.
 	 *
 	 * @return the kaleo definition version ID of this kaleo task instance token
@@ -462,11 +479,6 @@ public class KaleoTaskInstanceTokenWrapper
 		return model.isCompleted();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a kaleo task instance token model instance should use the <code>KaleoTaskInstanceToken</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -570,6 +582,16 @@ public class KaleoTaskInstanceTokenWrapper
 	@Override
 	public void setGroupId(long groupId) {
 		model.setGroupId(groupId);
+	}
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo task instance token.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo task instance token
+	 */
+	@Override
+	public void setKaleoDefinitionId(long kaleoDefinitionId) {
+		model.setKaleoDefinitionId(kaleoDefinitionId);
 	}
 
 	/**

@@ -45,7 +45,7 @@ public class PutMappingIndexRequestExecutorImpl
 			putMappingIndexRequest);
 
 		AcknowledgedResponse acknowledgedResponse = getAcknowledgedResponse(
-			putMappingRequest);
+			putMappingRequest, putMappingIndexRequest);
 
 		return new PutMappingIndexResponse(
 			acknowledgedResponse.isAcknowledged());
@@ -65,10 +65,13 @@ public class PutMappingIndexRequestExecutorImpl
 	}
 
 	protected AcknowledgedResponse getAcknowledgedResponse(
-		PutMappingRequest putMappingRequest) {
+		PutMappingRequest putMappingRequest,
+		PutMappingIndexRequest putMappingIndexRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				putMappingIndexRequest.getConnectionId(),
+				putMappingIndexRequest.isPreferLocalCluster());
 
 		IndicesClient indicesClient = restHighLevelClient.indices();
 
@@ -76,8 +79,8 @@ public class PutMappingIndexRequestExecutorImpl
 			return indicesClient.putMapping(
 				putMappingRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

@@ -91,13 +91,16 @@ public abstract class BasePortalWorkspace
 
 		_primaryPortalWorkspaceGitRepository.setUp();
 
-		_companionPortalWorkspaceGitRepository =
-			WorkspaceUtil.getDependencyWorkspaceGitRepository(
-				CompanionPortalWorkspaceGitRepository.TYPE,
-				_primaryPortalWorkspaceGitRepository);
+		if (portalUpstreamBranchName.endsWith("private")) {
+			_companionPortalWorkspaceGitRepository =
+				WorkspaceUtil.getDependencyWorkspaceGitRepository(
+					CompanionPortalWorkspaceGitRepository.TYPE,
+					_primaryPortalWorkspaceGitRepository);
 
-		if (_companionPortalWorkspaceGitRepository != null) {
 			_companionPortalWorkspaceGitRepository.setUp();
+		}
+		else {
+			_companionPortalWorkspaceGitRepository = null;
 		}
 
 		workspaceGitRepository = WorkspaceUtil.getWorkspaceGitRepository(
@@ -185,8 +188,8 @@ public abstract class BasePortalWorkspace
 					buildProperties =
 						JenkinsResultsParserUtil.getBuildProperties();
 				}
-				catch (IOException ioe) {
-					throw new RuntimeException(ioe);
+				catch (IOException ioException) {
+					throw new RuntimeException(ioException);
 				}
 
 				String databaseName = matcher.group("databaseName");
@@ -225,7 +228,7 @@ public abstract class BasePortalWorkspace
 			}
 			else if (databaseType.equals("oracle")) {
 				portalTestProperties.setProperty(
-					"database.oracle.host",
+					"database.oracle.url",
 					JenkinsResultsParserUtil.combine(
 						"jdbc:oracle:thin:@", databaseHost, ":1521/oracl"));
 			}

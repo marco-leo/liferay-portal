@@ -16,7 +16,7 @@ import ListHeadItem from '../../shared/components/list/ListHeadItem.es';
 import UserAvatar from '../../shared/components/user-avatar/UserAvatar.es';
 import {formatDuration} from '../../shared/util/duration.es';
 
-const Item = ({durationTaskAvg, image, name, taskCount}) => {
+const Item = ({assignee: {image, name}, durationTaskAvg, id, taskCount}) => {
 	const formattedDuration = formatDuration(durationTaskAvg);
 
 	return (
@@ -24,18 +24,21 @@ const Item = ({durationTaskAvg, image, name, taskCount}) => {
 			<ClayTable.Cell data-testid="assigneeProfileInfo">
 				<UserAvatar className="mr-3" image={image} />
 
-				<span data-testid="assigneeName">{name}</span>
+				<span data-testid="assigneeName">{name || id}</span>
 			</ClayTable.Cell>
 
 			<ClayTable.Cell>
-				<span className="task-count-value" data-testid="taskCount">
+				<span
+					className="task-count-value text-right"
+					data-testid="taskCount"
+				>
 					{taskCount}
 				</span>
 			</ClayTable.Cell>
 
 			<ClayTable.Cell>
 				<span
-					className="task-count-value"
+					className="task-count-value text-right"
 					data-testid="durationTaskAvg"
 				>
 					{formattedDuration}

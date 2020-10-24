@@ -19,7 +19,6 @@ import com.liferay.exportimport.kernel.staging.Staging;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -34,6 +33,7 @@ import com.liferay.portal.kernel.model.LayoutRevision;
 import com.liferay.portal.kernel.model.LayoutSetBranch;
 import com.liferay.portal.kernel.model.impl.VirtualLayout;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutRevisionLocalService;
 import com.liferay.portal.kernel.service.LayoutService;
@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -292,7 +293,10 @@ public class LayoutsTreeImpl implements LayoutsTree {
 
 		List<Layout> layouts = _getPaginatedLayouts(
 			httpServletRequest, groupId, privateLayout, parentLayoutId,
-			incomplete, treeId, childLayout, count);
+			incomplete, treeId, childLayout, count,
+			_layoutLocalService.getLayoutsCount(
+				_groupLocalService.getGroup(groupId), privateLayout,
+				parentLayoutId));
 
 		for (Layout layout : layouts) {
 			LayoutTreeNode layoutTreeNode = new LayoutTreeNode(layout);
@@ -368,7 +372,7 @@ public class LayoutsTreeImpl implements LayoutsTree {
 	private List<Layout> _getPaginatedLayouts(
 			HttpServletRequest httpServletRequest, long groupId,
 			boolean privateLayout, long parentLayoutId, boolean incomplete,
-			String treeId, boolean childLayout, int count)
+			String treeId, boolean childLayout, int count, int totalCount)
 		throws Exception {
 
 		if (!_isPaginationEnabled(httpServletRequest)) {
@@ -416,6 +420,14 @@ public class LayoutsTreeImpl implements LayoutsTree {
 			start = end;
 		}
 
+		if (count != totalCount) {
+			List<Layout> layouts = _layoutService.getLayouts(
+				groupId, privateLayout, parentLayoutId, incomplete,
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+			return layouts.subList(start, end);
+		}
+
 		return _layoutService.getLayouts(
 			groupId, privateLayout, parentLayoutId, incomplete, start, end);
 	}
@@ -423,7 +435,7 @@ public class LayoutsTreeImpl implements LayoutsTree {
 	private boolean _isDeleteable(
 			Layout layout, ThemeDisplay themeDisplay,
 			LayoutSetBranch layoutSetBranch)
-		throws PortalException {
+		throws Exception {
 
 		if (!LayoutPermissionUtil.contains(
 				themeDisplay.getPermissionChecker(), layout,
@@ -617,6 +629,18 @@ public class LayoutsTreeImpl implements LayoutsTree {
 				);
 			}
 
+			if (Objects.equals(
+					layout.getType(), LayoutConstants.TYPE_COLLECTION)) {
+
+				jsonObject.put(
+					"collectionPK",
+					layout.getTypeSettingsProperty("collectionPK")
+				).put(
+					"collectionType",
+					layout.getTypeSettingsProperty("collectionType")
+				);
+			}
+
 			jsonArray.put(jsonObject);
 		}
 
@@ -649,6 +673,9 @@ public class LayoutsTreeImpl implements LayoutsTree {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		LayoutsTreeImpl.class);
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;

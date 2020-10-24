@@ -17,7 +17,6 @@ package com.liferay.source.formatter.checks;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.tools.ToolsUtil;
 import com.liferay.source.formatter.checks.util.JSPSourceUtil;
 
 import java.util.regex.Matcher;
@@ -26,13 +25,11 @@ import java.util.regex.Pattern;
 /**
  * @author Hugo Huijser
  */
-public class JSPStylingCheck extends StylingCheck {
+public class JSPStylingCheck extends BaseStylingCheck {
 
 	@Override
 	protected String doProcess(
 		String fileName, String absolutePath, String content) {
-
-		_checkChaining(fileName, content);
 
 		content = _formatLineBreak(fileName, content);
 
@@ -58,18 +55,20 @@ public class JSPStylingCheck extends StylingCheck {
 
 		content = content.replaceAll("'<%= (\"[^.(\\[\"]+\") %>'", "$1");
 
-		_checkIllegalSyntax(
-			fileName, content, "=>", "Do not use arrow function",
-			"arrow_functions.markdown");
-		_checkIllegalSyntax(
-			fileName, content, "console.log(", "Do not use console.log");
-		_checkIllegalSyntax(
-			fileName, content, "debugger.", "Do not use debugger");
+		content = content.replaceAll(
+			"((['\"])<%= ((?<!%>).)*?)\\\\(\".+?)\\\\(\".*?%>\\2)", "$1$4$5");
 
-		if (!fileName.endsWith("test.jsp")) {
-			_checkIllegalSyntax(
-				fileName, content, "System.out.print",
-				"Do not call 'System.out.print'");
+		Matcher matcher = _portletNamespacePattern.matcher(content);
+
+		while (matcher.find()) {
+			String s = matcher.group(2);
+
+			if (s.endsWith(StringPool.CLOSE_PARENTHESIS) &&
+				(getLevel(s) == 0)) {
+
+				return StringUtil.insert(
+					content, StringPool.SEMICOLON, matcher.end() - 1);
+			}
 		}
 
 		return formatStyling(content);
@@ -80,49 +79,11 @@ public class JSPStylingCheck extends StylingCheck {
 		return JSPSourceUtil.isJavaSource(content, pos, true);
 	}
 
-	private void _checkChaining(String fileName, String content) {
-		Matcher matcher = _chainingPattern.matcher(content);
-
-		if (matcher.find()) {
-			addMessage(
-				fileName, "Avoid chaining on 'getClass'", "chaining.markdown",
-				getLineNumber(content, matcher.start()));
-		}
-	}
-
-	private void _checkIllegalSyntax(
-		String fileName, String content, String syntax, String message) {
-
-		_checkIllegalSyntax(fileName, content, syntax, message, null);
-	}
-
-	private void _checkIllegalSyntax(
-		String fileName, String content, String syntax, String message,
-		String markdownFileName) {
-
-		int pos = -1;
-
-		while (true) {
-			pos = content.indexOf(syntax, pos + 1);
-
-			if (pos == -1) {
-				return;
-			}
-
-			if (!ToolsUtil.isInsideQuotes(content, pos)) {
-				addMessage(
-					fileName, message, markdownFileName,
-					getLineNumber(content, pos));
-			}
-		}
-	}
-
 	private String _fixEmptyJavaSourceTag(String content) {
 		Matcher matcher = _emptyJavaSourceTagPattern.matcher(content);
 
 		if (matcher.find()) {
-			return StringUtil.replace(
-				content, matcher.group(), StringPool.BLANK);
+			return StringUtil.removeSubstring(content, matcher.group());
 		}
 
 		return content;
@@ -192,11 +153,17 @@ public class JSPStylingCheck extends StylingCheck {
 
 		matcher = _incorrectLineBreakPattern3.matcher(content);
 
+		while (matcher.find()) {
+			addMessage(
+				fileName, "There should be a line break after '<%='",
+				getLineNumber(content, matcher.start()));
+		}
+
+		matcher = _incorrectLineBreakPattern4.matcher(content);
+
 		return matcher.replaceAll("$1\n\t$2$4\n$2$5");
 	}
 
-	private static final Pattern _chainingPattern = Pattern.compile(
-		"\\WgetClass\\(\\)\\.");
 	private static final Pattern _emptyJavaSourceTagPattern = Pattern.compile(
 		"\n\t*<%\\!?\n+\t*%>(\n|\\Z)");
 	private static final Pattern _incorrectClosingTagPattern = Pattern.compile(
@@ -206,8 +173,12 @@ public class JSPStylingCheck extends StylingCheck {
 	private static final Pattern _incorrectLineBreakPattern2 = Pattern.compile(
 		"=(\n\\s*).*;\n");
 	private static final Pattern _incorrectLineBreakPattern3 = Pattern.compile(
+		"<%= *\\S((?!%>).)*\n");
+	private static final Pattern _incorrectLineBreakPattern4 = Pattern.compile(
 		"(\n(\t*)<(\\w+)>)(<\\w+>.*)(</\\3>\n)");
 	private static final Pattern _incorrectSingleLineJavaSourcePattern =
 		Pattern.compile("(\t*)(<% (.*) %>)\n");
+	private static final Pattern _portletNamespacePattern = Pattern.compile(
+		"=([\"'])<portlet:namespace />(\\w+\\(.*?)\\1");
 
 }

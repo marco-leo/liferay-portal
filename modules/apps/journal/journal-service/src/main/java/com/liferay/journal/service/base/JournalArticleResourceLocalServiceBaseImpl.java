@@ -18,6 +18,7 @@ import com.liferay.journal.model.JournalArticleResource;
 import com.liferay.journal.service.JournalArticleResourceLocalService;
 import com.liferay.journal.service.persistence.JournalArticleResourcePersistence;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -38,6 +39,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.service.change.tracking.CTService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -67,7 +69,7 @@ public abstract class JournalArticleResourceLocalServiceBaseImpl
 	implements AopService, IdentifiableOSGiService,
 			   JournalArticleResourceLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>JournalArticleResourceLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.journal.service.JournalArticleResourceLocalServiceUtil</code>.
@@ -75,6 +77,10 @@ public abstract class JournalArticleResourceLocalServiceBaseImpl
 
 	/**
 	 * Adds the journal article resource to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalArticleResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param journalArticleResource the journal article resource
 	 * @return the journal article resource that was added
@@ -106,6 +112,10 @@ public abstract class JournalArticleResourceLocalServiceBaseImpl
 	/**
 	 * Deletes the journal article resource with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalArticleResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param resourcePrimKey the primary key of the journal article resource
 	 * @return the journal article resource that was removed
 	 * @throws PortalException if a journal article resource with the primary key could not be found
@@ -122,6 +132,10 @@ public abstract class JournalArticleResourceLocalServiceBaseImpl
 	/**
 	 * Deletes the journal article resource from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalArticleResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param journalArticleResource the journal article resource
 	 * @return the journal article resource that was removed
 	 */
@@ -131,6 +145,11 @@ public abstract class JournalArticleResourceLocalServiceBaseImpl
 		JournalArticleResource journalArticleResource) {
 
 		return journalArticleResourcePersistence.remove(journalArticleResource);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return journalArticleResourcePersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -309,6 +328,17 @@ public abstract class JournalArticleResourceLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return journalArticleResourcePersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -316,6 +346,14 @@ public abstract class JournalArticleResourceLocalServiceBaseImpl
 			(JournalArticleResource)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<JournalArticleResource> getBasePersistence() {
+		return journalArticleResourcePersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -406,6 +444,10 @@ public abstract class JournalArticleResourceLocalServiceBaseImpl
 	/**
 	 * Updates the journal article resource in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect JournalArticleResourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param journalArticleResource the journal article resource
 	 * @return the journal article resource that was updated
 	 */
@@ -485,8 +527,8 @@ public abstract class JournalArticleResourceLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

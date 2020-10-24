@@ -33,7 +33,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface CTSContent extends CTSContentModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.change.tracking.store.model.impl.CTSContentImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.

@@ -15,6 +15,7 @@
 package com.liferay.segments.service.persistence;
 
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.segments.exception.NoSuchExperimentRelException;
 import com.liferay.segments.model.SegmentsExperimentRel;
 
@@ -33,9 +34,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface SegmentsExperimentRelPersistence
-	extends BasePersistence<SegmentsExperimentRel> {
+	extends BasePersistence<SegmentsExperimentRel>,
+			CTPersistence<SegmentsExperimentRel> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link SegmentsExperimentRelUtil} to access the segments experiment rel persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

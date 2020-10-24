@@ -50,6 +50,7 @@ public class KaleoTaskFormWrapper
 		attributes.put("userName", getUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
+		attributes.put("kaleoDefinitionId", getKaleoDefinitionId());
 		attributes.put(
 			"kaleoDefinitionVersionId", getKaleoDefinitionVersionId());
 		attributes.put("kaleoNodeId", getKaleoNodeId());
@@ -116,6 +117,12 @@ public class KaleoTaskFormWrapper
 
 		if (modifiedDate != null) {
 			setModifiedDate(modifiedDate);
+		}
+
+		Long kaleoDefinitionId = (Long)attributes.get("kaleoDefinitionId");
+
+		if (kaleoDefinitionId != null) {
+			setKaleoDefinitionId(kaleoDefinitionId);
 		}
 
 		Long kaleoDefinitionVersionId = (Long)attributes.get(
@@ -289,6 +296,16 @@ public class KaleoTaskFormWrapper
 	}
 
 	/**
+	 * Returns the kaleo definition ID of this kaleo task form.
+	 *
+	 * @return the kaleo definition ID of this kaleo task form
+	 */
+	@Override
+	public long getKaleoDefinitionId() {
+		return model.getKaleoDefinitionId();
+	}
+
+	/**
 	 * Returns the kaleo definition version ID of this kaleo task form.
 	 *
 	 * @return the kaleo definition version ID of this kaleo task form
@@ -428,11 +445,6 @@ public class KaleoTaskFormWrapper
 		return model.getUserUuid();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a kaleo task form model instance should use the <code>KaleoTaskForm</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -526,6 +538,16 @@ public class KaleoTaskFormWrapper
 	@Override
 	public void setGroupId(long groupId) {
 		model.setGroupId(groupId);
+	}
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo task form.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo task form
+	 */
+	@Override
+	public void setKaleoDefinitionId(long kaleoDefinitionId) {
+		model.setKaleoDefinitionId(kaleoDefinitionId);
 	}
 
 	/**

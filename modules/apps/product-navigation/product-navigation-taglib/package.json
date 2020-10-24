@@ -1,12 +1,12 @@
 {
 	"dependencies": {
-		"@clayui/button": "3.0.3",
-		"@clayui/drop-down": "3.1.2",
-		"@clayui/icon": "3.0.1",
-		"@clayui/sticker": "3.0.3",
+		"@clayui/button": "3.4.0",
+		"@clayui/drop-down": "3.7.0",
+		"@clayui/icon": "3.0.5",
+		"@clayui/sticker": "3.2.0",
 		"frontend-js-web": "*",
 		"prop-types": "15.7.2",
-		"react": "16.9.0"
+		"react": "16.12.0"
 	},
 	"name": "product-navigation-taglib",
 	"scripts": {
@@ -14,5 +14,5 @@
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "5.0.0"
+	"version": "6.0.0"
 }

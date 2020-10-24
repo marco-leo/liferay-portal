@@ -30,32 +30,30 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class RepositoryLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.RepositoryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link RepositoryLocalServiceUtil} to access the repository local service. Add custom service methods to <code>com.liferay.portal.service.impl.RepositoryLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.portal.kernel.model.Repository addRepository(
 			long userId, long groupId, long classNameId, long parentFolderId,
 			String name, String description, String portletId,
 			com.liferay.portal.kernel.util.UnicodeProperties
-				typeSettingsProperties,
+				typeSettingsUnicodeProperties,
 			boolean hidden, ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().addRepository(
 			userId, groupId, classNameId, parentFolderId, name, description,
-			portletId, typeSettingsProperties, hidden, serviceContext);
+			portletId, typeSettingsUnicodeProperties, hidden, serviceContext);
 	}
 
 	/**
 	 * Adds the repository to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RepositoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param repository the repository
 	 * @return the repository that was added
@@ -68,6 +66,16 @@ public class RepositoryLocalServiceUtil {
 
 	public static void checkRepository(long repositoryId) {
 		getService().checkRepository(repositoryId);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -102,6 +110,10 @@ public class RepositoryLocalServiceUtil {
 	/**
 	 * Deletes the repository with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RepositoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param repositoryId the primary key of the repository
 	 * @return the repository that was removed
 	 * @throws PortalException if a repository with the primary key could not be found
@@ -116,6 +128,10 @@ public class RepositoryLocalServiceUtil {
 	/**
 	 * Deletes the repository from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RepositoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param repository the repository
 	 * @return the repository that was removed
 	 */
@@ -123,6 +139,12 @@ public class RepositoryLocalServiceUtil {
 		com.liferay.portal.kernel.model.Repository repository) {
 
 		return getService().deleteRepository(repository);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -277,6 +299,9 @@ public class RepositoryLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -404,14 +429,19 @@ public class RepositoryLocalServiceUtil {
 	public static void updateRepository(
 			long repositoryId,
 			com.liferay.portal.kernel.util.UnicodeProperties
-				typeSettingsProperties)
+				typeSettingsUnicodeProperties)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		getService().updateRepository(repositoryId, typeSettingsProperties);
+		getService().updateRepository(
+			repositoryId, typeSettingsUnicodeProperties);
 	}
 
 	/**
 	 * Updates the repository in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RepositoryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param repository the repository
 	 * @return the repository that was updated

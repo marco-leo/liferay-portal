@@ -36,6 +36,7 @@ import com.liferay.portal.vulcan.multipart.BinaryFile;
 import com.liferay.portal.vulcan.multipart.MultipartBody;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
+import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import java.util.Optional;
 
@@ -134,17 +135,24 @@ public class FormResourceImpl extends BaseFormResourceImpl {
 					ddmFormInstance.getAvailableLanguageIds());
 				creator = CreatorUtil.toCreator(
 					_portal,
-					_userLocalService.getUser(ddmFormInstance.getUserId()));
+					_userLocalService.fetchUser(ddmFormInstance.getUserId()));
 				dateCreated = ddmFormInstance.getCreateDate();
 				dateModified = ddmFormInstance.getModifiedDate();
 				datePublished = ddmFormInstance.getLastPublishDate();
 				defaultLanguage = ddmFormInstance.getDefaultLanguageId();
 				description = ddmFormInstance.getDescription(
 					contextAcceptLanguage.getPreferredLocale());
+				description_i18n = LocalizedMapUtil.getI18nMap(
+					contextAcceptLanguage.isAcceptAllLanguages(),
+					ddmFormInstance.getDescriptionMap());
 				id = ddmFormInstance.getFormInstanceId();
 				name = ddmFormInstance.getName(
 					contextAcceptLanguage.getPreferredLocale());
+				name_i18n = LocalizedMapUtil.getI18nMap(
+					contextAcceptLanguage.isAcceptAllLanguages(),
+					ddmFormInstance.getNameMap());
 				structure = StructureUtil.toFormStructure(
+					contextAcceptLanguage.isAcceptAllLanguages(),
 					ddmFormInstance.getStructure(),
 					contextAcceptLanguage.getPreferredLocale(), _portal,
 					_userLocalService);

@@ -34,7 +34,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface FragmentEntryLink
 	extends FragmentEntryLinkModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.fragment.model.impl.FragmentEntryLinkImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -60,7 +60,12 @@ public interface FragmentEntryLink
 
 			};
 
+	public boolean isCacheable();
+
 	public boolean isLatestVersion()
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public boolean isSystem()
 		throws com.liferay.portal.kernel.exception.PortalException;
 
 }

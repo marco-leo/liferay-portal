@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.base;
 
+import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -35,15 +37,16 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.GroupFinder;
 import com.liferay.portal.kernel.service.persistence.GroupPersistence;
 import com.liferay.portal.kernel.service.persistence.RoleFinder;
 import com.liferay.portal.kernel.service.persistence.RolePersistence;
 import com.liferay.portal.kernel.service.persistence.UserFinder;
 import com.liferay.portal.kernel.service.persistence.UserGroupRoleFinder;
-import com.liferay.portal.kernel.service.persistence.UserGroupRolePK;
 import com.liferay.portal.kernel.service.persistence.UserGroupRolePersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -69,7 +72,7 @@ public abstract class UserGroupRoleLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements IdentifiableOSGiService, UserGroupRoleLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>UserGroupRoleLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.UserGroupRoleLocalServiceUtil</code>.
@@ -77,6 +80,10 @@ public abstract class UserGroupRoleLocalServiceBaseImpl
 
 	/**
 	 * Adds the user group role to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserGroupRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param userGroupRole the user group role
 	 * @return the user group role that was added
@@ -92,32 +99,40 @@ public abstract class UserGroupRoleLocalServiceBaseImpl
 	/**
 	 * Creates a new user group role with the primary key. Does not add the user group role to the database.
 	 *
-	 * @param userGroupRolePK the primary key for the new user group role
+	 * @param userGroupRoleId the primary key for the new user group role
 	 * @return the new user group role
 	 */
 	@Override
 	@Transactional(enabled = false)
-	public UserGroupRole createUserGroupRole(UserGroupRolePK userGroupRolePK) {
-		return userGroupRolePersistence.create(userGroupRolePK);
+	public UserGroupRole createUserGroupRole(long userGroupRoleId) {
+		return userGroupRolePersistence.create(userGroupRoleId);
 	}
 
 	/**
 	 * Deletes the user group role with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
-	 * @param userGroupRolePK the primary key of the user group role
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserGroupRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
+	 * @param userGroupRoleId the primary key of the user group role
 	 * @return the user group role that was removed
 	 * @throws PortalException if a user group role with the primary key could not be found
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public UserGroupRole deleteUserGroupRole(UserGroupRolePK userGroupRolePK)
+	public UserGroupRole deleteUserGroupRole(long userGroupRoleId)
 		throws PortalException {
 
-		return userGroupRolePersistence.remove(userGroupRolePK);
+		return userGroupRolePersistence.remove(userGroupRoleId);
 	}
 
 	/**
 	 * Deletes the user group role from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserGroupRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param userGroupRole the user group role
 	 * @return the user group role that was removed
@@ -126,6 +141,11 @@ public abstract class UserGroupRoleLocalServiceBaseImpl
 	@Override
 	public UserGroupRole deleteUserGroupRole(UserGroupRole userGroupRole) {
 		return userGroupRolePersistence.remove(userGroupRole);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return userGroupRolePersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -216,22 +236,22 @@ public abstract class UserGroupRoleLocalServiceBaseImpl
 	}
 
 	@Override
-	public UserGroupRole fetchUserGroupRole(UserGroupRolePK userGroupRolePK) {
-		return userGroupRolePersistence.fetchByPrimaryKey(userGroupRolePK);
+	public UserGroupRole fetchUserGroupRole(long userGroupRoleId) {
+		return userGroupRolePersistence.fetchByPrimaryKey(userGroupRoleId);
 	}
 
 	/**
 	 * Returns the user group role with the primary key.
 	 *
-	 * @param userGroupRolePK the primary key of the user group role
+	 * @param userGroupRoleId the primary key of the user group role
 	 * @return the user group role
 	 * @throws PortalException if a user group role with the primary key could not be found
 	 */
 	@Override
-	public UserGroupRole getUserGroupRole(UserGroupRolePK userGroupRolePK)
+	public UserGroupRole getUserGroupRole(long userGroupRoleId)
 		throws PortalException {
 
-		return userGroupRolePersistence.findByPrimaryKey(userGroupRolePK);
+		return userGroupRolePersistence.findByPrimaryKey(userGroupRoleId);
 	}
 
 	@Override
@@ -243,9 +263,7 @@ public abstract class UserGroupRoleLocalServiceBaseImpl
 		actionableDynamicQuery.setClassLoader(getClassLoader());
 		actionableDynamicQuery.setModelClass(UserGroupRole.class);
 
-		actionableDynamicQuery.setPrimaryKeyPropertyName("primaryKey.userId");
-
-		actionableDynamicQuery.setGroupIdPropertyName("primaryKey.groupId");
+		actionableDynamicQuery.setPrimaryKeyPropertyName("userGroupRoleId");
 
 		return actionableDynamicQuery;
 	}
@@ -263,10 +281,7 @@ public abstract class UserGroupRoleLocalServiceBaseImpl
 		indexableActionableDynamicQuery.setModelClass(UserGroupRole.class);
 
 		indexableActionableDynamicQuery.setPrimaryKeyPropertyName(
-			"primaryKey.userId");
-
-		indexableActionableDynamicQuery.setGroupIdPropertyName(
-			"primaryKey.groupId");
+			"userGroupRoleId");
 
 		return indexableActionableDynamicQuery;
 	}
@@ -278,9 +293,18 @@ public abstract class UserGroupRoleLocalServiceBaseImpl
 		actionableDynamicQuery.setClassLoader(getClassLoader());
 		actionableDynamicQuery.setModelClass(UserGroupRole.class);
 
-		actionableDynamicQuery.setPrimaryKeyPropertyName("primaryKey.userId");
+		actionableDynamicQuery.setPrimaryKeyPropertyName("userGroupRoleId");
+	}
 
-		actionableDynamicQuery.setGroupIdPropertyName("primaryKey.groupId");
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return userGroupRolePersistence.create(
+			((Long)primaryKeyObj).longValue());
 	}
 
 	/**
@@ -294,6 +318,14 @@ public abstract class UserGroupRoleLocalServiceBaseImpl
 			(UserGroupRole)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<UserGroupRole> getBasePersistence() {
+		return userGroupRolePersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -329,6 +361,10 @@ public abstract class UserGroupRoleLocalServiceBaseImpl
 
 	/**
 	 * Updates the user group role in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserGroupRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param userGroupRole the user group role
 	 * @return the user group role that was updated
@@ -617,8 +653,23 @@ public abstract class UserGroupRoleLocalServiceBaseImpl
 		return UserGroupRoleLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<UserGroupRole> getCTPersistence() {
+		return userGroupRolePersistence;
+	}
+
+	@Override
+	public Class<UserGroupRole> getModelClass() {
 		return UserGroupRole.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<UserGroupRole>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(userGroupRolePersistence);
 	}
 
 	protected String getModelClassName() {
@@ -644,8 +695,8 @@ public abstract class UserGroupRoleLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

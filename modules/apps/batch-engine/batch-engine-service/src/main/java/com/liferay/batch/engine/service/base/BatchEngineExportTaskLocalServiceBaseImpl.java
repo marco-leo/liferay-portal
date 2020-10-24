@@ -24,6 +24,7 @@ import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.petra.io.AutoDeleteFileInputStream;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -47,6 +48,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.File;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -80,7 +82,7 @@ public abstract class BatchEngineExportTaskLocalServiceBaseImpl
 	implements AopService, BatchEngineExportTaskLocalService,
 			   IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>BatchEngineExportTaskLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.batch.engine.service.BatchEngineExportTaskLocalServiceUtil</code>.
@@ -88,6 +90,10 @@ public abstract class BatchEngineExportTaskLocalServiceBaseImpl
 
 	/**
 	 * Adds the batch engine export task to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BatchEngineExportTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param batchEngineExportTask the batch engine export task
 	 * @return the batch engine export task that was added
@@ -119,6 +125,10 @@ public abstract class BatchEngineExportTaskLocalServiceBaseImpl
 	/**
 	 * Deletes the batch engine export task with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BatchEngineExportTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param batchEngineExportTaskId the primary key of the batch engine export task
 	 * @return the batch engine export task that was removed
 	 * @throws PortalException if a batch engine export task with the primary key could not be found
@@ -135,6 +145,10 @@ public abstract class BatchEngineExportTaskLocalServiceBaseImpl
 	/**
 	 * Deletes the batch engine export task from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BatchEngineExportTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param batchEngineExportTask the batch engine export task
 	 * @return the batch engine export task that was removed
 	 */
@@ -144,6 +158,11 @@ public abstract class BatchEngineExportTaskLocalServiceBaseImpl
 		BatchEngineExportTask batchEngineExportTask) {
 
 		return batchEngineExportTaskPersistence.remove(batchEngineExportTask);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return batchEngineExportTaskPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -394,6 +413,17 @@ public abstract class BatchEngineExportTaskLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return batchEngineExportTaskPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -401,6 +431,14 @@ public abstract class BatchEngineExportTaskLocalServiceBaseImpl
 			(BatchEngineExportTask)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<BatchEngineExportTask> getBasePersistence() {
+		return batchEngineExportTaskPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -456,6 +494,10 @@ public abstract class BatchEngineExportTaskLocalServiceBaseImpl
 	/**
 	 * Updates the batch engine export task in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BatchEngineExportTaskLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param batchEngineExportTask the batch engine export task
 	 * @return the batch engine export task that was updated
 	 */
@@ -479,8 +521,8 @@ public abstract class BatchEngineExportTaskLocalServiceBaseImpl
 			return (BatchEngineExportTaskContentBlobModel)session.get(
 				BatchEngineExportTaskContentBlobModel.class, primaryKey);
 		}
-		catch (Exception e) {
-			throw batchEngineExportTaskPersistence.processException(e);
+		catch (Exception exception) {
+			throw batchEngineExportTaskPersistence.processException(exception);
 		}
 		finally {
 			batchEngineExportTaskPersistence.closeSession(session);
@@ -510,8 +552,8 @@ public abstract class BatchEngineExportTaskLocalServiceBaseImpl
 
 			return inputStream;
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -580,8 +622,8 @@ public abstract class BatchEngineExportTaskLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

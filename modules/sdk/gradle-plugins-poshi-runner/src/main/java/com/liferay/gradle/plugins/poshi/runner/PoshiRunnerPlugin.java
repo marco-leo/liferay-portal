@@ -46,8 +46,10 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.reporting.DirectoryReport;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.JavaExec;
+import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
@@ -322,6 +324,18 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 		test.setTestClassesDirs(
 			project.files(_getExpandedPoshiRunnerDir(project)));
 
+		TaskOutputs taskOutputs = test.getOutputs();
+
+		taskOutputs.upToDateWhen(
+			new Spec<Task>() {
+
+				@Override
+				public boolean isSatisfiedBy(Task task) {
+					return false;
+				}
+
+			});
+
 		TestLoggingContainer testLoggingContainer = test.getTestLogging();
 
 		testLoggingContainer.setShowStandardStreams(true);
@@ -354,7 +368,7 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 		javaExec.setClasspath(_getPoshiRunnerClasspath(project));
 		javaExec.setDescription("Validates the Poshi files syntax.");
 		javaExec.setGroup("verification");
-		javaExec.setMain("com.liferay.poshi.runner.PoshiRunnerValidation");
+		javaExec.setMain("com.liferay.poshi.core.PoshiValidation");
 
 		return javaExec;
 	}
@@ -366,7 +380,7 @@ public class PoshiRunnerPlugin implements Plugin<Project> {
 		javaExec.setClasspath(_getPoshiRunnerClasspath(project));
 		javaExec.setDescription("Write the Poshi properties files.");
 		javaExec.setGroup("verification");
-		javaExec.setMain("com.liferay.poshi.runner.PoshiRunnerContext");
+		javaExec.setMain("com.liferay.poshi.core.PoshiContext");
 
 		return javaExec;
 	}

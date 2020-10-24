@@ -46,6 +46,7 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -53,7 +54,6 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portlet.expando.util.test.ExpandoTestUtil;
 import com.liferay.wiki.exception.DuplicatePageException;
@@ -93,7 +93,7 @@ public class WikiPageLocalServiceTest {
 
 	@Before
 	public void setUp() throws Exception {
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		_group = GroupTestUtil.addGroup();
 
@@ -141,20 +141,18 @@ public class WikiPageLocalServiceTest {
 					"Created a page with invalid character " +
 						invalidCharacter);
 			}
-			catch (PageTitleException pte) {
+			catch (PageTitleException pageTitleException) {
 			}
 		}
 	}
 
 	@Test
 	public void testAddPageWithNbspTitle() throws Exception {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
-
 		WikiPage page = WikiTestUtil.addPage(
 			TestPropsValues.getUserId(), _node.getNodeId(),
 			"ChildPage" + CharPool.NO_BREAK_SPACE + "1",
-			RandomTestUtil.randomString(), true, serviceContext);
+			RandomTestUtil.randomString(), true,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		Assert.assertEquals("ChildPage 1", page.getTitle());
 	}
@@ -176,7 +174,7 @@ public class WikiPageLocalServiceTest {
 				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				true, serviceContext);
 		}
-		catch (AssetCategoryException ace) {
+		catch (AssetCategoryException assetCategoryException) {
 			throw new AssetCategoryTestException();
 		}
 	}
@@ -413,7 +411,7 @@ public class WikiPageLocalServiceTest {
 
 			Assert.fail();
 		}
-		catch (NoSuchPageResourceException nspre) {
+		catch (NoSuchPageResourceException noSuchPageResourceException) {
 			redirectPage = WikiPageLocalServiceUtil.getPage(
 				redirectPage.getResourcePrimKey());
 
@@ -438,7 +436,7 @@ public class WikiPageLocalServiceTest {
 
 			Assert.fail();
 		}
-		catch (NoSuchPageResourceException nspre) {
+		catch (NoSuchPageResourceException noSuchPageResourceException) {
 			WikiPageLocalServiceUtil.getPage(redirectPage.getResourcePrimKey());
 		}
 	}
@@ -462,7 +460,7 @@ public class WikiPageLocalServiceTest {
 
 			Assert.fail();
 		}
-		catch (NoSuchPageResourceException nspre) {
+		catch (NoSuchPageResourceException noSuchPageResourceException) {
 			childPage = WikiPageLocalServiceUtil.getPage(
 				childPage.getResourcePrimKey());
 
@@ -493,7 +491,7 @@ public class WikiPageLocalServiceTest {
 
 			Assert.fail();
 		}
-		catch (NoSuchPageResourceException nspre) {
+		catch (NoSuchPageResourceException noSuchPageResourceException) {
 			redirectPage = WikiPageLocalServiceUtil.getPageByPageId(
 				redirectPage.getPageId());
 
@@ -520,7 +518,7 @@ public class WikiPageLocalServiceTest {
 
 			Assert.fail();
 		}
-		catch (NoSuchPageResourceException nspre) {
+		catch (NoSuchPageResourceException noSuchPageResourceException) {
 			childPage = WikiPageLocalServiceUtil.getPageByPageId(
 				childPage.getPageId());
 
@@ -545,7 +543,7 @@ public class WikiPageLocalServiceTest {
 
 			Assert.fail();
 		}
-		catch (NoSuchPageResourceException nspre) {
+		catch (NoSuchPageResourceException noSuchPageResourceException) {
 			WikiPageLocalServiceUtil.getPage(childPage.getResourcePrimKey());
 		}
 	}
@@ -770,7 +768,7 @@ public class WikiPageLocalServiceTest {
 		AssetVocabulary assetVocabulary = AssetTestUtil.addVocabulary(
 			_group.getGroupId());
 
-		AssetCategory defaultVersionPageAssetCategory =
+		AssetCategory defaultVersionPageAssetCategory1 =
 			AssetTestUtil.addCategory(
 				_group.getGroupId(), assetVocabulary.getVocabularyId());
 		AssetCategory defaultVersionPageAssetCategory2 =
@@ -780,7 +778,7 @@ public class WikiPageLocalServiceTest {
 		long[] defaultVersionPageAssetCategoryIds = new long[2];
 
 		defaultVersionPageAssetCategoryIds[0] =
-			defaultVersionPageAssetCategory.getCategoryId();
+			defaultVersionPageAssetCategory1.getCategoryId();
 		defaultVersionPageAssetCategoryIds[1] =
 			defaultVersionPageAssetCategory2.getCategoryId();
 
@@ -923,12 +921,10 @@ public class WikiPageLocalServiceTest {
 		WikiPage page = WikiTestUtil.addPage(
 			_group.getGroupId(), _node.getNodeId(), true);
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
-
 		WikiPageLocalServiceUtil.renamePage(
 			TestPropsValues.getUserId(), _node.getNodeId(), page.getTitle(),
-			page.getTitle(), true, serviceContext);
+			page.getTitle(), true,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 	}
 
 	@Test
@@ -958,12 +954,10 @@ public class WikiPageLocalServiceTest {
 		WikiPage page = WikiTestUtil.addPage(
 			_group.getGroupId(), _node.getNodeId(), true);
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
-
 		WikiPageLocalServiceUtil.renamePage(
 			TestPropsValues.getUserId(), _node.getNodeId(), page.getTitle(),
-			"New" + CharPool.NO_BREAK_SPACE + "Title", true, serviceContext);
+			"New" + CharPool.NO_BREAK_SPACE + "Title", true,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		WikiPageLocalServiceUtil.getPage(_node.getNodeId(), "New Title");
 	}

@@ -27,7 +27,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class WorkflowDefinition {
+public class WorkflowDefinition implements Cloneable {
+
+	public static WorkflowDefinition toDTO(String json) {
+		return WorkflowDefinitionSerDes.toDTO(json);
+	}
 
 	public Boolean getActive() {
 		return active;
@@ -173,6 +177,11 @@ public class WorkflowDefinition {
 	}
 
 	protected String version;
+
+	@Override
+	public WorkflowDefinition clone() throws CloneNotSupportedException {
+		return (WorkflowDefinition)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

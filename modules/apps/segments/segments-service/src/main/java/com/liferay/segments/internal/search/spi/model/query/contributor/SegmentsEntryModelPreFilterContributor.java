@@ -15,6 +15,7 @@
 package com.liferay.segments.internal.search.spi.model.query.contributor;
 
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
+import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.filter.BooleanFilter;
 import com.liferay.portal.kernel.search.filter.TermsFilter;
@@ -49,14 +50,39 @@ public class SegmentsEntryModelPreFilterContributor
 			return;
 		}
 
+		long[] excludedSegmentsEntryIds = (long[])params.get(
+			"excludedSegmentsEntryIds");
+
+		if (ArrayUtil.isNotEmpty(excludedSegmentsEntryIds)) {
+			TermsFilter entryClassPKTermFilter = new TermsFilter(
+				Field.ENTRY_CLASS_PK);
+
+			entryClassPKTermFilter.addValues(
+				ArrayUtil.toStringArray(excludedSegmentsEntryIds));
+
+			booleanFilter.add(
+				entryClassPKTermFilter, BooleanClauseOccur.MUST_NOT);
+		}
+
+		String[] excludedSources = (String[])params.get("excludedSources");
+
+		if (ArrayUtil.isNotEmpty(excludedSources)) {
+			TermsFilter sourceTermsFilter = new TermsFilter("source");
+
+			sourceTermsFilter.addValues(
+				ArrayUtil.toStringArray(excludedSources));
+
+			booleanFilter.add(sourceTermsFilter, BooleanClauseOccur.MUST_NOT);
+		}
+
 		long[] roleIds = (long[])params.get("roleIds");
 
 		if (ArrayUtil.isNotEmpty(roleIds)) {
-			TermsFilter accountEntryTermsFilter = new TermsFilter("roleIds");
+			TermsFilter roleIdsTermsFilter = new TermsFilter("roleIds");
 
-			accountEntryTermsFilter.addValues(ArrayUtil.toStringArray(roleIds));
+			roleIdsTermsFilter.addValues(ArrayUtil.toStringArray(roleIds));
 
-			booleanFilter.add(accountEntryTermsFilter, BooleanClauseOccur.MUST);
+			booleanFilter.add(roleIdsTermsFilter, BooleanClauseOccur.MUST);
 		}
 	}
 

@@ -51,13 +51,14 @@ public class GetFieldMappingIndexRequestExecutorImpl
 			createGetFieldMappingsRequest(getFieldMappingIndexRequest);
 
 		GetFieldMappingsResponse getFieldMappingsResponse =
-			getGetFieldMappingsResponse(getFieldMappingsRequest);
+			getGetFieldMappingsResponse(
+				getFieldMappingsRequest, getFieldMappingIndexRequest);
 
 		Map
 			<String,
 			 Map
 				 <String,
-				  Map<String, GetFieldMappingsResponse.FieldMappingMetaData>>>
+				  Map<String, GetFieldMappingsResponse.FieldMappingMetadata>>>
 					mappings = getFieldMappingsResponse.mappings();
 
 		Map<String, String> fieldMappings = new HashMap<>();
@@ -65,19 +66,19 @@ public class GetFieldMappingIndexRequestExecutorImpl
 		for (String indexName : getFieldMappingIndexRequest.getIndexNames()) {
 			Map
 				<String,
-				 Map<String, GetFieldMappingsResponse.FieldMappingMetaData>>
+				 Map<String, GetFieldMappingsResponse.FieldMappingMetadata>>
 					map1 = mappings.get(indexName);
 
-			Map<String, GetFieldMappingsResponse.FieldMappingMetaData> map2 =
+			Map<String, GetFieldMappingsResponse.FieldMappingMetadata> map2 =
 				map1.get(getFieldMappingIndexRequest.getMappingName());
 
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
 			for (String fieldName : getFieldMappingIndexRequest.getFields()) {
-				GetFieldMappingsResponse.FieldMappingMetaData
-					fieldMappingMetaData = map2.get(fieldName);
+				GetFieldMappingsResponse.FieldMappingMetadata
+					fieldMappingMetadata = map2.get(fieldName);
 
-				Map<String, Object> source = fieldMappingMetaData.sourceAsMap();
+				Map<String, Object> source = fieldMappingMetadata.sourceAsMap();
 
 				jsonObject.put(fieldName, source);
 			}
@@ -104,10 +105,13 @@ public class GetFieldMappingIndexRequestExecutorImpl
 	}
 
 	protected GetFieldMappingsResponse getGetFieldMappingsResponse(
-		GetFieldMappingsRequest getFieldMappingsRequest) {
+		GetFieldMappingsRequest getFieldMappingsRequest,
+		GetFieldMappingIndexRequest getFieldMappingIndexRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				getFieldMappingIndexRequest.getConnectionId(),
+				getFieldMappingIndexRequest.isPreferLocalCluster());
 
 		IndicesClient indicesClient = restHighLevelClient.indices();
 
@@ -115,8 +119,8 @@ public class GetFieldMappingIndexRequestExecutorImpl
 			return indicesClient.getFieldMapping(
 				getFieldMappingsRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

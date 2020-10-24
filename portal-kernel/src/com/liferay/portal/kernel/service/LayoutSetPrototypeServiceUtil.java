@@ -30,16 +30,10 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class LayoutSetPrototypeServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.LayoutSetPrototypeServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link LayoutSetPrototypeServiceUtil} to access the layout set prototype remote service. Add custom service methods to <code>com.liferay.portal.service.impl.LayoutSetPrototypeServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.portal.kernel.model.LayoutSetPrototype
 			addLayoutSetPrototype(
@@ -86,10 +80,11 @@ public class LayoutSetPrototypeServiceUtil {
 		<com.liferay.portal.kernel.model.LayoutSetPrototype> search(
 				long companyId, Boolean active,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.portal.kernel.model.LayoutSetPrototype> obc)
+					<com.liferay.portal.kernel.model.LayoutSetPrototype>
+						orderByComparator)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
-		return getService().search(companyId, active, obc);
+		return getService().search(companyId, active, orderByComparator);
 	}
 
 	public static com.liferay.portal.kernel.model.LayoutSetPrototype

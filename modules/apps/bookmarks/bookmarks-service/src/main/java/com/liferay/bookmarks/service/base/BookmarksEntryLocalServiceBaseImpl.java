@@ -26,6 +26,7 @@ import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerRegistryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -52,6 +53,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -80,7 +82,7 @@ public abstract class BookmarksEntryLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements AopService, BookmarksEntryLocalService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>BookmarksEntryLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.bookmarks.service.BookmarksEntryLocalServiceUtil</code>.
@@ -88,6 +90,10 @@ public abstract class BookmarksEntryLocalServiceBaseImpl
 
 	/**
 	 * Adds the bookmarks entry to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BookmarksEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param bookmarksEntry the bookmarks entry
 	 * @return the bookmarks entry that was added
@@ -115,6 +121,10 @@ public abstract class BookmarksEntryLocalServiceBaseImpl
 	/**
 	 * Deletes the bookmarks entry with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BookmarksEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param entryId the primary key of the bookmarks entry
 	 * @return the bookmarks entry that was removed
 	 * @throws PortalException if a bookmarks entry with the primary key could not be found
@@ -130,6 +140,10 @@ public abstract class BookmarksEntryLocalServiceBaseImpl
 	/**
 	 * Deletes the bookmarks entry from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BookmarksEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param bookmarksEntry the bookmarks entry
 	 * @return the bookmarks entry that was removed
 	 */
@@ -137,6 +151,11 @@ public abstract class BookmarksEntryLocalServiceBaseImpl
 	@Override
 	public BookmarksEntry deleteBookmarksEntry(BookmarksEntry bookmarksEntry) {
 		return bookmarksEntryPersistence.remove(bookmarksEntry);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return bookmarksEntryPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -431,6 +450,17 @@ public abstract class BookmarksEntryLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return bookmarksEntryPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -438,6 +468,14 @@ public abstract class BookmarksEntryLocalServiceBaseImpl
 			(BookmarksEntry)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<BookmarksEntry> getBasePersistence() {
+		return bookmarksEntryPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -523,6 +561,10 @@ public abstract class BookmarksEntryLocalServiceBaseImpl
 	/**
 	 * Updates the bookmarks entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BookmarksEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param bookmarksEntry the bookmarks entry
 	 * @return the bookmarks entry that was updated
 	 */
@@ -582,8 +624,8 @@ public abstract class BookmarksEntryLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

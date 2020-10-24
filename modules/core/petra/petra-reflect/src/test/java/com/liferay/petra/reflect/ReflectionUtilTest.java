@@ -57,9 +57,10 @@ public class ReflectionUtilTest {
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 			Assert.assertEquals(
-				"Input object is not an array: " + object, iae.getMessage());
+				"Input object is not an array: " + object,
+				illegalArgumentException.getMessage());
 		}
 
 		object = new long[] {1, 2, 3};
@@ -79,8 +80,8 @@ public class ReflectionUtilTest {
 
 			Assert.fail();
 		}
-		catch (NullPointerException npe) {
-			Assert.assertNull(npe.getCause());
+		catch (NullPointerException nullPointerException) {
+			Assert.assertNull(nullPointerException.getCause());
 		}
 	}
 
@@ -131,11 +132,11 @@ public class ReflectionUtilTest {
 		Assert.assertSame(
 			TestClass._privateStaticFinalObject, staticField.get(null));
 
-		Object obj = new Object();
+		Object object = new Object();
 
-		staticField.set(null, obj);
+		staticField.set(null, object);
 
-		Assert.assertSame(obj, TestClass._privateStaticFinalObject);
+		Assert.assertSame(object, TestClass._privateStaticFinalObject);
 
 		TestClass testClass = new TestClass();
 
@@ -146,9 +147,9 @@ public class ReflectionUtilTest {
 		Assert.assertTrue(Modifier.isFinal(field.getModifiers()));
 		Assert.assertSame(testClass._privateFinalObject, field.get(testClass));
 
-		field.set(testClass, obj);
+		field.set(testClass, object);
 
-		Assert.assertSame(obj, testClass._privateFinalObject);
+		Assert.assertSame(object, testClass._privateFinalObject);
 	}
 
 	@Test
@@ -212,15 +213,15 @@ public class ReflectionUtilTest {
 
 	@Test
 	public void testThrowException() {
-		Exception exception = new Exception();
+		Exception exception1 = new Exception();
 
 		try {
-			ReflectionUtil.throwException(exception);
+			ReflectionUtil.throwException(exception1);
 
 			Assert.fail();
 		}
-		catch (Exception e) {
-			Assert.assertSame(exception, e);
+		catch (Exception exception2) {
+			Assert.assertSame(exception1, exception2);
 		}
 	}
 

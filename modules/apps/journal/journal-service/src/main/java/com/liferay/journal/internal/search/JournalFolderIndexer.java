@@ -39,6 +39,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.search.model.uid.UIDFactory;
 import com.liferay.trash.TrashHelper;
 
 import java.util.Locale;
@@ -109,7 +110,8 @@ public class JournalFolderIndexer
 
 	@Override
 	protected void doDelete(JournalFolder folder) throws Exception {
-		deleteDocument(folder.getCompanyId(), folder.getFolderId());
+		deleteDocument(
+			folder.getCompanyId(), "UID=" + uidFactory.getUID(folder));
 	}
 
 	@Override
@@ -119,6 +121,8 @@ public class JournalFolderIndexer
 		}
 
 		Document document = getBaseModelDocument(CLASS_NAME, folder);
+
+		uidFactory.setUID(folder, document);
 
 		String title = folder.getName();
 
@@ -198,12 +202,12 @@ public class JournalFolderIndexer
 						indexableActionableDynamicQuery.addDocuments(document);
 					}
 				}
-				catch (PortalException pe) {
+				catch (PortalException portalException) {
 					if (_log.isWarnEnabled()) {
 						_log.warn(
 							"Unable to index journal folder " +
 								folder.getFolderId(),
-							pe);
+							portalException);
 					}
 				}
 			});
@@ -211,6 +215,9 @@ public class JournalFolderIndexer
 
 		indexableActionableDynamicQuery.performActions();
 	}
+
+	@Reference
+	protected UIDFactory uidFactory;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalFolderIndexer.class);

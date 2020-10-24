@@ -26,7 +26,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class UserAccountContactInformation {
+public class UserAccountContactInformation implements Cloneable {
+
+	public static UserAccountContactInformation toDTO(String json) {
+		return UserAccountContactInformationSerDes.toDTO(json);
+	}
 
 	public EmailAddress[] getEmailAddresses() {
 		return emailAddresses;
@@ -235,6 +239,13 @@ public class UserAccountContactInformation {
 	}
 
 	protected WebUrl[] webUrls;
+
+	@Override
+	public UserAccountContactInformation clone()
+		throws CloneNotSupportedException {
+
+		return (UserAccountContactInformation)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

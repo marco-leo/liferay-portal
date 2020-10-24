@@ -63,7 +63,6 @@ public abstract class AssetEntryUsageFinderBaseImpl
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
-		super.setConfiguration(configuration);
 	}
 
 	@Override
@@ -94,8 +93,8 @@ public abstract class AssetEntryUsageFinderBaseImpl
 		try {
 			Class.forName(AssetPersistenceConstants.class.getName());
 		}
-		catch (ClassNotFoundException cnfe) {
-			throw new ExceptionInInitializerError(cnfe);
+		catch (ClassNotFoundException classNotFoundException) {
+			throw new ExceptionInInitializerError(classNotFoundException);
 		}
 	}
 

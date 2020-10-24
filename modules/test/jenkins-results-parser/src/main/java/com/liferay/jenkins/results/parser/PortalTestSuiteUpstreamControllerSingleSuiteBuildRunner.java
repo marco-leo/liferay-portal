@@ -16,6 +16,8 @@ package com.liferay.jenkins.results.parser;
 
 import java.io.IOException;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,6 +34,12 @@ public class PortalTestSuiteUpstreamControllerSingleSuiteBuildRunner
 	@Override
 	public void run() {
 		retirePreviousBuilds();
+
+		if (_allowConcurrentBuilds()) {
+			super.run();
+
+			return;
+		}
 
 		S buildData = getBuildData();
 
@@ -94,8 +102,8 @@ public class PortalTestSuiteUpstreamControllerSingleSuiteBuildRunner
 			jenkinsAuthenticationToken = buildProperties.getProperty(
 				"jenkins.authentication.token");
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 
 		sb.append("token=");
@@ -103,43 +111,72 @@ public class PortalTestSuiteUpstreamControllerSingleSuiteBuildRunner
 
 		S buildData = getBuildData();
 
-		sb.append("&CI_TEST_SUITE=");
-		sb.append(buildData.getTestSuiteName());
-		sb.append("&CONTROLLER_BUILD_URL=");
-		sb.append(buildData.getBuildURL());
-		sb.append("&JENKINS_GITHUB_BRANCH_NAME=");
-		sb.append(buildData.getJenkinsGitHubBranchName());
-		sb.append("&JENKINS_GITHUB_BRANCH_USERNAME=");
-		sb.append(buildData.getJenkinsGitHubUsername());
-		sb.append("&PORTAL_GIT_COMMIT=");
-		sb.append(buildData.getPortalBranchSHA());
+		Map<String, String> invocationParameters = new HashMap<>();
+
+		String testSuiteName = buildData.getTestSuiteName();
+
+		invocationParameters.put("CI_TEST_SUITE", testSuiteName);
+
+		invocationParameters.put(
+			"CONTROLLER_BUILD_URL", buildData.getBuildURL());
+		invocationParameters.put(
+			"JENKINS_GITHUB_BRANCH_NAME",
+			buildData.getJenkinsGitHubBranchName());
+		invocationParameters.put(
+			"JENKINS_GITHUB_BRANCH_USERNAME",
+			buildData.getJenkinsGitHubUsername());
+		invocationParameters.put(
+			"PORTAL_GIT_COMMIT", buildData.getPortalBranchSHA());
 
 		String portalGitHubCompareURL = _getPortalGitHubCompareURL();
 
 		if (portalGitHubCompareURL != null) {
-			sb.append("&PORTAL_GITHUB_COMPARE_URL=");
-			sb.append(portalGitHubCompareURL);
+			invocationParameters.put(
+				"PORTAL_GITHUB_COMPARE_URL", portalGitHubCompareURL);
 		}
 
-		sb.append("&PORTAL_GITHUB_URL=");
-		sb.append(buildData.getPortalGitHubURL());
+		invocationParameters.put(
+			"PORTAL_GITHUB_URL", buildData.getPortalGitHubURL());
+
+		String testPortalBuildProfile = getTestPortalBuildProfile(
+			testSuiteName);
+
+		if (testPortalBuildProfile != null) {
+			invocationParameters.put(
+				"TEST_PORTAL_BUILD_PROFILE", testPortalBuildProfile);
+		}
 
 		String testrayProjectName = buildData.getTestrayProjectName();
 
 		if (testrayProjectName != null) {
-			sb.append("&TESTRAY_BUILD_NAME=");
-			sb.append(buildData.getTestrayBuildName());
-			sb.append("&TESTRAY_BUILD_TYPE=");
-			sb.append(buildData.getTestrayBuildType());
-			sb.append("&TESTRAY_PROJECT_NAME=");
-			sb.append(testrayProjectName);
+			invocationParameters.put(
+				"TESTRAY_BUILD_NAME", buildData.getTestrayBuildName());
+			invocationParameters.put(
+				"TESTRAY_BUILD_TYPE", buildData.getTestrayBuildType());
+			invocationParameters.put(
+				"TESTRAY_PROJECT_NAME", testrayProjectName);
+		}
+
+		invocationParameters.putAll(buildData.getBuildParameters());
+
+		for (Map.Entry<String, String> invocationParameter :
+				invocationParameters.entrySet()) {
+
+			if (invocationParameter.getValue() == null) {
+				continue;
+			}
+
+			sb.append("&");
+			sb.append(invocationParameter.getKey());
+			sb.append("=");
+			sb.append(invocationParameter.getValue());
 		}
 
 		try {
 			JenkinsResultsParserUtil.toString(sb.toString());
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 
 		sb = new StringBuilder();
@@ -169,6 +206,24 @@ public class PortalTestSuiteUpstreamControllerSingleSuiteBuildRunner
 		buildData.setBuildDescription(sb.toString());
 
 		updateBuildDescription();
+	}
+
+	private boolean _allowConcurrentBuilds() {
+		String allowConcurrentBuildsString = System.getenv(
+			"ALLOW_CONCURRENT_BUILDS");
+
+		if (allowConcurrentBuildsString == null) {
+			return false;
+		}
+
+		allowConcurrentBuildsString = allowConcurrentBuildsString.toLowerCase();
+		allowConcurrentBuildsString = allowConcurrentBuildsString.trim();
+
+		if (!allowConcurrentBuildsString.equals("true")) {
+			return false;
+		}
+
+		return true;
 	}
 
 	private String _getPortalBranchAbbreviatedSHA() {
@@ -322,8 +377,8 @@ public class PortalTestSuiteUpstreamControllerSingleSuiteBuildRunner
 					envMapJSONObject.getString("JOB_NAME"),
 					envMapJSONObject.getString("HOSTNAME"));
 			}
-			catch (IOException ioe) {
-				throw new RuntimeException(ioe);
+			catch (IOException ioException) {
+				throw new RuntimeException(ioException);
 			}
 		}
 

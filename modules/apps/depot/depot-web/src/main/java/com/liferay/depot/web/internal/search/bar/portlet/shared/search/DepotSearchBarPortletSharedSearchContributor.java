@@ -19,7 +19,6 @@ import com.liferay.depot.model.DepotEntryGroupRelModel;
 import com.liferay.depot.model.DepotEntryModel;
 import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
-import com.liferay.depot.web.internal.util.DepotSupportChecker;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.search.web.constants.SearchBarPortletKeys;
@@ -54,10 +53,6 @@ public class DepotSearchBarPortletSharedSearchContributor
 		_defaultSearchBarPortletSharedSearchContributor.contribute(
 			portletSharedSearchSettings);
 
-		if (!_depotSupportChecker.isEnabled()) {
-			return;
-		}
-
 		SearchContext searchContext =
 			portletSharedSearchSettings.getSearchContext();
 
@@ -69,27 +64,27 @@ public class DepotSearchBarPortletSharedSearchContributor
 
 		for (long groupId : groupIds) {
 			List<DepotEntryGroupRel> depotEntryGroupRels =
-				_depotEntryGroupRelLocalService.getDepotEntryGroupRels(
-					groupId, 0,
-					_depotEntryGroupRelLocalService.getDepotEntryGroupRelsCount(
-						groupId));
+				_depotEntryGroupRelLocalService.
+					getSearchableDepotEntryGroupRels(
+						groupId, 0,
+						_depotEntryGroupRelLocalService.
+							getSearchableDepotEntryGroupRelsCount(groupId));
 
 			Stream<DepotEntryGroupRel> stream = depotEntryGroupRels.stream();
-
-			List<Long> depotEntryGroupIds = stream.map(
-				DepotEntryGroupRelModel::getDepotEntryId
-			).map(
-				_depotEntryLocalService::fetchDepotEntry
-			).map(
-				DepotEntryModel::getGroupId
-			).collect(
-				Collectors.toList()
-			);
 
 			searchContext.setGroupIds(
 				ArrayUtil.append(
 					searchContext.getGroupIds(),
-					ArrayUtil.toLongArray(depotEntryGroupIds)));
+					ArrayUtil.toLongArray(
+						stream.map(
+							DepotEntryGroupRelModel::getDepotEntryId
+						).map(
+							_depotEntryLocalService::fetchDepotEntry
+						).map(
+							DepotEntryModel::getGroupId
+						).collect(
+							Collectors.toList()
+						))));
 		}
 	}
 
@@ -104,8 +99,5 @@ public class DepotSearchBarPortletSharedSearchContributor
 
 	@Reference
 	private DepotEntryLocalService _depotEntryLocalService;
-
-	@Reference
-	private DepotSupportChecker _depotSupportChecker;
 
 }

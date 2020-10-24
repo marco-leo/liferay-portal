@@ -234,8 +234,10 @@ public class AdminPortlet extends BaseKBPortlet {
 					importedKBArticlesCount);
 			}
 		}
-		catch (KBArticleImportException kbaie) {
-			SessionErrors.add(actionRequest, kbaie.getClass(), kbaie);
+		catch (KBArticleImportException kbArticleImportException) {
+			SessionErrors.add(
+				actionRequest, kbArticleImportException.getClass(),
+				kbArticleImportException);
 		}
 	}
 
@@ -247,10 +249,10 @@ public class AdminPortlet extends BaseKBPortlet {
 		String resourceID = GetterUtil.getString(
 			resourceRequest.getResourceID());
 
-		HttpServletRequest httpServletRequest = _portal.getHttpServletRequest(
-			resourceRequest);
-
 		if (resourceID.equals("infoPanel")) {
+			HttpServletRequest httpServletRequest =
+				_portal.getHttpServletRequest(resourceRequest);
+
 			try {
 				resourceRequest.setAttribute(
 					KBWebKeys.KNOWLEDGE_BASE_KB_ARTICLES,
@@ -273,8 +275,8 @@ public class AdminPortlet extends BaseKBPortlet {
 				portletRequestDispatcher.include(
 					resourceRequest, resourceResponse);
 			}
-			catch (Exception e) {
-				throw new PortletException(e);
+			catch (Exception exception) {
+				throw new PortletException(exception);
 			}
 		}
 		else {
@@ -313,12 +315,12 @@ public class AdminPortlet extends BaseKBPortlet {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			KBWebKeys.THEME_DISPLAY);
 
-		Enumeration<String> enu = actionRequest.getParameterNames();
+		Enumeration<String> enumeration = actionRequest.getParameterNames();
 
 		Map<Long, Double> resourcePrimKeyToPriorityMap = new HashMap<>();
 
-		while (enu.hasMoreElements()) {
-			String name = enu.nextElement();
+		while (enumeration.hasMoreElements()) {
+			String name = enumeration.nextElement();
 
 			if (!name.startsWith("priority")) {
 				continue;
@@ -426,8 +428,8 @@ public class AdminPortlet extends BaseKBPortlet {
 
 			return portletURL.toString();
 		}
-		catch (WindowStateException wse) {
-			throw new PortalException(wse);
+		catch (WindowStateException windowStateException) {
+			throw new PortalException(windowStateException);
 		}
 	}
 
@@ -525,16 +527,16 @@ public class AdminPortlet extends BaseKBPortlet {
 
 			renderRequest.setAttribute(KBWebKeys.KNOWLEDGE_BASE_STATUS, status);
 		}
-		catch (Exception e) {
-			if (e instanceof NoSuchArticleException ||
-				e instanceof NoSuchFolderException ||
-				e instanceof NoSuchTemplateException ||
-				e instanceof PrincipalException) {
+		catch (Exception exception) {
+			if (exception instanceof NoSuchArticleException ||
+				exception instanceof NoSuchFolderException ||
+				exception instanceof NoSuchTemplateException ||
+				exception instanceof PrincipalException) {
 
-				SessionErrors.add(renderRequest, e.getClass());
+				SessionErrors.add(renderRequest, exception.getClass());
 			}
 			else {
-				throw new PortletException(e);
+				throw new PortletException(exception);
 			}
 		}
 	}
@@ -574,12 +576,12 @@ public class AdminPortlet extends BaseKBPortlet {
 	}
 
 	@Override
-	protected boolean isSessionErrorException(Throwable cause) {
-		if (cause instanceof KBArticleImportException ||
-			cause instanceof KBTemplateContentException ||
-			cause instanceof KBTemplateTitleException ||
-			cause instanceof NoSuchTemplateException ||
-			super.isSessionErrorException(cause)) {
+	protected boolean isSessionErrorException(Throwable throwable) {
+		if (throwable instanceof KBArticleImportException ||
+			throwable instanceof KBTemplateContentException ||
+			throwable instanceof KBTemplateTitleException ||
+			throwable instanceof NoSuchTemplateException ||
+			super.isSessionErrorException(throwable)) {
 
 			return true;
 		}

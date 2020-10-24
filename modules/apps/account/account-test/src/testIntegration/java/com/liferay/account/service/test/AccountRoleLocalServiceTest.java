@@ -21,8 +21,12 @@ import com.liferay.account.model.AccountRole;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.account.service.AccountRoleLocalService;
+import com.liferay.account.service.AccountRoleLocalServiceUtil;
+import com.liferay.account.service.test.util.AccountEntryTestUtil;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.BaseModelListener;
@@ -30,6 +34,7 @@ import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroupRole;
+import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
@@ -43,11 +48,13 @@ import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.comparator.RoleNameComparator;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Assert;
@@ -198,9 +205,11 @@ public class AccountRoleLocalServiceTest {
 
 		_accountEntryUserRels.remove(accountEntryUserRel);
 
-		_assertHasPermission(user, ActionKeys.DELETE, true);
-		_assertHasPermission(user, ActionKeys.MANAGE_USERS, true);
-		_assertHasPermission(user, ActionKeys.UPDATE, true);
+		_assertHasPermission(user, ActionKeys.DELETE, false);
+		_assertHasPermission(user, ActionKeys.MANAGE_USERS, false);
+		_assertHasPermission(user, ActionKeys.UPDATE, false);
+
+		_accountRoleLocalService.deleteAccountRole(defaultAccountRole);
 	}
 
 	@Test
@@ -210,24 +219,26 @@ public class AccountRoleLocalServiceTest {
 
 		BundleContext bundleContext = bundle.getBundleContext();
 
-		ServiceRegistration serviceRegistration = bundleContext.registerService(
-			ModelListener.class,
-			new BaseModelListener<UserGroupRole>() {
+		ServiceRegistration<ModelListener<UserGroupRole>> serviceRegistration =
+			bundleContext.registerService(
+				(Class<ModelListener<UserGroupRole>>)
+					(Class<?>)ModelListener.class,
+				new BaseModelListener<UserGroupRole>() {
 
-				@Override
-				public void onBeforeRemove(UserGroupRole userGroupRole)
-					throws ModelListenerException {
+					@Override
+					public void onBeforeRemove(UserGroupRole userGroupRole)
+						throws ModelListenerException {
 
-					try {
-						userGroupRole.getRole();
+						try {
+							userGroupRole.getRole();
+						}
+						catch (PortalException portalException) {
+							throw new ModelListenerException(portalException);
+						}
 					}
-					catch (PortalException pe) {
-						throw new ModelListenerException(pe);
-					}
-				}
 
-			},
-			new HashMapDictionary<>());
+				},
+				new HashMapDictionary<>());
 
 		try {
 			_testDeleteAccountRole(_accountRoleLocalService::deleteAccountRole);
@@ -306,15 +317,79 @@ public class AccountRoleLocalServiceTest {
 		Assert.assertArrayEquals(expectedRoleIds, actualRoleIds);
 	}
 
+	@Test
+	public void testSearchAccountRoles() throws Exception {
+		String keywords = RandomTestUtil.randomString();
+
+		AccountRole accountRole = _addAccountRole(
+			_accountEntry1.getAccountEntryId(),
+			keywords + RandomTestUtil.randomString());
+
+		_addAccountRole(
+			_accountEntry1.getAccountEntryId(), RandomTestUtil.randomString());
+		_addAccountRole(
+			_accountEntry2.getAccountEntryId(),
+			keywords + RandomTestUtil.randomString());
+
+		BaseModelSearchResult<AccountRole> baseModelSearchResult =
+			AccountRoleLocalServiceUtil.searchAccountRoles(
+				_accountEntry1.getAccountEntryId(), StringPool.BLANK,
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+
+		Assert.assertEquals(2, baseModelSearchResult.getLength());
+
+		baseModelSearchResult = AccountRoleLocalServiceUtil.searchAccountRoles(
+			_accountEntry1.getAccountEntryId(), keywords, QueryUtil.ALL_POS,
+			QueryUtil.ALL_POS, null);
+
+		Assert.assertEquals(1, baseModelSearchResult.getLength());
+
+		List<AccountRole> accountRoles = baseModelSearchResult.getBaseModels();
+
+		Assert.assertEquals(accountRole, accountRoles.get(0));
+	}
+
+	@Test
+	public void testSearchAccountRolesWithPagination() throws Exception {
+		String keywords = RandomTestUtil.randomString();
+
+		List<AccountRole> expectedAccountRoles = new ArrayList<>();
+
+		for (int i = 0; i < 5; i++) {
+			expectedAccountRoles.add(
+				_addAccountRole(
+					_accountEntry1.getAccountEntryId(), keywords + i));
+		}
+
+		BaseModelSearchResult<AccountRole> baseModelSearchResult =
+			AccountRoleLocalServiceUtil.searchAccountRoles(
+				_accountEntry1.getAccountEntryId(), keywords, 0, 2, null);
+
+		Assert.assertEquals(
+			expectedAccountRoles.toString(), 5,
+			baseModelSearchResult.getLength());
+
+		List<AccountRole> accountRoles = baseModelSearchResult.getBaseModels();
+
+		Assert.assertEquals(accountRoles.toString(), 2, accountRoles.size());
+		Assert.assertEquals(expectedAccountRoles.subList(0, 2), accountRoles);
+
+		baseModelSearchResult = AccountRoleLocalServiceUtil.searchAccountRoles(
+			_accountEntry1.getAccountEntryId(), keywords, QueryUtil.ALL_POS,
+			QueryUtil.ALL_POS, new RoleNameComparator(false));
+
+		expectedAccountRoles = ListUtil.sort(
+			expectedAccountRoles, Collections.reverseOrder());
+
+		Assert.assertEquals(
+			expectedAccountRoles, baseModelSearchResult.getBaseModels());
+	}
+
 	private AccountRole _addAccountRole(long accountEntryId, String name)
 		throws Exception {
 
-		AccountRole accountRole = _accountRoleLocalService.addAccountRole(
+		return _accountRoleLocalService.addAccountRole(
 			TestPropsValues.getUserId(), accountEntryId, name, null, null);
-
-		_accountRoles.add(accountRole);
-
-		return accountRole;
 	}
 
 	private void _assertHasPermission(
@@ -373,8 +448,6 @@ public class AccountRoleLocalServiceTest {
 
 		deleteAccountRoleFunction.apply(accountRole);
 
-		_accountRoles.remove(accountRole);
-
 		Assert.assertFalse(
 			ArrayUtil.contains(
 				_getRoleIds(_users.get(0)), accountRole.getRoleId()));
@@ -401,9 +474,6 @@ public class AccountRoleLocalServiceTest {
 
 	@Inject
 	private AccountRoleLocalService _accountRoleLocalService;
-
-	@DeleteAfterTestRun
-	private final List<AccountRole> _accountRoles = new ArrayList<>();
 
 	@Inject
 	private ResourcePermissionLocalService _resourcePermissionLocalService;

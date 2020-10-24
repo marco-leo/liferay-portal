@@ -16,6 +16,7 @@ package com.liferay.oauth2.provider.service.base;
 
 import com.liferay.oauth2.provider.model.OAuth2Authorization;
 import com.liferay.oauth2.provider.service.OAuth2AuthorizationService;
+import com.liferay.oauth2.provider.service.persistence.OAuth2AuthorizationFinder;
 import com.liferay.oauth2.provider.service.persistence.OAuth2AuthorizationPersistence;
 import com.liferay.oauth2.provider.service.persistence.OAuth2ScopeGrantFinder;
 import com.liferay.oauth2.provider.service.persistence.OAuth2ScopeGrantPersistence;
@@ -48,7 +49,7 @@ public abstract class OAuth2AuthorizationServiceBaseImpl
 	extends BaseServiceImpl
 	implements AopService, IdentifiableOSGiService, OAuth2AuthorizationService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>OAuth2AuthorizationService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.oauth2.provider.service.OAuth2AuthorizationServiceUtil</code>.
@@ -103,8 +104,8 @@ public abstract class OAuth2AuthorizationServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -117,6 +118,9 @@ public abstract class OAuth2AuthorizationServiceBaseImpl
 
 	@Reference
 	protected OAuth2AuthorizationPersistence oAuth2AuthorizationPersistence;
+
+	@Reference
+	protected OAuth2AuthorizationFinder oAuth2AuthorizationFinder;
 
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService

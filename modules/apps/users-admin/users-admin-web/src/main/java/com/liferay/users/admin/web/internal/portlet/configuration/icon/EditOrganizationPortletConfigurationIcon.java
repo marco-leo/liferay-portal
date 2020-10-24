@@ -67,7 +67,7 @@ public class EditOrganizationPortletConfigurationIcon
 			portletURL.setParameter(
 				"mvcRenderCommandName", "/users_admin/edit_organization");
 			portletURL.setParameter(
-				"redirect", _portal.getCurrentURL(portletRequest));
+				"backURL", _portal.getCurrentURL(portletRequest));
 
 			Organization organization = ActionUtil.getOrganization(
 				portletRequest);
@@ -78,7 +78,7 @@ public class EditOrganizationPortletConfigurationIcon
 
 			return portletURL.toString();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		return StringPool.BLANK;
@@ -103,7 +103,7 @@ public class EditOrganizationPortletConfigurationIcon
 				return true;
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		return false;

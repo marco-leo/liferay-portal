@@ -30,11 +30,6 @@ public class ModuleLocalServiceWrapper
 		_moduleLocalService = moduleLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link ModuleLocalServiceUtil} to access the module local service. Add custom service methods to <code>com.liferay.marketplace.service.impl.ModuleLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.marketplace.model.Module addModule(
 			long appId, String bundleSymbolicName, String bundleVersion,
@@ -47,6 +42,10 @@ public class ModuleLocalServiceWrapper
 
 	/**
 	 * Adds the module to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ModuleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param module the module
 	 * @return the module that was added
@@ -70,7 +69,22 @@ public class ModuleLocalServiceWrapper
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _moduleLocalService.createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the module with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ModuleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param moduleId the primary key of the module
 	 * @return the module that was removed
@@ -85,6 +99,10 @@ public class ModuleLocalServiceWrapper
 
 	/**
 	 * Deletes the module from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ModuleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param module the module
 	 * @return the module that was removed
@@ -110,6 +128,11 @@ public class ModuleLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _moduleLocalService.deletePersistedModel(persistedModel);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _moduleLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -319,6 +342,9 @@ public class ModuleLocalServiceWrapper
 		return _moduleLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -329,6 +355,10 @@ public class ModuleLocalServiceWrapper
 
 	/**
 	 * Updates the module in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect ModuleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param module the module
 	 * @return the module that was updated

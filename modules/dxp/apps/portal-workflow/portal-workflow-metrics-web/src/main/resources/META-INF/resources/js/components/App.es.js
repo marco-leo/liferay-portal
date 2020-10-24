@@ -10,128 +10,78 @@
  */
 
 import React from 'react';
-import {Redirect, Route, HashRouter as Router, Switch} from 'react-router-dom';
+import {HashRouter as Router, Route, Switch} from 'react-router-dom';
 
-import HeaderController from '../shared/components/header-controller/HeaderController.es';
+import HeaderController from '../shared/components/header/HeaderController.es';
 import {withParams} from '../shared/components/router/routerUtil.es';
-import fetch from '../shared/rest/fetch.es';
-import {AppContext} from './AppContext.es';
+import {AppContextProvider} from './AppContext.es';
 import InstanceListPage from './instance-list-page/InstanceListPage.es';
 import PerformanceByAssigneePage from './performance-by-assignee-page/PerformanceByAssigneePage.es';
 import PerformanceByStepPage from './performance-by-step-page/PerformanceByStepPage.es';
 import ProcessListPage from './process-list-page/ProcessListPage.es';
-import ProcessMetrics from './process-metrics/ProcessMetrics.es';
-import SLAForm from './sla/SLAForm.es';
-import SLAListCard from './sla/SLAListCard.es';
+import ProcessMetricsContainer from './process-metrics/ProcessMetricsContainer.es';
+import SettingsContainer from './settings/SettingsContainer.es';
+import SLAContainer from './sla/SLAContainer.es';
 import WorkloadByAssigneePage from './workload-by-assignee-page/WorkloadByAssigneePage.es';
 
-/**
- * @class
- * @classdesc Application starter.
- */
-export default class AppComponent extends React.Component {
-	constructor(props) {
-		super(props);
+const App = (props) => {
+	return (
+		<Router>
+			<AppContextProvider {...props}>
+				<HeaderController basePath="/processes" />
 
-		this.state = {
-			client: fetch,
-			companyId: props.companyId,
-			defaultDelta: props.defaultDelta,
-			deltas: props.deltas,
-			isAmPm: props.isAmPm,
-			maxPages: props.maxPages,
-			namespace: props.namespace,
-			setStatus: this.setStatus.bind(this),
-			setTitle: this.setTitle.bind(this),
-			status: null,
-			title: Liferay.Language.get('metrics')
-		};
-	}
+				<div className="portal-workflow-metrics-app">
+					<Switch>
+						<Route
+							exact
+							path="/"
+							render={withParams(ProcessListPage)}
+						/>
 
-	setStatus(status, callback) {
-		this.setState({status}, callback);
-	}
+						<Route
+							path="/processes/:pageSize/:page/:sort"
+							render={withParams(ProcessListPage)}
+						/>
 
-	setTitle(title) {
-		this.setState({title});
-	}
+						<Route
+							path="/metrics/:processId"
+							render={withParams(ProcessMetricsContainer)}
+						/>
 
-	render() {
-		const {defaultDelta, namespace, title} = this.state;
+						<Route
+							path="/instance/:processId/:pageSize/:page"
+							render={withParams(InstanceListPage)}
+						/>
 
-		return (
-			<Router>
-				<AppContext.Provider value={this.state}>
-					<HeaderController
-						basePath="/processes"
-						namespace={namespace}
-						title={title}
-					/>
+						<Route
+							component={SLAContainer}
+							path="/sla/:processId"
+						/>
 
-					<div className="portal-workflow-metrics-app">
-						<Switch>
-							<Redirect
-								exact
-								from="/"
-								to={`/processes/${defaultDelta}/1/${encodeURIComponent(
-									'overdueInstanceCount:desc'
-								)}`}
-							/>
+						<Route
+							exact
+							path="/performance/step/:processId/:pageSize/:page/:sort"
+							render={withParams(PerformanceByStepPage)}
+						/>
 
-							<Route
-								path="/processes/:pageSize/:page/:sort"
-								render={withParams(ProcessListPage)}
-							/>
+						<Route
+							exact
+							path="/workload/assignee/:processId/:pageSize/:page/:sort"
+							render={withParams(WorkloadByAssigneePage)}
+						/>
 
-							<Route
-								path="/metrics/:processId"
-								render={withParams(ProcessMetrics)}
-							/>
+						<Route
+							exact
+							path="/performance/assignee/:processId/:pageSize/:page/:sort"
+							render={withParams(PerformanceByAssigneePage)}
+						/>
 
-							<Route
-								path="/instance/:processId/:pageSize/:page"
-								render={withParams(InstanceListPage)}
-							/>
+						<Route component={SettingsContainer} path="/settings" />
+					</Switch>
+				</div>
+			</AppContextProvider>
+		</Router>
+	);
+};
 
-							<Route
-								exact
-								path="/slas/:processId/:pageSize/:page"
-								render={withParams(SLAListCard)}
-							/>
-
-							<Route
-								exact
-								path="/sla/new/:processId"
-								render={withParams(SLAForm)}
-							/>
-
-							<Route
-								exact
-								path="/sla/edit/:processId/:id"
-								render={withParams(SLAForm)}
-							/>
-
-							<Route
-								exact
-								path="/performance/step/:processId/:pageSize/:page/:sort"
-								render={withParams(PerformanceByStepPage)}
-							/>
-
-							<Route
-								exact
-								path="/workload/assignee/:processId/:pageSize/:page/:sort"
-								render={withParams(WorkloadByAssigneePage)}
-							/>
-
-							<Route
-								exact
-								path="/performance/assignee/:processId/:pageSize/:page/:sort"
-								render={withParams(PerformanceByAssigneePage)}
-							/>
-						</Switch>
-					</div>
-				</AppContext.Provider>
-			</Router>
-		);
-	}
-}
+export default App;

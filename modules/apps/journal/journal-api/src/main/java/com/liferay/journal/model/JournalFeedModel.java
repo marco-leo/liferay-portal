@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedGroupedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
 import java.util.Date;
 
@@ -37,10 +38,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface JournalFeedModel
-	extends BaseModel<JournalFeed>, MVCCModel, ShardedModel,
-			StagedGroupedModel {
+	extends BaseModel<JournalFeed>, CTModel<JournalFeed>, MVCCModel,
+			ShardedModel, StagedGroupedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a journal feed model instance should use the {@link JournalFeed} interface instead.
@@ -51,6 +52,7 @@ public interface JournalFeedModel
 	 *
 	 * @return the primary key of this journal feed
 	 */
+	@Override
 	public long getPrimaryKey();
 
 	/**
@@ -58,6 +60,7 @@ public interface JournalFeedModel
 	 *
 	 * @param primaryKey the primary key of this journal feed
 	 */
+	@Override
 	public void setPrimaryKey(long primaryKey);
 
 	/**
@@ -75,6 +78,22 @@ public interface JournalFeedModel
 	 */
 	@Override
 	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the ct collection ID of this journal feed.
+	 *
+	 * @return the ct collection ID of this journal feed
+	 */
+	@Override
+	public long getCtCollectionId();
+
+	/**
+	 * Sets the ct collection ID of this journal feed.
+	 *
+	 * @param ctCollectionId the ct collection ID of this journal feed
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId);
 
 	/**
 	 * Returns the uuid of this journal feed.

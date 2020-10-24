@@ -15,6 +15,7 @@
 package com.liferay.segments.service.persistence;
 
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.segments.exception.NoSuchEntryException;
 import com.liferay.segments.model.SegmentsEntry;
 
@@ -33,9 +34,9 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface SegmentsEntryPersistence
-	extends BasePersistence<SegmentsEntry> {
+	extends BasePersistence<SegmentsEntry>, CTPersistence<SegmentsEntry> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link SegmentsEntryUtil} to access the segments entry persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

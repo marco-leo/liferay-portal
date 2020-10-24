@@ -15,8 +15,10 @@
 package com.liferay.calendar.service.impl;
 
 import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.model.AssetLink;
 import com.liferay.asset.kernel.model.AssetLinkConstants;
 import com.liferay.calendar.configuration.CalendarServiceConfigurationValues;
+import com.liferay.calendar.constants.CalendarBookingConstants;
 import com.liferay.calendar.constants.CalendarPortletKeys;
 import com.liferay.calendar.exception.CalendarBookingDurationException;
 import com.liferay.calendar.exception.CalendarBookingRecurrenceException;
@@ -31,7 +33,6 @@ import com.liferay.calendar.internal.recurrence.RecurrenceSplitter;
 import com.liferay.calendar.internal.util.CalendarUtil;
 import com.liferay.calendar.model.Calendar;
 import com.liferay.calendar.model.CalendarBooking;
-import com.liferay.calendar.model.CalendarBookingConstants;
 import com.liferay.calendar.model.CalendarResource;
 import com.liferay.calendar.notification.NotificationRecipient;
 import com.liferay.calendar.notification.NotificationSender;
@@ -44,7 +45,8 @@ import com.liferay.calendar.service.base.CalendarBookingLocalServiceBaseImpl;
 import com.liferay.calendar.social.CalendarActivityKeys;
 import com.liferay.calendar.util.JCalendarUtil;
 import com.liferay.calendar.util.RecurrenceUtil;
-import com.liferay.calendar.workflow.CalendarBookingWorkflowConstants;
+import com.liferay.calendar.workflow.constants.CalendarBookingWorkflowConstants;
+import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.message.boards.service.MBMessageLocalService;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
@@ -79,6 +81,7 @@ import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -246,7 +249,7 @@ public class CalendarBookingLocalServiceImpl
 		calendarBooking.setStatus(status);
 		calendarBooking.setStatusDate(serviceContext.getModifiedDate(now));
 
-		calendarBookingPersistence.update(calendarBooking);
+		calendarBooking = calendarBookingPersistence.update(calendarBooking);
 
 		addChildCalendarBookings(
 			calendarBooking, childCalendarIds, serviceContext);
@@ -313,14 +316,14 @@ public class CalendarBookingLocalServiceImpl
 						calendarBooking, now.getTime());
 				}
 			}
-			catch (PortalException pe) {
-				throw pe;
+			catch (PortalException portalException) {
+				throw portalException;
 			}
-			catch (SystemException se) {
-				throw se;
+			catch (SystemException systemException) {
+				throw systemException;
 			}
-			catch (Exception e) {
-				throw new SystemException(e);
+			catch (Exception exception) {
+				throw new SystemException(exception);
 			}
 		}
 	}
@@ -809,12 +812,12 @@ public class CalendarBookingLocalServiceImpl
 			return false;
 		}
 
-		int[] statuses = {
-			WorkflowConstants.STATUS_APPROVED, WorkflowConstants.STATUS_PENDING
-		};
-
 		List<CalendarBooking> calendarBookings = getOverlappingCalendarBookings(
-			calendar.getCalendarId(), startTime, endTime, statuses);
+			calendar.getCalendarId(), startTime, endTime,
+			new int[] {
+				WorkflowConstants.STATUS_APPROVED,
+				WorkflowConstants.STATUS_PENDING
+			});
 
 		if (!calendarBookings.isEmpty()) {
 			return true;
@@ -842,6 +845,8 @@ public class CalendarBookingLocalServiceImpl
 			long endTime = startTime + duration;
 
 			String recurrence = null;
+
+			addAssetEntry(calendarBooking, serviceContext);
 
 			if (allFollowing) {
 				List<CalendarBooking> recurringCalendarBookings =
@@ -1391,13 +1396,24 @@ public class CalendarBookingLocalServiceImpl
 			Recurrence recurrenceObj = RecurrenceSerializer.deserialize(
 				recurrence, calendar.getTimeZone());
 
-			if ((recurrenceObj != null) && oldRecurrence.equals(recurrence) &&
-				(recurrenceObj.getCount() > 0)) {
+			if (recurrenceObj != null) {
+				if (oldRecurrence.equals(recurrence)) {
+					if (recurrenceObj.getCount() > 0) {
+						recurrenceObj.setCount(
+							recurrenceObj.getCount() - instanceIndex);
 
-				recurrenceObj.setCount(
-					recurrenceObj.getCount() - instanceIndex);
+						recurrence = RecurrenceSerializer.serialize(
+							recurrenceObj);
+					}
+				}
+				else {
+					List<java.util.Calendar> exceptionJCalendars =
+						recurrenceObj.getExceptionJCalendars();
 
-				recurrence = RecurrenceSerializer.serialize(recurrenceObj);
+					exceptionJCalendars.clear();
+
+					recurrence = RecurrenceSerializer.serialize(recurrenceObj);
+				}
 			}
 
 			updateCalendarBookingsByChanges(
@@ -1654,6 +1670,32 @@ public class CalendarBookingLocalServiceImpl
 			userId, calendarBooking, status, serviceContext);
 	}
 
+	protected void addAssetEntry(
+		CalendarBooking calendarBooking, ServiceContext serviceContext) {
+
+		AssetEntry assetEntry = assetEntryLocalService.fetchEntry(
+			CalendarBooking.class.getName(),
+			calendarBooking.getCalendarBookingId());
+
+		if (assetEntry != null) {
+			serviceContext.setAssetCategoryIds(assetEntry.getCategoryIds());
+			serviceContext.setAssetLinkEntryIds(
+				ListUtil.toLongArray(
+					assetLinkLocalService.getDirectLinks(
+						assetEntry.getEntryId()),
+					AssetLink.ENTRY_ID2_ACCESSOR));
+			serviceContext.setAssetPriority(assetEntry.getPriority());
+			serviceContext.setAssetTagNames(assetEntry.getTagNames());
+		}
+
+		ExpandoBridge expandoBridge = calendarBooking.getExpandoBridge();
+
+		if (expandoBridge != null) {
+			serviceContext.setExpandoBridgeAttributes(
+				expandoBridge.getAttributes());
+		}
+	}
+
 	protected void addChildCalendarBookings(
 			CalendarBooking calendarBooking, long[] childCalendarIds,
 			ServiceContext serviceContext)
@@ -1691,7 +1733,7 @@ public class CalendarBookingLocalServiceImpl
 			try {
 				calendarId = getNotLiveCalendarId(calendarId);
 			}
-			catch (NoSuchCalendarException nsce) {
+			catch (NoSuchCalendarException noSuchCalendarException) {
 				continue;
 			}
 
@@ -2012,7 +2054,8 @@ public class CalendarBookingLocalServiceImpl
 			return false;
 		}
 
-		return stagingGroup.isInStagingPortlet(CalendarPortletKeys.CALENDAR);
+		return stagingGroup.isInStagingPortlet(
+			CalendarPortletKeys.CALENDAR_ADMIN);
 	}
 
 	protected boolean isCustomCalendarResource(
@@ -2091,9 +2134,9 @@ public class CalendarBookingLocalServiceImpl
 				calendarBooking, notificationType, notificationTemplateType,
 				sender, serviceContext);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(e, e);
+				_log.warn(exception, exception);
 			}
 		}
 	}
@@ -2338,7 +2381,7 @@ public class CalendarBookingLocalServiceImpl
 			try {
 				calendarId = getNotLiveCalendarId(calendarId);
 			}
-			catch (NoSuchCalendarException nsce) {
+			catch (NoSuchCalendarException noSuchCalendarException) {
 				continue;
 			}
 

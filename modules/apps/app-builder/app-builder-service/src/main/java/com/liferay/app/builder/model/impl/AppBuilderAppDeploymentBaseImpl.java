@@ -33,7 +33,7 @@ public abstract class AppBuilderAppDeploymentBaseImpl
 	extends AppBuilderAppDeploymentModelImpl
 	implements AppBuilderAppDeployment {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a app builder app deployment model instance should use the <code>AppBuilderAppDeployment</code> interface instead.

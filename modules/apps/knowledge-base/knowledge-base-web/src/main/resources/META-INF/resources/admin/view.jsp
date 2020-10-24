@@ -22,9 +22,9 @@ long kbFolderClassNameId = PortalUtil.getClassNameId(KBFolderConstants.getClassN
 long parentResourceClassNameId = ParamUtil.getLong(request, "parentResourceClassNameId", kbFolderClassNameId);
 long parentResourcePrimKey = ParamUtil.getLong(request, "parentResourcePrimKey", KBFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
-boolean kbFolderView = (parentResourceClassNameId == kbFolderClassNameId);
+boolean kbFolderView = parentResourceClassNameId == kbFolderClassNameId;
 
-KBAdminManagementToolbarDisplayContext kbAdminManagementToolbarDisplayContext = new KBAdminManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, renderRequest, renderResponse, portletConfig);
+KBAdminManagementToolbarDisplayContext kbAdminManagementToolbarDisplayContext = new KBAdminManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, renderRequest, renderResponse, portletConfig);
 KBArticleURLHelper kbArticleURLHelper = new KBArticleURLHelper(renderRequest, renderResponse, templatePath);
 
 if (parentResourcePrimKey != KBFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
@@ -67,7 +67,10 @@ if (parentResourcePrimKey != KBFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 	sortingURL="<%= String.valueOf(kbAdminManagementToolbarDisplayContext.getSortingURL()) %>"
 />
 
-<div class="closed container-fluid-1280 sidenav-container sidenav-right" id="<portlet:namespace />infoPanelId">
+<clay:container-fluid
+	cssClass="closed sidenav-container sidenav-right"
+	id='<%= liferayPortletResponse.getNamespace() + "infoPanelId" %>'
+>
 	<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="infoPanel" var="sidebarPanelURL">
 		<portlet:param name="parentResourceClassNameId" value="<%= String.valueOf(parentResourceClassNameId) %>" />
 		<portlet:param name="parentResourcePrimKey" value="<%= String.valueOf(parentResourcePrimKey) %>" />
@@ -142,11 +145,11 @@ if (parentResourcePrimKey != KBFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 						<c:when test="<%= kbObject instanceof KBFolder %>">
 
 							<%
-							Map<String, Object> rowData = new HashMap<String, Object>();
-
 							KBFolder kbFolder = (KBFolder)kbObject;
 
-							rowData.put("actions", StringUtil.merge(kbAdminManagementToolbarDisplayContext.getAvailableActions(kbFolder)));
+							Map<String, Object> rowData = HashMapBuilder.<String, Object>put(
+								"actions", StringUtil.merge(kbAdminManagementToolbarDisplayContext.getAvailableActions(kbFolder))
+							).build();
 
 							row.setData(rowData);
 
@@ -226,11 +229,11 @@ if (parentResourcePrimKey != KBFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 						<c:otherwise>
 
 							<%
-							Map<String, Object> rowData = new HashMap<String, Object>();
-
 							KBArticle kbArticle = (KBArticle)kbObject;
 
-							rowData.put("actions", StringUtil.merge(kbAdminManagementToolbarDisplayContext.getAvailableActions(kbArticle)));
+							Map<String, Object> rowData = HashMapBuilder.<String, Object>put(
+								"actions", StringUtil.merge(kbAdminManagementToolbarDisplayContext.getAvailableActions(kbArticle))
+							).build();
 
 							row.setData(rowData);
 
@@ -315,10 +318,10 @@ if (parentResourcePrimKey != KBFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 			</liferay-ui:search-container>
 		</aui:form>
 	</div>
-</div>
+</clay:container-fluid>
 
 <aui:script>
-	var deleteEntries = function() {
+	var deleteEntries = function () {
 		if (
 			confirm(
 				'<liferay-ui:message key="are-you-sure-you-want-to-delete-the-selected-entries" />'
@@ -333,13 +336,13 @@ if (parentResourcePrimKey != KBFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 	};
 
 	var ACTIONS = {
-		deleteEntries: deleteEntries
+		deleteEntries: deleteEntries,
 	};
 
-	Liferay.componentReady('kbAdminManagementToolbar').then(function(
+	Liferay.componentReady('kbAdminManagementToolbar').then(function (
 		managementToolbar
 	) {
-		managementToolbar.on('actionItemClicked', function(event) {
+		managementToolbar.on('actionItemClicked', function (event) {
 			var itemData = event.data.item.data;
 
 			if (itemData && itemData.action && ACTIONS[itemData.action]) {

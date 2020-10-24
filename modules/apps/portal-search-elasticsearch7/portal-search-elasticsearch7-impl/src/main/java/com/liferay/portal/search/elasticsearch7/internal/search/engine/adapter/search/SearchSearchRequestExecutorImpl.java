@@ -63,7 +63,8 @@ public class SearchSearchRequestExecutorImpl
 			_log.trace("Search query: " + prettyPrintedRequestString);
 		}
 
-		SearchResponse searchResponse = getSearchResponse(searchRequest);
+		SearchResponse searchResponse = getSearchResponse(
+			searchRequest, searchSearchRequest);
 
 		SearchSearchResponse searchSearchResponse = new SearchSearchResponse();
 
@@ -82,16 +83,20 @@ public class SearchSearchRequestExecutorImpl
 		return searchSearchResponse;
 	}
 
-	protected SearchResponse getSearchResponse(SearchRequest searchRequest) {
+	protected SearchResponse getSearchResponse(
+		SearchRequest searchRequest, SearchSearchRequest searchSearchRequest) {
+
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				searchSearchRequest.getConnectionId(),
+				searchSearchRequest.isPreferLocalCluster());
 
 		try {
 			return restHighLevelClient.search(
 				searchRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 
@@ -122,8 +127,8 @@ public class SearchSearchRequestExecutorImpl
 		try {
 			return JSONUtil.getPrettyPrintedJSONString(searchSourceBuilder);
 		}
-		catch (Exception e) {
-			return e.getMessage();
+		catch (Exception exception) {
+			return exception.getMessage();
 		}
 	}
 

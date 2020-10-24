@@ -14,14 +14,14 @@
 
 package com.liferay.portal.template;
 
+import com.liferay.petra.io.unsync.UnsyncStringWriter;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.template.TemplateException;
 import com.liferay.portal.kernel.template.TemplateResource;
 import com.liferay.portal.kernel.template.TemplateResourceCache;
-import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.Writer;
 
@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Tina Tian
@@ -123,18 +124,25 @@ public abstract class BaseTemplate implements Template {
 	}
 
 	@Override
+	public void prepareTaglib(
+		HttpServletRequest httpServletRequest,
+		HttpServletResponse httpServletResponse) {
+	}
+
+	@Override
 	public void processTemplate(Writer writer) throws TemplateException {
 		try {
 			processTemplate(_templateResource, writer);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			throw new TemplateException(
 				"Unable to process template " +
 					_templateResource.getTemplateId(),
-				e);
+				exception);
 		}
 	}
 
+	@Override
 	public void processTemplate(
 			Writer writer,
 			Supplier<TemplateResource> errorTemplateResourceSupplier)
@@ -159,7 +167,7 @@ public abstract class BaseTemplate implements Template {
 
 			sb.writeTo(writer);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			TemplateResource errorTemplateResource =
 				errorTemplateResourceSupplier.get();
 
@@ -167,13 +175,13 @@ public abstract class BaseTemplate implements Template {
 				throw new TemplateException(
 					"Unable to process template " +
 						_templateResource.getTemplateId(),
-					e);
+					exception);
 			}
 
 			put(TemplateConstants.WRITER, writer);
 
 			handleException(
-				_templateResource, errorTemplateResource, e, writer);
+				_templateResource, errorTemplateResource, exception, writer);
 		}
 		finally {
 			put(TemplateConstants.WRITER, oldWriter);
@@ -193,6 +201,10 @@ public abstract class BaseTemplate implements Template {
 			if (restrictedVariables.contains(key)) {
 				return null;
 			}
+		}
+
+		if (value instanceof Class) {
+			return putClass(key, (Class<?>)value);
 		}
 
 		return context.put(key, value);
@@ -237,11 +249,9 @@ public abstract class BaseTemplate implements Template {
 	protected String getTemplateResourceUUID(
 		TemplateResource templateResource) {
 
-		return TemplateConstants.TEMPLATE_RESOURCE_UUID_PREFIX.concat(
-			StringPool.POUND
-		).concat(
-			templateResource.getTemplateId()
-		);
+		return StringBundler.concat(
+			TemplateConstants.TEMPLATE_RESOURCE_UUID_PREFIX, StringPool.POUND,
+			templateResource.getTemplateId());
 	}
 
 	protected abstract void handleException(
@@ -253,6 +263,10 @@ public abstract class BaseTemplate implements Template {
 	protected abstract void processTemplate(
 			TemplateResource templateResource, Writer writer)
 		throws Exception;
+
+	protected Object putClass(String key, Class<?> clazz) {
+		return context.put(key, clazz);
+	}
 
 	protected Map<String, Object> context;
 

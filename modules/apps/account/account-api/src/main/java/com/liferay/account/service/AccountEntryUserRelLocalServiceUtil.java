@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class AccountEntryUserRelLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.account.service.impl.AccountEntryUserRelLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class AccountEntryUserRelLocalServiceUtil {
 
 	/**
 	 * Adds the account entry user rel to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AccountEntryUserRelLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param accountEntryUserRel the account entry user rel
 	 * @return the account entry user rel that was added
@@ -79,6 +83,19 @@ public class AccountEntryUserRelLocalServiceUtil {
 		getService().addAccountEntryUserRels(accountEntryId, accountUserIds);
 	}
 
+	public static com.liferay.account.model.AccountEntryUserRel
+			addPersonTypeAccountEntryUserRel(
+				long accountEntryId, long creatorUserId, String screenName,
+				String emailAddress, java.util.Locale locale, String firstName,
+				String middleName, String lastName, long prefixId,
+				long suffixId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().addPersonTypeAccountEntryUserRel(
+			accountEntryId, creatorUserId, screenName, emailAddress, locale,
+			firstName, middleName, lastName, prefixId, suffixId);
+	}
+
 	/**
 	 * Creates a new account entry user rel with the primary key. Does not add the account entry user rel to the database.
 	 *
@@ -92,7 +109,21 @@ public class AccountEntryUserRelLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the account entry user rel from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AccountEntryUserRelLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param accountEntryUserRel the account entry user rel
 	 * @return the account entry user rel that was removed
@@ -106,6 +137,10 @@ public class AccountEntryUserRelLocalServiceUtil {
 
 	/**
 	 * Deletes the account entry user rel with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AccountEntryUserRelLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param accountEntryUserRelId the primary key of the account entry user rel
 	 * @return the account entry user rel that was removed
@@ -125,6 +160,12 @@ public class AccountEntryUserRelLocalServiceUtil {
 		getService().deleteAccountEntryUserRels(accountEntryId, accountUserIds);
 	}
 
+	public static void deleteAccountEntryUserRelsByAccountEntryId(
+		long accountEntryId) {
+
+		getService().deleteAccountEntryUserRelsByAccountEntryId(accountEntryId);
+	}
+
 	/**
 	 * @throws PortalException
 	 */
@@ -134,6 +175,12 @@ public class AccountEntryUserRelLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -310,6 +357,9 @@ public class AccountEntryUserRelLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -323,8 +373,19 @@ public class AccountEntryUserRelLocalServiceUtil {
 		return getService().hasAccountEntryUserRel(accountEntryId, userId);
 	}
 
+	public static void setPersonTypeAccountEntryUser(
+			long accountEntryId, long userId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		getService().setPersonTypeAccountEntryUser(accountEntryId, userId);
+	}
+
 	/**
 	 * Updates the account entry user rel in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AccountEntryUserRelLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param accountEntryUserRel the account entry user rel
 	 * @return the account entry user rel that was updated
@@ -334,6 +395,15 @@ public class AccountEntryUserRelLocalServiceUtil {
 			com.liferay.account.model.AccountEntryUserRel accountEntryUserRel) {
 
 		return getService().updateAccountEntryUserRel(accountEntryUserRel);
+	}
+
+	public static void updateAccountEntryUserRels(
+			long[] addAccountEntryIds, long[] deleteAccountEntryIds,
+			long accountUserId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		getService().updateAccountEntryUserRels(
+			addAccountEntryIds, deleteAccountEntryIds, accountUserId);
 	}
 
 	public static AccountEntryUserRelLocalService getService() {

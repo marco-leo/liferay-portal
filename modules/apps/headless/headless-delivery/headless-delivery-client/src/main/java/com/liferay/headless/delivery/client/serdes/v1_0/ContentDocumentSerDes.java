@@ -55,6 +55,16 @@ public class ContentDocumentSerDes {
 
 		sb.append("{");
 
+		if (contentDocument.getActions() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"actions\": ");
+
+			sb.append(_toJSON(contentDocument.getActions()));
+		}
+
 		if (contentDocument.getContentType() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -79,6 +89,20 @@ public class ContentDocumentSerDes {
 			sb.append("\"");
 
 			sb.append(_escape(contentDocument.getContentUrl()));
+
+			sb.append("\"");
+		}
+
+		if (contentDocument.getContentValue() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"contentValue\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(contentDocument.getContentValue()));
 
 			sb.append("\"");
 		}
@@ -178,6 +202,13 @@ public class ContentDocumentSerDes {
 
 		Map<String, String> map = new TreeMap<>();
 
+		if (contentDocument.getActions() == null) {
+			map.put("actions", null);
+		}
+		else {
+			map.put("actions", String.valueOf(contentDocument.getActions()));
+		}
+
 		if (contentDocument.getContentType() == null) {
 			map.put("contentType", null);
 		}
@@ -193,6 +224,15 @@ public class ContentDocumentSerDes {
 		else {
 			map.put(
 				"contentUrl", String.valueOf(contentDocument.getContentUrl()));
+		}
+
+		if (contentDocument.getContentValue() == null) {
+			map.put("contentValue", null);
+		}
+		else {
+			map.put(
+				"contentValue",
+				String.valueOf(contentDocument.getContentValue()));
 		}
 
 		if (contentDocument.getDescription() == null) {
@@ -266,7 +306,14 @@ public class ContentDocumentSerDes {
 			ContentDocument contentDocument, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "contentType")) {
+			if (Objects.equals(jsonParserFieldName, "actions")) {
+				if (jsonParserFieldValue != null) {
+					contentDocument.setActions(
+						(Map)ContentDocumentSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "contentType")) {
 				if (jsonParserFieldValue != null) {
 					contentDocument.setContentType(
 						(String)jsonParserFieldValue);
@@ -275,6 +322,12 @@ public class ContentDocumentSerDes {
 			else if (Objects.equals(jsonParserFieldName, "contentUrl")) {
 				if (jsonParserFieldValue != null) {
 					contentDocument.setContentUrl((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "contentValue")) {
+				if (jsonParserFieldValue != null) {
+					contentDocument.setContentValue(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "description")) {
@@ -312,9 +365,8 @@ public class ContentDocumentSerDes {
 					contentDocument.setTitle((String)jsonParserFieldValue);
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -370,10 +422,13 @@ public class ContentDocumentSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

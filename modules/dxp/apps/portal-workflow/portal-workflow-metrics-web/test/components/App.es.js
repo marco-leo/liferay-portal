@@ -9,69 +9,152 @@
  * distribution rights of the Software.
  */
 
+import {fireEvent, render} from '@testing-library/react';
 import React from 'react';
-import ReactDOM from 'react-dom';
-import renderer from 'react-test-renderer';
 
 import App from '../../src/main/resources/META-INF/resources/js/components/App.es';
 
-beforeAll(() => {
-	const vbody = document.createElement('div');
+import '@testing-library/jest-dom/extend-expect';
 
-	vbody.innerHTML = `<div id="workflow_controlMenu">
-		<div class="sites-control-group">
-			<ul class="control-menu-nav"></ul>
-		</div>
-		<div class="tools-control-group">
-			<ul class="control-menu-nav">
-				<label class="control-menu-level-1-heading">title</label>
-			</ul>
-		</div>
-	</div>`;
-	document.body.appendChild(vbody);
+const processItems = [
+	{
+		instancesCount: 5,
+		process: {
+			id: 1234,
+			title: 'Single Approver',
+		},
+	},
+];
 
-	ReactDOM.createPortal = jest.fn(element => {
-		return element;
+const pending = {
+	instanceCount: 0,
+	onTimeInstanceCount: 0,
+	overdueInstanceCount: 0,
+	process: {
+		id: 1234,
+		title: 'Single Approver',
+	},
+	untrackedInstanceCount: 0,
+};
+
+const jestEmpty = jest
+	.fn()
+	.mockResolvedValue({data: {items: [], totalCount: 0}});
+
+const client = {
+	get: jest
+		.fn()
+		.mockResolvedValueOnce({data: {items: [], totalCount: 0}})
+		.mockResolvedValueOnce({data: {items: [], totalCount: 0}})
+		.mockResolvedValueOnce({
+			data: {
+				items: processItems,
+				totalCount: processItems.length,
+			},
+		})
+		.mockResolvedValueOnce({data: {items: [], totalCount: 0}})
+		.mockResolvedValueOnce({data: pending})
+		.mockResolvedValue({data: {items: [], totalCount: 0}}),
+	post: jestEmpty,
+	request: jestEmpty,
+};
+
+const mockProps = {
+	client,
+	companyId: 12345,
+	defaultDelta: 20,
+	deltaValues: [5, 10, 20, 30, 50, 75],
+	getClient: jest.fn(() => client),
+	isAmPm: false,
+	maxPages: 15,
+	portletNamespace: '_workflow_',
+	reindexStatuses: [],
+};
+
+describe('The App component should', () => {
+	let container, getAllByTestId, getByText;
+
+	beforeAll(() => {
+		const header = document.createElement('div');
+
+		header.id = '_workflow_controlMenu';
+		header.innerHTML = `<div class="sites-control-group"><ul class="control-menu-nav"></ul></div><div class="user-control-group"><ul class="control-menu-nav"><li></li></ul></div>`;
+
+		document.body.appendChild(header);
+
+		const renderResult = render(<App {...mockProps} />);
+
+		container = renderResult.container;
+		getAllByTestId = renderResult.getAllByTestId;
+		getByText = renderResult.getByText;
 	});
 
-	global.Liferay = {
-		Language: {
-			get: key => key
-		},
-		ThemeDisplay: {
-			getPathThemeImages: () => '/'
-		}
-	};
-});
+	test('Navigate to settings indexes page', () => {
+		const kebabButton = document.getElementById('headerKebab').children[0]
+			.children[0].children[0];
 
-afterAll(() => {
-	global.Liferay = null;
-});
+		fireEvent.click(kebabButton);
 
-test('Should render default component', () => {
-	const component = renderer.create(<App namespace="workflow_" />);
+		const dropDownItems = document.querySelectorAll('.dropdown-item');
 
-	const tree = component.toJSON();
+		expect(dropDownItems[0]).toHaveTextContent('settings');
 
-	expect(tree).toMatchSnapshot();
-});
+		fireEvent.click(dropDownItems[0]);
 
-test('Should render default component without custom header', () => {
-	document.getElementById('workflow_controlMenu').id = '';
+		expect(window.location.hash).toContain('#/settings/indexes');
 
-	const component = renderer.create(<App />);
+		fireEvent.click(document.getElementById('backButton').children[0]);
+	});
 
-	const tree = component.toJSON();
+	test('Return to process list page', () => {
+		const processName = getAllByTestId('processName');
+		const processNameLink = processName[0].children[0];
 
-	expect(tree).toMatchSnapshot();
-});
+		expect(processNameLink).toHaveTextContent('Single Approver');
 
-test('Should set status', () => {
-	const component = renderer.create(<App />);
+		expect(window.location.hash).toContain('#/processes');
 
-	const instance = component.getInstance();
+		fireEvent.click(processNameLink);
+	});
 
-	instance.setStatus('sla-updated');
+	test('Render the process metrics page on dashboard tab', () => {
+		expect(window.location.hash).toContain(
+			'#/metrics/1234/dashboard/20/1/overdueInstanceCount%3Aasc'
+		);
 
-	expect(instance.state.status).toEqual('sla-updated');
+		const tabs = container.querySelectorAll('a.nav-link');
+
+		expect(tabs[0]).toHaveTextContent('dashboard');
+		expect(tabs[0].className.includes('active')).toBe(true);
+		expect(tabs[1]).toHaveTextContent('performance');
+
+		expect(window.location.hash).toContain(
+			'#/metrics/1234/dashboard/20/1/overdueInstanceCount%3Aasc'
+		);
+
+		fireEvent.click(tabs[1]);
+	});
+
+	test('Render the process metrics page on performance tab and back to dashboard', () => {
+		const tabs = container.querySelectorAll('a.nav-link');
+
+		expect(tabs[0]).toHaveTextContent('dashboard');
+		expect(tabs[1]).toHaveTextContent('performance');
+		expect(tabs[1].className.includes('active')).toBe(true);
+
+		expect(window.location.hash).toContain('#/metrics/1234/performance');
+
+		fireEvent.click(tabs[0]);
+
+		expect(tabs[0].className.includes('active')).toBe(true);
+		expect(window.location.hash).toContain('#/metrics/1234/dashboard');
+	});
+
+	test('Navigate to new SLA page', () => {
+		const slaInfoLink = getByText('add-a-new-sla');
+
+		fireEvent.click(slaInfoLink);
+
+		expect(window.location.hash).toContain('#/sla/1234/new');
+	});
 });

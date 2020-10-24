@@ -32,11 +32,6 @@ public class MDRActionLocalServiceWrapper
 		_mdrActionLocalService = mdrActionLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link MDRActionLocalServiceUtil} to access the mdr action local service. Add custom service methods to <code>com.liferay.mobile.device.rules.service.impl.MDRActionLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.mobile.device.rules.model.MDRAction addAction(
 			long ruleGroupInstanceId,
@@ -57,17 +52,21 @@ public class MDRActionLocalServiceWrapper
 			java.util.Map<java.util.Locale, String> nameMap,
 			java.util.Map<java.util.Locale, String> descriptionMap, String type,
 			com.liferay.portal.kernel.util.UnicodeProperties
-				typeSettingsProperties,
+				typeSettingsUnicodeProperties,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _mdrActionLocalService.addAction(
 			ruleGroupInstanceId, nameMap, descriptionMap, type,
-			typeSettingsProperties, serviceContext);
+			typeSettingsUnicodeProperties, serviceContext);
 	}
 
 	/**
 	 * Adds the mdr action to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MDRActionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param mdrAction the mdr action
 	 * @return the mdr action that was added
@@ -92,6 +91,17 @@ public class MDRActionLocalServiceWrapper
 		return _mdrActionLocalService.createMDRAction(actionId);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _mdrActionLocalService.createPersistedModel(primaryKeyObj);
+	}
+
 	@Override
 	public void deleteAction(long actionId) {
 		_mdrActionLocalService.deleteAction(actionId);
@@ -112,6 +122,10 @@ public class MDRActionLocalServiceWrapper
 	/**
 	 * Deletes the mdr action with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MDRActionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param actionId the primary key of the mdr action
 	 * @return the mdr action that was removed
 	 * @throws PortalException if a mdr action with the primary key could not be found
@@ -126,6 +140,10 @@ public class MDRActionLocalServiceWrapper
 
 	/**
 	 * Deletes the mdr action from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MDRActionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param mdrAction the mdr action
 	 * @return the mdr action that was removed
@@ -146,6 +164,11 @@ public class MDRActionLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _mdrActionLocalService.deletePersistedModel(persistedModel);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _mdrActionLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -302,10 +325,11 @@ public class MDRActionLocalServiceWrapper
 		getActions(
 			long ruleGroupInstanceId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.mobile.device.rules.model.MDRAction> obc) {
+				<com.liferay.mobile.device.rules.model.MDRAction>
+					orderByComparator) {
 
 		return _mdrActionLocalService.getActions(
-			ruleGroupInstanceId, start, end, obc);
+			ruleGroupInstanceId, start, end, orderByComparator);
 	}
 
 	@Override
@@ -437,6 +461,9 @@ public class MDRActionLocalServiceWrapper
 		return _mdrActionLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -463,17 +490,21 @@ public class MDRActionLocalServiceWrapper
 			long actionId, java.util.Map<java.util.Locale, String> nameMap,
 			java.util.Map<java.util.Locale, String> descriptionMap, String type,
 			com.liferay.portal.kernel.util.UnicodeProperties
-				typeSettingsProperties,
+				typeSettingsUnicodeProperties,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _mdrActionLocalService.updateAction(
-			actionId, nameMap, descriptionMap, type, typeSettingsProperties,
-			serviceContext);
+			actionId, nameMap, descriptionMap, type,
+			typeSettingsUnicodeProperties, serviceContext);
 	}
 
 	/**
 	 * Updates the mdr action in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MDRActionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param mdrAction the mdr action
 	 * @return the mdr action that was updated

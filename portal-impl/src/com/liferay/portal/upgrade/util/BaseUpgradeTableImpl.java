@@ -74,13 +74,8 @@ public abstract class BaseUpgradeTableImpl extends Table {
 	}
 
 	public void updateTable() throws Exception {
-		Connection connection = DataAccess.getConnection();
-
-		try {
+		try (Connection connection = DataAccess.getConnection()) {
 			updateTable(connection, connection, true);
-		}
-		finally {
-			DataAccess.cleanUp(connection);
 		}
 	}
 
@@ -129,12 +124,11 @@ public abstract class BaseUpgradeTableImpl extends Table {
 				}
 
 				try {
-					db.runSQLTemplateString(
-						targetConnection, indexSQL, false, false);
+					db.runSQLTemplateString(targetConnection, indexSQL, false);
 				}
-				catch (Exception e) {
+				catch (Exception exception) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(e.getMessage() + ": " + indexSQL);
+						_log.warn(exception.getMessage() + ": " + indexSQL);
 					}
 				}
 			}

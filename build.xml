@@ -115,7 +115,9 @@ message.
 		<property name="gradle.execute.silent" value="true" />
 
 		<antcall target="clean" />
+
 		<antcall target="compile" />
+
 		<antcall target="deploy" />
 	</target>
 
@@ -169,91 +171,39 @@ message.
 		</for>
 	</target>
 
-	<target name="clean">
-		<gradle-execute dir="modules" setupbinariescache="false" task="clean">
-			<arg value="--parallel" />
-			<arg value="-Dbuild.profile=portal-pre" />
+	<target name="bom-all">
+		<gradle-execute setupbinariescache="false" task="lockBOMDependencyVersion">
+			<arg value="--build-file=${project.dir}/modules/releng.gradle" />
 		</gradle-execute>
 
-		<parallel failonany="true" threadcount="${parallel.thread.count}">
-			<ant dir="benchmarks" inheritAll="false" target="clean" />
+		<antcall target="all" />
+	</target>
 
-			<ant dir="classes" inheritAll="false" target="clean" />
+	<target name="clean">
+		<gradle-stop-daemon />
 
-			<ant dir="portal-kernel" inheritAll="false" target="clean" />
-
-			<ant dir="util-bridges" inheritAll="false" target="clean" />
-			<ant dir="util-java" inheritAll="false" target="clean" />
-			<ant dir="util-slf4j" inheritAll="false" target="clean" />
-			<ant dir="util-taglib" inheritAll="false" target="clean" />
-
-			<ant dir="portal-impl" inheritAll="false" target="clean" />
-			<ant dir="portal-test" inheritAll="false" target="clean" />
-			<ant dir="portal-test-integration" inheritAll="false" target="clean" />
-
-			<ant dir="sql" inheritAll="false" target="clean" />
-
-			<delete dir="jacoco" />
-
-			<sequential>
-				<delete dir="${sdk.dir}" />
-
-				<setup-sdk setupbinariescache="false" />
-
-				<gradle-execute dir="${project.dir}/modules" setupbinariescache="false" task="clean">
-					<arg value="-Dbuild.exclude.dirs=${build.exclude.dirs}" />
-					<arg value="-Dbuild.include.dirs=${build.include.dirs}" />
-					<arg value="-Dbuild.profile=${build.profile}" />
-				</gradle-execute>
-
-				<if>
-					<available file="${project.dir}/modules/test/arquillian-extension-junit-bridge-test" type="dir" />
-					<then>
-						<gradle-execute dir="${project.dir}/modules/test/arquillian-extension-junit-bridge-test" setupbinariescache="false" task="clean" />
-					</then>
-				</if>
-			</sequential>
-
-			<delete failonerror="false" includeemptydirs="true">
-				<fileset
-					dir="."
-					includes="*.ear,*.jar,*.war,*.zip"
-				/>
-				<fileset
-					dir="test-coverage"
-				/>
-				<fileset
-					dir="test-results"
-				/>
-				<fileset
-					dir="tmp"
-				/>
-				<fileset
-					dir="${doc.dir}"
-				/>
-			</delete>
-
-			<if>
-				<available file="support-${app.server.type}" />
-				<then>
-					<ant dir="support-${app.server.type}" inheritAll="false" target="clean" />
-				</then>
-			</if>
-		</parallel>
+		<if>
+			<available file="${project.dir}/.git" />
+			<then>
+				<execute>
+					${build.git.clean.command}
+				</execute>
+			</then>
+			<else>
+				<echo>Do not clean project because it is not in a Git repository.</echo>
+			</else>
+		</if>
 
 		<clean-liferay-home />
-
-		<ant dir="portal-web" inheritAll="false" target="clean" />
 
 		<print-current-time />
 	</target>
 
 	<target name="compile">
-		<setup-libs />
 		<setup-sdk />
-		<setup-yarn />
 
-		<delete file="javac.output.txt" />
+		<setup-libs />
+		<setup-yarn />
 
 		<gradle-execute dir="modules/core" task="deploy">
 			<arg value="--parallel" />
@@ -284,22 +234,6 @@ message.
 
 		<ant dir="portal-impl" inheritAll="false" target="compile" />
 
-		<parallel failonany="true" threadcount="${parallel.thread.count}">
-			<ant dir="portal-test-integration" inheritAll="false" target="compile" />
-
-			<sequential>
-				<ant dir="sql" inheritAll="false" target="build-db" />
-				<ant dir="sql" inheritAll="false" target="rebuild-hypersonic" />
-			</sequential>
-		</parallel>
-
-		<if>
-			<available file="javac.output.txt" />
-			<then>
-				<fail message="Deprecated APIs detected. Please see javac.output.txt for details." />
-			</then>
-		</if>
-
 		<print-current-time />
 	</target>
 
@@ -311,9 +245,6 @@ message.
 	</target>
 
 	<target name="deploy">
-		<setup-libs />
-		<setup-sdk />
-
 		<if>
 			<equals arg1="${app.server.type}" arg2="websphere" />
 			<then>
@@ -342,11 +273,19 @@ message.
 
 		<ant dir="portal-impl" inheritAll="false" target="deploy" />
 		<ant dir="portal-test" inheritAll="false" target="deploy" />
-		<ant dir="portal-test-integration" inheritAll="false" target="deploy" />
 
 		<ant dir="portal-web" inheritAll="false" target="deploy" />
 
+		<antcall target="install-portal-snapshots" />
+
 		<touch file="${liferay.home}/.liferay-home" />
+
+		<parallel failonany="true" threadcount="${parallel.thread.count}">
+			<sequential>
+				<ant dir="sql" inheritAll="false" target="build-db" />
+				<ant dir="sql" inheritAll="false" target="rebuild-hypersonic" />
+			</sequential>
+		</parallel>
 
 		<copy
 			todir="${liferay.home}/data/hypersonic"
@@ -383,8 +322,6 @@ message.
 		</if>
 
 		<ant dir="portal-web" inheritAll="false" target="war" />
-
-		<antcall target="install-portal-snapshots" />
 
 		<stopwatch name="modules.stopwatch" />
 
@@ -687,6 +624,30 @@ message.
 		</if>
 	</target>
 
+	<target name="deploy-portal-license-enterprise-app">
+		<property name="artifact.name" value="com.liferay.portal.license.enterprise.app" />
+
+		<gradle-execute outputproperty="jar.file" setupbinariescache="false" task="printDependencyPath">
+			<arg value="--build-file=${project.dir}/modules/util.gradle" />
+			<arg value="--quiet" />
+			<arg value="-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false" />
+			<arg value="-PdependencyNotation=com.liferay:${artifact.name}:${build.portal.license.enterprise.app.module.version}" />
+		</gradle-execute>
+
+		<copy
+			file="${jar.file}"
+			preservelastmodified="true"
+			todir="${liferay.home}/osgi/static"
+		/>
+
+		<basename file="${jar.file}" property="file.name" />
+
+		<move
+			file="${liferay.home}/osgi/static/${file.name}"
+			tofile="${liferay.home}/osgi/static/${artifact.name}.jar"
+		/>
+	</target>
+
 	<target name="dist">
 		<ant antfile="build-dist.xml" inheritAll="false" target="dist" />
 	</target>
@@ -730,7 +691,6 @@ message.
 		<ant dir="portal-impl" inheritAll="false" target="install-portal-snapshot" />
 		<ant dir="portal-kernel" inheritAll="false" target="install-portal-snapshot" />
 		<ant dir="portal-test" inheritAll="false" target="install-portal-snapshot" />
-		<ant dir="portal-test-integration" inheritAll="false" target="install-portal-snapshot" />
 		<ant dir="portal-web" inheritAll="false" target="install-portal-snapshot" />
 		<ant dir="support-tomcat" inheritAll="false" target="install-portal-snapshot" />
 		<ant dir="util-bridges" inheritAll="false" target="install-portal-snapshot" />
@@ -749,7 +709,6 @@ message.
 
 		<ant dir="portal-impl" inheritAll="false" target="jar" />
 		<ant dir="portal-test" inheritAll="false" target="jar" />
-		<ant dir="portal-test-integration" inheritAll="false" target="jar" />
 
 		<ant dir="portal-web" inheritAll="false" target="war" />
 
@@ -772,11 +731,6 @@ message.
 		<antcall target="javadoc-portal-cmd">
 			<param name="generated.description" value="" />
 			<param name="module.dir" value="portal-test" />
-		</antcall>
-
-		<antcall target="javadoc-portal-cmd">
-			<param name="generated.description" value="" />
-			<param name="module.dir" value="portal-test-integration" />
 		</antcall>
 
 		<antcall target="javadoc-cmd">
@@ -922,15 +876,15 @@ This target has been renamed to "snapshot-bundle". Please call "snapshot-bundle"
 
 		<antcall target="propertiesdoc-cmd">
 			<param name="properties.dest.dir" value="${properties.dest.dir}" />
-			<param name="properties.file" value="portal-impl/src/portal.properties" />
-			<param name="properties.title" value="Portal Properties" />
+			<param name="properties.file" value="definitions/liferay-plugin-package_7_4_0.properties" />
+			<param name="properties.title" value="Liferay Plugin Package 7.4 Properties" />
 			<param name="properties.toc" value="true" />
 		</antcall>
 
 		<antcall target="propertiesdoc-cmd">
 			<param name="properties.dest.dir" value="${properties.dest.dir}" />
-			<param name="properties.file" value="portal-impl/src/portal_ja.properties" />
-			<param name="properties.title" value="Portal Properties (JA)" />
+			<param name="properties.file" value="portal-impl/src/portal.properties" />
+			<param name="properties.title" value="Portal Properties" />
 			<param name="properties.toc" value="true" />
 		</antcall>
 
@@ -965,11 +919,130 @@ This target has been renamed to "snapshot-bundle". Please call "snapshot-bundle"
 		</java>
 	</target>
 
+	<target name="publish-dxp-release">
+		<fail message="Please set the property &quot;dxp.dir.name&quot;.">
+			<condition>
+				<or>
+					<equals arg1="${dxp.dir.name}" arg2="" />
+					<not>
+						<isset property="dxp.dir.name" />
+					</not>
+				</or>
+			</condition>
+		</fail>
+
+		<antcall inheritAll="false" target="setup-profile-dxp" />
+
+		<delete dir="${user.home}/.m2/repository/com/liferay/portal/com.liferay.portal.dxp.apps.${dxp.dir.name}" />
+
+		<gradle-execute failonerror="false" forcedcacheenabled="true" outputproperty="dxp.zip.file" setupbinariescache="@{setupbinariescache}" task="printDependencyPath">
+			<arg value="--build-file=${project.dir}/modules/util.gradle" />
+			<arg value="--quiet" />
+			<arg value="-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false" />
+			<arg value="-PdependencyNotation=com.liferay.portal:com.liferay.portal.dxp.apps.${dxp.dir.name}:latest.release" />
+		</gradle-execute>
+
+		<if>
+			<not>
+				<contains string="${dxp.zip.file.error}" substring="no versions of com.liferay.portal:com.liferay.portal.dxp.apps.${dxp.dir.name} are available" />
+			</not>
+			<then>
+				<propertyregex
+					input="${dxp.zip.file}"
+					override="true"
+					property="dxp.version.latest"
+					regexp=".*-([0-9\.]+)\.zip"
+					select="\1"
+				/>
+
+				<antelope:stringutil property="dxp.version.latest.index" string="${dxp.version.latest}">
+					<antelope:lastindexof string="." />
+				</antelope:stringutil>
+
+				<antelope:math
+					datatype="int"
+					operand1="${dxp.version.latest.index}"
+					operand2="1"
+					operation="+"
+					result="dxp.version.latest.index"
+				/>
+
+				<antelope:stringutil property="dxp.version.latest.prefix" string="${dxp.version.latest}">
+					<antelope:substring endindex="${dxp.version.latest.index}" />
+				</antelope:stringutil>
+
+				<antelope:stringutil property="dxp.version.latest.micro" string="${dxp.version.latest}">
+					<antelope:substring beginindex="${dxp.version.latest.index}" />
+				</antelope:stringutil>
+
+				<antelope:math
+					datatype="int"
+					operand1="${dxp.version.latest.micro}"
+					operand2="1"
+					operation="+"
+					result="dxp.version.latest.micro"
+				/>
+
+				<property name="dxp.version.current" value="${dxp.version.latest.prefix}${dxp.version.latest.micro}" />
+			</then>
+			<else>
+				<property name="dxp.version.current" value="${lp.version.major}.0" />
+			</else>
+		</if>
+
+		<property name="dxp.name" value="com.liferay.portal.dxp.apps.${dxp.dir.name}-${dxp.version.current}" />
+
+		<mkdir dir="${project.dir}/dist" />
+
+		<delete file="${project.dir}/dist/${dxp.name}.zip" />
+
+		<execute dir="${project.dir}/modules/dxp/apps/${dxp.dir.name}">
+			<![CDATA[
+				git clean -dfqx .
+			]]>
+		</execute>
+
+		<execute dir="${project.dir}">
+			<![CDATA[
+				git log --format=format:%H -n 1 > ${project.dir}/modules/dxp/apps/${dxp.dir.name}/git-commit-${dxp.dir.name}
+			]]>
+		</execute>
+
+		<zip
+			destfile="${project.dir}/dist/${dxp.name}.zip"
+			duplicate="preserve"
+		>
+			<zipfileset
+				dir="${project.dir}/modules/.releng/dxp/apps/${dxp.dir.name}"
+				prefix="${dxp.name}/.releng"
+			/>
+			<zipfileset
+				dir="${project.dir}/modules/dxp/apps/${dxp.dir.name}"
+				prefix="${dxp.name}/apps"
+			/>
+		</zip>
+
+		<delete file="${project.dir}/modules/dxp/apps/${dxp.dir.name}/git-commit-${dxp.dir.name}" />
+
+		<artifact:pom artifactId="com.liferay.portal.dxp.apps.${dxp.dir.name}" groupId="com.liferay.portal" id="dxp.${dxp.dir.name}.pom" packaging="zip" version="${dxp.version.current}" />
+
+		<artifact:writepom file="dist/dxp.${dxp.dir.name}.pom" pomRefId="dxp.${dxp.dir.name}.pom" />
+
+		<artifact:deploy file="dist/${dxp.name}.zip">
+			<pom file="dist/dxp.${dxp.dir.name}.pom" />
+			<remoteRepository url="https://repository-cdn.liferay.com/nexus/content/repositories/liferay-private-releases">
+				<authentication password="${sonatype.release.password}" username="${sonatype.release.username}" />
+			</remoteRepository>
+		</artifact:deploy>
+
+		<delete dir="${user.home}/.m2/repository/com/liferay/portal/com.liferay.portal.dxp.apps.${dxp.dir.name}" />
+		<delete file="${project.dir}/dist/dxp.${dxp.dir.name}.pom" />
+	</target>
+
 	<target name="publish-portal-release">
 		<ant dir="portal-impl" inheritAll="false" target="publish-portal-release" />
 		<ant dir="portal-kernel" inheritAll="false" target="publish-portal-release" />
 		<ant dir="portal-test" inheritAll="false" target="publish-portal-release" />
-		<ant dir="portal-test-integration" inheritAll="false" target="publish-portal-release" />
 		<ant dir="portal-web" inheritAll="false" target="publish-portal-release" />
 		<ant dir="support-tomcat" inheritAll="false" target="publish-portal-release" />
 		<ant dir="util-bridges" inheritAll="false" target="publish-portal-release" />
@@ -982,7 +1055,6 @@ This target has been renamed to "snapshot-bundle". Please call "snapshot-bundle"
 		<ant dir="portal-impl" inheritAll="false" target="restore-latest-artifact-version" />
 		<ant dir="portal-kernel" inheritAll="false" target="restore-latest-artifact-version" />
 		<ant dir="portal-test" inheritAll="false" target="restore-latest-artifact-version" />
-		<ant dir="portal-test-integration" inheritAll="false" target="restore-latest-artifact-version" />
 		<ant dir="portal-web" inheritAll="false" target="restore-latest-artifact-version" />
 		<ant dir="support-tomcat" inheritAll="false" target="restore-latest-artifact-version" />
 		<ant dir="util-bridges" inheritAll="false" target="restore-latest-artifact-version" />
@@ -1035,33 +1107,10 @@ This target has been renamed to "snapshot-bundle". Please call "snapshot-bundle"
 	</target>
 
 	<target name="setup-profile-dxp">
-		<if>
-			<and>
-				<isset property="env.JENKINS_HOME" />
-				<equals arg1="${build.setup.profile.dxp.branch.name}" arg2="master-private" />
-				<equals arg1="${build.setup.profile.dxp.repository.url}" arg2="git@github.com:liferay/liferay-portal-ee.git" />
-			</and>
-			<then>
-				<retry retrycount="5" retrydelay="3000">
-					<sequential>
-						<delete failonerror="false" file="${user.home}/.ssh/known_hosts" />
-
-						<gradle-execute setupbinariescache="false" task="checkoutDXPScript">
-							<arg value="--build-file=${project.dir}/modules/profile-dxp.gradle" />
-							<arg value="-Dprofile.dxp.branch.name=master-private" />
-							<arg value="-Dprofile.dxp.repository.url=git@github-dev.liferay.com:liferay/liferay-portal-ee.git" />
-						</gradle-execute>
-					</sequential>
-				</retry>
-			</then>
-			<else>
-				<gradle-execute setupbinariescache="false" task="checkoutDXPScript">
-					<arg value="--build-file=${project.dir}/modules/profile-dxp.gradle" />
-					<arg value="-Dprofile.dxp.branch.name=${build.setup.profile.dxp.branch.name}" />
-					<arg value="-Dprofile.dxp.repository.url=${build.setup.profile.dxp.repository.url}" />
-				</gradle-execute>
-			</else>
-		</if>
+		<gradle-execute setupbinariescache="false" task="checkoutDXPScript">
+			<arg value="--build-file=${project.dir}/modules/profile-dxp.gradle" />
+			<arg value="-Dprofile.dxp.commit.id=${build.setup.profile.dxp.commit.id}" />
+		</gradle-execute>
 
 		<condition else="${git.working.branch.name}-private" property="to.branch.name" value="${git.working.branch.name}">
 			<antelope:endswith string="${git.working.branch.name}" with="-private" />
@@ -1073,11 +1122,34 @@ This target has been renamed to "snapshot-bundle". Please call "snapshot-bundle"
 			<property name="to.branch.name" value="${to.branch.name}" />
 		</ant>
 
+		<ant antfile="build-working-dir.xml" inheritAll="false" target="checkout-private-projects">
+			<property file="working.dir.properties" />
+		</ant>
+
 		<gradle-execute setupbinariescache="false" task="removeDXPScript">
 			<arg value="--build-file=${project.dir}/modules/profile-dxp.gradle" />
 		</gradle-execute>
 
-		<update-gradle-properties />
+		<antcall inheritAll="false" target="update-gradle-properties" />
+
+		<if>
+			<and>
+				<isset property="build.setup.profile.dxp.app.lcs.version" />
+				<not>
+					<equals arg1="${build.setup.profile.dxp.app.lcs.version}" arg2="" />
+				</not>
+			</and>
+			<then>
+				<setup-dxp-app dxp.app.name="lcs" dxp.app.version="${build.setup.profile.dxp.app.lcs.version}" />
+			</then>
+		</if>
+
+		<if>
+			<equals arg1="${build.patcher.replace.release.info.tokens}" arg2="true" />
+			<then>
+				<ant dir="portal-kernel" inheritAll="false" target="replace-release-info-tokens" />
+			</then>
+		</if>
 	</target>
 
 	<target name="setup-profile-portal">
@@ -1088,7 +1160,17 @@ This target has been renamed to "snapshot-bundle". Please call "snapshot-bundle"
 			/>
 		</delete>
 
+		<delete dir="${project.dir}/modules/.releng/dxp/apps/lcs" failonerror="false" />
+		<delete dir="${project.dir}/modules/dxp/apps/lcs" failonerror="false" />
+
 		<update-gradle-properties />
+
+		<if>
+			<equals arg1="${build.patcher.replace.release.info.tokens}" arg2="true" />
+			<then>
+				<ant dir="portal-kernel" inheritAll="false" target="replace-release-info-tokens" />
+			</then>
+		</if>
 	</target>
 
 	<target name="setup-sdk">
@@ -1347,7 +1429,9 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 		>
 			<fileset
 				dir="${project.dir}/.gradle/caches/modules-2/files-2.1"
-			/>
+			>
+				<size units="Mi" value="100" when="less" />
+			</fileset>
 		</copy>
 
 		<gradle-execute dir="${project.dir}/modules" task="updateYarnBinariesCache">
@@ -1358,7 +1442,8 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 	<target name="update-gradle-cache">
 		<execute>
 			git reset --hard HEAD
-			git clean -d -f
+
+			git clean -df
 		</execute>
 
 		<delete dir="${basedir}/.gradle" />
@@ -1377,7 +1462,7 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 			<arg value="testIntegrationClasses" />
 		</gradle-execute>
 
-		<gradle-execute dir="modules/sdk/gradle-util" failonerror="false" forcedcacheenabled="false" setupbinariescache="false" task="findbugsMain">
+		<gradle-execute dir="modules/sdk/gradle-util" failonerror="false" forcedcacheenabled="false" setupbinariescache="false" task="spotbugsMain">
 			<arg value="--continue" />
 			<arg value="--parallel" />
 		</gradle-execute>
@@ -1422,6 +1507,7 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 				<dtd location="${definitions.dir}/liferay-display_7_1_0.dtd" publicId="-//Liferay//DTD Display 7.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-display_7_2_0.dtd" publicId="-//Liferay//DTD Display 7.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-display_7_3_0.dtd" publicId="-//Liferay//DTD Display 7.3.0//EN" />
+				<dtd location="${definitions.dir}/liferay-display_7_4_0.dtd" publicId="-//Liferay//DTD Display 7.4.0//EN" />
 				<dtd location="${definitions.dir}/liferay-friendly-url-routes_6_0_0.dtd" publicId="-//Liferay//DTD Friendly URL Routes 6.0.0//EN" />
 				<dtd location="${definitions.dir}/liferay-friendly-url-routes_6_1_0.dtd" publicId="-//Liferay//DTD Friendly URL Routes 6.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-friendly-url-routes_6_2_0.dtd" publicId="-//Liferay//DTD Friendly URL Routes 6.2.0//EN" />
@@ -1429,6 +1515,7 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 				<dtd location="${definitions.dir}/liferay-friendly-url-routes_7_1_0.dtd" publicId="-//Liferay//DTD Friendly URL Routes 7.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-friendly-url-routes_7_2_0.dtd" publicId="-//Liferay//DTD Friendly URL Routes 7.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-friendly-url-routes_7_3_0.dtd" publicId="-//Liferay//DTD Friendly URL Routes 7.3.0//EN" />
+				<dtd location="${definitions.dir}/liferay-friendly-url-routes_7_4_0.dtd" publicId="-//Liferay//DTD Friendly URL Routes 7.4.0//EN" />
 				<dtd location="${definitions.dir}/liferay-hook_5_1_0.dtd" publicId="-//Liferay//DTD Hook 5.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-hook_5_2_0.dtd" publicId="-//Liferay//DTD Hook 5.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-hook_6_0_0.dtd" publicId="-//Liferay//DTD Hook 6.0.0//EN" />
@@ -1438,6 +1525,7 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 				<dtd location="${definitions.dir}/liferay-hook_7_1_0.dtd" publicId="-//Liferay//DTD Hook 7.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-hook_7_2_0.dtd" publicId="-//Liferay//DTD Hook 7.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-hook_7_3_0.dtd" publicId="-//Liferay//DTD Hook 7.3.0//EN" />
+				<dtd location="${definitions.dir}/liferay-hook_7_4_0.dtd" publicId="-//Liferay//DTD Hook 7.4.0//EN" />
 				<dtd location="${definitions.dir}/liferay-layout-templates_3_6_0.dtd" publicId="-//Liferay//DTD Layout Templates 3.6.0//EN" />
 				<dtd location="${definitions.dir}/liferay-layout-templates_4_0_0.dtd" publicId="-//Liferay//DTD Layout Templates 4.0.0//EN" />
 				<dtd location="${definitions.dir}/liferay-layout-templates_4_3_0.dtd" publicId="-//Liferay//DTD Layout Templates 4.3.0//EN" />
@@ -1451,6 +1539,7 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 				<dtd location="${definitions.dir}/liferay-layout-templates_7_1_0.dtd" publicId="-//Liferay//DTD Layout Templates 7.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-layout-templates_7_2_0.dtd" publicId="-//Liferay//DTD Layout Templates 7.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-layout-templates_7_3_0.dtd" publicId="-//Liferay//DTD Layout Templates 7.3.0//EN" />
+				<dtd location="${definitions.dir}/liferay-layout-templates_7_4_0.dtd" publicId="-//Liferay//DTD Layout Templates 7.4.0//EN" />
 				<dtd location="${definitions.dir}/liferay-look-and-feel_3_5_0.dtd" publicId="-//Liferay//DTD Look and Feel 3.5.0//EN" />
 				<dtd location="${definitions.dir}/liferay-look-and-feel_4_0_0.dtd" publicId="-//Liferay//DTD Look and Feel 4.0.0//EN" />
 				<dtd location="${definitions.dir}/liferay-look-and-feel_4_3_0.dtd" publicId="-//Liferay//DTD Look and Feel 4.3.0//EN" />
@@ -1464,6 +1553,7 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 				<dtd location="${definitions.dir}/liferay-look-and-feel_7_1_0.dtd" publicId="-//Liferay//DTD Look and Feel 7.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-look-and-feel_7_2_0.dtd" publicId="-//Liferay//DTD Look and Feel 7.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-look-and-feel_7_3_0.dtd" publicId="-//Liferay//DTD Look and Feel 7.3.0//EN" />
+				<dtd location="${definitions.dir}/liferay-look-and-feel_7_4_0.dtd" publicId="-//Liferay//DTD Look and Feel 7.4.0//EN" />
 				<dtd location="${definitions.dir}/liferay-plugin-package_4_3_0.dtd" publicId="-//Liferay//DTD Plugin Package 4.3.0//EN" />
 				<dtd location="${definitions.dir}/liferay-plugin-package_5_0_0.dtd" publicId="-//Liferay//DTD Plugin Package 5.0.0//EN" />
 				<dtd location="${definitions.dir}/liferay-plugin-package_5_1_0.dtd" publicId="-//Liferay//DTD Plugin Package 5.1.0//EN" />
@@ -1475,6 +1565,7 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 				<dtd location="${definitions.dir}/liferay-plugin-package_7_1_0.dtd" publicId="-//Liferay//DTD Plugin Package 7.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-plugin-package_7_2_0.dtd" publicId="-//Liferay//DTD Plugin Package 7.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-plugin-package_7_3_0.dtd" publicId="-//Liferay//DTD Plugin Package 7.3.0//EN" />
+				<dtd location="${definitions.dir}/liferay-plugin-package_7_4_0.dtd" publicId="-//Liferay//DTD Plugin Package 7.4.0//EN" />
 				<dtd location="${definitions.dir}/liferay-plugin-repository_4_3_0.dtd" publicId="-//Liferay//DTD Plugin Repository 4.3.0//EN" />
 				<dtd location="${definitions.dir}/liferay-plugin-repository_5_0_0.dtd" publicId="-//Liferay//DTD Plugin Repository 5.0.0//EN" />
 				<dtd location="${definitions.dir}/liferay-plugin-repository_5_1_0.dtd" publicId="-//Liferay//DTD Plugin Repository 5.1.0//EN" />
@@ -1486,6 +1577,7 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 				<dtd location="${definitions.dir}/liferay-plugin-repository_7_1_0.dtd" publicId="-//Liferay//DTD Plugin Repository 7.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-plugin-repository_7_2_0.dtd" publicId="-//Liferay//DTD Plugin Repository 7.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-plugin-repository_7_3_0.dtd" publicId="-//Liferay//DTD Plugin Repository 7.3.0//EN" />
+				<dtd location="${definitions.dir}/liferay-plugin-repository_7_4_0.dtd" publicId="-//Liferay//DTD Plugin Repository 7.4.0//EN" />
 				<dtd location="${definitions.dir}/liferay-portlet_2_0_0.dtd" publicId="-//Liferay//DTD PORTLET 2.0.0//EN" />
 				<dtd location="${definitions.dir}/liferay-portlet_2_2_0.dtd" publicId="-//Liferay//DTD PORTLET 2.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-portlet-app_3_5_0.dtd" publicId="-//Liferay//DTD Portlet Application 3.5.0//EN" />
@@ -1507,6 +1599,7 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 				<dtd location="${definitions.dir}/liferay-portlet-app_7_1_0.dtd" publicId="-//Liferay//DTD Portlet Application 7.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-portlet-app_7_2_0.dtd" publicId="-//Liferay//DTD Portlet Application 7.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-portlet-app_7_3_0.dtd" publicId="-//Liferay//DTD Portlet Application 7.3.0//EN" />
+				<dtd location="${definitions.dir}/liferay-portlet-app_7_4_0.dtd" publicId="-//Liferay//DTD Portlet Application 7.4.0//EN" />
 				<dtd location="${definitions.dir}/liferay-resource-action-mapping_6_0_0.dtd" publicId="-//Liferay//DTD Resource Action Mapping 6.0.0//EN" />
 				<dtd location="${definitions.dir}/liferay-resource-action-mapping_6_1_0.dtd" publicId="-//Liferay//DTD Resource Action Mapping 6.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-resource-action-mapping_6_2_0.dtd" publicId="-//Liferay//DTD Resource Action Mapping 6.2.0//EN" />
@@ -1514,6 +1607,7 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 				<dtd location="${definitions.dir}/liferay-resource-action-mapping_7_1_0.dtd" publicId="-//Liferay//DTD Resource Action Mapping 7.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-resource-action-mapping_7_2_0.dtd" publicId="-//Liferay//DTD Resource Action Mapping 7.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-resource-action-mapping_7_3_0.dtd" publicId="-//Liferay//DTD Resource Action Mapping 7.3.0//EN" />
+				<dtd location="${definitions.dir}/liferay-resource-action-mapping_7_4_0.dtd" publicId="-//Liferay//DTD Resource Action Mapping 7.4.0//EN" />
 				<dtd location="${definitions.dir}/liferay-service-builder_3_5_0.dtd" publicId="-//Liferay//DTD Service Builder 3.5.0//EN" />
 				<dtd location="${definitions.dir}/liferay-service-builder_3_6_1.dtd" publicId="-//Liferay//DTD Service Builder 3.6.1//EN" />
 				<dtd location="${definitions.dir}/liferay-service-builder_4_0_0.dtd" publicId="-//Liferay//DTD Service Builder 4.0.0//EN" />
@@ -1531,6 +1625,7 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 				<dtd location="${definitions.dir}/liferay-service-builder_7_1_0.dtd" publicId="-//Liferay//DTD Service Builder 7.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-service-builder_7_2_0.dtd" publicId="-//Liferay//DTD Service Builder 7.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-service-builder_7_3_0.dtd" publicId="-//Liferay//DTD Service Builder 7.3.0//EN" />
+				<dtd location="${definitions.dir}/liferay-service-builder_7_4_0.dtd" publicId="-//Liferay//DTD Service Builder 7.4.0//EN" />
 				<dtd location="${definitions.dir}/liferay-skin_2_0_0.dtd" publicId="-//Liferay//DTD SKIN 2.0.0//EN" />
 				<dtd location="${definitions.dir}/liferay-social_6_1_0.dtd" publicId="-//Liferay//DTD Social 6.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-social_6_2_0.dtd" publicId="-//Liferay//DTD Social 6.2.0//EN" />
@@ -1538,6 +1633,7 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 				<dtd location="${definitions.dir}/liferay-social_7_1_0.dtd" publicId="-//Liferay//DTD Social 7.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-social_7_2_0.dtd" publicId="-//Liferay//DTD Social 7.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-social_7_3_0.dtd" publicId="-//Liferay//DTD Social 7.3.0//EN" />
+				<dtd location="${definitions.dir}/liferay-social_7_4_0.dtd" publicId="-//Liferay//DTD Social 7.4.0//EN" />
 				<dtd location="${definitions.dir}/liferay-theme-loader_4_3_0.dtd" publicId="-//Liferay//DTD Theme Loader 4.3.0//EN" />
 				<dtd location="${definitions.dir}/liferay-theme-loader_5_0_0.dtd" publicId="-//Liferay//DTD Theme Loader 5.0.0//EN" />
 				<dtd location="${definitions.dir}/liferay-theme-loader_5_1_0.dtd" publicId="-//Liferay//DTD Theme Loader 5.1.0//EN" />
@@ -1549,11 +1645,13 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 				<dtd location="${definitions.dir}/liferay-theme-loader_7_1_0.dtd" publicId="-//Liferay//DTD Theme Loader 7.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-theme-loader_7_2_0.dtd" publicId="-//Liferay//DTD Theme Loader 7.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-theme-loader_7_3_0.dtd" publicId="-//Liferay//DTD Theme Loader 7.3.0//EN" />
+				<dtd location="${definitions.dir}/liferay-theme-loader_7_4_0.dtd" publicId="-//Liferay//DTD Theme Loader 7.4.0//EN" />
 				<dtd location="${definitions.dir}/liferay-user-notification-definitions_6_2_0.dtd" publicId="-//Liferay//DTD User Notification Definition 6.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-user-notification-definitions_7_0_0.dtd" publicId="-//Liferay//DTD User Notification Definition 7.0.0//EN" />
 				<dtd location="${definitions.dir}/liferay-user-notification-definitions_7_1_0.dtd" publicId="-//Liferay//DTD User Notification Definition 7.1.0//EN" />
 				<dtd location="${definitions.dir}/liferay-user-notification-definitions_7_2_0.dtd" publicId="-//Liferay//DTD User Notification Definition 7.2.0//EN" />
 				<dtd location="${definitions.dir}/liferay-user-notification-definitions_7_3_0.dtd" publicId="-//Liferay//DTD User Notification Definition 7.3.0//EN" />
+				<dtd location="${definitions.dir}/liferay-user-notification-definitions_7_4_0.dtd" publicId="-//Liferay//DTD User Notification Definition 7.4.0//EN" />
 				<dtd location="${definitions.dir}/mule-configuration.dtd" publicId="-//MuleSource //DTD mule-configuration XML V1.0//EN" />
 				<dtd location="${definitions.dir}/spring-beans.dtd" publicId="-//SPRING//DTD BEAN//EN" />
 				<dtd location="${definitions.dir}/web-app_2_3.dtd" publicId="-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" />

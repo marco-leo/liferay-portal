@@ -18,12 +18,12 @@ import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.petra.encryptor.Encryptor;
 import com.liferay.petra.encryptor.EncryptorException;
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.PortletApp;
 import com.liferay.portal.kernel.model.PortletURLListener;
@@ -49,7 +49,6 @@ import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -71,7 +70,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
@@ -185,7 +183,7 @@ public class PortletURLImpl
 					_layout = LayoutLocalServiceUtil.getLayout(_plid);
 				}
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
 					_log.warn("Layout cannot be found for " + _plid);
 				}
@@ -424,6 +422,27 @@ public class PortletURLImpl
 
 		if (Validator.isNull(paramName)) {
 			paramName = portletSerializableClass.getSimpleName();
+
+			if (paramName.endsWith("$$EnhancerBySpringCGLIB")) {
+
+				// If RenderURL#setBeanParameter(PortletSerializable) is called
+				// from within a bean portlet that uses Spring for IoC, and if
+				// Spring dynamically created the bean at runtime using CGLib,
+				// then the parameter name will have "$$EnhanderBySpringCGLib"
+				// as a suffix.
+
+				paramName = paramName.substring(
+					0, paramName.length() - "$$EnhancerBySpringCGLIB".length());
+			}
+			else if (paramName.endsWith("$Proxy$_$$_WeldClientProxy")) {
+
+				// Otherwise, if using CDI, then the parameter name will have
+				// "$Proxy$_$$_WeldClientProxy" as a suffix.
+
+				paramName = paramName.substring(
+					0,
+					paramName.length() - "$Proxy$_$$_WeldClientProxy".length());
+			}
 		}
 
 		MutableRenderParameters mutableRenderParameters = getRenderParameters();
@@ -447,9 +466,8 @@ public class PortletURLImpl
 
 			throw new IllegalArgumentException(
 				StringBundler.concat(
-					"Cacheability ", cacheability, " is not FULL, ",
-					String.valueOf(FULL), ", PAGE, ", PAGE, ", or PORTLET, ",
-					String.valueOf(PORTLET)));
+					"Cacheability ", cacheability, " is not FULL, ", FULL,
+					", PAGE, ", PAGE, ", or PORTLET, ", PORTLET));
 		}
 
 		if (_portletRequest instanceof ResourceRequest) {
@@ -691,8 +709,8 @@ public class PortletURLImpl
 
 				newParams.put(key, value);
 			}
-			catch (ClassCastException cce) {
-				throw new IllegalArgumentException(cce);
+			catch (ClassCastException classCastException) {
+				throw new IllegalArgumentException(classCastException);
 			}
 		}
 
@@ -945,8 +963,8 @@ public class PortletURLImpl
 				}
 			}
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 
 		StringBundler sb = new StringBundler(64);
@@ -1085,9 +1103,7 @@ public class PortletURLImpl
 		if (layoutAssetEntry instanceof AssetEntry) {
 			AssetEntry assetEntry = (AssetEntry)layoutAssetEntry;
 
-			if ((_layout != null) &&
-				Objects.equals(
-					_layout.getType(), LayoutConstants.TYPE_ASSET_DISPLAY) &&
+			if ((_layout != null) && _layout.isTypeAssetDisplay() &&
 				(assetEntry != null)) {
 
 				sb.append("assetEntryId=");
@@ -1227,7 +1243,7 @@ public class PortletURLImpl
 		try {
 			return URLCodec.encodeURL(Encryptor.encrypt(key, value));
 		}
-		catch (EncryptorException ee) {
+		catch (EncryptorException encryptorException) {
 			return value;
 		}
 	}
@@ -1345,8 +1361,8 @@ public class PortletURLImpl
 					portletURLGenerationListener.filterResourceURL(this);
 				}
 			}
-			catch (PortletException pe) {
-				_log.error(pe, pe);
+			catch (PortletException portletException) {
+				_log.error(portletException, portletException);
 			}
 		}
 	}
@@ -1426,82 +1442,83 @@ public class PortletURLImpl
 						namespace.length());
 				}
 
-				if (!resourceParameterNames.contains(renderParameterName)) {
-					if (_lifecycle.equals(PortletRequest.RESOURCE_PHASE) &&
-						_mutableRenderParametersImpl.isPublic(
-							renderParameterName)) {
+				if (resourceParameterNames.contains(renderParameterName)) {
+					continue;
+				}
 
-						continue;
-					}
+				if (_lifecycle.equals(PortletRequest.RESOURCE_PHASE) &&
+					_mutableRenderParametersImpl.isPublic(
+						renderParameterName)) {
 
-					if (!_lifecycle.equals(PortletRequest.RESOURCE_PHASE) &&
-						(_removedParameterNames != null) &&
-						_removedParameterNames.contains(renderParameterName)) {
+					continue;
+				}
 
-						continue;
-					}
+				if (!_lifecycle.equals(PortletRequest.RESOURCE_PHASE) &&
+					(_removedParameterNames != null) &&
+					_removedParameterNames.contains(renderParameterName)) {
 
-					String[] renderParameterValues = entry.getValue();
+					continue;
+				}
 
-					if (_mutableRenderParametersImpl.isPublic(
-							renderParameterName)) {
+				String[] renderParameterValues = entry.getValue();
 
-						portletURLParams.put(
-							renderParameterName, renderParameterValues);
-
-						continue;
-					}
-
-					if (_lifecycle.equals(PortletRequest.ACTION_PHASE) &&
-						actionParameterNames.contains(renderParameterName)) {
-
-						String[] actionParameterValues =
-							_mutableActionParametersImpl.getValues(
-								renderParameterName);
-
-						if ((actionParameterValues != null) &&
-							_copyCurrentRenderParameters) {
-
-							renderParameterValues = ArrayUtil.append(
-								actionParameterValues, renderParameterValues);
-						}
-
-						renderParameterName =
-							_ACTION_PARAMETER_NAMESPACE.concat(
-								renderParameterName);
-					}
-					else if (_lifecycle.equals(PortletRequest.RENDER_PHASE)) {
-						PortletRequest portletRequest = getPortletRequest();
-
-						if (portletRequest != null) {
-							LiferayRenderParameters renderParameters =
-								(LiferayRenderParameters)
-									portletRequest.getRenderParameters();
-
-							String[] requestRenderParameterValues =
-								renderParameters.getValues(renderParameterName);
-
-							if ((requestRenderParameterValues != null) &&
-								_copyCurrentRenderParameters &&
-								!Arrays.equals(
-									requestRenderParameterValues,
-									renderParameterValues)) {
-
-								renderParameterValues = ArrayUtil.append(
-									renderParameterValues,
-									requestRenderParameterValues);
-							}
-						}
-					}
-					else {
-						renderParameterName =
-							PortletQName.PRIVATE_RENDER_PARAMETER_NAMESPACE.
-								concat(renderParameterName);
-					}
+				if (_mutableRenderParametersImpl.isPublic(
+						renderParameterName)) {
 
 					portletURLParams.put(
 						renderParameterName, renderParameterValues);
+
+					continue;
 				}
+
+				if (_lifecycle.equals(PortletRequest.ACTION_PHASE) &&
+					actionParameterNames.contains(renderParameterName)) {
+
+					String[] actionParameterValues =
+						_mutableActionParametersImpl.getValues(
+							renderParameterName);
+
+					if ((actionParameterValues != null) &&
+						_copyCurrentRenderParameters) {
+
+						renderParameterValues = ArrayUtil.append(
+							actionParameterValues, renderParameterValues);
+					}
+
+					renderParameterName = _ACTION_PARAMETER_NAMESPACE.concat(
+						renderParameterName);
+				}
+				else if (_lifecycle.equals(PortletRequest.RENDER_PHASE)) {
+					PortletRequest portletRequest = getPortletRequest();
+
+					if (portletRequest != null) {
+						LiferayRenderParameters renderParameters =
+							(LiferayRenderParameters)
+								portletRequest.getRenderParameters();
+
+						String[] requestRenderParameterValues =
+							renderParameters.getValues(renderParameterName);
+
+						if ((requestRenderParameterValues != null) &&
+							_copyCurrentRenderParameters &&
+							!Arrays.equals(
+								requestRenderParameterValues,
+								renderParameterValues)) {
+
+							renderParameterValues = ArrayUtil.append(
+								renderParameterValues,
+								requestRenderParameterValues);
+						}
+					}
+				}
+				else {
+					renderParameterName =
+						PortletQName.PRIVATE_RENDER_PARAMETER_NAMESPACE.concat(
+							renderParameterName);
+				}
+
+				portletURLParams.put(
+					renderParameterName, renderParameterValues);
 			}
 		}
 
@@ -1516,8 +1533,8 @@ public class PortletURLImpl
 				return company.getKeyObj();
 			}
 		}
-		catch (Exception e) {
-			_log.error("Unable to get company key", e);
+		catch (Exception exception) {
+			_log.error("Unable to get company key", exception);
 		}
 
 		return null;
@@ -1552,9 +1569,6 @@ public class PortletURLImpl
 				plid = _layout.getPlid();
 			}
 
-			Map<String, String[]> publicRenderParametersMap =
-				PublicRenderParametersPool.get(_httpServletRequest, plid);
-
 			publicRenderParameterNames = new HashSet<>();
 
 			if (MimeResponse.Copy.ALL.equals(_copy) ||
@@ -1572,6 +1586,9 @@ public class PortletURLImpl
 					mutableRenderParameterMap = new LinkedHashMap<>(
 						privateRenderParameterMap);
 				}
+
+				Map<String, String[]> publicRenderParametersMap =
+					PublicRenderParametersPool.get(_httpServletRequest, plid);
 
 				Set<PublicRenderParameter> publicRenderParameters =
 					_portlet.getPublicRenderParameters();
@@ -1663,7 +1680,7 @@ public class PortletURLImpl
 		for (Map.Entry<String, String[]> entry : renderParameters.entrySet()) {
 			String name = entry.getKey();
 
-			if (name.contains(namespace)) {
+			if (name.startsWith(namespace)) {
 				name = name.substring(namespace.length());
 			}
 

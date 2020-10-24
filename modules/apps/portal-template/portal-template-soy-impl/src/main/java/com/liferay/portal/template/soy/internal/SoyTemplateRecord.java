@@ -91,8 +91,8 @@ public class SoyTemplateRecord extends SoyAbstractValue implements SoyRecord {
 		try {
 			render(appendable);
 		}
-		catch (IOException ioe) {
-			throw new AssertionError(ioe);
+		catch (IOException ioException) {
+			throw new AssertionError(ioException);
 		}
 
 		return appendable.toString();
@@ -247,9 +247,10 @@ public class SoyTemplateRecord extends SoyAbstractValue implements SoyRecord {
 
 			SoyListData soyListData = new SoyListData();
 
-			Iterator it = jsonArray.iterator();
+			Iterator<JSONObject> iterator = jsonArray.iterator();
 
-			it.forEachRemaining(value -> soyListData.add(_toSoyValue(value)));
+			iterator.forEachRemaining(
+				value -> soyListData.add(_toSoyValue(value)));
 
 			return soyListData;
 		}
@@ -258,9 +259,9 @@ public class SoyTemplateRecord extends SoyAbstractValue implements SoyRecord {
 
 			SoyMapData soyMapData = new SoyMapData();
 
-			Iterator<String> it = jsonObject.keys();
+			Iterator<String> iterator = jsonObject.keys();
 
-			it.forEachRemaining(
+			iterator.forEachRemaining(
 				key -> soyMapData.put(key, _toSoyValue(jsonObject.get(key))));
 
 			return soyMapData;
@@ -321,6 +322,7 @@ public class SoyTemplateRecord extends SoyAbstractValue implements SoyRecord {
 
 				if ((parameterTypes.length == 0) &&
 					!returnType.equals(Void.class) &&
+					!returnType.equals(void.class) &&
 					!declaringClass.equals(Object.class) &&
 					!declaringClass.equals(Annotation.class)) {
 
@@ -340,11 +342,11 @@ public class SoyTemplateRecord extends SoyAbstractValue implements SoyRecord {
 				}
 			}
 		}
-		catch (RuntimeException re) {
-			throw re;
+		catch (RuntimeException runtimeException) {
+			throw runtimeException;
 		}
-		catch (Exception e) {
-			throw new SoyDataException(e.getMessage(), e);
+		catch (Exception exception) {
+			throw new SoyDataException(exception.getMessage(), exception);
 		}
 
 		return soyMapData;

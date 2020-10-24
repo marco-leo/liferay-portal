@@ -34,7 +34,9 @@ definition {
 	@description = "This is a use case for LPS-68599."
 	@priority = "5"
 	test AddCommentInWorkflowSubmission {
-		ProductMenu.gotoPortlet(
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -45,29 +47,24 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
-		User.editPasswordCP(
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
-
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Roles");
 
-		Role.assignRegRoleCP(
+		JSONRole.assignRoleToUser(
 			roleTitle = "Administrator",
-			userScreenName = "usersn");
+			userEmailAddress = "userea@liferay.com");
 
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
 			category = "Configuration",
-			panel = "Site Administration",
 			portlet = "Workflow");
 
 		Workflow.configureWorkflow(
@@ -121,7 +118,7 @@ definition {
 			kbArticleTitle = "Knowledge Base Child Article Title",
 			saveAsDraft = "true");
 
-		Pause(locator1 = "5000");
+		Pause(locator1 = "3000");
 
 		Navigator.gotoPage(pageName = "Knowledge Base Page");
 
@@ -298,7 +295,7 @@ definition {
 
 	@priority = "3"
 	test EditKBArticleWithCustomField {
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
 			panel = "Control Panel",
 			portlet = "Custom Fields");
@@ -354,7 +351,7 @@ definition {
 
 	@priority = "3"
 	test EditKBFolderWithCustomField {
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
 			panel = "Control Panel",
 			portlet = "Custom Fields");
@@ -433,6 +430,24 @@ definition {
 				locator1 = "TextInput#CUSTOM_FIELD",
 				value1 = "01/01/${kbEntry}");
 		}
+	}
+
+	@description = "This test ensures that a user is able to embed a video in a KB article."
+	@priority = "4"
+	test EmbedVideo {
+		KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+		KBArticle.addCP(
+			embedVideo = "https://www.youtube.com/watch?v=2EPZxIC5ogU",
+			kbArticleContent = "Knowledge Base Video Content",
+			kbArticleTitle = "Knowledge Base Article Title");
+
+		KBAdmin.openKBAdmin(siteURLKey = "guest");
+
+		KBArticle.viewCP(
+			embedVideo = "true",
+			kbArticleContent = "Knowledge Base Video Content",
+			kbArticleTitle = "Knowledge Base Article Title");
 	}
 
 	@priority = "3"
@@ -605,7 +620,7 @@ definition {
 		SearchPortlets.searchEmbedded(searchTerm = "Knowledge Base");
 
 		SearchResultPortlet.viewSearchResults(
-			searchAssetSummary = "Knowledge Base Article&apos;s Content",
+			searchAssetSummary = "Knowledge Base Article",
 			searchAssetTitle = "Knowledge Base Article",
 			searchAssetType = "Knowledge Base Article");
 	}
@@ -936,7 +951,7 @@ definition {
 
 		Navigator.openURL();
 
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
 			panel = "Control Panel",
 			portlet = "System Settings");
@@ -1140,13 +1155,9 @@ definition {
 
 		Navigator.gotoPage(pageName = "Knowledge Base Display Page 1");
 
-		Portlet.gotoPortletOptions(
+		Portlet.selectScopePG(
 			portletName = "Knowledge Base Display",
-			portletOption = "Configuration");
-
-		KBArticle.selectScopePG(
-			currentKBPageScope = "Liferay",
-			newKBPageScope = "Knowledge Base Display Page 1 (Create New)");
+			scope = "Knowledge Base Display Page 1");
 
 		JSONLayout.addPublicLayout(
 			groupName = "Guest",
@@ -1160,30 +1171,27 @@ definition {
 
 		Navigator.gotoPage(pageName = "Knowledge Base Display Page 2");
 
-		Portlet.gotoPortletOptions(
+		Portlet.selectScopePG(
 			portletName = "Knowledge Base Display",
-			portletOption = "Configuration");
-
-		KBArticle.selectScopePG(
-			currentKBPageScope = "Liferay",
-			newKBPageScope = "Knowledge Base Display Page 2 (Create New)");
+			scope = "Knowledge Base Display Page 2");
 
 		Navigator.openURL();
 
-		ProductMenu.gotoPortlet(
+		ProductMenu.gotoScopedPortlet(
 			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Knowledge Base");
-
-		KBArticle.setScopeCP(kbPageScope = "Knowledge Base Display Page 1");
+			portlet = "Knowledge Base",
+			scope = "Knowledge Base Display Page 1");
 
 		KBArticle.addCP(
 			kbArticleContent = "Knowledge Base Article Content",
 			kbArticleTitle = "Knowledge Base Article Title for Page 1");
 
-		KBAdmin.openKBAdmin(siteURLKey = "guest");
+		Navigator.openURL();
 
-		KBArticle.setScopeCP(kbPageScope = "Knowledge Base Display Page 2");
+		ProductMenu.gotoScopedPortlet(
+			category = "Content &amp; Data",
+			portlet = "Knowledge Base",
+			scope = "Knowledge Base Display Page 2");
 
 		KBArticle.addCP(
 			kbArticleContent = "Knowledge Base Article Content",
@@ -1322,6 +1330,8 @@ definition {
 
 	@priority = "4"
 	test ViewKBArticleSuggestionsWorkflow {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
 		JSONLayout.addPublicLayout(
 			groupName = "Guest",
 			layoutName = "Knowledge Base Display Page");
@@ -1334,7 +1344,7 @@ definition {
 
 		Navigator.gotoPage(pageName = "Knowledge Base Display Page");
 
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -1345,17 +1355,12 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
-		User.editPasswordCP(
-			password = "password",
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
-
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -1431,6 +1436,7 @@ definition {
 
 	@priority = "3"
 	test ViewKBArticleSuggestionsWorkflowNotificationEmail {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
 		property test.smtp.server.enabled = "true";
 
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
@@ -1439,7 +1445,7 @@ definition {
 			groupName = "Guest",
 			layoutName = "Knowledge Base Display Page");
 
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -1450,16 +1456,12 @@ definition {
 			userLastName = "2",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
-		User.editPasswordCP(
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
-
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -1468,7 +1470,7 @@ definition {
 			siteName = "${siteName}",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -1743,6 +1745,8 @@ definition {
 
 	@priority = "4"
 	test ViewSuggestionsWithPermissions {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
 		JSONLayout.addPublicLayout(
 			groupName = "Guest",
 			layoutName = "Knowledge Base Display Page");
@@ -1753,7 +1757,7 @@ definition {
 			layoutName = "Knowledge Base Display Page",
 			widgetName = "Knowledge Base Display");
 
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -1764,7 +1768,12 @@ definition {
 			userLastName = "User",
 			userScreenName = "poweruser");
 
-		ProductMenu.gotoPortlet(
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "poweruser@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -1773,7 +1782,7 @@ definition {
 			roleTitle = "Power User",
 			userScreenName = "poweruser");
 
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -1782,17 +1791,7 @@ definition {
 			roleTitle = "Administrator",
 			userScreenName = "poweruser");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.editPasswordCP(
-			password = "password",
-			userEmailAddress = "poweruser@liferay.com",
-			userScreenName = "poweruser");
-
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -1803,17 +1802,12 @@ definition {
 			userLastName = "userln1",
 			userScreenName = "usersn1");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "user1@liferay.com");
 
-		User.editPasswordCP(
-			password = "password",
-			userEmailAddress = "user1@liferay.com",
-			userScreenName = "usersn1");
-
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -1824,15 +1818,10 @@ definition {
 			userLastName = "userln2",
 			userScreenName = "usersn2");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
-
-		User.editPasswordCP(
-			password = "password",
-			userEmailAddress = "user2@liferay.com",
-			userScreenName = "usersn2");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "user2@liferay.com");
 
 		KBAdmin.openKBAdmin(siteURLKey = "guest");
 
@@ -2008,16 +1997,17 @@ definition {
 	@priority = "3"
 	test ViewUnchangedKBArticleTitleViaLocalizedPage {
 		var portalURL = PropsUtil.get("portal.url");
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Sites",
 			panel = "Control Panel",
 			portlet = "Sites");
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
+			portlet = "Pages",
+			site = "${siteName}");
 
 		SitePages.addPublicChildPage(
 			childPageName = "Knowledge Base Display Page",
@@ -2025,7 +2015,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
-			panel = "Site Administration",
 			portlet = "Pages");
 
 		SitePages.configureChildPage(

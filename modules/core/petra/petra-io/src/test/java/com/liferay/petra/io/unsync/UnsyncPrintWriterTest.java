@@ -604,12 +604,12 @@ public class UnsyncPrintWriterTest extends BaseWriterTestCase {
 		return new UnsyncPrintWriter(new StringWriter());
 	}
 
-	private static Writer _getOut(UnsyncPrintWriter unsyncPrintWriter) {
+	private Writer _getOut(UnsyncPrintWriter unsyncPrintWriter) {
 		try {
 			return (Writer)_writerField.get(unsyncPrintWriter);
 		}
-		catch (Throwable t) {
-			throw new RuntimeException(t);
+		catch (Throwable throwable) {
+			throw new RuntimeException(throwable);
 		}
 	}
 
@@ -624,8 +624,8 @@ public class UnsyncPrintWriterTest extends BaseWriterTestCase {
 
 			_writerField.setAccessible(true);
 		}
-		catch (Exception e) {
-			throw new ExceptionInInitializerError(e);
+		catch (Exception exception) {
+			throw new ExceptionInInitializerError(exception);
 		}
 	}
 

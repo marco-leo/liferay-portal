@@ -57,9 +57,49 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see DepotEntryGroupRelServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class DepotEntryGroupRelServiceSoap {
+
+	public static com.liferay.depot.model.DepotEntryGroupRelSoap
+			addDepotEntryGroupRel(long depotEntryId, long toGroupId)
+		throws RemoteException {
+
+		try {
+			com.liferay.depot.model.DepotEntryGroupRel returnValue =
+				DepotEntryGroupRelServiceUtil.addDepotEntryGroupRel(
+					depotEntryId, toGroupId);
+
+			return com.liferay.depot.model.DepotEntryGroupRelSoap.toSoapModel(
+				returnValue);
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
+		}
+	}
+
+	public static com.liferay.depot.model.DepotEntryGroupRelSoap
+			deleteDepotEntryGroupRel(long depotEntryGroupRelId)
+		throws RemoteException {
+
+		try {
+			com.liferay.depot.model.DepotEntryGroupRel returnValue =
+				DepotEntryGroupRelServiceUtil.deleteDepotEntryGroupRel(
+					depotEntryGroupRelId);
+
+			return com.liferay.depot.model.DepotEntryGroupRelSoap.toSoapModel(
+				returnValue);
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
+		}
+	}
 
 	public static com.liferay.depot.model.DepotEntryGroupRelSoap[]
 			getDepotEntryGroupRels(long groupId, int start, int end)
@@ -74,10 +114,29 @@ public class DepotEntryGroupRelServiceSoap {
 			return com.liferay.depot.model.DepotEntryGroupRelSoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
+		}
+	}
+
+	public static int getDepotEntryGroupRelsCount(
+			com.liferay.depot.model.DepotEntrySoap depotEntry)
+		throws RemoteException {
+
+		try {
+			int returnValue =
+				DepotEntryGroupRelServiceUtil.getDepotEntryGroupRelsCount(
+					com.liferay.depot.model.impl.DepotEntryModelImpl.toModel(
+						depotEntry));
+
+			return returnValue;
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -91,10 +150,49 @@ public class DepotEntryGroupRelServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
+		}
+	}
+
+	public static com.liferay.depot.model.DepotEntryGroupRelSoap
+			updateDDMStructuresAvailable(
+				long depotEntryGroupRelId, boolean ddmStructuresAvailable)
+		throws RemoteException {
+
+		try {
+			com.liferay.depot.model.DepotEntryGroupRel returnValue =
+				DepotEntryGroupRelServiceUtil.updateDDMStructuresAvailable(
+					depotEntryGroupRelId, ddmStructuresAvailable);
+
+			return com.liferay.depot.model.DepotEntryGroupRelSoap.toSoapModel(
+				returnValue);
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
+		}
+	}
+
+	public static com.liferay.depot.model.DepotEntryGroupRelSoap
+			updateSearchable(long depotEntryGroupRelId, boolean searchable)
+		throws RemoteException {
+
+		try {
+			com.liferay.depot.model.DepotEntryGroupRel returnValue =
+				DepotEntryGroupRelServiceUtil.updateSearchable(
+					depotEntryGroupRelId, searchable);
+
+			return com.liferay.depot.model.DepotEntryGroupRelSoap.toSoapModel(
+				returnValue);
+		}
+		catch (Exception exception) {
+			_log.error(exception, exception);
+
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

@@ -12,8 +12,38 @@
 import React from 'react';
 
 import {formatDuration} from '../../../shared/util/duration.es';
-import {getFormattedPercentage} from '../../../shared/util/util.es';
-import PerformanceByStepCard from './PerformanceByStepCard.es';
+import {
+	getFormattedPercentage,
+	isValidNumber,
+} from '../../../shared/util/util.es';
+
+const Item = ({
+	breachedInstanceCount,
+	breachedInstancePercentage,
+	durationAvg,
+	node: {label},
+}) => {
+	const formattedDuration = formatDuration(durationAvg);
+	const formattedPercentage = getFormattedPercentage(
+		breachedInstancePercentage,
+		100
+	);
+
+	return (
+		<tr>
+			<td className="table-cell-expand">{label}</td>
+
+			<td className="text-right">
+				{isValidNumber(breachedInstanceCount)
+					? breachedInstanceCount
+					: 0}{' '}
+				({formattedPercentage})
+			</td>
+
+			<td className="text-right">{formattedDuration}</td>
+		</tr>
+	);
+};
 
 const Table = ({items = []}) => (
 	<div className="mb-3 table-responsive table-scrollable">
@@ -36,38 +66,13 @@ const Table = ({items = []}) => (
 
 			<tbody>
 				{items.map((item, index) => (
-					<PerformanceByStepCard.Item {...item} key={index} />
+					<Table.Item {...item} key={index} />
 				))}
 			</tbody>
 		</table>
 	</div>
 );
 
-const Item = ({
-	breachedInstanceCount,
-	breachedInstancePercentage,
-	durationAvg,
-	name
-}) => {
-	const formattedDuration = formatDuration(durationAvg);
-	const formattedPercentage = getFormattedPercentage(
-		breachedInstancePercentage,
-		100
-	);
+Table.Item = Item;
 
-	return (
-		<tr>
-			<td data-testid="stepName">{name}</td>
-
-			<td className="text-right" data-testid="slaBreached">
-				{breachedInstanceCount} ({formattedPercentage})
-			</td>
-
-			<td className="text-right" data-testid="avgCompletionTime">
-				{formattedDuration}
-			</td>
-		</tr>
-	);
-};
-
-export {Item, Table};
+export {Table};

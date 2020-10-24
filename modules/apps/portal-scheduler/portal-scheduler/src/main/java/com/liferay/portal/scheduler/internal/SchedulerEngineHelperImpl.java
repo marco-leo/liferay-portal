@@ -131,8 +131,8 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 
 			_auditRouter.route(auditMessage);
 		}
-		catch (Exception e) {
-			throw new SchedulerException(e);
+		catch (Exception exception) {
+			throw new SchedulerException(exception);
 		}
 	}
 
@@ -197,15 +197,14 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 				recurrence.setInterval(dailyInterval);
 			}
 			else {
-				DayAndPosition[] dayPos = {
-					new DayAndPosition(Calendar.MONDAY, 0),
-					new DayAndPosition(Calendar.TUESDAY, 0),
-					new DayAndPosition(Calendar.WEDNESDAY, 0),
-					new DayAndPosition(Calendar.THURSDAY, 0),
-					new DayAndPosition(Calendar.FRIDAY, 0)
-				};
-
-				recurrence.setByDay(dayPos);
+				recurrence.setByDay(
+					new DayAndPosition[] {
+						new DayAndPosition(Calendar.MONDAY, 0),
+						new DayAndPosition(Calendar.TUESDAY, 0),
+						new DayAndPosition(Calendar.WEDNESDAY, 0),
+						new DayAndPosition(Calendar.THURSDAY, 0),
+						new DayAndPosition(Calendar.FRIDAY, 0)
+					});
 			}
 		}
 		else if (recurrenceType == Recurrence.WEEKLY) {
@@ -251,11 +250,10 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 				int monthlyDay = ParamUtil.getInteger(
 					portletRequest, "monthlyDay1");
 
-				DayAndPosition[] dayPos = {
-					new DayAndPosition(monthlyDay, monthlyPos)
-				};
-
-				recurrence.setByDay(dayPos);
+				recurrence.setByDay(
+					new DayAndPosition[] {
+						new DayAndPosition(monthlyDay, monthlyPos)
+					});
 
 				int monthlyInterval = ParamUtil.getInteger(
 					portletRequest, "monthlyInterval1", 1);
@@ -288,11 +286,10 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 				int yearlyMonth = ParamUtil.getInteger(
 					portletRequest, "yearlyMonth1");
 
-				DayAndPosition[] dayPos = {
-					new DayAndPosition(yearlyDay, yearlyPos)
-				};
-
-				recurrence.setByDay(dayPos);
+				recurrence.setByDay(
+					new DayAndPosition[] {
+						new DayAndPosition(yearlyDay, yearlyPos)
+					});
 
 				recurrence.setByMonth(new int[] {yearlyMonth});
 
@@ -805,9 +802,9 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 		try {
 			shutdown();
 		}
-		catch (SchedulerException se) {
+		catch (SchedulerException schedulerException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn("Unable to shutdown scheduler", se);
+				_log.warn("Unable to shutdown scheduler", schedulerException);
 			}
 		}
 
@@ -1005,8 +1002,8 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 
 				return schedulerEventMessageListener;
 			}
-			catch (SchedulerException se) {
-				_log.error(se, se);
+			catch (SchedulerException schedulerException) {
+				_log.error(schedulerException, schedulerException);
 			}
 			finally {
 				ClusterableContextThreadLocal.putThreadLocalContext(
@@ -1045,8 +1042,8 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 			try {
 				update(schedulerEntry.getTrigger(), storageType);
 			}
-			catch (SchedulerException se) {
-				_log.error(se, se);
+			catch (SchedulerException schedulerException) {
+				_log.error(schedulerException, schedulerException);
 			}
 			finally {
 				ClusterableContextThreadLocal.putThreadLocalContext(
@@ -1087,8 +1084,8 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 			try {
 				delete(schedulerEntry, storageType);
 			}
-			catch (SchedulerException se) {
-				_log.error(se, se);
+			catch (SchedulerException schedulerException) {
+				_log.error(schedulerException, schedulerException);
 			}
 			finally {
 				ClusterableContextThreadLocal.putThreadLocalContext(

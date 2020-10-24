@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -46,6 +48,7 @@ public class DDMFormInstanceRecordWrapper
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
 		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
 		attributes.put("formInstanceRecordId", getFormInstanceRecordId());
 		attributes.put("groupId", getGroupId());
@@ -71,6 +74,12 @@ public class DDMFormInstanceRecordWrapper
 
 		if (mvccVersion != null) {
 			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
 		}
 
 		String uuid = (String)attributes.get("uuid");
@@ -184,6 +193,16 @@ public class DDMFormInstanceRecordWrapper
 	@Override
 	public Date getCreateDate() {
 		return model.getCreateDate();
+	}
+
+	/**
+	 * Returns the ct collection ID of this ddm form instance record.
+	 *
+	 * @return the ct collection ID of this ddm form instance record
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
 	}
 
 	@Override
@@ -320,6 +339,13 @@ public class DDMFormInstanceRecordWrapper
 		return model.getStorageId();
 	}
 
+	@Override
+	public String getStorageType()
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return model.getStorageType();
+	}
+
 	/**
 	 * Returns the user ID of this ddm form instance record.
 	 *
@@ -400,11 +426,6 @@ public class DDMFormInstanceRecordWrapper
 		return model.getVersionUserUuid();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a ddm form instance record model instance should use the <code>DDMFormInstanceRecord</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -428,6 +449,16 @@ public class DDMFormInstanceRecordWrapper
 	@Override
 	public void setCreateDate(Date createDate) {
 		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets the ct collection ID of this ddm form instance record.
+	 *
+	 * @param ctCollectionId the ct collection ID of this ddm form instance record
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -598,6 +629,20 @@ public class DDMFormInstanceRecordWrapper
 	@Override
 	public void setVersionUserUuid(String versionUserUuid) {
 		model.setVersionUserUuid(versionUserUuid);
+	}
+
+	@Override
+	public Map<String, Function<DDMFormInstanceRecord, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<DDMFormInstanceRecord, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

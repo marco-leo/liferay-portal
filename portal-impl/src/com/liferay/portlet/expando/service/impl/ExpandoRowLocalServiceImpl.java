@@ -43,9 +43,7 @@ public class ExpandoRowLocalServiceImpl extends ExpandoRowLocalServiceBaseImpl {
 		row.setTableId(tableId);
 		row.setClassPK(classPK);
 
-		expandoRowPersistence.update(row);
-
-		return row;
+		return expandoRowPersistence.update(row);
 	}
 
 	@Override
@@ -100,6 +98,23 @@ public class ExpandoRowLocalServiceImpl extends ExpandoRowLocalServiceBaseImpl {
 		List<ExpandoRow> rows = expandoRowPersistence.findByClassPK(classPK);
 
 		for (ExpandoRow row : rows) {
+			deleteRow(row);
+		}
+	}
+
+	@Override
+	public void deleteRows(long companyId, long classNameId, long classPK) {
+		List<ExpandoTable> tables = expandoTableLocalService.getTables(
+			companyId, classNameId);
+
+		for (ExpandoTable table : tables) {
+			ExpandoRow row = expandoRowPersistence.fetchByT_C(
+				table.getTableId(), classPK);
+
+			if (row == null) {
+				continue;
+			}
+
 			deleteRow(row);
 		}
 	}

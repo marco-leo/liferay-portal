@@ -14,9 +14,11 @@
 
 package com.liferay.layout.content.page.editor.web.internal.portlet.action;
 
-import com.liferay.info.display.contributor.InfoDisplayContributor;
-import com.liferay.info.display.contributor.InfoDisplayContributorTracker;
-import com.liferay.info.display.contributor.InfoDisplayObjectProvider;
+import com.liferay.info.exception.NoSuchInfoItemException;
+import com.liferay.info.item.ClassPKInfoItemIdentifier;
+import com.liferay.info.item.InfoItemIdentifier;
+import com.liferay.info.item.InfoItemServiceTracker;
+import com.liferay.info.item.provider.InfoItemObjectProvider;
 import com.liferay.info.item.renderer.InfoItemRenderer;
 import com.liferay.info.item.renderer.InfoItemRendererTracker;
 import com.liferay.info.item.renderer.InfoItemTemplatedRenderer;
@@ -32,6 +34,8 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.portlet.ResourceRequest;
@@ -67,22 +71,26 @@ public class GetAvailableTemplatesMVCResourceCommand
 
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
-		List<InfoItemRenderer> infoItemRenderers =
+		List<InfoItemRenderer<?>> infoItemRenderers =
 			_infoItemRendererTracker.getInfoItemRenderers(className);
 
-		Object object = _getDisplayObject(className, classPK);
+		Object infoItemObject = _getInfoItemObject(className, classPK);
 
-		for (InfoItemRenderer infoItemRenderer : infoItemRenderers) {
+		for (InfoItemRenderer<?> infoItemRenderer : infoItemRenderers) {
 			if (infoItemRenderer instanceof InfoItemTemplatedRenderer) {
-				InfoItemTemplatedRenderer infoItemTemplatedRenderer =
-					(InfoItemTemplatedRenderer)infoItemRenderer;
+				JSONArray templatesJSONArray =
+					JSONFactoryUtil.createJSONArray();
+
+				InfoItemTemplatedRenderer<Object> infoItemTemplatedRenderer =
+					(InfoItemTemplatedRenderer<Object>)infoItemRenderer;
 
 				List<InfoItemRendererTemplate> infoItemRendererTemplates =
 					infoItemTemplatedRenderer.getInfoItemRendererTemplates(
-						object, themeDisplay.getLocale());
+						infoItemObject, themeDisplay.getLocale());
 
-				JSONArray templatesJSONArray =
-					JSONFactoryUtil.createJSONArray();
+				Collections.sort(
+					infoItemRendererTemplates,
+					Comparator.comparing(InfoItemRendererTemplate::getLabel));
 
 				for (InfoItemRendererTemplate infoItemRendererTemplate :
 						infoItemRendererTemplates) {
@@ -103,7 +111,7 @@ public class GetAvailableTemplatesMVCResourceCommand
 						"label",
 						infoItemTemplatedRenderer.
 							getInfoItemRendererTemplatesGroupLabel(
-								object, themeDisplay.getLocale())
+								infoItemObject, themeDisplay.getLocale())
 					).put(
 						"templates", templatesJSONArray
 					));
@@ -123,30 +131,31 @@ public class GetAvailableTemplatesMVCResourceCommand
 			resourceRequest, resourceResponse, jsonArray);
 	}
 
-	private Object _getDisplayObject(String className, long classPK) {
-		InfoDisplayContributor infoDisplayContributor =
-			_infoDisplayContributorTracker.getInfoDisplayContributor(className);
+	private Object _getInfoItemObject(String className, long classPK) {
+		InfoItemObjectProvider<Object> infoItemObjectProvider =
+			_infoItemServiceTracker.getFirstInfoItemService(
+				InfoItemObjectProvider.class, className);
 
 		try {
-			InfoDisplayObjectProvider infoDisplayObjectProvider =
-				infoDisplayContributor.getInfoDisplayObjectProvider(classPK);
+			if (infoItemObjectProvider != null) {
+				InfoItemIdentifier infoItemIdentifier =
+					new ClassPKInfoItemIdentifier(classPK);
 
-			if (infoDisplayObjectProvider == null) {
-				return null;
+				return infoItemObjectProvider.getInfoItem(infoItemIdentifier);
 			}
-
-			return infoDisplayObjectProvider.getDisplayObject();
 		}
-		catch (Exception e) {
+		catch (NoSuchInfoItemException noSuchInfoItemException) {
+			throw new RuntimeException(
+				"Caught unexpected exception", noSuchInfoItemException);
 		}
 
 		return null;
 	}
 
 	@Reference
-	private InfoDisplayContributorTracker _infoDisplayContributorTracker;
+	private InfoItemRendererTracker _infoItemRendererTracker;
 
 	@Reference
-	private InfoItemRendererTracker _infoItemRendererTracker;
+	private InfoItemServiceTracker _infoItemServiceTracker;
 
 }

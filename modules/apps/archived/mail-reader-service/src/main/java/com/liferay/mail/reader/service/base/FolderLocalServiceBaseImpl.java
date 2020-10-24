@@ -20,6 +20,7 @@ import com.liferay.mail.reader.service.persistence.AccountPersistence;
 import com.liferay.mail.reader.service.persistence.AttachmentPersistence;
 import com.liferay.mail.reader.service.persistence.FolderPersistence;
 import com.liferay.mail.reader.service.persistence.MessagePersistence;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -39,6 +40,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -66,7 +68,7 @@ public abstract class FolderLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements AopService, FolderLocalService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>FolderLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.mail.reader.service.FolderLocalServiceUtil</code>.
@@ -74,6 +76,10 @@ public abstract class FolderLocalServiceBaseImpl
 
 	/**
 	 * Adds the folder to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect FolderLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param folder the folder
 	 * @return the folder that was added
@@ -101,6 +107,10 @@ public abstract class FolderLocalServiceBaseImpl
 	/**
 	 * Deletes the folder with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect FolderLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param folderId the primary key of the folder
 	 * @return the folder that was removed
 	 * @throws PortalException if a folder with the primary key could not be found
@@ -114,6 +124,10 @@ public abstract class FolderLocalServiceBaseImpl
 	/**
 	 * Deletes the folder from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect FolderLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param folder the folder
 	 * @return the folder that was removed
 	 * @throws PortalException
@@ -122,6 +136,11 @@ public abstract class FolderLocalServiceBaseImpl
 	@Override
 	public Folder deleteFolder(Folder folder) throws PortalException {
 		return folderPersistence.remove(folder);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return folderPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -271,12 +290,30 @@ public abstract class FolderLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return folderPersistence.create(((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
 		return folderLocalService.deleteFolder((Folder)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<Folder> getBasePersistence() {
+		return folderPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -312,6 +349,10 @@ public abstract class FolderLocalServiceBaseImpl
 
 	/**
 	 * Updates the folder in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect FolderLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param folder the folder
 	 * @return the folder that was updated
@@ -372,8 +413,8 @@ public abstract class FolderLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

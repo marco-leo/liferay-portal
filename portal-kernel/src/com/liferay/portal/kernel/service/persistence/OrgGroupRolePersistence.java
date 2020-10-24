@@ -30,12 +30,14 @@ import org.osgi.annotation.versioning.ProviderType;
  *
  * @author Brian Wing Shun Chan
  * @see OrgGroupRoleUtil
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 @ProviderType
 public interface OrgGroupRolePersistence extends BasePersistence<OrgGroupRole> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link OrgGroupRoleUtil} to access the org group role persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

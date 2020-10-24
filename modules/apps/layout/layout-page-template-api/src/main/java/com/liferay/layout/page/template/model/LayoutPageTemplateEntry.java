@@ -34,7 +34,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface LayoutPageTemplateEntry
 	extends LayoutPageTemplateEntryModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.layout.page.template.model.impl.LayoutPageTemplateEntryImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -82,6 +82,10 @@ public interface LayoutPageTemplateEntry
 
 		};
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	public String getContent()
 		throws com.liferay.portal.kernel.exception.PortalException;
 

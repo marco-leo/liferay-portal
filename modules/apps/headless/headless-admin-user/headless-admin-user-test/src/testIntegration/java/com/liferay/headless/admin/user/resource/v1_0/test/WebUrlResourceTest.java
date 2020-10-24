@@ -29,10 +29,13 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.OrganizationTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.test.rule.SynchronousMailTestRule;
 
 import java.util.List;
 
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.runner.RunWith;
 
 /**
@@ -40,6 +43,11 @@ import org.junit.runner.RunWith;
  */
 @RunWith(Arquillian.class)
 public class WebUrlResourceTest extends BaseWebUrlResourceTestCase {
+
+	@ClassRule
+	@Rule
+	public static final SynchronousMailTestRule synchronousMailTestRule =
+		SynchronousMailTestRule.INSTANCE;
 
 	@Before
 	@Override
@@ -66,7 +74,7 @@ public class WebUrlResourceTest extends BaseWebUrlResourceTestCase {
 
 	@Override
 	protected WebUrl testGetOrganizationWebUrlsPage_addWebUrl(
-			Long organizationId, WebUrl webUrl)
+			String organizationId, WebUrl webUrl)
 		throws Exception {
 
 		return _addWebUrl(
@@ -76,8 +84,8 @@ public class WebUrlResourceTest extends BaseWebUrlResourceTestCase {
 	}
 
 	@Override
-	protected Long testGetOrganizationWebUrlsPage_getOrganizationId() {
-		return _organization.getOrganizationId();
+	protected String testGetOrganizationWebUrlsPage_getOrganizationId() {
+		return String.valueOf(_organization.getOrganizationId());
 	}
 
 	@Override

@@ -15,78 +15,65 @@
 package com.liferay.headless.common.spi.service.context;
 
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
 
 import java.util.Map;
 
 /**
- * @author Víctor Galán
+ * @author     Víctor Galán
+ * @deprecated As of Athanasius (7.3.x)
  */
+@Deprecated
 public class ServiceContextUtil {
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x)
+	 */
+	@Deprecated
 	public static ServiceContext createServiceContext(
 		long groupId, String viewableBy) {
 
-		return createServiceContext(
-			new Long[0], new String[0], groupId, viewableBy);
+		return ServiceContextRequestUtil.createServiceContext(
+			new Long[0], new String[0], null, groupId, null, viewableBy);
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x)
+	 */
+	@Deprecated
 	public static ServiceContext createServiceContext(
 		Long[] assetCategoryIds, String[] assetTagNames, Long groupId,
 		String viewableBy) {
 
-		return createServiceContext(
-			assetCategoryIds, assetTagNames, null, groupId, viewableBy);
+		return ServiceContextRequestUtil.createServiceContext(
+			assetCategoryIds, assetTagNames, null, groupId, null, viewableBy);
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x)
+	 */
+	@Deprecated
 	public static ServiceContext createServiceContext(
 		Long[] assetCategoryIds, String[] assetTagNames,
 		Map<String, Serializable> expandoBridgeAttributes, Long groupId,
 		String viewableBy) {
 
-		return new ServiceContext() {
-			{
-				if (StringUtil.equalsIgnoreCase(viewableBy, "anyone")) {
-					setAddGuestPermissions(true);
-					setAddGroupPermissions(true);
-				}
-				else if (StringUtil.equalsIgnoreCase(viewableBy, "members")) {
-					setAddGuestPermissions(false);
-					setAddGroupPermissions(true);
-				}
-				else {
-					setAddGuestPermissions(false);
-					setAddGroupPermissions(false);
-				}
-
-				if (assetCategoryIds != null) {
-					setAssetCategoryIds(ArrayUtil.toArray(assetCategoryIds));
-				}
-
-				if (assetTagNames != null) {
-					setAssetTagNames(assetTagNames);
-				}
-
-				if (expandoBridgeAttributes != null) {
-					setExpandoBridgeAttributes(expandoBridgeAttributes);
-				}
-
-				if (groupId != null) {
-					setScopeGroupId(groupId);
-				}
-			}
-		};
+		return ServiceContextRequestUtil.createServiceContext(
+			assetCategoryIds, assetTagNames, expandoBridgeAttributes, groupId,
+			null, viewableBy);
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x)
+	 */
+	@Deprecated
 	public static ServiceContext createServiceContext(
 		Map<String, Serializable> expandoBridgeAttributes, long groupId,
 		String viewableBy) {
 
-		return createServiceContext(
-			new Long[0], new String[0], expandoBridgeAttributes, groupId,
+		return ServiceContextRequestUtil.createServiceContext(
+			new Long[0], new String[0], expandoBridgeAttributes, groupId, null,
 			viewableBy);
 	}
 

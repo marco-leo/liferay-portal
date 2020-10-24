@@ -14,15 +14,15 @@
 
 package com.liferay.portal.workflow.metrics.internal.messaging;
 
-import com.liferay.petra.string.CharPool;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
-import com.liferay.portal.kernel.dao.orm.Property;
-import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.BaseMessageListener;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageListener;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.scheduler.SchedulerEngineHelper;
 import com.liferay.portal.kernel.scheduler.SchedulerEntry;
@@ -30,17 +30,31 @@ import com.liferay.portal.kernel.scheduler.SchedulerEntryImpl;
 import com.liferay.portal.kernel.scheduler.TimeUnit;
 import com.liferay.portal.kernel.scheduler.Trigger;
 import com.liferay.portal.kernel.scheduler.TriggerFactory;
-import com.liferay.portal.workflow.kaleo.model.KaleoDefinition;
-import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionLocalService;
+import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
+import com.liferay.portal.search.engine.adapter.index.IndicesExistsIndexRequest;
+import com.liferay.portal.search.engine.adapter.index.IndicesExistsIndexResponse;
+import com.liferay.portal.search.engine.adapter.search.SearchSearchRequest;
+import com.liferay.portal.search.engine.adapter.search.SearchSearchResponse;
+import com.liferay.portal.search.hits.SearchHit;
+import com.liferay.portal.search.hits.SearchHits;
+import com.liferay.portal.search.query.BooleanQuery;
+import com.liferay.portal.search.query.Queries;
 import com.liferay.portal.workflow.metrics.internal.sla.transformer.WorkflowMetricsSLADefinitionTransformer;
+import com.liferay.portal.workflow.metrics.search.index.name.WorkflowMetricsIndexNameBuilder;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Rafael Praxedes
@@ -79,36 +93,121 @@ public class WorkflowMetricsSLADefinitionTransformerMessageListener
 
 	@Override
 	protected void doReceive(Message message) throws Exception {
+		if (_searchEngineAdapter == null) {
+			return;
+		}
+
 		ActionableDynamicQuery actionableDynamicQuery =
-			_kaleoDefinitionLocalService.getActionableDynamicQuery();
+			_companyLocalService.getActionableDynamicQuery();
 
-		actionableDynamicQuery.setAddCriteriaMethod(
-			dynamicQuery -> {
-				Property activeProperty = PropertyFactoryUtil.forName("active");
-
-				dynamicQuery.add(activeProperty.eq(true));
-			});
 		actionableDynamicQuery.setPerformActionMethod(
-			(KaleoDefinition kaleoDefinition) ->
-				_workflowMetricsSLADefinitionTransformer.transform(
-					kaleoDefinition.getCompanyId(),
-					StringBundler.concat(
-						kaleoDefinition.getVersion(), CharPool.PERIOD, 0),
-					kaleoDefinition.getKaleoDefinitionId()));
+			(Company company) -> _transform(company.getCompanyId()));
 
 		actionableDynamicQuery.performActions();
 	}
 
-	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")
+	@Override
+	protected void doReceive(Message message, long companyId) {
+		if (_searchEngineAdapter == null) {
+			return;
+		}
+
+		_transform(companyId);
+	}
+
+	@Reference(
+		target = ModuleServiceLifecycle.PORTLETS_INITIALIZED, unbind = "-"
+	)
 	protected void setModuleServiceLifecycle(
 		ModuleServiceLifecycle moduleServiceLifecycle) {
 	}
 
+	private BooleanQuery _createBooleanQuery(long companyId) {
+		BooleanQuery booleanQuery = _queries.booleanQuery();
+
+		return booleanQuery.addMustQueryClauses(
+			_queries.term("active", Boolean.TRUE),
+			_queries.term("companyId", companyId),
+			_queries.term("deleted", Boolean.FALSE));
+	}
+
+	private boolean _hasIndex(long companyId) {
+		IndicesExistsIndexRequest indicesExistsIndexRequest =
+			new IndicesExistsIndexRequest(
+				_processWorkflowMetricsIndexNameBuilder.getIndexName(
+					companyId));
+
+		IndicesExistsIndexResponse indicesExistsIndexResponse =
+			_searchEngineAdapter.execute(indicesExistsIndexRequest);
+
+		return indicesExistsIndexResponse.isExists();
+	}
+
+	private void _transform(long companyId) {
+		if (!_hasIndex(companyId)) {
+			return;
+		}
+
+		SearchSearchRequest searchSearchRequest = new SearchSearchRequest();
+
+		searchSearchRequest.setIndexNames(
+			_processWorkflowMetricsIndexNameBuilder.getIndexName(companyId));
+
+		BooleanQuery booleanQuery = _queries.booleanQuery();
+
+		searchSearchRequest.setQuery(
+			booleanQuery.addFilterQueryClauses(_createBooleanQuery(companyId)));
+
+		searchSearchRequest.setSize(10000);
+
+		Stream.of(
+			_searchEngineAdapter.execute(searchSearchRequest)
+		).map(
+			SearchSearchResponse::getSearchHits
+		).map(
+			SearchHits::getSearchHits
+		).flatMap(
+			List::stream
+		).map(
+			SearchHit::getDocument
+		).forEach(
+			document -> {
+				try {
+					_workflowMetricsSLADefinitionTransformer.transform(
+						document.getLong("companyId"),
+						document.getString("version"),
+						document.getLong("processId"));
+				}
+				catch (PortalException portalException) {
+					_log.error(portalException, portalException);
+				}
+			}
+		);
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		WorkflowMetricsSLADefinitionTransformerMessageListener.class);
+
 	@Reference
-	private KaleoDefinitionLocalService _kaleoDefinitionLocalService;
+	private CompanyLocalService _companyLocalService;
+
+	@Reference(target = "(workflow.metrics.index.entity.name=process)")
+	private WorkflowMetricsIndexNameBuilder
+		_processWorkflowMetricsIndexNameBuilder;
+
+	@Reference
+	private Queries _queries;
 
 	@Reference
 	private SchedulerEngineHelper _schedulerEngineHelper;
+
+	@Reference(
+		cardinality = ReferenceCardinality.OPTIONAL,
+		policy = ReferencePolicy.DYNAMIC,
+		policyOption = ReferencePolicyOption.GREEDY,
+		target = "(search.engine.impl=Elasticsearch)"
+	)
+	private volatile SearchEngineAdapter _searchEngineAdapter;
 
 	@Reference
 	private TriggerFactory _triggerFactory;

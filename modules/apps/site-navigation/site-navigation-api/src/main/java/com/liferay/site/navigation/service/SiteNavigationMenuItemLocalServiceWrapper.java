@@ -34,11 +34,6 @@ public class SiteNavigationMenuItemLocalServiceWrapper
 			siteNavigationMenuItemLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SiteNavigationMenuItemLocalServiceUtil} to access the site navigation menu item local service. Add custom service methods to <code>com.liferay.site.navigation.service.impl.SiteNavigationMenuItemLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.site.navigation.model.SiteNavigationMenuItem
 			addSiteNavigationMenuItem(
@@ -71,6 +66,10 @@ public class SiteNavigationMenuItemLocalServiceWrapper
 	/**
 	 * Adds the site navigation menu item to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SiteNavigationMenuItemLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param siteNavigationMenuItem the site navigation menu item
 	 * @return the site navigation menu item that was added
 	 */
@@ -82,6 +81,18 @@ public class SiteNavigationMenuItemLocalServiceWrapper
 
 		return _siteNavigationMenuItemLocalService.addSiteNavigationMenuItem(
 			siteNavigationMenuItem);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _siteNavigationMenuItemLocalService.createPersistedModel(
+			primaryKeyObj);
 	}
 
 	/**
@@ -113,6 +124,10 @@ public class SiteNavigationMenuItemLocalServiceWrapper
 	/**
 	 * Deletes the site navigation menu item with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SiteNavigationMenuItemLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param siteNavigationMenuItemId the primary key of the site navigation menu item
 	 * @return the site navigation menu item that was removed
 	 * @throws PortalException if a site navigation menu item with the primary key could not be found
@@ -128,6 +143,10 @@ public class SiteNavigationMenuItemLocalServiceWrapper
 
 	/**
 	 * Deletes the site navigation menu item from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SiteNavigationMenuItemLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param siteNavigationMenuItem the site navigation menu item
 	 * @return the site navigation menu item that was removed
@@ -152,6 +171,11 @@ public class SiteNavigationMenuItemLocalServiceWrapper
 	public void deleteSiteNavigationMenuItemsByGroupId(long groupId) {
 		_siteNavigationMenuItemLocalService.
 			deleteSiteNavigationMenuItemsByGroupId(groupId);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _siteNavigationMenuItemLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -304,6 +328,9 @@ public class SiteNavigationMenuItemLocalServiceWrapper
 		return _siteNavigationMenuItemLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -481,6 +508,10 @@ public class SiteNavigationMenuItemLocalServiceWrapper
 
 	/**
 	 * Updates the site navigation menu item in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SiteNavigationMenuItemLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param siteNavigationMenuItem the site navigation menu item
 	 * @return the site navigation menu item that was updated

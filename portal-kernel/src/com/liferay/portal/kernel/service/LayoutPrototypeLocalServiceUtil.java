@@ -30,7 +30,7 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class LayoutPrototypeLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.LayoutPrototypeLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -38,6 +38,10 @@ public class LayoutPrototypeLocalServiceUtil {
 
 	/**
 	 * Adds the layout prototype to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPrototypeLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPrototype the layout prototype
 	 * @return the layout prototype that was added
@@ -74,7 +78,21 @@ public class LayoutPrototypeLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the layout prototype from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPrototypeLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPrototype the layout prototype
 	 * @return the layout prototype that was removed
@@ -90,6 +108,10 @@ public class LayoutPrototypeLocalServiceUtil {
 
 	/**
 	 * Deletes the layout prototype with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPrototypeLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPrototypeId the primary key of the layout prototype
 	 * @return the layout prototype that was removed
@@ -117,6 +139,12 @@ public class LayoutPrototypeLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -339,6 +367,9 @@ public class LayoutPrototypeLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -350,9 +381,11 @@ public class LayoutPrototypeLocalServiceUtil {
 		<com.liferay.portal.kernel.model.LayoutPrototype> search(
 			long companyId, Boolean active, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.portal.kernel.model.LayoutPrototype> obc) {
+				<com.liferay.portal.kernel.model.LayoutPrototype>
+					orderByComparator) {
 
-		return getService().search(companyId, active, start, end, obc);
+		return getService().search(
+			companyId, active, start, end, orderByComparator);
 	}
 
 	public static int searchCount(long companyId, Boolean active) {
@@ -361,6 +394,10 @@ public class LayoutPrototypeLocalServiceUtil {
 
 	/**
 	 * Updates the layout prototype in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPrototypeLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPrototype the layout prototype
 	 * @return the layout prototype that was updated

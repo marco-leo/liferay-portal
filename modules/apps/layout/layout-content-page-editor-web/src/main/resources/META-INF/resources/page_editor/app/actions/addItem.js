@@ -12,32 +12,13 @@
  * details.
  */
 
-import {ADD_ITEM as type} from './types';
+import {ADD_ITEM} from './types';
 
-const ACTION = {type};
-
-/**
- * @param {object} options
- * @param {object} [options.config={}]
- * @param {string} options.itemId
- * @param {string} options.itemType
- * @param {string} options.siblingId
- * @param {number} [options.position]
- * @return {object}
- */
-export default function addItem({
-	config = {},
-	itemId,
-	itemType,
-	position,
-	siblingId
-}) {
+export default function addItem({itemId, layoutData, portletIds = []}) {
 	return {
-		...ACTION,
-		config,
 		itemId,
-		itemType,
-		position,
-		siblingId
+		layoutData,
+		portletIds,
+		type: ADD_ITEM,
 	};
 }

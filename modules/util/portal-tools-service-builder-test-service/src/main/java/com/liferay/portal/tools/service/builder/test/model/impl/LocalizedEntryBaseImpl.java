@@ -32,7 +32,7 @@ import com.liferay.portal.tools.service.builder.test.service.LocalizedEntryLocal
 public abstract class LocalizedEntryBaseImpl
 	extends LocalizedEntryModelImpl implements LocalizedEntry {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a localized entry model instance should use the <code>LocalizedEntry</code> interface instead.

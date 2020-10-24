@@ -33,7 +33,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface MDRRule extends MDRRuleModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.mobile.device.rules.model.impl.MDRRuleImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -63,6 +63,6 @@ public interface MDRRule extends MDRRuleModel, PersistedModel {
 
 	public void setTypeSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties
-			typeSettingsProperties);
+			typeSettingsUnicodeProperties);
 
 }

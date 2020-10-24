@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.service.permission.ModelPermissionsFactory;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.kernel.test.constants.ServiceTestConstants;
 import com.liferay.portal.kernel.test.context.ContextUserReplace;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -47,7 +48,6 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.security.permission.DoAsUserThread;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.log.CaptureAppender;
 import com.liferay.portal.test.log.Log4JLoggerTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -108,9 +108,9 @@ public class MBMessageServiceTest {
 
 		_group = GroupTestUtil.addGroup();
 
-		_users = new User[ServiceTestUtil.THREAD_COUNT];
+		_users = new User[ServiceTestConstants.THREAD_COUNT];
 
-		for (int i = 0; i < ServiceTestUtil.THREAD_COUNT; i++) {
+		for (int i = 0; i < ServiceTestConstants.THREAD_COUNT; i++) {
 			User user = UserTestUtil.addUser(_group.getGroupId());
 
 			_users[i] = user;
@@ -121,7 +121,8 @@ public class MBMessageServiceTest {
 
 		ModelPermissions modelPermissions = ModelPermissionsFactory.create(
 			new String[] {ActionKeys.ADD_MESSAGE, ActionKeys.VIEW},
-			new String[] {ActionKeys.ADD_MESSAGE, ActionKeys.VIEW});
+			new String[] {ActionKeys.ADD_MESSAGE, ActionKeys.VIEW},
+			MBCategory.class.getName());
 
 		serviceContext.setModelPermissions(modelPermissions);
 
@@ -311,7 +312,7 @@ public class MBMessageServiceTest {
 	private class AddMessageThread extends DoAsUserThread {
 
 		public AddMessageThread(long userId, String subject) {
-			super(userId, ServiceTestUtil.RETRY_COUNT);
+			super(userId, ServiceTestConstants.RETRY_COUNT);
 
 			_subject = subject;
 		}

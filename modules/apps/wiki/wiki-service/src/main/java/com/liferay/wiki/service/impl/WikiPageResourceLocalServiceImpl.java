@@ -45,9 +45,7 @@ public class WikiPageResourceLocalServiceImpl
 		pageResource.setNodeId(nodeId);
 		pageResource.setTitle(title);
 
-		wikiPageResourcePersistence.update(pageResource);
-
-		return pageResource;
+		return wikiPageResourcePersistence.update(pageResource);
 	}
 
 	@Override
@@ -90,7 +88,8 @@ public class WikiPageResourceLocalServiceImpl
 			nodeId, title);
 
 		if (pageResource == null) {
-			pageResource = addPageResource(groupId, nodeId, title);
+			pageResource = wikiPageResourceLocalService.addPageResource(
+				groupId, nodeId, title);
 		}
 
 		return pageResource.getResourcePrimKey();

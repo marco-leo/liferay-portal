@@ -12,43 +12,61 @@
  * details.
  */
 
-import addFragmentEntryLink from '../actions/addFragmentEntryLink';
+import addFragmentEntryLinks from '../actions/addFragmentEntryLinks';
+import {FRAGMENT_TYPES} from '../config/constants/fragmentTypes';
 import FragmentService from '../services/FragmentService';
 
 export default function addFragment({
-	config,
-	fragmentGroupId,
-	fragmentKey,
+	fragmentEntryKey,
+	groupId,
+	parentItemId,
 	position,
-	siblingId,
-	store
+	selectItem = () => {},
+	store,
+	type,
 }) {
-	return dispatch => {
+	return (dispatch) => {
 		const {segmentsExperienceId} = store;
 
-		FragmentService.addFragmentEntryLink({
-			config,
-			fragmentGroupId,
-			fragmentKey,
-			segmentsExperienceId
-		}).then(fragmentEntryLink => {
-			// TODO: This is a temporary "hack"
-			//       until the backend is consitent
-			//       between both "metal+soy" and "react" versions
-			fragmentEntryLink.content = {
-				value: {
-					content: fragmentEntryLink.content
-				}
-			};
+		const params = {
+			fragmentEntryKey,
+			groupId,
+			onNetworkStatus: dispatch,
+			parentItemId,
+			position,
+			segmentsExperienceId,
+			type,
+		};
 
+		const updateState = (fragmentEntryLinks, layoutData, itemId) => {
 			dispatch(
-				addFragmentEntryLink({
-					fragmentEntryLink,
-					itemId: `thing-${Date.now()}`,
-					position,
-					siblingId
+				addFragmentEntryLinks({
+					addedItemId: itemId,
+					fragmentEntryLinks,
+					layoutData,
 				})
 			);
-		});
+
+			selectItem(itemId);
+		};
+
+		if (type === FRAGMENT_TYPES.composition) {
+			FragmentService.addFragmentEntryLinks(params).then(
+				({addedItemId, fragmentEntryLinks, layoutData}) => {
+					updateState(
+						Object.values(fragmentEntryLinks),
+						layoutData,
+						addedItemId
+					);
+				}
+			);
+		}
+		else {
+			FragmentService.addFragmentEntryLink(params).then(
+				({addedItemId, fragmentEntryLink, layoutData}) => {
+					updateState([fragmentEntryLink], layoutData, addedItemId);
+				}
+			);
+		}
 	};
 }

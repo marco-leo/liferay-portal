@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -127,19 +128,17 @@ public class UserSetDigestTest {
 
 		long creatorUserId = 0;
 
-		Company company = CompanyTestUtil.addCompany();
+		_company = CompanyTestUtil.addCompany();
 
-		long companyId = company.getCompanyId();
+		long companyId = _company.getCompanyId();
 
-		String password = RandomTestUtil.randomString();
+		String randomString = RandomTestUtil.randomString();
 
 		boolean autoPassword = false;
-		String password1 = password;
-		String password2 = password;
+		String password1 = randomString;
+		String password2 = randomString;
 
 		boolean autoScreenName = false;
-		long facebookId = 0;
-		String openId = StringPool.BLANK;
 		Locale locale = LocaleUtil.getDefault();
 		String firstName = RandomTestUtil.randomString();
 		String middleName = RandomTestUtil.randomString();
@@ -160,13 +159,16 @@ public class UserSetDigestTest {
 
 		_userLocalService.addUserWithWorkflow(
 			creatorUserId, companyId, autoPassword, password1, password2,
-			autoScreenName, screenName, emailAddress, facebookId, openId,
-			locale, firstName, middleName, lastName, prefixId, suffixId, male,
-			birthdayMonth, birthdayDay, birthdayYear, jobTitle, groupIds,
-			organizationIds, roleIds, userGroupIds, sendEmail, serviceContext);
+			autoScreenName, screenName, emailAddress, locale, firstName,
+			middleName, lastName, prefixId, suffixId, male, birthdayMonth,
+			birthdayDay, birthdayYear, jobTitle, groupIds, organizationIds,
+			roleIds, userGroupIds, sendEmail, serviceContext);
 	}
 
 	@Inject
 	private static UserLocalService _userLocalService;
+
+	@DeleteAfterTestRun
+	private Company _company;
 
 }

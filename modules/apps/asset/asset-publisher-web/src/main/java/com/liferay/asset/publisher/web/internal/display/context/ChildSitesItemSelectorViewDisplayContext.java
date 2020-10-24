@@ -17,7 +17,6 @@ package com.liferay.asset.publisher.web.internal.display.context;
 import com.liferay.asset.publisher.util.AssetPublisherHelper;
 import com.liferay.item.selector.criteria.group.criterion.GroupItemSelectorCriterion;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -57,8 +56,9 @@ public class ChildSitesItemSelectorViewDisplayContext
 
 	@Override
 	public GroupSearch getGroupSearch() throws Exception {
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		GroupSearch groupSearch = new GroupSearch(
 			getPortletRequest(), getPortletURL());
@@ -98,15 +98,14 @@ public class ChildSitesItemSelectorViewDisplayContext
 		return filteredGroups;
 	}
 
-	private LinkedHashMap<String, Object> _getGroupParams()
-		throws PortalException {
-
+	private LinkedHashMap<String, Object> _getGroupParams() throws Exception {
 		if (_groupParams != null) {
 			return _groupParams;
 		}
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		_groupParams = LinkedHashMapBuilder.<String, Object>put(
 			"active", Boolean.TRUE

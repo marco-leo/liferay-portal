@@ -40,7 +40,7 @@ public interface KaleoTaskFormInstanceModel
 	extends BaseModel<KaleoTaskFormInstance>, GroupedModel, MVCCModel,
 			ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo task form instance model instance should use the {@link KaleoTaskFormInstance} interface instead.
@@ -202,6 +202,20 @@ public interface KaleoTaskFormInstanceModel
 	 */
 	@Override
 	public void setModifiedDate(Date modifiedDate);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo task form instance.
+	 *
+	 * @return the kaleo definition ID of this kaleo task form instance
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo task form instance.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo task form instance
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo task form instance.

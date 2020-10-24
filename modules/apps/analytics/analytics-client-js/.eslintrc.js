@@ -14,13 +14,17 @@
 
 module.exports = {
 	globals: {
-		__dirname: true,
 		global: true,
-		module: true,
-		require: true,
-		sinon: true
 	},
+	overrides: [
+		{
+			env: {
+				jest: true,
+			},
+			files: '**/__mocks__/**',
+		},
+	],
 	rules: {
-		'liferay-portal/no-global-fetch': 'off'
-	}
+		'@liferay/portal/no-global-fetch': 'off',
+	},
 };

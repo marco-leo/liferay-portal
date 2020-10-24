@@ -73,9 +73,9 @@ public class CASAutoLogin extends BaseAutoLogin {
 	@Override
 	protected String[] doHandleException(
 		HttpServletRequest httpServletRequest,
-		HttpServletResponse httpServletResponse, Exception e) {
+		HttpServletResponse httpServletResponse, Exception exception) {
 
-		if (e instanceof NoSuchUserException) {
+		if (exception instanceof NoSuchUserException) {
 			HttpSession session = httpServletRequest.getSession();
 
 			session.removeAttribute(CASWebKeys.CAS_LOGIN);
@@ -84,7 +84,7 @@ public class CASAutoLogin extends BaseAutoLogin {
 				CASWebKeys.CAS_NO_SUCH_USER_EXCEPTION, Boolean.TRUE);
 		}
 
-		_log.error(e, e);
+		_log.error(exception, exception);
 
 		return null;
 	}
@@ -94,8 +94,6 @@ public class CASAutoLogin extends BaseAutoLogin {
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
 		throws Exception {
-
-		HttpSession session = httpServletRequest.getSession();
 
 		long companyId = _portal.getCompanyId(httpServletRequest);
 
@@ -108,6 +106,8 @@ public class CASAutoLogin extends BaseAutoLogin {
 		if (!casConfiguration.enabled()) {
 			return null;
 		}
+
+		HttpSession session = httpServletRequest.getSession();
 
 		String login = (String)session.getAttribute(CASWebKeys.CAS_LOGIN);
 
@@ -148,12 +148,12 @@ public class CASAutoLogin extends BaseAutoLogin {
 						companyId, login, StringPool.BLANK);
 				}
 			}
-			catch (SystemException se) {
+			catch (SystemException systemException) {
 
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(se, se);
+					_log.debug(systemException, systemException);
 				}
 			}
 		}

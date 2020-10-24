@@ -16,6 +16,7 @@ package com.liferay.saml.opensaml.integration.internal.resolver;
 
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
 import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.log.Log;
@@ -34,7 +35,6 @@ import com.liferay.portal.kernel.service.UserGroupGroupRoleLocalService;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.saml.opensaml.integration.metadata.MetadataManager;
 import com.liferay.saml.opensaml.integration.resolver.AttributeResolver;
@@ -231,13 +231,13 @@ public class DefaultAttributeResolver implements AttributeResolver {
 					AttributePublisher.AttributeValue[]::new
 				));
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			String message = StringBundler.concat(
 				"Unable to get groups for user ", user.getUserId(), ": ",
-				e.getMessage());
+				exception.getMessage());
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(message, e);
+				_log.debug(message, exception);
 			}
 			else {
 				_log.error(message);
@@ -330,13 +330,13 @@ public class DefaultAttributeResolver implements AttributeResolver {
 					));
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			String message = StringBundler.concat(
 				"Unable to get organization roles for user ", user.getUserId(),
-				": ", e.getMessage());
+				": ", exception.getMessage());
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(message, e);
+				_log.debug(message, exception);
 			}
 			else {
 				_log.error(message);
@@ -380,13 +380,13 @@ public class DefaultAttributeResolver implements AttributeResolver {
 					AttributePublisher.AttributeValue[]::new
 				));
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			String message = StringBundler.concat(
 				"Unable to get organizations for user ", user.getUserId(), ": ",
-				e.getMessage());
+				exception.getMessage());
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(message, e);
+				_log.debug(message, exception);
 			}
 			else {
 				_log.error(message);
@@ -475,13 +475,13 @@ public class DefaultAttributeResolver implements AttributeResolver {
 					AttributePublisher.AttributeValue[]::new
 				));
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			String message = StringBundler.concat(
 				"Unable to get roles for user  ", user.getUserId(), ": ",
-				e.getMessage());
+				exception.getMessage());
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(message, e);
+				_log.debug(message, exception);
 			}
 			else {
 				_log.error(message);
@@ -603,13 +603,13 @@ public class DefaultAttributeResolver implements AttributeResolver {
 					));
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			String message = StringBundler.concat(
 				"Unable to get user group roles for user ", user.getUserId(),
-				": ", e.getMessage());
+				": ", exception.getMessage());
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(message, e);
+				_log.debug(message, exception);
 			}
 			else {
 				_log.error(message);
@@ -633,11 +633,8 @@ public class DefaultAttributeResolver implements AttributeResolver {
 
 			if (values.length > 2) {
 				for (int i = 2; i < values.length; i++) {
-					attributeValue = attributeValue.concat(
-						"="
-					).concat(
-						values[i]
-					);
+					attributeValue = StringBundler.concat(
+						attributeValue, "=", values[i]);
 				}
 			}
 		}
@@ -712,13 +709,13 @@ public class DefaultAttributeResolver implements AttributeResolver {
 					AttributePublisher.AttributeValue[]::new
 				));
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			String message = StringBundler.concat(
 				"Unable to get user groups for user ", user.getUserId(), ": ",
-				e.getMessage());
+				exception.getMessage());
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(message, e);
+				_log.debug(message, exception);
 			}
 			else {
 				_log.error(message);

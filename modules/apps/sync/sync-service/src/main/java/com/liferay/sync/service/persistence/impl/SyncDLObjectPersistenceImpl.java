@@ -16,6 +16,7 @@ package com.liferay.sync.service.persistence.impl;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
+import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -26,16 +27,18 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.sync.exception.NoSuchDLObjectException;
 import com.liferay.sync.model.SyncDLObject;
+import com.liferay.sync.model.SyncDLObjectTable;
 import com.liferay.sync.model.impl.SyncDLObjectImpl;
 import com.liferay.sync.model.impl.SyncDLObjectModelImpl;
 import com.liferay.sync.service.persistence.SyncDLObjectPersistence;
@@ -46,13 +49,17 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -73,7 +80,7 @@ public class SyncDLObjectPersistenceImpl
 	extends BasePersistenceImpl<SyncDLObject>
 	implements SyncDLObjectPersistence {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>SyncDLObjectUtil</code> to access the sync dl object persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -194,54 +201,54 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
 			boolean bindTreePath = false;
 
 			if (treePath.isEmpty()) {
-				query.append(_FINDER_COLUMN_TREEPATH_TREEPATH_3);
+				sb.append(_FINDER_COLUMN_TREEPATH_TREEPATH_3);
 			}
 			else {
 				bindTreePath = true;
 
-				query.append(_FINDER_COLUMN_TREEPATH_TREEPATH_2);
+				sb.append(_FINDER_COLUMN_TREEPATH_TREEPATH_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+				sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindTreePath) {
-					qPos.add(treePath);
+					queryPos.add(treePath);
 				}
 
 				list = (List<SyncDLObject>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -249,12 +256,8 @@ public class SyncDLObjectPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -284,16 +287,16 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("treePathLIKE");
-		msg.append(treePath);
+		sb.append("treePathLIKE");
+		sb.append(treePath);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -337,16 +340,16 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("treePathLIKE");
-		msg.append(treePath);
+		sb.append("treePathLIKE");
+		sb.append(treePath);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -412,8 +415,8 @@ public class SyncDLObjectPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -424,28 +427,28 @@ public class SyncDLObjectPersistenceImpl
 		Session session, SyncDLObject syncDLObject, String treePath,
 		OrderByComparator<SyncDLObject> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+		sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
 		boolean bindTreePath = false;
 
 		if (treePath.isEmpty()) {
-			query.append(_FINDER_COLUMN_TREEPATH_TREEPATH_3);
+			sb.append(_FINDER_COLUMN_TREEPATH_TREEPATH_3);
 		}
 		else {
 			bindTreePath = true;
 
-			query.append(_FINDER_COLUMN_TREEPATH_TREEPATH_2);
+			sb.append(_FINDER_COLUMN_TREEPATH_TREEPATH_2);
 		}
 
 		if (orderByComparator != null) {
@@ -453,83 +456,83 @@ public class SyncDLObjectPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+			sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindTreePath) {
-			qPos.add(treePath);
+			queryPos.add(treePath);
 		}
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(syncDLObject)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SyncDLObject> list = q.list();
+		List<SyncDLObject> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -571,44 +574,42 @@ public class SyncDLObjectPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
 			boolean bindTreePath = false;
 
 			if (treePath.isEmpty()) {
-				query.append(_FINDER_COLUMN_TREEPATH_TREEPATH_3);
+				sb.append(_FINDER_COLUMN_TREEPATH_TREEPATH_3);
 			}
 			else {
 				bindTreePath = true;
 
-				query.append(_FINDER_COLUMN_TREEPATH_TREEPATH_2);
+				sb.append(_FINDER_COLUMN_TREEPATH_TREEPATH_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindTreePath) {
-					qPos.add(treePath);
+					queryPos.add(treePath);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -733,47 +734,47 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_M_R_MODIFIEDTIME_2);
+			sb.append(_FINDER_COLUMN_M_R_MODIFIEDTIME_2);
 
-			query.append(_FINDER_COLUMN_M_R_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_M_R_REPOSITORYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+				sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(modifiedTime);
+				queryPos.add(modifiedTime);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
 				list = (List<SyncDLObject>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -781,12 +782,8 @@ public class SyncDLObjectPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -818,19 +815,19 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("modifiedTime>");
-		msg.append(modifiedTime);
+		sb.append("modifiedTime>");
+		sb.append(modifiedTime);
 
-		msg.append(", repositoryId=");
-		msg.append(repositoryId);
+		sb.append(", repositoryId=");
+		sb.append(repositoryId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -878,19 +875,19 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("modifiedTime>");
-		msg.append(modifiedTime);
+		sb.append("modifiedTime>");
+		sb.append(modifiedTime);
 
-		msg.append(", repositoryId=");
-		msg.append(repositoryId);
+		sb.append(", repositoryId=");
+		sb.append(repositoryId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -959,8 +956,8 @@ public class SyncDLObjectPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -972,105 +969,105 @@ public class SyncDLObjectPersistenceImpl
 		long repositoryId, OrderByComparator<SyncDLObject> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+		sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-		query.append(_FINDER_COLUMN_M_R_MODIFIEDTIME_2);
+		sb.append(_FINDER_COLUMN_M_R_MODIFIEDTIME_2);
 
-		query.append(_FINDER_COLUMN_M_R_REPOSITORYID_2);
+		sb.append(_FINDER_COLUMN_M_R_REPOSITORYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+			sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(modifiedTime);
+		queryPos.add(modifiedTime);
 
-		qPos.add(repositoryId);
+		queryPos.add(repositoryId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(syncDLObject)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SyncDLObject> list = q.list();
+		List<SyncDLObject> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1113,37 +1110,35 @@ public class SyncDLObjectPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_M_R_MODIFIEDTIME_2);
+			sb.append(_FINDER_COLUMN_M_R_MODIFIEDTIME_2);
 
-			query.append(_FINDER_COLUMN_M_R_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_M_R_REPOSITORYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(modifiedTime);
+				queryPos.add(modifiedTime);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1281,47 +1276,47 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_R_P_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_R_P_REPOSITORYID_2);
 
-			query.append(_FINDER_COLUMN_R_P_PARENTFOLDERID_2);
+			sb.append(_FINDER_COLUMN_R_P_PARENTFOLDERID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+				sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
-				qPos.add(parentFolderId);
+				queryPos.add(parentFolderId);
 
 				list = (List<SyncDLObject>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -1329,12 +1324,8 @@ public class SyncDLObjectPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1366,19 +1357,19 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("repositoryId=");
-		msg.append(repositoryId);
+		sb.append("repositoryId=");
+		sb.append(repositoryId);
 
-		msg.append(", parentFolderId=");
-		msg.append(parentFolderId);
+		sb.append(", parentFolderId=");
+		sb.append(parentFolderId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -1426,19 +1417,19 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("repositoryId=");
-		msg.append(repositoryId);
+		sb.append("repositoryId=");
+		sb.append(repositoryId);
 
-		msg.append(", parentFolderId=");
-		msg.append(parentFolderId);
+		sb.append(", parentFolderId=");
+		sb.append(parentFolderId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -1507,8 +1498,8 @@ public class SyncDLObjectPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1520,105 +1511,105 @@ public class SyncDLObjectPersistenceImpl
 		long parentFolderId, OrderByComparator<SyncDLObject> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+		sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-		query.append(_FINDER_COLUMN_R_P_REPOSITORYID_2);
+		sb.append(_FINDER_COLUMN_R_P_REPOSITORYID_2);
 
-		query.append(_FINDER_COLUMN_R_P_PARENTFOLDERID_2);
+		sb.append(_FINDER_COLUMN_R_P_PARENTFOLDERID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+			sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(repositoryId);
+		queryPos.add(repositoryId);
 
-		qPos.add(parentFolderId);
+		queryPos.add(parentFolderId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(syncDLObject)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SyncDLObject> list = q.list();
+		List<SyncDLObject> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1661,37 +1652,35 @@ public class SyncDLObjectPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_R_P_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_R_P_REPOSITORYID_2);
 
-			query.append(_FINDER_COLUMN_R_P_PARENTFOLDERID_2);
+			sb.append(_FINDER_COLUMN_R_P_PARENTFOLDERID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
-				qPos.add(parentFolderId);
+				queryPos.add(parentFolderId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1817,58 +1806,58 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_R_NOTE_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_R_NOTE_REPOSITORYID_2);
 
 			boolean bindEvent = false;
 
 			if (event.isEmpty()) {
-				query.append(_FINDER_COLUMN_R_NOTE_EVENT_3);
+				sb.append(_FINDER_COLUMN_R_NOTE_EVENT_3);
 			}
 			else {
 				bindEvent = true;
 
-				query.append(_FINDER_COLUMN_R_NOTE_EVENT_2);
+				sb.append(_FINDER_COLUMN_R_NOTE_EVENT_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+				sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
 				if (bindEvent) {
-					qPos.add(event);
+					queryPos.add(event);
 				}
 
 				list = (List<SyncDLObject>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -1876,12 +1865,8 @@ public class SyncDLObjectPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1913,19 +1898,19 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("repositoryId=");
-		msg.append(repositoryId);
+		sb.append("repositoryId=");
+		sb.append(repositoryId);
 
-		msg.append(", event!=");
-		msg.append(event);
+		sb.append(", event!=");
+		sb.append(event);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -1973,19 +1958,19 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("repositoryId=");
-		msg.append(repositoryId);
+		sb.append("repositoryId=");
+		sb.append(repositoryId);
 
-		msg.append(", event!=");
-		msg.append(event);
+		sb.append(", event!=");
+		sb.append(event);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -2056,8 +2041,8 @@ public class SyncDLObjectPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2069,30 +2054,30 @@ public class SyncDLObjectPersistenceImpl
 		String event, OrderByComparator<SyncDLObject> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+		sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-		query.append(_FINDER_COLUMN_R_NOTE_REPOSITORYID_2);
+		sb.append(_FINDER_COLUMN_R_NOTE_REPOSITORYID_2);
 
 		boolean bindEvent = false;
 
 		if (event.isEmpty()) {
-			query.append(_FINDER_COLUMN_R_NOTE_EVENT_3);
+			sb.append(_FINDER_COLUMN_R_NOTE_EVENT_3);
 		}
 		else {
 			bindEvent = true;
 
-			query.append(_FINDER_COLUMN_R_NOTE_EVENT_2);
+			sb.append(_FINDER_COLUMN_R_NOTE_EVENT_2);
 		}
 
 		if (orderByComparator != null) {
@@ -2100,85 +2085,85 @@ public class SyncDLObjectPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+			sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(repositoryId);
+		queryPos.add(repositoryId);
 
 		if (bindEvent) {
-			qPos.add(event);
+			queryPos.add(event);
 		}
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(syncDLObject)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SyncDLObject> list = q.list();
+		List<SyncDLObject> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -2223,48 +2208,46 @@ public class SyncDLObjectPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_R_NOTE_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_R_NOTE_REPOSITORYID_2);
 
 			boolean bindEvent = false;
 
 			if (event.isEmpty()) {
-				query.append(_FINDER_COLUMN_R_NOTE_EVENT_3);
+				sb.append(_FINDER_COLUMN_R_NOTE_EVENT_3);
 			}
 			else {
 				bindEvent = true;
 
-				query.append(_FINDER_COLUMN_R_NOTE_EVENT_2);
+				sb.append(_FINDER_COLUMN_R_NOTE_EVENT_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
 				if (bindEvent) {
-					qPos.add(event);
+					queryPos.add(event);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2404,58 +2387,58 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_R_T_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_R_T_REPOSITORYID_2);
 
 			boolean bindType = false;
 
 			if (type.isEmpty()) {
-				query.append(_FINDER_COLUMN_R_T_TYPE_3);
+				sb.append(_FINDER_COLUMN_R_T_TYPE_3);
 			}
 			else {
 				bindType = true;
 
-				query.append(_FINDER_COLUMN_R_T_TYPE_2);
+				sb.append(_FINDER_COLUMN_R_T_TYPE_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+				sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
 				if (bindType) {
-					qPos.add(type);
+					queryPos.add(type);
 				}
 
 				list = (List<SyncDLObject>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -2463,12 +2446,8 @@ public class SyncDLObjectPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2500,19 +2479,19 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("repositoryId=");
-		msg.append(repositoryId);
+		sb.append("repositoryId=");
+		sb.append(repositoryId);
 
-		msg.append(", type=");
-		msg.append(type);
+		sb.append(", type=");
+		sb.append(type);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -2560,19 +2539,19 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("repositoryId=");
-		msg.append(repositoryId);
+		sb.append("repositoryId=");
+		sb.append(repositoryId);
 
-		msg.append(", type=");
-		msg.append(type);
+		sb.append(", type=");
+		sb.append(type);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -2643,8 +2622,8 @@ public class SyncDLObjectPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2656,30 +2635,30 @@ public class SyncDLObjectPersistenceImpl
 		String type, OrderByComparator<SyncDLObject> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+		sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-		query.append(_FINDER_COLUMN_R_T_REPOSITORYID_2);
+		sb.append(_FINDER_COLUMN_R_T_REPOSITORYID_2);
 
 		boolean bindType = false;
 
 		if (type.isEmpty()) {
-			query.append(_FINDER_COLUMN_R_T_TYPE_3);
+			sb.append(_FINDER_COLUMN_R_T_TYPE_3);
 		}
 		else {
 			bindType = true;
 
-			query.append(_FINDER_COLUMN_R_T_TYPE_2);
+			sb.append(_FINDER_COLUMN_R_T_TYPE_2);
 		}
 
 		if (orderByComparator != null) {
@@ -2687,85 +2666,85 @@ public class SyncDLObjectPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+			sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(repositoryId);
+		queryPos.add(repositoryId);
 
 		if (bindType) {
-			qPos.add(type);
+			queryPos.add(type);
 		}
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(syncDLObject)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SyncDLObject> list = q.list();
+		List<SyncDLObject> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -2810,48 +2789,46 @@ public class SyncDLObjectPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_R_T_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_R_T_REPOSITORYID_2);
 
 			boolean bindType = false;
 
 			if (type.isEmpty()) {
-				query.append(_FINDER_COLUMN_R_T_TYPE_3);
+				sb.append(_FINDER_COLUMN_R_T_TYPE_3);
 			}
 			else {
 				bindType = true;
 
-				query.append(_FINDER_COLUMN_R_T_TYPE_2);
+				sb.append(_FINDER_COLUMN_R_T_TYPE_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
 				if (bindType) {
-					qPos.add(type);
+					queryPos.add(type);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2983,69 +2960,69 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
 			boolean bindTreePath = false;
 
 			if (treePath.isEmpty()) {
-				query.append(_FINDER_COLUMN_T_NOTE_TREEPATH_3);
+				sb.append(_FINDER_COLUMN_T_NOTE_TREEPATH_3);
 			}
 			else {
 				bindTreePath = true;
 
-				query.append(_FINDER_COLUMN_T_NOTE_TREEPATH_2);
+				sb.append(_FINDER_COLUMN_T_NOTE_TREEPATH_2);
 			}
 
 			boolean bindEvent = false;
 
 			if (event.isEmpty()) {
-				query.append(_FINDER_COLUMN_T_NOTE_EVENT_3);
+				sb.append(_FINDER_COLUMN_T_NOTE_EVENT_3);
 			}
 			else {
 				bindEvent = true;
 
-				query.append(_FINDER_COLUMN_T_NOTE_EVENT_2);
+				sb.append(_FINDER_COLUMN_T_NOTE_EVENT_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+				sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindTreePath) {
-					qPos.add(treePath);
+					queryPos.add(treePath);
 				}
 
 				if (bindEvent) {
-					qPos.add(event);
+					queryPos.add(event);
 				}
 
 				list = (List<SyncDLObject>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -3053,12 +3030,8 @@ public class SyncDLObjectPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3090,19 +3063,19 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("treePathLIKE");
-		msg.append(treePath);
+		sb.append("treePathLIKE");
+		sb.append(treePath);
 
-		msg.append(", event!=");
-		msg.append(event);
+		sb.append(", event!=");
+		sb.append(event);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -3150,19 +3123,19 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("treePathLIKE");
-		msg.append(treePath);
+		sb.append("treePathLIKE");
+		sb.append(treePath);
 
-		msg.append(", event!=");
-		msg.append(event);
+		sb.append(", event!=");
+		sb.append(event);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -3234,8 +3207,8 @@ public class SyncDLObjectPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -3247,39 +3220,39 @@ public class SyncDLObjectPersistenceImpl
 		String event, OrderByComparator<SyncDLObject> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+		sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
 		boolean bindTreePath = false;
 
 		if (treePath.isEmpty()) {
-			query.append(_FINDER_COLUMN_T_NOTE_TREEPATH_3);
+			sb.append(_FINDER_COLUMN_T_NOTE_TREEPATH_3);
 		}
 		else {
 			bindTreePath = true;
 
-			query.append(_FINDER_COLUMN_T_NOTE_TREEPATH_2);
+			sb.append(_FINDER_COLUMN_T_NOTE_TREEPATH_2);
 		}
 
 		boolean bindEvent = false;
 
 		if (event.isEmpty()) {
-			query.append(_FINDER_COLUMN_T_NOTE_EVENT_3);
+			sb.append(_FINDER_COLUMN_T_NOTE_EVENT_3);
 		}
 		else {
 			bindEvent = true;
 
-			query.append(_FINDER_COLUMN_T_NOTE_EVENT_2);
+			sb.append(_FINDER_COLUMN_T_NOTE_EVENT_2);
 		}
 
 		if (orderByComparator != null) {
@@ -3287,87 +3260,87 @@ public class SyncDLObjectPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+			sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindTreePath) {
-			qPos.add(treePath);
+			queryPos.add(treePath);
 		}
 
 		if (bindEvent) {
-			qPos.add(event);
+			queryPos.add(event);
 		}
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(syncDLObject)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SyncDLObject> list = q.list();
+		List<SyncDLObject> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -3413,59 +3386,57 @@ public class SyncDLObjectPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
 			boolean bindTreePath = false;
 
 			if (treePath.isEmpty()) {
-				query.append(_FINDER_COLUMN_T_NOTE_TREEPATH_3);
+				sb.append(_FINDER_COLUMN_T_NOTE_TREEPATH_3);
 			}
 			else {
 				bindTreePath = true;
 
-				query.append(_FINDER_COLUMN_T_NOTE_TREEPATH_2);
+				sb.append(_FINDER_COLUMN_T_NOTE_TREEPATH_2);
 			}
 
 			boolean bindEvent = false;
 
 			if (event.isEmpty()) {
-				query.append(_FINDER_COLUMN_T_NOTE_EVENT_3);
+				sb.append(_FINDER_COLUMN_T_NOTE_EVENT_3);
 			}
 			else {
 				bindEvent = true;
 
-				query.append(_FINDER_COLUMN_T_NOTE_EVENT_2);
+				sb.append(_FINDER_COLUMN_T_NOTE_EVENT_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindTreePath) {
-					qPos.add(treePath);
+					queryPos.add(treePath);
 				}
 
 				if (bindEvent) {
-					qPos.add(event);
+					queryPos.add(event);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3608,69 +3579,69 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
 			boolean bindVersion = false;
 
 			if (version.isEmpty()) {
-				query.append(_FINDER_COLUMN_V_T_VERSION_3);
+				sb.append(_FINDER_COLUMN_V_T_VERSION_3);
 			}
 			else {
 				bindVersion = true;
 
-				query.append(_FINDER_COLUMN_V_T_VERSION_2);
+				sb.append(_FINDER_COLUMN_V_T_VERSION_2);
 			}
 
 			boolean bindType = false;
 
 			if (type.isEmpty()) {
-				query.append(_FINDER_COLUMN_V_T_TYPE_3);
+				sb.append(_FINDER_COLUMN_V_T_TYPE_3);
 			}
 			else {
 				bindType = true;
 
-				query.append(_FINDER_COLUMN_V_T_TYPE_2);
+				sb.append(_FINDER_COLUMN_V_T_TYPE_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+				sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindVersion) {
-					qPos.add(version);
+					queryPos.add(version);
 				}
 
 				if (bindType) {
-					qPos.add(type);
+					queryPos.add(type);
 				}
 
 				list = (List<SyncDLObject>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -3678,12 +3649,8 @@ public class SyncDLObjectPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3715,19 +3682,19 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("version=");
-		msg.append(version);
+		sb.append("version=");
+		sb.append(version);
 
-		msg.append(", type=");
-		msg.append(type);
+		sb.append(", type=");
+		sb.append(type);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -3775,19 +3742,19 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("version=");
-		msg.append(version);
+		sb.append("version=");
+		sb.append(version);
 
-		msg.append(", type=");
-		msg.append(type);
+		sb.append(", type=");
+		sb.append(type);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -3857,8 +3824,8 @@ public class SyncDLObjectPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -3869,39 +3836,39 @@ public class SyncDLObjectPersistenceImpl
 		Session session, SyncDLObject syncDLObject, String version, String type,
 		OrderByComparator<SyncDLObject> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+		sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
 		boolean bindVersion = false;
 
 		if (version.isEmpty()) {
-			query.append(_FINDER_COLUMN_V_T_VERSION_3);
+			sb.append(_FINDER_COLUMN_V_T_VERSION_3);
 		}
 		else {
 			bindVersion = true;
 
-			query.append(_FINDER_COLUMN_V_T_VERSION_2);
+			sb.append(_FINDER_COLUMN_V_T_VERSION_2);
 		}
 
 		boolean bindType = false;
 
 		if (type.isEmpty()) {
-			query.append(_FINDER_COLUMN_V_T_TYPE_3);
+			sb.append(_FINDER_COLUMN_V_T_TYPE_3);
 		}
 		else {
 			bindType = true;
 
-			query.append(_FINDER_COLUMN_V_T_TYPE_2);
+			sb.append(_FINDER_COLUMN_V_T_TYPE_2);
 		}
 
 		if (orderByComparator != null) {
@@ -3909,87 +3876,87 @@ public class SyncDLObjectPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+			sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindVersion) {
-			qPos.add(version);
+			queryPos.add(version);
 		}
 
 		if (bindType) {
-			qPos.add(type);
+			queryPos.add(type);
 		}
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(syncDLObject)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SyncDLObject> list = q.list();
+		List<SyncDLObject> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -4035,59 +4002,57 @@ public class SyncDLObjectPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
 			boolean bindVersion = false;
 
 			if (version.isEmpty()) {
-				query.append(_FINDER_COLUMN_V_T_VERSION_3);
+				sb.append(_FINDER_COLUMN_V_T_VERSION_3);
 			}
 			else {
 				bindVersion = true;
 
-				query.append(_FINDER_COLUMN_V_T_VERSION_2);
+				sb.append(_FINDER_COLUMN_V_T_VERSION_2);
 			}
 
 			boolean bindType = false;
 
 			if (type.isEmpty()) {
-				query.append(_FINDER_COLUMN_V_T_TYPE_3);
+				sb.append(_FINDER_COLUMN_V_T_TYPE_3);
 			}
 			else {
 				bindType = true;
 
-				query.append(_FINDER_COLUMN_V_T_TYPE_2);
+				sb.append(_FINDER_COLUMN_V_T_TYPE_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindVersion) {
-					qPos.add(version);
+					queryPos.add(version);
 				}
 
 				if (bindType) {
-					qPos.add(type);
+					queryPos.add(type);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -4127,23 +4092,23 @@ public class SyncDLObjectPersistenceImpl
 		SyncDLObject syncDLObject = fetchByT_T(type, typePK);
 
 		if (syncDLObject == null) {
-			StringBundler msg = new StringBundler(6);
+			StringBundler sb = new StringBundler(6);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("type=");
-			msg.append(type);
+			sb.append("type=");
+			sb.append(type);
 
-			msg.append(", typePK=");
-			msg.append(typePK);
+			sb.append(", typePK=");
+			sb.append(typePK);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchDLObjectException(msg.toString());
+			throw new NoSuchDLObjectException(sb.toString());
 		}
 
 		return syncDLObject;
@@ -4199,41 +4164,41 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
 			boolean bindType = false;
 
 			if (type.isEmpty()) {
-				query.append(_FINDER_COLUMN_T_T_TYPE_3);
+				sb.append(_FINDER_COLUMN_T_T_TYPE_3);
 			}
 			else {
 				bindType = true;
 
-				query.append(_FINDER_COLUMN_T_T_TYPE_2);
+				sb.append(_FINDER_COLUMN_T_T_TYPE_2);
 			}
 
-			query.append(_FINDER_COLUMN_T_T_TYPEPK_2);
+			sb.append(_FINDER_COLUMN_T_T_TYPEPK_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindType) {
-					qPos.add(type);
+					queryPos.add(type);
 				}
 
-				qPos.add(typePK);
+				queryPos.add(typePK);
 
-				List<SyncDLObject> list = q.list();
+				List<SyncDLObject> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
@@ -4249,12 +4214,8 @@ public class SyncDLObjectPersistenceImpl
 					cacheResult(syncDLObject);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(_finderPathFetchByT_T, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -4303,48 +4264,46 @@ public class SyncDLObjectPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
 			boolean bindType = false;
 
 			if (type.isEmpty()) {
-				query.append(_FINDER_COLUMN_T_T_TYPE_3);
+				sb.append(_FINDER_COLUMN_T_T_TYPE_3);
 			}
 			else {
 				bindType = true;
 
-				query.append(_FINDER_COLUMN_T_T_TYPE_2);
+				sb.append(_FINDER_COLUMN_T_T_TYPE_2);
 			}
 
-			query.append(_FINDER_COLUMN_T_T_TYPEPK_2);
+			sb.append(_FINDER_COLUMN_T_T_TYPEPK_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindType) {
-					qPos.add(type);
+					queryPos.add(type);
 				}
 
-				qPos.add(typePK);
+				queryPos.add(typePK);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -4484,62 +4443,62 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					5 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(5);
+				sb = new StringBundler(5);
 			}
 
-			query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
+			sb.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
 
-			query.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
 
 			boolean bindEvent = false;
 
 			if (event.isEmpty()) {
-				query.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
+				sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
 			}
 			else {
 				bindEvent = true;
 
-				query.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
+				sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+				sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(modifiedTime);
+				queryPos.add(modifiedTime);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
 				if (bindEvent) {
-					qPos.add(event);
+					queryPos.add(event);
 				}
 
 				list = (List<SyncDLObject>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -4547,12 +4506,8 @@ public class SyncDLObjectPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -4585,22 +4540,22 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(8);
+		StringBundler sb = new StringBundler(8);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("modifiedTime>");
-		msg.append(modifiedTime);
+		sb.append("modifiedTime>");
+		sb.append(modifiedTime);
 
-		msg.append(", repositoryId=");
-		msg.append(repositoryId);
+		sb.append(", repositoryId=");
+		sb.append(repositoryId);
 
-		msg.append(", event!=");
-		msg.append(event);
+		sb.append(", event!=");
+		sb.append(event);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -4650,22 +4605,22 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(8);
+		StringBundler sb = new StringBundler(8);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("modifiedTime>");
-		msg.append(modifiedTime);
+		sb.append("modifiedTime>");
+		sb.append(modifiedTime);
 
-		msg.append(", repositoryId=");
-		msg.append(repositoryId);
+		sb.append(", repositoryId=");
+		sb.append(repositoryId);
 
-		msg.append(", event!=");
-		msg.append(event);
+		sb.append(", event!=");
+		sb.append(event);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -4739,8 +4694,8 @@ public class SyncDLObjectPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -4752,32 +4707,32 @@ public class SyncDLObjectPersistenceImpl
 		long repositoryId, String event,
 		OrderByComparator<SyncDLObject> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
-		query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+		sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-		query.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
+		sb.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
 
-		query.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
+		sb.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
 
 		boolean bindEvent = false;
 
 		if (event.isEmpty()) {
-			query.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
+			sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
 		}
 		else {
 			bindEvent = true;
 
-			query.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
+			sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
 		}
 
 		if (orderByComparator != null) {
@@ -4785,87 +4740,87 @@ public class SyncDLObjectPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+			sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(modifiedTime);
+		queryPos.add(modifiedTime);
 
-		qPos.add(repositoryId);
+		queryPos.add(repositoryId);
 
 		if (bindEvent) {
-			qPos.add(event);
+			queryPos.add(event);
 		}
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(syncDLObject)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SyncDLObject> list = q.list();
+		List<SyncDLObject> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -5022,70 +4977,69 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = new StringBundler();
+			StringBundler sb = new StringBundler();
 
-			query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
+			sb.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
 
-			query.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
 
 			if (events.length > 0) {
-				query.append("(");
+				sb.append("(");
 
 				for (int i = 0; i < events.length; i++) {
 					String event = events[i];
 
 					if (event.isEmpty()) {
-						query.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
+						sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
 					}
 					else {
-						query.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
+						sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
 					}
 
 					if ((i + 1) < events.length) {
-						query.append(WHERE_AND);
+						sb.append(WHERE_AND);
 					}
 				}
 
-				query.append(")");
+				sb.append(")");
 			}
 
-			query.setStringAt(
-				removeConjunction(query.stringAt(query.index() - 1)),
-				query.index() - 1);
+			sb.setStringAt(
+				removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+				sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(modifiedTime);
+				queryPos.add(modifiedTime);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
 				for (String event : events) {
 					if ((event != null) && !event.isEmpty()) {
-						qPos.add(event);
+						queryPos.add(event);
 					}
 				}
 
 				list = (List<SyncDLObject>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -5095,13 +5049,8 @@ public class SyncDLObjectPersistenceImpl
 						list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(
-						_finderPathWithPaginationFindByM_R_NotE, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -5152,52 +5101,50 @@ public class SyncDLObjectPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
+			sb.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
 
-			query.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
 
 			boolean bindEvent = false;
 
 			if (event.isEmpty()) {
-				query.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
+				sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
 			}
 			else {
 				bindEvent = true;
 
-				query.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
+				sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(modifiedTime);
+				queryPos.add(modifiedTime);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
 				if (bindEvent) {
-					qPos.add(event);
+					queryPos.add(event);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -5238,71 +5185,67 @@ public class SyncDLObjectPersistenceImpl
 			_finderPathWithPaginationCountByM_R_NotE, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler();
+			StringBundler sb = new StringBundler();
 
-			query.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
+			sb.append(_FINDER_COLUMN_M_R_NOTE_MODIFIEDTIME_2);
 
-			query.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_M_R_NOTE_REPOSITORYID_2);
 
 			if (events.length > 0) {
-				query.append("(");
+				sb.append("(");
 
 				for (int i = 0; i < events.length; i++) {
 					String event = events[i];
 
 					if (event.isEmpty()) {
-						query.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
+						sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_3);
 					}
 					else {
-						query.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
+						sb.append(_FINDER_COLUMN_M_R_NOTE_EVENT_2);
 					}
 
 					if ((i + 1) < events.length) {
-						query.append(WHERE_AND);
+						sb.append(WHERE_AND);
 					}
 				}
 
-				query.append(")");
+				sb.append(")");
 			}
 
-			query.setStringAt(
-				removeConjunction(query.stringAt(query.index() - 1)),
-				query.index() - 1);
+			sb.setStringAt(
+				removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(modifiedTime);
+				queryPos.add(modifiedTime);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
 				for (String event : events) {
 					if ((event != null) && !event.isEmpty()) {
-						qPos.add(event);
+						queryPos.add(event);
 					}
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(
 					_finderPathWithPaginationCountByM_R_NotE, finderArgs,
 					count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(
-					_finderPathWithPaginationCountByM_R_NotE, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -5458,62 +5401,62 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					5 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(5);
+				sb = new StringBundler(5);
 			}
 
-			query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_R_P_T_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_R_P_T_REPOSITORYID_2);
 
-			query.append(_FINDER_COLUMN_R_P_T_PARENTFOLDERID_2);
+			sb.append(_FINDER_COLUMN_R_P_T_PARENTFOLDERID_2);
 
 			boolean bindType = false;
 
 			if (type.isEmpty()) {
-				query.append(_FINDER_COLUMN_R_P_T_TYPE_3);
+				sb.append(_FINDER_COLUMN_R_P_T_TYPE_3);
 			}
 			else {
 				bindType = true;
 
-				query.append(_FINDER_COLUMN_R_P_T_TYPE_2);
+				sb.append(_FINDER_COLUMN_R_P_T_TYPE_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+				sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
-				qPos.add(parentFolderId);
+				queryPos.add(parentFolderId);
 
 				if (bindType) {
-					qPos.add(type);
+					queryPos.add(type);
 				}
 
 				list = (List<SyncDLObject>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -5521,12 +5464,8 @@ public class SyncDLObjectPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -5559,22 +5498,22 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(8);
+		StringBundler sb = new StringBundler(8);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("repositoryId=");
-		msg.append(repositoryId);
+		sb.append("repositoryId=");
+		sb.append(repositoryId);
 
-		msg.append(", parentFolderId=");
-		msg.append(parentFolderId);
+		sb.append(", parentFolderId=");
+		sb.append(parentFolderId);
 
-		msg.append(", type=");
-		msg.append(type);
+		sb.append(", type=");
+		sb.append(type);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -5624,22 +5563,22 @@ public class SyncDLObjectPersistenceImpl
 			return syncDLObject;
 		}
 
-		StringBundler msg = new StringBundler(8);
+		StringBundler sb = new StringBundler(8);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("repositoryId=");
-		msg.append(repositoryId);
+		sb.append("repositoryId=");
+		sb.append(repositoryId);
 
-		msg.append(", parentFolderId=");
-		msg.append(parentFolderId);
+		sb.append(", parentFolderId=");
+		sb.append(parentFolderId);
 
-		msg.append(", type=");
-		msg.append(type);
+		sb.append(", type=");
+		sb.append(type);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchDLObjectException(msg.toString());
+		throw new NoSuchDLObjectException(sb.toString());
 	}
 
 	/**
@@ -5713,8 +5652,8 @@ public class SyncDLObjectPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -5726,32 +5665,32 @@ public class SyncDLObjectPersistenceImpl
 		long parentFolderId, String type,
 		OrderByComparator<SyncDLObject> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
-		query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+		sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-		query.append(_FINDER_COLUMN_R_P_T_REPOSITORYID_2);
+		sb.append(_FINDER_COLUMN_R_P_T_REPOSITORYID_2);
 
-		query.append(_FINDER_COLUMN_R_P_T_PARENTFOLDERID_2);
+		sb.append(_FINDER_COLUMN_R_P_T_PARENTFOLDERID_2);
 
 		boolean bindType = false;
 
 		if (type.isEmpty()) {
-			query.append(_FINDER_COLUMN_R_P_T_TYPE_3);
+			sb.append(_FINDER_COLUMN_R_P_T_TYPE_3);
 		}
 		else {
 			bindType = true;
 
-			query.append(_FINDER_COLUMN_R_P_T_TYPE_2);
+			sb.append(_FINDER_COLUMN_R_P_T_TYPE_2);
 		}
 
 		if (orderByComparator != null) {
@@ -5759,87 +5698,87 @@ public class SyncDLObjectPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+			sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(repositoryId);
+		queryPos.add(repositoryId);
 
-		qPos.add(parentFolderId);
+		queryPos.add(parentFolderId);
 
 		if (bindType) {
-			qPos.add(type);
+			queryPos.add(type);
 		}
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(syncDLObject)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<SyncDLObject> list = q.list();
+		List<SyncDLObject> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -5996,70 +5935,69 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = new StringBundler();
+			StringBundler sb = new StringBundler();
 
-			query.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_SELECT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_R_P_T_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_R_P_T_REPOSITORYID_2);
 
-			query.append(_FINDER_COLUMN_R_P_T_PARENTFOLDERID_2);
+			sb.append(_FINDER_COLUMN_R_P_T_PARENTFOLDERID_2);
 
 			if (types.length > 0) {
-				query.append("(");
+				sb.append("(");
 
 				for (int i = 0; i < types.length; i++) {
 					String type = types[i];
 
 					if (type.isEmpty()) {
-						query.append(_FINDER_COLUMN_R_P_T_TYPE_3);
+						sb.append(_FINDER_COLUMN_R_P_T_TYPE_3);
 					}
 					else {
-						query.append(_FINDER_COLUMN_R_P_T_TYPE_2);
+						sb.append(_FINDER_COLUMN_R_P_T_TYPE_2);
 					}
 
 					if ((i + 1) < types.length) {
-						query.append(WHERE_OR);
+						sb.append(WHERE_OR);
 					}
 				}
 
-				query.append(")");
+				sb.append(")");
 			}
 
-			query.setStringAt(
-				removeConjunction(query.stringAt(query.index() - 1)),
-				query.index() - 1);
+			sb.setStringAt(
+				removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
+				sb.append(SyncDLObjectModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
-				qPos.add(parentFolderId);
+				queryPos.add(parentFolderId);
 
 				for (String type : types) {
 					if ((type != null) && !type.isEmpty()) {
-						qPos.add(type);
+						queryPos.add(type);
 					}
 				}
 
 				list = (List<SyncDLObject>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -6068,13 +6006,8 @@ public class SyncDLObjectPersistenceImpl
 						_finderPathWithPaginationFindByR_P_T, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(
-						_finderPathWithPaginationFindByR_P_T, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -6125,52 +6058,50 @@ public class SyncDLObjectPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_R_P_T_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_R_P_T_REPOSITORYID_2);
 
-			query.append(_FINDER_COLUMN_R_P_T_PARENTFOLDERID_2);
+			sb.append(_FINDER_COLUMN_R_P_T_PARENTFOLDERID_2);
 
 			boolean bindType = false;
 
 			if (type.isEmpty()) {
-				query.append(_FINDER_COLUMN_R_P_T_TYPE_3);
+				sb.append(_FINDER_COLUMN_R_P_T_TYPE_3);
 			}
 			else {
 				bindType = true;
 
-				query.append(_FINDER_COLUMN_R_P_T_TYPE_2);
+				sb.append(_FINDER_COLUMN_R_P_T_TYPE_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
-				qPos.add(parentFolderId);
+				queryPos.add(parentFolderId);
 
 				if (bindType) {
-					qPos.add(type);
+					queryPos.add(type);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -6211,70 +6142,66 @@ public class SyncDLObjectPersistenceImpl
 			_finderPathWithPaginationCountByR_P_T, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler();
+			StringBundler sb = new StringBundler();
 
-			query.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
+			sb.append(_SQL_COUNT_SYNCDLOBJECT_WHERE);
 
-			query.append(_FINDER_COLUMN_R_P_T_REPOSITORYID_2);
+			sb.append(_FINDER_COLUMN_R_P_T_REPOSITORYID_2);
 
-			query.append(_FINDER_COLUMN_R_P_T_PARENTFOLDERID_2);
+			sb.append(_FINDER_COLUMN_R_P_T_PARENTFOLDERID_2);
 
 			if (types.length > 0) {
-				query.append("(");
+				sb.append("(");
 
 				for (int i = 0; i < types.length; i++) {
 					String type = types[i];
 
 					if (type.isEmpty()) {
-						query.append(_FINDER_COLUMN_R_P_T_TYPE_3);
+						sb.append(_FINDER_COLUMN_R_P_T_TYPE_3);
 					}
 					else {
-						query.append(_FINDER_COLUMN_R_P_T_TYPE_2);
+						sb.append(_FINDER_COLUMN_R_P_T_TYPE_2);
 					}
 
 					if ((i + 1) < types.length) {
-						query.append(WHERE_OR);
+						sb.append(WHERE_OR);
 					}
 				}
 
-				query.append(")");
+				sb.append(")");
 			}
 
-			query.setStringAt(
-				removeConjunction(query.stringAt(query.index() - 1)),
-				query.index() - 1);
+			sb.setStringAt(
+				removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(repositoryId);
+				queryPos.add(repositoryId);
 
-				qPos.add(parentFolderId);
+				queryPos.add(parentFolderId);
 
 				for (String type : types) {
 					if ((type != null) && !type.isEmpty()) {
-						qPos.add(type);
+						queryPos.add(type);
 					}
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(
 					_finderPathWithPaginationCountByR_P_T, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(
-					_finderPathWithPaginationCountByR_P_T, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -6297,17 +6224,19 @@ public class SyncDLObjectPersistenceImpl
 		"(syncDLObject.type IS NULL OR syncDLObject.type = '')";
 
 	public SyncDLObjectPersistenceImpl() {
-		setModelClass(SyncDLObject.class);
-
-		setModelImplClass(SyncDLObjectImpl.class);
-		setModelPKClass(long.class);
-
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
 		dbColumnNames.put("size", "size_");
 		dbColumnNames.put("type", "type_");
 
 		setDBColumnNames(dbColumnNames);
+
+		setModelClass(SyncDLObject.class);
+
+		setModelImplClass(SyncDLObjectImpl.class);
+		setModelPKClass(long.class);
+
+		setTable(SyncDLObjectTable.INSTANCE);
 	}
 
 	/**
@@ -6318,15 +6247,12 @@ public class SyncDLObjectPersistenceImpl
 	@Override
 	public void cacheResult(SyncDLObject syncDLObject) {
 		entityCache.putResult(
-			entityCacheEnabled, SyncDLObjectImpl.class,
-			syncDLObject.getPrimaryKey(), syncDLObject);
+			SyncDLObjectImpl.class, syncDLObject.getPrimaryKey(), syncDLObject);
 
 		finderCache.putResult(
 			_finderPathFetchByT_T,
 			new Object[] {syncDLObject.getType(), syncDLObject.getTypePK()},
 			syncDLObject);
-
-		syncDLObject.resetOriginalValues();
 	}
 
 	/**
@@ -6338,13 +6264,10 @@ public class SyncDLObjectPersistenceImpl
 	public void cacheResult(List<SyncDLObject> syncDLObjects) {
 		for (SyncDLObject syncDLObject : syncDLObjects) {
 			if (entityCache.getResult(
-					entityCacheEnabled, SyncDLObjectImpl.class,
-					syncDLObject.getPrimaryKey()) == null) {
+					SyncDLObjectImpl.class, syncDLObject.getPrimaryKey()) ==
+						null) {
 
 				cacheResult(syncDLObject);
-			}
-			else {
-				syncDLObject.resetOriginalValues();
 			}
 		}
 	}
@@ -6374,27 +6297,13 @@ public class SyncDLObjectPersistenceImpl
 	 */
 	@Override
 	public void clearCache(SyncDLObject syncDLObject) {
-		entityCache.removeResult(
-			entityCacheEnabled, SyncDLObjectImpl.class,
-			syncDLObject.getPrimaryKey());
-
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
-		clearUniqueFindersCache((SyncDLObjectModelImpl)syncDLObject, true);
+		entityCache.removeResult(SyncDLObjectImpl.class, syncDLObject);
 	}
 
 	@Override
 	public void clearCache(List<SyncDLObject> syncDLObjects) {
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
 		for (SyncDLObject syncDLObject : syncDLObjects) {
-			entityCache.removeResult(
-				entityCacheEnabled, SyncDLObjectImpl.class,
-				syncDLObject.getPrimaryKey());
-
-			clearUniqueFindersCache((SyncDLObjectModelImpl)syncDLObject, true);
+			entityCache.removeResult(SyncDLObjectImpl.class, syncDLObject);
 		}
 	}
 
@@ -6405,8 +6314,7 @@ public class SyncDLObjectPersistenceImpl
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
 		for (Serializable primaryKey : primaryKeys) {
-			entityCache.removeResult(
-				entityCacheEnabled, SyncDLObjectImpl.class, primaryKey);
+			entityCache.removeResult(SyncDLObjectImpl.class, primaryKey);
 		}
 	}
 
@@ -6421,32 +6329,6 @@ public class SyncDLObjectPersistenceImpl
 			_finderPathCountByT_T, args, Long.valueOf(1), false);
 		finderCache.putResult(
 			_finderPathFetchByT_T, args, syncDLObjectModelImpl, false);
-	}
-
-	protected void clearUniqueFindersCache(
-		SyncDLObjectModelImpl syncDLObjectModelImpl, boolean clearCurrent) {
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				syncDLObjectModelImpl.getType(),
-				syncDLObjectModelImpl.getTypePK()
-			};
-
-			finderCache.removeResult(_finderPathCountByT_T, args);
-			finderCache.removeResult(_finderPathFetchByT_T, args);
-		}
-
-		if ((syncDLObjectModelImpl.getColumnBitmask() &
-			 _finderPathFetchByT_T.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				syncDLObjectModelImpl.getOriginalType(),
-				syncDLObjectModelImpl.getOriginalTypePK()
-			};
-
-			finderCache.removeResult(_finderPathCountByT_T, args);
-			finderCache.removeResult(_finderPathFetchByT_T, args);
-		}
 	}
 
 	/**
@@ -6511,11 +6393,11 @@ public class SyncDLObjectPersistenceImpl
 
 			return remove(syncDLObject);
 		}
-		catch (NoSuchDLObjectException nsee) {
-			throw nsee;
+		catch (NoSuchDLObjectException noSuchEntityException) {
+			throw noSuchEntityException;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -6538,8 +6420,8 @@ public class SyncDLObjectPersistenceImpl
 				session.delete(syncDLObject);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -6581,171 +6463,28 @@ public class SyncDLObjectPersistenceImpl
 		try {
 			session = openSession();
 
-			if (syncDLObject.isNew()) {
+			if (isNew) {
 				session.save(syncDLObject);
-
-				syncDLObject.setNew(false);
 			}
 			else {
 				syncDLObject = (SyncDLObject)session.merge(syncDLObject);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
 		}
 
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-
-		if (!_columnBitmaskEnabled) {
-			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-		}
-		else if (isNew) {
-			Object[] args = new Object[] {
-				syncDLObjectModelImpl.getRepositoryId(),
-				syncDLObjectModelImpl.getParentFolderId()
-			};
-
-			finderCache.removeResult(_finderPathCountByR_P, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByR_P, args);
-
-			args = new Object[] {
-				syncDLObjectModelImpl.getRepositoryId(),
-				syncDLObjectModelImpl.getType()
-			};
-
-			finderCache.removeResult(_finderPathCountByR_T, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByR_T, args);
-
-			args = new Object[] {
-				syncDLObjectModelImpl.getVersion(),
-				syncDLObjectModelImpl.getType()
-			};
-
-			finderCache.removeResult(_finderPathCountByV_T, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByV_T, args);
-
-			args = new Object[] {
-				syncDLObjectModelImpl.getRepositoryId(),
-				syncDLObjectModelImpl.getParentFolderId(),
-				syncDLObjectModelImpl.getType()
-			};
-
-			finderCache.removeResult(_finderPathCountByR_P_T, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByR_P_T, args);
-
-			finderCache.removeResult(_finderPathCountAll, FINDER_ARGS_EMPTY);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindAll, FINDER_ARGS_EMPTY);
-		}
-		else {
-			if ((syncDLObjectModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByR_P.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					syncDLObjectModelImpl.getOriginalRepositoryId(),
-					syncDLObjectModelImpl.getOriginalParentFolderId()
-				};
-
-				finderCache.removeResult(_finderPathCountByR_P, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByR_P, args);
-
-				args = new Object[] {
-					syncDLObjectModelImpl.getRepositoryId(),
-					syncDLObjectModelImpl.getParentFolderId()
-				};
-
-				finderCache.removeResult(_finderPathCountByR_P, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByR_P, args);
-			}
-
-			if ((syncDLObjectModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByR_T.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					syncDLObjectModelImpl.getOriginalRepositoryId(),
-					syncDLObjectModelImpl.getOriginalType()
-				};
-
-				finderCache.removeResult(_finderPathCountByR_T, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByR_T, args);
-
-				args = new Object[] {
-					syncDLObjectModelImpl.getRepositoryId(),
-					syncDLObjectModelImpl.getType()
-				};
-
-				finderCache.removeResult(_finderPathCountByR_T, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByR_T, args);
-			}
-
-			if ((syncDLObjectModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByV_T.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					syncDLObjectModelImpl.getOriginalVersion(),
-					syncDLObjectModelImpl.getOriginalType()
-				};
-
-				finderCache.removeResult(_finderPathCountByV_T, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByV_T, args);
-
-				args = new Object[] {
-					syncDLObjectModelImpl.getVersion(),
-					syncDLObjectModelImpl.getType()
-				};
-
-				finderCache.removeResult(_finderPathCountByV_T, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByV_T, args);
-			}
-
-			if ((syncDLObjectModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByR_P_T.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					syncDLObjectModelImpl.getOriginalRepositoryId(),
-					syncDLObjectModelImpl.getOriginalParentFolderId(),
-					syncDLObjectModelImpl.getOriginalType()
-				};
-
-				finderCache.removeResult(_finderPathCountByR_P_T, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByR_P_T, args);
-
-				args = new Object[] {
-					syncDLObjectModelImpl.getRepositoryId(),
-					syncDLObjectModelImpl.getParentFolderId(),
-					syncDLObjectModelImpl.getType()
-				};
-
-				finderCache.removeResult(_finderPathCountByR_P_T, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByR_P_T, args);
-			}
-		}
-
 		entityCache.putResult(
-			entityCacheEnabled, SyncDLObjectImpl.class,
-			syncDLObject.getPrimaryKey(), syncDLObject, false);
+			SyncDLObjectImpl.class, syncDLObjectModelImpl, false, true);
 
-		clearUniqueFindersCache(syncDLObjectModelImpl, false);
 		cacheUniqueFindersCache(syncDLObjectModelImpl);
+
+		if (isNew) {
+			syncDLObject.setNew(false);
+		}
 
 		syncDLObject.resetOriginalValues();
 
@@ -6889,19 +6628,19 @@ public class SyncDLObjectPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 			String sql = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					2 + (orderByComparator.getOrderByFields().length * 2));
 
-				query.append(_SQL_SELECT_SYNCDLOBJECT);
+				sb.append(_SQL_SELECT_SYNCDLOBJECT);
 
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 
-				sql = query.toString();
+				sql = sb.toString();
 			}
 			else {
 				sql = _SQL_SELECT_SYNCDLOBJECT;
@@ -6914,10 +6653,10 @@ public class SyncDLObjectPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
 				list = (List<SyncDLObject>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -6925,12 +6664,8 @@ public class SyncDLObjectPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -6967,18 +6702,15 @@ public class SyncDLObjectPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(_SQL_COUNT_SYNCDLOBJECT);
+				Query query = session.createQuery(_SQL_COUNT_SYNCDLOBJECT);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(
 					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -7017,219 +6749,210 @@ public class SyncDLObjectPersistenceImpl
 	 * Initializes the sync dl object persistence.
 	 */
 	@Activate
-	public void activate() {
-		SyncDLObjectModelImpl.setEntityCacheEnabled(entityCacheEnabled);
-		SyncDLObjectModelImpl.setFinderCacheEnabled(finderCacheEnabled);
+	public void activate(BundleContext bundleContext) {
+		_bundleContext = bundleContext;
 
-		_finderPathWithPaginationFindAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0]);
+		_argumentsResolverServiceRegistration = _bundleContext.registerService(
+			ArgumentsResolver.class, new SyncDLObjectModelArgumentsResolver(),
+			MapUtil.singletonDictionary(
+				"model.class.name", SyncDLObject.class.getName()));
 
-		_finderPathWithoutPaginationFindAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll",
-			new String[0]);
+		_finderPathWithPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
+			new String[0], true);
 
-		_finderPathCountAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathWithoutPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathCountAll = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
-			new String[0]);
+			new String[0], new String[0], false);
 
-		_finderPathWithPaginationFindByTreePath = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathWithPaginationFindByTreePath = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByTreePath",
 			new String[] {
 				String.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"treePath"}, true);
 
-		_finderPathWithPaginationCountByTreePath = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathWithPaginationCountByTreePath = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByTreePath",
-			new String[] {String.class.getName()});
+			new String[] {String.class.getName()}, new String[] {"treePath"},
+			false);
 
-		_finderPathWithPaginationFindByM_R = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathWithPaginationFindByM_R = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByM_R",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"modifiedTime", "repositoryId"}, true);
 
-		_finderPathWithPaginationCountByM_R = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathWithPaginationCountByM_R = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByM_R",
-			new String[] {Long.class.getName(), Long.class.getName()});
+			new String[] {Long.class.getName(), Long.class.getName()},
+			new String[] {"modifiedTime", "repositoryId"}, false);
 
-		_finderPathWithPaginationFindByR_P = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathWithPaginationFindByR_P = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByR_P",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"repositoryId", "parentFolderId"}, true);
 
-		_finderPathWithoutPaginationFindByR_P = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathWithoutPaginationFindByR_P = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByR_P",
 			new String[] {Long.class.getName(), Long.class.getName()},
-			SyncDLObjectModelImpl.REPOSITORYID_COLUMN_BITMASK |
-			SyncDLObjectModelImpl.PARENTFOLDERID_COLUMN_BITMASK |
-			SyncDLObjectModelImpl.MODIFIEDTIME_COLUMN_BITMASK);
+			new String[] {"repositoryId", "parentFolderId"}, true);
 
-		_finderPathCountByR_P = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByR_P = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByR_P",
-			new String[] {Long.class.getName(), Long.class.getName()});
+			new String[] {Long.class.getName(), Long.class.getName()},
+			new String[] {"repositoryId", "parentFolderId"}, false);
 
-		_finderPathWithPaginationFindByR_NotE = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathWithPaginationFindByR_NotE = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByR_NotE",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"repositoryId", "event"}, true);
 
-		_finderPathWithPaginationCountByR_NotE = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathWithPaginationCountByR_NotE = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByR_NotE",
-			new String[] {Long.class.getName(), String.class.getName()});
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"repositoryId", "event"}, false);
 
-		_finderPathWithPaginationFindByR_T = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathWithPaginationFindByR_T = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByR_T",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"repositoryId", "type_"}, true);
 
-		_finderPathWithoutPaginationFindByR_T = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathWithoutPaginationFindByR_T = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByR_T",
 			new String[] {Long.class.getName(), String.class.getName()},
-			SyncDLObjectModelImpl.REPOSITORYID_COLUMN_BITMASK |
-			SyncDLObjectModelImpl.TYPE_COLUMN_BITMASK |
-			SyncDLObjectModelImpl.MODIFIEDTIME_COLUMN_BITMASK);
+			new String[] {"repositoryId", "type_"}, true);
 
-		_finderPathCountByR_T = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByR_T = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByR_T",
-			new String[] {Long.class.getName(), String.class.getName()});
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"repositoryId", "type_"}, false);
 
-		_finderPathWithPaginationFindByT_NotE = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathWithPaginationFindByT_NotE = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByT_NotE",
 			new String[] {
 				String.class.getName(), String.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"treePath", "event"}, true);
 
-		_finderPathWithPaginationCountByT_NotE = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathWithPaginationCountByT_NotE = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByT_NotE",
-			new String[] {String.class.getName(), String.class.getName()});
+			new String[] {String.class.getName(), String.class.getName()},
+			new String[] {"treePath", "event"}, false);
 
-		_finderPathWithPaginationFindByV_T = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathWithPaginationFindByV_T = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByV_T",
 			new String[] {
 				String.class.getName(), String.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"version", "type_"}, true);
 
-		_finderPathWithoutPaginationFindByV_T = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathWithoutPaginationFindByV_T = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByV_T",
 			new String[] {String.class.getName(), String.class.getName()},
-			SyncDLObjectModelImpl.VERSION_COLUMN_BITMASK |
-			SyncDLObjectModelImpl.TYPE_COLUMN_BITMASK |
-			SyncDLObjectModelImpl.MODIFIEDTIME_COLUMN_BITMASK |
-			SyncDLObjectModelImpl.REPOSITORYID_COLUMN_BITMASK);
+			new String[] {"version", "type_"}, true);
 
-		_finderPathCountByV_T = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByV_T = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByV_T",
-			new String[] {String.class.getName(), String.class.getName()});
+			new String[] {String.class.getName(), String.class.getName()},
+			new String[] {"version", "type_"}, false);
 
-		_finderPathFetchByT_T = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathFetchByT_T = _createFinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByT_T",
 			new String[] {String.class.getName(), Long.class.getName()},
-			SyncDLObjectModelImpl.TYPE_COLUMN_BITMASK |
-			SyncDLObjectModelImpl.TYPEPK_COLUMN_BITMASK);
+			new String[] {"type_", "typePK"}, true);
 
-		_finderPathCountByT_T = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByT_T = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByT_T",
-			new String[] {String.class.getName(), Long.class.getName()});
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"type_", "typePK"}, false);
 
-		_finderPathWithPaginationFindByM_R_NotE = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathWithPaginationFindByM_R_NotE = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByM_R_NotE",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"modifiedTime", "repositoryId", "event"}, true);
 
-		_finderPathWithPaginationCountByM_R_NotE = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathWithPaginationCountByM_R_NotE = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByM_R_NotE",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName()
-			});
+			},
+			new String[] {"modifiedTime", "repositoryId", "event"}, false);
 
-		_finderPathWithPaginationFindByR_P_T = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathWithPaginationFindByR_P_T = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByR_P_T",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"repositoryId", "parentFolderId", "type_"}, true);
 
-		_finderPathWithoutPaginationFindByR_P_T = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, SyncDLObjectImpl.class,
+		_finderPathWithoutPaginationFindByR_P_T = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByR_P_T",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName()
 			},
-			SyncDLObjectModelImpl.REPOSITORYID_COLUMN_BITMASK |
-			SyncDLObjectModelImpl.PARENTFOLDERID_COLUMN_BITMASK |
-			SyncDLObjectModelImpl.TYPE_COLUMN_BITMASK |
-			SyncDLObjectModelImpl.MODIFIEDTIME_COLUMN_BITMASK);
+			new String[] {"repositoryId", "parentFolderId", "type_"}, true);
 
-		_finderPathCountByR_P_T = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByR_P_T = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByR_P_T",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName()
-			});
+			},
+			new String[] {"repositoryId", "parentFolderId", "type_"}, false);
 
-		_finderPathWithPaginationCountByR_P_T = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathWithPaginationCountByR_P_T = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByR_P_T",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName()
-			});
+			},
+			new String[] {"repositoryId", "parentFolderId", "type_"}, false);
 	}
 
 	@Deactivate
 	public void deactivate() {
 		entityCache.removeCache(SyncDLObjectImpl.class.getName());
-		finderCache.removeCache(FINDER_CLASS_NAME_ENTITY);
-		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		_argumentsResolverServiceRegistration.unregister();
+
+		for (ServiceRegistration<FinderPath> serviceRegistration :
+				_serviceRegistrations) {
+
+			serviceRegistration.unregister();
+		}
 	}
 
 	@Override
@@ -7238,12 +6961,6 @@ public class SyncDLObjectPersistenceImpl
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
-		super.setConfiguration(configuration);
-
-		_columnBitmaskEnabled = GetterUtil.getBoolean(
-			configuration.get(
-				"value.object.column.bitmask.enabled.com.liferay.sync.model.SyncDLObject"),
-			true);
 	}
 
 	@Override
@@ -7264,7 +6981,7 @@ public class SyncDLObjectPersistenceImpl
 		super.setSessionFactory(sessionFactory);
 	}
 
-	private boolean _columnBitmaskEnabled;
+	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -7302,9 +7019,107 @@ public class SyncDLObjectPersistenceImpl
 		try {
 			Class.forName(SyncPersistenceConstants.class.getName());
 		}
-		catch (ClassNotFoundException cnfe) {
-			throw new ExceptionInInitializerError(cnfe);
+		catch (ClassNotFoundException classNotFoundException) {
+			throw new ExceptionInInitializerError(classNotFoundException);
 		}
+	}
+
+	private FinderPath _createFinderPath(
+		String cacheName, String methodName, String[] params,
+		String[] columnNames, boolean baseModelResult) {
+
+		FinderPath finderPath = new FinderPath(
+			cacheName, methodName, params, columnNames, baseModelResult);
+
+		if (!cacheName.equals(FINDER_CLASS_NAME_LIST_WITH_PAGINATION)) {
+			_serviceRegistrations.add(
+				_bundleContext.registerService(
+					FinderPath.class, finderPath,
+					MapUtil.singletonDictionary("cache.name", cacheName)));
+		}
+
+		return finderPath;
+	}
+
+	private ServiceRegistration<ArgumentsResolver>
+		_argumentsResolverServiceRegistration;
+	private Set<ServiceRegistration<FinderPath>> _serviceRegistrations =
+		new HashSet<>();
+
+	private static class SyncDLObjectModelArgumentsResolver
+		implements ArgumentsResolver {
+
+		@Override
+		public Object[] getArguments(
+			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
+			boolean original) {
+
+			String[] columnNames = finderPath.getColumnNames();
+
+			if ((columnNames == null) || (columnNames.length == 0)) {
+				if (baseModel.isNew()) {
+					return FINDER_ARGS_EMPTY;
+				}
+
+				return null;
+			}
+
+			SyncDLObjectModelImpl syncDLObjectModelImpl =
+				(SyncDLObjectModelImpl)baseModel;
+
+			long columnBitmask = syncDLObjectModelImpl.getColumnBitmask();
+
+			if (!checkColumn || (columnBitmask == 0)) {
+				return _getValue(syncDLObjectModelImpl, columnNames, original);
+			}
+
+			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
+				finderPath);
+
+			if (finderPathColumnBitmask == null) {
+				finderPathColumnBitmask = 0L;
+
+				for (String columnName : columnNames) {
+					finderPathColumnBitmask |=
+						syncDLObjectModelImpl.getColumnBitmask(columnName);
+				}
+
+				_finderPathColumnBitmasksCache.put(
+					finderPath, finderPathColumnBitmask);
+			}
+
+			if ((columnBitmask & finderPathColumnBitmask) != 0) {
+				return _getValue(syncDLObjectModelImpl, columnNames, original);
+			}
+
+			return null;
+		}
+
+		private Object[] _getValue(
+			SyncDLObjectModelImpl syncDLObjectModelImpl, String[] columnNames,
+			boolean original) {
+
+			Object[] arguments = new Object[columnNames.length];
+
+			for (int i = 0; i < arguments.length; i++) {
+				String columnName = columnNames[i];
+
+				if (original) {
+					arguments[i] = syncDLObjectModelImpl.getColumnOriginalValue(
+						columnName);
+				}
+				else {
+					arguments[i] = syncDLObjectModelImpl.getColumnValue(
+						columnName);
+				}
+			}
+
+			return arguments;
+		}
+
+		private static Map<FinderPath, Long> _finderPathColumnBitmasksCache =
+			new ConcurrentHashMap<>();
+
 	}
 
 }

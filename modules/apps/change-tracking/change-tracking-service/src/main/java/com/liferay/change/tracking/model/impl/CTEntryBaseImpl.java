@@ -32,7 +32,7 @@ import com.liferay.change.tracking.service.CTEntryLocalServiceUtil;
 public abstract class CTEntryBaseImpl
 	extends CTEntryModelImpl implements CTEntry {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a ct entry model instance should use the <code>CTEntry</code> interface instead.

@@ -12,120 +12,198 @@
  * details.
  */
 
-import React, {useContext, useReducer, useRef} from 'react';
+import React, {useCallback, useContext, useReducer} from 'react';
 
-const INITIAL_STATE = {
+import switchSidebarPanel from '../actions/switchSidebarPanel';
+import {ITEM_ACTIVATION_ORIGINS} from '../config/constants/itemActivationOrigins';
+import {ITEM_TYPES} from '../config/constants/itemTypes';
+import {useDispatch, useSelector} from '../store/index';
+import {useFromControlsId, useToControlsId} from './CollectionItemContext';
+
+const ACTIVE_INITIAL_STATE = {
+	activationOrigin: null,
 	activeItemId: null,
+	activeItemType: null,
+};
+
+const HOVER_INITIAL_STATE = {
 	hoveredItemId: null,
-	selectedItemsIds: []
 };
 
 const HOVER_ITEM = 'HOVER_ITEM';
 const SELECT_ITEM = 'SELECT_ITEM';
-const FLOATING_TOOLBAR_REFERENCE = 'FLOATING_TOOLBAR_REFERENCE';
 
-const ControlsContext = React.createContext([INITIAL_STATE, () => {}]);
-const ControlsConsumer = ControlsContext.Consumer;
+const ActiveStateContext = React.createContext(ACTIVE_INITIAL_STATE);
+const ActiveDispatchContext = React.createContext(() => {});
+
+const HoverStateContext = React.createContext(HOVER_INITIAL_STATE);
+const HoverDispatchContext = React.createContext(() => {});
 
 const reducer = (state, action) => {
-	const {floatingToolbarRef, itemId, multiSelect, type} = action;
+	const {itemId, itemType, origin, type} = action;
 	let nextState = state;
 
 	if (type === HOVER_ITEM && itemId !== nextState.hoveredItemId) {
-		nextState = {...nextState, hoveredItemId: itemId};
-	} else if (type === SELECT_ITEM) {
-		nextState = {...state, activeItemId: itemId};
-
-		if (multiSelect && itemId) {
-			nextState = {
-				...nextState,
-				selectedItemsIds: state.selectedItemsIds
-					.filter(id => id !== itemId)
-					.concat([itemId])
-			};
-		} else if (itemId) {
-			nextState = {...nextState, selectedItemsIds: [itemId]};
-		} else if (nextState.selectedItemsIds.length) {
-			nextState = {...nextState, selectedItemsIds: []};
-		}
-	} else if (type === FLOATING_TOOLBAR_REFERENCE) {
-		nextState = {...state, floatingToolbarRef};
+		nextState = {
+			...nextState,
+			hoveredItemId: itemId,
+			hoveredItemType: itemType,
+		};
+	}
+	else if (type === SELECT_ITEM && itemId !== nextState.activeItemId) {
+		nextState = {
+			...nextState,
+			activationOrigin: origin,
+			activeItemId: itemId,
+			activeItemType: itemType,
+		};
 	}
 
 	return nextState;
 };
 
-const ControlsProvider = ({children}) => {
-	const stateAndDispatch = useReducer(reducer, INITIAL_STATE);
+const ActiveProvider = ({children, initialState}) => {
+	const [state, dispatch] = useReducer(reducer, initialState);
 
 	return (
-		<ControlsContext.Provider value={stateAndDispatch}>
-			{children}
-		</ControlsContext.Provider>
+		<ActiveDispatchContext.Provider value={dispatch}>
+			<ActiveStateContext.Provider value={state}>
+				{children}
+			</ActiveStateContext.Provider>
+		</ActiveDispatchContext.Provider>
 	);
 };
 
-const useHoverItem = () => {
-	const [, dispatch] = useContext(ControlsContext);
+const HoverProvider = ({children, initialState}) => {
+	const [state, dispatch] = useReducer(reducer, initialState);
 
-	return itemId =>
-		dispatch({
+	return (
+		<HoverDispatchContext.Provider value={dispatch}>
+			<HoverStateContext.Provider value={state}>
+				{children}
+			</HoverStateContext.Provider>
+		</HoverDispatchContext.Provider>
+	);
+};
+
+const ControlsProvider = ({
+	activeInitialState = ACTIVE_INITIAL_STATE,
+	hoverInitialState = HOVER_INITIAL_STATE,
+	children,
+}) => {
+	return (
+		<ActiveProvider initialState={activeInitialState}>
+			<HoverProvider initialState={hoverInitialState}>
+				{children}
+			</HoverProvider>
+		</ActiveProvider>
+	);
+};
+
+const useActivationOrigin = () =>
+	useContext(ActiveStateContext).activationOrigin;
+
+const useActiveItemId = () =>
+	useFromControlsId()(useContext(ActiveStateContext).activeItemId);
+
+const useActiveItemType = () => useContext(ActiveStateContext).activeItemType;
+
+const useHoveredItemId = () =>
+	useFromControlsId()(useContext(HoverStateContext).hoveredItemId);
+
+const useHoveredItemType = () => useContext(HoverStateContext).hoveredItemType;
+
+const useHoverItem = () => {
+	const dispatch = useContext(HoverDispatchContext);
+	const toControlsId = useToControlsId();
+
+	return useCallback(
+		(
 			itemId,
-			type: HOVER_ITEM
-		});
+			{itemType = ITEM_TYPES.layoutDataItem} = {
+				itemType: ITEM_TYPES.layoutDataItem,
+			}
+		) =>
+			dispatch({
+				itemId: toControlsId(itemId),
+				itemType,
+				type: HOVER_ITEM,
+			}),
+		[dispatch, toControlsId]
+	);
 };
 
 const useIsActive = () => {
-	const [state] = useContext(ControlsContext);
-	return itemId => state.activeItemId === itemId;
+	const {activeItemId} = useContext(ActiveStateContext);
+	const toControlsId = useToControlsId();
+
+	return useCallback((itemId) => activeItemId === toControlsId(itemId), [
+		activeItemId,
+		toControlsId,
+	]);
 };
 
 const useIsHovered = () => {
-	const [state] = useContext(ControlsContext);
-	return itemId => state.hoveredItemId === itemId;
-};
+	const {hoveredItemId} = useContext(HoverStateContext);
+	const toControlsId = useToControlsId();
 
-const useIsSelected = () => {
-	const [state] = useContext(ControlsContext);
-	return itemId => state.selectedItemsIds.includes(itemId);
+	return useCallback((itemId) => hoveredItemId === toControlsId(itemId), [
+		hoveredItemId,
+		toControlsId,
+	]);
 };
 
 const useSelectItem = () => {
-	const [, dispatch] = useContext(ControlsContext);
+	const activeDispatch = useContext(ActiveDispatchContext);
+	const sidebarPanelId = useSelector((state) =>
+		state.sidebar?.open ? state.sidebar?.panelId : null
+	);
+	const storeDispatch = useDispatch();
+	const toControlsId = useToControlsId();
 
-	return (itemId, {multiSelect = false} = {multiSelect: false}) =>
-		dispatch({
+	return useCallback(
+		(
 			itemId,
-			multiSelect,
-			type: SELECT_ITEM
-		});
-};
+			{
+				itemType = ITEM_TYPES.layoutDataItem,
+				origin = ITEM_ACTIVATION_ORIGINS.pageEditor,
+			} = {
+				itemType: ITEM_TYPES.layoutDataItem,
+			}
+		) => {
+			activeDispatch({
+				itemId: toControlsId(itemId),
+				itemType,
+				origin,
+				type: SELECT_ITEM,
+			});
 
-const useFloatingToolbar = () => {
-	const [, dispatch] = useContext(ControlsContext);
-	return floatingToolbarRef =>
-		dispatch({
-			floatingToolbarRef,
-			type: FLOATING_TOOLBAR_REFERENCE
-		});
-};
-
-const useCurrentFloatingToolbar = () => {
-	const [state] = useContext(ControlsContext);
-
-	const fallback = useRef(null);
-
-	return state.floatingToolbarRef || fallback;
+			if (
+				itemId &&
+				!['page-structure', 'comments'].includes(sidebarPanelId)
+			) {
+				storeDispatch(
+					switchSidebarPanel({
+						sidebarOpen: true,
+						sidebarPanelId: 'page-structure',
+					})
+				);
+			}
+		},
+		[activeDispatch, sidebarPanelId, storeDispatch, toControlsId]
+	);
 };
 
 export {
-	ControlsConsumer,
 	ControlsProvider,
-	useCurrentFloatingToolbar,
-	useFloatingToolbar,
+	reducer,
+	useActivationOrigin,
+	useActiveItemId,
+	useActiveItemType,
+	useHoveredItemId,
+	useHoveredItemType,
 	useHoverItem,
 	useIsActive,
 	useIsHovered,
-	useIsSelected,
-	useSelectItem
+	useSelectItem,
 };

@@ -57,8 +57,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see AnnouncementsDeliveryServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class AnnouncementsDeliveryServiceSoap {
 
 	public static
@@ -75,10 +77,10 @@ public class AnnouncementsDeliveryServiceSoap {
 			return com.liferay.announcements.kernel.model.
 				AnnouncementsDeliverySoap.toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

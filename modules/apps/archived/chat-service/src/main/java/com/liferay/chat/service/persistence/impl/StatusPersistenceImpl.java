@@ -16,12 +16,14 @@ package com.liferay.chat.service.persistence.impl;
 
 import com.liferay.chat.exception.NoSuchStatusException;
 import com.liferay.chat.model.Status;
+import com.liferay.chat.model.StatusTable;
 import com.liferay.chat.model.impl.StatusImpl;
 import com.liferay.chat.model.impl.StatusModelImpl;
 import com.liferay.chat.service.persistence.StatusPersistence;
 import com.liferay.chat.service.persistence.impl.constants.ChatPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
+import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -32,8 +34,9 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -43,12 +46,16 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -68,7 +75,7 @@ import org.osgi.service.component.annotations.Reference;
 public class StatusPersistenceImpl
 	extends BasePersistenceImpl<Status> implements StatusPersistence {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>StatusUtil</code> to access the status persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -100,20 +107,20 @@ public class StatusPersistenceImpl
 		Status status = fetchByUserId(userId);
 
 		if (status == null) {
-			StringBundler msg = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("userId=");
-			msg.append(userId);
+			sb.append("userId=");
+			sb.append(userId);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchStatusException(msg.toString());
+			throw new NoSuchStatusException(sb.toString());
 		}
 
 		return status;
@@ -161,26 +168,26 @@ public class StatusPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_SELECT_STATUS_WHERE);
+			sb.append(_SQL_SELECT_STATUS_WHERE);
 
-			query.append(_FINDER_COLUMN_USERID_USERID_2);
+			sb.append(_FINDER_COLUMN_USERID_USERID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(userId);
+				queryPos.add(userId);
 
-				List<Status> list = q.list();
+				List<Status> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
@@ -196,13 +203,8 @@ public class StatusPersistenceImpl
 					cacheResult(status);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(
-						_finderPathFetchByUserId, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -245,33 +247,31 @@ public class StatusPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_STATUS_WHERE);
+			sb.append(_SQL_COUNT_STATUS_WHERE);
 
-			query.append(_FINDER_COLUMN_USERID_USERID_2);
+			sb.append(_FINDER_COLUMN_USERID_USERID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(userId);
+				queryPos.add(userId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -396,43 +396,43 @@ public class StatusPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_STATUS_WHERE);
+			sb.append(_SQL_SELECT_STATUS_WHERE);
 
-			query.append(_FINDER_COLUMN_MODIFIEDDATE_MODIFIEDDATE_2);
+			sb.append(_FINDER_COLUMN_MODIFIEDDATE_MODIFIEDDATE_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(StatusModelImpl.ORDER_BY_JPQL);
+				sb.append(StatusModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(modifiedDate);
+				queryPos.add(modifiedDate);
 
 				list = (List<Status>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -440,12 +440,8 @@ public class StatusPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -475,16 +471,16 @@ public class StatusPersistenceImpl
 			return status;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("modifiedDate=");
-		msg.append(modifiedDate);
+		sb.append("modifiedDate=");
+		sb.append(modifiedDate);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchStatusException(msg.toString());
+		throw new NoSuchStatusException(sb.toString());
 	}
 
 	/**
@@ -528,16 +524,16 @@ public class StatusPersistenceImpl
 			return status;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("modifiedDate=");
-		msg.append(modifiedDate);
+		sb.append("modifiedDate=");
+		sb.append(modifiedDate);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchStatusException(msg.toString());
+		throw new NoSuchStatusException(sb.toString());
 	}
 
 	/**
@@ -601,8 +597,8 @@ public class StatusPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -613,101 +609,101 @@ public class StatusPersistenceImpl
 		Session session, Status status, long modifiedDate,
 		OrderByComparator<Status> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_STATUS_WHERE);
+		sb.append(_SQL_SELECT_STATUS_WHERE);
 
-		query.append(_FINDER_COLUMN_MODIFIEDDATE_MODIFIEDDATE_2);
+		sb.append(_FINDER_COLUMN_MODIFIEDDATE_MODIFIEDDATE_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(StatusModelImpl.ORDER_BY_JPQL);
+			sb.append(StatusModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(modifiedDate);
+		queryPos.add(modifiedDate);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(status)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<Status> list = q.list();
+		List<Status> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -747,33 +743,31 @@ public class StatusPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_STATUS_WHERE);
+			sb.append(_SQL_COUNT_STATUS_WHERE);
 
-			query.append(_FINDER_COLUMN_MODIFIEDDATE_MODIFIEDDATE_2);
+			sb.append(_FINDER_COLUMN_MODIFIEDDATE_MODIFIEDDATE_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(modifiedDate);
+				queryPos.add(modifiedDate);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -892,43 +886,43 @@ public class StatusPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_STATUS_WHERE);
+			sb.append(_SQL_SELECT_STATUS_WHERE);
 
-			query.append(_FINDER_COLUMN_ONLINE_ONLINE_2);
+			sb.append(_FINDER_COLUMN_ONLINE_ONLINE_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(StatusModelImpl.ORDER_BY_JPQL);
+				sb.append(StatusModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(online);
+				queryPos.add(online);
 
 				list = (List<Status>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -936,12 +930,8 @@ public class StatusPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -970,16 +960,16 @@ public class StatusPersistenceImpl
 			return status;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("online=");
-		msg.append(online);
+		sb.append("online=");
+		sb.append(online);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchStatusException(msg.toString());
+		throw new NoSuchStatusException(sb.toString());
 	}
 
 	/**
@@ -1021,16 +1011,16 @@ public class StatusPersistenceImpl
 			return status;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("online=");
-		msg.append(online);
+		sb.append("online=");
+		sb.append(online);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchStatusException(msg.toString());
+		throw new NoSuchStatusException(sb.toString());
 	}
 
 	/**
@@ -1094,8 +1084,8 @@ public class StatusPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1106,101 +1096,101 @@ public class StatusPersistenceImpl
 		Session session, Status status, boolean online,
 		OrderByComparator<Status> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_STATUS_WHERE);
+		sb.append(_SQL_SELECT_STATUS_WHERE);
 
-		query.append(_FINDER_COLUMN_ONLINE_ONLINE_2);
+		sb.append(_FINDER_COLUMN_ONLINE_ONLINE_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(StatusModelImpl.ORDER_BY_JPQL);
+			sb.append(StatusModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(online);
+		queryPos.add(online);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(status)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<Status> list = q.list();
+		List<Status> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1240,33 +1230,31 @@ public class StatusPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_STATUS_WHERE);
+			sb.append(_SQL_COUNT_STATUS_WHERE);
 
-			query.append(_FINDER_COLUMN_ONLINE_ONLINE_2);
+			sb.append(_FINDER_COLUMN_ONLINE_ONLINE_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(online);
+				queryPos.add(online);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1397,47 +1385,47 @@ public class StatusPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_STATUS_WHERE);
+			sb.append(_SQL_SELECT_STATUS_WHERE);
 
-			query.append(_FINDER_COLUMN_M_O_MODIFIEDDATE_2);
+			sb.append(_FINDER_COLUMN_M_O_MODIFIEDDATE_2);
 
-			query.append(_FINDER_COLUMN_M_O_ONLINE_2);
+			sb.append(_FINDER_COLUMN_M_O_ONLINE_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(StatusModelImpl.ORDER_BY_JPQL);
+				sb.append(StatusModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(modifiedDate);
+				queryPos.add(modifiedDate);
 
-				qPos.add(online);
+				queryPos.add(online);
 
 				list = (List<Status>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -1445,12 +1433,8 @@ public class StatusPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1482,19 +1466,19 @@ public class StatusPersistenceImpl
 			return status;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("modifiedDate=");
-		msg.append(modifiedDate);
+		sb.append("modifiedDate=");
+		sb.append(modifiedDate);
 
-		msg.append(", online=");
-		msg.append(online);
+		sb.append(", online=");
+		sb.append(online);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchStatusException(msg.toString());
+		throw new NoSuchStatusException(sb.toString());
 	}
 
 	/**
@@ -1542,19 +1526,19 @@ public class StatusPersistenceImpl
 			return status;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("modifiedDate=");
-		msg.append(modifiedDate);
+		sb.append("modifiedDate=");
+		sb.append(modifiedDate);
 
-		msg.append(", online=");
-		msg.append(online);
+		sb.append(", online=");
+		sb.append(online);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchStatusException(msg.toString());
+		throw new NoSuchStatusException(sb.toString());
 	}
 
 	/**
@@ -1622,8 +1606,8 @@ public class StatusPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1634,105 +1618,105 @@ public class StatusPersistenceImpl
 		Session session, Status status, long modifiedDate, boolean online,
 		OrderByComparator<Status> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_STATUS_WHERE);
+		sb.append(_SQL_SELECT_STATUS_WHERE);
 
-		query.append(_FINDER_COLUMN_M_O_MODIFIEDDATE_2);
+		sb.append(_FINDER_COLUMN_M_O_MODIFIEDDATE_2);
 
-		query.append(_FINDER_COLUMN_M_O_ONLINE_2);
+		sb.append(_FINDER_COLUMN_M_O_ONLINE_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(StatusModelImpl.ORDER_BY_JPQL);
+			sb.append(StatusModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(modifiedDate);
+		queryPos.add(modifiedDate);
 
-		qPos.add(online);
+		queryPos.add(online);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(status)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<Status> list = q.list();
+		List<Status> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1775,37 +1759,35 @@ public class StatusPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_STATUS_WHERE);
+			sb.append(_SQL_COUNT_STATUS_WHERE);
 
-			query.append(_FINDER_COLUMN_M_O_MODIFIEDDATE_2);
+			sb.append(_FINDER_COLUMN_M_O_MODIFIEDDATE_2);
 
-			query.append(_FINDER_COLUMN_M_O_ONLINE_2);
+			sb.append(_FINDER_COLUMN_M_O_ONLINE_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(modifiedDate);
+				queryPos.add(modifiedDate);
 
-				qPos.add(online);
+				queryPos.add(online);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1822,16 +1804,18 @@ public class StatusPersistenceImpl
 		"status.online = ?";
 
 	public StatusPersistenceImpl() {
-		setModelClass(Status.class);
-
-		setModelImplClass(StatusImpl.class);
-		setModelPKClass(long.class);
-
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
 		dbColumnNames.put("online", "online_");
 
 		setDBColumnNames(dbColumnNames);
+
+		setModelClass(Status.class);
+
+		setModelImplClass(StatusImpl.class);
+		setModelPKClass(long.class);
+
+		setTable(StatusTable.INSTANCE);
 	}
 
 	/**
@@ -1841,15 +1825,11 @@ public class StatusPersistenceImpl
 	 */
 	@Override
 	public void cacheResult(Status status) {
-		entityCache.putResult(
-			entityCacheEnabled, StatusImpl.class, status.getPrimaryKey(),
-			status);
+		entityCache.putResult(StatusImpl.class, status.getPrimaryKey(), status);
 
 		finderCache.putResult(
 			_finderPathFetchByUserId, new Object[] {status.getUserId()},
 			status);
-
-		status.resetOriginalValues();
 	}
 
 	/**
@@ -1861,13 +1841,9 @@ public class StatusPersistenceImpl
 	public void cacheResult(List<Status> statuses) {
 		for (Status status : statuses) {
 			if (entityCache.getResult(
-					entityCacheEnabled, StatusImpl.class,
-					status.getPrimaryKey()) == null) {
+					StatusImpl.class, status.getPrimaryKey()) == null) {
 
 				cacheResult(status);
-			}
-			else {
-				status.resetOriginalValues();
 			}
 		}
 	}
@@ -1897,25 +1873,13 @@ public class StatusPersistenceImpl
 	 */
 	@Override
 	public void clearCache(Status status) {
-		entityCache.removeResult(
-			entityCacheEnabled, StatusImpl.class, status.getPrimaryKey());
-
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
-		clearUniqueFindersCache((StatusModelImpl)status, true);
+		entityCache.removeResult(StatusImpl.class, status);
 	}
 
 	@Override
 	public void clearCache(List<Status> statuses) {
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
 		for (Status status : statuses) {
-			entityCache.removeResult(
-				entityCacheEnabled, StatusImpl.class, status.getPrimaryKey());
-
-			clearUniqueFindersCache((StatusModelImpl)status, true);
+			entityCache.removeResult(StatusImpl.class, status);
 		}
 	}
 
@@ -1926,8 +1890,7 @@ public class StatusPersistenceImpl
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
 		for (Serializable primaryKey : primaryKeys) {
-			entityCache.removeResult(
-				entityCacheEnabled, StatusImpl.class, primaryKey);
+			entityCache.removeResult(StatusImpl.class, primaryKey);
 		}
 	}
 
@@ -1938,26 +1901,6 @@ public class StatusPersistenceImpl
 			_finderPathCountByUserId, args, Long.valueOf(1), false);
 		finderCache.putResult(
 			_finderPathFetchByUserId, args, statusModelImpl, false);
-	}
-
-	protected void clearUniqueFindersCache(
-		StatusModelImpl statusModelImpl, boolean clearCurrent) {
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {statusModelImpl.getUserId()};
-
-			finderCache.removeResult(_finderPathCountByUserId, args);
-			finderCache.removeResult(_finderPathFetchByUserId, args);
-		}
-
-		if ((statusModelImpl.getColumnBitmask() &
-			 _finderPathFetchByUserId.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {statusModelImpl.getOriginalUserId()};
-
-			finderCache.removeResult(_finderPathCountByUserId, args);
-			finderCache.removeResult(_finderPathFetchByUserId, args);
-		}
 	}
 
 	/**
@@ -2015,11 +1958,11 @@ public class StatusPersistenceImpl
 
 			return remove(status);
 		}
-		catch (NoSuchStatusException nsee) {
-			throw nsee;
+		catch (NoSuchStatusException noSuchEntityException) {
+			throw noSuchEntityException;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2042,8 +1985,8 @@ public class StatusPersistenceImpl
 				session.delete(status);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2083,121 +2026,27 @@ public class StatusPersistenceImpl
 		try {
 			session = openSession();
 
-			if (status.isNew()) {
+			if (isNew) {
 				session.save(status);
-
-				status.setNew(false);
 			}
 			else {
 				status = (Status)session.merge(status);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
 		}
 
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
+		entityCache.putResult(StatusImpl.class, statusModelImpl, false, true);
 
-		if (!_columnBitmaskEnabled) {
-			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-		}
-		else if (isNew) {
-			Object[] args = new Object[] {statusModelImpl.getModifiedDate()};
-
-			finderCache.removeResult(_finderPathCountByModifiedDate, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByModifiedDate, args);
-
-			args = new Object[] {statusModelImpl.isOnline()};
-
-			finderCache.removeResult(_finderPathCountByOnline, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByOnline, args);
-
-			args = new Object[] {
-				statusModelImpl.getModifiedDate(), statusModelImpl.isOnline()
-			};
-
-			finderCache.removeResult(_finderPathCountByM_O, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByM_O, args);
-
-			finderCache.removeResult(_finderPathCountAll, FINDER_ARGS_EMPTY);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindAll, FINDER_ARGS_EMPTY);
-		}
-		else {
-			if ((statusModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByModifiedDate.
-					 getColumnBitmask()) != 0) {
-
-				Object[] args = new Object[] {
-					statusModelImpl.getOriginalModifiedDate()
-				};
-
-				finderCache.removeResult(_finderPathCountByModifiedDate, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByModifiedDate, args);
-
-				args = new Object[] {statusModelImpl.getModifiedDate()};
-
-				finderCache.removeResult(_finderPathCountByModifiedDate, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByModifiedDate, args);
-			}
-
-			if ((statusModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByOnline.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					statusModelImpl.getOriginalOnline()
-				};
-
-				finderCache.removeResult(_finderPathCountByOnline, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByOnline, args);
-
-				args = new Object[] {statusModelImpl.isOnline()};
-
-				finderCache.removeResult(_finderPathCountByOnline, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByOnline, args);
-			}
-
-			if ((statusModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByM_O.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					statusModelImpl.getOriginalModifiedDate(),
-					statusModelImpl.getOriginalOnline()
-				};
-
-				finderCache.removeResult(_finderPathCountByM_O, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByM_O, args);
-
-				args = new Object[] {
-					statusModelImpl.getModifiedDate(),
-					statusModelImpl.isOnline()
-				};
-
-				finderCache.removeResult(_finderPathCountByM_O, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByM_O, args);
-			}
-		}
-
-		entityCache.putResult(
-			entityCacheEnabled, StatusImpl.class, status.getPrimaryKey(),
-			status, false);
-
-		clearUniqueFindersCache(statusModelImpl, false);
 		cacheUniqueFindersCache(statusModelImpl);
+
+		if (isNew) {
+			status.setNew(false);
+		}
 
 		status.resetOriginalValues();
 
@@ -2339,19 +2188,19 @@ public class StatusPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 			String sql = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					2 + (orderByComparator.getOrderByFields().length * 2));
 
-				query.append(_SQL_SELECT_STATUS);
+				sb.append(_SQL_SELECT_STATUS);
 
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 
-				sql = query.toString();
+				sql = sb.toString();
 			}
 			else {
 				sql = _SQL_SELECT_STATUS;
@@ -2364,10 +2213,10 @@ public class StatusPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
 				list = (List<Status>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -2375,12 +2224,8 @@ public class StatusPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2417,18 +2262,15 @@ public class StatusPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(_SQL_COUNT_STATUS);
+				Query query = session.createQuery(_SQL_COUNT_STATUS);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(
 					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2467,101 +2309,102 @@ public class StatusPersistenceImpl
 	 * Initializes the status persistence.
 	 */
 	@Activate
-	public void activate() {
-		StatusModelImpl.setEntityCacheEnabled(entityCacheEnabled);
-		StatusModelImpl.setFinderCacheEnabled(finderCacheEnabled);
+	public void activate(BundleContext bundleContext) {
+		_bundleContext = bundleContext;
 
-		_finderPathWithPaginationFindAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, StatusImpl.class,
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0]);
+		_argumentsResolverServiceRegistration = _bundleContext.registerService(
+			ArgumentsResolver.class, new StatusModelArgumentsResolver(),
+			MapUtil.singletonDictionary(
+				"model.class.name", Status.class.getName()));
 
-		_finderPathWithoutPaginationFindAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, StatusImpl.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll",
-			new String[0]);
+		_finderPathWithPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
+			new String[0], true);
 
-		_finderPathCountAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathWithoutPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathCountAll = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
-			new String[0]);
+			new String[0], new String[0], false);
 
-		_finderPathFetchByUserId = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, StatusImpl.class,
+		_finderPathFetchByUserId = _createFinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByUserId",
-			new String[] {Long.class.getName()},
-			StatusModelImpl.USERID_COLUMN_BITMASK);
+			new String[] {Long.class.getName()}, new String[] {"userId"}, true);
 
-		_finderPathCountByUserId = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByUserId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUserId",
-			new String[] {Long.class.getName()});
+			new String[] {Long.class.getName()}, new String[] {"userId"},
+			false);
 
-		_finderPathWithPaginationFindByModifiedDate = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, StatusImpl.class,
+		_finderPathWithPaginationFindByModifiedDate = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByModifiedDate",
 			new String[] {
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"modifiedDate"}, true);
 
-		_finderPathWithoutPaginationFindByModifiedDate = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, StatusImpl.class,
+		_finderPathWithoutPaginationFindByModifiedDate = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByModifiedDate",
-			new String[] {Long.class.getName()},
-			StatusModelImpl.MODIFIEDDATE_COLUMN_BITMASK);
+			new String[] {Long.class.getName()}, new String[] {"modifiedDate"},
+			true);
 
-		_finderPathCountByModifiedDate = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByModifiedDate = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByModifiedDate",
-			new String[] {Long.class.getName()});
+			new String[] {Long.class.getName()}, new String[] {"modifiedDate"},
+			false);
 
-		_finderPathWithPaginationFindByOnline = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, StatusImpl.class,
+		_finderPathWithPaginationFindByOnline = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByOnline",
 			new String[] {
 				Boolean.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"online_"}, true);
 
-		_finderPathWithoutPaginationFindByOnline = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, StatusImpl.class,
+		_finderPathWithoutPaginationFindByOnline = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByOnline",
-			new String[] {Boolean.class.getName()},
-			StatusModelImpl.ONLINE_COLUMN_BITMASK);
+			new String[] {Boolean.class.getName()}, new String[] {"online_"},
+			true);
 
-		_finderPathCountByOnline = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByOnline = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByOnline",
-			new String[] {Boolean.class.getName()});
+			new String[] {Boolean.class.getName()}, new String[] {"online_"},
+			false);
 
-		_finderPathWithPaginationFindByM_O = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, StatusImpl.class,
+		_finderPathWithPaginationFindByM_O = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByM_O",
 			new String[] {
 				Long.class.getName(), Boolean.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"modifiedDate", "online_"}, true);
 
-		_finderPathWithoutPaginationFindByM_O = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, StatusImpl.class,
+		_finderPathWithoutPaginationFindByM_O = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByM_O",
 			new String[] {Long.class.getName(), Boolean.class.getName()},
-			StatusModelImpl.MODIFIEDDATE_COLUMN_BITMASK |
-			StatusModelImpl.ONLINE_COLUMN_BITMASK);
+			new String[] {"modifiedDate", "online_"}, true);
 
-		_finderPathCountByM_O = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByM_O = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByM_O",
-			new String[] {Long.class.getName(), Boolean.class.getName()});
+			new String[] {Long.class.getName(), Boolean.class.getName()},
+			new String[] {"modifiedDate", "online_"}, false);
 	}
 
 	@Deactivate
 	public void deactivate() {
 		entityCache.removeCache(StatusImpl.class.getName());
-		finderCache.removeCache(FINDER_CLASS_NAME_ENTITY);
-		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		_argumentsResolverServiceRegistration.unregister();
+
+		for (ServiceRegistration<FinderPath> serviceRegistration :
+				_serviceRegistrations) {
+
+			serviceRegistration.unregister();
+		}
 	}
 
 	@Override
@@ -2570,12 +2413,6 @@ public class StatusPersistenceImpl
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
-		super.setConfiguration(configuration);
-
-		_columnBitmaskEnabled = GetterUtil.getBoolean(
-			configuration.get(
-				"value.object.column.bitmask.enabled.com.liferay.chat.model.Status"),
-			true);
 	}
 
 	@Override
@@ -2596,7 +2433,7 @@ public class StatusPersistenceImpl
 		super.setSessionFactory(sessionFactory);
 	}
 
-	private boolean _columnBitmaskEnabled;
+	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -2634,9 +2471,105 @@ public class StatusPersistenceImpl
 		try {
 			Class.forName(ChatPersistenceConstants.class.getName());
 		}
-		catch (ClassNotFoundException cnfe) {
-			throw new ExceptionInInitializerError(cnfe);
+		catch (ClassNotFoundException classNotFoundException) {
+			throw new ExceptionInInitializerError(classNotFoundException);
 		}
+	}
+
+	private FinderPath _createFinderPath(
+		String cacheName, String methodName, String[] params,
+		String[] columnNames, boolean baseModelResult) {
+
+		FinderPath finderPath = new FinderPath(
+			cacheName, methodName, params, columnNames, baseModelResult);
+
+		if (!cacheName.equals(FINDER_CLASS_NAME_LIST_WITH_PAGINATION)) {
+			_serviceRegistrations.add(
+				_bundleContext.registerService(
+					FinderPath.class, finderPath,
+					MapUtil.singletonDictionary("cache.name", cacheName)));
+		}
+
+		return finderPath;
+	}
+
+	private ServiceRegistration<ArgumentsResolver>
+		_argumentsResolverServiceRegistration;
+	private Set<ServiceRegistration<FinderPath>> _serviceRegistrations =
+		new HashSet<>();
+
+	private static class StatusModelArgumentsResolver
+		implements ArgumentsResolver {
+
+		@Override
+		public Object[] getArguments(
+			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
+			boolean original) {
+
+			String[] columnNames = finderPath.getColumnNames();
+
+			if ((columnNames == null) || (columnNames.length == 0)) {
+				if (baseModel.isNew()) {
+					return FINDER_ARGS_EMPTY;
+				}
+
+				return null;
+			}
+
+			StatusModelImpl statusModelImpl = (StatusModelImpl)baseModel;
+
+			long columnBitmask = statusModelImpl.getColumnBitmask();
+
+			if (!checkColumn || (columnBitmask == 0)) {
+				return _getValue(statusModelImpl, columnNames, original);
+			}
+
+			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
+				finderPath);
+
+			if (finderPathColumnBitmask == null) {
+				finderPathColumnBitmask = 0L;
+
+				for (String columnName : columnNames) {
+					finderPathColumnBitmask |= statusModelImpl.getColumnBitmask(
+						columnName);
+				}
+
+				_finderPathColumnBitmasksCache.put(
+					finderPath, finderPathColumnBitmask);
+			}
+
+			if ((columnBitmask & finderPathColumnBitmask) != 0) {
+				return _getValue(statusModelImpl, columnNames, original);
+			}
+
+			return null;
+		}
+
+		private Object[] _getValue(
+			StatusModelImpl statusModelImpl, String[] columnNames,
+			boolean original) {
+
+			Object[] arguments = new Object[columnNames.length];
+
+			for (int i = 0; i < arguments.length; i++) {
+				String columnName = columnNames[i];
+
+				if (original) {
+					arguments[i] = statusModelImpl.getColumnOriginalValue(
+						columnName);
+				}
+				else {
+					arguments[i] = statusModelImpl.getColumnValue(columnName);
+				}
+			}
+
+			return arguments;
+		}
+
+		private static Map<FinderPath, Long> _finderPathColumnBitmasksCache =
+			new ConcurrentHashMap<>();
+
 	}
 
 }

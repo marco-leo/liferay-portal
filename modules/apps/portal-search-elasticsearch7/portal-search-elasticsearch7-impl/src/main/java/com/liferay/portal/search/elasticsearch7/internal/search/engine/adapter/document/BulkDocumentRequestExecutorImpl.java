@@ -17,7 +17,7 @@ package com.liferay.portal.search.elasticsearch7.internal.search.engine.adapter.
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.search.elasticsearch7.internal.connection.ElasticsearchClientResolver;
-import com.liferay.portal.search.elasticsearch7.internal.util.LogUtil;
+import com.liferay.portal.search.elasticsearch7.internal.util.SearchLogHelperUtil;
 import com.liferay.portal.search.engine.adapter.document.BulkDocumentItemResponse;
 import com.liferay.portal.search.engine.adapter.document.BulkDocumentRequest;
 import com.liferay.portal.search.engine.adapter.document.BulkDocumentResponse;
@@ -57,9 +57,10 @@ public class BulkDocumentRequestExecutorImpl
 
 		BulkRequest bulkRequest = createBulkRequest(bulkDocumentRequest);
 
-		BulkResponse bulkResponse = getBulkResponse(bulkRequest);
+		BulkResponse bulkResponse = getBulkResponse(
+			bulkRequest, bulkDocumentRequest);
 
-		LogUtil.logActionResponse(_log, bulkResponse);
+		SearchLogHelperUtil.logActionResponse(_log, bulkResponse);
 
 		TimeValue timeValue = bulkResponse.getTook();
 
@@ -146,16 +147,20 @@ public class BulkDocumentRequestExecutorImpl
 		return bulkRequest;
 	}
 
-	protected BulkResponse getBulkResponse(BulkRequest bulkRequest) {
+	protected BulkResponse getBulkResponse(
+		BulkRequest bulkRequest, BulkDocumentRequest bulkDocumentRequest) {
+
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				bulkDocumentRequest.getConnectionId(),
+				bulkDocumentRequest.isPreferLocalCluster());
 
 		try {
 			return restHighLevelClient.bulk(
 				bulkRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

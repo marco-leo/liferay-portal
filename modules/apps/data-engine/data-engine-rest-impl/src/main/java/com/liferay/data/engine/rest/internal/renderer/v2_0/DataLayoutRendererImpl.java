@@ -16,29 +16,23 @@ package com.liferay.data.engine.rest.internal.renderer.v2_0;
 
 import com.liferay.data.engine.renderer.DataLayoutRenderer;
 import com.liferay.data.engine.renderer.DataLayoutRendererContext;
+import com.liferay.data.engine.rest.internal.dto.v2_0.util.MapToDDMFormValuesConverterUtil;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
 import com.liferay.dynamic.data.mapping.io.DDMFormDeserializer;
-import com.liferay.dynamic.data.mapping.io.DDMFormDeserializerDeserializeRequest;
-import com.liferay.dynamic.data.mapping.io.DDMFormDeserializerDeserializeResponse;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
-import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMStructureLayout;
 import com.liferay.dynamic.data.mapping.model.DDMStructureVersion;
-import com.liferay.dynamic.data.mapping.model.LocalizedValue;
-import com.liferay.dynamic.data.mapping.model.UnlocalizedValue;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLayoutLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureVersionLocalService;
-import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
-import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
-import com.liferay.portal.kernel.json.JSONArray;
-import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Locale;
-import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -64,73 +58,17 @@ public class DataLayoutRendererImpl implements DataLayoutRenderer {
 
 		DDMStructure ddmStructure = ddmStructureVersion.getStructure();
 
-		DDMFormDeserializerDeserializeRequest.Builder builder =
-			DDMFormDeserializerDeserializeRequest.Builder.newBuilder(
-				ddmStructure.getDefinition());
-
-		DDMFormDeserializerDeserializeResponse
-			ddmFormDeserializerDeserializeResponse =
-				_ddmFormDeserializer.deserialize(builder.build());
+		DDMForm ddmForm = ddmStructure.getDDMForm();
 
 		return _ddmFormRenderer.render(
-			ddmFormDeserializerDeserializeResponse.getDDMForm(),
-			ddmStructureLayout.getDDMFormLayout(),
+			ddmForm, ddmStructureLayout.getDDMFormLayout(),
 			_toDDMFormRenderingContext(
-				dataLayoutRendererContext,
-				ddmFormDeserializerDeserializeResponse.getDDMForm()));
-	}
-
-	private DDMFormFieldValue _createDDMFormFieldValue(
-		Map<String, Object> dataRecordValues, DDMFormField ddmFormField,
-		Locale locale) {
-
-		DDMFormFieldValue ddmFormFieldValue = new DDMFormFieldValue();
-
-		String name = ddmFormField.getName();
-
-		ddmFormFieldValue.setName(name);
-
-		if (dataRecordValues == null) {
-			return ddmFormFieldValue;
-		}
-
-		Object value = dataRecordValues.get(name);
-
-		if (value != null) {
-			if (value instanceof Object[]) {
-				JSONArray jsonArray = JSONUtil.putAll((Object[])value);
-
-				value = jsonArray.toString();
-			}
-
-			if (ddmFormField.isLocalizable()) {
-				LocalizedValue localizedValue = new LocalizedValue();
-
-				localizedValue.addString(locale, String.valueOf(value));
-
-				ddmFormFieldValue.setValue(localizedValue);
-			}
-			else {
-				ddmFormFieldValue.setValue(
-					new UnlocalizedValue(String.valueOf(value)));
-			}
-		}
-
-		if (ListUtil.isNotEmpty(ddmFormField.getNestedDDMFormFields())) {
-			for (DDMFormField nestedDDMFormField :
-					ddmFormField.getNestedDDMFormFields()) {
-
-				ddmFormFieldValue.addNestedDDMFormFieldValue(
-					_createDDMFormFieldValue(
-						dataRecordValues, nestedDDMFormField, locale));
-			}
-		}
-
-		return ddmFormFieldValue;
+				dataLayoutId, dataLayoutRendererContext, ddmForm));
 	}
 
 	private DDMFormRenderingContext _toDDMFormRenderingContext(
-		DataLayoutRendererContext dataLayoutRendererContext, DDMForm ddmForm) {
+		Long dataLayoutId, DataLayoutRendererContext dataLayoutRendererContext,
+		DDMForm ddmForm) {
 
 		DDMFormRenderingContext ddmFormRenderingContext =
 			new DDMFormRenderingContext();
@@ -138,42 +76,39 @@ public class DataLayoutRendererImpl implements DataLayoutRenderer {
 		ddmFormRenderingContext.setContainerId(
 			dataLayoutRendererContext.getContainerId());
 		ddmFormRenderingContext.setDDMFormValues(
-			_toDDMFormValues(
+			MapToDDMFormValuesConverterUtil.toDDMFormValues(
 				dataLayoutRendererContext.getDataRecordValues(), ddmForm,
-				_portal.getLocale(
-					dataLayoutRendererContext.getHttpServletRequest())));
+				null));
+		ddmFormRenderingContext.setDDMStructureLayoutId(dataLayoutId);
 		ddmFormRenderingContext.setHttpServletRequest(
 			dataLayoutRendererContext.getHttpServletRequest());
 		ddmFormRenderingContext.setHttpServletResponse(
 			dataLayoutRendererContext.getHttpServletResponse());
-		ddmFormRenderingContext.setLocale(
-			_portal.getLocale(
-				dataLayoutRendererContext.getHttpServletRequest()));
-		ddmFormRenderingContext.setPortletNamespace(
-			dataLayoutRendererContext.getPortletNamespace());
-		ddmFormRenderingContext.setShowSubmitButton(false);
 
-		return ddmFormRenderingContext;
-	}
+		Locale locale = null;
 
-	private DDMFormValues _toDDMFormValues(
-		Map<String, Object> dataRecordValues, DDMForm ddmForm, Locale locale) {
+		String languageId = ParamUtil.get(
+			dataLayoutRendererContext.getHttpServletRequest(), "languageId",
+			StringPool.BLANK);
 
-		Map<String, DDMFormField> ddmFormFields = ddmForm.getDDMFormFieldsMap(
-			true);
-
-		DDMFormValues ddmFormValues = new DDMFormValues(ddmForm);
-
-		ddmFormValues.addAvailableLocale(locale);
-		ddmFormValues.setDefaultLocale(locale);
-
-		for (Map.Entry<String, DDMFormField> entry : ddmFormFields.entrySet()) {
-			ddmFormValues.addDDMFormFieldValue(
-				_createDDMFormFieldValue(
-					dataRecordValues, entry.getValue(), locale));
+		if (Validator.isNull(languageId)) {
+			locale = _portal.getLocale(
+				dataLayoutRendererContext.getHttpServletRequest());
+		}
+		else {
+			locale = LocaleUtil.fromLanguageId(languageId);
 		}
 
-		return ddmFormValues;
+		ddmFormRenderingContext.setLocale(locale);
+
+		ddmFormRenderingContext.setPortletNamespace(
+			dataLayoutRendererContext.getPortletNamespace());
+		ddmFormRenderingContext.setReadOnly(
+			dataLayoutRendererContext.isReadOnly());
+		ddmFormRenderingContext.setShowSubmitButton(false);
+		ddmFormRenderingContext.setViewMode(true);
+
+		return ddmFormRenderingContext;
 	}
 
 	@Reference(target = "(ddm.form.deserializer.type=json)")

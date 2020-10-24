@@ -40,7 +40,7 @@ public interface CTSContentModel
 	extends BaseModel<CTSContent>, CTModel<CTSContent>, MVCCModel,
 			ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a cts content model instance should use the {@link CTSContent} interface instead.

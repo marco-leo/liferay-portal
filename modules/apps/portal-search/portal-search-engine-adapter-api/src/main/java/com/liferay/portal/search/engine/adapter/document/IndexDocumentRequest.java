@@ -15,6 +15,7 @@
 package com.liferay.portal.search.engine.adapter.document;
 
 import com.liferay.portal.search.document.Document;
+import com.liferay.portal.search.engine.adapter.ccr.CrossClusterRequest;
 
 import java.util.function.Consumer;
 
@@ -22,6 +23,7 @@ import java.util.function.Consumer;
  * @author Michael C. Han
  */
 public class IndexDocumentRequest
+	extends CrossClusterRequest
 	implements BulkableDocumentRequest<IndexDocumentRequest>,
 			   DocumentRequest<IndexDocumentResponse> {
 
@@ -48,12 +50,13 @@ public class IndexDocumentRequest
 	@Deprecated
 	public IndexDocumentRequest(
 		String indexName, String uid,
-		com.liferay.portal.kernel.search.Document document) {
+		com.liferay.portal.kernel.search.Document legacyDocument) {
 
 		_indexName = indexName;
 		_uid = uid;
+		_legacyDocument = legacyDocument;
+
 		_document = null;
-		_legacyDocument = document;
 	}
 
 	public IndexDocumentRequest(
@@ -62,6 +65,7 @@ public class IndexDocumentRequest
 		_indexName = indexName;
 		_uid = uid;
 		_document = document;
+
 		_legacyDocument = null;
 	}
 

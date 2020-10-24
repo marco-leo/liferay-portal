@@ -742,11 +742,6 @@ public class KBArticleWrapper
 		return model.isScheduled();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a kb article model instance should use the <code>KBArticle</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();

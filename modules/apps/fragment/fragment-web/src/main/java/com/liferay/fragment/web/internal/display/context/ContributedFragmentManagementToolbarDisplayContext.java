@@ -18,7 +18,7 @@ import com.liferay.fragment.constants.FragmentActionKeys;
 import com.liferay.fragment.web.internal.security.permission.resource.FragmentPermission;
 import com.liferay.frontend.taglib.clay.servlet.taglib.display.context.SearchContainerManagementToolbarDisplayContext;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
@@ -42,13 +42,13 @@ public class ContributedFragmentManagementToolbarDisplayContext
 	extends SearchContainerManagementToolbarDisplayContext {
 
 	public ContributedFragmentManagementToolbarDisplayContext(
+		HttpServletRequest httpServletRequest,
 		LiferayPortletRequest liferayPortletRequest,
 		LiferayPortletResponse liferayPortletResponse,
-		HttpServletRequest httpServletRequest,
 		FragmentDisplayContext fragmentDisplayContext) {
 
 		super(
-			liferayPortletRequest, liferayPortletResponse, httpServletRequest,
+			httpServletRequest, liferayPortletRequest, liferayPortletResponse,
 			fragmentDisplayContext.
 				getContributedFragmentEntriesSearchContainer());
 
@@ -60,26 +60,19 @@ public class ContributedFragmentManagementToolbarDisplayContext
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		return new DropdownItemList() {
-			{
-				if (FragmentPermission.contains(
-						themeDisplay.getPermissionChecker(),
-						themeDisplay.getScopeGroupId(),
-						FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES)) {
-
-					add(
-						dropdownItem -> {
-							dropdownItem.putData(
-								"action",
-								"copyToSelectedContributedFragmentEntries");
-							dropdownItem.setIcon("paste");
-							dropdownItem.setLabel(
-								LanguageUtil.get(request, "make-a-copy"));
-							dropdownItem.setQuickAction(true);
-						});
-				}
+		return DropdownItemListBuilder.add(
+			() -> FragmentPermission.contains(
+				themeDisplay.getPermissionChecker(),
+				themeDisplay.getScopeGroupId(),
+				FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES),
+			dropdownItem -> {
+				dropdownItem.putData(
+					"action", "copyToSelectedContributedFragmentEntries");
+				dropdownItem.setIcon("paste");
+				dropdownItem.setLabel(LanguageUtil.get(request, "make-a-copy"));
+				dropdownItem.setQuickAction(true);
 			}
-		};
+		).build();
 	}
 
 	@Override
@@ -90,31 +83,37 @@ public class ContributedFragmentManagementToolbarDisplayContext
 	}
 
 	public Map<String, Object> getComponentContext() throws Exception {
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		PortletURL copyContributedFragmentEntryURL =
-			liferayPortletResponse.createActionURL();
-
-		copyContributedFragmentEntryURL.setParameter(
-			ActionRequest.ACTION_NAME,
-			"/fragment/copy_contributed_fragment_entry");
-		copyContributedFragmentEntryURL.setParameter(
-			"redirect", themeDisplay.getURLCurrent());
-
-		PortletURL selectFragmentCollectionURL =
-			liferayPortletResponse.createActionURL();
-
-		selectFragmentCollectionURL.setParameter(
-			"mvcRenderCommandName", "/fragment/select_fragment_collection");
-		selectFragmentCollectionURL.setWindowState(LiferayWindowState.POP_UP);
-
 		return HashMapBuilder.<String, Object>put(
 			"copyContributedFragmentEntryURL",
-			copyContributedFragmentEntryURL.toString()
+			() -> {
+				ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
+				PortletURL copyContributedFragmentEntryURL =
+					liferayPortletResponse.createActionURL();
+
+				copyContributedFragmentEntryURL.setParameter(
+					ActionRequest.ACTION_NAME,
+					"/fragment/copy_contributed_fragment_entry");
+				copyContributedFragmentEntryURL.setParameter(
+					"redirect", themeDisplay.getURLCurrent());
+
+				return copyContributedFragmentEntryURL.toString();
+			}
 		).put(
 			"selectFragmentCollectionURL",
-			selectFragmentCollectionURL.toString()
+			() -> {
+				PortletURL selectFragmentCollectionURL =
+					liferayPortletResponse.createActionURL();
+
+				selectFragmentCollectionURL.setParameter(
+					"mvcRenderCommandName",
+					"/fragment/select_fragment_collection");
+				selectFragmentCollectionURL.setWindowState(
+					LiferayWindowState.POP_UP);
+
+				return selectFragmentCollectionURL.toString();
+			}
 		).build();
 	}
 

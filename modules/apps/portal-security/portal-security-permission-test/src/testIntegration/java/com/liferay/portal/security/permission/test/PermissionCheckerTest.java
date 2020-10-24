@@ -203,6 +203,8 @@ public class PermissionCheckerTest {
 				String.valueOf(_user.getCompanyId()), _role.getRoleId(),
 				new String[] {_ADD_TEST_ACTION});
 
+			permissionChecker = _permissionCheckerFactory.create(_user);
+
 			try {
 				hasPermission = permissionChecker.hasPermission(
 					0, _NONSITE_ROOT_MODEL_RESOURCE_NAME,
@@ -373,21 +375,23 @@ public class PermissionCheckerTest {
 
 			Assert.fail();
 		}
-		catch (Throwable t) {
+		catch (Throwable throwable) {
 			boolean found = false;
 
-			Throwable cause = t;
+			Throwable causeThrowable = throwable;
 
-			while (!found && (cause != null)) {
-				if (cause instanceof NoSuchResourcePermissionException) {
+			while (!found && (causeThrowable != null)) {
+				if (causeThrowable instanceof
+						NoSuchResourcePermissionException) {
+
 					found = true;
 				}
 
-				cause = cause.getCause();
+				causeThrowable = causeThrowable.getCause();
 			}
 
 			if (!found) {
-				throw t;
+				throw throwable;
 			}
 		}
 		finally {
@@ -572,21 +576,23 @@ public class PermissionCheckerTest {
 
 			Assert.fail();
 		}
-		catch (Throwable t) {
+		catch (Throwable throwable) {
 			boolean found = false;
 
-			Throwable cause = t;
+			Throwable causeThrowable = throwable;
 
-			while (!found && (cause != null)) {
-				if (cause instanceof NoSuchResourcePermissionException) {
+			while (!found && (causeThrowable != null)) {
+				if (causeThrowable instanceof
+						NoSuchResourcePermissionException) {
+
 					found = true;
 				}
 
-				cause = cause.getCause();
+				causeThrowable = causeThrowable.getCause();
 			}
 
 			if (!found) {
-				throw t;
+				throw throwable;
 			}
 		}
 	}
@@ -939,7 +945,7 @@ public class PermissionCheckerTest {
 	}
 
 	private void _deployRemotePortlet(long companyId, String portletName)
-		throws PortalException {
+		throws Exception {
 
 		Portlet portlet = _portletPersistence.create(0);
 

@@ -19,7 +19,6 @@ import com.liferay.petra.string.CharPool;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 import java.lang.reflect.Field;
 
@@ -81,13 +80,13 @@ public class XLSBatchEngineExportTaskItemWriterTest
 
 			Assert.fail();
 		}
-		catch (IllegalArgumentException iae) {
+		catch (IllegalArgumentException illegalArgumentException) {
 		}
 	}
 
 	private byte[] _getExpectedContent(
 			List<String> fieldNames, List<Item> items)
-		throws IllegalAccessException, IOException {
+		throws Exception {
 
 		try (Workbook workbook = new XSSFWorkbook()) {
 			Sheet sheet = workbook.createSheet();

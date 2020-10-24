@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
 import com.liferay.portal.kernel.service.ResourceActionLocalServiceUtil;
 import com.liferay.portal.kernel.service.persistence.RoleFinder;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -44,6 +45,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Brian Wing Shun Chan
@@ -163,19 +165,19 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			String sql = CustomSQLUtil.get(COUNT_BY_USER_GROUP_GROUP_ROLE);
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
+			sqlQuery.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
-			qPos.add(userId);
+			queryPos.add(groupId);
+			queryPos.add(userId);
 
-			Iterator<Long> itr = q.iterate();
+			Iterator<Long> iterator = sqlQuery.iterate();
 
-			if (itr.hasNext()) {
-				Long count = itr.next();
+			if (iterator.hasNext()) {
+				Long count = iterator.next();
 
 				if (count != null) {
 					return count.intValue();
@@ -184,8 +186,8 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			return 0;
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -199,22 +201,22 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
 				getCountByR_U_SQL());
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
 			for (int i = 0; i < 6; i++) {
-				qPos.add(roleId);
-				qPos.add(userId);
+				queryPos.add(roleId);
+				queryPos.add(userId);
 			}
 
-			List<Role> roles = q.list();
+			List<Role> roles = sqlQuery.list();
 
 			return roles.size();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -230,20 +232,20 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			String sql = CustomSQLUtil.get(COUNT_BY_U_G_R);
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
+			sqlQuery.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(roleId);
-			qPos.add(groupId);
-			qPos.add(userId);
+			queryPos.add(roleId);
+			queryPos.add(groupId);
+			queryPos.add(userId);
 
-			Iterator<Long> itr = q.iterate();
+			Iterator<Long> iterator = sqlQuery.iterate();
 
-			if (itr.hasNext()) {
-				Long count = itr.next();
+			if (iterator.hasNext()) {
+				Long count = iterator.next();
 
 				if (count != null) {
 					return count.intValue();
@@ -252,8 +254,8 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			return 0;
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -348,7 +350,7 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 	public List<Role> filterFindByKeywords(
 		long companyId, String keywords, Integer[] types,
 		LinkedHashMap<String, Object> params, int start, int end,
-		OrderByComparator<Role> obc) {
+		OrderByComparator<Role> orderByComparator) {
 
 		String[] names = null;
 		String[] descriptions = null;
@@ -364,32 +366,32 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 		return filterFindByC_N_D_T(
 			companyId, names, descriptions, types, params, andOperator, start,
-			end, obc);
+			end, orderByComparator);
 	}
 
 	@Override
 	public List<Role> filterFindByC_N_D_T(
 		long companyId, String name, String description, Integer[] types,
 		LinkedHashMap<String, Object> params, boolean andOperator, int start,
-		int end, OrderByComparator<Role> obc) {
+		int end, OrderByComparator<Role> orderByComparator) {
 
 		String[] names = CustomSQLUtil.keywords(name);
 		String[] descriptions = CustomSQLUtil.keywords(description);
 
 		return filterFindByC_N_D_T(
 			companyId, names, descriptions, types, params, andOperator, start,
-			end, obc);
+			end, orderByComparator);
 	}
 
 	@Override
 	public List<Role> filterFindByC_N_D_T(
 		long companyId, String[] names, String[] descriptions, Integer[] types,
 		LinkedHashMap<String, Object> params, boolean andOperator, int start,
-		int end, OrderByComparator<Role> obc) {
+		int end, OrderByComparator<Role> orderByComparator) {
 
 		return doFindByC_N_D_T(
 			companyId, names, descriptions, types, params, andOperator, start,
-			end, obc, true);
+			end, orderByComparator, true);
 	}
 
 	@Override
@@ -406,18 +408,18 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 	@Override
 	public List<Role> findByKeywords(
 		long companyId, String keywords, Integer[] types, int start, int end,
-		OrderByComparator<Role> obc) {
+		OrderByComparator<Role> orderByComparator) {
 
 		return findByKeywords(
 			companyId, keywords, types, new LinkedHashMap<String, Object>(),
-			start, end, obc);
+			start, end, orderByComparator);
 	}
 
 	@Override
 	public List<Role> findByKeywords(
 		long companyId, String keywords, Integer[] types,
 		LinkedHashMap<String, Object> params, int start, int end,
-		OrderByComparator<Role> obc) {
+		OrderByComparator<Role> orderByComparator) {
 
 		String[] names = null;
 		String[] descriptions = null;
@@ -433,9 +435,13 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 		return findByC_N_D_T(
 			companyId, names, descriptions, types, params, andOperator, start,
-			end, obc);
+			end, orderByComparator);
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public List<Role> findBySystem(long companyId) {
 		Session session = null;
@@ -445,18 +451,18 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			String sql = CustomSQLUtil.get(FIND_BY_SYSTEM);
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addEntity("Role_", RoleImpl.class);
+			sqlQuery.addEntity("Role_", RoleImpl.class);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(companyId);
+			queryPos.add(companyId);
 
-			return q.list(true);
+			return sqlQuery.list(true);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -472,21 +478,21 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			String sql = CustomSQLUtil.get(FIND_BY_TEAMS_USER);
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addEntity("Role_", RoleImpl.class);
+			sqlQuery.addEntity("Role_", RoleImpl.class);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
-			qPos.add(userId);
-			qPos.add(groupId);
-			qPos.add(userId);
+			queryPos.add(groupId);
+			queryPos.add(userId);
+			queryPos.add(groupId);
+			queryPos.add(userId);
 
-			return q.list(true);
+			return sqlQuery.list(true);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -510,19 +516,20 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			String sql = CustomSQLUtil.get(FIND_BY_USER_GROUP_GROUP_ROLE);
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addEntity("Role_", RoleImpl.class);
+			sqlQuery.addEntity("Role_", RoleImpl.class);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(userId);
-			qPos.add(groupId);
+			queryPos.add(userId);
+			queryPos.add(groupId);
 
-			return (List<Role>)QueryUtil.list(q, getDialect(), start, end);
+			return (List<Role>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -538,19 +545,19 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			String sql = CustomSQLUtil.get(FIND_BY_USER_GROUP_ROLE);
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addEntity("Role_", RoleImpl.class);
+			sqlQuery.addEntity("Role_", RoleImpl.class);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(userId);
-			qPos.add(groupId);
+			queryPos.add(userId);
+			queryPos.add(groupId);
 
-			return q.list(true);
+			return sqlQuery.list(true);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -570,23 +577,23 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			String sql = CustomSQLUtil.get(FIND_BY_C_N);
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addEntity("Role_", RoleImpl.class);
+			sqlQuery.addEntity("Role_", RoleImpl.class);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(companyId);
-			qPos.add(name);
+			queryPos.add(companyId);
+			queryPos.add(name);
 
-			List<Role> roles = q.list();
+			List<Role> roles = sqlQuery.list();
 
 			if (!roles.isEmpty()) {
 				return roles.get(0);
 			}
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -633,19 +640,18 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 			sql = StringUtil.replace(
 				sql, "[$GROUP_ID$]", getGroupIds(groupIds, "Groups_Roles"));
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addEntity("Role_", RoleImpl.class);
+			sqlQuery.addEntity("Role_", RoleImpl.class);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(userId);
-			qPos.add(groupIds);
+			queryPos.add(userId);
 
-			return q.list(true);
+			return sqlQuery.list(true);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -656,25 +662,25 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 	public List<Role> findByC_N_D_T(
 		long companyId, String name, String description, Integer[] types,
 		LinkedHashMap<String, Object> params, boolean andOperator, int start,
-		int end, OrderByComparator<Role> obc) {
+		int end, OrderByComparator<Role> orderByComparator) {
 
 		String[] names = CustomSQLUtil.keywords(name);
 		String[] descriptions = CustomSQLUtil.keywords(description);
 
 		return findByC_N_D_T(
 			companyId, names, descriptions, types, params, andOperator, start,
-			end, obc);
+			end, orderByComparator);
 	}
 
 	@Override
 	public List<Role> findByC_N_D_T(
 		long companyId, String[] names, String[] descriptions, Integer[] types,
 		LinkedHashMap<String, Object> params, boolean andOperator, int start,
-		int end, OrderByComparator<Role> obc) {
+		int end, OrderByComparator<Role> orderByComparator) {
 
 		return doFindByC_N_D_T(
 			companyId, names, descriptions, types, params, andOperator, start,
-			end, obc, false);
+			end, orderByComparator, false);
 	}
 
 	@Override
@@ -688,24 +694,24 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			String sql = CustomSQLUtil.get(FIND_BY_C_N_S_P);
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar("roleName", Type.STRING);
-			q.addScalar("actionId", Type.STRING);
+			sqlQuery.addScalar("roleName", Type.STRING);
+			sqlQuery.addScalar("actionId", Type.STRING);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(companyId);
-			qPos.add(name);
-			qPos.add(scope);
-			qPos.add(primKey);
+			queryPos.add(companyId);
+			queryPos.add(name);
+			queryPos.add(scope);
+			queryPos.add(primKey);
 
 			Map<String, List<String>> roleMap = new HashMap<>();
 
-			Iterator<Object[]> itr = q.iterate();
+			Iterator<Object[]> iterator = sqlQuery.iterate();
 
-			while (itr.hasNext()) {
-				Object[] array = itr.next();
+			while (iterator.hasNext()) {
+				Object[] array = iterator.next();
 
 				String roleName = (String)array[0];
 				String actionId = (String)array[1];
@@ -723,8 +729,8 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			return roleMap;
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -743,28 +749,28 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			String sql = CustomSQLUtil.get(FIND_BY_C_N_S_P_A);
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addEntity("Role_", RoleImpl.class);
+			sqlQuery.addEntity("Role_", RoleImpl.class);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(companyId);
-			qPos.add(name);
-			qPos.add(scope);
-			qPos.add(primKey);
+			queryPos.add(companyId);
+			queryPos.add(name);
+			queryPos.add(scope);
+			queryPos.add(primKey);
 
 			ResourceAction resourceAction =
 				ResourceActionLocalServiceUtil.getResourceAction(
 					name, actionId);
 
-			qPos.add(resourceAction.getBitwiseValue());
-			qPos.add(resourceAction.getBitwiseValue());
+			queryPos.add(resourceAction.getBitwiseValue());
+			queryPos.add(resourceAction.getBitwiseValue());
 
-			return q.list(true);
+			return sqlQuery.list(true);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -817,31 +823,31 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 					new long[] {0}, null);
 			}
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
+			sqlQuery.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(companyId);
-			qPos.add(keywordsArray, 2);
-			qPos.add(keywordsArray, 2);
+			queryPos.add(companyId);
+			queryPos.add(keywordsArray, 2);
+			queryPos.add(keywordsArray, 2);
 
 			for (String excludedName : excludedNames) {
-				qPos.add(excludedName);
+				queryPos.add(excludedName);
 			}
 
-			qPos.add(types);
-			qPos.add(ClassNameLocalServiceUtil.getClassNameId(Team.class));
-			qPos.add(excludedTeamRoleId);
-			qPos.add(teamGroupId);
-			qPos.add(keywordsArray, 2);
-			qPos.add(keywordsArray, 2);
+			queryPos.add(types);
+			queryPos.add(ClassNameLocalServiceUtil.getClassNameId(Team.class));
+			queryPos.add(excludedTeamRoleId);
+			queryPos.add(teamGroupId);
+			queryPos.add(keywordsArray, 2);
+			queryPos.add(keywordsArray, 2);
 
-			Iterator<Long> itr = q.iterate();
+			Iterator<Long> iterator = sqlQuery.iterate();
 
-			if (itr.hasNext()) {
-				Long count = itr.next();
+			if (iterator.hasNext()) {
+				Long count = iterator.next();
 
 				if (count != null) {
 					return count.intValue();
@@ -850,8 +856,8 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			return 0;
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -870,12 +876,23 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 			types = new Integer[0];
 		}
 
+		if (params == null) {
+			params = new LinkedHashMap<>();
+		}
+
 		Session session = null;
 
 		try {
 			session = openSession();
 
 			String sql = CustomSQLUtil.get(COUNT_BY_C_N_D_T);
+
+			long classNameId = GetterUtil.getLong(
+				params.get("classNameId"),
+				ClassNameLocalServiceUtil.getClassNameId(Role.class));
+
+			sql = StringUtil.replace(
+				sql, "[$CLASS_NAME_ID$]", String.valueOf(classNameId));
 
 			sql = CustomSQLUtil.replaceKeywords(
 				sql, "LOWER(Role_.name)", StringPool.LIKE, false, names);
@@ -895,23 +912,23 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 					new long[] {0}, null);
 			}
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
+			sqlQuery.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			setJoin(qPos, params);
+			setJoin(queryPos, params);
 
-			qPos.add(companyId);
-			qPos.add(names, 2);
-			qPos.add(descriptions, 2);
-			qPos.add(types);
+			queryPos.add(companyId);
+			queryPos.add(names, 2);
+			queryPos.add(descriptions, 2);
+			queryPos.add(types);
 
-			Iterator<Long> itr = q.iterate();
+			Iterator<Long> iterator = sqlQuery.iterate();
 
-			if (itr.hasNext()) {
-				Long count = itr.next();
+			if (iterator.hasNext()) {
+				Long count = iterator.next();
 
 				if (count != null) {
 					return count.intValue();
@@ -920,8 +937,8 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 
 			return 0;
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -974,31 +991,32 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 					new long[] {0}, null);
 			}
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addEntity("Role_", RoleImpl.class);
+			sqlQuery.addEntity("Role_", RoleImpl.class);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(companyId);
-			qPos.add(keywordsArray, 2);
-			qPos.add(keywordsArray, 2);
+			queryPos.add(companyId);
+			queryPos.add(keywordsArray, 2);
+			queryPos.add(keywordsArray, 2);
 
 			for (String excludedName : excludedNames) {
-				qPos.add(excludedName);
+				queryPos.add(excludedName);
 			}
 
-			qPos.add(types);
-			qPos.add(ClassNameLocalServiceUtil.getClassNameId(Team.class));
-			qPos.add(excludedTeamRoleId);
-			qPos.add(teamGroupId);
-			qPos.add(keywordsArray, 2);
-			qPos.add(keywordsArray, 2);
+			queryPos.add(types);
+			queryPos.add(ClassNameLocalServiceUtil.getClassNameId(Team.class));
+			queryPos.add(excludedTeamRoleId);
+			queryPos.add(teamGroupId);
+			queryPos.add(keywordsArray, 2);
+			queryPos.add(keywordsArray, 2);
 
-			return (List<Role>)QueryUtil.list(q, getDialect(), start, end);
+			return (List<Role>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1008,7 +1026,8 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 	protected List<Role> doFindByC_N_D_T(
 		long companyId, String[] names, String[] descriptions, Integer[] types,
 		LinkedHashMap<String, Object> params, boolean andOperator, int start,
-		int end, OrderByComparator<Role> obc, boolean inlineSQLHelper) {
+		int end, OrderByComparator<Role> orderByComparator,
+		boolean inlineSQLHelper) {
 
 		names = CustomSQLUtil.keywords(names, true);
 		descriptions = CustomSQLUtil.keywords(descriptions, true);
@@ -1017,12 +1036,23 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 			types = new Integer[0];
 		}
 
+		if (params == null) {
+			params = new LinkedHashMap<>();
+		}
+
 		Session session = null;
 
 		try {
 			session = openSession();
 
 			String sql = CustomSQLUtil.get(FIND_BY_C_N_D_T);
+
+			long classNameId = GetterUtil.getLong(
+				params.get("classNameId"),
+				ClassNameLocalServiceUtil.getClassNameId(Role.class));
+
+			sql = StringUtil.replace(
+				sql, "[$CLASS_NAME_ID$]", String.valueOf(classNameId));
 
 			sql = CustomSQLUtil.replaceKeywords(
 				sql, "LOWER(Role_.name)", StringPool.LIKE, false, names);
@@ -1033,7 +1063,7 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 			sql = StringUtil.replace(sql, "[$JOIN$]", getJoin(params));
 			sql = StringUtil.replace(sql, "[$WHERE$]", getWhere(params));
 			sql = CustomSQLUtil.replaceAndOperator(sql, andOperator);
-			sql = CustomSQLUtil.replaceOrderBy(sql, obc);
+			sql = CustomSQLUtil.replaceOrderBy(sql, orderByComparator);
 
 			if (inlineSQLHelper &&
 				InlineSQLHelperUtil.isEnabled(companyId, 0)) {
@@ -1043,23 +1073,24 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 					new long[] {0}, null);
 			}
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addEntity("Role_", RoleImpl.class);
+			sqlQuery.addEntity("Role_", RoleImpl.class);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			setJoin(qPos, params);
+			setJoin(queryPos, params);
 
-			qPos.add(companyId);
-			qPos.add(names, 2);
-			qPos.add(descriptions, 2);
-			qPos.add(types);
+			queryPos.add(companyId);
+			queryPos.add(names, 2);
+			queryPos.add(descriptions, 2);
+			queryPos.add(types);
 
-			return (List<Role>)QueryUtil.list(q, getDialect(), start, end);
+			return (List<Role>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1113,16 +1144,21 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler(groupIds.length * 3 - 1);
+		StringBundler sb = new StringBundler((groupIds.length * 3) + 1);
+
+		sb.append(StringPool.OPEN_PARENTHESIS);
 
 		for (int i = 0; i < groupIds.length; i++) {
 			sb.append(table);
-			sb.append(".groupId = ?");
+			sb.append(".groupId = ");
+			sb.append(groupIds[i]);
 
 			if ((i + 1) < groupIds.length) {
 				sb.append(" OR ");
 			}
 		}
+
+		sb.append(StringPool.CLOSE_PARENTHESIS);
 
 		return sb.toString();
 	}
@@ -1219,27 +1255,31 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 	}
 
 	protected void setJoin(
-		QueryPos qPos, LinkedHashMap<String, Object> params) {
+		QueryPos queryPos, LinkedHashMap<String, Object> params) {
 
 		if (params == null) {
 			return;
 		}
 
 		for (Map.Entry<String, Object> entry : params.entrySet()) {
+			if (Objects.equals(entry.getKey(), "classNameId")) {
+				continue;
+			}
+
 			Object value = entry.getValue();
 
 			if (value instanceof Long) {
 				Long valueLong = (Long)value;
 
 				if (Validator.isNotNull(valueLong)) {
-					qPos.add(valueLong);
+					queryPos.add(valueLong);
 				}
 			}
 			else if (value instanceof String) {
 				String valueString = (String)value;
 
 				if (Validator.isNotNull(valueString)) {
-					qPos.add(valueString);
+					queryPos.add(valueString);
 				}
 			}
 		}

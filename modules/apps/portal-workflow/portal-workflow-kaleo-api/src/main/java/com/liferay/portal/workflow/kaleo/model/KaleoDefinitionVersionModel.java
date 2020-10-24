@@ -45,7 +45,7 @@ public interface KaleoDefinitionVersionModel
 	extends BaseModel<KaleoDefinitionVersion>, GroupedModel, LocalizedModel,
 			MVCCModel, ShardedModel, WorkflowedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo definition version model instance should use the {@link KaleoDefinitionVersion} interface instead.
@@ -272,6 +272,20 @@ public interface KaleoDefinitionVersionModel
 	 */
 	@Override
 	public void setModifiedDate(Date modifiedDate);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo definition version.
+	 *
+	 * @return the kaleo definition ID of this kaleo definition version
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo definition version.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo definition version
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the name of this kaleo definition version.

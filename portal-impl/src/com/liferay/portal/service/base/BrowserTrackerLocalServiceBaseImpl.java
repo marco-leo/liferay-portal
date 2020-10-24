@@ -14,6 +14,7 @@
 
 package com.liferay.portal.service.base;
 
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -35,6 +36,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.BrowserTrackerLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.BrowserTrackerPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -61,7 +63,7 @@ public abstract class BrowserTrackerLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements BrowserTrackerLocalService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>BrowserTrackerLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.BrowserTrackerLocalServiceUtil</code>.
@@ -69,6 +71,10 @@ public abstract class BrowserTrackerLocalServiceBaseImpl
 
 	/**
 	 * Adds the browser tracker to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BrowserTrackerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param browserTracker the browser tracker
 	 * @return the browser tracker that was added
@@ -96,6 +102,10 @@ public abstract class BrowserTrackerLocalServiceBaseImpl
 	/**
 	 * Deletes the browser tracker with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BrowserTrackerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param browserTrackerId the primary key of the browser tracker
 	 * @return the browser tracker that was removed
 	 * @throws PortalException if a browser tracker with the primary key could not be found
@@ -111,6 +121,10 @@ public abstract class BrowserTrackerLocalServiceBaseImpl
 	/**
 	 * Deletes the browser tracker from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BrowserTrackerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param browserTracker the browser tracker
 	 * @return the browser tracker that was removed
 	 */
@@ -118,6 +132,11 @@ public abstract class BrowserTrackerLocalServiceBaseImpl
 	@Override
 	public BrowserTracker deleteBrowserTracker(BrowserTracker browserTracker) {
 		return browserTrackerPersistence.remove(browserTracker);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return browserTrackerPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -272,6 +291,17 @@ public abstract class BrowserTrackerLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return browserTrackerPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -279,6 +309,14 @@ public abstract class BrowserTrackerLocalServiceBaseImpl
 			(BrowserTracker)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<BrowserTracker> getBasePersistence() {
+		return browserTrackerPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -314,6 +352,10 @@ public abstract class BrowserTrackerLocalServiceBaseImpl
 
 	/**
 	 * Updates the browser tracker in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BrowserTrackerLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param browserTracker the browser tracker
 	 * @return the browser tracker that was updated
@@ -435,8 +477,8 @@ public abstract class BrowserTrackerLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

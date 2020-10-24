@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -44,6 +46,7 @@ public class DDMStructureLayoutWrapper
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
 		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("uuid", getUuid());
 		attributes.put("structureLayoutId", getStructureLayoutId());
 		attributes.put("groupId", getGroupId());
@@ -68,6 +71,12 @@ public class DDMStructureLayoutWrapper
 
 		if (mvccVersion != null) {
 			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
 		}
 
 		String uuid = (String)attributes.get("uuid");
@@ -201,9 +210,33 @@ public class DDMStructureLayoutWrapper
 		return model.getCreateDate();
 	}
 
+	/**
+	 * Returns the ct collection ID of this ddm structure layout.
+	 *
+	 * @return the ct collection ID of this ddm structure layout
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
+	}
+
 	@Override
 	public DDMFormLayout getDDMFormLayout() {
 		return model.getDDMFormLayout();
+	}
+
+	@Override
+	public DDMStructure getDDMStructure()
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return model.getDDMStructure();
+	}
+
+	@Override
+	public long getDDMStructureId()
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return model.getDDMStructureId();
 	}
 
 	@Override
@@ -483,11 +516,6 @@ public class DDMStructureLayoutWrapper
 		return model.getUuid();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a ddm structure layout model instance should use the <code>DDMStructureLayout</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -541,6 +569,16 @@ public class DDMStructureLayoutWrapper
 	@Override
 	public void setCreateDate(Date createDate) {
 		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets the ct collection ID of this ddm structure layout.
+	 *
+	 * @param ctCollectionId the ct collection ID of this ddm structure layout
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -791,6 +829,20 @@ public class DDMStructureLayoutWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
+	}
+
+	@Override
+	public Map<String, Function<DDMStructureLayout, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<DDMStructureLayout, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

@@ -15,6 +15,7 @@
 package com.liferay.document.library.google.docs.internal.util;
 
 import com.liferay.counter.kernel.service.CounterLocalServiceUtil;
+import com.liferay.document.library.google.docs.internal.util.constants.GoogleDocsConstants;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryMetadata;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
@@ -84,8 +85,8 @@ public class GoogleDocsMetadataHelper {
 			_ddmStructure = getGoogleDocsDDMStructure(
 				dlFileEntry.getDLFileEntryType());
 		}
-		catch (PortalException pe) {
-			throw new SystemException(pe);
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
 		}
 	}
 
@@ -108,8 +109,8 @@ public class GoogleDocsMetadataHelper {
 			_ddmStructure = getGoogleDocsDDMStructure(
 				dlFileVersion.getDLFileEntryType());
 		}
-		catch (PortalException pe) {
-			throw new SystemException(pe);
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
 		}
 	}
 
@@ -204,11 +205,11 @@ public class GoogleDocsMetadataHelper {
 				_dlFileEntryMetadataLocalService.addDLFileEntryMetadata(
 					_dlFileEntryMetadata);
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			throw new SystemException(
 				"Unable to add DDM fields for file version " +
 					_dlFileVersion.getFileVersionId(),
-				pe);
+				portalException);
 		}
 	}
 
@@ -257,11 +258,11 @@ public class GoogleDocsMetadataHelper {
 				_fieldsMap.put(field.getName(), field);
 			}
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			throw new SystemException(
 				"Unable to load DDM fields for file version " +
 					_dlFileVersion.getFileVersionId(),
-				pe);
+				portalException);
 		}
 	}
 

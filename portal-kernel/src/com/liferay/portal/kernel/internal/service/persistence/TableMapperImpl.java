@@ -269,11 +269,12 @@ public class TableMapperImpl<L extends BaseModel<L>, R extends BaseModel<R>>
 
 	@Override
 	public List<L> getLeftBaseModels(
-		long rightPrimaryKey, int start, int end, OrderByComparator<L> obc) {
+		long rightPrimaryKey, int start, int end,
+		OrderByComparator<L> orderByComparator) {
 
 		return getBaseModels(
 			rightToLeftPortalCache, getLeftPrimaryKeysSqlQuery, rightPrimaryKey,
-			leftBasePersistence, start, end, obc);
+			leftBasePersistence, start, end, orderByComparator);
 	}
 
 	@Override
@@ -290,11 +291,12 @@ public class TableMapperImpl<L extends BaseModel<L>, R extends BaseModel<R>>
 
 	@Override
 	public List<R> getRightBaseModels(
-		long leftPrimaryKey, int start, int end, OrderByComparator<R> obc) {
+		long leftPrimaryKey, int start, int end,
+		OrderByComparator<R> orderByComparator) {
 
 		return getBaseModels(
 			leftToRightPortalCache, getRightPrimaryKeysSqlQuery, leftPrimaryKey,
-			rightBasePersistence, start, end, obc);
+			rightBasePersistence, start, end, orderByComparator);
 	}
 
 	@Override
@@ -364,8 +366,8 @@ public class TableMapperImpl<L extends BaseModel<L>, R extends BaseModel<R>>
 		try {
 			rowCount = deleteSqlUpdate.update(masterPrimaryKey);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 
 		if ((masterModelListeners.length > 0) ||
@@ -397,7 +399,7 @@ public class TableMapperImpl<L extends BaseModel<L>, R extends BaseModel<R>>
 		PortalCache<Long, long[]> portalCache,
 		MappingSqlQuery<Long> mappingSqlQuery, long masterPrimaryKey,
 		BasePersistence<T> slaveBasePersistence, int start, int end,
-		OrderByComparator<T> obc) {
+		OrderByComparator<T> orderByComparator) {
 
 		long[] slavePrimaryKeys = getPrimaryKeys(
 			portalCache, mappingSqlQuery, masterPrimaryKey, true);
@@ -414,12 +416,12 @@ public class TableMapperImpl<L extends BaseModel<L>, R extends BaseModel<R>>
 					slaveBasePersistence.findByPrimaryKey(slavePrimaryKey));
 			}
 		}
-		catch (NoSuchModelException nsme) {
-			throw new SystemException(nsme);
+		catch (NoSuchModelException noSuchModelException) {
+			throw new SystemException(noSuchModelException);
 		}
 
-		if (obc != null) {
-			Collections.sort(slaveBaseModels, obc);
+		if (orderByComparator != null) {
+			Collections.sort(slaveBaseModels, orderByComparator);
 		}
 
 		return ListUtil.subList(slaveBaseModels, start, end);
@@ -438,8 +440,8 @@ public class TableMapperImpl<L extends BaseModel<L>, R extends BaseModel<R>>
 			try {
 				primaryKeysList = mappingSqlQuery.execute(masterPrimaryKey);
 			}
-			catch (Exception e) {
-				throw new SystemException(e);
+			catch (Exception exception) {
+				throw new SystemException(exception);
 			}
 
 			primaryKeys = new long[primaryKeysList.size()];
@@ -469,8 +471,8 @@ public class TableMapperImpl<L extends BaseModel<L>, R extends BaseModel<R>>
 				counts = containsTableMappingSQL.execute(
 					leftPrimaryKey, rightPrimaryKey);
 			}
-			catch (Exception e) {
-				throw new SystemException(e);
+			catch (Exception exception) {
+				throw new SystemException(exception);
 			}
 
 			if (counts.isEmpty()) {
@@ -599,8 +601,8 @@ public class TableMapperImpl<L extends BaseModel<L>, R extends BaseModel<R>>
 			addTableMappingSqlUpdate.update(
 				companyId, leftPrimaryKey, rightPrimaryKey);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 
 		for (ModelListener<L> leftModelListener : leftModelListeners) {
@@ -639,8 +641,8 @@ public class TableMapperImpl<L extends BaseModel<L>, R extends BaseModel<R>>
 			rowCount = deleteTableMappingSqlUpdate.update(
 				leftPrimaryKey, rightPrimaryKey);
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 
 		if (rowCount > 0) {

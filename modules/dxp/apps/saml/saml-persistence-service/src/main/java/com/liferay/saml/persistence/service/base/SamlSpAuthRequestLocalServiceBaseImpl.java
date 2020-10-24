@@ -14,6 +14,7 @@
 
 package com.liferay.saml.persistence.service.base;
 
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -33,6 +34,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -70,7 +72,7 @@ public abstract class SamlSpAuthRequestLocalServiceBaseImpl
 	implements AopService, IdentifiableOSGiService,
 			   SamlSpAuthRequestLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>SamlSpAuthRequestLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.saml.persistence.service.SamlSpAuthRequestLocalServiceUtil</code>.
@@ -78,6 +80,10 @@ public abstract class SamlSpAuthRequestLocalServiceBaseImpl
 
 	/**
 	 * Adds the saml sp auth request to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlSpAuthRequestLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param samlSpAuthRequest the saml sp auth request
 	 * @return the saml sp auth request that was added
@@ -109,6 +115,10 @@ public abstract class SamlSpAuthRequestLocalServiceBaseImpl
 	/**
 	 * Deletes the saml sp auth request with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlSpAuthRequestLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param samlSpAuthnRequestId the primary key of the saml sp auth request
 	 * @return the saml sp auth request that was removed
 	 * @throws PortalException if a saml sp auth request with the primary key could not be found
@@ -124,6 +134,10 @@ public abstract class SamlSpAuthRequestLocalServiceBaseImpl
 	/**
 	 * Deletes the saml sp auth request from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlSpAuthRequestLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param samlSpAuthRequest the saml sp auth request
 	 * @return the saml sp auth request that was removed
 	 */
@@ -133,6 +147,11 @@ public abstract class SamlSpAuthRequestLocalServiceBaseImpl
 		SamlSpAuthRequest samlSpAuthRequest) {
 
 		return samlSpAuthRequestPersistence.remove(samlSpAuthRequest);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return samlSpAuthRequestPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -293,6 +312,17 @@ public abstract class SamlSpAuthRequestLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return samlSpAuthRequestPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -300,6 +330,14 @@ public abstract class SamlSpAuthRequestLocalServiceBaseImpl
 			(SamlSpAuthRequest)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<SamlSpAuthRequest> getBasePersistence() {
+		return samlSpAuthRequestPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -335,6 +373,10 @@ public abstract class SamlSpAuthRequestLocalServiceBaseImpl
 
 	/**
 	 * Updates the saml sp auth request in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlSpAuthRequestLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param samlSpAuthRequest the saml sp auth request
 	 * @return the saml sp auth request that was updated
@@ -398,8 +440,8 @@ public abstract class SamlSpAuthRequestLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

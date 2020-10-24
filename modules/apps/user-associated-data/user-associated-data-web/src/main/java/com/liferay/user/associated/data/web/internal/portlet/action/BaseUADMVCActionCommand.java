@@ -160,7 +160,7 @@ public abstract class BaseUADMVCActionCommand extends BaseMVCActionCommand {
 		for (String key : parameterMap.keySet()) {
 			if (key.startsWith("uadRegistryKey__")) {
 				entityTypes.add(
-					StringUtil.replace(key, "uadRegistryKey__", ""));
+					StringUtil.removeSubstring(key, "uadRegistryKey__"));
 			}
 		}
 
@@ -193,14 +193,14 @@ public abstract class BaseUADMVCActionCommand extends BaseMVCActionCommand {
 		return selectedUserHelper.getSelectedUserId(actionRequest);
 	}
 
-	protected UADAnonymizer getUADAnonymizer(
+	protected UADAnonymizer<?> getUADAnonymizer(
 		ActionRequest actionRequest, String entityType) {
 
 		return uadRegistry.getUADAnonymizer(
 			getUADRegistryKey(actionRequest, entityType));
 	}
 
-	protected UADDisplay getUADDisplay(
+	protected UADDisplay<?> getUADDisplay(
 		ActionRequest actionRequest, String entityType) {
 
 		return uadRegistry.getUADDisplay(

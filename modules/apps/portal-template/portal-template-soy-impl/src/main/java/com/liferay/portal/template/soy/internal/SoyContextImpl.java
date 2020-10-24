@@ -63,8 +63,9 @@ public class SoyContextImpl implements SoyContext {
 	public SoyContextImpl(
 		Map<String, Object> context, Set<String> restrictedVariables) {
 
-		_map = new HashMap<>(context);
 		_restrictedVariables = restrictedVariables;
+
+		_map = new HashMap<>(context);
 	}
 
 	@Override
@@ -158,8 +159,8 @@ public class SoyContextImpl implements SoyContext {
 			try {
 				value = unsafeSupplier.get();
 			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
 			}
 		}
 

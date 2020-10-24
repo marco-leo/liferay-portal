@@ -134,7 +134,8 @@ public class ManagementToolbarTag extends BaseClayTag {
 			setShowResultsBar(true);
 		}
 		else {
-			List filterLabels = (List)context.get("filterLabels");
+			List<LabelItem> filterLabels = (List<LabelItem>)context.get(
+				"filterLabels");
 
 			if ((filterLabels != null) && !filterLabels.isEmpty()) {
 				setShowResultsBar(true);
@@ -162,15 +163,6 @@ public class ManagementToolbarTag extends BaseClayTag {
 
 	public void setActionDropdownItems(List<DropdownItem> actionDropdownItems) {
 		putValue("actionItems", actionDropdownItems);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #setDefaultEventHandler(String)}
-	 */
-	@Deprecated
-	public void setActionHandler(String actionHandler) {
-		putValue("actionHandler", actionHandler);
 	}
 
 	public void setCheckboxStatus(String checkboxStatus) {

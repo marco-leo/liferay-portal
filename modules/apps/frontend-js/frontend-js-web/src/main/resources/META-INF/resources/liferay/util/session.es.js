@@ -48,10 +48,10 @@ export function getSessionValue(key) {
 
 	return fetch(getSessionClickURL(), {
 		body: formData,
-		method: 'POST'
+		method: 'POST',
 	})
-		.then(response => response.text())
-		.then(responseText => {
+		.then((response) => response.text())
+		.then((responseText) => {
 			if (responseText.startsWith(TOKEN_SERIALIZE)) {
 				const value = responseText.substring(TOKEN_SERIALIZE.length);
 
@@ -80,6 +80,6 @@ export function setSessionValue(key, value) {
 
 	return fetch(getSessionClickURL(), {
 		body: formData,
-		method: 'POST'
+		method: 'POST',
 	});
 }

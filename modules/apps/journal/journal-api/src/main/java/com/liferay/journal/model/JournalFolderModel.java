@@ -46,7 +46,7 @@ public interface JournalFolderModel
 			MVCCModel, ShardedModel, StagedGroupedModel, TrashedModel,
 			WorkflowedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a journal folder model instance should use the {@link JournalFolder} interface instead.

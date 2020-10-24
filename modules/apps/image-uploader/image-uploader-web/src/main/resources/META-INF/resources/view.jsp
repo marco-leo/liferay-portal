@@ -36,7 +36,7 @@ String randomNamespace = ParamUtil.getString(request, "randomNamespace");
 		<%
 		FileEntry fileEntry = (FileEntry)SessionMessages.get(renderRequest, "imageUploaded");
 
-		previewURL = HttpUtil.addParameter(previewURL, renderResponse.getNamespace() + "tempImageFileName", tempImageFileName);
+		previewURL = HttpUtil.addParameter(previewURL, liferayPortletResponse.getNamespace() + "tempImageFileName", tempImageFileName);
 		%>
 
 		<aui:script>
@@ -66,7 +66,7 @@ String randomNamespace = ParamUtil.getString(request, "randomNamespace");
 			<aui:input name="imageUploaded" type="hidden" value='<%= SessionMessages.contains(renderRequest, "imageUploaded") %>' />
 
 			<div class="dialog-body">
-				<div class="container-fluid-1280">
+				<clay:container-fluid>
 
 					<%
 					DLConfiguration dlConfiguration = ConfigurationProviderUtil.getSystemConfiguration(DLConfiguration.class);
@@ -77,20 +77,20 @@ String randomNamespace = ParamUtil.getString(request, "randomNamespace");
 					</liferay-ui:error>
 
 					<liferay-ui:error exception="<%= FileSizeException.class %>">
-						<liferay-ui:message arguments="<%= TextFormatter.formatStorageSize(maxFileSize, locale) %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
+						<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(maxFileSize, locale) %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
 					</liferay-ui:error>
 
 					<liferay-ui:error exception="<%= NoSuchFileException.class %>" message="an-unexpected-error-occurred-while-uploading-your-file" />
 					<liferay-ui:error exception="<%= UploadException.class %>" message="an-unexpected-error-occurred-while-uploading-your-file" />
 
 					<liferay-ui:error exception="<%= UploadRequestSizeException.class %>">
-						<liferay-ui:message arguments="<%= TextFormatter.formatStorageSize(maxFileSize, locale) %>" key="request-is-larger-than-x-and-could-not-be-processed" translateArguments="<%= false %>" />
+						<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(maxFileSize, locale) %>" key="request-is-larger-than-x-and-could-not-be-processed" translateArguments="<%= false %>" />
 					</liferay-ui:error>
 
 					<aui:fieldset-group markupView="lexicon">
 						<aui:fieldset cssClass="lfr-portrait-editor">
 							<h4 class="text-default">
-								<liferay-ui:message arguments="<%= TextFormatter.formatStorageSize(maxFileSize, locale) %>" key="upload-images-no-larger-than-x" />
+								<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(maxFileSize, locale) %>" key="upload-images-no-larger-than-x" />
 							</h4>
 
 							<div class="lfr-change-logo lfr-portrait-preview" id="<portlet:namespace />portraitPreview">
@@ -114,7 +114,7 @@ String randomNamespace = ParamUtil.getString(request, "randomNamespace");
 							</div>
 						</aui:fieldset>
 					</aui:fieldset-group>
-				</div>
+				</clay:container-fluid>
 			</div>
 
 			<aui:button-row>
@@ -125,13 +125,13 @@ String randomNamespace = ParamUtil.getString(request, "randomNamespace");
 		</aui:form>
 
 		<script>
-			(function() {
+			(function () {
 				var uploadImageButton = document.getElementById(
 					'<portlet:namespace />uploadImage'
 				);
 
 				if (uploadImageButton) {
-					uploadImageButton.addEventListener('keydown', function(event) {
+					uploadImageButton.addEventListener('keydown', function (event) {
 						event.preventDefault();
 
 						if (event.key == 'Enter' || event.key == ' ') {
@@ -165,11 +165,11 @@ String randomNamespace = ParamUtil.getString(request, "randomNamespace");
 				maxFileSize: <%= maxFileSize %>,
 				namespace: '<portlet:namespace />',
 				on: {
-					uploadComplete: A.bind('val', imageUploadedInput, true)
+					uploadComplete: A.bind('val', imageUploadedInput, true),
 				},
 				preserveRatio: <%= preserveRatio %>,
 				previewURL: '<%= previewURL %>',
-				uploadURL: '<%= addTempImageURL %>'
+				uploadURL: '<%= addTempImageURL %>',
 			});
 
 			if (Liferay.Util.getTop() !== A.config.win) {

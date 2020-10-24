@@ -30,11 +30,6 @@ public class WikiNodeServiceWrapper
 		_wikiNodeService = wikiNodeService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link WikiNodeServiceUtil} to access the wiki node remote service. Add custom service methods to <code>com.liferay.wiki.service.impl.WikiNodeServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.wiki.model.WikiNode addNode(
 			String name, String description,
@@ -99,9 +94,10 @@ public class WikiNodeServiceWrapper
 	public java.util.List<com.liferay.wiki.model.WikiNode> getNodes(
 		long groupId, int status, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.wiki.model.WikiNode> obc) {
+			<com.liferay.wiki.model.WikiNode> orderByComparator) {
 
-		return _wikiNodeService.getNodes(groupId, status, start, end, obc);
+		return _wikiNodeService.getNodes(
+			groupId, status, start, end, orderByComparator);
 	}
 
 	@Override

@@ -54,10 +54,12 @@ public class BookmarksEntryAssetRenderer
 
 	public BookmarksEntryAssetRenderer(
 		BookmarksEntry entry,
-		ModelResourcePermission<BookmarksEntry> modelResourcePermission) {
+		ModelResourcePermission<BookmarksEntry>
+			bookmarksEntryModelResourcePermission) {
 
 		_entry = entry;
-		_bookmarksEntryModelResourcePermission = modelResourcePermission;
+		_bookmarksEntryModelResourcePermission =
+			bookmarksEntryModelResourcePermission;
 	}
 
 	@Override
@@ -191,9 +193,9 @@ public class BookmarksEntryAssetRenderer
 			return _bookmarksEntryModelResourcePermission.contains(
 				permissionChecker, _entry, ActionKeys.UPDATE);
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(portalException, portalException);
 			}
 
 			return false;
@@ -206,9 +208,9 @@ public class BookmarksEntryAssetRenderer
 			return _bookmarksEntryModelResourcePermission.contains(
 				permissionChecker, _entry, ActionKeys.VIEW);
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(portalException, portalException);
 			}
 
 			return false;

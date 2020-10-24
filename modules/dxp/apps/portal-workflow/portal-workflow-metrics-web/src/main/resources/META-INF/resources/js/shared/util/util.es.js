@@ -41,8 +41,19 @@ const getFormattedPercentage = (number1, number2) => {
  * Return true if number is valid
  * @param {number} number
  */
-const isValidNumber = number => {
+const isValidNumber = (number) => {
 	return !isNaN(number) && number !== Infinity ? true : false;
 };
 
-export {getFormattedPercentage, getPercentage, isValidNumber};
+const capitalize = (str) =>
+	str.replace(/^\w/, (letter) => letter.toUpperCase());
+
+const toUppercase = (str) => (str && str.length ? str.toUpperCase() : str);
+
+export {
+	capitalize,
+	getFormattedPercentage,
+	getPercentage,
+	isValidNumber,
+	toUppercase,
+};

@@ -20,18 +20,24 @@ import com.liferay.expando.kernel.service.persistence.ExpandoRowPersistence;
 import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
 import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
+import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
+import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerRegistryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.exportimport.kernel.service.persistence.ExportImportConfigurationFinder;
 import com.liferay.exportimport.kernel.service.persistence.ExportImportConfigurationPersistence;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdateFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.Conjunction;
+import com.liferay.portal.kernel.dao.orm.Criterion;
 import com.liferay.portal.kernel.dao.orm.DefaultActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.Disjunction;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery;
@@ -39,6 +45,7 @@ import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.Layout;
@@ -49,6 +56,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
 import com.liferay.portal.kernel.service.persistence.GroupFinder;
 import com.liferay.portal.kernel.service.persistence.GroupPersistence;
@@ -69,10 +77,12 @@ import com.liferay.portal.kernel.service.persistence.UserFinder;
 import com.liferay.portal.kernel.service.persistence.UserGroupFinder;
 import com.liferay.portal.kernel.service.persistence.UserGroupPersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
+import com.liferay.portal.kernel.service.persistence.WorkflowDefinitionLinkPersistence;
 import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.ratings.kernel.service.persistence.RatingsStatsPersistence;
 
 import java.io.Serializable;
@@ -96,7 +106,7 @@ public abstract class LayoutLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements IdentifiableOSGiService, LayoutLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>LayoutLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.LayoutLocalServiceUtil</code>.
@@ -104,6 +114,10 @@ public abstract class LayoutLocalServiceBaseImpl
 
 	/**
 	 * Adds the layout to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layout the layout
 	 * @return the layout that was added
@@ -131,6 +145,10 @@ public abstract class LayoutLocalServiceBaseImpl
 	/**
 	 * Deletes the layout with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param plid the primary key of the layout
 	 * @return the layout that was removed
 	 * @throws PortalException if a layout with the primary key could not be found
@@ -144,6 +162,10 @@ public abstract class LayoutLocalServiceBaseImpl
 	/**
 	 * Deletes the layout from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param layout the layout
 	 * @return the layout that was removed
 	 * @throws PortalException
@@ -152,6 +174,11 @@ public abstract class LayoutLocalServiceBaseImpl
 	@Override
 	public Layout deleteLayout(Layout layout) throws PortalException {
 		return layoutPersistence.remove(layout);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return layoutPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -350,8 +377,46 @@ public abstract class LayoutLocalServiceBaseImpl
 
 				@Override
 				public void addCriteria(DynamicQuery dynamicQuery) {
-					portletDataContext.addDateRangeCriteria(
-						dynamicQuery, "modifiedDate");
+					Criterion modifiedDateCriterion =
+						portletDataContext.getDateRangeCriteria("modifiedDate");
+
+					if (modifiedDateCriterion != null) {
+						Conjunction conjunction =
+							RestrictionsFactoryUtil.conjunction();
+
+						conjunction.add(modifiedDateCriterion);
+
+						Disjunction disjunction =
+							RestrictionsFactoryUtil.disjunction();
+
+						disjunction.add(
+							RestrictionsFactoryUtil.gtProperty(
+								"modifiedDate", "lastPublishDate"));
+
+						Property lastPublishDateProperty =
+							PropertyFactoryUtil.forName("lastPublishDate");
+
+						disjunction.add(lastPublishDateProperty.isNull());
+
+						conjunction.add(disjunction);
+
+						modifiedDateCriterion = conjunction;
+					}
+
+					Criterion statusDateCriterion =
+						portletDataContext.getDateRangeCriteria("statusDate");
+
+					if ((modifiedDateCriterion != null) &&
+						(statusDateCriterion != null)) {
+
+						Disjunction disjunction =
+							RestrictionsFactoryUtil.disjunction();
+
+						disjunction.add(modifiedDateCriterion);
+						disjunction.add(statusDateCriterion);
+
+						dynamicQuery.add(disjunction);
+					}
 
 					StagedModelType stagedModelType =
 						exportActionableDynamicQuery.getStagedModelType();
@@ -375,6 +440,26 @@ public abstract class LayoutLocalServiceBaseImpl
 								StagedModelType.REFERRER_CLASS_NAME_ID_ANY) {
 
 						dynamicQuery.add(classNameIdProperty.isNotNull());
+					}
+
+					Property workflowStatusProperty =
+						PropertyFactoryUtil.forName("status");
+
+					if (portletDataContext.isInitialPublication()) {
+						dynamicQuery.add(
+							workflowStatusProperty.ne(
+								WorkflowConstants.STATUS_IN_TRASH));
+					}
+					else {
+						StagedModelDataHandler<?> stagedModelDataHandler =
+							StagedModelDataHandlerRegistryUtil.
+								getStagedModelDataHandler(
+									Layout.class.getName());
+
+						dynamicQuery.add(
+							workflowStatusProperty.in(
+								stagedModelDataHandler.
+									getExportableStatuses()));
 					}
 				}
 
@@ -410,12 +495,30 @@ public abstract class LayoutLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return layoutPersistence.create(((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
 		return layoutLocalService.deleteLayout((Layout)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<Layout> getBasePersistence() {
+		return layoutPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -501,6 +604,10 @@ public abstract class LayoutLocalServiceBaseImpl
 
 	/**
 	 * Updates the layout in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layout the layout
 	 * @return the layout that was updated
@@ -1474,6 +1581,53 @@ public abstract class LayoutLocalServiceBaseImpl
 		this.userGroupFinder = userGroupFinder;
 	}
 
+	/**
+	 * Returns the workflow definition link local service.
+	 *
+	 * @return the workflow definition link local service
+	 */
+	public com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService
+		getWorkflowDefinitionLinkLocalService() {
+
+		return workflowDefinitionLinkLocalService;
+	}
+
+	/**
+	 * Sets the workflow definition link local service.
+	 *
+	 * @param workflowDefinitionLinkLocalService the workflow definition link local service
+	 */
+	public void setWorkflowDefinitionLinkLocalService(
+		com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService
+			workflowDefinitionLinkLocalService) {
+
+		this.workflowDefinitionLinkLocalService =
+			workflowDefinitionLinkLocalService;
+	}
+
+	/**
+	 * Returns the workflow definition link persistence.
+	 *
+	 * @return the workflow definition link persistence
+	 */
+	public WorkflowDefinitionLinkPersistence
+		getWorkflowDefinitionLinkPersistence() {
+
+		return workflowDefinitionLinkPersistence;
+	}
+
+	/**
+	 * Sets the workflow definition link persistence.
+	 *
+	 * @param workflowDefinitionLinkPersistence the workflow definition link persistence
+	 */
+	public void setWorkflowDefinitionLinkPersistence(
+		WorkflowDefinitionLinkPersistence workflowDefinitionLinkPersistence) {
+
+		this.workflowDefinitionLinkPersistence =
+			workflowDefinitionLinkPersistence;
+	}
+
 	public void afterPropertiesSet() {
 		persistedModelLocalServiceRegistry.register(
 			"com.liferay.portal.kernel.model.Layout", layoutLocalService);
@@ -1535,8 +1689,8 @@ public abstract class LayoutLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -1736,6 +1890,17 @@ public abstract class LayoutLocalServiceBaseImpl
 
 	@BeanReference(type = UserGroupFinder.class)
 	protected UserGroupFinder userGroupFinder;
+
+	@BeanReference(
+		type = com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService.class
+	)
+	protected
+		com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService
+			workflowDefinitionLinkLocalService;
+
+	@BeanReference(type = WorkflowDefinitionLinkPersistence.class)
+	protected WorkflowDefinitionLinkPersistence
+		workflowDefinitionLinkPersistence;
 
 	@BeanReference(type = PersistedModelLocalServiceRegistry.class)
 	protected PersistedModelLocalServiceRegistry

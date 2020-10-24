@@ -15,9 +15,9 @@
 package com.liferay.staging.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationConstants;
 import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationParameterMapFactoryUtil;
 import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationSettingsMapFactoryUtil;
+import com.liferay.exportimport.kernel.configuration.constants.ExportImportConfigurationConstants;
 import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalServiceUtil;
@@ -44,16 +44,18 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 
 import java.io.File;
 import java.io.Serializable;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -79,7 +81,9 @@ public class StagingLocalizationTest {
 	@ClassRule
 	@Rule
 	public static final AggregateTestRule aggregateTestRule =
-		new LiferayIntegrationTestRule();
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(),
+			PermissionCheckerMethodTestRule.INSTANCE);
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
@@ -102,6 +106,8 @@ public class StagingLocalizationTest {
 
 		CompanyTestUtil.resetCompanyLocales(
 			TestPropsValues.getCompanyId(), _locales, LocaleUtil.US);
+
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		_sourceGroup = GroupTestUtil.addGroup();
 		_targetGroup = GroupTestUtil.addGroup();
@@ -157,7 +163,8 @@ public class StagingLocalizationTest {
 			String defaultContentLanguageId)
 		throws Exception {
 
-		GroupTestUtil.enableLocalStaging(_sourceGroup);
+		GroupTestUtil.enableLocalStaging(
+			_sourceGroup, TestPropsValues.getUserId());
 
 		JournalArticle article = JournalTestUtil.addArticle(
 			_sourceGroup.getGroupId(), "Title", "content",
@@ -280,13 +287,13 @@ public class StagingLocalizationTest {
 			try {
 				StagingLocalServiceUtil.disableStaging(group, serviceContext);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 			}
 
 			try {
 				GroupLocalServiceUtil.deleteGroup(group);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 			}
 		}
 	}
@@ -302,13 +309,13 @@ public class StagingLocalizationTest {
 	}
 
 	private Map<Locale, String> _prepareNameMap() {
-		return HashMapBuilder.put(
-			LocaleUtil.GERMANY, StringPool.BLANK
-		).put(
-			LocaleUtil.SPAIN, (String)null
-		).put(
-			LocaleUtil.US, RandomTestUtil.randomString()
-		).build();
+		Map<Locale, String> nameMap = new HashMap<>();
+
+		nameMap.put(LocaleUtil.GERMANY, StringPool.BLANK);
+		nameMap.put(LocaleUtil.SPAIN, null);
+		nameMap.put(LocaleUtil.US, RandomTestUtil.randomString());
+
+		return nameMap;
 	}
 
 	private static Set<Locale> _availableLocales;

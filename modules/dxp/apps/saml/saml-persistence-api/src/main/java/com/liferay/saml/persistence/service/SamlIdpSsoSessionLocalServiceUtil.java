@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class SamlIdpSsoSessionLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.saml.persistence.service.impl.SamlIdpSsoSessionLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class SamlIdpSsoSessionLocalServiceUtil {
 
 	/**
 	 * Adds the saml idp sso session to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSsoSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param samlIdpSsoSession the saml idp sso session
 	 * @return the saml idp sso session that was added
@@ -60,6 +64,16 @@ public class SamlIdpSsoSessionLocalServiceUtil {
 
 		return getService().addSamlIdpSsoSession(
 			samlIdpSsoSessionKey, serviceContext);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -92,6 +106,10 @@ public class SamlIdpSsoSessionLocalServiceUtil {
 	/**
 	 * Deletes the saml idp sso session with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSsoSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param samlIdpSsoSessionId the primary key of the saml idp sso session
 	 * @return the saml idp sso session that was removed
 	 * @throws PortalException if a saml idp sso session with the primary key could not be found
@@ -106,6 +124,10 @@ public class SamlIdpSsoSessionLocalServiceUtil {
 	/**
 	 * Deletes the saml idp sso session from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSsoSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param samlIdpSsoSession the saml idp sso session
 	 * @return the saml idp sso session that was removed
 	 */
@@ -115,6 +137,12 @@ public class SamlIdpSsoSessionLocalServiceUtil {
 				samlIdpSsoSession) {
 
 		return getService().deleteSamlIdpSsoSession(samlIdpSsoSession);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -236,6 +264,9 @@ public class SamlIdpSsoSessionLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -300,6 +331,10 @@ public class SamlIdpSsoSessionLocalServiceUtil {
 
 	/**
 	 * Updates the saml idp sso session in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSsoSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param samlIdpSsoSession the saml idp sso session
 	 * @return the saml idp sso session that was updated

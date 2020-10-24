@@ -47,7 +47,7 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionHelper;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
@@ -192,9 +192,9 @@ public class DLFileEntryTrashHandler extends DLBaseTrashHandler {
 		try {
 			return getDLFileEntry(classPK);
 		}
-		catch (PortalException | UnsupportedCapabilityException e) {
+		catch (PortalException | UnsupportedCapabilityException exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
+				_log.debug(exception, exception);
 			}
 
 			return null;
@@ -208,7 +208,7 @@ public class DLFileEntryTrashHandler extends DLBaseTrashHandler {
 		throws PortalException {
 
 		if (trashActionId.equals(TrashActionKeys.MOVE)) {
-			return ModelResourcePermissionHelper.contains(
+			return ModelResourcePermissionUtil.contains(
 				_folderModelResourcePermission, permissionChecker, groupId,
 				classPK, ActionKeys.ADD_DOCUMENT);
 		}
@@ -330,13 +330,13 @@ public class DLFileEntryTrashHandler extends DLBaseTrashHandler {
 		if (Validator.isNotNull(newName) &&
 			!_dlValidator.isValidName(newName)) {
 
-			RestoreEntryException ree = new RestoreEntryException(
-				RestoreEntryException.INVALID_NAME);
+			RestoreEntryException restoreEntryException =
+				new RestoreEntryException(RestoreEntryException.INVALID_NAME);
 
-			ree.setErrorMessage("please-enter-a-valid-name");
-			ree.setTrashEntryId(entryId);
+			restoreEntryException.setErrorMessage("please-enter-a-valid-name");
+			restoreEntryException.setTrashEntryId(entryId);
 
-			throw ree;
+			throw restoreEntryException;
 		}
 
 		DLFileEntry dlFileEntry = getDLFileEntry(classPK);
@@ -355,15 +355,16 @@ public class DLFileEntryTrashHandler extends DLBaseTrashHandler {
 			dlFileEntry.getGroupId(), containerModelId, originalTitle);
 
 		if (duplicateDLFolder != null) {
-			RestoreEntryException ree = new RestoreEntryException(
-				RestoreEntryException.DUPLICATE);
+			RestoreEntryException restoreEntryException =
+				new RestoreEntryException(RestoreEntryException.DUPLICATE);
 
-			ree.setDuplicateEntryId(duplicateDLFolder.getFolderId());
-			ree.setOldName(duplicateDLFolder.getName());
-			ree.setOverridable(false);
-			ree.setTrashEntryId(entryId);
+			restoreEntryException.setDuplicateEntryId(
+				duplicateDLFolder.getFolderId());
+			restoreEntryException.setOldName(duplicateDLFolder.getName());
+			restoreEntryException.setOverridable(false);
+			restoreEntryException.setTrashEntryId(entryId);
 
-			throw ree;
+			throw restoreEntryException;
 		}
 
 		DLFileEntry duplicateDLFileEntry =
@@ -378,14 +379,15 @@ public class DLFileEntryTrashHandler extends DLBaseTrashHandler {
 		}
 
 		if (duplicateDLFileEntry != null) {
-			RestoreEntryException ree = new RestoreEntryException(
-				RestoreEntryException.DUPLICATE);
+			RestoreEntryException restoreEntryException =
+				new RestoreEntryException(RestoreEntryException.DUPLICATE);
 
-			ree.setDuplicateEntryId(duplicateDLFileEntry.getFileEntryId());
-			ree.setOldName(duplicateDLFileEntry.getTitle());
-			ree.setTrashEntryId(entryId);
+			restoreEntryException.setDuplicateEntryId(
+				duplicateDLFileEntry.getFileEntryId());
+			restoreEntryException.setOldName(duplicateDLFileEntry.getTitle());
+			restoreEntryException.setTrashEntryId(entryId);
 
-			throw ree;
+			throw restoreEntryException;
 		}
 	}
 

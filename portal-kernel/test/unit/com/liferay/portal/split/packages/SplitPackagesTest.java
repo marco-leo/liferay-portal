@@ -57,8 +57,7 @@ public class SplitPackagesTest {
 		final Set<Path> ignorePaths = new HashSet<>(
 			Arrays.asList(
 				portalPath.resolve("portal-impl"),
-				portalPath.resolve("portal-test"),
-				portalPath.resolve("portal-test-integration")));
+				portalPath.resolve("portal-test")));
 
 		Files.walkFileTree(
 			portalPath,
@@ -166,9 +165,8 @@ public class SplitPackagesTest {
 						Iterator<Path> iterator = directoryStream.iterator();
 
 						if (iterator.hasNext()) {
-							Path relativePath = path.relativize(dirPath);
-
-							String relativePathString = relativePath.toString();
+							String relativePathString = String.valueOf(
+								path.relativize(dirPath));
 
 							packageNames.add(
 								StringUtil.replace(

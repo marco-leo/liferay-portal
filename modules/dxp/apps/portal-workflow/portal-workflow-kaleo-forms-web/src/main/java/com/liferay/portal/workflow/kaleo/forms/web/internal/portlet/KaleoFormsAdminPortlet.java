@@ -15,12 +15,12 @@
 package com.liferay.portal.workflow.kaleo.forms.web.internal.portlet;
 
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.dynamic.data.lists.constants.DDLRecordConstants;
 import com.liferay.dynamic.data.lists.exception.RecordSetDDMStructureIdException;
 import com.liferay.dynamic.data.lists.exception.RecordSetNameException;
 import com.liferay.dynamic.data.lists.exporter.DDLExporter;
 import com.liferay.dynamic.data.lists.exporter.DDLExporterFactory;
 import com.liferay.dynamic.data.lists.model.DDLRecord;
-import com.liferay.dynamic.data.lists.model.DDLRecordConstants;
 import com.liferay.dynamic.data.lists.model.DDLRecordSet;
 import com.liferay.dynamic.data.lists.service.DDLRecordLocalService;
 import com.liferay.dynamic.data.mapping.exception.RequiredStructureException;
@@ -195,18 +195,19 @@ public class KaleoFormsAdminPortlet extends MVCPortlet {
 				themeDisplay.getCompanyId(), themeDisplay.getUserId(), name,
 				version, false);
 		}
-		catch (Exception e) {
-			if (isSessionErrorException(e)) {
+		catch (Exception exception) {
+			if (isSessionErrorException(exception)) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(e, e);
+					_log.debug(exception, exception);
 				}
 
-				SessionErrors.add(actionRequest, e.getClass(), e);
+				SessionErrors.add(
+					actionRequest, exception.getClass(), exception);
 
 				sendRedirect(actionRequest, actionResponse);
 			}
 			else {
-				throw e;
+				throw exception;
 			}
 		}
 	}
@@ -264,12 +265,12 @@ public class KaleoFormsAdminPortlet extends MVCPortlet {
 
 				TransactionInvokerUtil.invoke(_transactionConfig, callable);
 			}
-			catch (Throwable t) {
-				if (t instanceof PortalException) {
-					throw (PortalException)t;
+			catch (Throwable throwable) {
+				if (throwable instanceof PortalException) {
+					throw (PortalException)throwable;
 				}
 
-				throw new SystemException(t);
+				throw new SystemException(throwable);
 			}
 		}
 	}
@@ -352,15 +353,15 @@ public class KaleoFormsAdminPortlet extends MVCPortlet {
 
 			renderKaleoProcess(renderRequest, renderResponse);
 		}
-		catch (Exception e) {
-			if (e instanceof NoSuchKaleoProcessException ||
-				e instanceof PrincipalException ||
-				e instanceof WorkflowException) {
+		catch (Exception exception) {
+			if (exception instanceof NoSuchKaleoProcessException ||
+				exception instanceof PrincipalException ||
+				exception instanceof WorkflowException) {
 
-				SessionErrors.add(renderRequest, e.getClass());
+				SessionErrors.add(renderRequest, exception.getClass());
 			}
 			else {
-				throw new PortletException(e);
+				throw new PortletException(exception);
 			}
 		}
 
@@ -385,14 +386,14 @@ public class KaleoFormsAdminPortlet extends MVCPortlet {
 				saveInPortletSession(resourceRequest, resourceResponse);
 			}
 		}
-		catch (IOException ioe) {
-			throw ioe;
+		catch (IOException ioException) {
+			throw ioException;
 		}
-		catch (PortletException pe) {
-			throw pe;
+		catch (PortletException portletException) {
+			throw portletException;
 		}
-		catch (Exception e) {
-			throw new PortletException(e);
+		catch (Exception exception) {
+			throw new PortletException(exception);
 		}
 	}
 
@@ -677,7 +678,7 @@ public class KaleoFormsAdminPortlet extends MVCPortlet {
 
 			return rootElement.elementTextTrim("name");
 		}
-		catch (DocumentException de) {
+		catch (DocumentException documentException) {
 			return defaultName;
 		}
 	}
@@ -740,19 +741,19 @@ public class KaleoFormsAdminPortlet extends MVCPortlet {
 	}
 
 	@Override
-	protected boolean isSessionErrorException(Throwable cause) {
-		if (cause instanceof DuplicateKaleoDefinitionNameException ||
-			cause instanceof KaleoDefinitionContentException ||
-			cause instanceof KaleoDefinitionNameException ||
-			cause instanceof KaleoProcessDDMTemplateIdException ||
-			cause instanceof NoSuchDefinitionException ||
-			cause instanceof NoSuchDefinitionVersionException ||
-			cause instanceof RecordSetDDMStructureIdException ||
-			cause instanceof RecordSetNameException ||
-			cause instanceof RequiredStructureException ||
-			cause instanceof RequiredWorkflowDefinitionException ||
-			cause instanceof StructureDefinitionException ||
-			cause instanceof WorkflowException) {
+	protected boolean isSessionErrorException(Throwable throwable) {
+		if (throwable instanceof DuplicateKaleoDefinitionNameException ||
+			throwable instanceof KaleoDefinitionContentException ||
+			throwable instanceof KaleoDefinitionNameException ||
+			throwable instanceof KaleoProcessDDMTemplateIdException ||
+			throwable instanceof NoSuchDefinitionException ||
+			throwable instanceof NoSuchDefinitionVersionException ||
+			throwable instanceof RecordSetDDMStructureIdException ||
+			throwable instanceof RecordSetNameException ||
+			throwable instanceof RequiredStructureException ||
+			throwable instanceof RequiredWorkflowDefinitionException ||
+			throwable instanceof StructureDefinitionException ||
+			throwable instanceof WorkflowException) {
 
 			return true;
 		}
@@ -1065,9 +1066,6 @@ public class KaleoFormsAdminPortlet extends MVCPortlet {
 
 		long ddlRecordId = ParamUtil.getLong(httpServletRequest, "ddlRecordId");
 
-		long ddlRecordSetId = ParamUtil.getLong(
-			httpServletRequest, "ddlRecordSetId");
-
 		long kaleoProcessId = ParamUtil.getLong(
 			httpServletRequest, "kaleoProcessId");
 
@@ -1083,6 +1081,9 @@ public class KaleoFormsAdminPortlet extends MVCPortlet {
 			ddlRecordSet.getDDMStructureId(), StringPool.BLANK, serviceContext);
 
 		if (ddlRecord == null) {
+			long ddlRecordSetId = ParamUtil.getLong(
+				httpServletRequest, "ddlRecordSetId");
+
 			ddlRecord = _ddlRecordLocalService.addRecord(
 				serviceContext.getUserId(), serviceContext.getScopeGroupId(),
 				ddlRecordSetId, DDLRecordConstants.DISPLAY_INDEX_DEFAULT,

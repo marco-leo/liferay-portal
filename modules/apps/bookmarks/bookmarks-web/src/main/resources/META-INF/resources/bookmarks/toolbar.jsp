@@ -17,7 +17,7 @@
 <%@ include file="/bookmarks/init.jsp" %>
 
 <%
-BookmarksManagementToolbarDisplayContext bookmarksManagementToolbarDisplayContext = new BookmarksManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, bookmarksGroupServiceOverriddenConfiguration, portalPreferences, trashHelper);
+BookmarksManagementToolbarDisplayContext bookmarksManagementToolbarDisplayContext = new BookmarksManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, bookmarksGroupServiceOverriddenConfiguration, portalPreferences, trashHelper);
 %>
 
 <clay:management-toolbar
@@ -39,7 +39,7 @@ BookmarksManagementToolbarDisplayContext bookmarksManagementToolbarDisplayContex
 />
 
 <aui:script>
-	var deleteEntries = function() {
+	var deleteEntries = function () {
 		if (
 			<%= trashHelper.isTrashEnabled(scopeGroupId) %> ||
 			confirm(
@@ -71,13 +71,13 @@ BookmarksManagementToolbarDisplayContext bookmarksManagementToolbarDisplayContex
 	};
 
 	var ACTIONS = {
-		deleteEntries: deleteEntries
+		deleteEntries: deleteEntries,
 	};
 
-	Liferay.componentReady('bookmarksManagementToolbar').then(function(
+	Liferay.componentReady('bookmarksManagementToolbar').then(function (
 		managementToolbar
 	) {
-		managementToolbar.on('actionItemClicked', function(event) {
+		managementToolbar.on('actionItemClicked', function (event) {
 			var itemData = event.data.item.data;
 
 			if (itemData && itemData.action && ACTIONS[itemData.action]) {

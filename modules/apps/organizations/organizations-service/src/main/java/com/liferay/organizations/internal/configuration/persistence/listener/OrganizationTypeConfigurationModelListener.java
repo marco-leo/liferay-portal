@@ -51,9 +51,9 @@ public class OrganizationTypeConfigurationModelListener
 
 			_validateUniqueConfiguration(pid, name);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			throw new ConfigurationModelListenerException(
-				e.getMessage(), OrganizationTypeConfiguration.class, getClass(),
+				exception, OrganizationTypeConfiguration.class, getClass(),
 				properties);
 		}
 	}

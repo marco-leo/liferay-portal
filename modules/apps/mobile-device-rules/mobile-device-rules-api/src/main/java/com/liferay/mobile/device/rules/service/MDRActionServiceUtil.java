@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class MDRActionServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.mobile.device.rules.service.impl.MDRActionServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link MDRActionServiceUtil} to access the mdr action remote service. Add custom service methods to <code>com.liferay.mobile.device.rules.service.impl.MDRActionServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.mobile.device.rules.model.MDRAction addAction(
 			long ruleGroupInstanceId,
@@ -61,13 +55,13 @@ public class MDRActionServiceUtil {
 			java.util.Map<java.util.Locale, String> nameMap,
 			java.util.Map<java.util.Locale, String> descriptionMap, String type,
 			com.liferay.portal.kernel.util.UnicodeProperties
-				typeSettingsProperties,
+				typeSettingsUnicodeProperties,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().addAction(
 			ruleGroupInstanceId, nameMap, descriptionMap, type,
-			typeSettingsProperties, serviceContext);
+			typeSettingsUnicodeProperties, serviceContext);
 	}
 
 	public static void deleteAction(long actionId)
@@ -115,13 +109,13 @@ public class MDRActionServiceUtil {
 			long actionId, java.util.Map<java.util.Locale, String> nameMap,
 			java.util.Map<java.util.Locale, String> descriptionMap, String type,
 			com.liferay.portal.kernel.util.UnicodeProperties
-				typeSettingsProperties,
+				typeSettingsUnicodeProperties,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().updateAction(
-			actionId, nameMap, descriptionMap, type, typeSettingsProperties,
-			serviceContext);
+			actionId, nameMap, descriptionMap, type,
+			typeSettingsUnicodeProperties, serviceContext);
 	}
 
 	public static MDRActionService getService() {

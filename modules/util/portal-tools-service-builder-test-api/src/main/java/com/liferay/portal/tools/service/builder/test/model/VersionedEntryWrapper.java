@@ -126,11 +126,6 @@ public class VersionedEntryWrapper
 		return model.getVersionedEntryId();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a versioned entry model instance should use the <code>VersionedEntry</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();

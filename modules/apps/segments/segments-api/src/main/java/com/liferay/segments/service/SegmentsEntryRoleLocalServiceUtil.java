@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class SegmentsEntryRoleLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.segments.service.impl.SegmentsEntryRoleLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SegmentsEntryRoleLocalServiceUtil} to access the segments entry role local service. Add custom service methods to <code>com.liferay.segments.service.impl.SegmentsEntryRoleLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.segments.model.SegmentsEntryRole
 			addSegmentsEntryRole(
@@ -56,6 +50,10 @@ public class SegmentsEntryRoleLocalServiceUtil {
 	/**
 	 * Adds the segments entry role to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SegmentsEntryRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param segmentsEntryRole the segments entry role
 	 * @return the segments entry role that was added
 	 */
@@ -64,6 +62,16 @@ public class SegmentsEntryRoleLocalServiceUtil {
 			com.liferay.segments.model.SegmentsEntryRole segmentsEntryRole) {
 
 		return getService().addSegmentsEntryRole(segmentsEntryRole);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -92,6 +100,10 @@ public class SegmentsEntryRoleLocalServiceUtil {
 	/**
 	 * Deletes the segments entry role with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SegmentsEntryRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param segmentsEntryRoleId the primary key of the segments entry role
 	 * @return the segments entry role that was removed
 	 * @throws PortalException if a segments entry role with the primary key could not be found
@@ -113,6 +125,10 @@ public class SegmentsEntryRoleLocalServiceUtil {
 	/**
 	 * Deletes the segments entry role from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SegmentsEntryRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param segmentsEntryRole the segments entry role
 	 * @return the segments entry role that was removed
 	 */
@@ -133,6 +149,12 @@ public class SegmentsEntryRoleLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		getService().deleteSegmentsEntryRolesByRoleId(roleId);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -248,6 +270,9 @@ public class SegmentsEntryRoleLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -321,8 +346,21 @@ public class SegmentsEntryRoleLocalServiceUtil {
 		return getService().hasSegmentEntryRole(segmentsEntryId, roleId);
 	}
 
+	public static void setSegmentsEntrySiteRoles(
+			long segmentsEntryId, long[] siteRoleIds,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		getService().setSegmentsEntrySiteRoles(
+			segmentsEntryId, siteRoleIds, serviceContext);
+	}
+
 	/**
 	 * Updates the segments entry role in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SegmentsEntryRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param segmentsEntryRole the segments entry role
 	 * @return the segments entry role that was updated

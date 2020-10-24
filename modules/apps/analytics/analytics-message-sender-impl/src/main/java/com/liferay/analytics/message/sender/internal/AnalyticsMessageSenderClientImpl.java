@@ -16,91 +16,132 @@ package com.liferay.analytics.message.sender.internal;
 
 import com.liferay.analytics.message.sender.client.AnalyticsMessageSenderClient;
 import com.liferay.analytics.settings.configuration.AnalyticsConfiguration;
-import com.liferay.analytics.settings.configuration.AnalyticsConfigurationTracker;
-import com.liferay.petra.json.web.service.client.JSONWebServiceClient;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.servlet.HttpMethods;
+import com.liferay.portal.kernel.util.Validator;
 
-import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
-import java.util.Dictionary;
-import java.util.Properties;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.EntityUtils;
 
-import org.osgi.service.component.ComponentFactory;
-import org.osgi.service.component.ComponentInstance;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Rachael Koestartyo
  */
 @Component(immediate = true, service = AnalyticsMessageSenderClient.class)
 public class AnalyticsMessageSenderClientImpl
-	implements AnalyticsMessageSenderClient {
+	extends BaseAnalyticsClientImpl implements AnalyticsMessageSenderClient {
 
 	@Override
 	public Object send(String body, long companyId) throws Exception {
-		JSONWebServiceClient jsonWebServiceClient = _getJSONWebServiceClient(
-			_analyticsConfigurationTracker.getAnalyticsConfiguration(
-				companyId));
-
-		if (jsonWebServiceClient == null) {
+		if (!isEnabled(companyId)) {
 			return null;
 		}
 
-		return jsonWebServiceClient.doPostAsJSON("/dxp-entities", body);
+		AnalyticsConfiguration analyticsConfiguration =
+			analyticsConfigurationTracker.getAnalyticsConfiguration(companyId);
+
+		HttpUriRequest httpUriRequest = _buildHttpUriRequest(
+			body, analyticsConfiguration.liferayAnalyticsDataSourceId(),
+			analyticsConfiguration.
+				liferayAnalyticsFaroBackendSecuritySignature(),
+			HttpMethods.POST,
+			analyticsConfiguration.liferayAnalyticsEndpointURL() +
+				"/dxp-entities");
+
+		return _execute(companyId, httpUriRequest);
 	}
 
-	private JSONWebServiceClient _getJSONWebServiceClient(
-		AnalyticsConfiguration analyticsConfiguration) {
-
-		String hostName = null;
-		int hostPort = -1;
-		String protocol = null;
-
-		try {
-			URL url = new URL(analyticsConfiguration.liferayAnalyticsURL());
-
-			hostName = url.getHost();
-			hostPort = url.getPort();
-			protocol = url.getProtocol();
-		}
-		catch (Exception e) {
-			if (_log.isInfoEnabled()) {
-				_log.info("Unable to parse analytics URL");
-			}
-
-			return null;
+	@Override
+	public void validateConnection(long companyId) throws Exception {
+		if (!isEnabled(companyId)) {
+			return;
 		}
 
-		if (hostPort == -1) {
-			if (protocol.equals("https")) {
-				hostPort = 443;
-			}
-			else {
-				hostPort = 80;
-			}
-		}
+		AnalyticsConfiguration analyticsConfiguration =
+			analyticsConfigurationTracker.getAnalyticsConfiguration(companyId);
 
-		Properties properties = new Properties();
+		HttpUriRequest httpUriRequest = _buildHttpUriRequest(
+			null, analyticsConfiguration.liferayAnalyticsDataSourceId(),
+			analyticsConfiguration.
+				liferayAnalyticsFaroBackendSecuritySignature(),
+			HttpMethods.GET,
+			analyticsConfiguration.liferayAnalyticsEndpointURL() +
+				"/api/1.0/data-sources/" +
+					analyticsConfiguration.liferayAnalyticsDataSourceId());
 
-		properties.setProperty("hostName", hostName);
-		properties.setProperty("hostPort", String.valueOf(hostPort));
-		properties.setProperty("protocol", protocol);
-
-		ComponentInstance componentInstance = _componentFactory.newInstance(
-			(Dictionary)properties);
-
-		return (JSONWebServiceClient)componentInstance.getInstance();
+		_execute(companyId, httpUriRequest);
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		AnalyticsMessageSenderClientImpl.class);
+	private HttpUriRequest _buildHttpUriRequest(
+			String body, String dataSourceId,
+			String faroBackendSecuritySignature, String method, String url)
+		throws Exception {
 
-	@Reference
-	private AnalyticsConfigurationTracker _analyticsConfigurationTracker;
+		HttpUriRequest httpUriRequest = null;
 
-	@Reference(target = "(component.factory=JSONWebServiceClient)")
-	private ComponentFactory _componentFactory;
+		if (method.equals(HttpMethods.GET)) {
+			httpUriRequest = new HttpGet(url);
+		}
+		else if (method.equals(HttpMethods.POST)) {
+			HttpPost httpPost = new HttpPost(url);
+
+			if (Validator.isNotNull(body)) {
+				httpPost.setEntity(
+					new StringEntity(body, StandardCharsets.UTF_8));
+			}
+
+			httpUriRequest = httpPost;
+		}
+
+		if (httpUriRequest != null) {
+			httpUriRequest.setHeader("Content-Type", "application/json");
+			httpUriRequest.setHeader("OSB-Asah-Data-Source-ID", dataSourceId);
+			httpUriRequest.setHeader(
+				"OSB-Asah-Faro-Backend-Security-Signature",
+				faroBackendSecuritySignature);
+		}
+
+		return httpUriRequest;
+	}
+
+	private CloseableHttpResponse _execute(
+			long companyId, HttpUriRequest httpUriRequest)
+		throws Exception {
+
+		try (CloseableHttpClient closeableHttpClient =
+				getCloseableHttpClient()) {
+
+			CloseableHttpResponse closeableHttpResponse =
+				closeableHttpClient.execute(httpUriRequest);
+
+			StatusLine statusLine = closeableHttpResponse.getStatusLine();
+
+			if (statusLine.getStatusCode() != HttpStatus.SC_FORBIDDEN) {
+				return closeableHttpResponse;
+			}
+
+			JSONObject responseJSONObject = JSONFactoryUtil.createJSONObject(
+				EntityUtils.toString(
+					closeableHttpResponse.getEntity(),
+					Charset.defaultCharset()));
+
+			processInvalidTokenMessage(
+				companyId, responseJSONObject.getString("message"));
+
+			return closeableHttpResponse;
+		}
+	}
 
 }

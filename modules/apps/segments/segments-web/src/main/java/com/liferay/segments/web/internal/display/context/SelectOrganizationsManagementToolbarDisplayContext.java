@@ -37,8 +37,10 @@ public class SelectOrganizationsManagementToolbarDisplayContext
 		throws Exception {
 
 		super(
-			liferayPortletRequest, liferayPortletResponse, httpServletRequest,
+			httpServletRequest, liferayPortletRequest, liferayPortletResponse,
 			selectOrganizationsDisplayContext.getOrganizationSearchContainer());
+
+		_selectOrganizationsDisplayContext = selectOrganizationsDisplayContext;
 	}
 
 	@Override
@@ -64,7 +66,7 @@ public class SelectOrganizationsManagementToolbarDisplayContext
 
 	@Override
 	public String getSearchContainerId() {
-		return "organizations";
+		return _selectOrganizationsDisplayContext.getSearchContainerId();
 	}
 
 	@Override
@@ -81,5 +83,8 @@ public class SelectOrganizationsManagementToolbarDisplayContext
 	protected String[] getOrderByKeys() {
 		return new String[] {"name", "type"};
 	}
+
+	private final SelectOrganizationsDisplayContext
+		_selectOrganizationsDisplayContext;
 
 }

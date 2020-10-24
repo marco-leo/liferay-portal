@@ -83,12 +83,11 @@ public class GoogleLoginStrutsAction implements StrutsAction {
 			httpServletResponse.sendRedirect(loginRedirect);
 		}
 		else if (cmd.equals("token")) {
-			HttpSession session = httpServletRequest.getSession();
-
 			String authorizationCode = ParamUtil.getString(
 				httpServletRequest, "code");
 
 			if (Validator.isNotNull(authorizationCode)) {
+				HttpSession session = httpServletRequest.getSession();
 				String returnRequestUri = getReturnRequestUri(
 					httpServletRequest);
 
@@ -107,12 +106,12 @@ public class GoogleLoginStrutsAction implements StrutsAction {
 						return null;
 					}
 				}
-				catch (PortalException pe) {
+				catch (PortalException portalException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(pe, pe);
+						_log.debug(portalException, portalException);
 					}
 
-					Class<?> clazz = pe.getClass();
+					Class<?> clazz = portalException.getClass();
 
 					sendError(
 						clazz.getSimpleName(), httpServletRequest,

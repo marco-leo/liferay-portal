@@ -44,7 +44,7 @@ public class DeleteSnapshotRequestExecutorImpl
 			createDeleteSnapshotRequest(deleteSnapshotRequest);
 
 		AcknowledgedResponse acknowledgedResponse = getAcknowledgedResponse(
-			elasticsearchDeleteSnapshotRequest);
+			elasticsearchDeleteSnapshotRequest, deleteSnapshotRequest);
 
 		return new DeleteSnapshotResponse(
 			acknowledgedResponse.isAcknowledged());
@@ -59,26 +59,30 @@ public class DeleteSnapshotRequestExecutorImpl
 
 		elasticsearchDeleteSnapshotRequest.repository(
 			deleteSnapshotRequest.getRepositoryName());
-		elasticsearchDeleteSnapshotRequest.snapshot(
+		elasticsearchDeleteSnapshotRequest.snapshots(
 			deleteSnapshotRequest.getSnapshotName());
 
 		return elasticsearchDeleteSnapshotRequest;
 	}
 
 	protected AcknowledgedResponse getAcknowledgedResponse(
-		DeleteSnapshotRequest deleteSnapshotRequest) {
+		DeleteSnapshotRequest elasticsearchDeleteSnapshotRequest,
+		com.liferay.portal.search.engine.adapter.snapshot.DeleteSnapshotRequest
+			deleteSnapshotRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				deleteSnapshotRequest.getConnectionId(),
+				deleteSnapshotRequest.isPreferLocalCluster());
 
 		SnapshotClient snapshotClient = restHighLevelClient.snapshot();
 
 		try {
 			return snapshotClient.delete(
-				deleteSnapshotRequest, RequestOptions.DEFAULT);
+				elasticsearchDeleteSnapshotRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

@@ -31,7 +31,7 @@ import com.liferay.portal.tools.service.builder.test.model.LVEntryLocalization;
 public abstract class LVEntryLocalizationBaseImpl
 	extends LVEntryLocalizationModelImpl implements LVEntryLocalization {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a lv entry localization model instance should use the <code>LVEntryLocalization</code> interface instead.

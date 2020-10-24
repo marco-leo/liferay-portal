@@ -33,12 +33,9 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.portal.kernel.workflow.WorkflowDefinitionManager;
 import com.liferay.portal.kernel.workflow.WorkflowException;
-import com.liferay.portal.workflow.kaleo.definition.parser.WorkflowModelParser;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion;
-import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionLocalService;
 import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionVersionLocalService;
 
 import java.util.Locale;
@@ -74,8 +71,8 @@ public abstract class BaseKaleoDesignerMVCActionCommand
 
 			return SessionErrors.isEmpty(actionRequest);
 		}
-		catch (WorkflowException we) {
-			Throwable rootThrowable = getRootThrowable(we);
+		catch (WorkflowException workflowException) {
+			Throwable rootThrowable = getRootThrowable(workflowException);
 
 			if (_log.isWarnEnabled()) {
 				_log.warn(rootThrowable, rootThrowable);
@@ -83,30 +80,41 @@ public abstract class BaseKaleoDesignerMVCActionCommand
 
 			hideDefaultErrorMessage(actionRequest);
 
-			if (rootThrowable instanceof IllegalArgumentException ||
-				rootThrowable instanceof NoSuchRoleException ||
-				rootThrowable instanceof
-					PrincipalException.MustBeCompanyAdmin ||
-				rootThrowable instanceof PrincipalException.MustBeOmniadmin) {
-
-				SessionErrors.add(
-					actionRequest, rootThrowable.getClass(), rootThrowable);
-			}
-			else {
-				SessionErrors.add(actionRequest, we.getClass(), we);
-			}
+			SessionErrors.add(
+				actionRequest, rootThrowable.getClass(), rootThrowable);
 
 			return false;
 		}
-		catch (PortletException pe) {
-			_log.error(pe, pe);
+		catch (PortletException portletException) {
+			_log.error(portletException, portletException);
 
-			throw pe;
+			throw portletException;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new PortletException(e);
+			throw new PortletException(exception);
+		}
+	}
+
+	protected void addDefaultTitle(
+		ActionRequest actionRequest, Map<Locale, String> titleMap) {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		String title = titleMap.get(themeDisplay.getLocale());
+
+		if (titleMap.isEmpty() || Validator.isNull(title)) {
+			title = ParamUtil.getString(
+				actionRequest, "defaultDuplicationTitle");
+
+			if (Validator.isNull(title)) {
+				title = LanguageUtil.get(
+					getResourceBundle(actionRequest), "untitled-workflow");
+			}
+
+			titleMap.put(themeDisplay.getLocale(), title);
 		}
 	}
 
@@ -123,26 +131,40 @@ public abstract class BaseKaleoDesignerMVCActionCommand
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		return ResourceBundleUtil.getBundle(
+		return ResourceBundleUtil.getModuleAndPortalResourceBundle(
 			themeDisplay.getLocale(), getClass());
 	}
 
 	protected Throwable getRootThrowable(Throwable throwable) {
-		if (throwable.getCause() == null) {
+		if ((throwable.getCause() == null) ||
+			(!(throwable.getCause() instanceof IllegalArgumentException) &&
+			 !(throwable.getCause() instanceof NoSuchRoleException) &&
+			 !(throwable.getCause() instanceof
+				 PrincipalException.MustBeCompanyAdmin) &&
+			 !(throwable.getCause() instanceof
+				 PrincipalException.MustBeOmniadmin) &&
+			 !(throwable.getCause() instanceof WorkflowException))) {
+
 			return throwable;
 		}
 
 		return getRootThrowable(throwable.getCause());
 	}
 
-	protected abstract String getSuccessMessage(ActionRequest actionRequest);
+	protected String getSuccessMessage(ActionRequest actionRequest) {
+		return LanguageUtil.get(
+			getResourceBundle(actionRequest), "workflow-updated-successfully");
+	}
 
-	protected String getTitle(Map<Locale, String> titleMap)
+	protected String getTitle(
+			ActionRequest actionRequest, Map<Locale, String> titleMap)
 		throws WorkflowException {
 
 		if (titleMap == null) {
 			return null;
 		}
+
+		addDefaultTitle(actionRequest, titleMap);
 
 		String value = StringPool.BLANK;
 
@@ -212,9 +234,6 @@ public abstract class BaseKaleoDesignerMVCActionCommand
 	}
 
 	@Reference
-	protected KaleoDefinitionLocalService kaleoDefinitionLocalService;
-
-	@Reference
 	protected KaleoDefinitionVersionLocalService
 		kaleoDefinitionVersionLocalService;
 
@@ -222,13 +241,7 @@ public abstract class BaseKaleoDesignerMVCActionCommand
 	protected Portal portal;
 
 	@Reference
-	protected PortalUUID portalUUID;
-
-	@Reference
 	protected WorkflowDefinitionManager workflowDefinitionManager;
-
-	@Reference
-	protected WorkflowModelParser workflowModelParser;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseKaleoDesignerMVCActionCommand.class);

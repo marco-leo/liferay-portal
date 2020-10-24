@@ -48,8 +48,6 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -89,10 +87,10 @@ public abstract class BaseTestPreparatorBundleActivator
 		try {
 			prepareTest();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			_cleanUp();
 
-			throw new RuntimeException(e);
+			throw new RuntimeException(exception);
 		}
 	}
 
@@ -123,7 +121,7 @@ public abstract class BaseTestPreparatorBundleActivator
 		String virtualHostname = hostName + ".xyz";
 
 		Company company = CompanyLocalServiceUtil.addCompany(
-			hostName, virtualHostname, virtualHostname, false, 0, true);
+			null, hostName, virtualHostname, virtualHostname, false, 0, true);
 
 		autoCloseables.add(
 			() -> CompanyLocalServiceUtil.deleteCompany(
@@ -193,18 +191,18 @@ public abstract class BaseTestPreparatorBundleActivator
 
 				return configuration;
 			}
-			catch (IOException ioe) {
-				throw new RuntimeException(ioe);
+			catch (IOException ioException) {
+				throw new RuntimeException(ioException);
 			}
-			catch (InterruptedException ie) {
+			catch (InterruptedException interruptedException) {
 				try {
 					configuration.delete();
 				}
-				catch (IOException ioe) {
-					throw new RuntimeException(ioe);
+				catch (IOException ioException) {
+					throw new RuntimeException(ioException);
 				}
 
-				throw new RuntimeException(ie);
+				throw new RuntimeException(interruptedException);
 			}
 			finally {
 				bundleContext.ungetService(serviceReference);
@@ -308,20 +306,20 @@ public abstract class BaseTestPreparatorBundleActivator
 			autoCloseables.add(
 				() -> bundleContext.ungetService(serviceReference));
 
-			Map<Locale, String> titleMap = HashMapBuilder.put(
-				LocaleUtil.getDefault(), name
-			).build();
-
 			SAPEntry sapEntry = sapEntryLocalService.addSAPEntry(
 				userId, allowedServiceSignatures, defaultSAPEntry, enabled,
-				name, titleMap, new ServiceContext());
+				name,
+				HashMapBuilder.put(
+					LocaleUtil.getDefault(), name
+				).build(),
+				new ServiceContext());
 
 			autoCloseables.add(
 				() -> sapEntryLocalService.deleteSAPEntry(
 					sapEntry.getSapEntryId()));
 		}
-		catch (PortalException pe) {
-			throw new RuntimeException(pe);
+		catch (PortalException portalException) {
+			throw new RuntimeException(portalException);
 		}
 	}
 
@@ -332,10 +330,10 @@ public abstract class BaseTestPreparatorBundleActivator
 			return false;
 		}
 
-		Enumeration<String> keys = properties1.keys();
+		Enumeration<String> enumeration = properties1.keys();
 
-		while (keys.hasMoreElements()) {
-			String key = keys.nextElement();
+		while (enumeration.hasMoreElements()) {
+			String key = enumeration.nextElement();
 
 			if (!Objects.deepEquals(
 					properties1.get(key), properties2.get(key))) {
@@ -433,8 +431,8 @@ public abstract class BaseTestPreparatorBundleActivator
 			try {
 				previousAutoCloseable.close();
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 		}
 	}

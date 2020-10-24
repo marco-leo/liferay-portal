@@ -61,8 +61,10 @@ import java.util.Map;
  *
  * @author Brian Wing Shun Chan
  * @see LayoutPrototypeServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class LayoutPrototypeServiceSoap {
 
 	public static com.liferay.portal.kernel.model.LayoutPrototypeSoap
@@ -87,10 +89,10 @@ public class LayoutPrototypeServiceSoap {
 			return com.liferay.portal.kernel.model.LayoutPrototypeSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -100,10 +102,10 @@ public class LayoutPrototypeServiceSoap {
 		try {
 			LayoutPrototypeServiceUtil.deleteLayoutPrototype(layoutPrototypeId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -119,10 +121,10 @@ public class LayoutPrototypeServiceSoap {
 			return com.liferay.portal.kernel.model.LayoutPrototypeSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -138,31 +140,32 @@ public class LayoutPrototypeServiceSoap {
 			return com.liferay.portal.kernel.model.LayoutPrototypeSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
 	public static com.liferay.portal.kernel.model.LayoutPrototypeSoap[] search(
 			long companyId, Boolean active,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.portal.kernel.model.LayoutPrototype> obc)
+				<com.liferay.portal.kernel.model.LayoutPrototype>
+					orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.portal.kernel.model.LayoutPrototype>
 				returnValue = LayoutPrototypeServiceUtil.search(
-					companyId, active, obc);
+					companyId, active, orderByComparator);
 
 			return com.liferay.portal.kernel.model.LayoutPrototypeSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -189,10 +192,10 @@ public class LayoutPrototypeServiceSoap {
 			return com.liferay.portal.kernel.model.LayoutPrototypeSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

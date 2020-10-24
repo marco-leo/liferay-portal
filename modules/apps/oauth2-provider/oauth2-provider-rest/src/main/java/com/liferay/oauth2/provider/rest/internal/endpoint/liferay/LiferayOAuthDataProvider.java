@@ -292,10 +292,10 @@ public class LiferayOAuthDataProvider
 		try {
 			return populateAccessToken(oAuth2Authorization);
 		}
-		catch (PortalException pe) {
-			_log.error("Unable to populate access token", pe);
+		catch (PortalException portalException) {
+			_log.error("Unable to populate access token", portalException);
 
-			throw new OAuthServiceException(pe);
+			throw new OAuthServiceException(portalException);
 		}
 	}
 
@@ -418,8 +418,8 @@ public class LiferayOAuthDataProvider
 
 			return refreshToken;
 		}
-		catch (PortalException pe) {
-			throw new OAuthServiceException(pe);
+		catch (PortalException portalException) {
+			throw new OAuthServiceException(portalException);
 		}
 	}
 
@@ -907,10 +907,10 @@ public class LiferayOAuthDataProvider
 	}
 
 	protected UserSubject populateUserSubject(
-		long companyId, long userId, String username) {
+		long companyId, long userId, String userName) {
 
 		UserSubject userSubject = new UserSubject(
-			username, String.valueOf(userId));
+			userName, String.valueOf(userId));
 
 		Map<String, String> properties = userSubject.getProperties();
 
@@ -968,19 +968,6 @@ public class LiferayOAuthDataProvider
 		return dateCreated.getTime() / 1000;
 	}
 
-	private static void _invokeTransactionally(Runnable runnable)
-		throws Throwable {
-
-		TransactionInvokerUtil.invoke(
-			TransactionConfig.Factory.create(
-				Propagation.REQUIRED, new Class<?>[] {Exception.class}),
-			() -> {
-				runnable.run();
-
-				return null;
-			});
-	}
-
 	private Collection<LiferayOAuth2Scope> _getLiferayOAuth2Scopes(
 		long oAuth2ApplicationScopeAliasesId, List<String> scopeAliases) {
 
@@ -1030,6 +1017,17 @@ public class LiferayOAuthDataProvider
 			httpServletRequest.getRemoteHost();
 	}
 
+	private void _invokeTransactionally(Runnable runnable) throws Throwable {
+		TransactionInvokerUtil.invoke(
+			TransactionConfig.Factory.create(
+				Propagation.REQUIRED, new Class<?>[] {Exception.class}),
+			() -> {
+				runnable.run();
+
+				return null;
+			});
+	}
+
 	private void _transactionalSaveServerAccessToken(
 		ServerAccessToken serverAccessToken) {
 
@@ -1071,10 +1069,11 @@ public class LiferayOAuthDataProvider
 
 				userName = user.getFullName();
 			}
-			catch (Exception e) {
-				_log.error("Unable to load user " + userSubject.getId(), e);
+			catch (Exception exception) {
+				_log.error(
+					"Unable to load user " + userSubject.getId(), exception);
 
-				throw new RuntimeException(e);
+				throw new RuntimeException(exception);
 			}
 		}
 
@@ -1106,11 +1105,11 @@ public class LiferayOAuthDataProvider
 					oAuth2Authorization.getOAuth2ApplicationScopeAliasesId(),
 					scopeAliasesList));
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			_log.error("Unable to find authorization " + oAuth2Authorization);
 
 			throw new OAuthServiceException(
-				"Unable to grant scope for token", pe);
+				"Unable to grant scope for token", portalException);
 		}
 	}
 

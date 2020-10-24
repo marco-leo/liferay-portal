@@ -48,7 +48,7 @@ public abstract class KaleoProcessServiceBaseImpl
 	extends BaseServiceImpl
 	implements AopService, IdentifiableOSGiService, KaleoProcessService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>KaleoProcessService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.workflow.kaleo.forms.service.KaleoProcessServiceUtil</code>.
@@ -102,8 +102,8 @@ public abstract class KaleoProcessServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

@@ -26,7 +26,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class AggregateRating {
+public class AggregateRating implements Cloneable {
+
+	public static AggregateRating toDTO(String json) {
+		return AggregateRatingSerDes.toDTO(json);
+	}
 
 	public Double getBestRating() {
 		return bestRating;
@@ -132,6 +136,11 @@ public class AggregateRating {
 	}
 
 	protected Double worstRating;
+
+	@Override
+	public AggregateRating clone() throws CloneNotSupportedException {
+		return (AggregateRating)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

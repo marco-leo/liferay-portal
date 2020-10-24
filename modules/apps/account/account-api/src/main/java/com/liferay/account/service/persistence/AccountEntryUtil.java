@@ -42,7 +42,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class AccountEntryUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -635,6 +635,76 @@ public class AccountEntryUtil {
 	 */
 	public static int filterCountByC_S(long companyId, int status) {
 		return getPersistence().filterCountByC_S(companyId, status);
+	}
+
+	/**
+	 * Returns the account entry where companyId = &#63; and externalReferenceCode = &#63; or throws a <code>NoSuchEntryException</code> if it could not be found.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching account entry
+	 * @throws NoSuchEntryException if a matching account entry could not be found
+	 */
+	public static AccountEntry findByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws com.liferay.account.exception.NoSuchEntryException {
+
+		return getPersistence().findByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the account entry where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the matching account entry, or <code>null</code> if a matching account entry could not be found
+	 */
+	public static AccountEntry fetchByC_ERC(
+		long companyId, String externalReferenceCode) {
+
+		return getPersistence().fetchByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the account entry where companyId = &#63; and externalReferenceCode = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching account entry, or <code>null</code> if a matching account entry could not be found
+	 */
+	public static AccountEntry fetchByC_ERC(
+		long companyId, String externalReferenceCode, boolean useFinderCache) {
+
+		return getPersistence().fetchByC_ERC(
+			companyId, externalReferenceCode, useFinderCache);
+	}
+
+	/**
+	 * Removes the account entry where companyId = &#63; and externalReferenceCode = &#63; from the database.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the account entry that was removed
+	 */
+	public static AccountEntry removeByC_ERC(
+			long companyId, String externalReferenceCode)
+		throws com.liferay.account.exception.NoSuchEntryException {
+
+		return getPersistence().removeByC_ERC(companyId, externalReferenceCode);
+	}
+
+	/**
+	 * Returns the number of account entries where companyId = &#63; and externalReferenceCode = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param externalReferenceCode the external reference code
+	 * @return the number of matching account entries
+	 */
+	public static int countByC_ERC(
+		long companyId, String externalReferenceCode) {
+
+		return getPersistence().countByC_ERC(companyId, externalReferenceCode);
 	}
 
 	/**

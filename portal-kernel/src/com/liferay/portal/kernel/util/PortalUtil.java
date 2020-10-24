@@ -255,6 +255,10 @@ public class PortalUtil {
 			themeDisplay, url, typeControlPanel, doAsUser);
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	public static void addUserLocaleOptionsMessage(
 		HttpServletRequest httpServletRequest) {
 
@@ -2009,36 +2013,38 @@ public class PortalUtil {
 	}
 
 	public static void sendError(
-			Exception e, ActionRequest actionRequest,
+			Exception exception, ActionRequest actionRequest,
 			ActionResponse actionResponse)
 		throws IOException {
 
-		getPortal().sendError(e, actionRequest, actionResponse);
+		getPortal().sendError(exception, actionRequest, actionResponse);
 	}
 
 	public static void sendError(
-			Exception e, HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse)
-		throws IOException, ServletException {
-
-		getPortal().sendError(e, httpServletRequest, httpServletResponse);
-	}
-
-	public static void sendError(
-			int status, Exception e, ActionRequest actionRequest,
-			ActionResponse actionResponse)
-		throws IOException {
-
-		getPortal().sendError(status, e, actionRequest, actionResponse);
-	}
-
-	public static void sendError(
-			int status, Exception e, HttpServletRequest httpServletRequest,
+			Exception exception, HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
 		throws IOException, ServletException {
 
 		getPortal().sendError(
-			status, e, httpServletRequest, httpServletResponse);
+			exception, httpServletRequest, httpServletResponse);
+	}
+
+	public static void sendError(
+			int status, Exception exception, ActionRequest actionRequest,
+			ActionResponse actionResponse)
+		throws IOException {
+
+		getPortal().sendError(status, exception, actionRequest, actionResponse);
+	}
+
+	public static void sendError(
+			int status, Exception exception,
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse)
+		throws IOException, ServletException {
+
+		getPortal().sendError(
+			status, exception, httpServletRequest, httpServletResponse);
 	}
 
 	public static void sendRSSFeedsDisabledError(

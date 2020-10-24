@@ -184,11 +184,14 @@ public class ResolveTask extends DefaultTask {
 					"{}:\n    {}", Constants.RUNBUNDLES,
 					stream.collect(Collectors.joining("\n    ")));
 			}
-			catch (ResolutionException re) {
-				logger.error(ResolveProcess.format(re, isReportOptional()));
+			catch (ResolutionException resolutionException) {
+				logger.error(
+					ResolveProcess.format(
+						resolutionException, isReportOptional()));
 
 				throw new GradleException(
-					bndrun.getPropertiesFile() + " resolution exception", re);
+					bndrun.getPropertiesFile() + " resolution exception",
+					resolutionException);
 			}
 			finally {
 				_logReport(bndrun, logger);
@@ -287,8 +290,8 @@ public class ResolveTask extends DefaultTask {
 
 	private static class ProcessorWrapper extends Processor {
 
-		public ProcessorWrapper(Properties properties) {
-			_internalProperties = properties;
+		public ProcessorWrapper(Properties internalProperties) {
+			_internalProperties = internalProperties;
 		}
 
 		public Properties getProperties() {

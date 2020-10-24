@@ -15,6 +15,10 @@
 package com.liferay.change.tracking.internal.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.model.AssetTag;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.change.tracking.constants.CTConstants;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.model.CTEntry;
@@ -41,10 +45,6 @@ import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.log.CaptureAppender;
 import com.liferay.portal.test.log.Log4JLoggerTestUtil;
-import com.liferay.portal.test.rule.ExpectedDBType;
-import com.liferay.portal.test.rule.ExpectedLog;
-import com.liferay.portal.test.rule.ExpectedLogs;
-import com.liferay.portal.test.rule.ExpectedType;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -58,8 +58,6 @@ import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
-
-import org.hibernate.util.JDBCExceptionReporter;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -166,7 +164,7 @@ public class LayoutCTTest {
 
 			layout.setTitle(RandomTestUtil.randomString());
 
-			layout = _layoutLocalService.updateLayout(layout);
+			_layoutLocalService.updateLayout(layout);
 		}
 
 		_ctCollectionLocalService.deleteCTCollection(_ctCollection);
@@ -223,7 +221,7 @@ public class LayoutCTTest {
 
 			layout.setTitle(RandomTestUtil.randomString());
 
-			layout = _layoutLocalService.updateLayout(layout);
+			_layoutLocalService.updateLayout(layout);
 		}
 
 		_ctProcessLocalService.addCTProcess(
@@ -427,7 +425,7 @@ public class LayoutCTTest {
 
 			modifiedLayout.setFriendlyURL("/testModifyLayout");
 
-			modifiedLayout = _layoutLocalService.updateLayout(modifiedLayout);
+			_layoutLocalService.updateLayout(modifiedLayout);
 		}
 
 		_ctProcessLocalService.addCTProcess(
@@ -451,12 +449,6 @@ public class LayoutCTTest {
 
 			Assert.assertEquals(
 				CTConstants.CT_CHANGE_TYPE_DELETION, rs.getLong("changeType"));
-
-			Assert.assertTrue(rs.next());
-
-			Assert.assertEquals(
-				CTConstants.CT_CHANGE_TYPE_MODIFICATION,
-				rs.getLong("changeType"));
 
 			Assert.assertFalse(rs.next());
 		}
@@ -491,76 +483,67 @@ public class LayoutCTTest {
 		}
 	}
 
-	@ExpectedLogs(
-		expectedLogs = {
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.DB2,
-				expectedLog = "Batch failure.",
-				expectedType = ExpectedType.CONTAINS
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.DB2,
-				expectedLog = "DB2 SQL Error: SQLCODE=-803",
-				expectedType = ExpectedType.CONTAINS
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.DB2,
-				expectedLog = "Error for batch element",
-				expectedType = ExpectedType.PREFIX
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.HYPERSONIC,
-				expectedLog = "integrity constraint violation: unique constraint or index violation: IX_B556968F",
-				expectedType = ExpectedType.EXACT
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.MARIADB,
-				expectedLog = "Deadlock found when trying to get lock; try restarting transaction",
-				expectedType = ExpectedType.EXACT
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.MARIADB,
-				expectedLog = "Duplicate entry",
-				expectedType = ExpectedType.PREFIX
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.MYSQL,
-				expectedLog = "Deadlock found when trying to get lock; try restarting transaction",
-				expectedType = ExpectedType.EXACT
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.MYSQL,
-				expectedLog = "Duplicate entry",
-				expectedType = ExpectedType.PREFIX
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.ORACLE,
-				expectedLog = "ORA-00001: unique constraint",
-				expectedType = ExpectedType.PREFIX
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.POSTGRESQL,
-				expectedLog = "Batch entry 0 insert into Lock_ ",
-				expectedType = ExpectedType.PREFIX
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.POSTGRESQL,
-				expectedLog = "ERROR: current transaction is aborted, commands ignored until end of transaction block",
-				expectedType = ExpectedType.PREFIX
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.POSTGRESQL,
-				expectedLog = "ERROR: duplicate key value violates unique constraint ",
-				expectedType = ExpectedType.PREFIX
-			),
-			@ExpectedLog(
-				expectedDBType = ExpectedDBType.SYBASE,
-				expectedLog = "Attempt to insert duplicate key row",
-				expectedType = ExpectedType.CONTAINS
-			)
-		},
-		level = "ERROR", loggerClass = JDBCExceptionReporter.class
-	)
+	@Test
+	public void testPublishLayoutWithAssetTag() throws Exception {
+		String tagName1 = "layoutcttesttag1";
+		String tagName2 = "layoutcttesttag2";
+
+		Layout layout1 = LayoutTestUtil.addLayout(_group);
+		Layout layout2 = LayoutTestUtil.addLayout(_group);
+
+		_layoutLocalService.updateAsset(
+			layout1.getUserId(), layout1, null, new String[] {tagName1});
+
+		AssetEntry assetEntry1 = _assetEntryLocalService.getEntry(
+			Layout.class.getName(), layout1.getPlid());
+		AssetEntry assetEntry2 = _assetEntryLocalService.getEntry(
+			Layout.class.getName(), layout2.getPlid());
+
+		try (SafeClosable safeClosable =
+				CTCollectionThreadLocal.setCTCollectionId(
+					_ctCollection.getCtCollectionId())) {
+
+			_layoutLocalService.updateAsset(
+				layout1.getUserId(), layout1, null, new String[] {tagName2});
+
+			List<AssetTag> assetTags = _assetTagLocalService.getEntryTags(
+				assetEntry1.getEntryId());
+
+			Assert.assertEquals(assetTags.toString(), 1, assetTags.size());
+
+			AssetTag assetTag = assetTags.get(0);
+
+			Assert.assertEquals(tagName2, assetTag.getName());
+
+			assetTags = _assetTagLocalService.getEntryTags(
+				assetEntry2.getEntryId());
+
+			Assert.assertTrue(assetTags.toString(), assetTags.isEmpty());
+		}
+
+		List<AssetTag> assetTags = _assetTagLocalService.getEntryTags(
+			assetEntry1.getEntryId());
+
+		Assert.assertEquals(assetTags.toString(), 1, assetTags.size());
+
+		AssetTag assetTag = assetTags.get(0);
+
+		Assert.assertEquals(tagName1, assetTag.getName());
+
+		_ctProcessLocalService.addCTProcess(
+			_ctCollection.getUserId(), _ctCollection.getCtCollectionId());
+
+		assetTags = _assetTagLocalService.getEntryTags(
+			assetEntry1.getEntryId());
+
+		Assert.assertEquals(assetTags.toString(), 1, assetTags.size());
+
+		assetTag = assetTags.get(0);
+
+		Assert.assertEquals(tagName2, assetTag.getName());
+		Assert.assertEquals(1, assetTag.getAssetCount());
+	}
+
 	@Test
 	public void testPublishLayoutWithConflictingConstraints() throws Exception {
 		String friendlyURL = "/testModifyLayout";
@@ -607,18 +590,18 @@ public class LayoutCTTest {
 				CTCollectionThreadLocal.setCTCollectionId(
 					_ctCollection.getCtCollectionId())) {
 
-			Layout layout = _layoutLocalService.fetchLayout(layout1.getPlid());
+			Layout layout3 = _layoutLocalService.fetchLayout(layout1.getPlid());
 
-			Assert.assertNotNull(layout);
+			Assert.assertNotNull(layout3);
 
-			Assert.assertEquals(layout.getFriendlyURL(), friendlyURL);
+			Assert.assertEquals(layout3.getFriendlyURL(), friendlyURL);
 		}
 
-		Layout layout = _layoutLocalService.fetchLayout(layout2.getPlid());
+		Layout layout4 = _layoutLocalService.fetchLayout(layout2.getPlid());
 
-		Assert.assertNotNull(layout);
+		Assert.assertNotNull(layout4);
 
-		Assert.assertEquals(layout.getFriendlyURL(), friendlyURL);
+		Assert.assertEquals(layout4.getFriendlyURL(), friendlyURL);
 	}
 
 	@Test
@@ -669,10 +652,7 @@ public class LayoutCTTest {
 
 			String message = throwable.getMessage();
 
-			Assert.assertTrue(
-				message,
-				message.startsWith(
-					"Unable to auto resolve publication conflict "));
+			Assert.assertTrue(message, message.startsWith("Unable to publish"));
 		}
 
 		layout = _layoutLocalService.fetchLayout(layout.getPlid());
@@ -896,7 +876,7 @@ public class LayoutCTTest {
 
 			String message = throwable.toString();
 
-			Assert.assertTrue(message, message.contains("Size mismatch "));
+			Assert.assertTrue(message, message.contains("Unable to publish "));
 		}
 	}
 
@@ -1064,6 +1044,12 @@ public class LayoutCTTest {
 	}
 
 	@Inject
+	private static AssetEntryLocalService _assetEntryLocalService;
+
+	@Inject
+	private static AssetTagLocalService _assetTagLocalService;
+
+	@Inject
 	private static ClassNameLocalService _classNameLocalService;
 
 	@Inject
@@ -1075,6 +1061,9 @@ public class LayoutCTTest {
 	@Inject
 	private static CTEntryLocalService _ctEntryLocalService;
 
+	@Inject
+	private static CTProcessLocalService _ctProcessLocalService;
+
 	private static long _layoutClassNameId;
 
 	@Inject
@@ -1082,9 +1071,6 @@ public class LayoutCTTest {
 
 	@DeleteAfterTestRun
 	private CTCollection _ctCollection;
-
-	@Inject
-	private CTProcessLocalService _ctProcessLocalService;
 
 	@DeleteAfterTestRun
 	private Group _group;

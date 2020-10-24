@@ -9,65 +9,24 @@
  * distribution rights of the Software.
  */
 
+import ClayManagementToolbar from '@clayui/management-toolbar';
 import React, {useMemo} from 'react';
 
-import PromisesResolver from '../../shared/components/request/PromisesResolver.es';
+import HeaderKebab from '../../shared/components/header/HeaderKebab.es';
+import PromisesResolver from '../../shared/components/promises-resolver/PromisesResolver.es';
 import ResultsBar from '../../shared/components/results-bar/ResultsBar.es';
 import {parse} from '../../shared/components/router/queryString.es';
 import SearchField from '../../shared/components/search-field/SearchField.es';
 import {useFetch} from '../../shared/hooks/useFetch.es';
 import {usePageTitle} from '../../shared/hooks/usePageTitle.es';
-import {
-	Body,
-	EmptyView,
-	ErrorView,
-	LoadingView
-} from './ProcessListPageBody.es';
-import {Item} from './ProcessListPageItem.es';
-import {Table} from './ProcessListPageTable.es';
+import {Body} from './ProcessListPageBody.es';
 
-const ProcessListPage = ({page, pageSize, query, sort}) => {
-	usePageTitle(Liferay.Language.get('metrics'));
-	const {search = ''} = parse(query);
-
-	const title = search.length ? search : null;
-
-	const {data, fetchData} = useFetch('/processes', {
-		page,
-		pageSize,
-		sort: decodeURIComponent(sort),
-		title
-	});
-
-	const promises = useMemo(() => [fetchData()], [fetchData]);
-
-	return (
-		<PromisesResolver promises={promises}>
-			<ProcessListPage.Filters
-				page={page}
-				pageSize={pageSize}
-				search={search}
-				sort={sort}
-				totalCount={data.totalCount}
-			/>
-
-			<div className="container-fluid-1280">
-				<ProcessListPage.Body data={data} search={search} />
-			</div>
-		</PromisesResolver>
-	);
-};
-
-const Filters = ({page, pageSize, search, sort, totalCount}) => {
+const Header = ({page, pageSize, search, sort, totalCount}) => {
 	return (
 		<>
-			<nav className="management-bar management-bar-light navbar navbar-expand-md">
-				<div className="container-fluid container-fluid-max-xl">
-					<div className="navbar-form navbar-form-autofit">
-						<SearchField disabled={!search && totalCount === 0} />
-					</div>
-				</div>
-			</nav>
+			<ClayManagementToolbar className="mb-0">
+				<SearchField disabled={!search && totalCount === 0} />
+			</ClayManagementToolbar>
 
 			{search && (
 				<ResultsBar>
@@ -87,12 +46,54 @@ const Filters = ({page, pageSize, search, sort, totalCount}) => {
 	);
 };
 
+const ProcessListPage = ({history, query, routeParams}) => {
+	if (history.location.pathname === '/') {
+		history.replace(`/processes/20/1/overdueInstanceCount:desc`);
+	}
+
+	usePageTitle(Liferay.Language.get('metrics'));
+
+	const {page, pageSize, sort} = routeParams;
+	const {search = null} = parse(query);
+
+	const {data, fetchData} = useFetch({
+		params: {
+			title: search,
+			...routeParams,
+		},
+		url: '/processes/metrics',
+	});
+
+	const promises = useMemo(() => {
+		if (page && pageSize && sort) {
+			return [fetchData()];
+		}
+
+		return [new Promise(() => {})];
+	}, [fetchData, page, pageSize, sort]);
+
+	return (
+		<PromisesResolver promises={promises}>
+			<HeaderKebab
+				kebabItems={[
+					{
+						label: Liferay.Language.get('settings'),
+						link: `/settings/indexes`,
+					},
+				]}
+			/>
+			<ProcessListPage.Header
+				search={search}
+				totalCount={data.totalCount}
+				{...routeParams}
+			/>
+
+			<ProcessListPage.Body {...data} filtered={search} />
+		</PromisesResolver>
+	);
+};
+
 ProcessListPage.Body = Body;
-ProcessListPage.Empty = EmptyView;
-ProcessListPage.Error = ErrorView;
-ProcessListPage.Filters = Filters;
-ProcessListPage.Item = Item;
-ProcessListPage.Loading = LoadingView;
-ProcessListPage.Table = Table;
+ProcessListPage.Header = Header;
 
 export default ProcessListPage;

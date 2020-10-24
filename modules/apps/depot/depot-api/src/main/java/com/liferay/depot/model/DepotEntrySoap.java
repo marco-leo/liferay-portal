@@ -24,8 +24,10 @@ import java.util.List;
  * This class is used by SOAP remote services, specifically {@link com.liferay.depot.service.http.DepotEntryServiceSoap}.
  *
  * @author Brian Wing Shun Chan
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class DepotEntrySoap implements Serializable {
 
 	public static DepotEntrySoap toSoapModel(DepotEntry model) {
@@ -37,6 +39,7 @@ public class DepotEntrySoap implements Serializable {
 		soapModel.setGroupId(model.getGroupId());
 		soapModel.setCompanyId(model.getCompanyId());
 		soapModel.setUserId(model.getUserId());
+		soapModel.setUserName(model.getUserName());
 		soapModel.setCreateDate(model.getCreateDate());
 		soapModel.setModifiedDate(model.getModifiedDate());
 
@@ -140,6 +143,14 @@ public class DepotEntrySoap implements Serializable {
 		_userId = userId;
 	}
 
+	public String getUserName() {
+		return _userName;
+	}
+
+	public void setUserName(String userName) {
+		_userName = userName;
+	}
+
 	public Date getCreateDate() {
 		return _createDate;
 	}
@@ -162,6 +173,7 @@ public class DepotEntrySoap implements Serializable {
 	private long _groupId;
 	private long _companyId;
 	private long _userId;
+	private String _userName;
 	private Date _createDate;
 	private Date _modifiedDate;
 

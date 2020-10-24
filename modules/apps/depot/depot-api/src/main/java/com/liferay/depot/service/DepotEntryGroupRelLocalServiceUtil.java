@@ -32,14 +32,26 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class DepotEntryGroupRelLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.depot.service.impl.DepotEntryGroupRelLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static com.liferay.depot.model.DepotEntryGroupRel
+		addDepotEntryGroupRel(
+			boolean ddmStructuresAvailable, long depotEntryId, long toGroupId,
+			boolean searchable) {
+
+		return getService().addDepotEntryGroupRel(
+			ddmStructuresAvailable, depotEntryId, toGroupId, searchable);
+	}
 
 	/**
 	 * Adds the depot entry group rel to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DepotEntryGroupRelLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param depotEntryGroupRel the depot entry group rel
 	 * @return the depot entry group rel that was added
@@ -57,6 +69,14 @@ public class DepotEntryGroupRelLocalServiceUtil {
 		return getService().addDepotEntryGroupRel(depotEntryId, toGroupId);
 	}
 
+	public static com.liferay.depot.model.DepotEntryGroupRel
+		addDepotEntryGroupRel(
+			long depotEntryId, long toGroupId, boolean searchable) {
+
+		return getService().addDepotEntryGroupRel(
+			depotEntryId, toGroupId, searchable);
+	}
+
 	/**
 	 * Creates a new depot entry group rel with the primary key. Does not add the depot entry group rel to the database.
 	 *
@@ -70,7 +90,21 @@ public class DepotEntryGroupRelLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the depot entry group rel from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DepotEntryGroupRelLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param depotEntryGroupRel the depot entry group rel
 	 * @return the depot entry group rel that was removed
@@ -84,6 +118,10 @@ public class DepotEntryGroupRelLocalServiceUtil {
 
 	/**
 	 * Deletes the depot entry group rel with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DepotEntryGroupRelLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param depotEntryGroupRelId the primary key of the depot entry group rel
 	 * @return the depot entry group rel that was removed
@@ -109,6 +147,12 @@ public class DepotEntryGroupRelLocalServiceUtil {
 
 	public static void deleteToGroupDepotEntryGroupRels(long toGroupId) {
 		getService().deleteToGroupDepotEntryGroupRels(toGroupId);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -202,6 +246,20 @@ public class DepotEntryGroupRelLocalServiceUtil {
 		return getService().fetchDepotEntryGroupRel(depotEntryGroupRelId);
 	}
 
+	/**
+	 * Returns the depot entry group rel matching the UUID and group.
+	 *
+	 * @param uuid the depot entry group rel's UUID
+	 * @param groupId the primary key of the group
+	 * @return the matching depot entry group rel, or <code>null</code> if a matching depot entry group rel could not be found
+	 */
+	public static com.liferay.depot.model.DepotEntryGroupRel
+		fetchDepotEntryGroupRelByUuidAndGroupId(String uuid, long groupId) {
+
+		return getService().fetchDepotEntryGroupRelByUuidAndGroupId(
+			uuid, groupId);
+	}
+
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
 		getActionableDynamicQuery() {
 
@@ -220,6 +278,22 @@ public class DepotEntryGroupRelLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().getDepotEntryGroupRel(depotEntryGroupRelId);
+	}
+
+	/**
+	 * Returns the depot entry group rel matching the UUID and group.
+	 *
+	 * @param uuid the depot entry group rel's UUID
+	 * @param groupId the primary key of the group
+	 * @return the matching depot entry group rel
+	 * @throws PortalException if a matching depot entry group rel could not be found
+	 */
+	public static com.liferay.depot.model.DepotEntryGroupRel
+			getDepotEntryGroupRelByUuidAndGroupId(String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().getDepotEntryGroupRelByUuidAndGroupId(
+			uuid, groupId);
 	}
 
 	public static java.util.List<com.liferay.depot.model.DepotEntryGroupRel>
@@ -252,6 +326,41 @@ public class DepotEntryGroupRelLocalServiceUtil {
 	}
 
 	/**
+	 * Returns all the depot entry group rels matching the UUID and company.
+	 *
+	 * @param uuid the UUID of the depot entry group rels
+	 * @param companyId the primary key of the company
+	 * @return the matching depot entry group rels, or an empty list if no matches were found
+	 */
+	public static java.util.List<com.liferay.depot.model.DepotEntryGroupRel>
+		getDepotEntryGroupRelsByUuidAndCompanyId(String uuid, long companyId) {
+
+		return getService().getDepotEntryGroupRelsByUuidAndCompanyId(
+			uuid, companyId);
+	}
+
+	/**
+	 * Returns a range of depot entry group rels matching the UUID and company.
+	 *
+	 * @param uuid the UUID of the depot entry group rels
+	 * @param companyId the primary key of the company
+	 * @param start the lower bound of the range of depot entry group rels
+	 * @param end the upper bound of the range of depot entry group rels (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the range of matching depot entry group rels, or an empty list if no matches were found
+	 */
+	public static java.util.List<com.liferay.depot.model.DepotEntryGroupRel>
+		getDepotEntryGroupRelsByUuidAndCompanyId(
+			String uuid, long companyId, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.depot.model.DepotEntryGroupRel>
+					orderByComparator) {
+
+		return getService().getDepotEntryGroupRelsByUuidAndCompanyId(
+			uuid, companyId, start, end, orderByComparator);
+	}
+
+	/**
 	 * Returns the number of depot entry group rels.
 	 *
 	 * @return the number of depot entry group rels
@@ -260,8 +369,22 @@ public class DepotEntryGroupRelLocalServiceUtil {
 		return getService().getDepotEntryGroupRelsCount();
 	}
 
+	public static int getDepotEntryGroupRelsCount(
+		com.liferay.depot.model.DepotEntry depotEntry) {
+
+		return getService().getDepotEntryGroupRelsCount(depotEntry);
+	}
+
 	public static int getDepotEntryGroupRelsCount(long groupId) {
 		return getService().getDepotEntryGroupRelsCount(groupId);
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery
+		getExportActionableDynamicQuery(
+			com.liferay.exportimport.kernel.lar.PortletDataContext
+				portletDataContext) {
+
+		return getService().getExportActionableDynamicQuery(portletDataContext);
 	}
 
 	public static
@@ -280,6 +403,9 @@ public class DepotEntryGroupRelLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -287,8 +413,32 @@ public class DepotEntryGroupRelLocalServiceUtil {
 		return getService().getPersistedModel(primaryKeyObj);
 	}
 
+	public static java.util.List<com.liferay.depot.model.DepotEntryGroupRel>
+		getSearchableDepotEntryGroupRels(long groupId, int start, int end) {
+
+		return getService().getSearchableDepotEntryGroupRels(
+			groupId, start, end);
+	}
+
+	public static int getSearchableDepotEntryGroupRelsCount(long groupId) {
+		return getService().getSearchableDepotEntryGroupRelsCount(groupId);
+	}
+
+	public static com.liferay.depot.model.DepotEntryGroupRel
+			updateDDMStructuresAvailable(
+				long depotEntryGroupRelId, boolean ddmStructuresAvailable)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().updateDDMStructuresAvailable(
+			depotEntryGroupRelId, ddmStructuresAvailable);
+	}
+
 	/**
 	 * Updates the depot entry group rel in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DepotEntryGroupRelLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param depotEntryGroupRel the depot entry group rel
 	 * @return the depot entry group rel that was updated
@@ -298,6 +448,13 @@ public class DepotEntryGroupRelLocalServiceUtil {
 			com.liferay.depot.model.DepotEntryGroupRel depotEntryGroupRel) {
 
 		return getService().updateDepotEntryGroupRel(depotEntryGroupRel);
+	}
+
+	public static com.liferay.depot.model.DepotEntryGroupRel updateSearchable(
+			long depotEntryGroupRelId, boolean searchable)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().updateSearchable(depotEntryGroupRelId, searchable);
 	}
 
 	public static DepotEntryGroupRelLocalService getService() {

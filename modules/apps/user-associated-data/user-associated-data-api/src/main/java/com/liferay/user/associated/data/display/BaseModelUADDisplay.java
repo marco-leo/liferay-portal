@@ -109,7 +109,7 @@ public abstract class BaseModelUADDisplay<T extends BaseModel>
 
 			return (boolean)method.invoke(t);
 		}
-		catch (NoSuchMethodException nsme) {
+		catch (NoSuchMethodException noSuchMethodException) {
 			return false;
 		}
 	}
@@ -264,9 +264,9 @@ public abstract class BaseModelUADDisplay<T extends BaseModel>
 								searchableField, quotedKeywords));
 					}
 				}
-				catch (NoSuchMethodException | SecurityException e) {
+				catch (NoSuchMethodException | SecurityException exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(e, e);
+						_log.debug(exception, exception);
 					}
 				}
 			}
@@ -275,11 +275,12 @@ public abstract class BaseModelUADDisplay<T extends BaseModel>
 		}
 
 		if (orderByField != null) {
-			OrderByComparator<T> obc = getOrderByComparator(
+			OrderByComparator<T> orderByComparator = getOrderByComparator(
 				orderByField, orderByType);
 
-			if (obc != null) {
-				OrderFactoryUtil.addOrderByComparator(dynamicQuery, obc);
+			if (orderByComparator != null) {
+				OrderFactoryUtil.addOrderByComparator(
+					dynamicQuery, orderByComparator);
 			}
 			else {
 				Order order = null;

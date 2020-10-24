@@ -428,7 +428,8 @@ public class AggregateFilter extends IgnoreModuleRequestFilter {
 					httpServletResponse.setContentType(contentType);
 				}
 				else if (resourcePath.endsWith(_CSS_EXTENSION)) {
-					httpServletResponse.setContentType(ContentTypes.TEXT_CSS);
+					httpServletResponse.setContentType(
+						ContentTypes.TEXT_CSS_UTF8);
 				}
 				else if (resourcePath.endsWith(_JAVASCRIPT_EXTENSION)) {
 					httpServletResponse.setContentType(
@@ -450,10 +451,11 @@ public class AggregateFilter extends IgnoreModuleRequestFilter {
 				content = getCssContent(
 					httpServletRequest, httpServletResponse, resourcePath);
 
-				httpServletResponse.setContentType(ContentTypes.TEXT_CSS);
+				httpServletResponse.setContentType(ContentTypes.TEXT_CSS_UTF8);
 
 				if (!_isLegacyIe(httpServletRequest)) {
-					FileUtil.write(cacheContentTypeFile, ContentTypes.TEXT_CSS);
+					FileUtil.write(
+						cacheContentTypeFile, ContentTypes.TEXT_CSS_UTF8);
 				}
 			}
 			else if (resourcePath.endsWith(_JAVASCRIPT_EXTENSION)) {
@@ -572,8 +574,9 @@ public class AggregateFilter extends IgnoreModuleRequestFilter {
 			content = DynamicCSSUtil.replaceToken(
 				cssServletContext, httpServletRequest, content);
 		}
-		catch (Exception e) {
-			_log.error("Unable to replace tokens in CSS " + resourcePath, e);
+		catch (Exception exception) {
+			_log.error(
+				"Unable to replace tokens in CSS " + resourcePath, exception);
 
 			if (_log.isDebugEnabled()) {
 				_log.debug(content);
@@ -653,8 +656,9 @@ public class AggregateFilter extends IgnoreModuleRequestFilter {
 				httpServletRequest, httpServletResponse, cssServletContext,
 				resourcePath, content);
 		}
-		catch (Exception e) {
-			_log.error("Unable to detect servlet context " + resourcePath, e);
+		catch (Exception exception) {
+			_log.error(
+				"Unable to detect servlet context " + resourcePath, exception);
 
 			if (_log.isDebugEnabled()) {
 				_log.debug(content);

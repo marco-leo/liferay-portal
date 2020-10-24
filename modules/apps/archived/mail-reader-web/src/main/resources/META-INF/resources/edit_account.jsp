@@ -91,7 +91,7 @@ Account mailAccount = AccountLocalServiceUtil.getAccount(accountId);
 <aui:script use="aui-io-deprecated">
 	var form = A.one('#<portlet:namespace />dialogFm');
 
-	form.on('submit', function(event) {
+	form.on('submit', function (event) {
 		event.preventDefault();
 
 		Liferay.Mail.setStatus(
@@ -103,28 +103,28 @@ Account mailAccount = AccountLocalServiceUtil.getAccount(accountId);
 		A.io.request(themeDisplay.getLayoutURL() + '/-/mail/update_account', {
 			dataType: 'JSON',
 			form: {
-				id: form.getDOMNode()
+				id: form.getDOMNode(),
 			},
 			on: {
-				failure: function(event, id, obj) {
+				failure: function (event, id, obj) {
 					Liferay.Mail.setStatus(
 						'error',
 						'<liferay-ui:message key="unable-to-connect-with-mail-server" />'
 					);
 				},
-				success: function(event, id, obj) {
+				success: function (event, id, obj) {
 					var responseData = this.get('responseData');
 
 					Liferay.Mail.setStatus(
 						responseData.status,
 						responseData.message
 					);
-				}
-			}
+				},
+			},
 		});
 	});
 
-	A.one('.mail-dialog .delete-account').on('click', function(event) {
+	A.one('.mail-dialog .delete-account').on('click', function (event) {
 		if (
 			!confirm(
 				'<liferay-ui:message key="are-you-sure-you-want-to-delete-this-account" />'
@@ -140,18 +140,18 @@ Account mailAccount = AccountLocalServiceUtil.getAccount(accountId);
 
 		A.io.request(themeDisplay.getLayoutURL() + '/-/mail/delete_account', {
 			data: Liferay.Util.ns('<portlet:namespace />', {
-				accountId: <%= accountId %>
+				accountId: <%= accountId %>,
 			}),
 			dataType: 'JSON',
 			method: 'POST',
 			on: {
-				failure: function(event, id, obj) {
+				failure: function (event, id, obj) {
 					Liferay.Mail.setStatus(
 						'error',
 						'<liferay-ui:message key="unable-to-connect-with-mail-server" />'
 					);
 				},
-				success: function(event, id, obj) {
+				success: function (event, id, obj) {
 					var responseData = this.get('responseData');
 
 					Liferay.Mail.setStatus(
@@ -162,32 +162,32 @@ Account mailAccount = AccountLocalServiceUtil.getAccount(accountId);
 					if (responseData.status == 'success') {
 						Liferay.Mail.reset();
 					}
-				}
-			}
+				},
+			},
 		});
 	});
 
-	A.one('.mail-dialog .synchronize-account').on('click', function(event) {
+	A.one('.mail-dialog .synchronize-account').on('click', function (event) {
 		A.io.request(themeDisplay.getLayoutURL() + '/-/mail/synchronize_account', {
 			data: Liferay.Util.ns('<portlet:namespace />', {
-				accountId: <%= accountId %>
+				accountId: <%= accountId %>,
 			}),
 			dataType: 'JSON',
 			method: 'POST',
 			on: {
-				failure: function(event, id, obj) {
+				failure: function (event, id, obj) {
 					Liferay.Mail.setStatus(
 						'error',
 						'<liferay-ui:message key="unable-to-connect-with-mail-server" />'
 					);
 				},
-				success: function(event, id, obj) {
+				success: function (event, id, obj) {
 					Liferay.Mail.setStatus(
 						'success',
 						'<liferay-ui:message key="synchronizing-messages-in-the-background" />'
 					);
-				}
-			}
+				},
+			},
 		});
 	});
 </aui:script>

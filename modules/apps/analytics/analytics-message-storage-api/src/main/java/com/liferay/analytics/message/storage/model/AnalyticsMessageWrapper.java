@@ -190,11 +190,6 @@ public class AnalyticsMessageWrapper
 		return model.getUserUuid();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a analytics message model instance should use the <code>AnalyticsMessage</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();

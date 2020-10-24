@@ -15,6 +15,7 @@
 package com.liferay.wiki.internal.search;
 
 import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.comment.Comment;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
@@ -32,11 +33,13 @@ import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.IndexWriterHelper;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.RelatedEntryIndexer;
 import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.Summary;
 import com.liferay.portal.kernel.search.filter.BooleanFilter;
 import com.liferay.portal.kernel.search.filter.TermsFilter;
@@ -46,9 +49,12 @@ import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermi
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.search.model.uid.UIDFactory;
 import com.liferay.trash.TrashHelper;
 import com.liferay.wiki.engine.WikiEngineRenderer;
 import com.liferay.wiki.exception.WikiFormatException;
@@ -58,6 +64,7 @@ import com.liferay.wiki.service.WikiNodeLocalService;
 import com.liferay.wiki.service.WikiNodeService;
 import com.liferay.wiki.service.WikiPageLocalService;
 
+import java.util.List;
 import java.util.Locale;
 
 import javax.portlet.PortletRequest;
@@ -102,18 +109,18 @@ public class WikiPageIndexer
 	}
 
 	@Override
-	public void addRelatedEntryFields(Document document, Object obj)
+	public void addRelatedEntryFields(Document document, Object object)
 		throws Exception {
 
 		long classPK = 0;
 
-		if (obj instanceof Comment) {
-			Comment comment = (Comment)obj;
+		if (object instanceof Comment) {
+			Comment comment = (Comment)object;
 
 			classPK = comment.getClassPK();
 		}
-		else if (obj instanceof FileEntry) {
-			FileEntry fileEntry = (FileEntry)obj;
+		else if (object instanceof FileEntry) {
+			FileEntry fileEntry = (FileEntry)object;
 
 			RelatedModelCapability relatedModelCapability =
 				fileEntry.getRepositoryCapability(RelatedModelCapability.class);
@@ -126,7 +133,7 @@ public class WikiPageIndexer
 		try {
 			page = _wikiPageLocalService.getPage(classPK);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return;
 		}
 
@@ -177,9 +184,10 @@ public class WikiPageIndexer
 				try {
 					_wikiNodeService.getNode(nodeId);
 				}
-				catch (Exception e) {
+				catch (Exception exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug("Unable to get wiki node " + nodeId, e);
+						_log.debug(
+							"Unable to get wiki node " + nodeId, exception);
 					}
 
 					continue;
@@ -207,17 +215,33 @@ public class WikiPageIndexer
 	}
 
 	@Override
+	public Hits search(SearchContext searchContext) throws SearchException {
+		Hits hits = super.search(searchContext);
+
+		hits.setQueryTerms(
+			ArrayUtil.append(
+				GetterUtil.getStringValues(hits.getQueryTerms()),
+				StringUtil.split(
+					searchContext.getKeywords(), StringPool.SPACE)));
+
+		return hits;
+	}
+
+	@Override
 	public void updateFullQuery(SearchContext searchContext) {
 	}
 
 	@Override
 	protected void doDelete(WikiPage wikiPage) throws Exception {
-		deleteDocument(wikiPage.getCompanyId(), wikiPage.getResourcePrimKey());
+		deleteDocument(
+			wikiPage.getCompanyId(), "UID=" + uidFactory.getUID(wikiPage));
 	}
 
 	@Override
 	protected Document doGetDocument(WikiPage wikiPage) throws Exception {
 		Document document = getBaseModelDocument(CLASS_NAME, wikiPage);
+
+		uidFactory.setUID(wikiPage, document);
 
 		String content = null;
 
@@ -227,7 +251,7 @@ public class WikiPageIndexer
 
 			document.addText(Field.CONTENT, content);
 		}
-		catch (WikiFormatException wfe) {
+		catch (WikiFormatException wikiFormatException) {
 			if (_log.isDebugEnabled()) {
 				_log.debug(
 					"Unable to get wiki engine for " + wikiPage.getFormat());
@@ -281,13 +305,18 @@ public class WikiPageIndexer
 
 	@Override
 	protected void doReindex(String className, long classPK) throws Exception {
-		WikiPage page = _wikiPageLocalService.fetchWikiPage(classPK);
+		WikiPage wikiPage = _wikiPageLocalService.fetchWikiPage(classPK);
 
-		if (page == null) {
-			page = _wikiPageLocalService.getPage(classPK, (Boolean)null);
+		if (wikiPage != null) {
+			_reindexEveryVersionOfResourcePrimKey(
+				wikiPage.getResourcePrimKey());
+
+			return;
 		}
 
-		doReindex(page);
+		long resourcePrimKey = classPK;
+
+		_reindexEveryVersionOfResourcePrimKey(resourcePrimKey);
 	}
 
 	@Override
@@ -365,11 +394,11 @@ public class WikiPageIndexer
 					indexableActionableDynamicQuery.addDocuments(
 						getDocument(page));
 				}
-				catch (PortalException pe) {
+				catch (PortalException portalException) {
 					if (_log.isWarnEnabled()) {
 						_log.warn(
 							"Unable to index wiki page " + page.getPageId(),
-							pe);
+							portalException);
 					}
 				}
 			});
@@ -402,6 +431,44 @@ public class WikiPageIndexer
 		WikiPageLocalService wikiPageLocalService) {
 
 		_wikiPageLocalService = wikiPageLocalService;
+	}
+
+	@Reference
+	protected UIDFactory uidFactory;
+
+	private void _deleteDocument(WikiPage wikiPage) {
+		try {
+			_indexWriterHelper.deleteDocument(
+				getSearchEngineId(), wikiPage.getCompanyId(),
+				uidFactory.getUID(wikiPage), isCommitImmediately());
+		}
+		catch (SearchException searchException) {
+			throw new RuntimeException(searchException);
+		}
+	}
+
+	private void _reindexEveryVersionOfResourcePrimKey(long resourcePrimKey)
+		throws Exception {
+
+		List<WikiPage> wikiPages =
+			(List<WikiPage>)_wikiPageLocalService.getPersistedModel(
+				resourcePrimKey);
+
+		if (ListUtil.isEmpty(wikiPages)) {
+			return;
+		}
+
+		WikiPage latestWikiPage = _wikiPageLocalService.getPage(
+			resourcePrimKey, (Boolean)null);
+
+		for (WikiPage wikiPage : wikiPages) {
+			if (wikiPage.getPrimaryKey() == latestWikiPage.getPrimaryKey()) {
+				doReindex(wikiPage);
+			}
+			else {
+				_deleteDocument(wikiPage);
+			}
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

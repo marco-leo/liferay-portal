@@ -42,6 +42,7 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+import com.liferay.portletmvc4spring.test.mock.web.portlet.MockActionResponse;
 
 import java.util.AbstractMap;
 import java.util.Collections;
@@ -52,8 +53,6 @@ import java.util.stream.Stream;
 
 import javax.portlet.PortletException;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -62,7 +61,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.portlet.MockActionResponse;
 
 /**
  * @author Cristina González
@@ -296,17 +294,12 @@ public class EditEntryMVCActionCommandTest {
 				try {
 					return _getThemeDisplay();
 				}
-				catch (PortalException pe) {
-					throw new AssertionError(pe);
+				catch (PortalException portalException) {
+					throw new AssertionError(portalException);
 				}
 			}
 
 			return super.getAttribute(name);
-		}
-
-		@Override
-		public HttpServletRequest getHttpServletRequest() {
-			return new MockHttpServletRequest();
 		}
 
 		@Override

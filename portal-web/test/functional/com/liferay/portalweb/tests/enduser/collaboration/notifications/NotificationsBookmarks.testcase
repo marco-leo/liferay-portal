@@ -3,7 +3,7 @@ definition {
 
 	property portal.release = "false";
 	property portal.upstream = "true";
-	property custom.properties = "default.layout.template.id=1_column";
+	property custom.properties = "default.layout.template.id=1_column${line.separator}jsonws.web.service.paths.excludes=";
 	property testray.main.component.name = "Notifications";
 	var pageName = "Bookmarks Page";
 	var portletName = "Bookmarks";
@@ -15,7 +15,6 @@ definition {
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
-			panel = "Site Administration",
 			portlet = "Pages");
 
 		SitePages.addPublicPage(
@@ -32,17 +31,12 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		ProductMenu.gotoPortlet(
-			category = "Users",
-			panel = "Control Panel",
-			portlet = "Users and Organizations");
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "userea@liferay.com");
 
-		User.editPasswordCP(
-			password = "password",
-			userEmailAddress = "userea@liferay.com",
-			userScreenName = "usersn");
-
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");

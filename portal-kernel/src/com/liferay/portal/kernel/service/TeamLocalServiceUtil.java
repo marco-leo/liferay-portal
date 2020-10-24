@@ -30,16 +30,10 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class TeamLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.TeamLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link TeamLocalServiceUtil} to access the team local service. Add custom service methods to <code>com.liferay.portal.service.impl.TeamLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.portal.kernel.model.Team addTeam(
 			long userId, long groupId, String name, String description,
@@ -52,6 +46,10 @@ public class TeamLocalServiceUtil {
 
 	/**
 	 * Adds the team to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect TeamLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param team the team
 	 * @return the team that was added
@@ -113,6 +111,16 @@ public class TeamLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Creates a new team with the primary key. Does not add the team to the database.
 	 *
 	 * @param teamId the primary key for the new team
@@ -136,6 +144,10 @@ public class TeamLocalServiceUtil {
 	/**
 	 * Deletes the team with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect TeamLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param teamId the primary key of the team
 	 * @return the team that was removed
 	 * @throws PortalException if a team with the primary key could not be found
@@ -148,6 +160,10 @@ public class TeamLocalServiceUtil {
 
 	/**
 	 * Deletes the team from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect TeamLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param team the team
 	 * @return the team that was removed
@@ -206,6 +222,12 @@ public class TeamLocalServiceUtil {
 
 	public static void deleteUserTeams(long userId, long[] teamIds) {
 		getService().deleteUserTeams(userId, teamIds);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -356,6 +378,9 @@ public class TeamLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -560,10 +585,10 @@ public class TeamLocalServiceUtil {
 		long groupId, String name, String description,
 		java.util.LinkedHashMap<String, Object> params, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.portal.kernel.model.Team> obc) {
+			<com.liferay.portal.kernel.model.Team> orderByComparator) {
 
 		return getService().search(
-			groupId, name, description, params, start, end, obc);
+			groupId, name, description, params, start, end, orderByComparator);
 	}
 
 	public static int searchCount(
@@ -590,6 +615,10 @@ public class TeamLocalServiceUtil {
 
 	/**
 	 * Updates the team in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect TeamLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param team the team
 	 * @return the team that was updated

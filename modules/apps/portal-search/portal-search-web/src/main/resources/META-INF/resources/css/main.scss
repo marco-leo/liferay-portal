@@ -1,3 +1,5 @@
-@import '_search_bar';
-@import '_search_facet';
-@import '_suggestions';
+@import 'search-results/search_results';
+@import 'search_bar';
+@import 'search_facet';
+@import 'search_portlet';
+@import 'suggestions';

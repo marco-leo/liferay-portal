@@ -14,6 +14,8 @@
 
 package com.liferay.dispatch.model.impl;
 
+import com.liferay.portal.kernel.util.UnicodeProperties;
+
 /**
  * @author Alessio Antonio Rendina
  */
@@ -21,5 +23,35 @@ public class DispatchTriggerImpl extends DispatchTriggerBaseImpl {
 
 	public DispatchTriggerImpl() {
 	}
+
+	public UnicodeProperties getTaskSettingsUnicodeProperties() {
+		if (_taskSettingsUnicodeProperties == null) {
+			_taskSettingsUnicodeProperties = new UnicodeProperties(true);
+
+			_taskSettingsUnicodeProperties.fastLoad(getTaskSettings());
+		}
+
+		return _taskSettingsUnicodeProperties;
+	}
+
+	public void setTaskSettings(String taskSettings) {
+		super.setTaskSettings(taskSettings);
+
+		_taskSettingsUnicodeProperties = null;
+	}
+
+	public void setTaskSettingsUnicodeProperties(
+		UnicodeProperties taskSettingsUnicodeProperties) {
+
+		_taskSettingsUnicodeProperties = taskSettingsUnicodeProperties;
+
+		if (_taskSettingsUnicodeProperties == null) {
+			_taskSettingsUnicodeProperties = new UnicodeProperties();
+		}
+
+		super.setTaskSettings(_taskSettingsUnicodeProperties.toString());
+	}
+
+	private transient UnicodeProperties _taskSettingsUnicodeProperties;
 
 }

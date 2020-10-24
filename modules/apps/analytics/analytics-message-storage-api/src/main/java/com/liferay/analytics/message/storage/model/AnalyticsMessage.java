@@ -34,7 +34,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface AnalyticsMessage
 	extends AnalyticsMessageModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.analytics.message.storage.model.impl.AnalyticsMessageImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.

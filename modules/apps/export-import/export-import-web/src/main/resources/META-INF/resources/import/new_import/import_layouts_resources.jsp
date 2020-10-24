@@ -36,7 +36,7 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 <liferay-ui:error exception="<%= LARFileException.class %>" message="please-specify-a-lar-file-to-import" />
 
 <liferay-ui:error exception="<%= LARFileSizeException.class %>">
-	<liferay-ui:message arguments="<%= TextFormatter.formatStorageSize(UploadServletRequestConfigurationHelperUtil.getMaxSize(), locale) %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
+	<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(UploadServletRequestConfigurationHelperUtil.getMaxSize(), locale) %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
 </liferay-ui:error>
 
 <liferay-ui:error exception="<%= LARTypeException.class %>">
@@ -139,7 +139,7 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 						Date exportDate = manifestSummary.getExportDate();
 						%>
 
-						<span onmouseover="Liferay.Portal.ToolTip.show(this, '<%= HtmlUtil.escapeJS(dateFormatDateTime.format(exportDate)) %>')">
+						<span class="lfr-portal-tooltip" title="<%= HtmlUtil.escape(dateFormatDateTime.format(exportDate)) %>">
 							<liferay-ui:message arguments="<%= LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - exportDate.getTime(), true) %>" key="x-ago" translateArguments="<%= false %>" />
 						</span>
 					</dd>
@@ -153,13 +153,13 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 						<liferay-ui:message key="size" />
 					</dt>
 					<dd>
-						<%= TextFormatter.formatStorageSize(fileEntry.getSize(), locale) %>
+						<%= LanguageUtil.formatStorageSize(fileEntry.getSize(), locale) %>
 					</dd>
 				</dl>
 			</aui:fieldset>
 
 			<c:choose>
-				<c:when test="<%= !group.isLayoutPrototype() && !group.isLayoutSetPrototype() && !group.isCompany() %>">
+				<c:when test="<%= !group.isDepot() && !group.isCompany() && !group.isLayoutPrototype() && !group.isLayoutSetPrototype() %>">
 					<aui:fieldset collapsible="<%= true %>" cssClass="options-group" label="pages">
 						<aui:input id="publicPages" label="public-pages" name="privateLayout" type="radio" value="<%= false %>" />
 
@@ -314,14 +314,20 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 															<li>
 																<span class="selected-labels" id="<portlet:namespace />selectedContent_<%= portlet.getRootPortletId() %>"></span>
 
-																<%
-																Map<String, Object> data = new HashMap<String, Object>();
-
-																data.put("portletid", portlet.getRootPortletId());
-																data.put("portlettitle", portletTitle);
-																%>
-
-																<aui:a cssClass="content-link modify-link" data="<%= data %>" href="javascript:;" id='<%= "contentLink_" + portlet.getRootPortletId() %>' label="change" method="get" />
+																<aui:a
+																	cssClass="content-link modify-link"
+																	data='<%=
+																		HashMapBuilder.<String, Object>put(
+																			"portletid", portlet.getRootPortletId()
+																		).put(
+																			"portlettitle", portletTitle
+																		).build()
+																	%>'
+																	href="javascript:;"
+																	id='<%= "contentLink_" + portlet.getRootPortletId() %>'
+																	label="change"
+																	method="get"
+																/>
 															</li>
 														</ul>
 
@@ -431,7 +437,7 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 
 <aui:script>
 	Liferay.Util.toggleRadio('<portlet:namespace />allApplications', '', [
-		'<portlet:namespace />selectApplications'
+		'<portlet:namespace />selectApplications',
 	]);
 	Liferay.Util.toggleRadio(
 		'<portlet:namespace />chooseApplications',
@@ -458,6 +464,6 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 		themeReferenceNode: '#<%= PortletDataHandlerKeys.THEME_REFERENCE %>',
 		timeZoneOffset: <%= timeZoneOffset %>,
 		userPreferencesNode:
-			'#<%= PortletDataHandlerKeys.PORTLET_USER_PREFERENCES_ALL %>'
+			'#<%= PortletDataHandlerKeys.PORTLET_USER_PREFERENCES_ALL %>',
 	});
 </aui:script>

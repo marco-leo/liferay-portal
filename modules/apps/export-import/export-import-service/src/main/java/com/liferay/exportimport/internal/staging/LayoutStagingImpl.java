@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutRevision;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutSetBranch;
@@ -112,11 +111,7 @@ public class LayoutStagingImpl implements LayoutStaging {
 
 	@Override
 	public boolean isBranchingLayout(Layout layout) {
-		String layoutType = layout.getType();
-
-		if ((layout == null) || layout.isSystem() ||
-			LayoutConstants.TYPE_CONTENT.equals(layoutType)) {
-
+		if ((layout == null) || layout.isSystem() || layout.isTypeContent()) {
 			return false;
 		}
 
@@ -134,10 +129,10 @@ public class LayoutStagingImpl implements LayoutStaging {
 			group = group.getLiveGroup();
 		}
 
-		UnicodeProperties typeSettingsProperties =
+		UnicodeProperties typeSettingsUnicodeProperties =
 			group.getTypeSettingsProperties();
 
-		if (typeSettingsProperties.isEmpty()) {
+		if (typeSettingsUnicodeProperties.isEmpty()) {
 			return false;
 		}
 
@@ -145,11 +140,11 @@ public class LayoutStagingImpl implements LayoutStaging {
 
 		if (privateLayout) {
 			branchingEnabled = GetterUtil.getBoolean(
-				typeSettingsProperties.getProperty("branchingPrivate"));
+				typeSettingsUnicodeProperties.getProperty("branchingPrivate"));
 		}
 		else {
 			branchingEnabled = GetterUtil.getBoolean(
-				typeSettingsProperties.getProperty("branchingPublic"));
+				typeSettingsUnicodeProperties.getProperty("branchingPublic"));
 		}
 
 		if (!branchingEnabled || !group.isStaged() ||
@@ -170,12 +165,12 @@ public class LayoutStagingImpl implements LayoutStaging {
 
 			return true;
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(portalException, portalException);
 			}
 
 			return false;

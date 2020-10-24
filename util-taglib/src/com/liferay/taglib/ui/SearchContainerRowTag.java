@@ -57,13 +57,13 @@ public class SearchContainerRowTag<R>
 			_resultRow.setRestricted(GetterUtil.getBoolean(value));
 		}
 		else {
-			Object obj = pageContext.getAttribute(value);
+			Object object = pageContext.getAttribute(value);
 
-			if (obj == null) {
-				obj = value;
+			if (object == null) {
+				object = value;
 			}
 
-			_resultRow.setParameter(name, obj);
+			_resultRow.setParameter(name, object);
 		}
 	}
 
@@ -73,6 +73,7 @@ public class SearchContainerRowTag<R>
 			!_headerNames.isEmpty()) {
 
 			_searchContainer.setHeaderNames(_headerNames);
+			_searchContainer.setHelpMessages(_helpMessages);
 			_searchContainer.setOrderableHeaders(_orderableHeaders);
 
 			_headerNamesAssigned = true;
@@ -105,6 +106,7 @@ public class SearchContainerRowTag<R>
 		_className = null;
 		_cssClass = StringPool.BLANK;
 		_escapedModel = false;
+		_helpMessages = null;
 		_indexVar = DEFAULT_INDEX_VAR;
 		_keyProperty = null;
 		_modelVar = DEFAULT_MODEL_VAR;
@@ -158,6 +160,14 @@ public class SearchContainerRowTag<R>
 		}
 
 		return _headerNames;
+	}
+
+	public Map<String, String> getHelpMessages() {
+		if (_helpMessages == null) {
+			_helpMessages = new LinkedHashMap<>();
+		}
+
+		return _helpMessages;
 	}
 
 	public String getIndexVar() {
@@ -232,6 +242,10 @@ public class SearchContainerRowTag<R>
 		_headerNamesAssigned = headerNamesAssigned;
 	}
 
+	public void setHelpMessages(Map<String, String> helpMessages) {
+		_helpMessages = helpMessages;
+	}
+
 	public void setIndexVar(String indexVar) {
 		_indexVar = indexVar;
 	}
@@ -294,10 +308,10 @@ public class SearchContainerRowTag<R>
 				model, _keyProperty);
 		}
 		else {
-			Object primaryKeyObj = BeanPropertiesUtil.getObjectSilent(
+			Object primaryKeyObject = BeanPropertiesUtil.getObjectSilent(
 				model, _keyProperty);
 
-			primaryKey = String.valueOf(primaryKeyObj);
+			primaryKey = String.valueOf(primaryKeyObject);
 		}
 
 		String rowId = null;
@@ -306,16 +320,16 @@ public class SearchContainerRowTag<R>
 			rowId = String.valueOf(_rowIndex + 1);
 		}
 		else {
-			Object rowIdObj = BeanPropertiesUtil.getObjectSilent(
+			Object rowIdObject = BeanPropertiesUtil.getObjectSilent(
 				model, _rowIdProperty);
 
-			if (Validator.isNull(rowIdObj)) {
+			if (Validator.isNull(rowIdObject)) {
 				rowId = String.valueOf(_rowIndex + 1);
 			}
 			else {
 				rowId =
 					FriendlyURLNormalizerUtil.normalizeWithPeriodsAndSlashes(
-						String.valueOf(rowIdObj));
+						String.valueOf(rowIdObject));
 			}
 		}
 
@@ -333,6 +347,7 @@ public class SearchContainerRowTag<R>
 	private boolean _escapedModel;
 	private List<String> _headerNames;
 	private boolean _headerNamesAssigned;
+	private Map<String, String> _helpMessages;
 	private String _indexVar = DEFAULT_INDEX_VAR;
 	private String _keyProperty;
 	private String _modelVar = DEFAULT_MODEL_VAR;

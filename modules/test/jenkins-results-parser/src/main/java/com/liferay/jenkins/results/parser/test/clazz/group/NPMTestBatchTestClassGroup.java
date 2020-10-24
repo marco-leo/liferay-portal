@@ -78,8 +78,7 @@ public class NPMTestBatchTestClassGroup extends BatchTestClassGroup {
 		for (NPMTestBatchTestClassGroup.NPMTestBatchTestClass
 				npmTestBatchTestClass : npmTestBatchTestClasses.values()) {
 
-			TestClass.TestClassFile moduleTestClassFile =
-				npmTestBatchTestClass.getTestClassFile();
+			File moduleTestClassFile = npmTestBatchTestClass.getTestClassFile();
 
 			String moduleName = moduleTestClassFile.getName();
 
@@ -130,8 +129,8 @@ public class NPMTestBatchTestClassGroup extends BatchTestClassGroup {
 		try {
 			JenkinsResultsParserUtil.write(csvReportFile, csvReport.toString());
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 
@@ -155,7 +154,7 @@ public class NPMTestBatchTestClassGroup extends BatchTestClassGroup {
 				moduleDir,
 				new NPMTestBatchTestClass(
 					batchName, gitWorkingDirectory,
-					new TestClassFile(
+					new File(
 						JenkinsResultsParserUtil.getCanonicalPath(moduleDir))));
 
 			return _npmTestBatchTestClasses.get(moduleDir);
@@ -169,7 +168,7 @@ public class NPMTestBatchTestClassGroup extends BatchTestClassGroup {
 
 		protected NPMTestBatchTestClass(
 			String batchName, GitWorkingDirectory gitWorkingDirectory,
-			TestClassFile testClassFile) {
+			File testClassFile) {
 
 			super(testClassFile);
 
@@ -186,10 +185,9 @@ public class NPMTestBatchTestClassGroup extends BatchTestClassGroup {
 			List<File> jsFiles = JenkinsResultsParserUtil.findFiles(
 				_moduleFile, ".*\\.js");
 
-			File workingDirectory = _gitWorkingDirectory.getWorkingDirectory();
-
 			String workingDirectoryPath =
-				JenkinsResultsParserUtil.getCanonicalPath(workingDirectory);
+				JenkinsResultsParserUtil.getCanonicalPath(
+					_gitWorkingDirectory.getWorkingDirectory());
 
 			for (File jsFile : jsFiles) {
 				try {
@@ -223,8 +221,8 @@ public class NPMTestBatchTestClassGroup extends BatchTestClassGroup {
 								this));
 					}
 				}
-				catch (IOException ioe) {
-					throw new RuntimeException(ioe);
+				catch (IOException ioException) {
+					throw new RuntimeException(ioException);
 				}
 			}
 		}
@@ -242,9 +240,10 @@ public class NPMTestBatchTestClassGroup extends BatchTestClassGroup {
 	}
 
 	protected NPMTestBatchTestClassGroup(
-		String batchName, PortalTestClassJob portalTestClassJob) {
+		String batchName, BuildProfile buildProfile,
+		PortalTestClassJob portalTestClassJob) {
 
-		super(batchName, portalTestClassJob);
+		super(batchName, buildProfile, portalTestClassJob);
 
 		List<File> moduleDirs;
 
@@ -261,8 +260,8 @@ public class NPMTestBatchTestClassGroup extends BatchTestClassGroup {
 					portalGitWorkingDirectory.getNPMTestModuleDirsList();
 			}
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 
 		if (moduleDirs.isEmpty()) {
@@ -275,7 +274,7 @@ public class NPMTestBatchTestClassGroup extends BatchTestClassGroup {
 			NPMTestBatchTestClass npmTestBatchTestClass =
 				NPMTestBatchTestClass.getInstance(
 					batchName, portalGitWorkingDirectory,
-					new TestClass.TestClassFile(
+					new File(
 						JenkinsResultsParserUtil.getCanonicalPath(moduleDir)));
 
 			testClasses.add(npmTestBatchTestClass);

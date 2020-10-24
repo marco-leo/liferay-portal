@@ -135,6 +135,16 @@ public class RoleSerDes {
 			sb.append("\"");
 		}
 
+		if (role.getDescription_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"description_i18n\": ");
+
+			sb.append(_toJSON(role.getDescription_i18n()));
+		}
+
 		if (role.getId() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -157,6 +167,16 @@ public class RoleSerDes {
 			sb.append(_escape(role.getName()));
 
 			sb.append("\"");
+		}
+
+		if (role.getName_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"name_i18n\": ");
+
+			sb.append(_toJSON(role.getName_i18n()));
 		}
 
 		if (role.getRoleType() != null) {
@@ -210,19 +230,37 @@ public class RoleSerDes {
 			map.put("creator", String.valueOf(role.getCreator()));
 		}
 
-		map.put(
-			"dateCreated",
-			liferayToJSONDateFormat.format(role.getDateCreated()));
+		if (role.getDateCreated() == null) {
+			map.put("dateCreated", null);
+		}
+		else {
+			map.put(
+				"dateCreated",
+				liferayToJSONDateFormat.format(role.getDateCreated()));
+		}
 
-		map.put(
-			"dateModified",
-			liferayToJSONDateFormat.format(role.getDateModified()));
+		if (role.getDateModified() == null) {
+			map.put("dateModified", null);
+		}
+		else {
+			map.put(
+				"dateModified",
+				liferayToJSONDateFormat.format(role.getDateModified()));
+		}
 
 		if (role.getDescription() == null) {
 			map.put("description", null);
 		}
 		else {
 			map.put("description", String.valueOf(role.getDescription()));
+		}
+
+		if (role.getDescription_i18n() == null) {
+			map.put("description_i18n", null);
+		}
+		else {
+			map.put(
+				"description_i18n", String.valueOf(role.getDescription_i18n()));
 		}
 
 		if (role.getId() == null) {
@@ -237,6 +275,13 @@ public class RoleSerDes {
 		}
 		else {
 			map.put("name", String.valueOf(role.getName()));
+		}
+
+		if (role.getName_i18n() == null) {
+			map.put("name_i18n", null);
+		}
+		else {
+			map.put("name_i18n", String.valueOf(role.getName_i18n()));
 		}
 
 		if (role.getRoleType() == null) {
@@ -293,6 +338,12 @@ public class RoleSerDes {
 					role.setDescription((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "description_i18n")) {
+				if (jsonParserFieldValue != null) {
+					role.setDescription_i18n(
+						(Map)RoleSerDes.toMap((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "id")) {
 				if (jsonParserFieldValue != null) {
 					role.setId(Long.valueOf((String)jsonParserFieldValue));
@@ -303,14 +354,19 @@ public class RoleSerDes {
 					role.setName((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "name_i18n")) {
+				if (jsonParserFieldValue != null) {
+					role.setName_i18n(
+						(Map)RoleSerDes.toMap((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "roleType")) {
 				if (jsonParserFieldValue != null) {
 					role.setRoleType((String)jsonParserFieldValue);
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -366,10 +422,13 @@ public class RoleSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

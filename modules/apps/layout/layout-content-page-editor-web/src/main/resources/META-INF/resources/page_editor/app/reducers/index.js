@@ -12,27 +12,61 @@
  * details.
  */
 
-import React from 'react';
-
 import baseReducer from './baseReducer';
+import collectionsReducer from './collectionsReducer';
+import editablesReducer from './editablesReducer';
 import fragmentEntryLinksReducer from './fragmentEntryLinksReducer';
-import languageReducer from './languageReducer';
+import fragmentsReducer from './fragmentsReducer';
+import languageIdReducer from './languageIdReducer';
 import layoutDataReducer from './layoutDataReducer';
-
-export const DispatchContext = React.createContext(() => {});
+import mappedInfoItemsReducer from './mappedInfoItemsReducer';
+import masterLayoutReducer from './masterLayoutReducer';
+import networkReducer from './networkReducer';
+import pageContentsReducer from './pageContentsReducer';
+import permissionsReducer from './permissionsReducer';
+import selectedViewportSizeReducer from './selectedViewportSizeReducer';
+import showResolvedCommentsReducer from './showResolvedCommentsReducer';
+import sidebarReducer from './sidebarReducer';
+import undoReducer from './undoReducer';
+import widgetsReducer from './widgetsReducer';
 
 /**
  * Runs the base reducer plus any dynamically loaded reducers that have
  * been registered from plugins.
  */
 export function reducer(state, action) {
-	return [
-		baseReducer,
-		fragmentEntryLinksReducer,
-		languageReducer,
-		layoutDataReducer,
-		...Object.values(state.reducers)
-	].reduce((nextState, nextReducer) => {
-		return nextReducer(nextState, action);
-	}, state);
+	const nextState = undoReducer(state, action);
+
+	return [combinedReducer, ...Object.values(state.reducers || {})].reduce(
+		(nextState, nextReducer) => {
+			return nextReducer(nextState, action);
+		},
+		nextState
+	);
 }
+
+const combinedReducer = (state, action) =>
+	Object.entries({
+		collections: collectionsReducer,
+		editables: editablesReducer,
+		fragmentEntryLinks: fragmentEntryLinksReducer,
+		fragments: fragmentsReducer,
+		languageId: languageIdReducer,
+		layoutData: layoutDataReducer,
+		mappedInfoItems: mappedInfoItemsReducer,
+		masterLayout: masterLayoutReducer,
+		network: networkReducer,
+		pageContents: pageContentsReducer,
+		permissions: permissionsReducer,
+		reducers: baseReducer,
+		selectedViewportSize: selectedViewportSizeReducer,
+		showResolvedComments: showResolvedCommentsReducer,
+		sidebar: sidebarReducer,
+		widgets: widgetsReducer,
+	}).reduce(
+		(nextState, [namespace, reducer]) => ({
+			...nextState,
+			[namespace]: reducer(nextState[namespace], action),
+		}),
+		state
+	);

@@ -40,12 +40,12 @@ import javax.servlet.http.HttpServletRequest;
 public class LayoutPrototypeDisplayContext {
 
 	public LayoutPrototypeDisplayContext(
-		RenderRequest renderRequest, RenderResponse renderResponse,
-		HttpServletRequest httpServletRequest) {
+		HttpServletRequest httpServletRequest, RenderRequest renderRequest,
+		RenderResponse renderResponse) {
 
+		_httpServletRequest = httpServletRequest;
 		_renderRequest = renderRequest;
 		_renderResponse = renderResponse;
-		_httpServletRequest = httpServletRequest;
 	}
 
 	public Boolean getActive() {
@@ -109,14 +109,15 @@ public class LayoutPrototypeDisplayContext {
 		return portletURL;
 	}
 
-	public SearchContainer getSearchContainer() {
+	public SearchContainer<LayoutPageTemplateEntry> getSearchContainer() {
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		SearchContainer searchContainer = new SearchContainer(
-			_renderRequest, _renderResponse.createRenderURL(), null,
-			"there-are-no-page-templates");
+		SearchContainer<LayoutPageTemplateEntry> searchContainer =
+			new SearchContainer(
+				_renderRequest, _renderResponse.createRenderURL(), null,
+				"there-are-no-page-templates");
 
 		searchContainer.setId("layoutPrototype");
 		searchContainer.setRowChecker(

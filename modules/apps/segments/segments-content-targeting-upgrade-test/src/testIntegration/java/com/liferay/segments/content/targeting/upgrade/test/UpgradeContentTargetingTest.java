@@ -19,6 +19,7 @@ import com.liferay.counter.kernel.service.CounterLocalService;
 import com.liferay.expando.kernel.model.ExpandoColumn;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
 import com.liferay.expando.kernel.model.ExpandoTable;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBInspector;
@@ -41,7 +42,6 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.odata.normalizer.Normalizer;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -740,21 +740,12 @@ public class UpgradeContentTargetingTest {
 		Registry registry = RegistryUtil.getRegistry();
 
 		UpgradeStepRegistrator upgradeStepRegistror = registry.getService(
-			"com.liferay.segments.content.targeting.upgrade.internal." +
-				"SegmentsContentTargetingUpgrade");
+			registry.getServiceReference(
+				"com.liferay.segments.content.targeting.upgrade.internal." +
+					"SegmentsContentTargetingUpgrade"));
 
 		upgradeStepRegistror.register(
 			new UpgradeStepRegistrator.Registry() {
-
-				@Override
-				public void register(
-					String bundleSymbolicName, String fromSchemaVersionString,
-					String toSchemaVersionString, UpgradeStep... upgradeSteps) {
-
-					register(
-						fromSchemaVersionString, toSchemaVersionString,
-						upgradeSteps);
-				}
 
 				@Override
 				public void register(

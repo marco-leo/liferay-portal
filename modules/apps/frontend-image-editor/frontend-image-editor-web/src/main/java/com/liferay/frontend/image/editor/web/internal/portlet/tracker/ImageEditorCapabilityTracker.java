@@ -20,6 +20,7 @@ import com.liferay.osgi.service.tracker.collections.map.PropertyServiceReference
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapListener;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -102,8 +103,8 @@ public class ImageEditorCapabilityTracker {
 	}
 
 	private String _getJavaScriptFileName(String fileName) {
-		return StringUtil.replace(
-			FileUtil.getShortFileName(fileName), ".js", StringPool.BLANK);
+		return StringUtil.removeSubstring(
+			FileUtil.getShortFileName(fileName), ".js");
 	}
 
 	private Set<String> _rebuildImageEditorCapabilitiesRequirements(
@@ -136,15 +137,12 @@ public class ImageEditorCapabilityTracker {
 							resourceURL.getFile());
 
 						requiredModules.add(
-							moduleName.concat(
-								StringPool.SLASH
-							).concat(
-								fileName
-							));
+							StringBundler.concat(
+								moduleName, StringPool.SLASH, fileName));
 					}
 				}
-				catch (Exception e) {
-					_log.error(e, e);
+				catch (Exception exception) {
+					_log.error(exception, exception);
 				}
 			}
 		}
@@ -185,7 +183,7 @@ public class ImageEditorCapabilityTracker {
 				return new ImageEditorCapabilityDescriptor(
 					imageEditorCapability, properties);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				_bundleContext.ungetService(serviceReference);
 
 				return null;

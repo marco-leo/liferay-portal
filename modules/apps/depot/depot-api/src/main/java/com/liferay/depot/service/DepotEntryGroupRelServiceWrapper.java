@@ -33,11 +33,24 @@ public class DepotEntryGroupRelServiceWrapper
 		_depotEntryGroupRelService = depotEntryGroupRelService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link DepotEntryGroupRelServiceUtil} to access the depot entry group rel remote service. Add custom service methods to <code>com.liferay.depot.service.impl.DepotEntryGroupRelServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
+	@Override
+	public com.liferay.depot.model.DepotEntryGroupRel addDepotEntryGroupRel(
+			long depotEntryId, long toGroupId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _depotEntryGroupRelService.addDepotEntryGroupRel(
+			depotEntryId, toGroupId);
+	}
+
+	@Override
+	public com.liferay.depot.model.DepotEntryGroupRel deleteDepotEntryGroupRel(
+			long depotEntryGroupRelId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _depotEntryGroupRelService.deleteDepotEntryGroupRel(
+			depotEntryGroupRelId);
+	}
+
 	@Override
 	public java.util.List<com.liferay.depot.model.DepotEntryGroupRel>
 			getDepotEntryGroupRels(long groupId, int start, int end)
@@ -45,6 +58,15 @@ public class DepotEntryGroupRelServiceWrapper
 
 		return _depotEntryGroupRelService.getDepotEntryGroupRels(
 			groupId, start, end);
+	}
+
+	@Override
+	public int getDepotEntryGroupRelsCount(
+			com.liferay.depot.model.DepotEntry depotEntry)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _depotEntryGroupRelService.getDepotEntryGroupRelsCount(
+			depotEntry);
 	}
 
 	@Override
@@ -62,6 +84,25 @@ public class DepotEntryGroupRelServiceWrapper
 	@Override
 	public String getOSGiServiceIdentifier() {
 		return _depotEntryGroupRelService.getOSGiServiceIdentifier();
+	}
+
+	@Override
+	public com.liferay.depot.model.DepotEntryGroupRel
+			updateDDMStructuresAvailable(
+				long depotEntryGroupRelId, boolean ddmStructuresAvailable)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _depotEntryGroupRelService.updateDDMStructuresAvailable(
+			depotEntryGroupRelId, ddmStructuresAvailable);
+	}
+
+	@Override
+	public com.liferay.depot.model.DepotEntryGroupRel updateSearchable(
+			long depotEntryGroupRelId, boolean searchable)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _depotEntryGroupRelService.updateSearchable(
+			depotEntryGroupRelId, searchable);
 	}
 
 	@Override

@@ -15,9 +15,7 @@
 package com.liferay.asset.taglib.servlet.taglib;
 
 import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
-import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
-import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
 import com.liferay.asset.taglib.internal.servlet.ServletContextUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -112,23 +110,20 @@ public class AssetMetadataTag extends IncludeTag {
 
 	@Override
 	protected void setAttributes(HttpServletRequest httpServletRequest) {
-		AssetEntry assetEntry = AssetEntryLocalServiceUtil.fetchEntry(
-			_className, _classPK);
-
-		httpServletRequest.setAttribute(
-			"liferay-asset:asset-metadata:assetEntry", assetEntry);
-
 		AssetRendererFactory<?> assetRendererFactory =
 			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
 				_className);
 
 		try {
 			httpServletRequest.setAttribute(
+				"liferay-asset:asset-metadata:assetEntry",
+				assetRendererFactory.getAssetEntry(_className, _classPK));
+			httpServletRequest.setAttribute(
 				"liferay-asset:asset-metadata:assetRenderer",
 				assetRendererFactory.getAssetRenderer(_classPK));
 		}
-		catch (PortalException pe) {
-			_log.error(pe, pe);
+		catch (PortalException portalException) {
+			_log.error(portalException, portalException);
 		}
 
 		httpServletRequest.setAttribute(

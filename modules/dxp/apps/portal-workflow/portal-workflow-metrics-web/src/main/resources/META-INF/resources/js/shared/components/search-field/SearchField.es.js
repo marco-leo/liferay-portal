@@ -12,57 +12,42 @@
 import {ClayButtonWithIcon} from '@clayui/button';
 import {ClayInput} from '@clayui/form';
 import ClayManagementToolbar from '@clayui/management-toolbar';
-import pathToRegexp from 'path-to-regexp';
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {useRouter} from '../../hooks/useRouter.es';
+import {replaceHistory} from '../filter/util/filterUtil.es';
 import {parse, stringify} from '../router/queryString.es';
 
-const SearchField = props => {
-	const {
-		history,
-		location,
-		match: {params, path}
-	} = useRouter();
-	const query = parse(location.search);
-	const {search = ''} = query;
+const SearchField = ({
+	disabled,
+	placeholder = Liferay.Language.get('search-for'),
+}) => {
+	const routerProps = useRouter();
 
-	const {disabled, placeholder = Liferay.Language.get('search-for')} = props;
+	const query = parse(routerProps.location.search);
+	const {search = null} = query;
 
-	const spritemap = `${Liferay.ThemeDisplay.getPathThemeImages()}/lexicon/icons.svg`;
-
-	const [searchValue, setSearchValue] = useState('');
-	const [redirect, setRedirect] = useState(false);
+	const [searchValue, setSearchValue] = useState(null);
 
 	useEffect(() => {
 		setSearchValue(search);
 	}, [search]);
 
-	const handleChange = event => {
+	const handleChange = (event) => {
 		setSearchValue(event.target.value);
 	};
 
-	const handleSubmit = event => {
+	const handleSubmit = (event) => {
 		event.preventDefault();
-		setRedirect(true);
+
+		query.search = searchValue;
+
+		replaceHistory(stringify(query), routerProps);
 	};
-
-	if (redirect) {
-		setRedirect(false);
-
-		const pathname = pathToRegexp.compile(path)({
-			...params,
-			page: 1
-		});
-
-		history.push({
-			pathname,
-			search: stringify({...query, search: searchValue})
-		});
-	}
 
 	return (
 		<ClayManagementToolbar.Search
+			data-testid="searchFieldForm"
 			method="GET"
 			onSubmit={handleSubmit}
 			showMobile={true}
@@ -72,6 +57,7 @@ const SearchField = props => {
 					<ClayInput
 						aria-label="Search"
 						className="form-control input-group-inset input-group-inset-after"
+						data-testid="searchField"
 						disabled={disabled}
 						onChange={handleChange}
 						placeholder={placeholder}
@@ -81,15 +67,7 @@ const SearchField = props => {
 
 					<ClayInput.GroupInsetItem after tag="span">
 						<ClayButtonWithIcon
-							className="navbar-breakpoint-d-none"
 							displayType="unstyled"
-							spritemap={spritemap}
-							symbol="times"
-						/>
-
-						<ClayButtonWithIcon
-							displayType="unstyled"
-							spritemap={spritemap}
 							symbol="search"
 							type="submit"
 						/>

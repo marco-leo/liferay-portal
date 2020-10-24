@@ -34,9 +34,9 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Time;
-import com.liferay.portal.service.test.ServiceTestUtil;
 
 import java.util.Date;
 import java.util.List;
@@ -60,7 +60,7 @@ public abstract class BasePrototypePropagationTestCase {
 		ServiceContextThreadLocal.pushServiceContext(
 			ServiceContextTestUtil.getServiceContext());
 
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		// Group
 
@@ -118,18 +118,16 @@ public abstract class BasePrototypePropagationTestCase {
 			String columnId)
 		throws Exception {
 
-		Map<String, String[]> parameterMap = HashMapBuilder.put(
-			"articleId", new String[] {journalArticle.getArticleId()}
-		).put(
-			"groupId",
-			new String[] {String.valueOf(journalArticle.getGroupId())}
-		).put(
-			"showAvailableLocales", new String[] {Boolean.TRUE.toString()}
-		).build();
-
 		return LayoutTestUtil.addPortletToLayout(
 			userId, layout, JournalContentPortletKeys.JOURNAL_CONTENT, columnId,
-			parameterMap);
+			HashMapBuilder.put(
+				"articleId", new String[] {journalArticle.getArticleId()}
+			).put(
+				"groupId",
+				new String[] {String.valueOf(journalArticle.getGroupId())}
+			).put(
+				"showAvailableLocales", new String[] {Boolean.TRUE.toString()}
+			).build());
 	}
 
 	protected abstract void doSetUp() throws Exception;

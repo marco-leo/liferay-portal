@@ -14,14 +14,18 @@
 
 package com.liferay.bulk.rest.client.resource.v1_0;
 
+import com.liferay.bulk.rest.client.dto.v1_0.DocumentBulkSelection;
 import com.liferay.bulk.rest.client.dto.v1_0.Keyword;
+import com.liferay.bulk.rest.client.dto.v1_0.KeywordBulkSelection;
 import com.liferay.bulk.rest.client.http.HttpInvoker;
 import com.liferay.bulk.rest.client.pagination.Page;
+import com.liferay.bulk.rest.client.problem.Problem;
 import com.liferay.bulk.rest.client.serdes.v1_0.KeywordSerDes;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Generated;
@@ -37,34 +41,26 @@ public interface KeywordResource {
 		return new Builder();
 	}
 
-	public void patchKeywordBatch(
-			com.liferay.bulk.rest.client.dto.v1_0.KeywordBulkSelection
-				keywordBulkSelection)
+	public void patchKeywordBatch(KeywordBulkSelection keywordBulkSelection)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse patchKeywordBatchHttpResponse(
-			com.liferay.bulk.rest.client.dto.v1_0.KeywordBulkSelection
-				keywordBulkSelection)
+			KeywordBulkSelection keywordBulkSelection)
 		throws Exception;
 
-	public void putKeywordBatch(
-			com.liferay.bulk.rest.client.dto.v1_0.KeywordBulkSelection
-				keywordBulkSelection)
+	public void putKeywordBatch(KeywordBulkSelection keywordBulkSelection)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse putKeywordBatchHttpResponse(
-			com.liferay.bulk.rest.client.dto.v1_0.KeywordBulkSelection
-				keywordBulkSelection)
+			KeywordBulkSelection keywordBulkSelection)
 		throws Exception;
 
 	public Page<Keyword> postKeywordsCommonPage(
-			com.liferay.bulk.rest.client.dto.v1_0.DocumentBulkSelection
-				documentBulkSelection)
+			DocumentBulkSelection documentBulkSelection)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse postKeywordsCommonPageHttpResponse(
-			com.liferay.bulk.rest.client.dto.v1_0.DocumentBulkSelection
-				documentBulkSelection)
+			DocumentBulkSelection documentBulkSelection)
 		throws Exception;
 
 	public static class Builder {
@@ -112,8 +108,8 @@ public interface KeywordResource {
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
-		private String _login = "test@liferay.com";
-		private String _password = "test";
+		private String _login = "";
+		private String _password = "";
 		private Map<String, String> _parameters = new LinkedHashMap<>();
 		private int _port = 8080;
 		private String _scheme = "http";
@@ -122,9 +118,7 @@ public interface KeywordResource {
 
 	public static class KeywordResourceImpl implements KeywordResource {
 
-		public void patchKeywordBatch(
-				com.liferay.bulk.rest.client.dto.v1_0.KeywordBulkSelection
-					keywordBulkSelection)
+		public void patchKeywordBatch(KeywordBulkSelection keywordBulkSelection)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -137,11 +131,21 @@ public interface KeywordResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse patchKeywordBatchHttpResponse(
-				com.liferay.bulk.rest.client.dto.v1_0.KeywordBulkSelection
-					keywordBulkSelection)
+				KeywordBulkSelection keywordBulkSelection)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -178,9 +182,7 @@ public interface KeywordResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putKeywordBatch(
-				com.liferay.bulk.rest.client.dto.v1_0.KeywordBulkSelection
-					keywordBulkSelection)
+		public void putKeywordBatch(KeywordBulkSelection keywordBulkSelection)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse = putKeywordBatchHttpResponse(
@@ -193,11 +195,21 @@ public interface KeywordResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse putKeywordBatchHttpResponse(
-				com.liferay.bulk.rest.client.dto.v1_0.KeywordBulkSelection
-					keywordBulkSelection)
+				KeywordBulkSelection keywordBulkSelection)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -235,8 +247,7 @@ public interface KeywordResource {
 		}
 
 		public Page<Keyword> postKeywordsCommonPage(
-				com.liferay.bulk.rest.client.dto.v1_0.DocumentBulkSelection
-					documentBulkSelection)
+				DocumentBulkSelection documentBulkSelection)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -250,12 +261,20 @@ public interface KeywordResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return Page.of(content, KeywordSerDes::toDTO);
+			try {
+				return Page.of(content, KeywordSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse postKeywordsCommonPageHttpResponse(
-				com.liferay.bulk.rest.client.dto.v1_0.DocumentBulkSelection
-					documentBulkSelection)
+				DocumentBulkSelection documentBulkSelection)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();

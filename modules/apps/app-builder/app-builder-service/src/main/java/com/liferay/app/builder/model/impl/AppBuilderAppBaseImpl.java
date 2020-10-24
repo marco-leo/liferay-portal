@@ -32,7 +32,7 @@ import com.liferay.app.builder.service.AppBuilderAppLocalServiceUtil;
 public abstract class AppBuilderAppBaseImpl
 	extends AppBuilderAppModelImpl implements AppBuilderApp {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a app builder app model instance should use the <code>AppBuilderApp</code> interface instead.

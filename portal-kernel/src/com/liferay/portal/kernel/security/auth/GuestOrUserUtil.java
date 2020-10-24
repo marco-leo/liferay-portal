@@ -30,22 +30,34 @@ import com.liferay.portal.kernel.util.Validator;
 public class GuestOrUserUtil {
 
 	public static User getGuestOrUser() throws PortalException {
-		User user = getUser(getUserId());
+		return getGuestOrUser(getUser(getUserId()));
+	}
 
-		return getGuestOrUser(user);
+	public static User getGuestOrUser(long companyId) throws PortalException {
+		try {
+			return getUser(getUserId());
+		}
+		catch (PrincipalException principalException) {
+			try {
+				return UserLocalServiceUtil.getDefaultUser(companyId);
+			}
+			catch (Exception exception) {
+				throw principalException;
+			}
+		}
 	}
 
 	public static User getGuestOrUser(User user) throws PortalException {
 		try {
 			return getUser(user.getUserId());
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 			try {
 				return UserLocalServiceUtil.getDefaultUser(
 					CompanyThreadLocal.getCompanyId());
 			}
-			catch (Exception e) {
-				throw pe;
+			catch (Exception exception) {
+				throw principalException;
 			}
 		}
 	}
@@ -54,13 +66,13 @@ public class GuestOrUserUtil {
 		try {
 			return getUserId();
 		}
-		catch (PrincipalException pe) {
+		catch (PrincipalException principalException) {
 			try {
 				return UserLocalServiceUtil.getDefaultUserId(
 					CompanyThreadLocal.getCompanyId());
 			}
-			catch (Exception e) {
-				throw pe;
+			catch (Exception exception) {
+				throw principalException;
 			}
 		}
 	}

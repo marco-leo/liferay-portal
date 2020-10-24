@@ -11,7 +11,7 @@ dependencies {
 	compileInclude group: "org.apache.lucene", name: "lucene-queryparser", version: luceneVersion
 	compileInclude group: "org.apache.lucene", name: "lucene-suggest", version: luceneVersion
 	compileInclude group: "org.apache.solr", name: "solr-solrj", version: luceneVersion
-	compileInclude group: "org.apache.zookeeper", name: "zookeeper", version: "3.4.10"
+	compileInclude group: "org.apache.zookeeper", name: "zookeeper", version: "3.4.14"
 	compileInclude group: "org.codehaus.woodstox", name: "stax2-api", version: "3.1.4"
 	compileInclude group: "org.codehaus.woodstox", name: "woodstox-core-asl", version: "4.4.1"
 	compileInclude group: "org.noggit", name: "noggit", version: "0.6"
@@ -31,6 +31,7 @@ dependencies {
 	compileOnly project(":apps:portal-search:portal-search-engine-adapter-api")
 	compileOnly project(":apps:portal-search:portal-search-spi")
 	compileOnly project(":apps:static:portal-configuration:portal-configuration-metatype-api")
+	compileOnly project(":core:petra:petra-io")
 	compileOnly project(":core:petra:petra-string")
 
 	testCompile group: "com.liferay.portal", name: "com.liferay.util.java", version: "default"
@@ -43,10 +44,12 @@ dependencies {
 	testCompile project(":apps:portal-search:portal-search")
 	testCompile project(":apps:portal-search:portal-search-test-util")
 	testCompile project(":core:petra:petra-concurrent")
+	testCompile project(":core:petra:petra-function")
 	testCompile project(":core:petra:petra-lang")
 	testCompile project(":core:petra:petra-memory")
 	testCompile project(":core:petra:petra-nio")
 	testCompile project(":core:petra:petra-reflect")
+	testCompile project(":core:petra:petra-sql-dsl-api")
 	testCompile project(":core:registry-api")
 }
 

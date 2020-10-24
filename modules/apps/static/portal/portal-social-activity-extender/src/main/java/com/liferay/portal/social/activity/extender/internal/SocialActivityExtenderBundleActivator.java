@@ -75,7 +75,7 @@ public class SocialActivityExtenderBundleActivator implements BundleActivator {
 	}
 
 	@Override
-	public void stop(BundleContext context) {
+	public void stop(BundleContext bundleContext) {
 		_serviceTracker.close();
 	}
 
@@ -96,21 +96,21 @@ public class SocialActivityExtenderBundleActivator implements BundleActivator {
 				_readSocialActivity(
 					bundle, "META-INF/social/liferay-social-ext.xml");
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				_log.error(
 					"Unable to read social activity for bundle " +
 						bundle.getSymbolicName(),
-					e);
+					exception);
 			}
 
 			return null;
 		}
 
 		private SocialActivityBundleTracker(
-			BundleContext context, int stateMask,
+			BundleContext bundleContext, int stateMask,
 			SocialConfiguration socialConfiguration) {
 
-			super(context, stateMask, null);
+			super(bundleContext, stateMask, null);
 
 			_socialConfiguration = socialConfiguration;
 		}

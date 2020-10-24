@@ -24,8 +24,8 @@ taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 
 <%@ page import="com.liferay.blade.configuration.action.MessageDisplayConfiguration" %><%@
+page import="com.liferay.petra.string.StringPool" %><%@
 page import="com.liferay.portal.kernel.util.Constants" %><%@
-page import="com.liferay.portal.kernel.util.StringPool" %><%@
 page import="com.liferay.portal.kernel.util.Validator" %>
 
 <liferay-theme:defineObjects />
@@ -39,7 +39,7 @@ String fontColor = StringPool.BLANK;
 String fontFamily = StringPool.BLANK;
 String fontSize = StringPool.BLANK;
 
-if (Validator.isNotNull(messageDisplayConfiguration)) {
+if (messageDisplayConfiguration != null) {
 	fontColor = portletPreferences.getValue("fontColor", messageDisplayConfiguration.fontColor());
 	fontFamily = portletPreferences.getValue("fontFamily", messageDisplayConfiguration.fontFamily());
 	fontSize = portletPreferences.getValue("fontSize", String.valueOf(messageDisplayConfiguration.fontSize()));

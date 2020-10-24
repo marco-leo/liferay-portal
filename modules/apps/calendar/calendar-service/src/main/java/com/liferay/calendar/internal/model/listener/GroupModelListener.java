@@ -25,9 +25,6 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.Portal;
 
-import java.util.Locale;
-import java.util.Map;
-
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -40,31 +37,27 @@ public class GroupModelListener extends BaseModelListener<Group> {
 	@Override
 	public void onAfterUpdate(Group group) throws ModelListenerException {
 		try {
-			long classNameId = _portal.getClassNameId(Group.class);
-
 			CalendarResource calendarResource =
 				_calendarResourceLocalService.fetchCalendarResource(
-					classNameId, group.getGroupId());
+					_portal.getClassNameId(Group.class), group.getGroupId());
 
 			if (calendarResource == null) {
 				return;
 			}
 
-			Map<Locale, String> nameMap = HashMapBuilder.put(
-				LocaleUtil.getSiteDefault(), group.getDescriptiveName()
-			).build();
-
 			calendarResource.setNameMap(
 				LocalizationUtil.populateLocalizationMap(
-					nameMap,
+					HashMapBuilder.put(
+						LocaleUtil.getSiteDefault(), group.getDescriptiveName()
+					).build(),
 					LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault()),
 					group.getGroupId()));
 
 			_calendarResourceLocalService.updateCalendarResource(
 				calendarResource);
 		}
-		catch (Exception e) {
-			throw new ModelListenerException(e);
+		catch (Exception exception) {
+			throw new ModelListenerException(exception);
 		}
 	}
 
@@ -74,11 +67,9 @@ public class GroupModelListener extends BaseModelListener<Group> {
 
 			// Global calendar resource
 
-			long classNameId = _portal.getClassNameId(Group.class);
-
 			CalendarResource calendarResource =
 				_calendarResourceLocalService.fetchCalendarResource(
-					classNameId, group.getGroupId());
+					_portal.getClassNameId(Group.class), group.getGroupId());
 
 			if (calendarResource != null) {
 				_calendarResourceLocalService.deleteCalendarResource(
@@ -90,8 +81,8 @@ public class GroupModelListener extends BaseModelListener<Group> {
 			_calendarResourceLocalService.deleteCalendarResources(
 				group.getGroupId());
 		}
-		catch (Exception e) {
-			throw new ModelListenerException(e);
+		catch (Exception exception) {
+			throw new ModelListenerException(exception);
 		}
 	}
 

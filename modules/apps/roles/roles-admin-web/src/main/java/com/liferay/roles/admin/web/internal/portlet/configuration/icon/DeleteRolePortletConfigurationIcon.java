@@ -31,7 +31,7 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.roles.admin.constants.RolesAdminPortletKeys;
-import com.liferay.roles.admin.web.internal.role.type.contributor.RoleTypeContributor;
+import com.liferay.roles.admin.role.type.contributor.RoleTypeContributor;
 import com.liferay.roles.admin.web.internal.role.type.contributor.util.RoleTypeContributorRetrieverUtil;
 
 import javax.portlet.ActionRequest;
@@ -79,7 +79,7 @@ public class DeleteRolePortletConfigurationIcon
 
 			return portletURL.toString();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		return StringPool.BLANK;
@@ -115,8 +115,8 @@ public class DeleteRolePortletConfigurationIcon
 
 			return false;
 		}
-		catch (PortalException pe) {
-			_log.error(pe, pe);
+		catch (PortalException portalException) {
+			_log.error(portalException, portalException);
 		}
 
 		return false;

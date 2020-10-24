@@ -17,7 +17,9 @@ package com.liferay.dynamic.data.mapping.model;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -111,16 +113,16 @@ public class DDMFormField implements Serializable {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+	public boolean equals(Object object) {
+		if (this == object) {
 			return true;
 		}
 
-		if (!(obj instanceof DDMFormField)) {
+		if (!(object instanceof DDMFormField)) {
 			return false;
 		}
 
-		DDMFormField ddmFormField = (DDMFormField)obj;
+		DDMFormField ddmFormField = (DDMFormField)object;
 
 		if (Objects.equals(_properties, ddmFormField._properties) &&
 			Objects.equals(
@@ -130,6 +132,43 @@ public class DDMFormField implements Serializable {
 		}
 
 		return false;
+	}
+
+	public String getDataSourceType() {
+		Object propertyDataSourceType = _properties.get("dataSourceType");
+
+		if (propertyDataSourceType == null) {
+			return _DATA_SOURCE_TYPE_MANUAL;
+		}
+
+		String dataSourceType = StringPool.BLANK;
+
+		if (propertyDataSourceType instanceof JSONArray) {
+			JSONArray jsonArray = (JSONArray)propertyDataSourceType;
+
+			return GetterUtil.getString(
+				jsonArray.get(0), _DATA_SOURCE_TYPE_MANUAL);
+		}
+		else if (propertyDataSourceType instanceof String) {
+			dataSourceType = (String)propertyDataSourceType;
+
+			if (dataSourceType.startsWith(StringPool.OPEN_BRACKET) &&
+				dataSourceType.endsWith(StringPool.CLOSE_BRACKET)) {
+
+				try {
+					JSONArray jsonArray = JSONFactoryUtil.createJSONArray(
+						dataSourceType);
+
+					return GetterUtil.getString(
+						jsonArray.get(0), _DATA_SOURCE_TYPE_MANUAL);
+				}
+				catch (JSONException jsonException) {
+					return dataSourceType;
+				}
+			}
+		}
+
+		return dataSourceType;
 	}
 
 	public String getDataType() {
@@ -148,7 +187,7 @@ public class DDMFormField implements Serializable {
 
 		if ((ddmFormFieldOptions != null) &&
 			Validator.isNotNull(dataSourceType) &&
-			!dataSourceType.equals("manual")) {
+			!dataSourceType.equals(_DATA_SOURCE_TYPE_MANUAL)) {
 
 			Locale defaultLocale = ddmFormFieldOptions.getDefaultLocale();
 
@@ -381,28 +420,7 @@ public class DDMFormField implements Serializable {
 		_properties.put("visibilityExpression", visibilityExpression);
 	}
 
-	protected String getDataSourceType() {
-		Object dataSourceType = _properties.get("dataSourceType");
-
-		if (dataSourceType instanceof JSONArray) {
-			JSONArray jsonArray = (JSONArray)dataSourceType;
-
-			return jsonArray.getString(0);
-		}
-		else if (dataSourceType instanceof String) {
-			try {
-				JSONArray jsonArray = JSONFactoryUtil.createJSONArray(
-					(String)dataSourceType);
-
-				return jsonArray.getString(0);
-			}
-			catch (Exception e) {
-				return (String)dataSourceType;
-			}
-		}
-
-		return StringPool.BLANK;
-	}
+	private static final String _DATA_SOURCE_TYPE_MANUAL = "manual";
 
 	private DDMForm _ddmForm;
 	private final List<DDMFormFieldRule> _ddmFormFieldRules;

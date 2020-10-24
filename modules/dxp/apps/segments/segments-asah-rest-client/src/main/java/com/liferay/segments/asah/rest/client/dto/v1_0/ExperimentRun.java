@@ -26,7 +26,11 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class ExperimentRun {
+public class ExperimentRun implements Cloneable {
+
+	public static ExperimentRun toDTO(String json) {
+		return ExperimentRunSerDes.toDTO(json);
+	}
 
 	public Double getConfidenceLevel() {
 		return confidenceLevel;
@@ -91,6 +95,11 @@ public class ExperimentRun {
 	}
 
 	protected String status;
+
+	@Override
+	public ExperimentRun clone() throws CloneNotSupportedException {
+		return (ExperimentRun)super.clone();
+	}
 
 	@Override
 	public boolean equals(Object object) {

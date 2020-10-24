@@ -14,12 +14,25 @@
 
 package com.liferay.fragment.util.configuration;
 
+import com.liferay.info.item.InfoItemReference;
+import com.liferay.layout.display.page.LayoutDisplayPageObjectProvider;
+import com.liferay.layout.display.page.LayoutDisplayPageProvider;
+import com.liferay.layout.display.page.LayoutDisplayPageProviderTracker;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Objects;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.util.tracker.ServiceTracker;
 
 /**
  * @author Víctor Galán
@@ -47,12 +60,16 @@ public class FragmentConfigurationField {
 	}
 
 	public String getDefaultValue() {
-		if (Validator.isNotNull(_defaultValue)) {
+		if (Validator.isNotNull(_defaultValue) &&
+			!Objects.equals("itemSelector", _type)) {
+
 			return _defaultValue;
 		}
-
-		if (Objects.equals("colorPalette", _type)) {
+		else if (Objects.equals("colorPalette", _type)) {
 			return _getColorPaletteDefaultValue();
+		}
+		else if (Objects.equals("itemSelector", _type)) {
+			return _getItemSelectorDefaultValue();
 		}
 
 		return StringPool.BLANK;
@@ -74,6 +91,78 @@ public class FragmentConfigurationField {
 		);
 
 		return defaultValueJSONObject.toString();
+	}
+
+	private String _getItemSelectorDefaultValue() {
+		if (Validator.isNull(_defaultValue)) {
+			return _defaultValue;
+		}
+
+		try {
+			JSONObject defaultValueJSONObject =
+				JSONFactoryUtil.createJSONObject(_defaultValue);
+
+			if (defaultValueJSONObject.has("className") &&
+				defaultValueJSONObject.has("classPK")) {
+
+				String className = defaultValueJSONObject.getString(
+					"className");
+
+				LayoutDisplayPageProviderTracker
+					layoutDisplayPageProviderTracker =
+						_serviceTracker.getService();
+
+				LayoutDisplayPageProvider<?> layoutDisplayPageProvider =
+					layoutDisplayPageProviderTracker.
+						getLayoutDisplayPageProviderByClassName(className);
+
+				if (layoutDisplayPageProvider == null) {
+					return _defaultValue;
+				}
+
+				long classPK = defaultValueJSONObject.getLong("classPK");
+
+				InfoItemReference infoItemReference = new InfoItemReference(
+					className, classPK);
+
+				LayoutDisplayPageObjectProvider<?>
+					layoutDisplayPageObjectProvider =
+						layoutDisplayPageProvider.
+							getLayoutDisplayPageObjectProvider(
+								infoItemReference);
+
+				defaultValueJSONObject.put(
+					"title",
+					layoutDisplayPageObjectProvider.getTitle(
+						LocaleUtil.getMostRelevantLocale()));
+
+				return defaultValueJSONObject.toString();
+			}
+		}
+		catch (PortalException portalException) {
+			_log.error(
+				"Unable to parse default value JSON object", portalException);
+		}
+
+		return _defaultValue;
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		FragmentConfigurationField.class);
+
+	private static final ServiceTracker
+		<LayoutDisplayPageProviderTracker, LayoutDisplayPageProviderTracker>
+			_serviceTracker;
+
+	static {
+		Bundle bundle = FrameworkUtil.getBundle(
+			FragmentConfigurationField.class);
+
+		_serviceTracker = new ServiceTracker<>(
+			bundle.getBundleContext(), LayoutDisplayPageProviderTracker.class,
+			null);
+
+		_serviceTracker.open();
 	}
 
 	private final String _dataType;

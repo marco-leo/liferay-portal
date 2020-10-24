@@ -217,12 +217,13 @@ public class ContactsCenterPortlet extends MVCPortlet {
 				socialRelationLocalService.deleteRelation(
 					themeDisplay.getUserId(), userId, type);
 			}
-			catch (NoSuchRelationException nsre) {
+			catch (NoSuchRelationException noSuchRelationException) {
 
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(nsre, nsre);
+					_log.debug(
+						noSuchRelationException, noSuchRelationException);
 				}
 			}
 		}
@@ -308,21 +309,21 @@ public class ContactsCenterPortlet extends MVCPortlet {
 
 		for (long userId : userIds) {
 			try {
-				JSONObject userJSONObject = JSONUtil.put(
-					"success", Boolean.TRUE
-				).put(
-					"user",
-					getUserJSONObject(resourceResponse, themeDisplay, userId)
-				);
-
-				jsonArray.put(userJSONObject);
+				jsonArray.put(
+					JSONUtil.put(
+						"success", Boolean.TRUE
+					).put(
+						"user",
+						getUserJSONObject(
+							resourceResponse, themeDisplay, userId)
+					));
 			}
-			catch (NoSuchUserException nsue) {
+			catch (NoSuchUserException noSuchUserException) {
 
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(nsue, nsue);
+					_log.debug(noSuchUserException, noSuchUserException);
 				}
 			}
 		}
@@ -383,8 +384,8 @@ public class ContactsCenterPortlet extends MVCPortlet {
 				super.processAction(actionRequest, actionResponse);
 			}
 		}
-		catch (Exception e) {
-			throw new PortletException(e);
+		catch (Exception exception) {
+			throw new PortletException(exception);
 		}
 	}
 
@@ -466,8 +467,8 @@ public class ContactsCenterPortlet extends MVCPortlet {
 				super.serveResource(resourceRequest, resourceResponse);
 			}
 		}
-		catch (Exception e) {
-			throw new PortletException(e);
+		catch (Exception exception) {
+			throw new PortletException(exception);
 		}
 	}
 
@@ -525,14 +526,16 @@ public class ContactsCenterPortlet extends MVCPortlet {
 				"success", Boolean.TRUE
 			);
 		}
-		catch (Exception e) {
-			if (e instanceof ContactNameException.MustHaveValidFullName) {
+		catch (Exception exception) {
+			if (exception instanceof
+					ContactNameException.MustHaveValidFullName) {
+
 				message = "full-name-cannot-be-empty";
 			}
-			else if (e instanceof DuplicateEntryEmailAddressException) {
+			else if (exception instanceof DuplicateEntryEmailAddressException) {
 				message = "there-is-already-a-contact-with-this-email-address";
 			}
-			else if (e instanceof EntryEmailAddressException) {
+			else if (exception instanceof EntryEmailAddressException) {
 				message = "please-enter-a-valid-email-address";
 			}
 			else {
@@ -590,66 +593,76 @@ public class ContactsCenterPortlet extends MVCPortlet {
 				"success", Boolean.TRUE
 			);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			String message = "your-request-failed-to-complete";
 
-			if (e instanceof AddressCityException) {
+			if (exception instanceof AddressCityException) {
 				message = "please-enter-a-valid-city";
 			}
-			else if (e instanceof AddressStreetException) {
+			else if (exception instanceof AddressStreetException) {
 				message = "please-enter-a-valid-street";
 			}
-			else if (e instanceof AddressZipException) {
+			else if (exception instanceof AddressZipException) {
 				message = "please-enter-a-valid-postal-code";
 			}
-			else if (e instanceof ContactNameException.MustHaveFirstName) {
+			else if (exception instanceof
+						ContactNameException.MustHaveFirstName) {
+
 				message = "please-enter-a-valid-first-name";
 			}
-			else if (e instanceof ContactNameException.MustHaveValidFullName) {
+			else if (exception instanceof
+						ContactNameException.MustHaveValidFullName) {
+
 				message = "please-enter-a-valid-first-middle-and-last-name";
 			}
-			else if (e instanceof ContactNameException.MustHaveLastName) {
+			else if (exception instanceof
+						ContactNameException.MustHaveLastName) {
+
 				message = "please-enter-a-valid-last-name";
 			}
-			else if (e instanceof
+			else if (exception instanceof
 						UserEmailAddressException.MustNotBeDuplicate) {
 
 				message = "the-email-address-you-requested-is-already-taken";
 			}
-			else if (e instanceof EmailAddressException) {
+			else if (exception instanceof EmailAddressException) {
 				message = "please-enter-a-valid-email-address";
 			}
-			else if (e instanceof NoSuchCountryException) {
+			else if (exception instanceof NoSuchCountryException) {
 				message = "please-select-a-country";
 			}
-			else if (e instanceof NoSuchListTypeException) {
+			else if (exception instanceof NoSuchListTypeException) {
 				message = "please-select-a-type";
 			}
-			else if (e instanceof NoSuchRegionException) {
+			else if (exception instanceof NoSuchRegionException) {
 				message = "please-select-a-region";
 			}
-			else if (e instanceof PhoneNumberException) {
+			else if (exception instanceof PhoneNumberException) {
 				message = "please-enter-a-valid-phone-number";
 			}
-			else if (e instanceof PhoneNumberExtensionException) {
+			else if (exception instanceof PhoneNumberExtensionException) {
 				message = "please-enter-a-valid-phone-number-extension";
 			}
-			else if (e instanceof UserEmailAddressException.MustNotBeReserved) {
+			else if (exception instanceof
+						UserEmailAddressException.MustNotBeReserved) {
+
 				message = "the-email-address-you-requested-is-reserveds";
 			}
-			else if (e instanceof UserScreenNameException.MustNotBeReserved) {
+			else if (exception instanceof
+						UserScreenNameException.MustNotBeReserved) {
+
 				message = "the-screen-name-you-requested-is-reserved";
 			}
-			else if (e instanceof UserEmailAddressException) {
+			else if (exception instanceof UserEmailAddressException) {
 				message = "please-enter-a-valid-email-address";
 			}
-			else if (e instanceof UserScreenNameException) {
+			else if (exception instanceof UserScreenNameException) {
 				message = "please-enter-a-valid-screen-name";
 			}
-			else if (e instanceof UserSmsException) {
+			else if (exception instanceof UserSmsException) {
 				message = "please-enter-a-sms-id-that-is-a-valid-email-address";
 			}
-			else if (e instanceof WebsiteURLException) {
+			else if (exception instanceof WebsiteURLException) {
 				message = "please-enter-a-valid-url";
 			}
 
@@ -699,7 +712,7 @@ public class ContactsCenterPortlet extends MVCPortlet {
 
 			jsonObject.put("success", Boolean.TRUE);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			jsonObject.put("success", Boolean.FALSE);
 		}
 
@@ -761,13 +774,13 @@ public class ContactsCenterPortlet extends MVCPortlet {
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
 		for (long userId : userIds) {
-			JSONObject userJSONObject = JSONUtil.put(
-				"success", Boolean.TRUE
-			).put(
-				"user", getUserJSONObject(actionResponse, themeDisplay, userId)
-			);
-
-			jsonArray.put(userJSONObject);
+			jsonArray.put(
+				JSONUtil.put(
+					"success", Boolean.TRUE
+				).put(
+					"user",
+					getUserJSONObject(actionResponse, themeDisplay, userId)
+				));
 		}
 
 		jsonObject.put("contacts", jsonArray);
@@ -793,17 +806,17 @@ public class ContactsCenterPortlet extends MVCPortlet {
 		int start = ParamUtil.getInteger(portletRequest, "start");
 		int end = ParamUtil.getInteger(portletRequest, "end");
 
-		JSONObject optionsJSONObject = JSONUtil.put(
-			"end", end
-		).put(
-			"filterBy", filterBy
-		).put(
-			"keywords", keywords
-		).put(
-			"start", start
-		);
-
-		JSONObject jsonObject = JSONUtil.put("options", optionsJSONObject);
+		JSONObject jsonObject = JSONUtil.put(
+			"options",
+			JSONUtil.put(
+				"end", end
+			).put(
+				"filterBy", filterBy
+			).put(
+				"keywords", keywords
+			).put(
+				"start", start
+			));
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
 
@@ -1050,7 +1063,7 @@ public class ContactsCenterPortlet extends MVCPortlet {
 	protected long[] getUserIds(ActionRequest actionRequest) {
 		long[] userIds;
 
-		long userId = ParamUtil.getLong(actionRequest, "userId", 0);
+		long userId = ParamUtil.getLong(actionRequest, "userId");
 
 		if (userId > 0) {
 			userIds = new long[] {userId};
@@ -1109,17 +1122,15 @@ public class ContactsCenterPortlet extends MVCPortlet {
 				SocialRelationConstants.SOCIAL_RELATION_REQUEST,
 				UserNotificationDeliveryConstants.TYPE_WEBSITE)) {
 
-			JSONObject notificationEventJSONObject = JSONUtil.put(
-				"classPK", socialRequest.getRequestId()
-			).put(
-				"userId", socialRequest.getUserId()
-			);
-
 			userNotificationEventLocalService.sendUserNotificationEvents(
 				socialRequest.getReceiverUserId(),
 				ContactsPortletKeys.CONTACTS_CENTER,
 				UserNotificationDeliveryConstants.TYPE_WEBSITE, true,
-				notificationEventJSONObject);
+				JSONUtil.put(
+					"classPK", socialRequest.getRequestId()
+				).put(
+					"userId", socialRequest.getUserId()
+				));
 		}
 	}
 
@@ -1247,15 +1258,15 @@ public class ContactsCenterPortlet extends MVCPortlet {
 			user.getPasswordUnencrypted(), user.getPasswordUnencrypted(),
 			user.isPasswordReset(), user.getReminderQueryQuestion(),
 			user.getReminderQueryAnswer(), screenName, emailAddress,
-			user.getFacebookId(), user.getOpenId(), !deleteLogo, portraitBytes,
-			user.getLanguageId(), user.getTimeZoneId(), user.getGreeting(),
-			comments, firstName, middleName, lastName, contact.getPrefixId(),
-			contact.getSuffixId(), user.isMale(), birthdayMonth, birthdayDay,
-			birthdayYear, smsSn, facebookSn, jabberSn, skypeSn, twitterSn,
-			jobTitle, user.getGroupIds(), user.getOrganizationIds(),
-			user.getRoleIds(), null, user.getUserGroupIds(),
-			user.getAddresses(), null, user.getPhones(), user.getWebsites(),
-			announcementsDeliveries, new ServiceContext());
+			!deleteLogo, portraitBytes, user.getLanguageId(),
+			user.getTimeZoneId(), user.getGreeting(), comments, firstName,
+			middleName, lastName, contact.getPrefixId(), contact.getSuffixId(),
+			user.isMale(), birthdayMonth, birthdayDay, birthdayYear, smsSn,
+			facebookSn, jabberSn, skypeSn, twitterSn, jobTitle,
+			user.getGroupIds(), user.getOrganizationIds(), user.getRoleIds(),
+			null, user.getUserGroupIds(), user.getAddresses(), null,
+			user.getPhones(), user.getWebsites(), announcementsDeliveries,
+			new ServiceContext());
 	}
 
 	protected void updateWebsites(ActionRequest actionRequest)

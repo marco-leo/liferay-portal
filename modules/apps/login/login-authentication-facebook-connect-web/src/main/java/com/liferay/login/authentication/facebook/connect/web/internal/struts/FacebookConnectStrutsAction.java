@@ -181,12 +181,12 @@ public class FacebookConnectStrutsAction implements StrutsAction {
 					return null;
 				}
 			}
-			catch (PortalException pe) {
+			catch (PortalException portalException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(pe, pe);
+					_log.debug(portalException, portalException);
 				}
 
-				Class<?> clazz = pe.getClass();
+				Class<?> clazz = portalException.getClass();
 
 				sendError(
 					clazz.getSimpleName(), httpServletRequest,
@@ -454,7 +454,7 @@ public class FacebookConnectStrutsAction implements StrutsAction {
 	}
 
 	private void _checkAllowUserCreation(long companyId, JSONObject jsonObject)
-		throws PortalException {
+		throws Exception {
 
 		Company company = _companyLocalService.getCompany(companyId);
 

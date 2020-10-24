@@ -38,7 +38,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface AssetEntryPersistence
 	extends BasePersistence<AssetEntry>, CTPersistence<AssetEntry> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link AssetEntryUtil} to access the asset entry persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

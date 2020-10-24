@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.rule.Sync;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -31,6 +32,7 @@ import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.search.test.util.FieldValuesAssert;
 import com.liferay.portal.search.test.util.IndexerFixture;
+import com.liferay.portal.search.test.util.SearchTestRule;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.users.admin.test.util.search.UserSearchFixture;
@@ -50,6 +52,7 @@ import org.junit.runner.RunWith;
  * @author Vagner B.C
  */
 @RunWith(Arquillian.class)
+@Sync
 public class MBThreadMultiLanguageSearchTest {
 
 	@ClassRule
@@ -62,7 +65,8 @@ public class MBThreadMultiLanguageSearchTest {
 
 	@Before
 	public void setUp() throws Exception {
-		setUpMBThreadIndexerFixture();
+		mbThreadIndexerFixture = new IndexerFixture<>(MBThread.class);
+
 		_defaultLocale = LocaleThreadLocal.getDefaultLocale();
 	}
 
@@ -85,6 +89,9 @@ public class MBThreadMultiLanguageSearchTest {
 	public void testJapaneseSubject() throws Exception {
 		_testLocaleKeywords(LocaleUtil.JAPAN, "東京");
 	}
+
+	@Rule
+	public SearchTestRule searchTestRule = new SearchTestRule();
 
 	protected void assertFieldValues(
 		String prefix, Locale locale, Map<String, String> map,
@@ -110,10 +117,6 @@ public class MBThreadMultiLanguageSearchTest {
 		_mbCategories = mbFixture.getMbCategories();
 
 		_mbMessages = mbFixture.getMbMessages();
-	}
-
-	protected void setUpMBThreadIndexerFixture() {
-		mbThreadIndexerFixture = new IndexerFixture<>(MBThread.class);
 	}
 
 	protected void setUpUserSearchFixture(

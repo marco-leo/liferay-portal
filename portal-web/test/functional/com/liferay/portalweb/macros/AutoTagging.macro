@@ -14,7 +14,7 @@ definition {
 
 	macro disableAutoTagging {
 		if ("${disableAutoTaggingFor}" == "System Settings") {
-			ProductMenu.gotoPortlet(
+			ApplicationsMenu.gotoPortlet(
 				category = "Configuration",
 				panel = "Control Panel",
 				portlet = "System Settings");
@@ -25,7 +25,6 @@ definition {
 				configurationScope = "System Scope");
 
 			FormFields.disableCheckbox(fieldName = "enabled");
-
 		}
 
 		else if ("${disableAutoTaggingFor}" == "Instance Settings") {
@@ -40,8 +39,8 @@ definition {
 		else if ("${disableAutoTaggingFor}" == "Settings") {
 			ProductMenu.gotoPortlet(
 				category = "Configuration",
-				panel = "Site Administration",
-				portlet = "Settings");
+				portlet = "Settings",
+				site = "${site}");
 
 			Panel.expandPanel(panel = "Asset Auto Tagging");
 
@@ -59,7 +58,7 @@ definition {
 
 	macro enableAutoTagging {
 		if ("${enableAutoTaggingFor}" == "System Settings") {
-			ProductMenu.gotoPortlet(
+			ApplicationsMenu.gotoPortlet(
 				category = "Configuration",
 				panel = "Control Panel",
 				portlet = "System Settings");
@@ -96,8 +95,8 @@ definition {
 		else if ("${enableAutoTaggingFor}" == "Settings") {
 			ProductMenu.gotoPortlet(
 				category = "Configuration",
-				panel = "Site Administration",
-				portlet = "Settings");
+				portlet = "Settings",
+				site = "${site}");
 
 			Panel.expandPanel(panel = "Asset Auto Tagging");
 
@@ -131,7 +130,7 @@ definition {
 	}
 
 	macro enableOpenNLP {
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
 			panel = "Control Panel",
 			portlet = "System Settings");
@@ -149,10 +148,7 @@ definition {
 
 		Click(locator1 = "Dropdown#TRIGGER");
 
-		AssertClick(
-			key_option = "${assetType}",
-			locator1 = "Dropdown#RESULT",
-			value1 = "${assetType}");
+		DropdownMenuItem.click(menuItem = "${assetType}");
 
 		if (IsElementPresent(locator1 = "Button#UPDATE")) {
 			PortletEntry.update();
@@ -164,7 +160,7 @@ definition {
 	}
 
 	macro enableTensorFlow {
-		ProductMenu.gotoPortlet(
+		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
 			panel = "Control Panel",
 			portlet = "System Settings");

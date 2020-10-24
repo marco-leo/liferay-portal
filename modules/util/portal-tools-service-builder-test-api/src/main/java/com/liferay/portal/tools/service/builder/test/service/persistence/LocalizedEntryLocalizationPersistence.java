@@ -35,7 +35,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface LocalizedEntryLocalizationPersistence
 	extends BasePersistence<LocalizedEntryLocalization> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link LocalizedEntryLocalizationUtil} to access the localized entry localization persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

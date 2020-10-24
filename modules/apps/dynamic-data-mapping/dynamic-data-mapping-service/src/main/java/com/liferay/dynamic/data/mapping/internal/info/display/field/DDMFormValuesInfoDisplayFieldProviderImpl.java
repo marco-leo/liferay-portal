@@ -69,10 +69,10 @@ public class DDMFormValuesInfoDisplayFieldProviderImpl<T extends GroupedModel>
 
 		Map<String, Object> infoDisplayFieldValues = new HashMap<>();
 
-		Map<String, List<DDMFormFieldValue>> ddmFormFieldsValuesMap =
+		Map<String, List<DDMFormFieldValue>> ddmFormFieldValuesMap =
 			ddmFormValues.getDDMFormFieldValuesMap();
 
-		if (MapUtil.isEmpty(ddmFormFieldsValuesMap)) {
+		if (MapUtil.isEmpty(ddmFormFieldValuesMap)) {
 			return infoDisplayFieldValues;
 		}
 
@@ -82,13 +82,14 @@ public class DDMFormValuesInfoDisplayFieldProviderImpl<T extends GroupedModel>
 			true);
 
 		for (Map.Entry<String, List<DDMFormFieldValue>> entry :
-				ddmFormFieldsValuesMap.entrySet()) {
+				ddmFormFieldValuesMap.entrySet()) {
 
 			DDMFormField ddmFormField = ddmFormFields.get(entry.getKey());
 
 			List<DDMFormFieldValue> ddmFormFieldsValues = entry.getValue();
 
-			if (Objects.equals(ddmFormField.getType(), "ddm-image") &&
+			if ((Objects.equals(ddmFormField.getType(), "ddm-image") ||
+				 Objects.equals(ddmFormField.getType(), "image")) &&
 				(ddmFormFieldsValues.size() > 1)) {
 
 				ddmFormFieldsValues = Collections.singletonList(
@@ -129,11 +130,11 @@ public class DDMFormValuesInfoDisplayFieldProviderImpl<T extends GroupedModel>
 						return _sanitizeFieldValue(
 							t, ddmFormFieldValue, locale);
 					}
-					catch (PortalException pe) {
+					catch (PortalException portalException) {
 						_log.error(
 							"Unable to sanitize field " +
 								ddmFormFieldValue.getName(),
-							pe);
+							portalException);
 
 						return null;
 					}
@@ -146,7 +147,7 @@ public class DDMFormValuesInfoDisplayFieldProviderImpl<T extends GroupedModel>
 		}
 
 		if (classTypeValues.containsKey(key)) {
-			Collection fieldValues = new ArrayList<>();
+			Collection<Object> fieldValues = new ArrayList<>();
 
 			Object classTypeValue = classTypeValues.get(key);
 
@@ -176,11 +177,11 @@ public class DDMFormValuesInfoDisplayFieldProviderImpl<T extends GroupedModel>
 			Map<String, Object> classTypeValues, Locale locale)
 		throws PortalException {
 
-		Map<String, List<DDMFormFieldValue>> nestedDDMFormFieldsValuesMap =
+		Map<String, List<DDMFormFieldValue>> nestedDDMFormFieldValuesMap =
 			ddmFormFieldValue.getNestedDDMFormFieldValuesMap();
 
 		for (Map.Entry<String, List<DDMFormFieldValue>> entry :
-				nestedDDMFormFieldsValuesMap.entrySet()) {
+				nestedDDMFormFieldValuesMap.entrySet()) {
 
 			List<DDMFormFieldValue> ddmFormFieldValues = entry.getValue();
 
@@ -201,7 +202,9 @@ public class DDMFormValuesInfoDisplayFieldProviderImpl<T extends GroupedModel>
 
 		String valueString = value.getString(locale);
 
-		if (Objects.equals(ddmFormFieldValue.getType(), "ddm-date")) {
+		if (Objects.equals(ddmFormFieldValue.getType(), "date") ||
+			Objects.equals(ddmFormFieldValue.getType(), "ddm-date")) {
+
 			try {
 				DateFormat dateFormat = DateFormat.getDateInstance(
 					DateFormat.SHORT, locale);
@@ -211,16 +214,20 @@ public class DDMFormValuesInfoDisplayFieldProviderImpl<T extends GroupedModel>
 
 				return dateFormat.format(date);
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				return valueString;
 			}
 		}
-		else if (Objects.equals(ddmFormFieldValue.getType(), "ddm-decimal")) {
+		else if (Objects.equals(ddmFormFieldValue.getType(), "ddm-decimal") ||
+				 Objects.equals(ddmFormFieldValue.getType(), "numeric")) {
+
 			NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);
 
 			return numberFormat.format(GetterUtil.getDouble(valueString));
 		}
-		else if (Objects.equals(ddmFormFieldValue.getType(), "ddm-image")) {
+		else if (Objects.equals(ddmFormFieldValue.getType(), "ddm-image") ||
+				 Objects.equals(ddmFormFieldValue.getType(), "image")) {
+
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
 				valueString);
 
@@ -252,9 +259,9 @@ public class DDMFormValuesInfoDisplayFieldProviderImpl<T extends GroupedModel>
 			return _dlURLHelper.getDownloadURL(
 				fileEntry, fileEntry.getFileVersion(), null, StringPool.BLANK);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
+				_log.debug(exception, exception);
 			}
 		}
 

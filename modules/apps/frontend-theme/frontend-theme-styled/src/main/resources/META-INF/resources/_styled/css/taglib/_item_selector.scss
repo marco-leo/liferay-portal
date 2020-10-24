@@ -60,18 +60,17 @@
 	}
 }
 
-.dialog-iframe-popup {
+.portal-popup {
 	background-color: #fff;
 }
 
 .portlet-item-selector .management-bar {
 	border-bottom-color: #e7e7ed;
-	border-top: 1px solid #e7e7ed;
 }
 
 .item-selector {
-	.card-row {
-		align-items: center;
+	.card-row > .autofit-col-expand {
+		padding-top: 4px;
 	}
 
 	.drop-zone {

@@ -50,8 +50,12 @@ public class ServletDataImpl implements ServletData {
 	public void activate(BundleContext bundleContext) {
 		Mutation.setOrganizationResourceComponentServiceObjects(
 			_organizationResourceComponentServiceObjects);
+		Mutation.setRoleResourceComponentServiceObjects(
+			_roleResourceComponentServiceObjects);
 		Mutation.setSubscriptionResourceComponentServiceObjects(
 			_subscriptionResourceComponentServiceObjects);
+		Mutation.setUserAccountResourceComponentServiceObjects(
+			_userAccountResourceComponentServiceObjects);
 
 		Query.setEmailAddressResourceComponentServiceObjects(
 			_emailAddressResourceComponentServiceObjects);
@@ -82,11 +86,7 @@ public class ServletDataImpl implements ServletData {
 		return new Mutation();
 	}
 
-	/**
-	 * @deprecated
-	 */
 	@Override
-	@Deprecated
 	public String getPath() {
 		return "/headless-admin-user-graphql/v1_0";
 	}
@@ -101,8 +101,16 @@ public class ServletDataImpl implements ServletData {
 		_organizationResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<RoleResource>
+		_roleResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<SubscriptionResource>
 		_subscriptionResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<UserAccountResource>
+		_userAccountResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<EmailAddressResource>
@@ -117,10 +125,6 @@ public class ServletDataImpl implements ServletData {
 		_postalAddressResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
-	private ComponentServiceObjects<RoleResource>
-		_roleResourceComponentServiceObjects;
-
-	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<SegmentResource>
 		_segmentResourceComponentServiceObjects;
 
@@ -131,10 +135,6 @@ public class ServletDataImpl implements ServletData {
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<SiteResource>
 		_siteResourceComponentServiceObjects;
-
-	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
-	private ComponentServiceObjects<UserAccountResource>
-		_userAccountResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<WebUrlResource>

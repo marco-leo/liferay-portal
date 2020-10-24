@@ -12,13 +12,13 @@
  * details.
  */
 
-import {cleanup, render, fireEvent} from '@testing-library/react';
+import {cleanup, fireEvent, render} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import '@testing-library/jest-dom/extend-expect';
 
-import {StoreContext} from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/store';
+import {StoreContextProvider} from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/store/index';
 import CommentForm from '../../../../../../src/main/resources/META-INF/resources/page_editor/plugins/comments/components/CommentForm';
 
 jest.mock(
@@ -36,13 +36,16 @@ jest.mock(
 	}
 );
 
-const renderForm = props =>
+const renderForm = (props) =>
 	render(
-		<StoreContext.Provider
-			value={{
-				defaultEditorConfigurations: {comment: {editorConfig: {}}},
-				portletNamespace: '_testNamespace_'
-			}}
+		<StoreContextProvider
+			initialState={[
+				{},
+				{
+					defaultEditorConfigurations: {comment: {editorConfig: {}}},
+					portletNamespace: '_testNamespace_',
+				},
+			]}
 		>
 			<CommentForm
 				onCancelButtonClick={() => {}}
@@ -52,7 +55,7 @@ const renderForm = props =>
 				textareaContent=""
 				{...props}
 			/>
-		</StoreContext.Provider>
+		</StoreContextProvider>
 	);
 
 describe('CommentForm', () => {
@@ -81,7 +84,7 @@ describe('CommentForm', () => {
 	it('sets given submit button label', () => {
 		const {getByText} = renderForm({
 			showButtons: true,
-			submitButtonLabel: 'customLabel'
+			submitButtonLabel: 'customLabel',
 		});
 
 		expect(getByText('customLabel')).toBeInTheDocument();
@@ -90,7 +93,7 @@ describe('CommentForm', () => {
 	it('shows buttons if showButtons is true', () => {
 		const {getByText} = renderForm({
 			showButtons: true,
-			submitButtonLabel: 'mySubmit'
+			submitButtonLabel: 'mySubmit',
 		});
 
 		expect(getByText('cancel')).toBeInTheDocument();
@@ -101,7 +104,7 @@ describe('CommentForm', () => {
 		const {getByPlaceholderText, getByText} = renderForm({
 			loading: true,
 			showButtons: true,
-			submitButtonLabel: 'submit'
+			submitButtonLabel: 'submit',
 		});
 
 		expect(getByPlaceholderText('type-your-comment-here')).toBeDisabled();
@@ -114,7 +117,7 @@ describe('CommentForm', () => {
 
 		const {getByText} = renderForm({
 			onCancelButtonClick: onCancel,
-			showButtons: true
+			showButtons: true,
 		});
 
 		fireEvent.click(getByText('cancel'));
@@ -132,7 +135,7 @@ describe('CommentForm', () => {
 
 	it('sets given textareaContent as default textarea content', () => {
 		const {getByPlaceholderText} = renderForm({
-			textareaContent: 'This is Something'
+			textareaContent: 'This is Something',
 		});
 
 		expect(getByPlaceholderText('type-your-comment-here').value).toBe(
@@ -146,7 +149,7 @@ describe('CommentForm', () => {
 		const {getByText} = renderForm({
 			onSubmitButtonClick: onSubmit,
 			showButtons: true,
-			submitButtonLabel: 'tryToSubmit'
+			submitButtonLabel: 'tryToSubmit',
 		});
 
 		fireEvent.click(getByText('tryToSubmit'));
@@ -161,7 +164,7 @@ describe('CommentForm', () => {
 			onSubmitButtonClick: onSubmit,
 			showButtons: true,
 			submitButtonLabel: 'submitForm',
-			textareaContent: 'tarta'
+			textareaContent: 'tarta',
 		});
 
 		fireEvent.click(getByText('submitForm'));
@@ -173,7 +176,7 @@ describe('CommentForm', () => {
 		const onChange = jest.fn();
 
 		const {getByPlaceholderText} = renderForm({
-			onTextareaChange: onChange
+			onTextareaChange: onChange,
 		});
 
 		userEvent.type(

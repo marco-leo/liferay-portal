@@ -21,10 +21,9 @@
 	clearResultsURL="<%= kaleoFormsAdminDisplayContext.getClearResultsURL() %>"
 	componentId="kaleoFormsManagementToolbar"
 	creationMenu="<%= kaleoFormsAdminDisplayContext.getCreationMenu() %>"
-	disabled="<%= kaleoFormsAdminDisplayContext.isDisabledManagementBar() %>"
 	filterDropdownItems="<%= kaleoFormsAdminDisplayContext.getFilterItemsDropdownItems() %>"
 	itemsTotal="<%= kaleoFormsAdminDisplayContext.getTotalItems() %>"
-	namespace="<%= renderResponse.getNamespace() %>"
+	namespace="<%= liferayPortletResponse.getNamespace() %>"
 	searchActionURL="<%= kaleoFormsAdminDisplayContext.getSearchActionURL() %>"
 	searchContainerId="<%= kaleoFormsAdminDisplayContext.getSearchContainerId() %>"
 	searchFormName="fm1"
@@ -33,22 +32,24 @@
 />
 
 <aui:script sandbox="<%= true %>">
-	var deleteKaleoProcess = function() {
+	var deleteKaleoProcess = function () {
 		if (
 			confirm(
 				'<%= UnicodeLanguageUtil.get(request, "are-you-sure-you-want-to-delete-this") %>'
 			)
 		) {
-			var form = AUI.$(document.<portlet:namespace />fm);
+			var form = document.<portlet:namespace />fm;
 
-			var searchContainer = AUI.$('#<portlet:namespace />kaleoProcess', form);
+			var searchContainer = form.querySelector(
+				'#<portlet:namespace />kaleoProcess'
+			);
 
-			form.attr('method', 'post');
-			form.fm('kaleoProcessIds').val(
-				Liferay.Util.listCheckedExcept(
-					searchContainer,
-					'<portlet:namespace />allRowIds'
-				)
+			form.setAttribute('method', 'post');
+			form.querySelector(
+				'#<portlet:namespace />kaleoProcessIds'
+			).value = Liferay.Util.listCheckedExcept(
+				searchContainer,
+				'<portlet:namespace />allRowIds'
 			);
 
 			submitForm(
@@ -59,13 +60,13 @@
 	};
 
 	var ACTIONS = {
-		deleteKaleoProcess: deleteKaleoProcess
+		deleteKaleoProcess: deleteKaleoProcess,
 	};
 
-	Liferay.componentReady('kaleoFormsManagementToolbar').then(function(
+	Liferay.componentReady('kaleoFormsManagementToolbar').then(function (
 		managementToolbar
 	) {
-		managementToolbar.on(['actionItemClicked'], function(event) {
+		managementToolbar.on(['actionItemClicked'], function (event) {
 			var itemData = event.data.item.data;
 
 			if (itemData && itemData.action && ACTIONS[itemData.action]) {

@@ -464,11 +464,6 @@ public class LayoutSetPrototypeWrapper
 		return model.isActive();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a layout set prototype model instance should use the <code>LayoutSetPrototype</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -701,9 +696,10 @@ public class LayoutSetPrototypeWrapper
 
 	@Override
 	public void setSettingsProperties(
-		com.liferay.portal.kernel.util.UnicodeProperties settingsProperties) {
+		com.liferay.portal.kernel.util.UnicodeProperties
+			settingsUnicodeProperties) {
 
-		model.setSettingsProperties(settingsProperties);
+		model.setSettingsProperties(settingsUnicodeProperties);
 	}
 
 	/**

@@ -51,7 +51,6 @@ import java.nio.charset.CodingErrorAction;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -480,40 +479,25 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 		}
 	}
 
-	protected synchronized Set<SourceFormatterMessage> processCheckstyle(
+	protected Set<SourceFormatterMessage> processCheckstyle(
 			Configuration configuration, CheckstyleLogger checkstyleLogger,
-			File[] files)
-		throws CheckstyleException {
-
-		if (ArrayUtil.isEmpty(files)) {
-			return Collections.emptySet();
-		}
-
-		Checker checker = new Checker(
-			configuration, checkstyleLogger, checkstyleLogger,
-			getSourceFormatterSuppressions());
-
-		checker.process(Arrays.asList(files));
-
-		return checker.getSourceFormatterMessages();
-	}
-
-	protected synchronized Set<SourceFormatterMessage> processCheckstyle(
-			Configuration configuration, CheckstyleLogger checkstyleLogger,
-			List<String[]> fileContents)
+			Object object)
 		throws CheckstyleException, IOException {
 
-		if (fileContents.isEmpty()) {
-			return Collections.emptySet();
+		synchronized (BaseSourceProcessor.class) {
+			Checker checker = new Checker(
+				configuration, checkstyleLogger, checkstyleLogger,
+				getSourceFormatterSuppressions());
+
+			if (object instanceof File[]) {
+				checker.process(Arrays.asList((File[])object));
+			}
+			else if (object instanceof List<?>) {
+				checker.processFileContents((List<String[]>)object);
+			}
+
+			return checker.getSourceFormatterMessages();
 		}
-
-		Checker checker = new Checker(
-			configuration, checkstyleLogger, checkstyleLogger,
-			getSourceFormatterSuppressions());
-
-		checker.processFileContents(fileContents);
-
-		return checker.getSourceFormatterMessages();
 	}
 
 	protected File processFormattedFile(
@@ -560,13 +544,13 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 						continue;
 					}
 
-					String markdownFilePath =
-						sourceFormatterMessage.getMarkdownFilePath();
+					String documentationURLString =
+						sourceFormatterMessage.getDocumentationURLString();
 
-					if (Validator.isNotNull(markdownFilePath)) {
+					if (Validator.isNotNull(documentationURLString)) {
 						Desktop desktop = Desktop.getDesktop();
 
-						desktop.browse(new URI(markdownFilePath));
+						desktop.browse(new URI(documentationURLString));
 
 						_browserStarted = true;
 					}
@@ -595,11 +579,10 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 	}
 
 	protected void processMessage(String fileName, String message) {
-		processMessage(
-			fileName, new SourceFormatterMessage(fileName, message, null, -1));
+		processMessage(fileName, new SourceFormatterMessage(fileName, message));
 	}
 
-	private void _checkUTF8(File file, String fileName) throws IOException {
+	private void _checkUTF8(File file, String fileName) throws Exception {
 		byte[] bytes = FileUtil.getBytes(file);
 
 		try {
@@ -609,7 +592,7 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 
 			charsetDecoder.decode(ByteBuffer.wrap(bytes));
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			processMessage(fileName, "UTF-8");
 		}
 	}
@@ -736,7 +719,7 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 				}
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		return absolutePath.contains("/modules/");
@@ -770,8 +753,9 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 
 			DebugUtil.finishTask();
 		}
-		catch (Throwable t) {
-			throw new RuntimeException("Unable to format " + fileName, t);
+		catch (Throwable throwable) {
+			throw new RuntimeException(
+				"Unable to format " + fileName, throwable);
 		}
 	}
 

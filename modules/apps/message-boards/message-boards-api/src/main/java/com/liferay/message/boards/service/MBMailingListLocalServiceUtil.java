@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class MBMailingListLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.message.boards.service.impl.MBMailingListLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link MBMailingListLocalServiceUtil} to access the message boards mailing list local service. Add custom service methods to <code>com.liferay.message.boards.service.impl.MBMailingListLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.message.boards.model.MBMailingList addMailingList(
 			long userId, long groupId, long categoryId, String emailAddress,
@@ -64,6 +58,10 @@ public class MBMailingListLocalServiceUtil {
 	/**
 	 * Adds the message boards mailing list to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBMailingListLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param mbMailingList the message boards mailing list
 	 * @return the message boards mailing list that was added
 	 */
@@ -84,6 +82,16 @@ public class MBMailingListLocalServiceUtil {
 		createMBMailingList(long mailingListId) {
 
 		return getService().createMBMailingList(mailingListId);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	public static void deleteCategoryMailingList(long groupId, long categoryId)
@@ -108,6 +116,10 @@ public class MBMailingListLocalServiceUtil {
 	/**
 	 * Deletes the message boards mailing list with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBMailingListLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param mailingListId the primary key of the message boards mailing list
 	 * @return the message boards mailing list that was removed
 	 * @throws PortalException if a message boards mailing list with the primary key could not be found
@@ -121,6 +133,10 @@ public class MBMailingListLocalServiceUtil {
 
 	/**
 	 * Deletes the message boards mailing list from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBMailingListLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param mbMailingList the message boards mailing list
 	 * @return the message boards mailing list that was removed
@@ -141,6 +157,12 @@ public class MBMailingListLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -380,6 +402,9 @@ public class MBMailingListLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -407,6 +432,10 @@ public class MBMailingListLocalServiceUtil {
 
 	/**
 	 * Updates the message boards mailing list in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBMailingListLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param mbMailingList the message boards mailing list
 	 * @return the message boards mailing list that was updated

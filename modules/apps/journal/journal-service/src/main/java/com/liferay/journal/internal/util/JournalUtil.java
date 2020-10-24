@@ -20,10 +20,10 @@ import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalServiceUtil;
 import com.liferay.journal.configuration.JournalServiceConfiguration;
 import com.liferay.journal.constants.JournalPortletKeys;
+import com.liferay.journal.constants.JournalStructureConstants;
 import com.liferay.journal.internal.transformer.JournalTransformer;
 import com.liferay.journal.internal.transformer.JournalTransformerListenerRegistryUtil;
 import com.liferay.journal.model.JournalArticle;
-import com.liferay.journal.model.JournalStructureConstants;
 import com.liferay.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -49,8 +49,6 @@ import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.template.TemplateHandlerRegistryUtil;
-import com.liferay.portal.kernel.template.TemplateManager;
-import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.templateparser.TransformerListener;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
@@ -237,8 +235,8 @@ public class JournalUtil {
 			return HttpUtil.addParameter(
 				articleURL, namespace + "folderId", folderId);
 		}
-		catch (PortalException pe) {
-			_log.error(pe, pe);
+		catch (PortalException portalException) {
+			_log.error(portalException, portalException);
 		}
 
 		return StringPool.BLANK;
@@ -275,9 +273,9 @@ public class JournalUtil {
 				try {
 					_populateTokens(tokens, articleGroupId, themeDisplayModel);
 				}
-				catch (Exception e) {
+				catch (Exception exception) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(e, e);
+						_log.warn(exception, exception);
 					}
 				}
 			}
@@ -389,8 +387,8 @@ public class JournalUtil {
 
 			content = XMLUtil.formatXML(document);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 
 		return content;
@@ -405,27 +403,22 @@ public class JournalUtil {
 
 		return transform(
 			themeDisplay, tokens, viewMode, languageId, document,
-			portletRequestModel, script, langType, false);
+			portletRequestModel, script, langType, false, new HashMap<>());
 	}
 
 	public static String transform(
 			ThemeDisplay themeDisplay, Map<String, String> tokens,
 			String viewMode, String languageId, Document document,
 			PortletRequestModel portletRequestModel, String script,
-			String langType, boolean propagateException)
+			String langType, boolean propagateException,
+			Map<String, Object> contextObjects)
 		throws Exception {
-
-		TemplateManager templateManager =
-			TemplateManagerUtil.getTemplateManager(langType);
 
 		TemplateHandler templateHandler =
 			TemplateHandlerRegistryUtil.getTemplateHandler(
 				JournalArticle.class.getName());
 
-		Map<String, Object> contextObjects = new HashMap<>();
-
-		templateManager.addContextObjects(
-			contextObjects, templateHandler.getCustomContextObjects());
+		contextObjects.putAll(templateHandler.getCustomContextObjects());
 
 		return _journalTransformer.transform(
 			themeDisplay, contextObjects, tokens, viewMode, languageId,
@@ -744,8 +737,8 @@ public class JournalUtil {
 				ConfigurationProviderUtil.getCompanyConfiguration(
 					JournalServiceConfiguration.class, companyId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 
 		if (journalServiceConfiguration == null) {

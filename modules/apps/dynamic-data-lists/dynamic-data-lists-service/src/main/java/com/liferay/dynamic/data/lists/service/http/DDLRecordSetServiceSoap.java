@@ -61,8 +61,10 @@ import java.util.Map;
  *
  * @author Brian Wing Shun Chan
  * @see DDLRecordSetServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class DDLRecordSetServiceSoap {
 
 	/**
@@ -112,10 +114,10 @@ public class DDLRecordSetServiceSoap {
 			return com.liferay.dynamic.data.lists.model.DDLRecordSetSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -131,10 +133,10 @@ public class DDLRecordSetServiceSoap {
 		try {
 			DDLRecordSetServiceUtil.deleteRecordSet(recordSetId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -157,10 +159,10 @@ public class DDLRecordSetServiceSoap {
 			return com.liferay.dynamic.data.lists.model.DDLRecordSetSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -184,10 +186,10 @@ public class DDLRecordSetServiceSoap {
 			return com.liferay.dynamic.data.lists.model.DDLRecordSetSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -209,10 +211,10 @@ public class DDLRecordSetServiceSoap {
 			return com.liferay.dynamic.data.lists.model.DDLRecordSetSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -266,10 +268,10 @@ public class DDLRecordSetServiceSoap {
 			return com.liferay.dynamic.data.lists.model.DDLRecordSetSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -328,10 +330,10 @@ public class DDLRecordSetServiceSoap {
 			return com.liferay.dynamic.data.lists.model.DDLRecordSetSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -364,10 +366,10 @@ public class DDLRecordSetServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -406,10 +408,10 @@ public class DDLRecordSetServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -439,10 +441,10 @@ public class DDLRecordSetServiceSoap {
 			return com.liferay.dynamic.data.lists.model.DDLRecordSetSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -471,10 +473,10 @@ public class DDLRecordSetServiceSoap {
 			return com.liferay.dynamic.data.lists.model.DDLRecordSetSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -518,10 +520,10 @@ public class DDLRecordSetServiceSoap {
 			return com.liferay.dynamic.data.lists.model.DDLRecordSetSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -566,10 +568,10 @@ public class DDLRecordSetServiceSoap {
 			return com.liferay.dynamic.data.lists.model.DDLRecordSetSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

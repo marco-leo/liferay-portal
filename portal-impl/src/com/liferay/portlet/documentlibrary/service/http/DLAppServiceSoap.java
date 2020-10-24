@@ -47,8 +47,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see DLAppServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class DLAppServiceSoap {
 
 	/**
@@ -99,10 +101,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -135,10 +137,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -167,10 +169,10 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.cancelCheckOut(fileEntryId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -211,10 +213,10 @@ public class DLAppServiceSoap {
 				fileEntryId, dlVersionNumberIncrease, changeLog,
 				serviceContext);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -250,10 +252,10 @@ public class DLAppServiceSoap {
 			DLAppServiceUtil.checkInFileEntry(
 				fileEntryId, lockUuid, serviceContext);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -285,10 +287,10 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.checkOutFileEntry(fileEntryId, serviceContext);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -332,10 +334,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -367,10 +369,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -386,10 +388,10 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.deleteFileEntry(fileEntryId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -409,10 +411,10 @@ public class DLAppServiceSoap {
 			DLAppServiceUtil.deleteFileEntryByTitle(
 				repositoryId, folderId, title);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -429,10 +431,10 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.deleteFileShortcut(fileShortcutId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -449,10 +451,10 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.deleteFileVersion(fileVersionId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -471,10 +473,10 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.deleteFileVersion(fileEntryId, version);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -489,10 +491,10 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.deleteFolder(folderId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -512,10 +514,10 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.deleteFolder(repositoryId, parentFolderId, name);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -538,10 +540,10 @@ public class DLAppServiceSoap {
 			DLAppServiceUtil.deleteTempFileEntry(
 				groupId, folderId, folderName, fileName);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -565,10 +567,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -603,10 +605,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -626,31 +628,32 @@ public class DLAppServiceSoap {
 	 * @param folderId the primary key of the file entry's folder
 	 * @param start the lower bound of the range of results
 	 * @param end the upper bound of the range of results (not inclusive)
-	 * @param obc the comparator to order the file entries (optionally
-	 <code>null</code>)
+	 * @param orderByComparator the comparator to order the file entries
+	 (optionally <code>null</code>)
 	 * @return the range of file entries in the folder ordered by comparator
-	 <code>obc</code>
+	 <code>orderByComparator</code>
 	 * @throws PortalException if a portal exception occurred
 	 */
 	public static com.liferay.portal.kernel.repository.model.FileEntrySoap[]
 			getFileEntries(
 				long repositoryId, long folderId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.portal.kernel.repository.model.FileEntry> obc)
+					<com.liferay.portal.kernel.repository.model.FileEntry>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.portal.kernel.repository.model.FileEntry>
 				returnValue = DLAppServiceUtil.getFileEntries(
-					repositoryId, folderId, start, end, obc);
+					repositoryId, folderId, start, end, orderByComparator);
 
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -676,10 +679,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -709,10 +712,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -725,8 +728,8 @@ public class DLAppServiceSoap {
 	 * @param fileEntryTypeId the primary key of the file entry type
 	 * @param start the lower bound of the range of results
 	 * @param end the upper bound of the range of results (not inclusive)
-	 * @param obc the comparator to order the results by (optionally
-	 <code>null</code>)
+	 * @param orderByComparator the comparator to order the results by
+	 (optionally <code>null</code>)
 	 * @return the range of file entries with the file entry type in the folder
 	 ordered by <code>null</code>
 	 * @throws PortalException if a portal exception occurred
@@ -736,21 +739,23 @@ public class DLAppServiceSoap {
 				long repositoryId, long folderId, long fileEntryTypeId,
 				int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.portal.kernel.repository.model.FileEntry> obc)
+					<com.liferay.portal.kernel.repository.model.FileEntry>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.portal.kernel.repository.model.FileEntry>
 				returnValue = DLAppServiceUtil.getFileEntries(
-					repositoryId, folderId, fileEntryTypeId, start, end, obc);
+					repositoryId, folderId, fileEntryTypeId, start, end,
+					orderByComparator);
 
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -766,10 +771,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -778,21 +783,23 @@ public class DLAppServiceSoap {
 				long repositoryId, long folderId, String[] mimeTypes, int start,
 				int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.portal.kernel.repository.model.FileEntry> obc)
+					<com.liferay.portal.kernel.repository.model.FileEntry>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.portal.kernel.repository.model.FileEntry>
 				returnValue = DLAppServiceUtil.getFileEntries(
-					repositoryId, folderId, mimeTypes, start, end, obc);
+					repositoryId, folderId, mimeTypes, start, end,
+					orderByComparator);
 
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -816,10 +823,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -844,10 +851,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -868,10 +875,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -895,10 +902,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -912,10 +919,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -937,10 +944,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -964,10 +971,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -990,10 +997,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1015,10 +1022,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1042,10 +1049,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1069,10 +1076,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1101,10 +1108,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1147,10 +1154,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1173,10 +1180,10 @@ public class DLAppServiceSoap {
 	 third-party repositories
 	 * @param start the lower bound of the range of results
 	 * @param end the upper bound of the range of results (not inclusive)
-	 * @param obc the comparator to order the folders (optionally
+	 * @param orderByComparator the comparator to order the folders (optionally
 	 <code>null</code>)
 	 * @return the range of immediate subfolders of the parent folder ordered by
-	 comparator <code>obc</code>
+	 comparator <code>orderByComparator</code>
 	 * @throws PortalException if a portal exception occurred
 	 */
 	public static com.liferay.portal.kernel.repository.model.FolderSoap[]
@@ -1184,22 +1191,23 @@ public class DLAppServiceSoap {
 				long repositoryId, long parentFolderId,
 				boolean includeMountFolders, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.portal.kernel.repository.model.Folder> obc)
+					<com.liferay.portal.kernel.repository.model.Folder>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.portal.kernel.repository.model.Folder>
 				returnValue = DLAppServiceUtil.getFolders(
 					repositoryId, parentFolderId, includeMountFolders, start,
-					end, obc);
+					end, orderByComparator);
 
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1223,10 +1231,10 @@ public class DLAppServiceSoap {
 	 third-party repositories
 	 * @param start the lower bound of the range of results
 	 * @param end the upper bound of the range of results (not inclusive)
-	 * @param obc the comparator to order the folders (optionally
+	 * @param orderByComparator the comparator to order the folders (optionally
 	 <code>null</code>)
 	 * @return the range of immediate subfolders of the parent folder ordered by
-	 comparator <code>obc</code>
+	 comparator <code>orderByComparator</code>
 	 * @throws PortalException if a portal exception occurred
 	 */
 	public static com.liferay.portal.kernel.repository.model.FolderSoap[]
@@ -1234,22 +1242,23 @@ public class DLAppServiceSoap {
 				long repositoryId, long parentFolderId, int status,
 				boolean includeMountFolders, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.portal.kernel.repository.model.Folder> obc)
+					<com.liferay.portal.kernel.repository.model.Folder>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.portal.kernel.repository.model.Folder>
 				returnValue = DLAppServiceUtil.getFolders(
 					repositoryId, parentFolderId, status, includeMountFolders,
-					start, end, obc);
+					start, end, orderByComparator);
 
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1287,10 +1296,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1311,31 +1320,33 @@ public class DLAppServiceSoap {
 	 * @param parentFolderId the primary key of the folder's parent folder
 	 * @param start the lower bound of the range of results
 	 * @param end the upper bound of the range of results (not inclusive)
-	 * @param obc the comparator to order the folders (optionally
+	 * @param orderByComparator the comparator to order the folders (optionally
 	 <code>null</code>)
 	 * @return the range of immediate subfolders of the parent folder ordered by
-	 comparator <code>obc</code>
+	 comparator <code>orderByComparator</code>
 	 * @throws PortalException if a portal exception occurred
 	 */
 	public static com.liferay.portal.kernel.repository.model.FolderSoap[]
 			getFolders(
 				long repositoryId, long parentFolderId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.portal.kernel.repository.model.Folder> obc)
+					<com.liferay.portal.kernel.repository.model.Folder>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.portal.kernel.repository.model.Folder>
 				returnValue = DLAppServiceUtil.getFolders(
-					repositoryId, parentFolderId, start, end, obc);
+					repositoryId, parentFolderId, start, end,
+					orderByComparator);
 
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1364,10 +1375,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1384,10 +1395,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1404,10 +1415,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1428,10 +1439,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1456,10 +1467,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1486,10 +1497,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1515,10 +1526,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1558,10 +1569,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1585,31 +1596,32 @@ public class DLAppServiceSoap {
 	 (optionally <code>0</code>)
 	 * @param start the lower bound of the range of results
 	 * @param end the upper bound of the range of results (not inclusive)
-	 * @param obc the comparator to order the file entries (optionally
-	 <code>null</code>)
+	 * @param orderByComparator the comparator to order the file entries
+	 (optionally <code>null</code>)
 	 * @return the range of matching file entries ordered by comparator
-	 <code>obc</code>
+	 <code>orderByComparator</code>
 	 * @throws PortalException if a portal exception occurred
 	 */
 	public static com.liferay.portal.kernel.repository.model.FileEntrySoap[]
 			getGroupFileEntries(
 				long groupId, long userId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.portal.kernel.repository.model.FileEntry> obc)
+					<com.liferay.portal.kernel.repository.model.FileEntry>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.portal.kernel.repository.model.FileEntry>
 				returnValue = DLAppServiceUtil.getGroupFileEntries(
-					groupId, userId, start, end, obc);
+					groupId, userId, start, end, orderByComparator);
 
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1652,10 +1664,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1681,10 +1693,10 @@ public class DLAppServiceSoap {
 	 search
 	 * @param start the lower bound of the range of results
 	 * @param end the upper bound of the range of results (not inclusive)
-	 * @param obc the comparator to order the file entries (optionally
-	 <code>null</code>)
+	 * @param orderByComparator the comparator to order the file entries
+	 (optionally <code>null</code>)
 	 * @return the range of matching file entries ordered by comparator
-	 <code>obc</code>
+	 <code>orderByComparator</code>
 	 * @throws PortalException if a portal exception occurred
 	 */
 	public static com.liferay.portal.kernel.repository.model.FileEntrySoap[]
@@ -1692,21 +1704,23 @@ public class DLAppServiceSoap {
 				long groupId, long userId, long rootFolderId, int start,
 				int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.portal.kernel.repository.model.FileEntry> obc)
+					<com.liferay.portal.kernel.repository.model.FileEntry>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.portal.kernel.repository.model.FileEntry>
 				returnValue = DLAppServiceUtil.getGroupFileEntries(
-					groupId, userId, rootFolderId, start, end, obc);
+					groupId, userId, rootFolderId, start, end,
+					orderByComparator);
 
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1715,22 +1729,23 @@ public class DLAppServiceSoap {
 				long groupId, long userId, long rootFolderId,
 				String[] mimeTypes, int status, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.portal.kernel.repository.model.FileEntry> obc)
+					<com.liferay.portal.kernel.repository.model.FileEntry>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.portal.kernel.repository.model.FileEntry>
 				returnValue = DLAppServiceUtil.getGroupFileEntries(
 					groupId, userId, rootFolderId, mimeTypes, status, start,
-					end, obc);
+					end, orderByComparator);
 
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1755,10 +1770,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1786,10 +1801,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1804,10 +1819,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1834,10 +1849,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1876,10 +1891,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1901,32 +1916,34 @@ public class DLAppServiceSoap {
 	 * @param parentFolderId the primary key of the folder's parent folder
 	 * @param start the lower bound of the range of results
 	 * @param end the upper bound of the range of results (not inclusive)
-	 * @param obc the comparator to order the folders (optionally
+	 * @param orderByComparator the comparator to order the folders (optionally
 	 <code>null</code>)
 	 * @return the range of immediate subfolders of the parent folder that are
 	 used for mounting third-party repositories ordered by comparator
-	 <code>obc</code>
+	 <code>orderByComparator</code>
 	 * @throws PortalException if a portal exception occurred
 	 */
 	public static com.liferay.portal.kernel.repository.model.FolderSoap[]
 			getMountFolders(
 				long repositoryId, long parentFolderId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.portal.kernel.repository.model.Folder> obc)
+					<com.liferay.portal.kernel.repository.model.Folder>
+						orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.portal.kernel.repository.model.Folder>
 				returnValue = DLAppServiceUtil.getMountFolders(
-					repositoryId, parentFolderId, start, end, obc);
+					repositoryId, parentFolderId, start, end,
+					orderByComparator);
 
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModels(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1951,10 +1968,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1966,10 +1983,10 @@ public class DLAppServiceSoap {
 			DLAppServiceUtil.getSubfolderIds(
 				repositoryId, ListUtil.toList(folderIds), folderId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -1990,10 +2007,10 @@ public class DLAppServiceSoap {
 
 			return returnValue.toArray(new Long[returnValue.size()]);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2017,10 +2034,10 @@ public class DLAppServiceSoap {
 
 			return returnValue.toArray(new Long[returnValue.size()]);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2046,10 +2063,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2071,10 +2088,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2104,10 +2121,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2134,10 +2151,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2164,10 +2181,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2194,10 +2211,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2224,10 +2241,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2249,10 +2266,10 @@ public class DLAppServiceSoap {
 			DLAppServiceUtil.revertFileEntry(
 				fileEntryId, version, serviceContext);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2271,10 +2288,10 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.subscribeFileEntryType(groupId, fileEntryTypeId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2292,10 +2309,10 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.subscribeFolder(groupId, folderId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2314,10 +2331,10 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.unlockFolder(repositoryId, folderId, lockUuid);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2339,10 +2356,10 @@ public class DLAppServiceSoap {
 			DLAppServiceUtil.unlockFolder(
 				repositoryId, parentFolderId, name, lockUuid);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2361,10 +2378,10 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.unsubscribeFileEntryType(groupId, fileEntryTypeId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2382,40 +2399,10 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.unsubscribeFolder(groupId, folderId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
-		}
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 #updateFileEntry(long, String, String, String, String,
-	 String, DLVersionNumberIncrease, byte[], ServiceContext)}
-	 */
-	@Deprecated
-	public static com.liferay.portal.kernel.repository.model.FileEntrySoap
-			updateFileEntry(
-				long fileEntryId, String sourceFileName, String mimeType,
-				String title, String description, String changeLog,
-				boolean majorVersion, byte[] bytes,
-				com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws RemoteException {
-
-		try {
-			com.liferay.portal.kernel.repository.model.FileEntry returnValue =
-				DLAppServiceUtil.updateFileEntry(
-					fileEntryId, sourceFileName, mimeType, title, description,
-					changeLog, majorVersion, bytes, serviceContext);
-
-			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
-				toSoapModel(returnValue);
-		}
-		catch (Exception e) {
-			_log.error(e, e);
-
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2473,10 +2460,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2515,10 +2502,10 @@ public class DLAppServiceSoap {
 			return com.liferay.portal.kernel.repository.model.FolderSoap.
 				toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2543,10 +2530,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2560,10 +2547,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -2588,10 +2575,10 @@ public class DLAppServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -34,9 +35,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface JournalContentSearchModel
-	extends BaseModel<JournalContentSearch>, MVCCModel, ShardedModel {
+	extends BaseModel<JournalContentSearch>, CTModel<JournalContentSearch>,
+			MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a journal content search model instance should use the {@link JournalContentSearch} interface instead.
@@ -47,6 +49,7 @@ public interface JournalContentSearchModel
 	 *
 	 * @return the primary key of this journal content search
 	 */
+	@Override
 	public long getPrimaryKey();
 
 	/**
@@ -54,6 +57,7 @@ public interface JournalContentSearchModel
 	 *
 	 * @param primaryKey the primary key of this journal content search
 	 */
+	@Override
 	public void setPrimaryKey(long primaryKey);
 
 	/**
@@ -71,6 +75,22 @@ public interface JournalContentSearchModel
 	 */
 	@Override
 	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the ct collection ID of this journal content search.
+	 *
+	 * @return the ct collection ID of this journal content search
+	 */
+	@Override
+	public long getCtCollectionId();
+
+	/**
+	 * Sets the ct collection ID of this journal content search.
+	 *
+	 * @param ctCollectionId the ct collection ID of this journal content search
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId);
 
 	/**
 	 * Returns the content search ID of this journal content search.

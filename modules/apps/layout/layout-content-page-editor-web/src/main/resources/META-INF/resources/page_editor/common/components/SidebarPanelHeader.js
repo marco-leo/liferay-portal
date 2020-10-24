@@ -13,20 +13,28 @@
  */
 
 import classNames from 'classnames';
+import PropTypes from 'prop-types';
 import React from 'react';
 
-export default function SidebarPanelHeader(props) {
+export default function SidebarPanelHeader({padded = true, ...props}) {
 	return (
 		<h1
 			{...props}
 			className={classNames(
-				'page-editor__sidebar-panel-header',
+				'page-editor__sidebar__panel-header',
 				'align-items-center',
 				'd-flex',
-				'pt-2',
-				'px-3',
-				{[props.className]: !!props.className}
+				{
+					light: true,
+					[props.className]: !!props.className,
+					'pt-2': padded,
+					'px-3': padded,
+				}
 			)}
 		/>
 	);
 }
+
+SidebarPanelHeader.propTypes = {
+	padded: PropTypes.bool,
+};

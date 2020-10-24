@@ -33,11 +33,6 @@ public class SyncDLFileVersionDiffLocalServiceWrapper
 		_syncDLFileVersionDiffLocalService = syncDLFileVersionDiffLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SyncDLFileVersionDiffLocalServiceUtil} to access the sync dl file version diff local service. Add custom service methods to <code>com.liferay.sync.service.impl.SyncDLFileVersionDiffLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.sync.model.SyncDLFileVersionDiff
 			addSyncDLFileVersionDiff(
@@ -52,6 +47,10 @@ public class SyncDLFileVersionDiffLocalServiceWrapper
 	/**
 	 * Adds the sync dl file version diff to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SyncDLFileVersionDiffLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param syncDLFileVersionDiff the sync dl file version diff
 	 * @return the sync dl file version diff that was added
 	 */
@@ -63,6 +62,18 @@ public class SyncDLFileVersionDiffLocalServiceWrapper
 
 		return _syncDLFileVersionDiffLocalService.addSyncDLFileVersionDiff(
 			syncDLFileVersionDiff);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _syncDLFileVersionDiffLocalService.createPersistedModel(
+			primaryKeyObj);
 	}
 
 	/**
@@ -102,6 +113,10 @@ public class SyncDLFileVersionDiffLocalServiceWrapper
 	/**
 	 * Deletes the sync dl file version diff with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SyncDLFileVersionDiffLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param syncDLFileVersionDiffId the primary key of the sync dl file version diff
 	 * @return the sync dl file version diff that was removed
 	 * @throws PortalException if a sync dl file version diff with the primary key could not be found
@@ -117,6 +132,10 @@ public class SyncDLFileVersionDiffLocalServiceWrapper
 
 	/**
 	 * Deletes the sync dl file version diff from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SyncDLFileVersionDiffLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param syncDLFileVersionDiff the sync dl file version diff
 	 * @return the sync dl file version diff that was removed
@@ -139,6 +158,11 @@ public class SyncDLFileVersionDiffLocalServiceWrapper
 
 		_syncDLFileVersionDiffLocalService.deleteSyncDLFileVersionDiffs(
 			fileEntryId);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _syncDLFileVersionDiffLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -276,6 +300,9 @@ public class SyncDLFileVersionDiffLocalServiceWrapper
 		return _syncDLFileVersionDiffLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -341,6 +368,10 @@ public class SyncDLFileVersionDiffLocalServiceWrapper
 
 	/**
 	 * Updates the sync dl file version diff in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SyncDLFileVersionDiffLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param syncDLFileVersionDiff the sync dl file version diff
 	 * @return the sync dl file version diff that was updated

@@ -45,10 +45,10 @@ import org.osgi.annotation.versioning.ProviderType;
 )
 public interface PushNotificationsDeviceService extends BaseService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
-	 * Never modify or reference this interface directly. Always use {@link PushNotificationsDeviceServiceUtil} to access the push notifications device remote service. Add custom service methods to <code>com.liferay.push.notifications.service.impl.PushNotificationsDeviceServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
+	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.push.notifications.service.impl.PushNotificationsDeviceServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the push notifications device remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link PushNotificationsDeviceServiceUtil} if injection and service tracking are not available.
 	 */
 	@AccessControlled(guestAccessEnabled = true)
 	public PushNotificationsDevice addPushNotificationsDevice(

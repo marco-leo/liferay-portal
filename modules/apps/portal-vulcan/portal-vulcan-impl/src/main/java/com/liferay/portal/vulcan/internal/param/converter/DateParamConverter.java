@@ -35,18 +35,17 @@ public class DateParamConverter implements ParamConverter<Date> {
 		try {
 			return simpleDateFormat.parse(string);
 		}
-		catch (ParseException pe) {
-			throw new WebApplicationException(pe);
+		catch (ParseException parseException) {
+			throw new WebApplicationException(parseException);
 		}
 	}
 
 	@Override
 	public String toString(Date date) {
-		return new SimpleDateFormat(
-			_PATTERN_DATE_TIME
-		).format(
-			date
-		);
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
+			_PATTERN_DATE_TIME);
+
+		return simpleDateFormat.format(date);
 	}
 
 	private String _getPattern(String string) {

@@ -14,8 +14,8 @@
 
 package com.liferay.portal.template.velocity.internal;
 
+import com.liferay.petra.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
-import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.template.StringTemplateResource;
 import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateException;
@@ -234,8 +234,8 @@ public class VelocityTemplateTest {
 
 			Assert.fail();
 		}
-		catch (TemplateException te) {
-			String message = te.getMessage();
+		catch (TemplateException templateException) {
+			String message = templateException.getMessage();
 
 			Assert.assertTrue(message, message.contains(_WRONG_TEMPLATE_ID));
 		}
@@ -316,8 +316,8 @@ public class VelocityTemplateTest {
 
 			Assert.fail();
 		}
-		catch (TemplateException te) {
-			String message = te.getMessage();
+		catch (TemplateException templateException) {
+			String message = templateException.getMessage();
 
 			Assert.assertTrue(
 				message, message.contains(_WRONG_ERROR_TEMPLATE_ID));
@@ -346,12 +346,11 @@ public class VelocityTemplateTest {
 
 	@Test
 	public void testProcessTemplate8() throws Exception {
-		Map<String, Object> context = HashMapBuilder.<String, Object>put(
-			_TEST_KEY, _TEST_VALUE
-		).build();
-
 		Template template = new VelocityTemplate(
-			new MockTemplateResource(_TEMPLATE_FILE_NAME), context,
+			new MockTemplateResource(_TEMPLATE_FILE_NAME),
+			HashMapBuilder.<String, Object>put(
+				_TEST_KEY, _TEST_VALUE
+			).build(),
 			_velocityEngine, _templateContextHelper, _templateResourceCache,
 			false);
 

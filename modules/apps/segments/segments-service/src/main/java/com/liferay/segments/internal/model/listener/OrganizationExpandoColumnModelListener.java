@@ -42,8 +42,10 @@ import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.odata.entity.BooleanEntityField;
 import com.liferay.portal.odata.entity.DateTimeEntityField;
+import com.liferay.portal.odata.entity.DoubleEntityField;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.odata.entity.IntegerEntityField;
 import com.liferay.portal.odata.entity.StringEntityField;
 import com.liferay.portal.odata.normalizer.Normalizer;
 import com.liferay.segments.internal.odata.entity.OrganizationEntityModel;
@@ -90,8 +92,8 @@ public class OrganizationExpandoColumnModelListener
 						_organizationEntityFields);
 				});
 		}
-		catch (PortalException pe) {
-			throw new ModelListenerException(pe);
+		catch (PortalException portalException) {
+			throw new ModelListenerException(portalException);
 		}
 	}
 
@@ -137,8 +139,8 @@ public class OrganizationExpandoColumnModelListener
 			_serviceRegistration = _register(
 				_bundleContext, _organizationEntityFields);
 		}
-		catch (PortalException pe) {
-			_log.error(pe, pe);
+		catch (PortalException portalException) {
+			_log.error(portalException, portalException);
 		}
 	}
 
@@ -184,6 +186,29 @@ public class OrganizationExpandoColumnModelListener
 				encodedName,
 				locale -> Field.getSortableFieldName(encodedIndexedFieldName),
 				locale -> encodedIndexedFieldName);
+		}
+		else if ((expandoColumn.getType() == ExpandoColumnConstants.DOUBLE) ||
+				 (expandoColumn.getType() ==
+					 ExpandoColumnConstants.DOUBLE_ARRAY) ||
+				 (expandoColumn.getType() == ExpandoColumnConstants.FLOAT) ||
+				 (expandoColumn.getType() ==
+					 ExpandoColumnConstants.FLOAT_ARRAY)) {
+
+			entityField = new DoubleEntityField(
+				encodedName, locale -> encodedIndexedFieldName);
+		}
+		else if ((expandoColumn.getType() == ExpandoColumnConstants.INTEGER) ||
+				 (expandoColumn.getType() ==
+					 ExpandoColumnConstants.INTEGER_ARRAY) ||
+				 (expandoColumn.getType() == ExpandoColumnConstants.LONG) ||
+				 (expandoColumn.getType() ==
+					 ExpandoColumnConstants.LONG_ARRAY) ||
+				 (expandoColumn.getType() == ExpandoColumnConstants.SHORT) ||
+				 (expandoColumn.getType() ==
+					 ExpandoColumnConstants.SHORT_ARRAY)) {
+
+			entityField = new IntegerEntityField(
+				encodedName, locale -> encodedIndexedFieldName);
 		}
 		else if (expandoColumn.getType() ==
 					ExpandoColumnConstants.STRING_LOCALIZED) {

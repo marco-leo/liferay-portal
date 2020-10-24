@@ -29,18 +29,20 @@ public class KBArticleImportException extends PortalException {
 		super(msg);
 	}
 
-	public KBArticleImportException(String msg, Throwable cause) {
-		super(msg, cause);
+	public KBArticleImportException(String msg, Throwable throwable) {
+		super(msg, throwable);
 	}
 
-	public KBArticleImportException(Throwable cause) {
-		super(cause);
+	public KBArticleImportException(Throwable throwable) {
+		super(throwable);
 	}
 
 	public static class MustHaveACategory extends KBArticleImportException {
 
-		public MustHaveACategory(AssetCategoryException cause) {
-			super(cause);
+		public MustHaveACategory(
+			AssetCategoryException assetCategoryException) {
+
+			super(assetCategoryException);
 		}
 
 	}

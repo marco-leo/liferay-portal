@@ -14,6 +14,7 @@
 
 package com.liferay.portal.service.impl;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
@@ -63,7 +64,7 @@ public class ResourceActionLocalServiceImpl
 			resourceAction.setActionId(actionId);
 			resourceAction.setBitwiseValue(bitwiseValue);
 
-			resourceActionPersistence.update(resourceAction);
+			resourceAction = resourceActionPersistence.update(resourceAction);
 		}
 
 		return resourceAction;
@@ -178,9 +179,10 @@ public class ResourceActionLocalServiceImpl
 					resourceAction.setActionId(actionId);
 					resourceAction.setBitwiseValue(bitwiseValue);
 
-					resourceActionPersistence.update(resourceAction);
+					resourceAction = resourceActionPersistence.update(
+						resourceAction);
 				}
-				catch (Throwable t) {
+				catch (Throwable throwable) {
 					resourceAction =
 						resourceActionLocalService.addResourceAction(
 							name, actionId, bitwiseValue);
@@ -285,8 +287,8 @@ public class ResourceActionLocalServiceImpl
 			try {
 				actionableDynamicQuery.performActions();
 			}
-			catch (PortalException pe) {
-				throw new SystemException(pe);
+			catch (PortalException portalException) {
+				throw new SystemException(portalException);
 			}
 		}
 
@@ -335,11 +337,7 @@ public class ResourceActionLocalServiceImpl
 	}
 
 	protected String encodeKey(String name, String actionId) {
-		return name.concat(
-			StringPool.POUND
-		).concat(
-			actionId
-		);
+		return StringBundler.concat(name, StringPool.POUND, actionId);
 	}
 
 	private static final Map<String, ResourceAction> _resourceActions =

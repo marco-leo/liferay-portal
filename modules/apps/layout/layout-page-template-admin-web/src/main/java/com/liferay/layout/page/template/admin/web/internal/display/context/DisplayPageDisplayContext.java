@@ -40,25 +40,28 @@ import javax.servlet.http.HttpServletRequest;
 public class DisplayPageDisplayContext {
 
 	public DisplayPageDisplayContext(
-		RenderRequest renderRequest, RenderResponse renderResponse,
-		HttpServletRequest httpServletRequest) {
+		HttpServletRequest httpServletRequest, RenderRequest renderRequest,
+		RenderResponse renderResponse) {
 
+		_httpServletRequest = httpServletRequest;
 		_renderRequest = renderRequest;
 		_renderResponse = renderResponse;
-		_httpServletRequest = httpServletRequest;
 
 		_themeDisplay = (ThemeDisplay)httpServletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 	}
 
-	public SearchContainer getDisplayPagesSearchContainer() {
+	public SearchContainer<LayoutPageTemplateEntry>
+		getDisplayPagesSearchContainer() {
+
 		if (_displayPagesSearchContainer != null) {
 			return _displayPagesSearchContainer;
 		}
 
-		SearchContainer displayPagesSearchContainer = new SearchContainer(
-			_renderRequest, getPortletURL(), null,
-			"there-are-no-display-page-templates");
+		SearchContainer<LayoutPageTemplateEntry> displayPagesSearchContainer =
+			new SearchContainer(
+				_renderRequest, getPortletURL(), null,
+				"there-are-no-display-page-templates");
 
 		displayPagesSearchContainer.setRowChecker(
 			new EmptyOnClickRowChecker(_renderResponse));
@@ -193,7 +196,8 @@ public class DisplayPageDisplayContext {
 		return false;
 	}
 
-	private SearchContainer _displayPagesSearchContainer;
+	private SearchContainer<LayoutPageTemplateEntry>
+		_displayPagesSearchContainer;
 	private final HttpServletRequest _httpServletRequest;
 	private String _keywords;
 	private Long _layoutPageTemplateEntryId;

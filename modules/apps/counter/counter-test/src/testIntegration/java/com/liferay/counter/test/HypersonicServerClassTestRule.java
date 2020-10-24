@@ -101,8 +101,8 @@ public class HypersonicServerClassTestRule extends ClassTestRule<Server> {
 
 					return state;
 				}
-				catch (InterruptedException ie) {
-					return ReflectionUtil.throwException(ie);
+				catch (InterruptedException interruptedException) {
+					return ReflectionUtil.throwException(interruptedException);
 				}
 			}
 
@@ -177,7 +177,7 @@ public class HypersonicServerClassTestRule extends ClassTestRule<Server> {
 	private HypersonicServerClassTestRule() {
 	}
 
-	private void _deleteFolder(Path folderPath) throws IOException {
+	private void _deleteFolder(Path folderPath) throws Exception {
 		if (!Files.exists(folderPath)) {
 			return;
 		}
@@ -188,11 +188,11 @@ public class HypersonicServerClassTestRule extends ClassTestRule<Server> {
 
 				@Override
 				public FileVisitResult postVisitDirectory(
-						Path dirPath, IOException ioe)
+						Path dirPath, IOException ioException)
 					throws IOException {
 
-					if (ioe != null) {
-						throw ioe;
+					if (ioException != null) {
+						throw ioException;
 					}
 
 					Files.delete(dirPath);

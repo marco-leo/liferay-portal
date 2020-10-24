@@ -154,6 +154,7 @@ public class AssetTagsSelectorTag extends IncludeTag {
 		_hiddenInput = "assetTagNames";
 		_id = null;
 		_ignoreRequestValue = false;
+		_namespace = null;
 		_removeCallback = null;
 		_showSelectButton = true;
 		_tagNames = null;
@@ -219,14 +220,18 @@ public class AssetTagsSelectorTag extends IncludeTag {
 				return null;
 			}
 
+			if (_groupIds != null) {
+				portletURL.setParameter(
+					"groupIds", StringUtil.merge(_groupIds, StringPool.COMMA));
+			}
+
 			portletURL.setParameter("eventName", getEventName());
 			portletURL.setParameter("selectedTagNames", "{selectedTagNames}");
-
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 
 			return portletURL;
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		return null;
@@ -241,10 +246,10 @@ public class AssetTagsSelectorTag extends IncludeTag {
 		}
 
 		if (!_ignoreRequestValue) {
-			String curTagsParam = request.getParameter(_hiddenInput);
+			String[] curTagsParam = request.getParameterValues(_hiddenInput);
 
-			if (Validator.isNotNull(curTagsParam)) {
-				return StringUtil.split(curTagsParam);
+			if (curTagsParam != null) {
+				return ListUtil.fromArray(curTagsParam);
 			}
 		}
 
@@ -297,13 +302,12 @@ public class AssetTagsSelectorTag extends IncludeTag {
 				List<Map<String, String>> selectedItems = new ArrayList<>();
 
 				for (String tagName : getTagNames()) {
-					Map<String, String> selectedItem = HashMapBuilder.put(
-						"label", tagName
-					).put(
-						"value", tagName
-					).build();
-
-					selectedItems.add(selectedItem);
+					selectedItems.add(
+						HashMapBuilder.put(
+							"label", tagName
+						).put(
+							"value", tagName
+						).build());
 				}
 
 				return selectedItems;

@@ -20,7 +20,7 @@ import com.liferay.portal.cache.MVCCPortalCache;
 import com.liferay.portal.cache.TransactionalPortalCache;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cache.PortalCacheHelperUtil;
-import com.liferay.portal.kernel.cache.transactional.TransactionalPortalCacheHelper;
+import com.liferay.portal.kernel.cache.transactional.TransactionalPortalCacheUtil;
 import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
@@ -58,16 +58,15 @@ public class TransactionalPortalCacheTest {
 			public void appendAssertClasses(List<Class<?>> assertClasses) {
 				assertClasses.add(TransactionalPortalCache.class);
 
-				Class<TransactionalPortalCacheHelper> clazz =
-					TransactionalPortalCacheHelper.class;
+				Class<TransactionalPortalCacheUtil> clazz =
+					TransactionalPortalCacheUtil.class;
 
 				assertClasses.add(clazz);
 
 				Collections.addAll(assertClasses, clazz.getDeclaredClasses());
 
 				TransactionLifecycleListener transactionLifecycleListener =
-					TransactionalPortalCacheHelper.
-						TRANSACTION_LIFECYCLE_LISTENER;
+					TransactionalPortalCacheUtil.TRANSACTION_LIFECYCLE_LISTENER;
 
 				assertClasses.add(transactionLifecycleListener.getClass());
 			}
@@ -325,25 +324,24 @@ public class TransactionalPortalCacheTest {
 
 		// For code coverage
 
-		new TransactionalPortalCacheHelper();
+		new TransactionalPortalCacheUtil();
 
 		_setEnableTransactionalCache(true);
 
-		TransactionalPortalCacheHelper.begin();
+		TransactionalPortalCacheUtil.begin();
 
 		TransactionalPortalCache<String, String> transactionalPortalCache =
-			new TransactionalPortalCache(_portalCache);
+			new TransactionalPortalCache(_portalCache, false);
 
-		TransactionalPortalCacheHelper.put(
+		TransactionalPortalCacheUtil.put(
 			transactionalPortalCache, _KEY_1, _VALUE_1, 0, false);
 
-		TransactionalPortalCacheHelper.removeAll(
-			transactionalPortalCache, false);
+		TransactionalPortalCacheUtil.removeAll(transactionalPortalCache, false);
 
-		TransactionalPortalCacheHelper.commit(false);
+		TransactionalPortalCacheUtil.commit(false);
 
 		TransactionLifecycleListener transactionLifecycleListener =
-			TransactionalPortalCacheHelper.TRANSACTION_LIFECYCLE_LISTENER;
+			TransactionalPortalCacheUtil.TRANSACTION_LIFECYCLE_LISTENER;
 
 		_setEnableTransactionalCache(false);
 
@@ -359,8 +357,8 @@ public class TransactionalPortalCacheTest {
 		_setEnableTransactionalCache(false);
 
 		Assert.assertFalse(
-			"TransactionalPortalCacheHelper should be disabled",
-			TransactionalPortalCacheHelper.isEnabled());
+			"TransactionalPortalCacheUtil should be disabled",
+			TransactionalPortalCacheUtil.isEnabled());
 
 		// MVCC portal cache when transactional cache is disabled
 
@@ -377,8 +375,8 @@ public class TransactionalPortalCacheTest {
 		_setEnableTransactionalCache(true);
 
 		Assert.assertFalse(
-			"TransactionalPortalCacheHelper should be disabled",
-			TransactionalPortalCacheHelper.isEnabled());
+			"TransactionalPortalCacheUtil should be disabled",
+			TransactionalPortalCacheUtil.isEnabled());
 
 		_testNoneTransactionalPortalCache(
 			new TransactionalPortalCache<>(_portalCache, true));
@@ -423,7 +421,7 @@ public class TransactionalPortalCacheTest {
 
 		_portalCache.put(_KEY_1, _VALUE_1);
 
-		TransactionalPortalCacheHelper.begin();
+		TransactionalPortalCacheUtil.begin();
 
 		// Get
 
@@ -437,8 +435,9 @@ public class TransactionalPortalCacheTest {
 
 			Assert.fail("Should throw NullPointerException");
 		}
-		catch (NullPointerException npe) {
-			Assert.assertEquals("Key is null", npe.getMessage());
+		catch (NullPointerException nullPointerException) {
+			Assert.assertEquals(
+				"Key is null", nullPointerException.getMessage());
 		}
 
 		// Put
@@ -455,8 +454,9 @@ public class TransactionalPortalCacheTest {
 
 			Assert.fail("Should throw NullPointerException");
 		}
-		catch (NullPointerException npe) {
-			Assert.assertEquals("Key is null", npe.getMessage());
+		catch (NullPointerException nullPointerException) {
+			Assert.assertEquals(
+				"Key is null", nullPointerException.getMessage());
 		}
 
 		// Put with null value
@@ -466,8 +466,9 @@ public class TransactionalPortalCacheTest {
 
 			Assert.fail("Should throw NullPointerException");
 		}
-		catch (NullPointerException npe) {
-			Assert.assertEquals("Value is null", npe.getMessage());
+		catch (NullPointerException nullPointerException) {
+			Assert.assertEquals(
+				"Value is null", nullPointerException.getMessage());
 		}
 
 		// Put with negative ttl
@@ -477,8 +478,10 @@ public class TransactionalPortalCacheTest {
 
 			Assert.fail("Should throw IllegalArgumentException");
 		}
-		catch (IllegalArgumentException iae) {
-			Assert.assertEquals("Time to live is negative", iae.getMessage());
+		catch (IllegalArgumentException illegalArgumentException) {
+			Assert.assertEquals(
+				"Time to live is negative",
+				illegalArgumentException.getMessage());
 		}
 
 		// Remove
@@ -495,44 +498,45 @@ public class TransactionalPortalCacheTest {
 
 			Assert.fail("Should throw NullPointerException");
 		}
-		catch (NullPointerException npe) {
-			Assert.assertEquals("Key is null", npe.getMessage());
+		catch (NullPointerException nullPointerException) {
+			Assert.assertEquals(
+				"Key is null", nullPointerException.getMessage());
 		}
 
-		TransactionalPortalCacheHelper.commit(false);
+		TransactionalPortalCacheUtil.commit(false);
 	}
 
 	@Test
-	public void testTransactionalPortalCacheHelperEnabled() {
+	public void testTransactionalPortalCacheUtilEnabled() {
 		_setEnableTransactionalCache(false);
 
 		Assert.assertFalse(
-			"TransactionalPortalCacheHelper should be disabled",
-			TransactionalPortalCacheHelper.isEnabled());
+			"TransactionalPortalCacheUtil should be disabled",
+			TransactionalPortalCacheUtil.isEnabled());
 
 		_setEnableTransactionalCache(true);
 
 		Assert.assertFalse(
-			"TransactionalPortalCacheHelper should be disabled",
-			TransactionalPortalCacheHelper.isEnabled());
+			"TransactionalPortalCacheUtil should be disabled",
+			TransactionalPortalCacheUtil.isEnabled());
 
-		TransactionalPortalCacheHelper.begin();
+		TransactionalPortalCacheUtil.begin();
 
 		Assert.assertTrue(
-			"TransactionalPortalCacheHelper should be enabled",
-			TransactionalPortalCacheHelper.isEnabled());
+			"TransactionalPortalCacheUtil should be enabled",
+			TransactionalPortalCacheUtil.isEnabled());
 
-		TransactionalPortalCacheHelper.commit(false);
+		TransactionalPortalCacheUtil.commit(false);
 
 		ReflectionTestUtil.setFieldValue(
-			TransactionalPortalCacheHelper.class, "_transactionalCacheEnabled",
+			TransactionalPortalCacheUtil.class, "_transactionalCacheEnabled",
 			null);
 
 		PropsTestUtil.setProps(Collections.emptyMap());
 
 		Assert.assertFalse(
-			"TransactionalPortalCacheHelper should be disabled",
-			TransactionalPortalCacheHelper.isEnabled());
+			"TransactionalPortalCacheUtil should be disabled",
+			TransactionalPortalCacheUtil.isEnabled());
 	}
 
 	@Test
@@ -547,19 +551,19 @@ public class TransactionalPortalCacheTest {
 
 		// Put real value and commit
 
-		TransactionalPortalCacheHelper.begin();
+		TransactionalPortalCacheUtil.begin();
 
 		MockMVCCModel mockMVCCModel = new MockMVCCModel(0);
 
 		transactionalPortalCache.put(_KEY_1, mockMVCCModel);
 
-		TransactionalPortalCacheHelper.commit(false);
+		TransactionalPortalCacheUtil.commit(false);
 
 		Assert.assertSame(mockMVCCModel, transactionalPortalCache.get(_KEY_1));
 
 		// Remove, put NullModel and commit
 
-		TransactionalPortalCacheHelper.begin();
+		TransactionalPortalCacheUtil.begin();
 
 		transactionalPortalCache.remove(_KEY_1);
 
@@ -568,7 +572,7 @@ public class TransactionalPortalCacheTest {
 
 		transactionalPortalCache.put(_KEY_1, nullMVCCModel);
 
-		TransactionalPortalCacheHelper.commit(false);
+		TransactionalPortalCacheUtil.commit(false);
 
 		Assert.assertSame(nullMVCCModel, transactionalPortalCache.get(_KEY_1));
 	}
@@ -590,7 +594,7 @@ public class TransactionalPortalCacheTest {
 		Assert.assertEquals(0, _getTransactionStackSize());
 
 		TransactionLifecycleListener transactionLifecycleListener =
-			TransactionalPortalCacheHelper.TRANSACTION_LIFECYCLE_LISTENER;
+			TransactionalPortalCacheUtil.TRANSACTION_LIFECYCLE_LISTENER;
 
 		TransactionAttribute.Builder builder =
 			new TransactionAttribute.Builder();
@@ -638,7 +642,7 @@ public class TransactionalPortalCacheTest {
 	private int _getTransactionStackSize() {
 		ThreadLocal<List<?>> portalCacheMapsThreadLocal =
 			ReflectionTestUtil.getFieldValue(
-				TransactionalPortalCacheHelper.class,
+				TransactionalPortalCacheUtil.class,
 				"_portalCacheMapsThreadLocal");
 
 		List<?> portalCacheMaps = portalCacheMapsThreadLocal.get();
@@ -696,7 +700,7 @@ public class TransactionalPortalCacheTest {
 
 	private void _setEnableTransactionalCache(boolean enabled) {
 		ReflectionTestUtil.setFieldValue(
-			TransactionalPortalCacheHelper.class, "_transactionalCacheEnabled",
+			TransactionalPortalCacheUtil.class, "_transactionalCacheEnabled",
 			enabled);
 	}
 
@@ -742,8 +746,10 @@ public class TransactionalPortalCacheTest {
 
 			Assert.fail("Should throw IllegalArgumentException");
 		}
-		catch (IllegalArgumentException iae) {
-			Assert.assertEquals("Time to live is negative", iae.getMessage());
+		catch (IllegalArgumentException illegalArgumentException) {
+			Assert.assertEquals(
+				"Time to live is negative",
+				illegalArgumentException.getMessage());
 		}
 
 		// Put 4
@@ -867,7 +873,7 @@ public class TransactionalPortalCacheTest {
 
 		// Rollback
 
-		TransactionalPortalCacheHelper.begin();
+		TransactionalPortalCacheUtil.begin();
 
 		if (ttl) {
 			transactionalPortalCache.put(_KEY_1, _VALUE_1, 10);
@@ -880,7 +886,7 @@ public class TransactionalPortalCacheTest {
 		Assert.assertNull(transactionalPortalCache.get(_KEY_2));
 		Assert.assertNull(_portalCache.get(_KEY_1));
 
-		TransactionalPortalCacheHelper.rollback();
+		TransactionalPortalCacheUtil.rollback();
 
 		_testCacheListener.assertActionsCount(0);
 		_testCacheReplicator.assertActionsCount(0);
@@ -890,7 +896,7 @@ public class TransactionalPortalCacheTest {
 
 		// Commit 1
 
-		TransactionalPortalCacheHelper.begin();
+		TransactionalPortalCacheUtil.begin();
 
 		if (ttl) {
 			transactionalPortalCache.put(_KEY_1, _VALUE_1, 10);
@@ -908,7 +914,7 @@ public class TransactionalPortalCacheTest {
 		Assert.assertEquals(_VALUE_2, transactionalPortalCache.get(_KEY_1));
 		Assert.assertNull(_portalCache.get(_KEY_1));
 
-		TransactionalPortalCacheHelper.commit(false);
+		TransactionalPortalCacheUtil.commit(false);
 
 		if (ttl) {
 			_testCacheListener.assertPut(_KEY_1, _VALUE_2, 10);
@@ -936,7 +942,7 @@ public class TransactionalPortalCacheTest {
 
 		// Commit 2
 
-		TransactionalPortalCacheHelper.begin();
+		TransactionalPortalCacheUtil.begin();
 
 		if (ttl) {
 			PortalCacheHelperUtil.putWithoutReplicator(
@@ -954,7 +960,7 @@ public class TransactionalPortalCacheTest {
 		Assert.assertEquals(_VALUE_1, transactionalPortalCache.get(_KEY_1));
 		Assert.assertEquals(_VALUE_2, _portalCache.get(_KEY_1));
 
-		TransactionalPortalCacheHelper.commit(false);
+		TransactionalPortalCacheUtil.commit(false);
 
 		if (ttl) {
 			_testCacheListener.assertUpdated(_KEY_1, _VALUE_1, 10);
@@ -982,7 +988,7 @@ public class TransactionalPortalCacheTest {
 
 		// Commit 3
 
-		TransactionalPortalCacheHelper.begin();
+		TransactionalPortalCacheUtil.begin();
 
 		PortalCacheHelperUtil.removeAllWithoutReplicator(
 			transactionalPortalCache);
@@ -999,7 +1005,7 @@ public class TransactionalPortalCacheTest {
 		Assert.assertEquals(_VALUE_2, transactionalPortalCache.get(_KEY_1));
 		Assert.assertEquals(_VALUE_1, _portalCache.get(_KEY_1));
 
-		TransactionalPortalCacheHelper.commit(false);
+		TransactionalPortalCacheUtil.commit(false);
 
 		_testCacheListener.assertRemoveAll();
 
@@ -1021,7 +1027,7 @@ public class TransactionalPortalCacheTest {
 
 		// Commit 4
 
-		TransactionalPortalCacheHelper.begin();
+		TransactionalPortalCacheUtil.begin();
 
 		transactionalPortalCache.remove(_KEY_1);
 
@@ -1037,7 +1043,7 @@ public class TransactionalPortalCacheTest {
 		Assert.assertEquals(_VALUE_1, transactionalPortalCache.get(_KEY_1));
 		Assert.assertEquals(_VALUE_2, _portalCache.get(_KEY_1));
 
-		TransactionalPortalCacheHelper.commit(false);
+		TransactionalPortalCacheUtil.commit(false);
 
 		if (mvcc) {
 			_testCacheListener.assertRemoved(_KEY_1, _VALUE_2);
@@ -1090,7 +1096,7 @@ public class TransactionalPortalCacheTest {
 
 		// Commit 5
 
-		TransactionalPortalCacheHelper.begin();
+		TransactionalPortalCacheUtil.begin();
 
 		PortalCacheHelperUtil.removeWithoutReplicator(
 			transactionalPortalCache, _KEY_1);
@@ -1107,7 +1113,7 @@ public class TransactionalPortalCacheTest {
 		Assert.assertEquals(_VALUE_2, transactionalPortalCache.get(_KEY_1));
 		Assert.assertEquals(_VALUE_1, _portalCache.get(_KEY_1));
 
-		TransactionalPortalCacheHelper.commit(false);
+		TransactionalPortalCacheUtil.commit(false);
 
 		if (mvcc) {
 			_testCacheListener.assertRemoved(_KEY_1, _VALUE_1);
@@ -1142,7 +1148,7 @@ public class TransactionalPortalCacheTest {
 
 		// Commit 6
 
-		TransactionalPortalCacheHelper.begin();
+		TransactionalPortalCacheUtil.begin();
 
 		transactionalPortalCache.removeAll();
 
@@ -1159,7 +1165,7 @@ public class TransactionalPortalCacheTest {
 		Assert.assertNull(transactionalPortalCache.get(_KEY_1));
 		Assert.assertEquals(_VALUE_2, _portalCache.get(_KEY_1));
 
-		TransactionalPortalCacheHelper.commit(false);
+		TransactionalPortalCacheUtil.commit(false);
 
 		_testCacheListener.assertRemoveAll();
 		_testCacheListener.assertActionsCount(1);
@@ -1180,7 +1186,7 @@ public class TransactionalPortalCacheTest {
 		Assert.assertEquals(0, _getTransactionStackSize());
 
 		TransactionLifecycleListener transactionLifecycleListener =
-			TransactionalPortalCacheHelper.TRANSACTION_LIFECYCLE_LISTENER;
+			TransactionalPortalCacheUtil.TRANSACTION_LIFECYCLE_LISTENER;
 
 		// Start parent transaction
 
@@ -1286,7 +1292,7 @@ public class TransactionalPortalCacheTest {
 		Assert.assertEquals(0, _getTransactionStackSize());
 
 		TransactionLifecycleListener transactionLifecycleListener =
-			TransactionalPortalCacheHelper.TRANSACTION_LIFECYCLE_LISTENER;
+			TransactionalPortalCacheUtil.TRANSACTION_LIFECYCLE_LISTENER;
 
 		// Start parent transaction
 
@@ -1379,7 +1385,7 @@ public class TransactionalPortalCacheTest {
 
 		@Override
 		public Void call() throws Exception {
-			TransactionalPortalCacheHelper.begin();
+			TransactionalPortalCacheUtil.begin();
 
 			if (_skipReplicator) {
 				if (_value == null) {
@@ -1404,7 +1410,7 @@ public class TransactionalPortalCacheTest {
 
 			_blockCountDownLatch.await();
 
-			TransactionalPortalCacheHelper.commit(_readOnly);
+			TransactionalPortalCacheUtil.commit(_readOnly);
 
 			return null;
 		}
@@ -1460,8 +1466,7 @@ public class TransactionalPortalCacheTest {
 		}
 
 		@Override
-		public void suppressLifecycleListenerThrowable(
-			Throwable lifecycleThrowable) {
+		public void suppressLifecycleListenerThrowable(Throwable throwable) {
 		}
 
 		private TestTrasactionStatus(

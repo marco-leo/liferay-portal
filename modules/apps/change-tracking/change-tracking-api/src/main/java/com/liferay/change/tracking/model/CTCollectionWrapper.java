@@ -276,11 +276,6 @@ public class CTCollectionWrapper
 		return model.isProduction();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a ct collection model instance should use the <code>CTCollection</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();

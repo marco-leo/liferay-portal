@@ -14,18 +14,19 @@
 
 package com.liferay.depot.web.internal.servlet.taglib.util;
 
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.web.internal.roles.admin.group.type.contributor.DepotEntryPermission;
 import com.liferay.depot.web.internal.util.DepotEntryURLUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -41,10 +42,10 @@ import javax.servlet.http.HttpServletRequest;
 public class DepotActionDropdownItemsProvider {
 
 	public DepotActionDropdownItemsProvider(
-		Group group, LiferayPortletRequest liferayPortletRequest,
+		DepotEntry depotEntry, LiferayPortletRequest liferayPortletRequest,
 		LiferayPortletResponse liferayPortletResponse) {
 
-		_group = group;
+		_depotEntry = depotEntry;
 		_liferayPortletRequest = liferayPortletRequest;
 		_liferayPortletResponse = liferayPortletResponse;
 
@@ -56,73 +57,98 @@ public class DepotActionDropdownItemsProvider {
 	}
 
 	public List<DropdownItem> getActionDropdownItems() {
-		return new DropdownItemList() {
-			{
-				if (_hasUpdatePermission()) {
-					add(
-						dropdownItem -> {
-							dropdownItem.setHref(
-								DepotEntryURLUtil.getEditDepotEntryPortletURL(
-									_group, _themeDisplay.getURLCurrent(),
-									_liferayPortletRequest));
+		List<DropdownItem> dropdownItems = DropdownItemListBuilder.add(
+			() -> _hasUpdatePermission(),
+			dropdownItem -> {
+				dropdownItem.setHref(
+					DepotEntryURLUtil.getEditDepotEntryPortletURL(
+						_depotEntry, _themeDisplay.getURLCurrent(),
+						_liferayPortletRequest));
 
-							dropdownItem.setLabel(
-								LanguageUtil.get(_httpServletRequest, "edit"));
-						});
-				}
-
-				if (_hasDeletePermission()) {
-					add(
-						dropdownItem -> {
-							ActionURL deleteDepotEntryActionURL =
-								DepotEntryURLUtil.getDeleteDepotEntryActionURL(
-									_group.getClassPK(),
-									_themeDisplay.getURLCurrent(),
-									_liferayPortletResponse);
-
-							dropdownItem.putData("action", "deleteDepotEntry");
-
-							dropdownItem.putData(
-								"deleteDepotEntryURL",
-								deleteDepotEntryActionURL.toString());
-
-							dropdownItem.setLabel(
-								LanguageUtil.get(
-									_httpServletRequest, "delete"));
-						});
-				}
+				dropdownItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, "edit"));
 			}
-		};
+		).add(
+			() -> _hasDeletePermission(),
+			dropdownItem -> {
+				ActionURL deleteDepotEntryActionURL =
+					DepotEntryURLUtil.getDeleteDepotEntryActionURL(
+						_depotEntry.getDepotEntryId(),
+						_themeDisplay.getURLCurrent(), _liferayPortletResponse);
+
+				dropdownItem.putData("action", "deleteDepotEntry");
+
+				dropdownItem.putData(
+					"deleteDepotEntryURL",
+					deleteDepotEntryActionURL.toString());
+
+				dropdownItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, "delete"));
+			}
+		).add(
+			() -> _hasPermissionsPermission(),
+			dropdownItem -> {
+				dropdownItem.putData("action", "permissionsDepotEntry");
+				dropdownItem.putData(
+					"permissionsDepotEntryURL",
+					DepotEntryURLUtil.getDepotEntryPermissionsURL(
+						_depotEntry, _liferayPortletRequest));
+				dropdownItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, "permissions"));
+			}
+		).build();
+
+		if (ListUtil.isEmpty(dropdownItems)) {
+			return null;
+		}
+
+		return dropdownItems;
 	}
 
 	private boolean _hasDeletePermission() {
 		try {
-			if (!GroupPermissionUtil.contains(
-					_themeDisplay.getPermissionChecker(), _group,
-					ActionKeys.DELETE)) {
+			if (!DepotEntryPermission.contains(
+					_themeDisplay.getPermissionChecker(),
+					_depotEntry.getDepotEntryId(), ActionKeys.DELETE)) {
 
 				return false;
 			}
 
 			return true;
 		}
-		catch (PortalException pe) {
-			throw new SystemException(pe);
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
+		}
+	}
+
+	private boolean _hasPermissionsPermission() {
+		try {
+			if (!DepotEntryPermission.contains(
+					_themeDisplay.getPermissionChecker(),
+					_depotEntry.getDepotEntryId(), ActionKeys.PERMISSIONS)) {
+
+				return false;
+			}
+
+			return true;
+		}
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
 		}
 	}
 
 	private boolean _hasUpdatePermission() {
 		try {
-			return GroupPermissionUtil.contains(
-				_themeDisplay.getPermissionChecker(), _group,
-				ActionKeys.UPDATE);
+			return DepotEntryPermission.contains(
+				_themeDisplay.getPermissionChecker(),
+				_depotEntry.getDepotEntryId(), ActionKeys.UPDATE);
 		}
-		catch (PortalException pe) {
-			throw new SystemException(pe);
+		catch (PortalException portalException) {
+			throw new SystemException(portalException);
 		}
 	}
 
-	private final Group _group;
+	private final DepotEntry _depotEntry;
 	private final HttpServletRequest _httpServletRequest;
 	private final LiferayPortletRequest _liferayPortletRequest;
 	private final LiferayPortletResponse _liferayPortletResponse;

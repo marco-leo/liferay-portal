@@ -27,6 +27,7 @@ import com.liferay.item.selector.ItemSelector;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
@@ -62,6 +63,7 @@ import org.osgi.service.component.annotations.Reference;
 		"com.liferay.portlet.display-category=category.hidden",
 		"com.liferay.portlet.header-portlet-css=/css/main.css",
 		"com.liferay.portlet.preferences-owned-by-group=true",
+		"com.liferay.portlet.preferences-unique-per-layout=false",
 		"com.liferay.portlet.private-request-attributes=false",
 		"com.liferay.portlet.private-session-attributes=false",
 		"com.liferay.portlet.render-weight=50",
@@ -101,8 +103,8 @@ public class FragmentPortlet extends MVCPortlet {
 					FragmentPortletConfiguration.class,
 					themeDisplay.getCompanyId());
 		}
-		catch (ConfigurationException ce) {
-			throw new PortletException(ce);
+		catch (ConfigurationException configurationException) {
+			throw new PortletException(configurationException);
 		}
 
 		renderRequest.setAttribute(
@@ -127,14 +129,18 @@ public class FragmentPortlet extends MVCPortlet {
 				FragmentWebKeys.INHERITED_FRAGMENT_COLLECTIONS,
 				_getInheritedFragmentCollections(themeDisplay));
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(pe, pe);
+				_log.warn(portalException, portalException);
 			}
 		}
 
 		renderRequest.setAttribute(
 			FragmentWebKeys.ITEM_SELECTOR, _itemSelector);
+		renderRequest.setAttribute(
+			FragmentWebKeys.SYSTEM_FRAGMENT_COLLECTIONS,
+			_fragmentCollectionService.getFragmentCollections(
+				CompanyConstants.SYSTEM));
 
 		super.doDispatch(renderRequest, renderResponse);
 	}

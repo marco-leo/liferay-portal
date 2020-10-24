@@ -17,6 +17,7 @@ package com.liferay.expando.kernel.service.persistence;
 import com.liferay.expando.kernel.exception.NoSuchTableException;
 import com.liferay.expando.kernel.model.ExpandoTable;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -32,9 +33,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface ExpandoTablePersistence extends BasePersistence<ExpandoTable> {
+public interface ExpandoTablePersistence
+	extends BasePersistence<ExpandoTable>, CTPersistence<ExpandoTable> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link ExpandoTableUtil} to access the expando table persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

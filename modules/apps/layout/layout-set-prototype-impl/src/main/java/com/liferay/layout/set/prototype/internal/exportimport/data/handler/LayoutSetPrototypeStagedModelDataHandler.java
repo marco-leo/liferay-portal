@@ -137,11 +137,11 @@ public class LayoutSetPrototypeStagedModelDataHandler
 		long userId = portletDataContext.getUserId(
 			layoutSetPrototype.getUserUuid());
 
-		UnicodeProperties settingsProperties =
+		UnicodeProperties settingsUnicodeProperties =
 			layoutSetPrototype.getSettingsProperties();
 
 		boolean layoutsUpdateable = GetterUtil.getBoolean(
-			settingsProperties.getProperty("layoutsUpdateable"), true);
+			settingsUnicodeProperties.getProperty("layoutsUpdateable"), true);
 
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
 			layoutSetPrototype);
@@ -318,9 +318,9 @@ public class LayoutSetPrototypeStagedModelDataHandler
 			SitesUtil.importLayoutSetPrototype(
 				importedLayoutSetPrototype, inputStream, serviceContext);
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(ioe, ioe);
+				_log.warn(ioException, ioException);
 			}
 		}
 	}

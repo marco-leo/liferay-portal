@@ -16,7 +16,7 @@ package com.liferay.data.engine.rest.client.serdes.v2_0;
 
 import com.liferay.data.engine.rest.client.dto.v2_0.DataDefinition;
 import com.liferay.data.engine.rest.client.dto.v2_0.DataDefinitionField;
-import com.liferay.data.engine.rest.client.dto.v2_0.DataDefinitionRule;
+import com.liferay.data.engine.rest.client.dto.v2_0.DataRule;
 import com.liferay.data.engine.rest.client.json.BaseJSONParser;
 
 import java.text.DateFormat;
@@ -90,14 +90,18 @@ public class DataDefinitionSerDes {
 			sb.append("]");
 		}
 
-		if (dataDefinition.getClassNameId() != null) {
+		if (dataDefinition.getContentType() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			sb.append("\"classNameId\": ");
+			sb.append("\"contentType\": ");
 
-			sb.append(dataDefinition.getClassNameId());
+			sb.append("\"");
+
+			sb.append(_escape(dataDefinition.getContentType()));
+
+			sb.append("\"");
 		}
 
 		if (dataDefinition.getDataDefinitionFields() != null) {
@@ -138,22 +142,19 @@ public class DataDefinitionSerDes {
 			sb.append("\"");
 		}
 
-		if (dataDefinition.getDataDefinitionRules() != null) {
+		if (dataDefinition.getDataRules() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			sb.append("\"dataDefinitionRules\": ");
+			sb.append("\"dataRules\": ");
 
 			sb.append("[");
 
-			for (int i = 0; i < dataDefinition.getDataDefinitionRules().length;
-				 i++) {
+			for (int i = 0; i < dataDefinition.getDataRules().length; i++) {
+				sb.append(String.valueOf(dataDefinition.getDataRules()[i]));
 
-				sb.append(
-					String.valueOf(dataDefinition.getDataDefinitionRules()[i]));
-
-				if ((i + 1) < dataDefinition.getDataDefinitionRules().length) {
+				if ((i + 1) < dataDefinition.getDataRules().length) {
 					sb.append(", ");
 				}
 			}
@@ -191,6 +192,16 @@ public class DataDefinitionSerDes {
 					dataDefinition.getDateModified()));
 
 			sb.append("\"");
+		}
+
+		if (dataDefinition.getDefaultDataLayout() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"defaultDataLayout\": ");
+
+			sb.append(String.valueOf(dataDefinition.getDefaultDataLayout()));
 		}
 
 		if (dataDefinition.getDefaultLanguageId() != null) {
@@ -302,12 +313,12 @@ public class DataDefinitionSerDes {
 				String.valueOf(dataDefinition.getAvailableLanguageIds()));
 		}
 
-		if (dataDefinition.getClassNameId() == null) {
-			map.put("classNameId", null);
+		if (dataDefinition.getContentType() == null) {
+			map.put("contentType", null);
 		}
 		else {
 			map.put(
-				"classNameId", String.valueOf(dataDefinition.getClassNameId()));
+				"contentType", String.valueOf(dataDefinition.getContentType()));
 		}
 
 		if (dataDefinition.getDataDefinitionFields() == null) {
@@ -328,22 +339,41 @@ public class DataDefinitionSerDes {
 				String.valueOf(dataDefinition.getDataDefinitionKey()));
 		}
 
-		if (dataDefinition.getDataDefinitionRules() == null) {
-			map.put("dataDefinitionRules", null);
+		if (dataDefinition.getDataRules() == null) {
+			map.put("dataRules", null);
+		}
+		else {
+			map.put("dataRules", String.valueOf(dataDefinition.getDataRules()));
+		}
+
+		if (dataDefinition.getDateCreated() == null) {
+			map.put("dateCreated", null);
 		}
 		else {
 			map.put(
-				"dataDefinitionRules",
-				String.valueOf(dataDefinition.getDataDefinitionRules()));
+				"dateCreated",
+				liferayToJSONDateFormat.format(
+					dataDefinition.getDateCreated()));
 		}
 
-		map.put(
-			"dateCreated",
-			liferayToJSONDateFormat.format(dataDefinition.getDateCreated()));
+		if (dataDefinition.getDateModified() == null) {
+			map.put("dateModified", null);
+		}
+		else {
+			map.put(
+				"dateModified",
+				liferayToJSONDateFormat.format(
+					dataDefinition.getDateModified()));
+		}
 
-		map.put(
-			"dateModified",
-			liferayToJSONDateFormat.format(dataDefinition.getDateModified()));
+		if (dataDefinition.getDefaultDataLayout() == null) {
+			map.put("defaultDataLayout", null);
+		}
+		else {
+			map.put(
+				"defaultDataLayout",
+				String.valueOf(dataDefinition.getDefaultDataLayout()));
+		}
 
 		if (dataDefinition.getDefaultLanguageId() == null) {
 			map.put("defaultLanguageId", null);
@@ -425,10 +455,9 @@ public class DataDefinitionSerDes {
 						toStrings((Object[])jsonParserFieldValue));
 				}
 			}
-			else if (Objects.equals(jsonParserFieldName, "classNameId")) {
+			else if (Objects.equals(jsonParserFieldName, "contentType")) {
 				if (jsonParserFieldValue != null) {
-					dataDefinition.setClassNameId(
-						Long.valueOf((String)jsonParserFieldValue));
+					dataDefinition.setContentType((String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(
@@ -452,18 +481,15 @@ public class DataDefinitionSerDes {
 						(String)jsonParserFieldValue);
 				}
 			}
-			else if (Objects.equals(
-						jsonParserFieldName, "dataDefinitionRules")) {
-
+			else if (Objects.equals(jsonParserFieldName, "dataRules")) {
 				if (jsonParserFieldValue != null) {
-					dataDefinition.setDataDefinitionRules(
+					dataDefinition.setDataRules(
 						Stream.of(
 							toStrings((Object[])jsonParserFieldValue)
 						).map(
-							object -> DataDefinitionRuleSerDes.toDTO(
-								(String)object)
+							object -> DataRuleSerDes.toDTO((String)object)
 						).toArray(
-							size -> new DataDefinitionRule[size]
+							size -> new DataRule[size]
 						));
 				}
 			}
@@ -477,6 +503,12 @@ public class DataDefinitionSerDes {
 				if (jsonParserFieldValue != null) {
 					dataDefinition.setDateModified(
 						toDate((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "defaultDataLayout")) {
+				if (jsonParserFieldValue != null) {
+					dataDefinition.setDefaultDataLayout(
+						DataLayoutSerDes.toDTO((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "defaultLanguageId")) {
@@ -522,9 +554,8 @@ public class DataDefinitionSerDes {
 						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -580,10 +611,13 @@ public class DataDefinitionSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

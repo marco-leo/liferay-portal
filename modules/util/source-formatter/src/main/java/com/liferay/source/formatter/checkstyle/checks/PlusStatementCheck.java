@@ -16,7 +16,6 @@ package com.liferay.source.formatter.checkstyle.checks;
 
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.source.formatter.checkstyle.util.DetailASTUtil;
 
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
@@ -27,7 +26,7 @@ import java.util.List;
 /**
  * @author Hugo Huijser
  */
-public class PlusStatementCheck extends StringConcatenationCheck {
+public class PlusStatementCheck extends BaseStringConcatenationCheck {
 
 	@Override
 	public int[] getDefaultTokens() {
@@ -168,7 +167,7 @@ public class PlusStatementCheck extends StringConcatenationCheck {
 				return false;
 			}
 
-			List<DetailAST> nameDetailASTList = DetailASTUtil.getAllChildTokens(
+			List<DetailAST> nameDetailASTList = getAllChildTokens(
 				firstChildDetailAST, false, TokenTypes.IDENT);
 
 			if (nameDetailASTList.size() != 2) {

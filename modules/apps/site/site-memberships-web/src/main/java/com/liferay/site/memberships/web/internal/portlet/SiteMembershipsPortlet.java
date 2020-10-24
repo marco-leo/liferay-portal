@@ -44,7 +44,7 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.liveusers.LiveUsers;
-import com.liferay.site.memberships.web.internal.constants.SiteMembershipsPortletKeys;
+import com.liferay.site.memberships.constants.SiteMembershipsPortletKeys;
 import com.liferay.site.memberships.web.internal.display.context.SiteMembershipsDisplayContext;
 import com.liferay.users.admin.kernel.util.UsersAdmin;
 
@@ -272,7 +272,7 @@ public class SiteMembershipsPortlet extends MVCPortlet {
 			ArrayUtil.toLongArray(removeRoleIds));
 	}
 
-	public void editUserGroupsSiteRoles(
+	public void editUserGroupsRoles(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
@@ -288,7 +288,7 @@ public class SiteMembershipsPortlet extends MVCPortlet {
 		}
 	}
 
-	public void editUsersSiteRoles(
+	public void editUsersRoles(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
@@ -304,7 +304,7 @@ public class SiteMembershipsPortlet extends MVCPortlet {
 		}
 	}
 
-	public void removeUserGroupSiteRole(
+	public void removeUserGroupRole(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
@@ -316,7 +316,7 @@ public class SiteMembershipsPortlet extends MVCPortlet {
 			userIds, group.getGroupId(), roleId);
 	}
 
-	public void removeUserSiteRole(
+	public void removeUserRole(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
@@ -395,14 +395,14 @@ public class SiteMembershipsPortlet extends MVCPortlet {
 	}
 
 	@Override
-	protected boolean isSessionErrorException(Throwable cause) {
-		if (cause instanceof MembershipPolicyException ||
-			cause instanceof MembershipRequestCommentsException ||
-			cause instanceof NoSuchGroupException ||
-			cause instanceof NoSuchRoleException ||
-			cause instanceof PrincipalException ||
-			cause instanceof RequiredUserException ||
-			super.isSessionErrorException(cause)) {
+	protected boolean isSessionErrorException(Throwable throwable) {
+		if (throwable instanceof MembershipPolicyException ||
+			throwable instanceof MembershipRequestCommentsException ||
+			throwable instanceof NoSuchGroupException ||
+			throwable instanceof NoSuchRoleException ||
+			throwable instanceof PrincipalException ||
+			throwable instanceof RequiredUserException ||
+			super.isSessionErrorException(throwable)) {
 
 			return true;
 		}

@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class CTCollectionLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.change.tracking.service.impl.CTCollectionLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class CTCollectionLocalServiceUtil {
 
 	/**
 	 * Adds the ct collection to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect CTCollectionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ctCollection the ct collection
 	 * @return the ct collection that was added
@@ -82,25 +86,51 @@ public class CTCollectionLocalServiceUtil {
 		return getService().createCTCollection(ctCollectionId);
 	}
 
-	public static void deleteCompanyCTCollections(long companyId) {
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	public static void deleteCompanyCTCollections(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
 		getService().deleteCompanyCTCollections(companyId);
+	}
+
+	public static void deleteCTAutoResolutionInfo(long ctAutoResolutionInfoId) {
+		getService().deleteCTAutoResolutionInfo(ctAutoResolutionInfoId);
 	}
 
 	/**
 	 * Deletes the ct collection from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect CTCollectionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param ctCollection the ct collection
 	 * @return the ct collection that was removed
+	 * @throws PortalException
 	 */
 	public static com.liferay.change.tracking.model.CTCollection
-		deleteCTCollection(
-			com.liferay.change.tracking.model.CTCollection ctCollection) {
+			deleteCTCollection(
+				com.liferay.change.tracking.model.CTCollection ctCollection)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deleteCTCollection(ctCollection);
 	}
 
 	/**
 	 * Deletes the ct collection with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect CTCollectionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ctCollectionId the primary key of the ct collection
 	 * @return the ct collection that was removed
@@ -122,6 +152,12 @@ public class CTCollectionLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -272,6 +308,14 @@ public class CTCollectionLocalServiceUtil {
 		return getService().getCTCollectionsCount();
 	}
 
+	public static java.util.List<com.liferay.change.tracking.model.CTEntry>
+		getDiscardCTEntries(
+			long ctCollectionId, long modelClassNameId, long modelClassPK) {
+
+		return getService().getDiscardCTEntries(
+			ctCollectionId, modelClassNameId, modelClassPK);
+	}
+
 	public static
 		com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery
 			getIndexableActionableDynamicQuery() {
@@ -288,11 +332,21 @@ public class CTCollectionLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	public static boolean isCTEntryEnclosed(
+		long ctCollectionId, long modelClassNameId, long modelClassPK) {
+
+		return getService().isCTEntryEnclosed(
+			ctCollectionId, modelClassNameId, modelClassPK);
 	}
 
 	public static com.liferay.change.tracking.model.CTCollection
@@ -307,6 +361,10 @@ public class CTCollectionLocalServiceUtil {
 
 	/**
 	 * Updates the ct collection in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect CTCollectionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param ctCollection the ct collection
 	 * @return the ct collection that was updated

@@ -87,21 +87,21 @@ public class PortalSambaUtil {
 				try {
 					expandoBridge.addAttribute(attributeName, false);
 				}
-				catch (PortalException pe) {
+				catch (PortalException portalException) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(pe, pe);
+						_log.warn(portalException, portalException);
 					}
 				}
 			}
 
-			UnicodeProperties properties = expandoBridge.getAttributeProperties(
-				attributeName);
+			UnicodeProperties unicodeProperties =
+				expandoBridge.getAttributeProperties(attributeName);
 
-			properties.put(
+			unicodeProperties.put(
 				ExpandoColumnConstants.PROPERTY_HIDDEN, StringPool.TRUE);
 
 			expandoBridge.setAttributeProperties(
-				attributeName, properties, false);
+				attributeName, unicodeProperties, false);
 		}
 	}
 
@@ -142,9 +142,7 @@ public class PortalSambaUtil {
 		String sambaLMPassword = StringUtil.bytesToHexString(
 			sambaLMPasswordBytes);
 
-		sambaLMPassword = StringUtil.toUpperCase(sambaLMPassword);
-
-		return sambaLMPassword;
+		return StringUtil.toUpperCase(sambaLMPassword);
 	}
 
 	private static String _encryptSambaNTPassword(String password)
@@ -159,9 +157,7 @@ public class PortalSambaUtil {
 		String sambaNTPassword = StringUtil.bytesToHexString(
 			sambaNTPasswordBytes);
 
-		sambaNTPassword = StringUtil.toUpperCase(sambaNTPassword);
-
-		return sambaNTPassword;
+		return StringUtil.toUpperCase(sambaNTPassword);
 	}
 
 	// KGS!@#$%

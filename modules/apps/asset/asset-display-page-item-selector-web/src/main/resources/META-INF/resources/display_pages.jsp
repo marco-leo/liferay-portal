@@ -21,7 +21,7 @@ AssetDisplayPagesItemSelectorViewDisplayContext assetDisplayPagesItemSelectorVie
 %>
 
 <clay:management-toolbar
-	displayContext="<%= new AssetDisplayPagesItemSelectorViewManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, assetDisplayPagesItemSelectorViewDisplayContext) %>"
+	displayContext="<%= new AssetDisplayPagesItemSelectorViewManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, assetDisplayPagesItemSelectorViewDisplayContext) %>"
 />
 
 <aui:form cssClass="container-fluid-1280" name="fm">
@@ -55,10 +55,10 @@ AssetDisplayPagesItemSelectorViewDisplayContext assetDisplayPagesItemSelectorVie
 
 <aui:script require="metal-dom/src/all/dom as dom">
 	var selectFragmentEntryHandler = dom.delegate(
-		document.querySelector('#<portlet:namespace/>fm'),
+		document.querySelector('#<portlet:namespace />fm'),
 		'click',
 		'.layout-page-template-entry',
-		function(event) {
+		function (event) {
 			dom.removeClasses(
 				document.querySelectorAll('.form-check-card.active'),
 				'active'
@@ -71,7 +71,7 @@ AssetDisplayPagesItemSelectorViewDisplayContext assetDisplayPagesItemSelectorVie
 			Liferay.Util.getOpener().Liferay.fire(
 				'<%= assetDisplayPagesItemSelectorViewDisplayContext.getItemSelectedEventName() %>',
 				{
-					data: event.delegateTarget.dataset
+					data: event.delegateTarget.dataset,
 				}
 			);
 		}

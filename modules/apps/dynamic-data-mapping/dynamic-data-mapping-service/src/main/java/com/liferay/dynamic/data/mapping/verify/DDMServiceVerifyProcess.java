@@ -14,6 +14,7 @@
 
 package com.liferay.dynamic.data.mapping.verify;
 
+import com.liferay.dynamic.data.mapping.exception.NoSuchStorageLinkException;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesDeserializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesDeserializerDeserializeRequest;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesDeserializerDeserializeResponse;
@@ -159,9 +160,21 @@ public class DDMServiceVerifyProcess extends VerifyProcess {
 	}
 
 	protected void verifyContent(DDMContent ddmContent) throws PortalException {
-		DDMStorageLink ddmStorageLink =
-			_ddmStorageLinkLocalService.getClassStorageLink(
+		DDMStorageLink ddmStorageLink = null;
+
+		try {
+			ddmStorageLink = _ddmStorageLinkLocalService.getClassStorageLink(
 				ddmContent.getContentId());
+		}
+		catch (NoSuchStorageLinkException noSuchStorageLinkException) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Skip verification for orphaned DDM content " +
+						ddmContent.getContentId());
+			}
+
+			return;
+		}
 
 		DDMStructureVersion ddmStructureVersion =
 			_ddmStructureVersionLocalService.getStructureVersion(
@@ -173,15 +186,16 @@ public class DDMServiceVerifyProcess extends VerifyProcess {
 
 			_ddmFormValuesValidator.validate(ddmFormValues);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					String.format(
 						"Stale or invalid data for DDM content %d  and " +
 							"structure version %d causes: {%s}",
 						ddmContent.getContentId(),
-						ddmStructureVersion.getStructureId(), e.getMessage()),
-					e);
+						ddmStructureVersion.getStructureId(),
+						exception.getMessage()),
+					exception);
 			}
 		}
 	}
@@ -258,13 +272,14 @@ public class DDMServiceVerifyProcess extends VerifyProcess {
 					try {
 						verifyStructure(ddmStructure);
 					}
-					catch (PortalException pe) {
+					catch (PortalException portalException) {
 						_log.error(
 							String.format(
 								"Invalid data for DDM structure %d causes: " +
 									"{%s}",
-								ddmStructure.getStructureId(), pe.getMessage()),
-							pe);
+								ddmStructure.getStructureId(),
+								portalException.getMessage()),
+							portalException);
 					}
 				});
 

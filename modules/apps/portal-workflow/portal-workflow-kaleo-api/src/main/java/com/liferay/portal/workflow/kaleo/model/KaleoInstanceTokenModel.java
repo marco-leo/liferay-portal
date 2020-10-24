@@ -40,7 +40,7 @@ public interface KaleoInstanceTokenModel
 	extends BaseModel<KaleoInstanceToken>, GroupedModel, MVCCModel,
 			ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo instance token model instance should use the {@link KaleoInstanceToken} interface instead.
@@ -202,6 +202,20 @@ public interface KaleoInstanceTokenModel
 	 */
 	@Override
 	public void setModifiedDate(Date modifiedDate);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo instance token.
+	 *
+	 * @return the kaleo definition ID of this kaleo instance token
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo instance token.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo instance token
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo instance token.

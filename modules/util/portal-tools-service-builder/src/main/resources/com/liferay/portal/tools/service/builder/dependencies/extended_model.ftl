@@ -4,7 +4,11 @@ import ${serviceBuilder.getCompatJavaClassName("ProviderType")};
 
 import com.liferay.portal.kernel.annotation.ImplementationClassName;
 import com.liferay.portal.kernel.model.NestedSetsTreeNodeModel;
-import com.liferay.portal.kernel.model.PermissionedModel;
+
+<#if entity.isPermissionedModel()>
+	import com.liferay.portal.kernel.model.PermissionedModel;
+</#if>
+
 import com.liferay.portal.kernel.model.PersistedModel;
 import com.liferay.portal.kernel.model.TreeModel;
 import com.liferay.portal.kernel.util.Accessor;
@@ -52,7 +56,7 @@ public interface ${entity.name} extends
 
 	{
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>${packagePath}.model.impl.${entity.name}Impl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -62,8 +66,8 @@ public interface ${entity.name} extends
 		public static final Accessor<${entity.name}, String> UUID_ACCESSOR = new Accessor<${entity.name}, String>() {
 
 			@Override
-			public String get(${entity.name} ${entity.varName}) {
-				return ${entity.varName}.getUuid();
+			public String get(${entity.name} ${entity.variableName}) {
+				return ${entity.variableName}.getUuid();
 			}
 
 			@Override
@@ -84,8 +88,8 @@ public interface ${entity.name} extends
 			public static final Accessor<${entity.name}, ${serviceBuilder.getPrimitiveObj(entityColumn.type)}> ${entityColumn.getAccessorName(apiPackagePath + ".model." + entity.name)} = new Accessor<${entity.name}, ${serviceBuilder.getPrimitiveObj(entityColumn.type)}>() {
 
 				@Override
-				public ${serviceBuilder.getPrimitiveObj(entityColumn.type)} get(${entity.name} ${entity.varName}) {
-					return ${entity.varName}.get${entityColumn.methodName}(<#if entityColumn.isLocalized()>LocaleThreadLocal.getThemeDisplayLocale()</#if>);
+				public ${serviceBuilder.getPrimitiveObj(entityColumn.type)} get(${entity.name} ${entity.variableName}) {
+					return ${entity.variableName}.get${entityColumn.methodName}(<#if entityColumn.isLocalized()>LocaleThreadLocal.getThemeDisplayLocale()</#if>);
 				}
 
 				@Override

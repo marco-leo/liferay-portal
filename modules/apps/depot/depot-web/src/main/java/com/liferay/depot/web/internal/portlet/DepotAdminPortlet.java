@@ -14,12 +14,21 @@
 
 package com.liferay.depot.web.internal.portlet;
 
+import com.liferay.depot.web.internal.application.controller.DepotApplicationController;
+import com.liferay.depot.web.internal.constants.DepotAdminWebKeys;
 import com.liferay.depot.web.internal.constants.DepotPortletKeys;
+import com.liferay.depot.web.internal.display.context.DepotAdminDetailsDisplayContext;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 
+import java.io.IOException;
+
 import javax.portlet.Portlet;
+import javax.portlet.PortletException;
+import javax.portlet.RenderRequest;
+import javax.portlet.RenderResponse;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Alejandro Tardín
@@ -30,7 +39,10 @@ import org.osgi.service.component.annotations.Component;
 		"com.liferay.portlet.add-default-resource=true",
 		"com.liferay.portlet.css-class-wrapper=portlet-depot-admin",
 		"com.liferay.portlet.display-category=category.hidden",
+		"com.liferay.portlet.header-portlet-css=/css/main.css",
+		"com.liferay.portlet.preferences-company-wide=true",
 		"com.liferay.portlet.preferences-owned-by-group=true",
+		"com.liferay.portlet.preferences-unique-per-layout=false",
 		"com.liferay.portlet.private-request-attributes=false",
 		"com.liferay.portlet.private-session-attributes=false",
 		"com.liferay.portlet.render-weight=50",
@@ -46,4 +58,21 @@ import org.osgi.service.component.annotations.Component;
 	service = Portlet.class
 )
 public class DepotAdminPortlet extends MVCPortlet {
+
+	@Override
+	protected void doDispatch(
+			RenderRequest renderRequest, RenderResponse renderResponse)
+		throws IOException, PortletException {
+
+		renderRequest.setAttribute(
+			DepotAdminWebKeys.DEPOT_ADMIN_DETAILS_DISPLAY_CONTEXT,
+			new DepotAdminDetailsDisplayContext(
+				_depotApplicationController, renderRequest));
+
+		super.doDispatch(renderRequest, renderResponse);
+	}
+
+	@Reference
+	private DepotApplicationController _depotApplicationController;
+
 }

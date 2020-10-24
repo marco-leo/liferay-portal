@@ -31,11 +31,6 @@ public class AssetTagServiceWrapper
 		_assetTagService = assetTagService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link AssetTagServiceUtil} to access the asset tag remote service. Add custom service methods to <code>com.liferay.portlet.asset.service.impl.AssetTagServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public AssetTag addTag(
 			long groupId, String name,
@@ -72,9 +67,11 @@ public class AssetTagServiceWrapper
 	@Override
 	public java.util.List<AssetTag> getGroupTags(
 		long groupId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<AssetTag> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<AssetTag>
+			orderByComparator) {
 
-		return _assetTagService.getGroupTags(groupId, start, end, obc);
+		return _assetTagService.getGroupTags(
+			groupId, start, end, orderByComparator);
 	}
 
 	@Override
@@ -116,10 +113,11 @@ public class AssetTagServiceWrapper
 	@Override
 	public java.util.List<AssetTag> getTags(
 		long groupId, long classNameId, String name, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<AssetTag> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<AssetTag>
+			orderByComparator) {
 
 		return _assetTagService.getTags(
-			groupId, classNameId, name, start, end, obc);
+			groupId, classNameId, name, start, end, orderByComparator);
 	}
 
 	@Override
@@ -132,9 +130,11 @@ public class AssetTagServiceWrapper
 	@Override
 	public java.util.List<AssetTag> getTags(
 		long groupId, String name, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<AssetTag> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<AssetTag>
+			orderByComparator) {
 
-		return _assetTagService.getTags(groupId, name, start, end, obc);
+		return _assetTagService.getTags(
+			groupId, name, start, end, orderByComparator);
 	}
 
 	@Override
@@ -147,9 +147,11 @@ public class AssetTagServiceWrapper
 	@Override
 	public java.util.List<AssetTag> getTags(
 		long[] groupIds, String name, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator<AssetTag> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<AssetTag>
+			orderByComparator) {
 
-		return _assetTagService.getTags(groupIds, name, start, end, obc);
+		return _assetTagService.getTags(
+			groupIds, name, start, end, orderByComparator);
 	}
 
 	@Override
@@ -160,6 +162,11 @@ public class AssetTagServiceWrapper
 	@Override
 	public int getTagsCount(long groupId, String name) {
 		return _assetTagService.getTagsCount(groupId, name);
+	}
+
+	@Override
+	public int getTagsCount(long[] groupIds, String name) {
+		return _assetTagService.getTagsCount(groupIds, name);
 	}
 
 	@Override

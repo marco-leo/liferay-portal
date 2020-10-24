@@ -16,6 +16,8 @@ package com.liferay.roles.admin.web.internal.portlet.configuration.icon;
 
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
@@ -87,7 +89,10 @@ public class PermissionsPortletConfigurationIcon
 				LiferayWindowState.POP_UP.toString(), roleTypes,
 				themeDisplay.getRequest());
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception, exception);
+			}
 		}
 
 		return url;
@@ -121,7 +126,10 @@ public class PermissionsPortletConfigurationIcon
 
 			return false;
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception, exception);
+			}
 		}
 
 		return false;
@@ -141,6 +149,9 @@ public class PermissionsPortletConfigurationIcon
 		return ParamUtil.getLong(
 			_portal.getHttpServletRequest(portletRequest), "roleId");
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		PermissionsPortletConfigurationIcon.class);
 
 	@Reference
 	private Portal _portal;

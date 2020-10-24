@@ -48,12 +48,12 @@ import javax.servlet.http.HttpServletRequest;
 public class SelectUsersDisplayContext {
 
 	public SelectUsersDisplayContext(
-		RenderRequest renderRequest, RenderResponse renderResponse,
-		HttpServletRequest httpServletRequest) {
+		HttpServletRequest httpServletRequest, RenderRequest renderRequest,
+		RenderResponse renderResponse) {
 
+		_httpServletRequest = httpServletRequest;
 		_renderRequest = renderRequest;
 		_renderResponse = renderResponse;
-		_httpServletRequest = httpServletRequest;
 	}
 
 	public String getDisplayStyle() {
@@ -170,7 +170,7 @@ public class SelectUsersDisplayContext {
 		return _teamId;
 	}
 
-	public SearchContainer getUserSearchContainer() {
+	public SearchContainer<User> getUserSearchContainer() {
 		if (_userSearchContainer != null) {
 			return _userSearchContainer;
 		}
@@ -179,7 +179,7 @@ public class SelectUsersDisplayContext {
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		SearchContainer userSearchContainer = new UserSearch(
+		SearchContainer<User> userSearchContainer = new UserSearch(
 			_renderRequest, getPortletURL());
 
 		OrderByComparator<User> orderByComparator =
@@ -198,17 +198,21 @@ public class SelectUsersDisplayContext {
 		UserSearchTerms searchTerms =
 			(UserSearchTerms)userSearchContainer.getSearchTerms();
 
-		Group group = GroupLocalServiceUtil.fetchGroup(team.getGroupId());
-
-		if (group != null) {
-			group = StagingUtil.getLiveGroup(group.getGroupId());
-		}
-
 		LinkedHashMap<String, Object> userParams =
 			LinkedHashMapBuilder.<String, Object>put(
 				"inherit", Boolean.TRUE
 			).put(
-				"usersGroups", group.getGroupId()
+				"usersGroups",
+				() -> {
+					Group group = GroupLocalServiceUtil.fetchGroup(
+						team.getGroupId());
+
+					if (group != null) {
+						group = StagingUtil.getLiveGroup(group.getGroupId());
+					}
+
+					return group.getGroupId();
+				}
 			).build();
 
 		int usersCount = UserLocalServiceUtil.searchCount(
@@ -241,6 +245,6 @@ public class SelectUsersDisplayContext {
 	private final RenderResponse _renderResponse;
 	private Team _team;
 	private Long _teamId;
-	private SearchContainer _userSearchContainer;
+	private SearchContainer<User> _userSearchContainer;
 
 }

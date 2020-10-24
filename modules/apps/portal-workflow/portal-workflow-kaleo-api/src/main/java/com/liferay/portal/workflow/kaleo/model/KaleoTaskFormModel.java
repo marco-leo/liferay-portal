@@ -39,7 +39,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface KaleoTaskFormModel
 	extends BaseModel<KaleoTaskForm>, GroupedModel, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo task form model instance should use the {@link KaleoTaskForm} interface instead.
@@ -201,6 +201,20 @@ public interface KaleoTaskFormModel
 	 */
 	@Override
 	public void setModifiedDate(Date modifiedDate);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo task form.
+	 *
+	 * @return the kaleo definition ID of this kaleo task form
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo task form.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo task form
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo task form.

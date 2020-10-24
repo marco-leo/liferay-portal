@@ -31,7 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface DepotEntry extends DepotEntryModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.depot.model.impl.DepotEntryImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -55,5 +55,8 @@ public interface DepotEntry extends DepotEntryModel, PersistedModel {
 			}
 
 		};
+
+	public com.liferay.portal.kernel.model.Group getGroup()
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 }

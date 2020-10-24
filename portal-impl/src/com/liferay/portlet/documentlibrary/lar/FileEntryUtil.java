@@ -14,21 +14,16 @@
 
 package com.liferay.portlet.documentlibrary.lar;
 
-import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalServiceUtil;
-import com.liferay.document.library.kernel.service.persistence.DLFileEntryUtil;
 import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
-import com.liferay.portlet.documentlibrary.util.RepositoryModelUtil;
 
 import java.io.InputStream;
-
-import java.util.List;
 
 /**
  * @author Alexander Chow
@@ -84,31 +79,6 @@ public class FileEntryUtil {
 		return new LiferayFileEntry(dlFileEntry);
 	}
 
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), with no direct replacement
-	 */
-	@Deprecated
-	public static List<FileEntry> findByR_F(long repositoryId, long folderId) {
-		List<DLFileEntry> dlFileEntries = DLFileEntryUtil.findByG_F(
-			repositoryId, folderId);
-
-		return RepositoryModelUtil.toFileEntries(dlFileEntries);
-	}
-
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), with no direct replacement
-	 */
-	@Deprecated
-	public static FileEntry findByR_F_T(
-			long repositoryId, long folderId, String title)
-		throws NoSuchFileEntryException {
-
-		DLFileEntry dlFileEntry = DLFileEntryUtil.findByG_F_T(
-			repositoryId, folderId, title);
-
-		return new LiferayFileEntry(dlFileEntry);
-	}
-
 	public static InputStream getContentStream(FileEntry fileEntry)
 		throws PortalException {
 
@@ -117,15 +87,15 @@ public class FileEntryUtil {
 
 		DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
 
-		InputStream is = DLStoreUtil.getFileAsStream(
+		InputStream inputStream = DLStoreUtil.getFileAsStream(
 			fileEntry.getCompanyId(), repositoryId, dlFileEntry.getName(),
 			fileEntry.getVersion());
 
-		if (is == null) {
-			is = new UnsyncByteArrayInputStream(new byte[0]);
+		if (inputStream == null) {
+			inputStream = new UnsyncByteArrayInputStream(new byte[0]);
 		}
 
-		return is;
+		return inputStream;
 	}
 
 }

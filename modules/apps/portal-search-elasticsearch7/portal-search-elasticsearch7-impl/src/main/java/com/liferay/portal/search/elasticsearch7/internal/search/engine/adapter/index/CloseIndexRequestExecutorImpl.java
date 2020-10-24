@@ -39,23 +39,23 @@ public class CloseIndexRequestExecutorImpl
 
 	@Override
 	public CloseIndexResponse execute(CloseIndexRequest closeIndexRequest) {
-		org.elasticsearch.action.admin.indices.close.CloseIndexRequest
+		org.elasticsearch.client.indices.CloseIndexRequest
 			elasticsearchCloseIndexRequest = createCloseIndexRequest(
 				closeIndexRequest);
 
 		AcknowledgedResponse acknowledgedResponse = getAcknowledgedResponse(
-			elasticsearchCloseIndexRequest);
+			elasticsearchCloseIndexRequest, closeIndexRequest);
 
 		return new CloseIndexResponse(acknowledgedResponse.isAcknowledged());
 	}
 
-	protected org.elasticsearch.action.admin.indices.close.CloseIndexRequest
+	protected org.elasticsearch.client.indices.CloseIndexRequest
 		createCloseIndexRequest(CloseIndexRequest closeIndexRequest) {
 
-		org.elasticsearch.action.admin.indices.close.CloseIndexRequest
+		org.elasticsearch.client.indices.CloseIndexRequest
 			elasticsearchCloseIndexRequest =
-				new org.elasticsearch.action.admin.indices.close.
-					CloseIndexRequest(closeIndexRequest.getIndexNames());
+				new org.elasticsearch.client.indices.CloseIndexRequest(
+					closeIndexRequest.getIndexNames());
 
 		IndicesOptions indicesOptions = closeIndexRequest.getIndicesOptions();
 
@@ -68,19 +68,22 @@ public class CloseIndexRequestExecutorImpl
 			TimeValue timeValue = TimeValue.timeValueMillis(
 				closeIndexRequest.getTimeout());
 
-			elasticsearchCloseIndexRequest.masterNodeTimeout(timeValue);
-			elasticsearchCloseIndexRequest.timeout(timeValue);
+			elasticsearchCloseIndexRequest.setMasterTimeout(timeValue);
+			elasticsearchCloseIndexRequest.setTimeout(timeValue);
 		}
 
 		return elasticsearchCloseIndexRequest;
 	}
 
 	protected AcknowledgedResponse getAcknowledgedResponse(
-		org.elasticsearch.action.admin.indices.close.CloseIndexRequest
-			elasticsearchCloseIndexRequest) {
+		org.elasticsearch.client.indices.CloseIndexRequest
+			elasticsearchCloseIndexRequest,
+		CloseIndexRequest closeIndexRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				closeIndexRequest.getConnectionId(),
+				closeIndexRequest.isPreferLocalCluster());
 
 		IndicesClient indicesClient = restHighLevelClient.indices();
 
@@ -88,8 +91,8 @@ public class CloseIndexRequestExecutorImpl
 			return indicesClient.close(
 				elasticsearchCloseIndexRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

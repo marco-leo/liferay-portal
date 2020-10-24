@@ -63,10 +63,10 @@ public class ExportArticleMVCResourceCommand extends BaseMVCResourceCommand {
 			PortletPreferences portletPreferences =
 				resourceRequest.getPreferences();
 
-			String porletResource = ParamUtil.getString(
+			String portletResource = ParamUtil.getString(
 				resourceRequest, "portletResource");
 
-			if (Validator.isNotNull(porletResource)) {
+			if (Validator.isNotNull(portletResource)) {
 				long plid = ParamUtil.getLong(resourceRequest, "plid");
 
 				Layout layout = _layoutLocalService.fetchLayout(plid);
@@ -74,7 +74,7 @@ public class ExportArticleMVCResourceCommand extends BaseMVCResourceCommand {
 				if (layout != null) {
 					portletPreferences =
 						PortletPreferencesFactoryUtil.getExistingPortletSetup(
-							layout, porletResource);
+							layout, portletResource);
 				}
 			}
 
@@ -97,11 +97,11 @@ public class ExportArticleMVCResourceCommand extends BaseMVCResourceCommand {
 					"Target extension " + targetExtension + " is not allowed");
 			}
 		}
-		catch (Exception e) {
-			_log.error("Unable to export article", e);
+		catch (Exception exception) {
+			_log.error("Unable to export article", exception);
 
 			_portal.sendError(
-				e, _portal.getHttpServletRequest(resourceRequest),
+				exception, _portal.getHttpServletRequest(resourceRequest),
 				_portal.getHttpServletResponse(resourceResponse));
 		}
 	}

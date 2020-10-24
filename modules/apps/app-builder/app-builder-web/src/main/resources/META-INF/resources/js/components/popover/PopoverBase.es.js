@@ -16,8 +16,6 @@ import classNames from 'classnames';
 import {PropTypes} from 'prop-types';
 import React from 'react';
 
-import omitDefinedProps from '../../utils/omitDefinedProps.es';
-
 const Header = ({children}) => {
 	return <div className="border-0 popover-header">{children}</div>;
 };
@@ -40,10 +38,10 @@ const PopoverBase = ({
 }) => {
 	return (
 		<div
-			{...omitDefinedProps(otherProps, PopoverBase.propTypes)}
+			{...otherProps}
 			className={classNames('popover', className, {
 				[`clay-popover-${placement}`]: placement,
-				hide: !visible
+				hide: !visible,
 			})}
 			ref={forwardRef}
 		>
@@ -55,7 +53,7 @@ const PopoverBase = ({
 
 PopoverBase.propTypes = {
 	placement: PropTypes.oneOf(['bottom', 'left', 'none', 'right', 'top']),
-	visible: PropTypes.bool
+	visible: PropTypes.bool,
 };
 
 PopoverBase.Header = Header;

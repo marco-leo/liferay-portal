@@ -91,7 +91,7 @@ public class UpgradeAssetEntryAssetCategoryRel extends UpgradeProcess {
 			UpgradeAssetEntryAssetCategoryRel.class.getResourceAsStream(
 				"dependencies/update.sql"));
 
-		runSQLTemplateString(template, false, false);
+		runSQLTemplateString(template, false);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -124,13 +124,13 @@ public class UpgradeAssetEntryAssetCategoryRel extends UpgradeProcess {
 
 				runSQL(connection, sb.toString());
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				_log.error(
 					StringBundler.concat(
 						"Unable to add relationship for asset entry ",
 						_assetEntryId, " and asset category ",
 						_assetCategoryId),
-					e);
+					exception);
 
 				return false;
 			}

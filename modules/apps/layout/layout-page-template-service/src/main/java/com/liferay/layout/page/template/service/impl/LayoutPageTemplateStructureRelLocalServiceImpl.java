@@ -20,16 +20,13 @@ import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
-import com.liferay.portal.kernel.util.Portal;
 
 import java.util.Date;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Eduardo García
@@ -71,10 +68,8 @@ public class LayoutPageTemplateStructureRelLocalServiceImpl
 			segmentsExperienceId);
 		layoutPageTemplateStructureRel.setData(data);
 
-		layoutPageTemplateStructureRelPersistence.update(
+		return layoutPageTemplateStructureRelPersistence.update(
 			layoutPageTemplateStructureRel);
-
-		return layoutPageTemplateStructureRel;
 	}
 
 	@Override
@@ -148,16 +143,8 @@ public class LayoutPageTemplateStructureRelLocalServiceImpl
 		layoutPageTemplateStructureRel.setModifiedDate(new Date());
 		layoutPageTemplateStructureRel.setData(data);
 
-		layoutPageTemplateStructureRelPersistence.update(
+		return layoutPageTemplateStructureRelPersistence.update(
 			layoutPageTemplateStructureRel);
-
-		return layoutPageTemplateStructureRel;
 	}
-
-	@Reference
-	private LayoutLocalService _layoutLocalService;
-
-	@Reference
-	private Portal _portal;
 
 }

@@ -16,6 +16,8 @@ package com.liferay.portlet.social.service.base;
 
 import com.liferay.asset.kernel.service.persistence.AssetEntryFinder;
 import com.liferay.asset.kernel.service.persistence.AssetEntryPersistence;
+import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -35,11 +37,13 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
 import com.liferay.portal.kernel.service.persistence.GroupFinder;
 import com.liferay.portal.kernel.service.persistence.GroupPersistence;
 import com.liferay.portal.kernel.service.persistence.UserFinder;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -71,7 +75,7 @@ public abstract class SocialActivityCounterLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements IdentifiableOSGiService, SocialActivityCounterLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>SocialActivityCounterLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.social.kernel.service.SocialActivityCounterLocalServiceUtil</code>.
@@ -79,6 +83,10 @@ public abstract class SocialActivityCounterLocalServiceBaseImpl
 
 	/**
 	 * Adds the social activity counter to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialActivityCounterLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param socialActivityCounter the social activity counter
 	 * @return the social activity counter that was added
@@ -110,6 +118,10 @@ public abstract class SocialActivityCounterLocalServiceBaseImpl
 	/**
 	 * Deletes the social activity counter with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialActivityCounterLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param activityCounterId the primary key of the social activity counter
 	 * @return the social activity counter that was removed
 	 * @throws PortalException if a social activity counter with the primary key could not be found
@@ -126,6 +138,10 @@ public abstract class SocialActivityCounterLocalServiceBaseImpl
 	/**
 	 * Deletes the social activity counter from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialActivityCounterLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param socialActivityCounter the social activity counter
 	 * @return the social activity counter that was removed
 	 */
@@ -135,6 +151,11 @@ public abstract class SocialActivityCounterLocalServiceBaseImpl
 		SocialActivityCounter socialActivityCounter) {
 
 		return socialActivityCounterPersistence.remove(socialActivityCounter);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return socialActivityCounterPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -299,6 +320,17 @@ public abstract class SocialActivityCounterLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return socialActivityCounterPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -306,6 +338,14 @@ public abstract class SocialActivityCounterLocalServiceBaseImpl
 			(SocialActivityCounter)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<SocialActivityCounter> getBasePersistence() {
+		return socialActivityCounterPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -343,6 +383,10 @@ public abstract class SocialActivityCounterLocalServiceBaseImpl
 
 	/**
 	 * Updates the social activity counter in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SocialActivityCounterLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param socialActivityCounter the social activity counter
 	 * @return the social activity counter that was updated
@@ -775,8 +819,23 @@ public abstract class SocialActivityCounterLocalServiceBaseImpl
 		return SocialActivityCounterLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<SocialActivityCounter> getCTPersistence() {
+		return socialActivityCounterPersistence;
+	}
+
+	@Override
+	public Class<SocialActivityCounter> getModelClass() {
 		return SocialActivityCounter.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<SocialActivityCounter>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(socialActivityCounterPersistence);
 	}
 
 	protected String getModelClassName() {
@@ -803,8 +862,8 @@ public abstract class SocialActivityCounterLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

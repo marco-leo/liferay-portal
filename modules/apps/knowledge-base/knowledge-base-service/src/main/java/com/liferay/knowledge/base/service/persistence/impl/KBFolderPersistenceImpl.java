@@ -16,12 +16,14 @@ package com.liferay.knowledge.base.service.persistence.impl;
 
 import com.liferay.knowledge.base.exception.NoSuchFolderException;
 import com.liferay.knowledge.base.model.KBFolder;
+import com.liferay.knowledge.base.model.KBFolderTable;
 import com.liferay.knowledge.base.model.impl.KBFolderImpl;
 import com.liferay.knowledge.base.model.impl.KBFolderModelImpl;
 import com.liferay.knowledge.base.service.persistence.KBFolderPersistence;
 import com.liferay.knowledge.base.service.persistence.impl.constants.KBPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Configuration;
+import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -33,12 +35,13 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -53,13 +56,17 @@ import java.lang.reflect.InvocationHandler;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -79,7 +86,7 @@ import org.osgi.service.component.annotations.Reference;
 public class KBFolderPersistenceImpl
 	extends BasePersistenceImpl<KBFolder> implements KBFolderPersistence {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>KBFolderUtil</code> to access the kb folder persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -204,54 +211,54 @@ public class KBFolderPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_KBFOLDER_WHERE);
+			sb.append(_SQL_SELECT_KBFOLDER_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_UUID_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(KBFolderModelImpl.ORDER_BY_JPQL);
+				sb.append(KBFolderModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
 				list = (List<KBFolder>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -259,12 +266,8 @@ public class KBFolderPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -293,16 +296,16 @@ public class KBFolderPersistenceImpl
 			return kbFolder;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchFolderException(msg.toString());
+		throw new NoSuchFolderException(sb.toString());
 	}
 
 	/**
@@ -344,16 +347,16 @@ public class KBFolderPersistenceImpl
 			return kbFolder;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchFolderException(msg.toString());
+		throw new NoSuchFolderException(sb.toString());
 	}
 
 	/**
@@ -419,8 +422,8 @@ public class KBFolderPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -431,28 +434,28 @@ public class KBFolderPersistenceImpl
 		Session session, KBFolder kbFolder, String uuid,
 		OrderByComparator<KBFolder> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_KBFOLDER_WHERE);
+		sb.append(_SQL_SELECT_KBFOLDER_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_UUID_3);
+			sb.append(_FINDER_COLUMN_UUID_UUID_3);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_UUID_2);
+			sb.append(_FINDER_COLUMN_UUID_UUID_2);
 		}
 
 		if (orderByComparator != null) {
@@ -460,83 +463,83 @@ public class KBFolderPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(KBFolderModelImpl.ORDER_BY_JPQL);
+			sb.append(KBFolderModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(kbFolder)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<KBFolder> list = q.list();
+		List<KBFolder> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -577,44 +580,42 @@ public class KBFolderPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_KBFOLDER_WHERE);
+			sb.append(_SQL_COUNT_KBFOLDER_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_UUID_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -648,23 +649,23 @@ public class KBFolderPersistenceImpl
 		KBFolder kbFolder = fetchByUUID_G(uuid, groupId);
 
 		if (kbFolder == null) {
-			StringBundler msg = new StringBundler(6);
+			StringBundler sb = new StringBundler(6);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("uuid=");
-			msg.append(uuid);
+			sb.append("uuid=");
+			sb.append(uuid);
 
-			msg.append(", groupId=");
-			msg.append(groupId);
+			sb.append(", groupId=");
+			sb.append(groupId);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchFolderException(msg.toString());
+			throw new NoSuchFolderException(sb.toString());
 		}
 
 		return kbFolder;
@@ -720,41 +721,41 @@ public class KBFolderPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_SELECT_KBFOLDER_WHERE);
+			sb.append(_SQL_SELECT_KBFOLDER_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_G_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_G_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
+			sb.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				List<KBFolder> list = q.list();
+				List<KBFolder> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
@@ -770,13 +771,8 @@ public class KBFolderPersistenceImpl
 					cacheResult(kbFolder);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(
-						_finderPathFetchByUUID_G, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -825,48 +821,46 @@ public class KBFolderPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_KBFOLDER_WHERE);
+			sb.append(_SQL_COUNT_KBFOLDER_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_G_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_G_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
+			sb.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1005,58 +999,58 @@ public class KBFolderPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_KBFOLDER_WHERE);
+			sb.append(_SQL_SELECT_KBFOLDER_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(KBFolderModelImpl.ORDER_BY_JPQL);
+				sb.append(KBFolderModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				list = (List<KBFolder>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -1064,12 +1058,8 @@ public class KBFolderPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1101,19 +1091,19 @@ public class KBFolderPersistenceImpl
 			return kbFolder;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append(", companyId=");
-		msg.append(companyId);
+		sb.append(", companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchFolderException(msg.toString());
+		throw new NoSuchFolderException(sb.toString());
 	}
 
 	/**
@@ -1161,19 +1151,19 @@ public class KBFolderPersistenceImpl
 			return kbFolder;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append(", companyId=");
-		msg.append(companyId);
+		sb.append(", companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchFolderException(msg.toString());
+		throw new NoSuchFolderException(sb.toString());
 	}
 
 	/**
@@ -1242,8 +1232,8 @@ public class KBFolderPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1254,116 +1244,116 @@ public class KBFolderPersistenceImpl
 		Session session, KBFolder kbFolder, String uuid, long companyId,
 		OrderByComparator<KBFolder> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_KBFOLDER_WHERE);
+		sb.append(_SQL_SELECT_KBFOLDER_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 		}
 
-		query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(KBFolderModelImpl.ORDER_BY_JPQL);
+			sb.append(KBFolderModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(kbFolder)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<KBFolder> list = q.list();
+		List<KBFolder> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1408,48 +1398,46 @@ public class KBFolderPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_KBFOLDER_WHERE);
+			sb.append(_SQL_COUNT_KBFOLDER_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1587,47 +1575,47 @@ public class KBFolderPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_KBFOLDER_WHERE);
+			sb.append(_SQL_SELECT_KBFOLDER_WHERE);
 
-			query.append(_FINDER_COLUMN_G_P_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_P_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_P_PARENTKBFOLDERID_2);
+			sb.append(_FINDER_COLUMN_G_P_PARENTKBFOLDERID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(KBFolderModelImpl.ORDER_BY_JPQL);
+				sb.append(KBFolderModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(parentKBFolderId);
+				queryPos.add(parentKBFolderId);
 
 				list = (List<KBFolder>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -1635,12 +1623,8 @@ public class KBFolderPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1672,19 +1656,19 @@ public class KBFolderPersistenceImpl
 			return kbFolder;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append(", parentKBFolderId=");
-		msg.append(parentKBFolderId);
+		sb.append(", parentKBFolderId=");
+		sb.append(parentKBFolderId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchFolderException(msg.toString());
+		throw new NoSuchFolderException(sb.toString());
 	}
 
 	/**
@@ -1732,19 +1716,19 @@ public class KBFolderPersistenceImpl
 			return kbFolder;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append(", parentKBFolderId=");
-		msg.append(parentKBFolderId);
+		sb.append(", parentKBFolderId=");
+		sb.append(parentKBFolderId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchFolderException(msg.toString());
+		throw new NoSuchFolderException(sb.toString());
 	}
 
 	/**
@@ -1813,8 +1797,8 @@ public class KBFolderPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1825,105 +1809,105 @@ public class KBFolderPersistenceImpl
 		Session session, KBFolder kbFolder, long groupId, long parentKBFolderId,
 		OrderByComparator<KBFolder> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_KBFOLDER_WHERE);
+		sb.append(_SQL_SELECT_KBFOLDER_WHERE);
 
-		query.append(_FINDER_COLUMN_G_P_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_P_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_P_PARENTKBFOLDERID_2);
+		sb.append(_FINDER_COLUMN_G_P_PARENTKBFOLDERID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(KBFolderModelImpl.ORDER_BY_JPQL);
+			sb.append(KBFolderModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
-		qPos.add(parentKBFolderId);
+		queryPos.add(parentKBFolderId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(kbFolder)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<KBFolder> list = q.list();
+		List<KBFolder> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1991,54 +1975,52 @@ public class KBFolderPersistenceImpl
 				groupId, parentKBFolderId, start, end, orderByComparator);
 		}
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_KBFOLDER_WHERE);
+			sb.append(_FILTER_SQL_SELECT_KBFOLDER_WHERE);
 		}
 		else {
-			query.append(
-				_FILTER_SQL_SELECT_KBFOLDER_NO_INLINE_DISTINCT_WHERE_1);
+			sb.append(_FILTER_SQL_SELECT_KBFOLDER_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_P_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_P_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_P_PARENTKBFOLDERID_2);
+		sb.append(_FINDER_COLUMN_G_P_PARENTKBFOLDERID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
-				_FILTER_SQL_SELECT_KBFOLDER_NO_INLINE_DISTINCT_WHERE_2);
+			sb.append(_FILTER_SQL_SELECT_KBFOLDER_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(KBFolderModelImpl.ORDER_BY_JPQL);
+				sb.append(KBFolderModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(KBFolderModelImpl.ORDER_BY_SQL);
+				sb.append(KBFolderModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), KBFolder.class.getName(),
+			sb.toString(), KBFolder.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -2046,25 +2028,26 @@ public class KBFolderPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, KBFolderImpl.class);
+				sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, KBFolderImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, KBFolderImpl.class);
+				sqlQuery.addEntity(_FILTER_ENTITY_TABLE, KBFolderImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
-			qPos.add(parentKBFolderId);
+			queryPos.add(parentKBFolderId);
 
-			return (List<KBFolder>)QueryUtil.list(q, getDialect(), start, end);
+			return (List<KBFolder>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2113,8 +2096,8 @@ public class KBFolderPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2125,32 +2108,30 @@ public class KBFolderPersistenceImpl
 		Session session, KBFolder kbFolder, long groupId, long parentKBFolderId,
 		OrderByComparator<KBFolder> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_KBFOLDER_WHERE);
+			sb.append(_FILTER_SQL_SELECT_KBFOLDER_WHERE);
 		}
 		else {
-			query.append(
-				_FILTER_SQL_SELECT_KBFOLDER_NO_INLINE_DISTINCT_WHERE_1);
+			sb.append(_FILTER_SQL_SELECT_KBFOLDER_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_P_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_P_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_P_PARENTKBFOLDERID_2);
+		sb.append(_FINDER_COLUMN_G_P_PARENTKBFOLDERID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
-				_FILTER_SQL_SELECT_KBFOLDER_NO_INLINE_DISTINCT_WHERE_2);
+			sb.append(_FILTER_SQL_SELECT_KBFOLDER_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
@@ -2158,18 +2139,18 @@ public class KBFolderPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -2177,96 +2158,96 @@ public class KBFolderPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(KBFolderModelImpl.ORDER_BY_JPQL);
+				sb.append(KBFolderModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(KBFolderModelImpl.ORDER_BY_SQL);
+				sb.append(KBFolderModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), KBFolder.class.getName(),
+			sb.toString(), KBFolder.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, KBFolderImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, KBFolderImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, KBFolderImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, KBFolderImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
-		qPos.add(parentKBFolderId);
+		queryPos.add(parentKBFolderId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(kbFolder)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<KBFolder> list = q.list();
+		List<KBFolder> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -2309,37 +2290,35 @@ public class KBFolderPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_KBFOLDER_WHERE);
+			sb.append(_SQL_COUNT_KBFOLDER_WHERE);
 
-			query.append(_FINDER_COLUMN_G_P_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_P_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_P_PARENTKBFOLDERID_2);
+			sb.append(_FINDER_COLUMN_G_P_PARENTKBFOLDERID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(parentKBFolderId);
+				queryPos.add(parentKBFolderId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2362,16 +2341,16 @@ public class KBFolderPersistenceImpl
 			return countByG_P(groupId, parentKBFolderId);
 		}
 
-		StringBundler query = new StringBundler(3);
+		StringBundler sb = new StringBundler(3);
 
-		query.append(_FILTER_SQL_COUNT_KBFOLDER_WHERE);
+		sb.append(_FILTER_SQL_COUNT_KBFOLDER_WHERE);
 
-		query.append(_FINDER_COLUMN_G_P_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_P_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_P_PARENTKBFOLDERID_2);
+		sb.append(_FINDER_COLUMN_G_P_PARENTKBFOLDERID_2);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), KBFolder.class.getName(),
+			sb.toString(), KBFolder.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -2379,23 +2358,23 @@ public class KBFolderPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
-			qPos.add(parentKBFolderId);
+			queryPos.add(parentKBFolderId);
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2428,26 +2407,26 @@ public class KBFolderPersistenceImpl
 		KBFolder kbFolder = fetchByG_P_N(groupId, parentKBFolderId, name);
 
 		if (kbFolder == null) {
-			StringBundler msg = new StringBundler(8);
+			StringBundler sb = new StringBundler(8);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("groupId=");
-			msg.append(groupId);
+			sb.append("groupId=");
+			sb.append(groupId);
 
-			msg.append(", parentKBFolderId=");
-			msg.append(parentKBFolderId);
+			sb.append(", parentKBFolderId=");
+			sb.append(parentKBFolderId);
 
-			msg.append(", name=");
-			msg.append(name);
+			sb.append(", name=");
+			sb.append(name);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchFolderException(msg.toString());
+			throw new NoSuchFolderException(sb.toString());
 		}
 
 		return kbFolder;
@@ -2509,45 +2488,45 @@ public class KBFolderPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(5);
+			StringBundler sb = new StringBundler(5);
 
-			query.append(_SQL_SELECT_KBFOLDER_WHERE);
+			sb.append(_SQL_SELECT_KBFOLDER_WHERE);
 
-			query.append(_FINDER_COLUMN_G_P_N_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_P_N_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_P_N_PARENTKBFOLDERID_2);
+			sb.append(_FINDER_COLUMN_G_P_N_PARENTKBFOLDERID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_P_N_NAME_3);
+				sb.append(_FINDER_COLUMN_G_P_N_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_G_P_N_NAME_2);
+				sb.append(_FINDER_COLUMN_G_P_N_NAME_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(parentKBFolderId);
+				queryPos.add(parentKBFolderId);
 
 				if (bindName) {
-					qPos.add(name);
+					queryPos.add(name);
 				}
 
-				List<KBFolder> list = q.list();
+				List<KBFolder> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
@@ -2580,13 +2559,8 @@ public class KBFolderPersistenceImpl
 					cacheResult(kbFolder);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(
-						_finderPathFetchByG_P_N, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2638,52 +2612,50 @@ public class KBFolderPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_COUNT_KBFOLDER_WHERE);
+			sb.append(_SQL_COUNT_KBFOLDER_WHERE);
 
-			query.append(_FINDER_COLUMN_G_P_N_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_P_N_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_P_N_PARENTKBFOLDERID_2);
+			sb.append(_FINDER_COLUMN_G_P_N_PARENTKBFOLDERID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_P_N_NAME_3);
+				sb.append(_FINDER_COLUMN_G_P_N_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_G_P_N_NAME_2);
+				sb.append(_FINDER_COLUMN_G_P_N_NAME_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(parentKBFolderId);
+				queryPos.add(parentKBFolderId);
 
 				if (bindName) {
-					qPos.add(name);
+					queryPos.add(name);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2725,26 +2697,26 @@ public class KBFolderPersistenceImpl
 		KBFolder kbFolder = fetchByG_P_UT(groupId, parentKBFolderId, urlTitle);
 
 		if (kbFolder == null) {
-			StringBundler msg = new StringBundler(8);
+			StringBundler sb = new StringBundler(8);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("groupId=");
-			msg.append(groupId);
+			sb.append("groupId=");
+			sb.append(groupId);
 
-			msg.append(", parentKBFolderId=");
-			msg.append(parentKBFolderId);
+			sb.append(", parentKBFolderId=");
+			sb.append(parentKBFolderId);
 
-			msg.append(", urlTitle=");
-			msg.append(urlTitle);
+			sb.append(", urlTitle=");
+			sb.append(urlTitle);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchFolderException(msg.toString());
+			throw new NoSuchFolderException(sb.toString());
 		}
 
 		return kbFolder;
@@ -2806,45 +2778,45 @@ public class KBFolderPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(5);
+			StringBundler sb = new StringBundler(5);
 
-			query.append(_SQL_SELECT_KBFOLDER_WHERE);
+			sb.append(_SQL_SELECT_KBFOLDER_WHERE);
 
-			query.append(_FINDER_COLUMN_G_P_UT_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_P_UT_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_P_UT_PARENTKBFOLDERID_2);
+			sb.append(_FINDER_COLUMN_G_P_UT_PARENTKBFOLDERID_2);
 
 			boolean bindUrlTitle = false;
 
 			if (urlTitle.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_P_UT_URLTITLE_3);
+				sb.append(_FINDER_COLUMN_G_P_UT_URLTITLE_3);
 			}
 			else {
 				bindUrlTitle = true;
 
-				query.append(_FINDER_COLUMN_G_P_UT_URLTITLE_2);
+				sb.append(_FINDER_COLUMN_G_P_UT_URLTITLE_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(parentKBFolderId);
+				queryPos.add(parentKBFolderId);
 
 				if (bindUrlTitle) {
-					qPos.add(urlTitle);
+					queryPos.add(urlTitle);
 				}
 
-				List<KBFolder> list = q.list();
+				List<KBFolder> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache) {
@@ -2877,13 +2849,8 @@ public class KBFolderPersistenceImpl
 					cacheResult(kbFolder);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(
-						_finderPathFetchByG_P_UT, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2939,52 +2906,50 @@ public class KBFolderPersistenceImpl
 		Long count = (Long)finderCache.getResult(finderPath, finderArgs, this);
 
 		if (count == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_COUNT_KBFOLDER_WHERE);
+			sb.append(_SQL_COUNT_KBFOLDER_WHERE);
 
-			query.append(_FINDER_COLUMN_G_P_UT_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_P_UT_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_P_UT_PARENTKBFOLDERID_2);
+			sb.append(_FINDER_COLUMN_G_P_UT_PARENTKBFOLDERID_2);
 
 			boolean bindUrlTitle = false;
 
 			if (urlTitle.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_P_UT_URLTITLE_3);
+				sb.append(_FINDER_COLUMN_G_P_UT_URLTITLE_3);
 			}
 			else {
 				bindUrlTitle = true;
 
-				query.append(_FINDER_COLUMN_G_P_UT_URLTITLE_2);
+				sb.append(_FINDER_COLUMN_G_P_UT_URLTITLE_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(parentKBFolderId);
+				queryPos.add(parentKBFolderId);
 
 				if (bindUrlTitle) {
-					qPos.add(urlTitle);
+					queryPos.add(urlTitle);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(finderPath, finderArgs, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3007,16 +2972,18 @@ public class KBFolderPersistenceImpl
 		"(kbFolder.urlTitle IS NULL OR kbFolder.urlTitle = '')";
 
 	public KBFolderPersistenceImpl() {
-		setModelClass(KBFolder.class);
-
-		setModelImplClass(KBFolderImpl.class);
-		setModelPKClass(long.class);
-
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
 		dbColumnNames.put("uuid", "uuid_");
 
 		setDBColumnNames(dbColumnNames);
+
+		setModelClass(KBFolder.class);
+
+		setModelImplClass(KBFolderImpl.class);
+		setModelPKClass(long.class);
+
+		setTable(KBFolderTable.INSTANCE);
 	}
 
 	/**
@@ -3027,8 +2994,7 @@ public class KBFolderPersistenceImpl
 	@Override
 	public void cacheResult(KBFolder kbFolder) {
 		entityCache.putResult(
-			entityCacheEnabled, KBFolderImpl.class, kbFolder.getPrimaryKey(),
-			kbFolder);
+			KBFolderImpl.class, kbFolder.getPrimaryKey(), kbFolder);
 
 		finderCache.putResult(
 			_finderPathFetchByUUID_G,
@@ -3049,8 +3015,6 @@ public class KBFolderPersistenceImpl
 				kbFolder.getUrlTitle()
 			},
 			kbFolder);
-
-		kbFolder.resetOriginalValues();
 	}
 
 	/**
@@ -3062,13 +3026,9 @@ public class KBFolderPersistenceImpl
 	public void cacheResult(List<KBFolder> kbFolders) {
 		for (KBFolder kbFolder : kbFolders) {
 			if (entityCache.getResult(
-					entityCacheEnabled, KBFolderImpl.class,
-					kbFolder.getPrimaryKey()) == null) {
+					KBFolderImpl.class, kbFolder.getPrimaryKey()) == null) {
 
 				cacheResult(kbFolder);
-			}
-			else {
-				kbFolder.resetOriginalValues();
 			}
 		}
 	}
@@ -3098,26 +3058,13 @@ public class KBFolderPersistenceImpl
 	 */
 	@Override
 	public void clearCache(KBFolder kbFolder) {
-		entityCache.removeResult(
-			entityCacheEnabled, KBFolderImpl.class, kbFolder.getPrimaryKey());
-
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
-		clearUniqueFindersCache((KBFolderModelImpl)kbFolder, true);
+		entityCache.removeResult(KBFolderImpl.class, kbFolder);
 	}
 
 	@Override
 	public void clearCache(List<KBFolder> kbFolders) {
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
 		for (KBFolder kbFolder : kbFolders) {
-			entityCache.removeResult(
-				entityCacheEnabled, KBFolderImpl.class,
-				kbFolder.getPrimaryKey());
-
-			clearUniqueFindersCache((KBFolderModelImpl)kbFolder, true);
+			entityCache.removeResult(KBFolderImpl.class, kbFolder);
 		}
 	}
 
@@ -3128,8 +3075,7 @@ public class KBFolderPersistenceImpl
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
 		for (Serializable primaryKey : primaryKeys) {
-			entityCache.removeResult(
-				entityCacheEnabled, KBFolderImpl.class, primaryKey);
+			entityCache.removeResult(KBFolderImpl.class, primaryKey);
 		}
 	}
 
@@ -3165,79 +3111,6 @@ public class KBFolderPersistenceImpl
 			_finderPathCountByG_P_UT, args, Long.valueOf(1), false);
 		finderCache.putResult(
 			_finderPathFetchByG_P_UT, args, kbFolderModelImpl, false);
-	}
-
-	protected void clearUniqueFindersCache(
-		KBFolderModelImpl kbFolderModelImpl, boolean clearCurrent) {
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				kbFolderModelImpl.getUuid(), kbFolderModelImpl.getGroupId()
-			};
-
-			finderCache.removeResult(_finderPathCountByUUID_G, args);
-			finderCache.removeResult(_finderPathFetchByUUID_G, args);
-		}
-
-		if ((kbFolderModelImpl.getColumnBitmask() &
-			 _finderPathFetchByUUID_G.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				kbFolderModelImpl.getOriginalUuid(),
-				kbFolderModelImpl.getOriginalGroupId()
-			};
-
-			finderCache.removeResult(_finderPathCountByUUID_G, args);
-			finderCache.removeResult(_finderPathFetchByUUID_G, args);
-		}
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				kbFolderModelImpl.getGroupId(),
-				kbFolderModelImpl.getParentKBFolderId(),
-				kbFolderModelImpl.getName()
-			};
-
-			finderCache.removeResult(_finderPathCountByG_P_N, args);
-			finderCache.removeResult(_finderPathFetchByG_P_N, args);
-		}
-
-		if ((kbFolderModelImpl.getColumnBitmask() &
-			 _finderPathFetchByG_P_N.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				kbFolderModelImpl.getOriginalGroupId(),
-				kbFolderModelImpl.getOriginalParentKBFolderId(),
-				kbFolderModelImpl.getOriginalName()
-			};
-
-			finderCache.removeResult(_finderPathCountByG_P_N, args);
-			finderCache.removeResult(_finderPathFetchByG_P_N, args);
-		}
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				kbFolderModelImpl.getGroupId(),
-				kbFolderModelImpl.getParentKBFolderId(),
-				kbFolderModelImpl.getUrlTitle()
-			};
-
-			finderCache.removeResult(_finderPathCountByG_P_UT, args);
-			finderCache.removeResult(_finderPathFetchByG_P_UT, args);
-		}
-
-		if ((kbFolderModelImpl.getColumnBitmask() &
-			 _finderPathFetchByG_P_UT.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				kbFolderModelImpl.getOriginalGroupId(),
-				kbFolderModelImpl.getOriginalParentKBFolderId(),
-				kbFolderModelImpl.getOriginalUrlTitle()
-			};
-
-			finderCache.removeResult(_finderPathCountByG_P_UT, args);
-			finderCache.removeResult(_finderPathFetchByG_P_UT, args);
-		}
 	}
 
 	/**
@@ -3304,11 +3177,11 @@ public class KBFolderPersistenceImpl
 
 			return remove(kbFolder);
 		}
-		catch (NoSuchFolderException nsee) {
-			throw nsee;
+		catch (NoSuchFolderException noSuchEntityException) {
+			throw noSuchEntityException;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -3331,8 +3204,8 @@ public class KBFolderPersistenceImpl
 				session.delete(kbFolder);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -3401,128 +3274,28 @@ public class KBFolderPersistenceImpl
 		try {
 			session = openSession();
 
-			if (kbFolder.isNew()) {
+			if (isNew) {
 				session.save(kbFolder);
-
-				kbFolder.setNew(false);
 			}
 			else {
 				kbFolder = (KBFolder)session.merge(kbFolder);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
 		}
 
-		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-
-		if (!_columnBitmaskEnabled) {
-			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-		}
-		else if (isNew) {
-			Object[] args = new Object[] {kbFolderModelImpl.getUuid()};
-
-			finderCache.removeResult(_finderPathCountByUuid, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByUuid, args);
-
-			args = new Object[] {
-				kbFolderModelImpl.getUuid(), kbFolderModelImpl.getCompanyId()
-			};
-
-			finderCache.removeResult(_finderPathCountByUuid_C, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByUuid_C, args);
-
-			args = new Object[] {
-				kbFolderModelImpl.getGroupId(),
-				kbFolderModelImpl.getParentKBFolderId()
-			};
-
-			finderCache.removeResult(_finderPathCountByG_P, args);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindByG_P, args);
-
-			finderCache.removeResult(_finderPathCountAll, FINDER_ARGS_EMPTY);
-			finderCache.removeResult(
-				_finderPathWithoutPaginationFindAll, FINDER_ARGS_EMPTY);
-		}
-		else {
-			if ((kbFolderModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByUuid.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					kbFolderModelImpl.getOriginalUuid()
-				};
-
-				finderCache.removeResult(_finderPathCountByUuid, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByUuid, args);
-
-				args = new Object[] {kbFolderModelImpl.getUuid()};
-
-				finderCache.removeResult(_finderPathCountByUuid, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByUuid, args);
-			}
-
-			if ((kbFolderModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByUuid_C.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					kbFolderModelImpl.getOriginalUuid(),
-					kbFolderModelImpl.getOriginalCompanyId()
-				};
-
-				finderCache.removeResult(_finderPathCountByUuid_C, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByUuid_C, args);
-
-				args = new Object[] {
-					kbFolderModelImpl.getUuid(),
-					kbFolderModelImpl.getCompanyId()
-				};
-
-				finderCache.removeResult(_finderPathCountByUuid_C, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByUuid_C, args);
-			}
-
-			if ((kbFolderModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByG_P.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					kbFolderModelImpl.getOriginalGroupId(),
-					kbFolderModelImpl.getOriginalParentKBFolderId()
-				};
-
-				finderCache.removeResult(_finderPathCountByG_P, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByG_P, args);
-
-				args = new Object[] {
-					kbFolderModelImpl.getGroupId(),
-					kbFolderModelImpl.getParentKBFolderId()
-				};
-
-				finderCache.removeResult(_finderPathCountByG_P, args);
-				finderCache.removeResult(
-					_finderPathWithoutPaginationFindByG_P, args);
-			}
-		}
-
 		entityCache.putResult(
-			entityCacheEnabled, KBFolderImpl.class, kbFolder.getPrimaryKey(),
-			kbFolder, false);
+			KBFolderImpl.class, kbFolderModelImpl, false, true);
 
-		clearUniqueFindersCache(kbFolderModelImpl, false);
 		cacheUniqueFindersCache(kbFolderModelImpl);
+
+		if (isNew) {
+			kbFolder.setNew(false);
+		}
 
 		kbFolder.resetOriginalValues();
 
@@ -3666,19 +3439,19 @@ public class KBFolderPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 			String sql = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					2 + (orderByComparator.getOrderByFields().length * 2));
 
-				query.append(_SQL_SELECT_KBFOLDER);
+				sb.append(_SQL_SELECT_KBFOLDER);
 
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 
-				sql = query.toString();
+				sql = sb.toString();
 			}
 			else {
 				sql = _SQL_SELECT_KBFOLDER;
@@ -3691,10 +3464,10 @@ public class KBFolderPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
 				list = (List<KBFolder>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -3702,12 +3475,8 @@ public class KBFolderPersistenceImpl
 					finderCache.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache) {
-					finderCache.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3744,18 +3513,15 @@ public class KBFolderPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(_SQL_COUNT_KBFOLDER);
+				Query query = session.createQuery(_SQL_COUNT_KBFOLDER);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				finderCache.putResult(
 					_finderPathCountAll, FINDER_ARGS_EMPTY, count);
 			}
-			catch (Exception e) {
-				finderCache.removeResult(
-					_finderPathCountAll, FINDER_ARGS_EMPTY);
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3794,142 +3560,136 @@ public class KBFolderPersistenceImpl
 	 * Initializes the kb folder persistence.
 	 */
 	@Activate
-	public void activate() {
-		KBFolderModelImpl.setEntityCacheEnabled(entityCacheEnabled);
-		KBFolderModelImpl.setFinderCacheEnabled(finderCacheEnabled);
+	public void activate(BundleContext bundleContext) {
+		_bundleContext = bundleContext;
 
-		_finderPathWithPaginationFindAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, KBFolderImpl.class,
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0]);
+		_argumentsResolverServiceRegistration = _bundleContext.registerService(
+			ArgumentsResolver.class, new KBFolderModelArgumentsResolver(),
+			MapUtil.singletonDictionary(
+				"model.class.name", KBFolder.class.getName()));
 
-		_finderPathWithoutPaginationFindAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, KBFolderImpl.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll",
-			new String[0]);
+		_finderPathWithPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
+			new String[0], true);
 
-		_finderPathCountAll = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathWithoutPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll", new String[0],
+			new String[0], true);
+
+		_finderPathCountAll = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
-			new String[0]);
+			new String[0], new String[0], false);
 
-		_finderPathWithPaginationFindByUuid = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, KBFolderImpl.class,
+		_finderPathWithPaginationFindByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid",
 			new String[] {
 				String.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"uuid_"}, true);
 
-		_finderPathWithoutPaginationFindByUuid = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, KBFolderImpl.class,
+		_finderPathWithoutPaginationFindByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid",
-			new String[] {String.class.getName()},
-			KBFolderModelImpl.UUID_COLUMN_BITMASK);
+			new String[] {String.class.getName()}, new String[] {"uuid_"},
+			true);
 
-		_finderPathCountByUuid = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid",
-			new String[] {String.class.getName()});
+			new String[] {String.class.getName()}, new String[] {"uuid_"},
+			false);
 
-		_finderPathFetchByUUID_G = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, KBFolderImpl.class,
+		_finderPathFetchByUUID_G = _createFinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByUUID_G",
 			new String[] {String.class.getName(), Long.class.getName()},
-			KBFolderModelImpl.UUID_COLUMN_BITMASK |
-			KBFolderModelImpl.GROUPID_COLUMN_BITMASK);
+			new String[] {"uuid_", "groupId"}, true);
 
-		_finderPathCountByUUID_G = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByUUID_G = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUUID_G",
-			new String[] {String.class.getName(), Long.class.getName()});
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"uuid_", "groupId"}, false);
 
-		_finderPathWithPaginationFindByUuid_C = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, KBFolderImpl.class,
+		_finderPathWithPaginationFindByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid_C",
 			new String[] {
 				String.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"uuid_", "companyId"}, true);
 
-		_finderPathWithoutPaginationFindByUuid_C = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, KBFolderImpl.class,
+		_finderPathWithoutPaginationFindByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid_C",
 			new String[] {String.class.getName(), Long.class.getName()},
-			KBFolderModelImpl.UUID_COLUMN_BITMASK |
-			KBFolderModelImpl.COMPANYID_COLUMN_BITMASK);
+			new String[] {"uuid_", "companyId"}, true);
 
-		_finderPathCountByUuid_C = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid_C",
-			new String[] {String.class.getName(), Long.class.getName()});
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"uuid_", "companyId"}, false);
 
-		_finderPathWithPaginationFindByG_P = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, KBFolderImpl.class,
+		_finderPathWithPaginationFindByG_P = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_P",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"groupId", "parentKBFolderId"}, true);
 
-		_finderPathWithoutPaginationFindByG_P = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, KBFolderImpl.class,
+		_finderPathWithoutPaginationFindByG_P = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_P",
 			new String[] {Long.class.getName(), Long.class.getName()},
-			KBFolderModelImpl.GROUPID_COLUMN_BITMASK |
-			KBFolderModelImpl.PARENTKBFOLDERID_COLUMN_BITMASK);
+			new String[] {"groupId", "parentKBFolderId"}, true);
 
-		_finderPathCountByG_P = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByG_P = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_P",
-			new String[] {Long.class.getName(), Long.class.getName()});
+			new String[] {Long.class.getName(), Long.class.getName()},
+			new String[] {"groupId", "parentKBFolderId"}, false);
 
-		_finderPathFetchByG_P_N = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, KBFolderImpl.class,
+		_finderPathFetchByG_P_N = _createFinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByG_P_N",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName()
 			},
-			KBFolderModelImpl.GROUPID_COLUMN_BITMASK |
-			KBFolderModelImpl.PARENTKBFOLDERID_COLUMN_BITMASK |
-			KBFolderModelImpl.NAME_COLUMN_BITMASK);
+			new String[] {"groupId", "parentKBFolderId", "name"}, true);
 
-		_finderPathCountByG_P_N = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByG_P_N = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_P_N",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName()
-			});
+			},
+			new String[] {"groupId", "parentKBFolderId", "name"}, false);
 
-		_finderPathFetchByG_P_UT = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, KBFolderImpl.class,
+		_finderPathFetchByG_P_UT = _createFinderPath(
 			FINDER_CLASS_NAME_ENTITY, "fetchByG_P_UT",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName()
 			},
-			KBFolderModelImpl.GROUPID_COLUMN_BITMASK |
-			KBFolderModelImpl.PARENTKBFOLDERID_COLUMN_BITMASK |
-			KBFolderModelImpl.URLTITLE_COLUMN_BITMASK);
+			new String[] {"groupId", "parentKBFolderId", "urlTitle"}, true);
 
-		_finderPathCountByG_P_UT = new FinderPath(
-			entityCacheEnabled, finderCacheEnabled, Long.class,
+		_finderPathCountByG_P_UT = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_P_UT",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				String.class.getName()
-			});
+			},
+			new String[] {"groupId", "parentKBFolderId", "urlTitle"}, false);
 	}
 
 	@Deactivate
 	public void deactivate() {
 		entityCache.removeCache(KBFolderImpl.class.getName());
-		finderCache.removeCache(FINDER_CLASS_NAME_ENTITY);
-		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		_argumentsResolverServiceRegistration.unregister();
+
+		for (ServiceRegistration<FinderPath> serviceRegistration :
+				_serviceRegistrations) {
+
+			serviceRegistration.unregister();
+		}
 	}
 
 	@Override
@@ -3938,12 +3698,6 @@ public class KBFolderPersistenceImpl
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
-		super.setConfiguration(configuration);
-
-		_columnBitmaskEnabled = GetterUtil.getBoolean(
-			configuration.get(
-				"value.object.column.bitmask.enabled.com.liferay.knowledge.base.model.KBFolder"),
-			true);
 	}
 
 	@Override
@@ -3964,7 +3718,7 @@ public class KBFolderPersistenceImpl
 		super.setSessionFactory(sessionFactory);
 	}
 
-	private boolean _columnBitmaskEnabled;
+	private BundleContext _bundleContext;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -4025,9 +3779,105 @@ public class KBFolderPersistenceImpl
 		try {
 			Class.forName(KBPersistenceConstants.class.getName());
 		}
-		catch (ClassNotFoundException cnfe) {
-			throw new ExceptionInInitializerError(cnfe);
+		catch (ClassNotFoundException classNotFoundException) {
+			throw new ExceptionInInitializerError(classNotFoundException);
 		}
+	}
+
+	private FinderPath _createFinderPath(
+		String cacheName, String methodName, String[] params,
+		String[] columnNames, boolean baseModelResult) {
+
+		FinderPath finderPath = new FinderPath(
+			cacheName, methodName, params, columnNames, baseModelResult);
+
+		if (!cacheName.equals(FINDER_CLASS_NAME_LIST_WITH_PAGINATION)) {
+			_serviceRegistrations.add(
+				_bundleContext.registerService(
+					FinderPath.class, finderPath,
+					MapUtil.singletonDictionary("cache.name", cacheName)));
+		}
+
+		return finderPath;
+	}
+
+	private ServiceRegistration<ArgumentsResolver>
+		_argumentsResolverServiceRegistration;
+	private Set<ServiceRegistration<FinderPath>> _serviceRegistrations =
+		new HashSet<>();
+
+	private static class KBFolderModelArgumentsResolver
+		implements ArgumentsResolver {
+
+		@Override
+		public Object[] getArguments(
+			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
+			boolean original) {
+
+			String[] columnNames = finderPath.getColumnNames();
+
+			if ((columnNames == null) || (columnNames.length == 0)) {
+				if (baseModel.isNew()) {
+					return FINDER_ARGS_EMPTY;
+				}
+
+				return null;
+			}
+
+			KBFolderModelImpl kbFolderModelImpl = (KBFolderModelImpl)baseModel;
+
+			long columnBitmask = kbFolderModelImpl.getColumnBitmask();
+
+			if (!checkColumn || (columnBitmask == 0)) {
+				return _getValue(kbFolderModelImpl, columnNames, original);
+			}
+
+			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
+				finderPath);
+
+			if (finderPathColumnBitmask == null) {
+				finderPathColumnBitmask = 0L;
+
+				for (String columnName : columnNames) {
+					finderPathColumnBitmask |=
+						kbFolderModelImpl.getColumnBitmask(columnName);
+				}
+
+				_finderPathColumnBitmasksCache.put(
+					finderPath, finderPathColumnBitmask);
+			}
+
+			if ((columnBitmask & finderPathColumnBitmask) != 0) {
+				return _getValue(kbFolderModelImpl, columnNames, original);
+			}
+
+			return null;
+		}
+
+		private Object[] _getValue(
+			KBFolderModelImpl kbFolderModelImpl, String[] columnNames,
+			boolean original) {
+
+			Object[] arguments = new Object[columnNames.length];
+
+			for (int i = 0; i < arguments.length; i++) {
+				String columnName = columnNames[i];
+
+				if (original) {
+					arguments[i] = kbFolderModelImpl.getColumnOriginalValue(
+						columnName);
+				}
+				else {
+					arguments[i] = kbFolderModelImpl.getColumnValue(columnName);
+				}
+			}
+
+			return arguments;
+		}
+
+		private static Map<FinderPath, Long> _finderPathColumnBitmasksCache =
+			new ConcurrentHashMap<>();
+
 	}
 
 }

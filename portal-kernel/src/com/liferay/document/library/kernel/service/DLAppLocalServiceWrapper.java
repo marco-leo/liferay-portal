@@ -30,11 +30,6 @@ public class DLAppLocalServiceWrapper
 		_dlAppLocalService = dlAppLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link DLAppLocalServiceUtil} to access the dl app local service. Add custom service methods to <code>com.liferay.portlet.documentlibrary.service.impl.DLAppLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.portal.kernel.repository.model.FileEntry addFileEntry(
 			long userId, long repositoryId, long folderId,
@@ -157,7 +152,7 @@ public class DLAppLocalServiceWrapper
 	 </code>)
 	 * @param description the file's description
 	 * @param changeLog the file's version change log
-	 * @param is the file's data (optionally <code>null</code>)
+	 * @param inputStream the file's data (optionally <code>null</code>)
 	 * @param size the file's size (optionally <code>0</code>)
 	 * @param serviceContext the service context to be applied. Can set the
 	 asset category IDs, asset tag names, and expando bridge
@@ -172,14 +167,14 @@ public class DLAppLocalServiceWrapper
 	public com.liferay.portal.kernel.repository.model.FileEntry addFileEntry(
 			long userId, long repositoryId, long folderId,
 			String sourceFileName, String mimeType, String title,
-			String description, String changeLog, java.io.InputStream is,
-			long size,
+			String description, String changeLog,
+			java.io.InputStream inputStream, long size,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlAppLocalService.addFileEntry(
 			userId, repositoryId, folderId, sourceFileName, mimeType, title,
-			description, changeLog, is, size, serviceContext);
+			description, changeLog, inputStream, size, serviceContext);
 	}
 
 	/**
@@ -267,34 +262,6 @@ public class DLAppLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_dlAppLocalService.deleteFileEntry(fileEntryId);
-	}
-
-	/**
-	 * Deletes the file ranks associated to a given file entry. This method is
-	 * only supported by the Liferay repository.
-	 *
-	 * @param fileEntryId the primary key of the file entry
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 com.liferay.document.library.file.rank.service.DLFileRankLocalService#deleteFileRanksByFileEntryId}
-	 */
-	@Deprecated
-	@Override
-	public void deleteFileRanksByFileEntryId(long fileEntryId) {
-		_dlAppLocalService.deleteFileRanksByFileEntryId(fileEntryId);
-	}
-
-	/**
-	 * Deletes the file ranks associated to a given user. This method is only
-	 * supported by the Liferay repository.
-	 *
-	 * @param userId the primary key of the user
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 com.liferay.document.library.file.rank.service.DLFileRankLocalService#deleteFileRanksByUserId}
-	 */
-	@Deprecated
-	@Override
-	public void deleteFileRanksByUserId(long userId) {
-		_dlAppLocalService.deleteFileRanksByUserId(userId);
 	}
 
 	/**
@@ -757,7 +724,7 @@ public class DLAppLocalServiceWrapper
 	 <code>null</code>)
 	 * @param dlVersionNumberIncrease the kind of version number increase to
 	 apply for these changes.
-	 * @param is the file's data (optionally <code>null</code>)
+	 * @param inputStream the file's data (optionally <code>null</code>)
 	 * @param size the file's size (optionally <code>0</code>)
 	 * @param serviceContext the service context to be applied. Can set the
 	 asset category IDs, asset tag names, and expando bridge
@@ -774,13 +741,14 @@ public class DLAppLocalServiceWrapper
 			String mimeType, String title, String description, String changeLog,
 			com.liferay.document.library.kernel.model.DLVersionNumberIncrease
 				dlVersionNumberIncrease,
-			java.io.InputStream is, long size,
+			java.io.InputStream inputStream, long size,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlAppLocalService.updateFileEntry(
 			userId, fileEntryId, sourceFileName, mimeType, title, description,
-			changeLog, dlVersionNumberIncrease, is, size, serviceContext);
+			changeLog, dlVersionNumberIncrease, inputStream, size,
+			serviceContext);
 	}
 
 	/**
@@ -825,20 +793,6 @@ public class DLAppLocalServiceWrapper
 
 		_dlAppLocalService.updateFileShortcuts(
 			oldToFileEntryId, newToFileEntryId);
-	}
-
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 #updateFileShortcuts(long, long)}
-	 */
-	@Deprecated
-	@Override
-	public void updateFileShortcuts(
-			long toRepositoryId, long oldToFileEntryId, long newToFileEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		_dlAppLocalService.updateFileShortcuts(
-			toRepositoryId, oldToFileEntryId, newToFileEntryId);
 	}
 
 	/**

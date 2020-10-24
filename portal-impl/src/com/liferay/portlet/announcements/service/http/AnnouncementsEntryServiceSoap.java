@@ -57,8 +57,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see AnnouncementsEntryServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class AnnouncementsEntryServiceSoap {
 
 	public static com.liferay.announcements.kernel.model.AnnouncementsEntrySoap
@@ -77,10 +79,10 @@ public class AnnouncementsEntryServiceSoap {
 			return com.liferay.announcements.kernel.model.
 				AnnouncementsEntrySoap.toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -88,10 +90,10 @@ public class AnnouncementsEntryServiceSoap {
 		try {
 			AnnouncementsEntryServiceUtil.deleteEntry(entryId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -106,10 +108,10 @@ public class AnnouncementsEntryServiceSoap {
 			return com.liferay.announcements.kernel.model.
 				AnnouncementsEntrySoap.toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -129,10 +131,10 @@ public class AnnouncementsEntryServiceSoap {
 			return com.liferay.announcements.kernel.model.
 				AnnouncementsEntrySoap.toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

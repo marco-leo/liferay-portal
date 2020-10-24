@@ -80,9 +80,9 @@ public class MultisearchSearchRequestExecutorImpl
 			});
 
 		MultiSearchResponse multiSearchResponse = getMultiSearchResponse(
-			multiSearchRequest);
+			multiSearchRequest, multisearchSearchRequest);
 
-		Iterator<MultiSearchResponse.Item> multiSearchResponseItems =
+		Iterator<MultiSearchResponse.Item> iterator =
 			multiSearchResponse.iterator();
 
 		MultisearchSearchResponse multisearchSearchResponse =
@@ -90,9 +90,8 @@ public class MultisearchSearchRequestExecutorImpl
 
 		int counter = 0;
 
-		while (multiSearchResponseItems.hasNext()) {
-			MultiSearchResponse.Item multiSearchResponseItem =
-				multiSearchResponseItems.next();
+		while (iterator.hasNext()) {
+			MultiSearchResponse.Item multiSearchResponseItem = iterator.next();
 
 			SearchResponse searchResponse =
 				multiSearchResponseItem.getResponse();
@@ -130,17 +129,20 @@ public class MultisearchSearchRequestExecutorImpl
 	}
 
 	protected MultiSearchResponse getMultiSearchResponse(
-		MultiSearchRequest multiSearchRequest) {
+		MultiSearchRequest multiSearchRequest,
+		MultisearchSearchRequest multisearchSearchRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				multisearchSearchRequest.getConnectionId(),
+				multisearchSearchRequest.isPreferLocalCluster());
 
 		try {
 			return restHighLevelClient.msearch(
 				multiSearchRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

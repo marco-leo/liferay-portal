@@ -141,10 +141,10 @@ public class LicenseUtil {
 
 			return (Map<String, String>)clusterNodeResponse.getResult();
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw e;
+			throw exception;
 		}
 	}
 
@@ -191,13 +191,6 @@ public class LicenseUtil {
 		).build();
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	public static void init() {
-	}
-
 	public static void registerOrder(HttpServletRequest httpServletRequest) {
 		String orderUuid = ParamUtil.getString(httpServletRequest, "orderUuid");
 		String productEntryName = ParamUtil.getString(
@@ -232,8 +225,8 @@ public class LicenseUtil {
 						httpServletRequest, clusterNode, orderUuid,
 						productEntryName, maxServers);
 				}
-				catch (Exception e) {
-					_log.error(e, e);
+				catch (Exception exception) {
+					_log.error(exception, exception);
 
 					InetAddress inetAddress = clusterNode.getBindInetAddress();
 
@@ -294,8 +287,8 @@ public class LicenseUtil {
 					"Your license has been successfully registered.");
 			}
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
 			attributes.put(
 				"ERROR_MESSAGE",
@@ -479,10 +472,10 @@ public class LicenseUtil {
 		Map<String, String> sortedMap = new TreeMap<>(
 			String.CASE_INSENSITIVE_ORDER);
 
-		Iterator<String> itr = productsJSONObject.keys();
+		Iterator<String> iterator = productsJSONObject.keys();
 
-		while (itr.hasNext()) {
-			String key = itr.next();
+		while (iterator.hasNext()) {
+			String key = iterator.next();
 
 			sortedMap.put(key, productsJSONObject.getString(key));
 		}
@@ -597,8 +590,10 @@ public class LicenseUtil {
 				macAddresses.add(sb.toString());
 			}
 		}
-		catch (SocketException se) {
-			_log.error("Unable to read local server network interfaces", se);
+		catch (SocketException socketException) {
+			_log.error(
+				"Unable to read local server network interfaces",
+				socketException);
 		}
 
 		_ipAddresses = Collections.unmodifiableSet(ipAddresses);

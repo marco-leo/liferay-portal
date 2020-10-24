@@ -40,7 +40,7 @@ public interface KaleoNotificationRecipientModel
 	extends BaseModel<KaleoNotificationRecipient>, GroupedModel, MVCCModel,
 			ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo notification recipient model instance should use the {@link KaleoNotificationRecipient} interface instead.
@@ -203,6 +203,20 @@ public interface KaleoNotificationRecipientModel
 	 */
 	@Override
 	public void setModifiedDate(Date modifiedDate);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo notification recipient.
+	 *
+	 * @return the kaleo definition ID of this kaleo notification recipient
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo notification recipient.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo notification recipient
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo notification recipient.

@@ -33,11 +33,6 @@ public class SiteFriendlyURLLocalServiceWrapper
 		_siteFriendlyURLLocalService = siteFriendlyURLLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SiteFriendlyURLLocalServiceUtil} to access the site friendly url local service. Add custom service methods to <code>com.liferay.site.service.impl.SiteFriendlyURLLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.site.model.SiteFriendlyURL addSiteFriendlyURL(
 			long userId, long companyId, long groupId, String friendlyURL,
@@ -52,6 +47,10 @@ public class SiteFriendlyURLLocalServiceWrapper
 
 	/**
 	 * Adds the site friendly url to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SiteFriendlyURLLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param siteFriendlyURL the site friendly url
 	 * @return the site friendly url that was added
@@ -73,6 +72,17 @@ public class SiteFriendlyURLLocalServiceWrapper
 
 		return _siteFriendlyURLLocalService.addSiteFriendlyURLs(
 			userId, companyId, groupId, friendlyURLMap, serviceContext);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _siteFriendlyURLLocalService.createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -104,6 +114,10 @@ public class SiteFriendlyURLLocalServiceWrapper
 	/**
 	 * Deletes the site friendly url with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SiteFriendlyURLLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param siteFriendlyURLId the primary key of the site friendly url
 	 * @return the site friendly url that was removed
 	 * @throws PortalException if a site friendly url with the primary key could not be found
@@ -129,6 +143,10 @@ public class SiteFriendlyURLLocalServiceWrapper
 	/**
 	 * Deletes the site friendly url from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SiteFriendlyURLLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param siteFriendlyURL the site friendly url
 	 * @return the site friendly url that was removed
 	 */
@@ -143,6 +161,11 @@ public class SiteFriendlyURLLocalServiceWrapper
 	@Override
 	public void deleteSiteFriendlyURLs(long companyId, long groupId) {
 		_siteFriendlyURLLocalService.deleteSiteFriendlyURLs(companyId, groupId);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _siteFriendlyURLLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -310,6 +333,9 @@ public class SiteFriendlyURLLocalServiceWrapper
 		return _siteFriendlyURLLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -438,6 +464,10 @@ public class SiteFriendlyURLLocalServiceWrapper
 
 	/**
 	 * Updates the site friendly url in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SiteFriendlyURLLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param siteFriendlyURL the site friendly url
 	 * @return the site friendly url that was updated

@@ -14,17 +14,23 @@
 
 package com.liferay.headless.delivery.client.resource.v1_0;
 
+import com.liferay.headless.delivery.client.dto.v1_0.Rating;
 import com.liferay.headless.delivery.client.dto.v1_0.StructuredContent;
 import com.liferay.headless.delivery.client.http.HttpInvoker;
 import com.liferay.headless.delivery.client.pagination.Page;
 import com.liferay.headless.delivery.client.pagination.Pagination;
+import com.liferay.headless.delivery.client.permission.Permission;
+import com.liferay.headless.delivery.client.problem.Problem;
 import com.liferay.headless.delivery.client.serdes.v1_0.StructuredContentSerDes;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Generated;
 
@@ -39,24 +45,58 @@ public interface StructuredContentResource {
 		return new Builder();
 	}
 
-	public Page<StructuredContent> getContentStructureStructuredContentsPage(
-			Long contentStructureId, String search, String filterString,
+	public Page<StructuredContent> getAssetLibraryStructuredContentsPage(
+			Long assetLibraryId, Boolean flatten, String search,
+			List<String> aggregations, String filterString,
 			Pagination pagination, String sortString)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
+			getAssetLibraryStructuredContentsPageHttpResponse(
+				Long assetLibraryId, Boolean flatten, String search,
+				List<String> aggregations, String filterString,
+				Pagination pagination, String sortString)
+		throws Exception;
+
+	public StructuredContent postAssetLibraryStructuredContent(
+			Long assetLibraryId, StructuredContent structuredContent)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
+			postAssetLibraryStructuredContentHttpResponse(
+				Long assetLibraryId, StructuredContent structuredContent)
+		throws Exception;
+
+	public void postAssetLibraryStructuredContentBatch(
+			Long assetLibraryId, String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
+			postAssetLibraryStructuredContentBatchHttpResponse(
+				Long assetLibraryId, String callbackURL, Object object)
+		throws Exception;
+
+	public Page<StructuredContent> getContentStructureStructuredContentsPage(
+			Long contentStructureId, String search, List<String> aggregations,
+			String filterString, Pagination pagination, String sortString)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
 			getContentStructureStructuredContentsPageHttpResponse(
-				Long contentStructureId, String search, String filterString,
+				Long contentStructureId, String search,
+				List<String> aggregations, String filterString,
 				Pagination pagination, String sortString)
 		throws Exception;
 
 	public Page<StructuredContent> getSiteStructuredContentsPage(
-			Long siteId, Boolean flatten, String search, String filterString,
+			Long siteId, Boolean flatten, String search,
+			List<String> aggregations, String filterString,
 			Pagination pagination, String sortString)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse getSiteStructuredContentsPageHttpResponse(
-			Long siteId, Boolean flatten, String search, String filterString,
+			Long siteId, Boolean flatten, String search,
+			List<String> aggregations, String filterString,
 			Pagination pagination, String sortString)
 		throws Exception;
 
@@ -66,6 +106,14 @@ public interface StructuredContentResource {
 
 	public HttpInvoker.HttpResponse postSiteStructuredContentHttpResponse(
 			Long siteId, StructuredContent structuredContent)
+		throws Exception;
+
+	public void postSiteStructuredContentBatch(
+			Long siteId, String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse postSiteStructuredContentBatchHttpResponse(
+			Long siteId, String callbackURL, Object object)
 		throws Exception;
 
 	public StructuredContent getSiteStructuredContentByKey(
@@ -84,16 +132,36 @@ public interface StructuredContentResource {
 			Long siteId, String uuid)
 		throws Exception;
 
+	public Page<Permission> getSiteStructuredContentPermissionsPage(
+			Long siteId, String roleNames)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
+			getSiteStructuredContentPermissionsPageHttpResponse(
+				Long siteId, String roleNames)
+		throws Exception;
+
+	public void putSiteStructuredContentPermission(
+			Long siteId, Permission[] permissions)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
+			putSiteStructuredContentPermissionHttpResponse(
+				Long siteId, Permission[] permissions)
+		throws Exception;
+
 	public Page<StructuredContent>
 			getStructuredContentFolderStructuredContentsPage(
 				Long structuredContentFolderId, Boolean flatten, String search,
-				String filterString, Pagination pagination, String sortString)
+				List<String> aggregations, String filterString,
+				Pagination pagination, String sortString)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
 			getStructuredContentFolderStructuredContentsPageHttpResponse(
 				Long structuredContentFolderId, Boolean flatten, String search,
-				String filterString, Pagination pagination, String sortString)
+				List<String> aggregations, String filterString,
+				Pagination pagination, String sortString)
 		throws Exception;
 
 	public StructuredContent postStructuredContentFolderStructuredContent(
@@ -106,18 +174,14 @@ public interface StructuredContentResource {
 				StructuredContent structuredContent)
 		throws Exception;
 
-	public void putStructuredContentSubscribe(Long structuredContentId)
+	public void postStructuredContentFolderStructuredContentBatch(
+			Long structuredContentFolderId, String callbackURL, Object object)
 		throws Exception;
 
-	public HttpInvoker.HttpResponse putStructuredContentSubscribeHttpResponse(
-			Long structuredContentId)
-		throws Exception;
-
-	public void putStructuredContentUnsubscribe(Long structuredContentId)
-		throws Exception;
-
-	public HttpInvoker.HttpResponse putStructuredContentUnsubscribeHttpResponse(
-			Long structuredContentId)
+	public HttpInvoker.HttpResponse
+			postStructuredContentFolderStructuredContentBatchHttpResponse(
+				Long structuredContentFolderId, String callbackURL,
+				Object object)
 		throws Exception;
 
 	public void deleteStructuredContent(Long structuredContentId)
@@ -125,6 +189,13 @@ public interface StructuredContentResource {
 
 	public HttpInvoker.HttpResponse deleteStructuredContentHttpResponse(
 			Long structuredContentId)
+		throws Exception;
+
+	public void deleteStructuredContentBatch(String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse deleteStructuredContentBatchHttpResponse(
+			String callbackURL, Object object)
 		throws Exception;
 
 	public StructuredContent getStructuredContent(Long structuredContentId)
@@ -150,6 +221,13 @@ public interface StructuredContentResource {
 			Long structuredContentId, StructuredContent structuredContent)
 		throws Exception;
 
+	public void putStructuredContentBatch(String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse putStructuredContentBatchHttpResponse(
+			String callbackURL, Object object)
+		throws Exception;
+
 	public void deleteStructuredContentMyRating(Long structuredContentId)
 		throws Exception;
 
@@ -157,43 +235,67 @@ public interface StructuredContentResource {
 			Long structuredContentId)
 		throws Exception;
 
-	public com.liferay.headless.delivery.client.dto.v1_0.Rating
-			getStructuredContentMyRating(Long structuredContentId)
+	public Rating getStructuredContentMyRating(Long structuredContentId)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse getStructuredContentMyRatingHttpResponse(
 			Long structuredContentId)
 		throws Exception;
 
-	public com.liferay.headless.delivery.client.dto.v1_0.Rating
-			postStructuredContentMyRating(
-				Long structuredContentId,
-				com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+	public Rating postStructuredContentMyRating(
+			Long structuredContentId, Rating rating)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse postStructuredContentMyRatingHttpResponse(
-			Long structuredContentId,
-			com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+			Long structuredContentId, Rating rating)
 		throws Exception;
 
-	public com.liferay.headless.delivery.client.dto.v1_0.Rating
-			putStructuredContentMyRating(
-				Long structuredContentId,
-				com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+	public Rating putStructuredContentMyRating(
+			Long structuredContentId, Rating rating)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse putStructuredContentMyRatingHttpResponse(
-			Long structuredContentId,
-			com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+			Long structuredContentId, Rating rating)
+		throws Exception;
+
+	public Page<Permission> getStructuredContentPermissionsPage(
+			Long structuredContentId, String roleNames)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
+			getStructuredContentPermissionsPageHttpResponse(
+				Long structuredContentId, String roleNames)
+		throws Exception;
+
+	public void putStructuredContentPermission(
+			Long structuredContentId, Permission[] permissions)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse putStructuredContentPermissionHttpResponse(
+			Long structuredContentId, Permission[] permissions)
 		throws Exception;
 
 	public String getStructuredContentRenderedContentTemplate(
-			Long structuredContentId, Long templateId)
+			Long structuredContentId, String contentTemplateId)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
 			getStructuredContentRenderedContentTemplateHttpResponse(
-				Long structuredContentId, Long templateId)
+				Long structuredContentId, String contentTemplateId)
+		throws Exception;
+
+	public void putStructuredContentSubscribe(Long structuredContentId)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse putStructuredContentSubscribeHttpResponse(
+			Long structuredContentId)
+		throws Exception;
+
+	public void putStructuredContentUnsubscribe(Long structuredContentId)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse putStructuredContentUnsubscribeHttpResponse(
+			Long structuredContentId)
 		throws Exception;
 
 	public static class Builder {
@@ -241,8 +343,8 @@ public interface StructuredContentResource {
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
-		private String _login = "test@liferay.com";
-		private String _password = "test";
+		private String _login = "";
+		private String _password = "";
 		private Map<String, String> _parameters = new LinkedHashMap<>();
 		private int _port = 8080;
 		private String _scheme = "http";
@@ -252,16 +354,16 @@ public interface StructuredContentResource {
 	public static class StructuredContentResourceImpl
 		implements StructuredContentResource {
 
-		public Page<StructuredContent>
-				getContentStructureStructuredContentsPage(
-					Long contentStructureId, String search, String filterString,
-					Pagination pagination, String sortString)
+		public Page<StructuredContent> getAssetLibraryStructuredContentsPage(
+				Long assetLibraryId, Boolean flatten, String search,
+				List<String> aggregations, String filterString,
+				Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				getContentStructureStructuredContentsPageHttpResponse(
-					contentStructureId, search, filterString, pagination,
-					sortString);
+				getAssetLibraryStructuredContentsPageHttpResponse(
+					assetLibraryId, flatten, search, aggregations, filterString,
+					pagination, sortString);
 
 			String content = httpResponse.getContent();
 
@@ -271,12 +373,247 @@ public interface StructuredContentResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return Page.of(content, StructuredContentSerDes::toDTO);
+			try {
+				return Page.of(content, StructuredContentSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				getAssetLibraryStructuredContentsPageHttpResponse(
+					Long assetLibraryId, Boolean flatten, String search,
+					List<String> aggregations, String filterString,
+					Pagination pagination, String sortString)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			if (flatten != null) {
+				httpInvoker.parameter("flatten", String.valueOf(flatten));
+			}
+
+			if (search != null) {
+				httpInvoker.parameter("search", String.valueOf(search));
+			}
+
+			if (filterString != null) {
+				httpInvoker.parameter("filter", filterString);
+			}
+
+			if (pagination != null) {
+				httpInvoker.parameter(
+					"page", String.valueOf(pagination.getPage()));
+				httpInvoker.parameter(
+					"pageSize", String.valueOf(pagination.getPageSize()));
+			}
+
+			if (sortString != null) {
+				httpInvoker.parameter("sort", sortString);
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/structured-contents",
+				assetLibraryId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public StructuredContent postAssetLibraryStructuredContent(
+				Long assetLibraryId, StructuredContent structuredContent)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postAssetLibraryStructuredContentHttpResponse(
+					assetLibraryId, structuredContent);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return StructuredContentSerDes.toDTO(content);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				postAssetLibraryStructuredContentHttpResponse(
+					Long assetLibraryId, StructuredContent structuredContent)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(structuredContent.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/structured-contents",
+				assetLibraryId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void postAssetLibraryStructuredContentBatch(
+				Long assetLibraryId, String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postAssetLibraryStructuredContentBatchHttpResponse(
+					assetLibraryId, callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				postAssetLibraryStructuredContentBatchHttpResponse(
+					Long assetLibraryId, String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/structured-contents/batch",
+				assetLibraryId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public Page<StructuredContent>
+				getContentStructureStructuredContentsPage(
+					Long contentStructureId, String search,
+					List<String> aggregations, String filterString,
+					Pagination pagination, String sortString)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				getContentStructureStructuredContentsPageHttpResponse(
+					contentStructureId, search, aggregations, filterString,
+					pagination, sortString);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return Page.of(content, StructuredContentSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse
 				getContentStructureStructuredContentsPageHttpResponse(
-					Long contentStructureId, String search, String filterString,
+					Long contentStructureId, String search,
+					List<String> aggregations, String filterString,
 					Pagination pagination, String sortString)
 			throws Exception {
 
@@ -334,13 +671,14 @@ public interface StructuredContentResource {
 
 		public Page<StructuredContent> getSiteStructuredContentsPage(
 				Long siteId, Boolean flatten, String search,
-				String filterString, Pagination pagination, String sortString)
+				List<String> aggregations, String filterString,
+				Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
 				getSiteStructuredContentsPageHttpResponse(
-					siteId, flatten, search, filterString, pagination,
-					sortString);
+					siteId, flatten, search, aggregations, filterString,
+					pagination, sortString);
 
 			String content = httpResponse.getContent();
 
@@ -350,14 +688,23 @@ public interface StructuredContentResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return Page.of(content, StructuredContentSerDes::toDTO);
+			try {
+				return Page.of(content, StructuredContentSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse
 				getSiteStructuredContentsPageHttpResponse(
 					Long siteId, Boolean flatten, String search,
-					String filterString, Pagination pagination,
-					String sortString)
+					List<String> aggregations, String filterString,
+					Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -440,7 +787,7 @@ public interface StructuredContentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -483,6 +830,68 @@ public interface StructuredContentResource {
 			return httpInvoker.invoke();
 		}
 
+		public void postSiteStructuredContentBatch(
+				Long siteId, String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postSiteStructuredContentBatchHttpResponse(
+					siteId, callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				postSiteStructuredContentBatchHttpResponse(
+					Long siteId, String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/sites/{siteId}/structured-contents/batch",
+				siteId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public StructuredContent getSiteStructuredContentByKey(
 				Long siteId, String key)
 			throws Exception {
@@ -506,7 +915,7 @@ public interface StructuredContentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -571,7 +980,7 @@ public interface StructuredContentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -613,17 +1022,13 @@ public interface StructuredContentResource {
 			return httpInvoker.invoke();
 		}
 
-		public Page<StructuredContent>
-				getStructuredContentFolderStructuredContentsPage(
-					Long structuredContentFolderId, Boolean flatten,
-					String search, String filterString, Pagination pagination,
-					String sortString)
+		public Page<Permission> getSiteStructuredContentPermissionsPage(
+				Long siteId, String roleNames)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				getStructuredContentFolderStructuredContentsPageHttpResponse(
-					structuredContentFolderId, flatten, search, filterString,
-					pagination, sortString);
+				getSiteStructuredContentPermissionsPageHttpResponse(
+					siteId, roleNames);
 
 			String content = httpResponse.getContent();
 
@@ -633,13 +1038,174 @@ public interface StructuredContentResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return Page.of(content, StructuredContentSerDes::toDTO);
+			try {
+				return Page.of(content, Permission::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				getSiteStructuredContentPermissionsPageHttpResponse(
+					Long siteId, String roleNames)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			if (roleNames != null) {
+				httpInvoker.parameter("roleNames", String.valueOf(roleNames));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/sites/{siteId}/structured-contents/permissions",
+				siteId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void putSiteStructuredContentPermission(
+				Long siteId, Permission[] permissions)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putSiteStructuredContentPermissionHttpResponse(
+					siteId, permissions);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				putSiteStructuredContentPermissionHttpResponse(
+					Long siteId, Permission[] permissions)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(
+				Stream.of(
+					permissions
+				).map(
+					value -> String.valueOf(value)
+				).collect(
+					Collectors.toList()
+				).toString(),
+				"application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/sites/{siteId}/structured-contents/permissions",
+				siteId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public Page<StructuredContent>
+				getStructuredContentFolderStructuredContentsPage(
+					Long structuredContentFolderId, Boolean flatten,
+					String search, List<String> aggregations,
+					String filterString, Pagination pagination,
+					String sortString)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				getStructuredContentFolderStructuredContentsPageHttpResponse(
+					structuredContentFolderId, flatten, search, aggregations,
+					filterString, pagination, sortString);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return Page.of(content, StructuredContentSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse
 				getStructuredContentFolderStructuredContentsPageHttpResponse(
 					Long structuredContentFolderId, Boolean flatten,
-					String search, String filterString, Pagination pagination,
+					String search, List<String> aggregations,
+					String filterString, Pagination pagination,
 					String sortString)
 			throws Exception {
 
@@ -724,7 +1290,7 @@ public interface StructuredContentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -769,11 +1335,14 @@ public interface StructuredContentResource {
 			return httpInvoker.invoke();
 		}
 
-		public void putStructuredContentSubscribe(Long structuredContentId)
+		public void postStructuredContentFolderStructuredContentBatch(
+				Long structuredContentFolderId, String callbackURL,
+				Object object)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				putStructuredContentSubscribeHttpResponse(structuredContentId);
+				postStructuredContentFolderStructuredContentBatchHttpResponse(
+					structuredContentFolderId, callbackURL, object);
 
 			String content = httpResponse.getContent();
 
@@ -785,14 +1354,14 @@ public interface StructuredContentResource {
 		}
 
 		public HttpInvoker.HttpResponse
-				putStructuredContentSubscribeHttpResponse(
-					Long structuredContentId)
+				postStructuredContentFolderStructuredContentBatchHttpResponse(
+					Long structuredContentFolderId, String callbackURL,
+					Object object)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
-			httpInvoker.body(
-				structuredContentId.toString(), "application/json");
+			httpInvoker.body(object.toString(), "application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(
@@ -811,70 +1380,18 @@ public interface StructuredContentResource {
 				httpInvoker.parameter(entry.getKey(), entry.getValue());
 			}
 
-			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
 
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-delivery/v1.0/structured-content/{structuredContentId}/subscribe",
-				structuredContentId);
-
-			httpInvoker.userNameAndPassword(
-				_builder._login + ":" + _builder._password);
-
-			return httpInvoker.invoke();
-		}
-
-		public void putStructuredContentUnsubscribe(Long structuredContentId)
-			throws Exception {
-
-			HttpInvoker.HttpResponse httpResponse =
-				putStructuredContentUnsubscribeHttpResponse(
-					structuredContentId);
-
-			String content = httpResponse.getContent();
-
-			_logger.fine("HTTP response content: " + content);
-
-			_logger.fine("HTTP response message: " + httpResponse.getMessage());
-			_logger.fine(
-				"HTTP response status code: " + httpResponse.getStatusCode());
-		}
-
-		public HttpInvoker.HttpResponse
-				putStructuredContentUnsubscribeHttpResponse(
-					Long structuredContentId)
-			throws Exception {
-
-			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-			httpInvoker.body(
-				structuredContentId.toString(), "application/json");
-
-			if (_builder._locale != null) {
-				httpInvoker.header(
-					"Accept-Language", _builder._locale.toLanguageTag());
-			}
-
-			for (Map.Entry<String, String> entry :
-					_builder._headers.entrySet()) {
-
-				httpInvoker.header(entry.getKey(), entry.getValue());
-			}
-
-			for (Map.Entry<String, String> entry :
-					_builder._parameters.entrySet()) {
-
-				httpInvoker.parameter(entry.getKey(), entry.getValue());
-			}
-
-			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
-
-			httpInvoker.path(
-				_builder._scheme + "://" + _builder._host + ":" +
-					_builder._port +
-						"/o/headless-delivery/v1.0/structured-content/{structuredContentId}/unsubscribe",
-				structuredContentId);
+						"/o/headless-delivery/v1.0/structured-content-folders/{structuredContentFolderId}/structured-contents/batch",
+				structuredContentFolderId);
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);
@@ -895,6 +1412,17 @@ public interface StructuredContentResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse deleteStructuredContentHttpResponse(
@@ -934,6 +1462,64 @@ public interface StructuredContentResource {
 			return httpInvoker.invoke();
 		}
 
+		public void deleteStructuredContentBatch(
+				String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				deleteStructuredContentBatchHttpResponse(callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				deleteStructuredContentBatchHttpResponse(
+					String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.DELETE);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/structured-contents/batch");
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public StructuredContent getStructuredContent(Long structuredContentId)
 			throws Exception {
 
@@ -956,7 +1542,7 @@ public interface StructuredContentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -1021,7 +1607,7 @@ public interface StructuredContentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -1088,7 +1674,7 @@ public interface StructuredContentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -1131,6 +1717,64 @@ public interface StructuredContentResource {
 			return httpInvoker.invoke();
 		}
 
+		public void putStructuredContentBatch(String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putStructuredContentBatchHttpResponse(callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse putStructuredContentBatchHttpResponse(
+				String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/structured-contents/batch");
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public void deleteStructuredContentMyRating(Long structuredContentId)
 			throws Exception {
 
@@ -1145,6 +1789,17 @@ public interface StructuredContentResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse
@@ -1185,8 +1840,7 @@ public interface StructuredContentResource {
 			return httpInvoker.invoke();
 		}
 
-		public com.liferay.headless.delivery.client.dto.v1_0.Rating
-				getStructuredContentMyRating(Long structuredContentId)
+		public Rating getStructuredContentMyRating(Long structuredContentId)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -1209,7 +1863,7 @@ public interface StructuredContentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -1251,10 +1905,8 @@ public interface StructuredContentResource {
 			return httpInvoker.invoke();
 		}
 
-		public com.liferay.headless.delivery.client.dto.v1_0.Rating
-				postStructuredContentMyRating(
-					Long structuredContentId,
-					com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+		public Rating postStructuredContentMyRating(
+				Long structuredContentId, Rating rating)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -1278,14 +1930,13 @@ public interface StructuredContentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
 		public HttpInvoker.HttpResponse
 				postStructuredContentMyRatingHttpResponse(
-					Long structuredContentId,
-					com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+					Long structuredContentId, Rating rating)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -1323,10 +1974,8 @@ public interface StructuredContentResource {
 			return httpInvoker.invoke();
 		}
 
-		public com.liferay.headless.delivery.client.dto.v1_0.Rating
-				putStructuredContentMyRating(
-					Long structuredContentId,
-					com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+		public Rating putStructuredContentMyRating(
+				Long structuredContentId, Rating rating)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -1350,14 +1999,13 @@ public interface StructuredContentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
 		public HttpInvoker.HttpResponse
 				putStructuredContentMyRatingHttpResponse(
-					Long structuredContentId,
-					com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+					Long structuredContentId, Rating rating)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -1395,13 +2043,13 @@ public interface StructuredContentResource {
 			return httpInvoker.invoke();
 		}
 
-		public String getStructuredContentRenderedContentTemplate(
-				Long structuredContentId, Long templateId)
+		public Page<Permission> getStructuredContentPermissionsPage(
+				Long structuredContentId, String roleNames)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				getStructuredContentRenderedContentTemplateHttpResponse(
-					structuredContentId, templateId);
+				getStructuredContentPermissionsPageHttpResponse(
+					structuredContentId, roleNames);
 
 			String content = httpResponse.getContent();
 
@@ -1411,12 +2059,167 @@ public interface StructuredContentResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return content;
+			try {
+				return Page.of(content, Permission::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				getStructuredContentPermissionsPageHttpResponse(
+					Long structuredContentId, String roleNames)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			if (roleNames != null) {
+				httpInvoker.parameter("roleNames", String.valueOf(roleNames));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/structured-contents/{structuredContentId}/permissions",
+				structuredContentId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void putStructuredContentPermission(
+				Long structuredContentId, Permission[] permissions)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putStructuredContentPermissionHttpResponse(
+					structuredContentId, permissions);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				putStructuredContentPermissionHttpResponse(
+					Long structuredContentId, Permission[] permissions)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(
+				Stream.of(
+					permissions
+				).map(
+					value -> String.valueOf(value)
+				).collect(
+					Collectors.toList()
+				).toString(),
+				"application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/structured-contents/{structuredContentId}/permissions",
+				structuredContentId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public String getStructuredContentRenderedContentTemplate(
+				Long structuredContentId, String contentTemplateId)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				getStructuredContentRenderedContentTemplateHttpResponse(
+					structuredContentId, contentTemplateId);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return content;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse
 				getStructuredContentRenderedContentTemplateHttpResponse(
-					Long structuredContentId, Long templateId)
+					Long structuredContentId, String contentTemplateId)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -1443,8 +2246,143 @@ public interface StructuredContentResource {
 			httpInvoker.path(
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
-						"/o/headless-delivery/v1.0/structured-contents/{structuredContentId}/rendered-content/{templateId}",
-				structuredContentId, templateId);
+						"/o/headless-delivery/v1.0/structured-contents/{structuredContentId}/rendered-content/{contentTemplateId}",
+				structuredContentId, contentTemplateId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void putStructuredContentSubscribe(Long structuredContentId)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putStructuredContentSubscribeHttpResponse(structuredContentId);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				putStructuredContentSubscribeHttpResponse(
+					Long structuredContentId)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(
+				structuredContentId.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/structured-contents/{structuredContentId}/subscribe",
+				structuredContentId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void putStructuredContentUnsubscribe(Long structuredContentId)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putStructuredContentUnsubscribeHttpResponse(
+					structuredContentId);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				putStructuredContentUnsubscribeHttpResponse(
+					Long structuredContentId)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(
+				structuredContentId.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/structured-contents/{structuredContentId}/unsubscribe",
+				structuredContentId);
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);

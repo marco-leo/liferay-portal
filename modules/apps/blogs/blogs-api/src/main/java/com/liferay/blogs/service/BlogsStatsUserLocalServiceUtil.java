@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class BlogsStatsUserLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.blogs.service.impl.BlogsStatsUserLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class BlogsStatsUserLocalServiceUtil {
 
 	/**
 	 * Adds the blogs stats user to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BlogsStatsUserLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param blogsStatsUser the blogs stats user
 	 * @return the blogs stats user that was added
@@ -63,7 +67,21 @@ public class BlogsStatsUserLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the blogs stats user from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BlogsStatsUserLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param blogsStatsUser the blogs stats user
 	 * @return the blogs stats user that was removed
@@ -76,6 +94,10 @@ public class BlogsStatsUserLocalServiceUtil {
 
 	/**
 	 * Deletes the blogs stats user with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BlogsStatsUserLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param statsUserId the primary key of the blogs stats user
 	 * @return the blogs stats user that was removed
@@ -117,6 +139,12 @@ public class BlogsStatsUserLocalServiceUtil {
 
 	public static void deleteStatsUserByUserId(long userId) {
 		getService().deleteStatsUserByUserId(userId);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -272,9 +300,10 @@ public class BlogsStatsUserLocalServiceUtil {
 		getCompanyStatsUsers(
 			long companyId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.blogs.model.BlogsStatsUser> obc) {
+				<com.liferay.blogs.model.BlogsStatsUser> orderByComparator) {
 
-		return getService().getCompanyStatsUsers(companyId, start, end, obc);
+		return getService().getCompanyStatsUsers(
+			companyId, start, end, orderByComparator);
 	}
 
 	public static int getCompanyStatsUsersCount(long companyId) {
@@ -297,9 +326,10 @@ public class BlogsStatsUserLocalServiceUtil {
 		getGroupStatsUsers(
 			long groupId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.blogs.model.BlogsStatsUser> obc) {
+				<com.liferay.blogs.model.BlogsStatsUser> orderByComparator) {
 
-		return getService().getGroupStatsUsers(groupId, start, end, obc);
+		return getService().getGroupStatsUsers(
+			groupId, start, end, orderByComparator);
 	}
 
 	public static int getGroupStatsUsersCount(long groupId) {
@@ -324,10 +354,10 @@ public class BlogsStatsUserLocalServiceUtil {
 		getOrganizationStatsUsers(
 			long organizationId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.blogs.model.BlogsStatsUser> obc) {
+				<com.liferay.blogs.model.BlogsStatsUser> orderByComparator) {
 
 		return getService().getOrganizationStatsUsers(
-			organizationId, start, end, obc);
+			organizationId, start, end, orderByComparator);
 	}
 
 	public static int getOrganizationStatsUsersCount(long organizationId) {
@@ -343,6 +373,9 @@ public class BlogsStatsUserLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -359,6 +392,10 @@ public class BlogsStatsUserLocalServiceUtil {
 
 	/**
 	 * Updates the blogs stats user in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect BlogsStatsUserLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param blogsStatsUser the blogs stats user
 	 * @return the blogs stats user that was updated

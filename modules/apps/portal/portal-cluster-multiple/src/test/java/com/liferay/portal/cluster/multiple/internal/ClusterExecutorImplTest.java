@@ -39,7 +39,6 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import org.junit.Assert;
@@ -315,13 +314,13 @@ public class ClusterExecutorImplTest extends BaseClusterTestCase {
 			clusterExecutorImpl.executeClusterRequest(
 				ClusterRequest.createMulticastRequest(StringPool.BLANK));
 
-		Exception exception = clusterNodeResponse.getException();
+		Exception exception1 = clusterNodeResponse.getException();
 
 		Assert.assertEquals(
 			"Payload is not of type " + MethodHandler.class.getName(),
-			exception.getMessage());
+			exception1.getMessage());
 
-		// Test 2, invoke with exception
+		// Test 2, invoke with exception1
 
 		String timestamp = String.valueOf(System.currentTimeMillis());
 
@@ -336,13 +335,13 @@ public class ClusterExecutorImplTest extends BaseClusterTestCase {
 
 			Assert.fail();
 		}
-		catch (Exception e) {
-			Throwable throwable = e.getCause();
+		catch (Exception exception2) {
+			Throwable throwable = exception2.getCause();
 
 			Assert.assertEquals(timestamp, throwable.getMessage());
 		}
 
-		// Test 3, invoke without exception
+		// Test 3, invoke without exception1
 
 		timestamp = String.valueOf(System.currentTimeMillis());
 
@@ -374,15 +373,15 @@ public class ClusterExecutorImplTest extends BaseClusterTestCase {
 	protected ClusterExecutorImpl getClusterExecutorImpl() {
 		ClusterExecutorImpl clusterExecutorImpl = new ClusterExecutorImpl();
 
-		Map<String, Object> properties = HashMapBuilder.<String, Object>put(
-			PropsKeys.CLUSTER_LINK_CHANNEL_NAME_CONTROL,
-			"test-channel-name-control"
-		).put(
-			PropsKeys.CLUSTER_LINK_CHANNEL_PROPERTIES_CONTROL,
-			"test-channel-properties-control"
-		).build();
-
-		clusterExecutorImpl.setProps(PropsTestUtil.setProps(properties));
+		clusterExecutorImpl.setProps(
+			PropsTestUtil.setProps(
+				HashMapBuilder.<String, Object>put(
+					PropsKeys.CLUSTER_LINK_CHANNEL_NAME_CONTROL,
+					"test-channel-name-control"
+				).put(
+					PropsKeys.CLUSTER_LINK_CHANNEL_PROPERTIES_CONTROL,
+					"test-channel-properties-control"
+				).build()));
 
 		clusterExecutorImpl.setClusterChannelFactory(
 			new TestClusterChannelFactory());

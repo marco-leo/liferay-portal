@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class DDMStructureServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.dynamic.data.mapping.service.impl.DDMStructureServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link DDMStructureServiceUtil} to access the ddm structure remote service. Add custom service methods to <code>com.liferay.dynamic.data.mapping.service.impl.DDMStructureServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.dynamic.data.mapping.model.DDMStructure
 			addStructure(
@@ -337,7 +331,7 @@ public class DDMStructureServiceUtil {
 	 * @param keywords the keywords (space separated), which may occur in the
 	 structure's name or description (optionally <code>null</code>)
 	 * @param type the structure's type. For more information, see {@link
-	 com.liferay.dynamic.data.mapping.model.DDMStructureConstants}.
+	 com.liferay.dynamic.data.mapping.constants.DDMStructureConstants}.
 	 * @param status the workflow's status.
 	 * @param start the lower bound of the range of structures to return
 	 * @param end the upper bound of the range of structures to return (not
@@ -423,7 +417,7 @@ public class DDMStructureServiceUtil {
 	 "expando". For more information, see {@link
 	 com.liferay.dynamic.data.mapping.storage.StorageType}.
 	 * @param type the structure's type. For more information, see {@link
-	 com.liferay.dynamic.data.mapping.model.DDMStructureConstants}.
+	 com.liferay.dynamic.data.mapping.constants.DDMStructureConstants}.
 	 * @param status the workflow's status.
 	 * @param andOperator whether every field must match its keywords, or just
 	 one field
@@ -480,7 +474,7 @@ public class DDMStructureServiceUtil {
 	 * @param keywords the keywords (space separated), which may occur in the
 	 structure's name or description (optionally <code>null</code>)
 	 * @param type the structure's type. For more information, see {@link
-	 com.liferay.dynamic.data.mapping.model.DDMStructureConstants}.
+	 com.liferay.dynamic.data.mapping.constants.DDMStructureConstants}.
 	 * @param status the workflow's status.
 	 * @return the number of matching structures
 	 */
@@ -506,7 +500,7 @@ public class DDMStructureServiceUtil {
 	 "expando". For more information, see {@link
 	 com.liferay.dynamic.data.mapping.storage.StorageType}.
 	 * @param type the structure's type. For more information, see {@link
-	 com.liferay.dynamic.data.mapping.model.DDMStructureConstants}.
+	 com.liferay.dynamic.data.mapping.constants.DDMStructureConstants}.
 	 * @param andOperator whether every field must match its keywords, or just
 	 one field
 	 * @return the number of matching structures

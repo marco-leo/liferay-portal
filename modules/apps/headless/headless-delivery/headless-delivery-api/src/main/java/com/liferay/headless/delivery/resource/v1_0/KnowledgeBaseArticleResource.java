@@ -16,19 +16,22 @@ package com.liferay.headless.delivery.resource.v1_0;
 
 import com.liferay.headless.delivery.dto.v1_0.KnowledgeBaseArticle;
 import com.liferay.headless.delivery.dto.v1_0.Rating;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
+
+import java.util.Locale;
 
 import javax.annotation.Generated;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.osgi.annotation.versioning.ProviderType;
@@ -45,7 +48,15 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface KnowledgeBaseArticleResource {
 
+	public static Builder builder() {
+		return FactoryHolder.factory.create();
+	}
+
 	public void deleteKnowledgeBaseArticle(Long knowledgeBaseArticleId)
+		throws Exception;
+
+	public Response deleteKnowledgeBaseArticleBatch(
+			String callbackURL, Object object)
 		throws Exception;
 
 	public KnowledgeBaseArticle getKnowledgeBaseArticle(
@@ -60,6 +71,10 @@ public interface KnowledgeBaseArticleResource {
 	public KnowledgeBaseArticle putKnowledgeBaseArticle(
 			Long knowledgeBaseArticleId,
 			KnowledgeBaseArticle knowledgeBaseArticle)
+		throws Exception;
+
+	public Response putKnowledgeBaseArticleBatch(
+			String callbackURL, Object object)
 		throws Exception;
 
 	public void deleteKnowledgeBaseArticleMyRating(Long knowledgeBaseArticleId)
@@ -85,8 +100,9 @@ public interface KnowledgeBaseArticleResource {
 	public Page<KnowledgeBaseArticle>
 			getKnowledgeBaseArticleKnowledgeBaseArticlesPage(
 				Long parentKnowledgeBaseArticleId, Boolean flatten,
-				String search, Filter filter, Pagination pagination,
-				Sort[] sorts)
+				String search,
+				com.liferay.portal.vulcan.aggregation.Aggregation aggregation,
+				Filter filter, Pagination pagination, Sort[] sorts)
 		throws Exception;
 
 	public KnowledgeBaseArticle postKnowledgeBaseArticleKnowledgeBaseArticle(
@@ -97,6 +113,7 @@ public interface KnowledgeBaseArticleResource {
 	public Page<KnowledgeBaseArticle>
 			getKnowledgeBaseFolderKnowledgeBaseArticlesPage(
 				Long knowledgeBaseFolderId, Boolean flatten, String search,
+				com.liferay.portal.vulcan.aggregation.Aggregation aggregation,
 				Filter filter, Pagination pagination, Sort[] sorts)
 		throws Exception;
 
@@ -105,13 +122,22 @@ public interface KnowledgeBaseArticleResource {
 			KnowledgeBaseArticle knowledgeBaseArticle)
 		throws Exception;
 
+	public Response postKnowledgeBaseFolderKnowledgeBaseArticleBatch(
+			Long knowledgeBaseFolderId, String callbackURL, Object object)
+		throws Exception;
+
 	public Page<KnowledgeBaseArticle> getSiteKnowledgeBaseArticlesPage(
-			Long siteId, Boolean flatten, String search, Filter filter,
-			Pagination pagination, Sort[] sorts)
+			Long siteId, Boolean flatten, String search,
+			com.liferay.portal.vulcan.aggregation.Aggregation aggregation,
+			Filter filter, Pagination pagination, Sort[] sorts)
 		throws Exception;
 
 	public KnowledgeBaseArticle postSiteKnowledgeBaseArticle(
 			Long siteId, KnowledgeBaseArticle knowledgeBaseArticle)
+		throws Exception;
+
+	public Response postSiteKnowledgeBaseArticleBatch(
+			Long siteId, String callbackURL, Object object)
 		throws Exception;
 
 	public void putSiteKnowledgeBaseArticleSubscribe(Long siteId)
@@ -124,7 +150,8 @@ public interface KnowledgeBaseArticleResource {
 		AcceptLanguage contextAcceptLanguage) {
 	}
 
-	public void setContextCompany(Company contextCompany);
+	public void setContextCompany(
+		com.liferay.portal.kernel.model.Company contextCompany);
 
 	public default void setContextHttpServletRequest(
 		HttpServletRequest contextHttpServletRequest) {
@@ -137,6 +164,40 @@ public interface KnowledgeBaseArticleResource {
 	public default void setContextUriInfo(UriInfo contextUriInfo) {
 	}
 
-	public void setContextUser(User contextUser);
+	public void setContextUser(
+		com.liferay.portal.kernel.model.User contextUser);
+
+	public void setGroupLocalService(GroupLocalService groupLocalService);
+
+	public void setRoleLocalService(RoleLocalService roleLocalService);
+
+	public static class FactoryHolder {
+
+		public static volatile Factory factory;
+
+	}
+
+	@ProviderType
+	public interface Builder {
+
+		public KnowledgeBaseArticleResource build();
+
+		public Builder checkPermissions(boolean checkPermissions);
+
+		public Builder httpServletRequest(
+			HttpServletRequest httpServletRequest);
+
+		public Builder preferredLocale(Locale preferredLocale);
+
+		public Builder user(com.liferay.portal.kernel.model.User user);
+
+	}
+
+	@ProviderType
+	public interface Factory {
+
+		public Builder create();
+
+	}
 
 }

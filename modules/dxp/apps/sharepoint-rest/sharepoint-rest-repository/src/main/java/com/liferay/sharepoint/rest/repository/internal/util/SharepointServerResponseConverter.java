@@ -21,14 +21,14 @@ import com.liferay.document.library.repository.external.ExtRepositoryFolder;
 import com.liferay.document.library.repository.external.ExtRepositoryObject;
 import com.liferay.document.library.repository.external.ExtRepositoryObjectType;
 import com.liferay.document.library.repository.external.ExtRepositorySearchResult;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.sharepoint.rest.repository.internal.document.library.repository.external.model.SharepointFileEntry;
 import com.liferay.sharepoint.rest.repository.internal.document.library.repository.external.model.SharepointFileVersion;
@@ -128,7 +128,7 @@ public class SharepointServerResponseConverter {
 	}
 
 	public <T extends ExtRepositoryObject> T getExtRepositoryObject(
-		ExtRepositoryObjectType extRepositoryObjectType,
+		ExtRepositoryObjectType<?> extRepositoryObjectType,
 		JSONObject jsonObject) {
 
 		if (extRepositoryObjectType == ExtRepositoryObjectType.FILE) {
@@ -183,8 +183,8 @@ public class SharepointServerResponseConverter {
 			JSONArray cellsResultsJSONArray = cellsJSONObject.getJSONArray(
 				"results");
 
-			ExtRepositoryObjectType extRepositoryObjectType =
-				ExtRepositoryObjectType.OBJECT;
+			ExtRepositoryObjectType<? extends ExtRepositoryObject>
+				extRepositoryObjectType = ExtRepositoryObjectType.OBJECT;
 
 			String extension = null;
 			String parentLink = null;
@@ -382,7 +382,7 @@ public class SharepointServerResponseConverter {
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler(strings.length * 2 - 1);
+		StringBundler sb = new StringBundler((strings.length * 2) - 1);
 
 		sb.append(strings[0]);
 
@@ -405,8 +405,8 @@ public class SharepointServerResponseConverter {
 
 			return simpleDateFormat.parse(dateString);
 		}
-		catch (ParseException pe) {
-			throw new RuntimeException(pe);
+		catch (ParseException parseException) {
+			throw new RuntimeException(parseException);
 		}
 	}
 

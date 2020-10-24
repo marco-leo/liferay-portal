@@ -32,11 +32,6 @@ public class WikiPageLocalServiceWrapper
 		_wikiPageLocalService = wikiPageLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link WikiPageLocalServiceUtil} to access the wiki page local service. Add custom service methods to <code>com.liferay.wiki.service.impl.WikiPageLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.wiki.model.WikiPage addPage(
 			long userId, long nodeId, String title, double version,
@@ -140,6 +135,10 @@ public class WikiPageLocalServiceWrapper
 	/**
 	 * Adds the wiki page to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiPageLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param wikiPage the wiki page
 	 * @return the wiki page that was added
 	 */
@@ -168,6 +167,17 @@ public class WikiPageLocalServiceWrapper
 
 		_wikiPageLocalService.copyPageAttachments(
 			userId, templateNodeId, templateTitle, nodeId, title);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _wikiPageLocalService.createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -246,6 +256,10 @@ public class WikiPageLocalServiceWrapper
 	/**
 	 * Deletes the wiki page with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiPageLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param pageId the primary key of the wiki page
 	 * @return the wiki page that was removed
 	 * @throws PortalException if a wiki page with the primary key could not be found
@@ -259,6 +273,10 @@ public class WikiPageLocalServiceWrapper
 
 	/**
 	 * Deletes the wiki page from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiPageLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param wikiPage the wiki page
 	 * @return the wiki page that was removed
@@ -275,6 +293,11 @@ public class WikiPageLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_wikiPageLocalService.discardDraft(nodeId, title, version);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _wikiPageLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -463,10 +486,12 @@ public class WikiPageLocalServiceWrapper
 	@Override
 	public java.util.List<com.liferay.wiki.model.WikiPage> getChildren(
 		long nodeId, boolean head, String parentTitle, int status, int start,
-		int end, com.liferay.portal.kernel.util.OrderByComparator obc) {
+		int end,
+		com.liferay.portal.kernel.util.OrderByComparator
+			<com.liferay.wiki.model.WikiPage> orderByComparator) {
 
 		return _wikiPageLocalService.getChildren(
-			nodeId, head, parentTitle, status, start, end, obc);
+			nodeId, head, parentTitle, status, start, end, orderByComparator);
 	}
 
 	@Override
@@ -711,19 +736,20 @@ public class WikiPageLocalServiceWrapper
 	public java.util.List<com.liferay.wiki.model.WikiPage> getPages(
 		long nodeId, boolean head, int status, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.wiki.model.WikiPage> obc) {
+			<com.liferay.wiki.model.WikiPage> orderByComparator) {
 
 		return _wikiPageLocalService.getPages(
-			nodeId, head, status, start, end, obc);
+			nodeId, head, status, start, end, orderByComparator);
 	}
 
 	@Override
 	public java.util.List<com.liferay.wiki.model.WikiPage> getPages(
 		long nodeId, boolean head, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.wiki.model.WikiPage> obc) {
+			<com.liferay.wiki.model.WikiPage> orderByComparator) {
 
-		return _wikiPageLocalService.getPages(nodeId, head, start, end, obc);
+		return _wikiPageLocalService.getPages(
+			nodeId, head, start, end, orderByComparator);
 	}
 
 	@Override
@@ -737,9 +763,10 @@ public class WikiPageLocalServiceWrapper
 	public java.util.List<com.liferay.wiki.model.WikiPage> getPages(
 		long nodeId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.wiki.model.WikiPage> obc) {
+			<com.liferay.wiki.model.WikiPage> orderByComparator) {
 
-		return _wikiPageLocalService.getPages(nodeId, start, end, obc);
+		return _wikiPageLocalService.getPages(
+			nodeId, start, end, orderByComparator);
 	}
 
 	@Override
@@ -775,9 +802,10 @@ public class WikiPageLocalServiceWrapper
 	public java.util.List<com.liferay.wiki.model.WikiPage> getPages(
 		long nodeId, String title, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.wiki.model.WikiPage> obc) {
+			<com.liferay.wiki.model.WikiPage> orderByComparator) {
 
-		return _wikiPageLocalService.getPages(nodeId, title, start, end, obc);
+		return _wikiPageLocalService.getPages(
+			nodeId, title, start, end, orderByComparator);
 	}
 
 	@Override
@@ -836,6 +864,9 @@ public class WikiPageLocalServiceWrapper
 		return _wikiPageLocalService.getPersistedModel(resourcePrimKey);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -1157,6 +1188,10 @@ public class WikiPageLocalServiceWrapper
 	/**
 	 * Updates the wiki page in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiPageLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param wikiPage the wiki page
 	 * @return the wiki page that was updated
 	 */
@@ -1165,6 +1200,14 @@ public class WikiPageLocalServiceWrapper
 		com.liferay.wiki.model.WikiPage wikiPage) {
 
 		return _wikiPageLocalService.updateWikiPage(wikiPage);
+	}
+
+	@Override
+	public com.liferay.wiki.model.WikiPage updateWikiPage(
+		com.liferay.wiki.model.WikiPage wikiPage,
+		com.liferay.portal.kernel.service.ServiceContext serviceContext) {
+
+		return _wikiPageLocalService.updateWikiPage(wikiPage, serviceContext);
 	}
 
 	@Override

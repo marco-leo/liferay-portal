@@ -15,6 +15,7 @@
 package com.liferay.portal.reports.engine.console.service.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
@@ -41,7 +42,6 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.reports.engine.console.model.Definition;
 import com.liferay.portal.reports.engine.console.model.Entry;
@@ -132,16 +132,12 @@ public class EntryServiceTest {
 
 	@Test
 	public void testGetEntriesCountAsAdminUser() throws Exception {
-		int entriesCount = getEntriesCount(_adminPermissionChecker);
-
-		Assert.assertEquals(10, entriesCount);
+		Assert.assertEquals(10, getEntriesCount(_adminPermissionChecker));
 	}
 
 	@Test
 	public void testGetEntriesCountAsGuestUser() throws Exception {
-		int entriesCount = getEntriesCount(_guestPermissionChecker);
-
-		Assert.assertEquals(5, entriesCount);
+		Assert.assertEquals(5, getEntriesCount(_guestPermissionChecker));
 	}
 
 	@Test
@@ -217,7 +213,7 @@ public class EntryServiceTest {
 			ServiceContextTestUtil.getServiceContext();
 
 		ModelPermissions modelPermissions = ModelPermissionsFactory.create(
-			_ENTRY_GROUP_PERMISSIONS, null);
+			_ENTRY_GROUP_PERMISSIONS, null, Entry.class.getName());
 
 		serviceContext.setModelPermissions(modelPermissions);
 
@@ -232,7 +228,8 @@ public class EntryServiceTest {
 		}
 
 		modelPermissions = ModelPermissionsFactory.create(
-			_ENTRY_GROUP_PERMISSIONS, new String[] {"VIEW"});
+			_ENTRY_GROUP_PERMISSIONS, new String[] {"VIEW"},
+			Entry.class.getName());
 
 		serviceContext.setModelPermissions(modelPermissions);
 

@@ -17,6 +17,7 @@ package com.liferay.dynamic.data.mapping.service.persistence;
 import com.liferay.dynamic.data.mapping.exception.NoSuchDataProviderInstanceException;
 import com.liferay.dynamic.data.mapping.model.DDMDataProviderInstance;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -33,9 +34,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface DDMDataProviderInstancePersistence
-	extends BasePersistence<DDMDataProviderInstance> {
+	extends BasePersistence<DDMDataProviderInstance>,
+			CTPersistence<DDMDataProviderInstance> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link DDMDataProviderInstanceUtil} to access the ddm data provider instance persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

@@ -41,13 +41,13 @@ public abstract class BaseJSPTrashRenderer extends BaseTrashRenderer {
 			HttpServletResponse httpServletResponse, String template)
 		throws Exception {
 
-		ServletContext servletContext = getServletContext(httpServletRequest);
-
 		String jspPath = getJspPath(httpServletRequest, template);
 
 		if (Validator.isNull(jspPath)) {
 			return false;
 		}
+
+		ServletContext servletContext = getServletContext(httpServletRequest);
 
 		RequestDispatcher requestDispatcher =
 			servletContext.getRequestDispatcher(jspPath);
@@ -57,10 +57,11 @@ public abstract class BaseJSPTrashRenderer extends BaseTrashRenderer {
 
 			return true;
 		}
-		catch (ServletException se) {
-			_log.error("Unable to include JSP " + jspPath, se);
+		catch (ServletException servletException) {
+			_log.error("Unable to include JSP " + jspPath, servletException);
 
-			throw new IOException("Unable to include " + jspPath, se);
+			throw new IOException(
+				"Unable to include " + jspPath, servletException);
 		}
 	}
 

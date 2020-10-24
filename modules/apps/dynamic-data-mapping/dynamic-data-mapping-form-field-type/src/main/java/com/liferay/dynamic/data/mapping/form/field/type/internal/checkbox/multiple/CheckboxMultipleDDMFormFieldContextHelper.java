@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -60,14 +59,7 @@ public class CheckboxMultipleDDMFormFieldContextHelper {
 					LocalizedValue optionLabel =
 						_ddmFormFieldOptions.getOptionLabels(optionValue);
 
-					String optionLabelString = optionLabel.getString(_locale);
-
-					if (ddmFormFieldRenderingContext.isViewMode()) {
-						optionLabelString = HtmlUtil.extractText(
-							optionLabelString);
-					}
-
-					return optionLabelString;
+					return optionLabel.getString(_locale);
 				}
 			).put(
 				"value", optionValue
@@ -89,12 +81,12 @@ public class CheckboxMultipleDDMFormFieldContextHelper {
 
 			return ArrayUtil.toStringArray(jsonArray);
 		}
-		catch (JSONException jsone) {
+		catch (JSONException jsonException) {
 
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(jsone, jsone);
+				_log.debug(jsonException, jsonException);
 			}
 
 			return StringUtil.split(value);

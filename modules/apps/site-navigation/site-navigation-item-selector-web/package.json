@@ -1,10 +1,11 @@
 {
 	"dependencies": {
+		"@clayui/button": "3.4.0",
+		"@clayui/form": "3.11.1",
+		"@clayui/layout": "3.2.0",
+		"frontend-js-components-web": "*",
 		"frontend-js-web": "*",
-		"metal": "2.16.8",
-		"metal-dom": "2.16.8",
-		"metal-soy": "2.16.8",
-		"metal-state": "2.16.8"
+		"react": "16.12.0"
 	},
 	"name": "site-navigation-item-selector-web",
 	"scripts": {
@@ -12,5 +13,5 @@
 		"checkFormat": "liferay-npm-scripts check",
 		"format": "liferay-npm-scripts fix"
 	},
-	"version": "3.0.0"
+	"version": "4.0.0"
 }

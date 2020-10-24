@@ -57,8 +57,10 @@ import java.rmi.RemoteException;
  *
  * @author Brian Wing Shun Chan
  * @see WikiNodeServiceHttp
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class WikiNodeServiceSoap {
 
 	public static com.liferay.wiki.model.WikiNodeSoap addNode(
@@ -72,10 +74,10 @@ public class WikiNodeServiceSoap {
 
 			return com.liferay.wiki.model.WikiNodeSoap.toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -83,10 +85,10 @@ public class WikiNodeServiceSoap {
 		try {
 			WikiNodeServiceUtil.deleteNode(nodeId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -99,10 +101,10 @@ public class WikiNodeServiceSoap {
 
 			return com.liferay.wiki.model.WikiNodeSoap.toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -116,10 +118,10 @@ public class WikiNodeServiceSoap {
 
 			return com.liferay.wiki.model.WikiNodeSoap.toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -133,10 +135,10 @@ public class WikiNodeServiceSoap {
 			return com.liferay.wiki.model.WikiNodeSoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -151,10 +153,10 @@ public class WikiNodeServiceSoap {
 			return com.liferay.wiki.model.WikiNodeSoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -169,10 +171,10 @@ public class WikiNodeServiceSoap {
 			return com.liferay.wiki.model.WikiNodeSoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -187,30 +189,31 @@ public class WikiNodeServiceSoap {
 			return com.liferay.wiki.model.WikiNodeSoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
 	public static com.liferay.wiki.model.WikiNodeSoap[] getNodes(
 			long groupId, int status, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.wiki.model.WikiNode> obc)
+				<com.liferay.wiki.model.WikiNode> orderByComparator)
 		throws RemoteException {
 
 		try {
 			java.util.List<com.liferay.wiki.model.WikiNode> returnValue =
-				WikiNodeServiceUtil.getNodes(groupId, status, start, end, obc);
+				WikiNodeServiceUtil.getNodes(
+					groupId, status, start, end, orderByComparator);
 
 			return com.liferay.wiki.model.WikiNodeSoap.toSoapModels(
 				returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -220,10 +223,10 @@ public class WikiNodeServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -236,10 +239,10 @@ public class WikiNodeServiceSoap {
 
 			return returnValue;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -253,10 +256,10 @@ public class WikiNodeServiceSoap {
 
 			return com.liferay.wiki.model.WikiNodeSoap.toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -266,10 +269,10 @@ public class WikiNodeServiceSoap {
 		try {
 			WikiNodeServiceUtil.restoreNodeFromTrash(nodeId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -277,10 +280,10 @@ public class WikiNodeServiceSoap {
 		try {
 			WikiNodeServiceUtil.subscribeNode(nodeId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -288,10 +291,10 @@ public class WikiNodeServiceSoap {
 		try {
 			WikiNodeServiceUtil.unsubscribeNode(nodeId);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 
@@ -307,10 +310,10 @@ public class WikiNodeServiceSoap {
 
 			return com.liferay.wiki.model.WikiNodeSoap.toSoapModel(returnValue);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 
-			throw new RemoteException(e.getMessage());
+			throw new RemoteException(exception.getMessage());
 		}
 	}
 

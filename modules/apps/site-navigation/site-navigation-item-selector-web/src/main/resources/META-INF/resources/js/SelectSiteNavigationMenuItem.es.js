@@ -12,128 +12,94 @@
  * details.
  */
 
-import 'frontend-taglib/cards_treeview/CardsTreeview.es';
+import {ClayButtonWithIcon} from '@clayui/button';
+import {ClayInput} from '@clayui/form';
+import ClayLayout from '@clayui/layout';
+import {Treeview} from 'frontend-js-components-web';
+import React, {useCallback, useState} from 'react';
 
-import 'metal';
-
-import 'metal-component';
-import {PortletBase} from 'frontend-js-web';
-import Soy from 'metal-soy';
-import {Config} from 'metal-state';
-
-import templates from './SelectSiteNavigationMenuItem.soy';
-
-/**
- * SelectSiteNavigationMenuItem
- *
- * This component shows a list of available site navigation menu item to select
- * and allows to filter them by searching.
- */
-
-class SelectSiteNavigationMenuItem extends PortletBase {
-	/**
-	 * Filters deep nested nodes based on a filtering value
-	 *
-	 * @type {Array.<Object>} nodes
-	 * @type {String} filterVAlue
-	 * @protected
-	 */
-
-	filterSiblingNodes_(nodes, filterValue) {
-		let filteredNodes = [];
-
-		nodes.forEach(node => {
-			if (node.name.toLowerCase().indexOf(filterValue) !== -1) {
-				filteredNodes.push(node);
-			}
-
-			if (node.children) {
-				filteredNodes = filteredNodes.concat(
-					this.filterSiblingNodes_(node.children, filterValue)
-				);
-			}
-		});
-
-		return filteredNodes;
-	}
-
-	/**
-	 * Searchs for nodes by name based on a filtering value
-	 *
-	 * @param {!Event} event
-	 * @protected
-	 */
-
-	searchNodes_(event) {
-		if (!this.originalNodes) {
-			this.originalNodes = this.nodes;
-		} else {
-			this.nodes = this.originalNodes;
+function findSiteNavigationMenuItem(
+	siteNavigationMenuItemId,
+	siteNavigationMenuItems = []
+) {
+	// eslint-disable-next-line no-for-of-loops/no-for-of-loops
+	for (const siteNavigationMenuItem of siteNavigationMenuItems) {
+		if (siteNavigationMenuItem.id === siteNavigationMenuItemId) {
+			return siteNavigationMenuItem;
 		}
 
-		const filterValue = event.delegateTarget.value.toLowerCase();
+		const childrenSiteNavigationMenuItem = findSiteNavigationMenuItem(
+			siteNavigationMenuItemId,
+			siteNavigationMenuItem.children
+		);
 
-		if (filterValue !== '') {
-			this.viewType = 'flat';
-			this.nodes = this.filterSiblingNodes_(this.nodes, filterValue);
-		} else {
-			this.viewType = 'tree';
+		if (childrenSiteNavigationMenuItem) {
+			return childrenSiteNavigationMenuItem;
 		}
 	}
 
-	/**
-	 * Fires item selector save event on selected node change
-	 *
-	 * @param {!Event} event
-	 * @protected
-	 */
-
-	selectedNodeChange_(event) {
-		var node = event.newVal[0];
-
-		if (node) {
-			var data = {
-				selectSiteNavigationMenuItemId: node.id,
-				selectSiteNavigationMenuItemName: node.name
-			};
-
-			Liferay.Util.getOpener().Liferay.fire(this.itemSelectorSaveEvent, {
-				data
-			});
-		}
-	}
+	return null;
 }
 
-SelectSiteNavigationMenuItem.STATE = {
-	/**
-	 * Event name to fire on node selection
-	 * @type {String}
-	 */
+const SelectSiteNavigationMenuItem = ({itemSelectorSaveEvent, nodes}) => {
+	const [filterQuery, setFilterQuery] = useState('');
 
-	itemSelectorSaveEvent: Config.string(),
+	const handleQueryChange = useCallback((event) => {
+		const value = event.target.value;
 
-	/**
-	 * List of nodes
-	 * @type {Array.<Object>}
-	 */
+		setFilterQuery(value);
+	}, []);
 
-	nodes: Config.array().required(),
+	const handleSelectionChange = (selectedNodeIds) => {
+		const selectedNodeId = [...selectedNodeIds][0];
 
-	/**
-	 * Theme images root path
-	 * @type {String}
-	 */
+		if (selectedNodeId) {
+			const {id, name} = findSiteNavigationMenuItem(
+				selectedNodeId,
+				nodes
+			);
 
-	pathThemeImages: Config.string().required(),
+			const data = {
+				selectSiteNavigationMenuItemId: id,
+				selectSiteNavigationMenuItemName: name,
+			};
 
-	/**
-	 * Type of view to render. Accepted values are 'tree' and 'flat'
-	 * @type {String}
-	 */
+			Liferay.Util.getOpener().Liferay.fire(itemSelectorSaveEvent, {
+				data,
+			});
+		}
+	};
 
-	viewType: Config.string().value('tree')
+	return (
+		<ClayLayout.ContainerFluid>
+			<nav className="collapse-basic-search navbar navbar-default navbar-no-collapse">
+				<ClayInput.Group className="basic-search">
+					<ClayInput.GroupItem prepend>
+						<ClayInput
+							aria-label={Liferay.Language.get('search')}
+							onChange={handleQueryChange}
+							placeholder={`${Liferay.Language.get('search')}`}
+							type="text"
+						/>
+					</ClayInput.GroupItem>
+
+					<ClayInput.GroupItem append shrink>
+						<ClayButtonWithIcon
+							displayType="unstyled"
+							symbol="search"
+						/>
+					</ClayInput.GroupItem>
+				</ClayInput.Group>
+			</nav>
+
+			<Treeview
+				NodeComponent={Treeview.Card}
+				filterQuery={filterQuery}
+				nodes={nodes}
+				onSelectedNodesChange={handleSelectionChange}
+			/>
+		</ClayLayout.ContainerFluid>
+	);
 };
-
-Soy.register(SelectSiteNavigationMenuItem, templates);
 
 export default SelectSiteNavigationMenuItem;

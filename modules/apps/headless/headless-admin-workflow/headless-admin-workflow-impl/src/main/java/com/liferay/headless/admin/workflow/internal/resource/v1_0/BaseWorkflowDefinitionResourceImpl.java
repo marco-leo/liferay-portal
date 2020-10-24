@@ -17,11 +17,16 @@ package com.liferay.headless.admin.workflow.internal.resource.v1_0;
 import com.liferay.headless.admin.workflow.dto.v1_0.WorkflowDefinition;
 import com.liferay.headless.admin.workflow.resource.v1_0.WorkflowDefinitionResource;
 import com.liferay.petra.function.UnsafeFunction;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.GroupedModel;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.ResourceActionLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
+import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
 
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,6 +37,7 @@ import io.swagger.v3.oas.annotations.tags.Tags;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Generated;
 
@@ -104,7 +110,7 @@ public abstract class BaseWorkflowDefinitionResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/headless-admin-workflow/v1.0/workflow-definitions/deploy'  -u 'test@liferay.com:test'
+	 * curl -X 'POST' 'http://localhost:8080/o/headless-admin-workflow/v1.0/workflow-definitions/deploy' -d $'{"active": ___, "content": ___, "name": ___, "title": ___, "version": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
 	@Override
 	@Consumes({"application/json", "application/xml"})
@@ -122,7 +128,7 @@ public abstract class BaseWorkflowDefinitionResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/headless-admin-workflow/v1.0/workflow-definitions/save'  -u 'test@liferay.com:test'
+	 * curl -X 'POST' 'http://localhost:8080/o/headless-admin-workflow/v1.0/workflow-definitions/save' -d $'{"active": ___, "content": ___, "name": ___, "title": ___, "version": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
 	@Override
 	@Consumes({"application/json", "application/xml"})
@@ -151,7 +157,7 @@ public abstract class BaseWorkflowDefinitionResourceImpl
 		}
 	)
 	@Path("/workflow-definitions/undeploy")
-	@Produces("application/json")
+	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "WorkflowDefinition")})
 	public void deleteWorkflowDefinitionUndeploy(
 			@NotNull @Parameter(hidden = true) @QueryParam("name") String name,
@@ -188,39 +194,13 @@ public abstract class BaseWorkflowDefinitionResourceImpl
 		return new WorkflowDefinition();
 	}
 
-	/**
-	 * Invoke this method with the command line:
-	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/headless-admin-workflow/v1.0/workflow-definitions/update-title'  -u 'test@liferay.com:test'
-	 */
-	@Override
-	@POST
-	@Parameters(
-		value = {
-			@Parameter(in = ParameterIn.QUERY, name = "name"),
-			@Parameter(in = ParameterIn.QUERY, name = "title"),
-			@Parameter(in = ParameterIn.QUERY, name = "version")
-		}
-	)
-	@Path("/workflow-definitions/update-title")
-	@Produces({"application/json", "application/xml"})
-	@Tags(value = {@Tag(name = "WorkflowDefinition")})
-	public WorkflowDefinition postWorkflowDefinitionUpdateTitle(
-			@NotNull @Parameter(hidden = true) @QueryParam("name") String name,
-			@NotNull @Parameter(hidden = true) @QueryParam("title") String
-				title,
-			@NotNull @Parameter(hidden = true) @QueryParam("version") String
-				version)
-		throws Exception {
-
-		return new WorkflowDefinition();
-	}
-
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {
 		this.contextAcceptLanguage = contextAcceptLanguage;
 	}
 
-	public void setContextCompany(Company contextCompany) {
+	public void setContextCompany(
+		com.liferay.portal.kernel.model.Company contextCompany) {
+
 		this.contextCompany = contextCompany;
 	}
 
@@ -240,13 +220,52 @@ public abstract class BaseWorkflowDefinitionResourceImpl
 		this.contextUriInfo = contextUriInfo;
 	}
 
-	public void setContextUser(User contextUser) {
+	public void setContextUser(
+		com.liferay.portal.kernel.model.User contextUser) {
+
 		this.contextUser = contextUser;
 	}
 
-	protected void preparePatch(
-		WorkflowDefinition workflowDefinition,
-		WorkflowDefinition existingWorkflowDefinition) {
+	public void setGroupLocalService(GroupLocalService groupLocalService) {
+		this.groupLocalService = groupLocalService;
+	}
+
+	public void setRoleLocalService(RoleLocalService roleLocalService) {
+		this.roleLocalService = roleLocalService;
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, GroupedModel groupedModel, String methodName) {
+
+		return ActionUtil.addAction(
+			actionName, getClass(), groupedModel, methodName,
+			contextScopeChecker, contextUriInfo);
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, Long id, String methodName, Long ownerId,
+		String permissionName, Long siteId) {
+
+		return ActionUtil.addAction(
+			actionName, getClass(), id, methodName, contextScopeChecker,
+			ownerId, permissionName, siteId, contextUriInfo);
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, Long id, String methodName,
+		ModelResourcePermission modelResourcePermission) {
+
+		return ActionUtil.addAction(
+			actionName, getClass(), id, methodName, contextScopeChecker,
+			modelResourcePermission, contextUriInfo);
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, String methodName, String permissionName,
+		Long siteId) {
+
+		return addAction(
+			actionName, siteId, methodName, null, permissionName, siteId);
 	}
 
 	protected <T, R> List<R> transform(
@@ -278,10 +297,15 @@ public abstract class BaseWorkflowDefinitionResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
-	protected Company contextCompany;
+	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;
+	protected Object contextScopeChecker;
 	protected UriInfo contextUriInfo;
-	protected User contextUser;
+	protected com.liferay.portal.kernel.model.User contextUser;
+	protected GroupLocalService groupLocalService;
+	protected ResourceActionLocalService resourceActionLocalService;
+	protected ResourcePermissionLocalService resourcePermissionLocalService;
+	protected RoleLocalService roleLocalService;
 
 }

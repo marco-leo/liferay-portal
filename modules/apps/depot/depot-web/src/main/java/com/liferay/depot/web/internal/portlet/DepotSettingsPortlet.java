@@ -15,9 +15,11 @@
 package com.liferay.depot.web.internal.portlet;
 
 import com.liferay.depot.model.DepotEntry;
-import com.liferay.depot.service.DepotEntryLocalService;
+import com.liferay.depot.service.DepotEntryService;
+import com.liferay.depot.web.internal.application.controller.DepotApplicationController;
 import com.liferay.depot.web.internal.constants.DepotAdminWebKeys;
 import com.liferay.depot.web.internal.constants.DepotPortletKeys;
+import com.liferay.depot.web.internal.display.context.DepotAdminDetailsDisplayContext;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.DynamicRenderRequest;
@@ -64,10 +66,15 @@ public class DepotSettingsPortlet extends MVCPortlet {
 		throws IOException, PortletException {
 
 		try {
+			renderRequest.setAttribute(
+				DepotAdminWebKeys.DEPOT_ADMIN_DETAILS_DISPLAY_CONTEXT,
+				new DepotAdminDetailsDisplayContext(
+					_depotApplicationController, renderRequest));
+
 			ThemeDisplay themeDisplay =
 				(ThemeDisplay)renderRequest.getAttribute(WebKeys.THEME_DISPLAY);
 
-			DepotEntry depotEntry = _depotEntryLocalService.getGroupDepotEntry(
+			DepotEntry depotEntry = _depotEntryService.getGroupDepotEntry(
 				themeDisplay.getScopeGroupId());
 
 			renderRequest.setAttribute(
@@ -75,6 +82,8 @@ public class DepotSettingsPortlet extends MVCPortlet {
 
 			renderRequest.setAttribute(
 				DepotAdminWebKeys.ITEM_SELECTOR, _itemSelector);
+			renderRequest.setAttribute(
+				DepotAdminWebKeys.SHOW_BREADCRUMB, Boolean.TRUE);
 
 			super.doView(
 				new DynamicRenderRequest(
@@ -87,13 +96,16 @@ public class DepotSettingsPortlet extends MVCPortlet {
 					).build()),
 				renderResponse);
 		}
-		catch (PortalException pe) {
-			throw new PortletException(pe);
+		catch (PortalException portalException) {
+			throw new PortletException(portalException);
 		}
 	}
 
 	@Reference
-	private DepotEntryLocalService _depotEntryLocalService;
+	private DepotApplicationController _depotApplicationController;
+
+	@Reference
+	private DepotEntryService _depotEntryService;
 
 	@Reference
 	private ItemSelector _itemSelector;

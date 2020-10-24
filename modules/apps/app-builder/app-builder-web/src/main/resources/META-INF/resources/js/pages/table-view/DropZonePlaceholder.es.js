@@ -13,6 +13,7 @@
  */
 
 import classNames from 'classnames';
+import {DragTypes} from 'data-engine-taglib';
 import React, {useLayoutEffect, useState} from 'react';
 import {useDrop} from 'react-dnd';
 
@@ -58,20 +59,20 @@ const getStyle = (container, index, total) => {
 		left: getLeft(container, index),
 		position: 'absolute',
 		top: container.offsetTop,
-		width: getWidth(container, index, total)
+		width: getWidth(container, index, total),
 	};
 };
 
 const Placeholder = ({container, index, onAddFieldName, total}) => {
 	const [{canDrop, overTarget}, drop] = useDrop({
-		accept: 'fieldType',
-		collect: monitor => ({
+		accept: DragTypes.DRAG_FIELD_TYPE,
+		collect: (monitor) => ({
 			canDrop: monitor.canDrop(),
-			overTarget: monitor.isOver()
+			overTarget: monitor.isOver(),
 		}),
 		drop: ({data: {name}}) => {
 			onAddFieldName(name, index);
-		}
+		},
 	});
 
 	return (
@@ -80,7 +81,7 @@ const Placeholder = ({container, index, onAddFieldName, total}) => {
 				'column-drop-zone-left': overTarget && index === 0,
 				'column-drop-zone-right': overTarget && index > 0,
 				hide: !canDrop,
-				'target-over': overTarget
+				'target-over': overTarget,
 			})}
 			ref={drop}
 			style={getStyle(container, index, total)}

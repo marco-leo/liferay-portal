@@ -46,7 +46,8 @@ public class RefreshIndexRequestExecutorImpl
 		RefreshRequest refreshRequest = createRefreshRequest(
 			refreshIndexRequest);
 
-		RefreshResponse refreshResponse = getRefreshResponse(refreshRequest);
+		RefreshResponse refreshResponse = getRefreshResponse(
+			refreshRequest, refreshIndexRequest);
 
 		RefreshIndexResponse refreshIndexResponse = new RefreshIndexResponse();
 
@@ -81,10 +82,13 @@ public class RefreshIndexRequestExecutorImpl
 	}
 
 	protected RefreshResponse getRefreshResponse(
-		RefreshRequest refreshRequest) {
+		RefreshRequest refreshRequest,
+		RefreshIndexRequest refreshIndexRequest) {
 
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				refreshIndexRequest.getConnectionId(),
+				refreshIndexRequest.isPreferLocalCluster());
 
 		IndicesClient indicesClient = restHighLevelClient.indices();
 
@@ -92,8 +96,8 @@ public class RefreshIndexRequestExecutorImpl
 			return indicesClient.refresh(
 				refreshRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

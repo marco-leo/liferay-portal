@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Account;
 import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.service.AccountLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -72,9 +73,10 @@ public class DefaultCompanyNameSwapper {
 				}
 			}
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn("Unable to swap default company name", pe);
+				_log.warn(
+					"Unable to swap default company name", portalException);
 			}
 		}
 	}
@@ -100,10 +102,11 @@ public class DefaultCompanyNameSwapper {
 
 			_accountLocalService.updateAccount(account);
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
-					"Unable to swap default company name for " + company, pe);
+					"Unable to swap default company name for " + company,
+					portalException);
 			}
 		}
 	}
@@ -116,5 +119,8 @@ public class DefaultCompanyNameSwapper {
 
 	@Reference
 	private CompanyLocalService _companyLocalService;
+
+	@Reference(target = ModuleServiceLifecycle.PORTLETS_INITIALIZED)
+	private ModuleServiceLifecycle _moduleServiceLifecycle;
 
 }

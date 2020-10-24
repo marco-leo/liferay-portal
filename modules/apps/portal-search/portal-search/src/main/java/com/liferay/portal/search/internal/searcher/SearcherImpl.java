@@ -57,16 +57,16 @@ public class SearcherImpl implements Searcher {
 		);
 	}
 
-	protected static RuntimeException uncheck(SearchException se) {
-		if (se.getCause() instanceof RuntimeException) {
-			return (RuntimeException)se.getCause();
+	protected static RuntimeException uncheck(SearchException searchException) {
+		if (searchException.getCause() instanceof RuntimeException) {
+			return (RuntimeException)searchException.getCause();
 		}
 
-		if (se.getCause() != null) {
-			return new RuntimeException(se.getCause());
+		if (searchException.getCause() != null) {
+			return new RuntimeException(searchException.getCause());
 		}
 
-		return new RuntimeException(se);
+		return new RuntimeException(searchException);
 	}
 
 	protected void doFederatedSearches(
@@ -230,26 +230,28 @@ public class SearcherImpl implements Searcher {
 		try {
 			return facetedSearcher.search(searchContext);
 		}
-		catch (SearchException se) {
-			throw uncheck(se);
+		catch (SearchException searchException) {
+			throw uncheck(searchException);
 		}
 	}
 
-	protected Hits search(Indexer indexer, SearchContext searchContext) {
+	protected Hits search(Indexer<?> indexer, SearchContext searchContext) {
 		try {
 			return indexer.search(searchContext);
 		}
-		catch (SearchException se) {
-			throw uncheck(se);
+		catch (SearchException searchException) {
+			throw uncheck(searchException);
 		}
 	}
 
-	protected long searchCount(Indexer indexer, SearchContext searchContext) {
+	protected long searchCount(
+		Indexer<?> indexer, SearchContext searchContext) {
+
 		try {
 			return indexer.searchCount(searchContext);
 		}
-		catch (SearchException se) {
-			throw uncheck(se);
+		catch (SearchException searchException) {
+			throw uncheck(searchException);
 		}
 	}
 

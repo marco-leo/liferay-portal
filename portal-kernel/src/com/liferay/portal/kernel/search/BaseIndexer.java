@@ -19,6 +19,7 @@ import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.exception.NoSuchCountryException;
 import com.liferay.portal.kernel.exception.NoSuchModelException;
 import com.liferay.portal.kernel.exception.NoSuchRegionException;
@@ -33,6 +34,7 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.model.ResourcedModel;
 import com.liferay.portal.kernel.model.WorkflowedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 import com.liferay.portal.kernel.search.facet.Facet;
 import com.liferay.portal.kernel.search.facet.MultiValueFacet;
 import com.liferay.portal.kernel.search.filter.BooleanFilter;
@@ -50,7 +52,6 @@ import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RegionServiceUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -94,11 +95,11 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 			IndexWriterHelperUtil.deleteDocument(
 				getSearchEngineId(), companyId, uid, _commitImmediately);
 		}
-		catch (SearchException se) {
-			throw se;
+		catch (SearchException searchException) {
+			throw searchException;
 		}
-		catch (Exception e) {
-			throw new SearchException(e);
+		catch (Exception exception) {
+			throw new SearchException(exception);
 		}
 	}
 
@@ -108,14 +109,24 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 			return;
 		}
 
+		if (object instanceof CTModel<?>) {
+			CTModel<?> ctModel = (CTModel<?>)object;
+
+			if ((ctModel.getCtCollectionId() == 0) &&
+				!CTCollectionThreadLocal.isProductionMode()) {
+
+				return;
+			}
+		}
+
 		try {
 			doDelete(object);
 		}
-		catch (SearchException se) {
-			throw se;
+		catch (SearchException searchException) {
+			throw searchException;
 		}
-		catch (Exception e) {
-			throw new SearchException(e);
+		catch (Exception exception) {
+			throw new SearchException(exception);
 		}
 	}
 
@@ -161,11 +172,11 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 
 			return document;
 		}
-		catch (SearchException se) {
-			throw se;
+		catch (SearchException searchException) {
+			throw searchException;
 		}
-		catch (Exception e) {
-			throw new SearchException(e);
+		catch (Exception exception) {
+			throw new SearchException(exception);
 		}
 	}
 
@@ -222,11 +233,11 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 
 			return fullQuery;
 		}
-		catch (SearchException se) {
-			throw se;
+		catch (SearchException searchException) {
+			throw searchException;
 		}
-		catch (Exception e) {
-			throw new SearchException(e);
+		catch (Exception exception) {
+			throw new SearchException(exception);
 		}
 	}
 
@@ -315,11 +326,11 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 
 			return summary;
 		}
-		catch (SearchException se) {
-			throw se;
+		catch (SearchException searchException) {
+			throw searchException;
 		}
-		catch (Exception e) {
-			throw new SearchException(e);
+		catch (Exception exception) {
+			throw new SearchException(exception);
 		}
 	}
 
@@ -451,8 +462,9 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 			try {
 				reindex(element);
 			}
-			catch (SearchException se) {
-				_log.error("Unable to index object: " + element, se);
+			catch (SearchException searchException) {
+				_log.error(
+					"Unable to index object: " + element, searchException);
 			}
 		}
 	}
@@ -469,19 +481,19 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 
 			doReindex(className, classPK);
 		}
-		catch (NoSuchModelException nsme) {
+		catch (NoSuchModelException noSuchModelException) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					StringBundler.concat(
 						"Unable to index ", className, " ", classPK),
-					nsme);
+					noSuchModelException);
 			}
 		}
-		catch (SearchException se) {
-			throw se;
+		catch (SearchException searchException) {
+			throw searchException;
 		}
-		catch (Exception e) {
-			throw new SearchException(e);
+		catch (Exception exception) {
+			throw new SearchException(exception);
 		}
 	}
 
@@ -505,11 +517,11 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 
 			doReindex(ids);
 		}
-		catch (SearchException se) {
-			throw se;
+		catch (SearchException searchException) {
+			throw searchException;
 		}
-		catch (Exception e) {
-			throw new SearchException(e);
+		catch (Exception exception) {
+			throw new SearchException(exception);
 		}
 		finally {
 			CompanyThreadLocal.setCompanyId(companyThreadLocalCompanyId);
@@ -532,11 +544,11 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 
 			doReindex(object);
 		}
-		catch (SearchException se) {
-			throw se;
+		catch (SearchException searchException) {
+			throw searchException;
 		}
-		catch (Exception e) {
-			throw new SearchException(e);
+		catch (Exception exception) {
+			throw new SearchException(exception);
 		}
 	}
 
@@ -579,11 +591,11 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 
 			return hits;
 		}
-		catch (SearchException se) {
-			throw se;
+		catch (SearchException searchException) {
+			throw searchException;
 		}
-		catch (Exception e) {
-			throw new SearchException(e);
+		catch (Exception exception) {
+			throw new SearchException(exception);
 		}
 	}
 
@@ -887,9 +899,10 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 			boolean like)
 		throws Exception {
 
-		Map<String, Query> queries = HashMapBuilder.<String, Query>put(
-			field, addSearchTerm(searchQuery, searchContext, field, like)
-		).build();
+		Map<String, Query> queries = new HashMap<>();
+
+		queries.put(
+			field, addSearchTerm(searchQuery, searchContext, field, like));
 
 		String localizedFieldName = Field.getLocalizedName(
 			searchContext.getLocale(), field);
@@ -1115,13 +1128,21 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 	protected void deleteDocument(long companyId, String field1)
 		throws Exception {
 
-		Document document = new DocumentImpl();
+		String uid = null;
 
-		document.addUID(getClassName(), field1);
+		if (field1.startsWith("UID=")) {
+			uid = field1.substring(4);
+		}
+		else {
+			Document document = new DocumentImpl();
+
+			document.addUID(getClassName(), field1);
+
+			uid = document.get(Field.UID);
+		}
 
 		IndexWriterHelperUtil.deleteDocument(
-			getSearchEngineId(), companyId, document.get(Field.UID),
-			_commitImmediately);
+			getSearchEngineId(), companyId, uid, _commitImmediately);
 	}
 
 	protected void deleteDocument(long companyId, String field1, String field2)
@@ -1239,10 +1260,14 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 			document.addKeyword(Field.STATUS, workflowedModel.getStatus());
 		}
 
-		for (DocumentContributor documentContributor :
+		for (DocumentContributor<?> documentContributor :
 				getDocumentContributors()) {
 
-			documentContributor.contribute(document, baseModel);
+			DocumentContributor<Object> objectDocumentContributor =
+				(DocumentContributor<Object>)documentContributor;
+
+			objectDocumentContributor.contribute(
+				document, (BaseModel<Object>)baseModel);
 		}
 
 		return document;
@@ -1260,13 +1285,13 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 		return _defaultSelectedLocalizedFieldNames;
 	}
 
-	protected List<DocumentContributor> getDocumentContributors() {
+	protected List<DocumentContributor<?>> getDocumentContributors() {
 		if (_documentContributors != null) {
 			return _documentContributors;
 		}
 
 		_documentContributors = ServiceTrackerCollections.openList(
-			DocumentContributor.class);
+			(Class<DocumentContributor<?>>)(Class<?>)DocumentContributor.class);
 
 		return _documentContributors;
 	}
@@ -1314,9 +1339,9 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 				group = group.getParentGroup();
 			}
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug("Unable to get site group", pe);
+				_log.debug("Unable to get site group", portalException);
 			}
 		}
 
@@ -1403,9 +1428,9 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 					getLocalizedCountryNames(
 						CountryServiceUtil.getCountry(countryId)));
 			}
-			catch (NoSuchCountryException nsce) {
+			catch (NoSuchCountryException noSuchCountryException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(nsce.getMessage());
+					_log.warn(noSuchCountryException.getMessage());
 				}
 			}
 		}
@@ -1418,9 +1443,9 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 
 				regions.add(StringUtil.toLowerCase(region.getName()));
 			}
-			catch (NoSuchRegionException nsre) {
+			catch (NoSuchRegionException noSuchRegionException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(nsre.getMessage());
+					_log.warn(noSuchRegionException.getMessage());
 				}
 			}
 		}
@@ -1572,7 +1597,7 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 	private String[] _defaultSelectedFieldNames;
 	private String[] _defaultSelectedLocalizedFieldNames;
 	private final Document _document = new DocumentImpl();
-	private List<DocumentContributor> _documentContributors;
+	private List<DocumentContributor<?>> _documentContributors;
 	private boolean _filterSearch;
 	private Boolean _indexerEnabled;
 	private IndexerPostProcessor[] _indexerPostProcessors =

@@ -15,6 +15,7 @@
 package com.liferay.segments.service.persistence;
 
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.segments.exception.NoSuchEntryRoleException;
 import com.liferay.segments.model.SegmentsEntryRole;
 
@@ -33,9 +34,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface SegmentsEntryRolePersistence
-	extends BasePersistence<SegmentsEntryRole> {
+	extends BasePersistence<SegmentsEntryRole>,
+			CTPersistence<SegmentsEntryRole> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link SegmentsEntryRoleUtil} to access the segments entry role persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

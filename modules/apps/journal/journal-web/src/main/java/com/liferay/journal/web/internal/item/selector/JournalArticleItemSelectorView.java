@@ -17,20 +17,25 @@ package com.liferay.journal.web.internal.item.selector;
 import com.liferay.info.item.selector.InfoItemSelectorView;
 import com.liferay.item.selector.ItemSelectorReturnType;
 import com.liferay.item.selector.ItemSelectorView;
+import com.liferay.item.selector.PortletItemSelectorView;
 import com.liferay.item.selector.criteria.InfoItemItemSelectorReturnType;
 import com.liferay.item.selector.criteria.JournalArticleItemSelectorReturnType;
 import com.liferay.item.selector.criteria.info.item.criterion.InfoItemItemSelectorCriterion;
+import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.model.JournalArticle;
+import com.liferay.journal.web.internal.configuration.JournalWebConfiguration;
 import com.liferay.journal.web.internal.constants.JournalWebConstants;
 import com.liferay.journal.web.internal.display.context.JournalArticleItemSelectorViewDisplayContext;
+import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.language.Language;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
 
 import java.io.IOException;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.portlet.PortletURL;
 
@@ -41,19 +46,22 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Eudaldo Alonso
  */
 @Component(
+	configurationPid = "com.liferay.journal.web.internal.configuration.JournalWebConfiguration",
 	property = "item.selector.view.order:Integer=100",
 	service = ItemSelectorView.class
 )
 public class JournalArticleItemSelectorView
 	implements InfoItemSelectorView,
-			   ItemSelectorView<InfoItemItemSelectorCriterion> {
+			   PortletItemSelectorView<InfoItemItemSelectorCriterion> {
 
 	@Override
 	public String getClassName() {
@@ -65,6 +73,11 @@ public class JournalArticleItemSelectorView
 		getItemSelectorCriterionClass() {
 
 		return InfoItemItemSelectorCriterion.class;
+	}
+
+	@Override
+	public List<String> getPortletIds() {
+		return _portletIds;
 	}
 
 	public ServletContext getServletContext() {
@@ -82,11 +95,6 @@ public class JournalArticleItemSelectorView
 	}
 
 	@Override
-	public boolean isVisible(ThemeDisplay themeDisplay) {
-		return true;
-	}
-
-	@Override
 	public void renderHTML(
 			ServletRequest servletRequest, ServletResponse servletResponse,
 			InfoItemItemSelectorCriterion infoItemItemSelectorCriterion,
@@ -98,7 +106,7 @@ public class JournalArticleItemSelectorView
 				new JournalArticleItemSelectorViewDisplayContext(
 					(HttpServletRequest)servletRequest,
 					infoItemItemSelectorCriterion, itemSelectedEventName, this,
-					portletURL, search);
+					_journalWebConfiguration, portletURL, search);
 
 		servletRequest.setAttribute(
 			JournalWebConstants.
@@ -114,10 +122,21 @@ public class JournalArticleItemSelectorView
 		requestDispatcher.include(servletRequest, servletResponse);
 	}
 
+	@Activate
+	@Modified
+	protected void activate(Map<String, Object> properties) {
+		_journalWebConfiguration = ConfigurableUtil.createConfigurable(
+			JournalWebConfiguration.class, properties);
+	}
+
+	private static final List<String> _portletIds = Collections.singletonList(
+		JournalPortletKeys.JOURNAL);
 	private static final List<ItemSelectorReturnType>
 		_supportedItemSelectorReturnTypes = Arrays.asList(
 			new InfoItemItemSelectorReturnType(),
 			new JournalArticleItemSelectorReturnType());
+
+	private volatile JournalWebConfiguration _journalWebConfiguration;
 
 	@Reference
 	private Language _language;

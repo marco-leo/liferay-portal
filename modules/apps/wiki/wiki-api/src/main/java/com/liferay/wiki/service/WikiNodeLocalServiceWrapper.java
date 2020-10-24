@@ -32,11 +32,6 @@ public class WikiNodeLocalServiceWrapper
 		_wikiNodeLocalService = wikiNodeLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link WikiNodeLocalServiceUtil} to access the wiki node local service. Add custom service methods to <code>com.liferay.wiki.service.impl.WikiNodeLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.wiki.model.WikiNode addDefaultNode(
 			long userId,
@@ -89,6 +84,10 @@ public class WikiNodeLocalServiceWrapper
 	/**
 	 * Adds the wiki node to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiNodeLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param wikiNode the wiki node
 	 * @return the wiki node that was added
 	 */
@@ -97,6 +96,17 @@ public class WikiNodeLocalServiceWrapper
 		com.liferay.wiki.model.WikiNode wikiNode) {
 
 		return _wikiNodeLocalService.addWikiNode(wikiNode);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _wikiNodeLocalService.createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -145,6 +155,10 @@ public class WikiNodeLocalServiceWrapper
 	/**
 	 * Deletes the wiki node with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiNodeLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param nodeId the primary key of the wiki node
 	 * @return the wiki node that was removed
 	 * @throws PortalException if a wiki node with the primary key could not be found
@@ -159,6 +173,10 @@ public class WikiNodeLocalServiceWrapper
 	/**
 	 * Deletes the wiki node from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiNodeLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param wikiNode the wiki node
 	 * @return the wiki node that was removed
 	 */
@@ -167,6 +185,11 @@ public class WikiNodeLocalServiceWrapper
 		com.liferay.wiki.model.WikiNode wikiNode) {
 
 		return _wikiNodeLocalService.deleteWikiNode(wikiNode);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _wikiNodeLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -409,6 +432,9 @@ public class WikiNodeLocalServiceWrapper
 		return _wikiNodeLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -582,6 +608,10 @@ public class WikiNodeLocalServiceWrapper
 
 	/**
 	 * Updates the wiki node in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect WikiNodeLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param wikiNode the wiki node
 	 * @return the wiki node that was updated

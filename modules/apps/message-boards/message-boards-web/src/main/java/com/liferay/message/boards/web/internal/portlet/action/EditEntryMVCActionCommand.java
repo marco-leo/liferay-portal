@@ -33,7 +33,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -93,11 +92,11 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 		}
 
 		if (moveToTrash && !trashedModels.isEmpty()) {
-			Map<String, Object> data = HashMapBuilder.<String, Object>put(
-				"trashedModels", trashedModels
-			).build();
-
-			addDeleteSuccessData(actionRequest, data);
+			addDeleteSuccessData(
+				actionRequest,
+				HashMapBuilder.<String, Object>put(
+					"trashedModels", trashedModels
+				).build());
 		}
 	}
 
@@ -122,8 +121,8 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 				unlockThreads(actionRequest);
 			}
 		}
-		catch (LockedThreadException | PrincipalException e) {
-			SessionErrors.add(actionRequest, e.getClass());
+		catch (LockedThreadException | PrincipalException exception) {
+			SessionErrors.add(actionRequest, exception.getClass());
 
 			actionResponse.setRenderParameter(
 				"mvcPath", "/message_boards/error.jsp");

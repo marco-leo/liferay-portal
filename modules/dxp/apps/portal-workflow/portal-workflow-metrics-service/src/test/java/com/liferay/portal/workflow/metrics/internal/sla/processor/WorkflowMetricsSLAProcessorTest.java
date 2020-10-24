@@ -33,20 +33,16 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Rafael Praxedes
  */
-@RunWith(PowerMockRunner.class)
 public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 
 	@BeforeClass
@@ -145,6 +141,70 @@ public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 	}
 
 	@Test
+	public void testProcessCompletedInstanceWithoutTasks() throws Exception {
+		LocalDateTime nowLocalDateTime = _createLocalDateTime();
+
+		LocalDateTime createLocalDateTime = nowLocalDateTime.minus(
+			10, ChronoUnit.SECONDS);
+
+		_test(
+			nowLocalDateTime, createLocalDateTime, null, 10000, 0, null,
+			nowLocalDateTime, true, 10000, WorkflowMetricsSLAStatus.COMPLETED);
+	}
+
+	@Test
+	public void testProcessCompletedOnTimeInstance() throws Exception {
+		LocalDateTime nowLocalDateTime = _createLocalDateTime();
+
+		LocalDateTime createLocalDateTime = nowLocalDateTime.minus(
+			10, ChronoUnit.SECONDS);
+
+		_test(
+			nowLocalDateTime, createLocalDateTime,
+			Arrays.asList(
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"completionDate",
+						_format(nowLocalDateTime.minus(3, ChronoUnit.SECONDS))
+					).put(
+						"createDate",
+						_format(nowLocalDateTime.minus(9, ChronoUnit.SECONDS))
+					).put(
+						"nodeId", 1
+					).put(
+						"taskId", 1
+					).build())),
+			10000, 9000, null, nowLocalDateTime, true, 1000,
+			WorkflowMetricsSLAStatus.COMPLETED);
+	}
+
+	@Test
+	public void testProcessCompletedOverdueInstance() throws Exception {
+		LocalDateTime nowLocalDateTime = _createLocalDateTime();
+
+		LocalDateTime createLocalDateTime = nowLocalDateTime.minus(
+			10, ChronoUnit.SECONDS);
+
+		_test(
+			nowLocalDateTime, createLocalDateTime,
+			Arrays.asList(
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"completionDate",
+						_format(nowLocalDateTime.minus(3, ChronoUnit.SECONDS))
+					).put(
+						"createDate",
+						_format(nowLocalDateTime.minus(9, ChronoUnit.SECONDS))
+					).put(
+						"nodeId", 1
+					).put(
+						"taskId", 1
+					).build())),
+			5000, 9000, null, nowLocalDateTime, false, -4000,
+			WorkflowMetricsSLAStatus.COMPLETED);
+	}
+
+	@Test
 	public void testProcessOnTimeInstance() throws Exception {
 		LocalDateTime nowLocalDateTime = _createLocalDateTime();
 
@@ -152,16 +212,18 @@ public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 			5, ChronoUnit.SECONDS);
 
 		_test(
-			createLocalDateTime, 5000, 5000, nowLocalDateTime, true, 0,
-			WorkflowMetricsSLAStatus.RUNNING,
-			_createDocument(
-				HashMapBuilder.<String, Object>put(
-					"createDate", _format(createLocalDateTime)
-				).put(
-					"taskId", 1
-				).put(
-					"tokenId", 1
-				).build()));
+			null, createLocalDateTime,
+			Arrays.asList(
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"createDate", _format(createLocalDateTime)
+					).put(
+						"nodeId", 1
+					).put(
+						"taskId", 1
+					).build())),
+			5000, 5000, null, nowLocalDateTime, true, 0,
+			WorkflowMetricsSLAStatus.RUNNING);
 	}
 
 	@Test
@@ -172,28 +234,30 @@ public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 			10, ChronoUnit.SECONDS);
 
 		_test(
-			createLocalDateTime, 10000, 10000, nowLocalDateTime, true, 0,
-			WorkflowMetricsSLAStatus.RUNNING,
-			_createDocument(
-				HashMapBuilder.<String, Object>put(
-					"completionDate",
-					_format(nowLocalDateTime.minus(4, ChronoUnit.SECONDS))
-				).put(
-					"createDate", _format(createLocalDateTime)
-				).put(
-					"taskId", 1
-				).put(
-					"tokenId", 1
-				).build()),
-			_createDocument(
-				HashMapBuilder.<String, Object>put(
-					"createDate",
-					_format(nowLocalDateTime.minus(5, ChronoUnit.SECONDS))
-				).put(
-					"taskId", 2
-				).put(
-					"tokenId", 2
-				).build()));
+			null, createLocalDateTime,
+			Arrays.asList(
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"completionDate",
+						_format(nowLocalDateTime.minus(4, ChronoUnit.SECONDS))
+					).put(
+						"createDate", _format(createLocalDateTime)
+					).put(
+						"nodeId", 1
+					).put(
+						"taskId", 1
+					).build()),
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"createDate",
+						_format(nowLocalDateTime.minus(5, ChronoUnit.SECONDS))
+					).put(
+						"nodeId", 2
+					).put(
+						"taskId", 2
+					).build())),
+			10000, 10000, null, nowLocalDateTime, true, 0,
+			WorkflowMetricsSLAStatus.RUNNING);
 	}
 
 	@Test
@@ -214,16 +278,18 @@ public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 		);
 
 		_test(
-			createdLocalDateTime, 0, null, nowLocalDateTime, true, 0, 0,
-			workflowMetricsSLADefinitionVersion, WorkflowMetricsSLAStatus.NEW,
-			_createDocument(
-				HashMapBuilder.<String, Object>put(
-					"createDate", _format(createdLocalDateTime)
-				).put(
-					"taskId", 1
-				).put(
-					"tokenId", 1
-				).build()));
+			null, createdLocalDateTime,
+			Arrays.asList(
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"createDate", _format(createdLocalDateTime)
+					).put(
+						"nodeId", 1
+					).put(
+						"taskId", 1
+					).build())),
+			0, null, nowLocalDateTime, true, 0, 0,
+			workflowMetricsSLADefinitionVersion, WorkflowMetricsSLAStatus.NEW);
 	}
 
 	@Test
@@ -256,29 +322,31 @@ public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 		);
 
 		_test(
-			createLocalDateTime, 5000, null, nowLocalDateTime, true, 0, 1,
+			null, createLocalDateTime,
+			Arrays.asList(
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"completionDate",
+						_format(nowLocalDateTime.minus(5, ChronoUnit.SECONDS))
+					).put(
+						"createDate", _format(createLocalDateTime)
+					).put(
+						"nodeId", 1
+					).put(
+						"taskId", 1
+					).build()),
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"createDate",
+						_format(nowLocalDateTime.minus(5, ChronoUnit.SECONDS))
+					).put(
+						"nodeId", 2
+					).put(
+						"taskId", 2
+					).build())),
+			5000, null, nowLocalDateTime, true, 0, 1,
 			workflowMetricsSLADefinitionVersion,
-			WorkflowMetricsSLAStatus.PAUSED,
-			_createDocument(
-				HashMapBuilder.<String, Object>put(
-					"completionDate",
-					_format(nowLocalDateTime.minus(5, ChronoUnit.SECONDS))
-				).put(
-					"createDate", _format(createLocalDateTime)
-				).put(
-					"taskId", 1
-				).put(
-					"tokenId", 1
-				).build()),
-			_createDocument(
-				HashMapBuilder.<String, Object>put(
-					"createDate",
-					_format(nowLocalDateTime.minus(5, ChronoUnit.SECONDS))
-				).put(
-					"taskId", 2
-				).put(
-					"tokenId", 2
-				).build()));
+			WorkflowMetricsSLAStatus.PAUSED);
 	}
 
 	@Test
@@ -317,31 +385,33 @@ public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 		);
 
 		_test(
-			createLocalDateTime, 10000, null, nowLocalDateTime, true, 0, 1,
+			null, createLocalDateTime,
+			Arrays.asList(
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"completionDate",
+						_format(nowLocalDateTime.minus(5, ChronoUnit.SECONDS))
+					).put(
+						"createDate", _format(createLocalDateTime)
+					).put(
+						"nodeId", 1
+					).put(
+						"taskId", 1
+					).build()),
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"completionDate", _format(nowLocalDateTime)
+					).put(
+						"createDate",
+						_format(nowLocalDateTime.minus(5, ChronoUnit.SECONDS))
+					).put(
+						"nodeId", 2
+					).put(
+						"taskId", 2
+					).build())),
+			10000, null, nowLocalDateTime, true, 0, 1,
 			workflowMetricsSLADefinitionVersion,
-			WorkflowMetricsSLAStatus.STOPPED,
-			_createDocument(
-				HashMapBuilder.<String, Object>put(
-					"completionDate",
-					_format(nowLocalDateTime.minus(5, ChronoUnit.SECONDS))
-				).put(
-					"createDate", _format(createLocalDateTime)
-				).put(
-					"taskId", 1
-				).put(
-					"tokenId", 1
-				).build()),
-			_createDocument(
-				HashMapBuilder.<String, Object>put(
-					"completionDate", _format(nowLocalDateTime)
-				).put(
-					"createDate",
-					_format(nowLocalDateTime.minus(5, ChronoUnit.SECONDS))
-				).put(
-					"taskId", 2
-				).put(
-					"tokenId", 2
-				).build()));
+			WorkflowMetricsSLAStatus.STOPPED);
 	}
 
 	@Test
@@ -374,20 +444,22 @@ public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 		);
 
 		_test(
-			createLocalDateTime, 5000, null, nowLocalDateTime, true, 5000, 1,
+			null, createLocalDateTime,
+			Arrays.asList(
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"completionDate",
+						_format(nowLocalDateTime.minus(5, ChronoUnit.SECONDS))
+					).put(
+						"createDate", _format(createLocalDateTime)
+					).put(
+						"nodeId", 1
+					).put(
+						"taskId", 1
+					).build())),
+			5000, null, nowLocalDateTime, true, 5000, 1,
 			workflowMetricsSLADefinitionVersion,
-			WorkflowMetricsSLAStatus.STOPPED,
-			_createDocument(
-				HashMapBuilder.<String, Object>put(
-					"completionDate",
-					_format(nowLocalDateTime.minus(5, ChronoUnit.SECONDS))
-				).put(
-					"createDate", _format(createLocalDateTime)
-				).put(
-					"taskId", 1
-				).put(
-					"tokenId", 1
-				).build()));
+			WorkflowMetricsSLAStatus.STOPPED);
 	}
 
 	@Test
@@ -398,16 +470,18 @@ public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 			6, ChronoUnit.SECONDS);
 
 		_test(
-			createLocalDateTime, 5000, 6000, nowLocalDateTime, false, -1000,
-			WorkflowMetricsSLAStatus.RUNNING,
-			_createDocument(
-				HashMapBuilder.<String, Object>put(
-					"createDate", _format(createLocalDateTime)
-				).put(
-					"taskId", 1
-				).put(
-					"tokenId", 1
-				).build()));
+			null, createLocalDateTime,
+			Arrays.asList(
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"createDate", _format(createLocalDateTime)
+					).put(
+						"nodeId", 1
+					).put(
+						"taskId", 1
+					).build())),
+			5000, 6000, null, nowLocalDateTime, false, -1000,
+			WorkflowMetricsSLAStatus.RUNNING);
 	}
 
 	@Test
@@ -418,27 +492,29 @@ public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 			10, ChronoUnit.SECONDS);
 
 		_test(
-			createLocalDateTime, 5000, 10000, nowLocalDateTime, false, -5000,
-			WorkflowMetricsSLAStatus.RUNNING,
-			_createDocument(
-				HashMapBuilder.<String, Object>put(
-					"completionDate",
-					_format(nowLocalDateTime.minus(4, ChronoUnit.SECONDS))
-				).put(
-					"createDate", _format(createLocalDateTime)
-				).put(
-					"taskId", 1
-				).put(
-					"tokenId", 1
-				).build()),
-			_createDocument(
-				HashMapBuilder.<String, Object>put(
-					"createDate", _format(createLocalDateTime)
-				).put(
-					"taskId", 2
-				).put(
-					"tokenId", 2
-				).build()));
+			null, createLocalDateTime,
+			Arrays.asList(
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"completionDate",
+						_format(nowLocalDateTime.minus(4, ChronoUnit.SECONDS))
+					).put(
+						"createDate", _format(createLocalDateTime)
+					).put(
+						"nodeId", 1
+					).put(
+						"taskId", 1
+					).build()),
+				_createDocument(
+					HashMapBuilder.<String, Object>put(
+						"createDate", _format(createLocalDateTime)
+					).put(
+						"nodeId", 2
+					).put(
+						"taskId", 2
+					).build())),
+			5000, 10000, null, nowLocalDateTime, false, -5000,
+			WorkflowMetricsSLAStatus.RUNNING);
 	}
 
 	@Test
@@ -468,8 +544,8 @@ public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 		);
 
 		_test(
-			nowLocalDateTime.minus(10, ChronoUnit.SECONDS), 10000,
-			new WorkflowMetricsSLAProcessResult() {
+			null, nowLocalDateTime.minus(10, ChronoUnit.SECONDS), null, 10000,
+			new WorkflowMetricsSLAInstanceResult() {
 				{
 					setElapsedTime(10000);
 					setLastCheckLocalDateTime(nowLocalDateTime);
@@ -549,23 +625,13 @@ public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 	}
 
 	private void _test(
-			LocalDateTime createLocalDateTime, long duration, long elapsedTime,
+			LocalDateTime completionLocalDateTime,
+			LocalDateTime createLocalDateTime, List<Document> documents,
+			long duration, long elapsedTime,
+			WorkflowMetricsSLAInstanceResult
+				lastWorkflowMetricsSLAInstanceResult,
 			LocalDateTime nowLocalDateTime, boolean onTime, long remainingTime,
-			WorkflowMetricsSLAStatus workflowMetricsSLAStatus,
-			Document... documents)
-		throws Exception {
-
-		_test(
-			createLocalDateTime, duration, elapsedTime, null, nowLocalDateTime,
-			onTime, remainingTime, workflowMetricsSLAStatus, documents);
-	}
-
-	private void _test(
-			LocalDateTime createLocalDateTime, long duration, long elapsedTime,
-			WorkflowMetricsSLAProcessResult lastWorkflowMetricsSLAProcessResult,
-			LocalDateTime nowLocalDateTime, boolean onTime, long remainingTime,
-			WorkflowMetricsSLAStatus workflowMetricsSLAStatus,
-			Document... documents)
+			WorkflowMetricsSLAStatus workflowMetricsSLAStatus)
 		throws Exception {
 
 		WorkflowMetricsSLADefinitionVersion
@@ -585,45 +651,27 @@ public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 		);
 
 		_test(
-			createLocalDateTime, elapsedTime,
-			lastWorkflowMetricsSLAProcessResult, nowLocalDateTime, onTime,
-			remainingTime, 0, workflowMetricsSLADefinitionVersion,
-			workflowMetricsSLAStatus, documents);
+			completionLocalDateTime, createLocalDateTime, documents,
+			elapsedTime, lastWorkflowMetricsSLAInstanceResult, nowLocalDateTime,
+			onTime, remainingTime, 0, workflowMetricsSLADefinitionVersion,
+			workflowMetricsSLAStatus);
 	}
 
 	private void _test(
-			LocalDateTime createLocalDateTime, long elapsedTime,
-			WorkflowMetricsSLAProcessResult lastWorkflowMetricsSLAProcessResult,
+			LocalDateTime completionLocalDateTime,
+			LocalDateTime createLocalDateTime, List<Document> documents,
+			long elapsedTime,
+			WorkflowMetricsSLAInstanceResult
+				lastWorkflowMetricsSLAInstanceResult,
 			LocalDateTime nowLocalDateTime, boolean onTime, long remainingTime,
 			long startNodeId,
 			WorkflowMetricsSLADefinitionVersion
 				workflowMetricsSLADefinitionVersion,
-			WorkflowMetricsSLAStatus workflowMetricsSLAStatus,
-			Document... documents)
+			WorkflowMetricsSLAStatus workflowMetricsSLAStatus)
 		throws Exception {
 
 		WorkflowMetricsSLAProcessor workflowMetricsSLAProcessor =
-			new WorkflowMetricsSLAProcessor() {
-
-				@Override
-				protected WorkflowMetricsSLAProcessResult
-					fetchLastWorkflowMetricsSLAProcessResult(
-						WorkflowMetricsSLADefinitionVersion
-							workflowMetricsSLADefinitionVersion,
-						long instanceId) {
-
-					return lastWorkflowMetricsSLAProcessResult;
-				}
-
-				@Override
-				protected List<Document> getDocuments(
-					long companyId, long instanceId,
-					LocalDateTime lastCheckLocalDateTime) {
-
-					return Arrays.asList(documents);
-				}
-
-			};
+			new WorkflowMetricsSLAProcessor();
 
 		field(
 			WorkflowMetricsSLAProcessor.class,
@@ -632,22 +680,22 @@ public class WorkflowMetricsSLAProcessorTest extends PowerMockito {
 			workflowMetricsSLAProcessor, mockWorkflowMetricsSLACalendarTracker()
 		);
 
-		Optional<WorkflowMetricsSLAProcessResult> optional =
+		WorkflowMetricsSLAInstanceResult workflowMetricsSLAInstanceResult =
 			workflowMetricsSLAProcessor.process(
-				0, createLocalDateTime, 0, nowLocalDateTime, startNodeId,
-				workflowMetricsSLADefinitionVersion);
+				completionLocalDateTime, createLocalDateTime, documents, 0,
+				nowLocalDateTime, startNodeId,
+				workflowMetricsSLADefinitionVersion,
+				lastWorkflowMetricsSLAInstanceResult);
 
-		WorkflowMetricsSLAProcessResult workflowMetricsSLAProcessResult =
-			optional.get();
-
 		Assert.assertEquals(
-			elapsedTime, workflowMetricsSLAProcessResult.getElapsedTime());
+			elapsedTime, workflowMetricsSLAInstanceResult.getElapsedTime());
 		Assert.assertEquals(
-			remainingTime, workflowMetricsSLAProcessResult.getRemainingTime());
+			remainingTime, workflowMetricsSLAInstanceResult.getRemainingTime());
 		Assert.assertEquals(
-			workflowMetricsSLAProcessResult.getWorkflowMetricsSLAStatus(),
-			workflowMetricsSLAStatus);
-		Assert.assertEquals(workflowMetricsSLAProcessResult.isOnTime(), onTime);
+			workflowMetricsSLAStatus,
+			workflowMetricsSLAInstanceResult.getWorkflowMetricsSLAStatus());
+		Assert.assertEquals(
+			onTime, workflowMetricsSLAInstanceResult.isOnTime());
 	}
 
 	private final DateTimeFormatter _dateTimeFormatter =

@@ -196,18 +196,19 @@ public class SyncDownloadServlet extends HttpServlet {
 				}
 			}
 		}
-		catch (NoSuchFileEntryException nsfee) {
+		catch (NoSuchFileEntryException noSuchFileEntryException) {
 			_portal.sendError(
-				HttpServletResponse.SC_NOT_FOUND, nsfee, httpServletRequest,
-				httpServletResponse);
+				HttpServletResponse.SC_NOT_FOUND, noSuchFileEntryException,
+				httpServletRequest, httpServletResponse);
 		}
-		catch (NoSuchFileVersionException nsfve) {
+		catch (NoSuchFileVersionException noSuchFileVersionException) {
 			_portal.sendError(
-				HttpServletResponse.SC_NOT_FOUND, nsfve, httpServletRequest,
-				httpServletResponse);
+				HttpServletResponse.SC_NOT_FOUND, noSuchFileVersionException,
+				httpServletRequest, httpServletResponse);
 		}
-		catch (Exception e) {
-			_portal.sendError(e, httpServletRequest, httpServletResponse);
+		catch (Exception exception) {
+			_portal.sendError(
+				exception, httpServletRequest, httpServletResponse);
 		}
 	}
 
@@ -222,8 +223,8 @@ public class SyncDownloadServlet extends HttpServlet {
 		for (FileEntry fileEntry : fileEntries) {
 			try (InputStream inputStream =
 					_dlFileEntryLocalService.getFileAsStream(
-						userId, fileEntry.getFileEntryId(),
-						fileEntry.getVersion(), false)) {
+						fileEntry.getFileEntryId(), fileEntry.getVersion(),
+						false)) {
 
 				String filePath = folderPath + fileEntry.getTitle();
 
@@ -287,8 +288,7 @@ public class SyncDownloadServlet extends HttpServlet {
 
 		if (Validator.isNull(version)) {
 			InputStream inputStream = _dlFileEntryLocalService.getFileAsStream(
-				userId, fileEntry.getFileEntryId(), fileEntry.getVersion(),
-				false);
+				fileEntry.getFileEntryId(), fileEntry.getVersion(), false);
 
 			return new DownloadServletInputStream(
 				inputStream, fileEntry.getFileName(), fileEntry.getMimeType(),
@@ -450,9 +450,9 @@ public class SyncDownloadServlet extends HttpServlet {
 		throws Exception {
 
 		long sourceVersionId = ParamUtil.getLong(
-			httpServletRequest, "sourceVersionId", 0);
+			httpServletRequest, "sourceVersionId");
 		long targetVersionId = ParamUtil.getLong(
-			httpServletRequest, "targetVersionId", 0);
+			httpServletRequest, "targetVersionId");
 
 		DownloadServletInputStream downloadServletInputStream =
 			getPatchDownloadServletInputStream(
@@ -494,8 +494,8 @@ public class SyncDownloadServlet extends HttpServlet {
 
 				zipWriter.addEntry(zipFileId, inputStream);
 			}
-			catch (Exception e) {
-				Class<?> clazz = e.getClass();
+			catch (Exception exception) {
+				Class<?> clazz = exception.getClass();
 
 				processException(zipFileId, clazz.getName(), errorsJSONObject);
 			}

@@ -30,7 +30,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface Company extends CompanyModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.portal.model.impl.CompanyImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -64,6 +64,8 @@ public interface Company extends CompanyModel, PersistedModel {
 
 	public String getAuthType();
 
+	public CompanyInfo getCompanyInfo();
+
 	public User getDefaultUser()
 		throws com.liferay.portal.kernel.exception.PortalException;
 
@@ -77,6 +79,8 @@ public interface Company extends CompanyModel, PersistedModel {
 	public long getGroupId()
 		throws com.liferay.portal.kernel.exception.PortalException;
 
+	public String getKey();
+
 	public java.security.Key getKeyObj();
 
 	public java.util.Locale getLocale()
@@ -87,6 +91,9 @@ public interface Company extends CompanyModel, PersistedModel {
 		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public String getPortalURL(long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public String getPortalURL(long groupId, boolean privateLayout)
 		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public String getShortName()
@@ -116,6 +123,8 @@ public interface Company extends CompanyModel, PersistedModel {
 	public boolean isStrangersVerify();
 
 	public boolean isStrangersWithMx();
+
+	public void setKey(String key);
 
 	public void setKeyObj(java.security.Key keyObj);
 

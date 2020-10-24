@@ -24,6 +24,7 @@ import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateVersionLocalService;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ResourceAction;
@@ -34,10 +35,10 @@ import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
+import com.liferay.portal.kernel.service.permission.ModelPermissionsFactory;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.workflow.kaleo.forms.constants.KaleoFormsPortletKeys;
 import com.liferay.portal.workflow.kaleo.forms.model.KaleoProcess;
 
@@ -186,7 +187,8 @@ public class UpgradeKaleoProcess extends UpgradeProcess {
 			long companyId, String resourceName, long primKey)
 		throws PortalException {
 
-		ModelPermissions modelPermissions = new ModelPermissions();
+		ModelPermissions modelPermissions = ModelPermissionsFactory.create(
+			resourceName);
 
 		List<ResourceAction> resourceActions =
 			_resourceActionLocalService.getResourceActions(resourceName);
@@ -210,7 +212,7 @@ public class UpgradeKaleoProcess extends UpgradeProcess {
 
 		_resourceActions.read(
 			null, UpgradeKaleoProcess.class.getClassLoader(),
-			"/META-INF/resource-actions/default.xml");
+			"/resource-actions/default.xml");
 
 		List<String> modelNames = _resourceActions.getPortletModelResources(
 			KaleoFormsPortletKeys.KALEO_FORMS_ADMIN);

@@ -16,7 +16,6 @@ package com.liferay.segments.internal.upgrade.v2_0_0;
 
 import com.liferay.counter.kernel.service.CounterLocalService;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
@@ -48,23 +47,16 @@ public class UpgradeSegmentsExperience extends UpgradeProcess {
 
 		String sql = sb.toString();
 
-		PreparedStatement ps = null;
-
-		try {
-			ps = connection.prepareStatement(sql);
-
+		try (PreparedStatement ps = connection.prepareStatement(sql)) {
 			ps.setString(1, segmentsExperienceKey);
 			ps.setLong(2, segmentsExperienceId);
 
 			ps.executeUpdate();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
+				_log.debug(exception, exception);
 			}
-		}
-		finally {
-			DataAccess.cleanUp(ps);
 		}
 	}
 

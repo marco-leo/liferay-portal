@@ -1139,11 +1139,6 @@ public class LayoutRevisionWrapper
 		return model.isScheduled();
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this class directly. All methods that expect a layout revision model instance should use the <code>LayoutRevision</code> interface instead.
-	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -1731,9 +1726,9 @@ public class LayoutRevisionWrapper
 	@Override
 	public void setTypeSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties
-			typeSettingsProperties) {
+			typeSettingsUnicodeProperties) {
 
-		model.setTypeSettingsProperties(typeSettingsProperties);
+		model.setTypeSettingsProperties(typeSettingsUnicodeProperties);
 	}
 
 	/**

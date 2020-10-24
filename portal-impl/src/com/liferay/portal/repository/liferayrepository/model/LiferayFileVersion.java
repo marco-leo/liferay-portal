@@ -55,16 +55,16 @@ public class LiferayFileVersion extends LiferayModel implements FileVersion {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+	public boolean equals(Object object) {
+		if (this == object) {
 			return true;
 		}
 
-		if (!(obj instanceof LiferayFileVersion)) {
+		if (!(object instanceof LiferayFileVersion)) {
 			return false;
 		}
 
-		LiferayFileVersion liferayFileVersion = (LiferayFileVersion)obj;
+		LiferayFileVersion liferayFileVersion = (LiferayFileVersion)object;
 
 		if (Objects.equals(_dlFileVersion, liferayFileVersion._dlFileVersion)) {
 			return true;
@@ -109,8 +109,8 @@ public class LiferayFileVersion extends LiferayModel implements FileVersion {
 				PrincipalThreadLocal.getUserId(), getFileEntry(),
 				incrementCounter);
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 
 		return inputStream;

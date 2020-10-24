@@ -30,15 +30,14 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.Collection;
-import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Assume;
@@ -65,7 +64,7 @@ public class AMGIFImageScalerTest {
 
 		_group = GroupTestUtil.addGroup();
 
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		Collection<AMImageConfigurationEntry> amImageConfigurationEntries =
 			_amImageConfigurationHelper.getAMImageConfigurationEntries(
@@ -108,15 +107,13 @@ public class AMGIFImageScalerTest {
 	}
 
 	private AMImageConfigurationEntry _addTestVariant() throws Exception {
-		Map<String, String> properties = HashMapBuilder.put(
-			"max-height", "100"
-		).put(
-			"max-width", "100"
-		).build();
-
 		return _amImageConfigurationHelper.addAMImageConfigurationEntry(
 			TestPropsValues.getCompanyId(), "small", StringPool.BLANK, "0",
-			properties);
+			HashMapBuilder.put(
+				"max-height", "100"
+			).put(
+				"max-width", "100"
+			).build());
 	}
 
 	private AMImageConfigurationEntry _amImageConfigurationEntry;

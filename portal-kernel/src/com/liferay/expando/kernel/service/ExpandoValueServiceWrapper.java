@@ -14,6 +14,7 @@
 
 package com.liferay.expando.kernel.service;
 
+import com.liferay.expando.kernel.model.ExpandoValue;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
 /**
@@ -30,13 +31,8 @@ public class ExpandoValueServiceWrapper
 		_expandoValueService = expandoValueService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link ExpandoValueServiceUtil} to access the expando value remote service. Add custom service methods to <code>com.liferay.portlet.expando.service.impl.ExpandoValueServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
-	public com.liferay.expando.kernel.model.ExpandoValue addValue(
+	public ExpandoValue addValue(
 			long companyId, String className, String tableName,
 			String columnName, long classPK, Object data)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -46,7 +42,7 @@ public class ExpandoValueServiceWrapper
 	}
 
 	@Override
-	public com.liferay.expando.kernel.model.ExpandoValue addValue(
+	public ExpandoValue addValue(
 			long companyId, String className, String tableName,
 			String columnName, long classPK, String data)
 		throws com.liferay.portal.kernel.exception.PortalException {

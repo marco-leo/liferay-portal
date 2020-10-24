@@ -53,13 +53,13 @@ public class ModulesSemVerBatchTestClassGroup
 			List<File> modulesProjectDirs) {
 
 			return new ModulesSemVerBatchTestClass(
-				new TestClassFile(
+				new File(
 					JenkinsResultsParserUtil.getCanonicalPath(moduleBaseDir)),
 				modulesDir, modulesProjectDirs);
 		}
 
 		protected ModulesSemVerBatchTestClass(
-			TestClassFile moduleBaseDir, File modulesDir,
+			File moduleBaseDir, File modulesDir,
 			List<File> modulesProjectDirs) {
 
 			super(moduleBaseDir);
@@ -118,20 +118,21 @@ public class ModulesSemVerBatchTestClassGroup
 
 				});
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 			throw new RuntimeException(
 				"Unable to get module marker files from " +
 					moduleBaseDir.getPath(),
-				ioe);
+				ioException);
 		}
 
 		return modulesProjectDirs;
 	}
 
 	protected ModulesSemVerBatchTestClassGroup(
-		String batchName, PortalTestClassJob portalTestClassJob) {
+		String batchName, BuildProfile buildProfile,
+		PortalTestClassJob portalTestClassJob) {
 
-		super(batchName, portalTestClassJob);
+		super(batchName, buildProfile, portalTestClassJob);
 	}
 
 	@Override
@@ -163,16 +164,16 @@ public class ModulesSemVerBatchTestClassGroup
 		}
 
 		for (File moduleDir : moduleDirsList) {
-			List<File> modulesProjectsDirs = getModulesProjectDirs(
+			List<File> modulesProjectDirs = getModulesProjectDirs(
 				moduleDir, portalModulesBaseDir);
 
-			if (!modulesProjectsDirs.isEmpty()) {
+			if (!modulesProjectDirs.isEmpty()) {
 				testClasses.add(
 					ModulesSemVerBatchTestClass.getInstance(
-						new TestClass.TestClassFile(
+						new File(
 							JenkinsResultsParserUtil.getCanonicalPath(
 								moduleDir)),
-						portalModulesBaseDir, modulesProjectsDirs));
+						portalModulesBaseDir, modulesProjectDirs));
 			}
 		}
 	}

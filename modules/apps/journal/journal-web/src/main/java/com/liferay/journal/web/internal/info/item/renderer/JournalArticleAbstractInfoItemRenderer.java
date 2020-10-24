@@ -20,7 +20,7 @@ import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.info.item.renderer.InfoItemRenderer;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.util.ResourceBundleLoader;
+import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.Locale;
@@ -40,7 +40,7 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
  * @author Eudaldo Alonso
  */
 @Component(
-	property = "service.ranking:Integer=100", service = InfoItemRenderer.class
+	property = "service.ranking:Integer=200", service = InfoItemRenderer.class
 )
 public class JournalArticleAbstractInfoItemRenderer
 	implements InfoItemRenderer<JournalArticle> {
@@ -59,12 +59,13 @@ public class JournalArticleAbstractInfoItemRenderer
 		HttpServletResponse httpServletResponse) {
 
 		try {
-			AssetRendererFactory assetRendererFactory =
+			AssetRendererFactory<?> assetRendererFactory =
 				AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClass(
 					JournalArticle.class);
 
-			AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(
-				article.getResourcePrimKey());
+			AssetRenderer<?> assetRenderer =
+				assetRendererFactory.getAssetRenderer(
+					article.getResourcePrimKey());
 
 			httpServletRequest.setAttribute(
 				WebKeys.ASSET_RENDERER, assetRenderer);
@@ -77,8 +78,8 @@ public class JournalArticleAbstractInfoItemRenderer
 
 			requestDispatcher.include(httpServletRequest, httpServletResponse);
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
 		}
 	}
 

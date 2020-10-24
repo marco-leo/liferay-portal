@@ -52,13 +52,10 @@ public class PluginsBatchTestClassGroup extends BatchTestClassGroup {
 
 			return new PluginsBatchTestClass(
 				batchName,
-				new TestClassFile(
-					JenkinsResultsParserUtil.getCanonicalPath(pluginDir)));
+				new File(JenkinsResultsParserUtil.getCanonicalPath(pluginDir)));
 		}
 
-		protected PluginsBatchTestClass(
-			String batchName, TestClassFile testClassFile) {
-
+		protected PluginsBatchTestClass(String batchName, File testClassFile) {
 			super(testClassFile);
 
 			addTestClassMethod(batchName);
@@ -67,9 +64,10 @@ public class PluginsBatchTestClassGroup extends BatchTestClassGroup {
 	}
 
 	protected PluginsBatchTestClassGroup(
-		String batchName, PortalTestClassJob portalTestClassJob) {
+		String batchName, BuildProfile buildProfile,
+		PortalTestClassJob portalTestClassJob) {
 
-		super(batchName, portalTestClassJob);
+		super(batchName, buildProfile, portalTestClassJob);
 
 		Properties portalReleaseProperties =
 			JenkinsResultsParserUtil.getProperties(
@@ -159,11 +157,11 @@ public class PluginsBatchTestClassGroup extends BatchTestClassGroup {
 
 				});
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 			throw new RuntimeException(
 				"Unable to search for test file names in " +
 					workingDirectory.getPath(),
-				ioe);
+				ioException);
 		}
 
 		Collections.sort(testClasses);

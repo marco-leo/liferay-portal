@@ -17,10 +17,12 @@ package com.liferay.portal.search.tuning.synonyms.web.internal.display.context;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.search.tuning.synonyms.web.internal.index.SynonymSet;
 import com.liferay.portal.search.tuning.synonyms.web.internal.index.SynonymSetIndexReader;
+import com.liferay.portal.search.tuning.synonyms.web.internal.index.name.SynonymSetIndexName;
+import com.liferay.portal.search.tuning.synonyms.web.internal.index.name.SynonymSetIndexNameBuilder;
 
-import java.util.Map;
 import java.util.Optional;
 
 import javax.portlet.RenderRequest;
@@ -34,13 +36,16 @@ import javax.servlet.http.HttpServletRequest;
 public class EditSynonymSetsDisplayBuilder {
 
 	public EditSynonymSetsDisplayBuilder(
-		HttpServletRequest httpServletRequest, RenderRequest renderRequest,
-		RenderResponse renderResponse,
+		HttpServletRequest httpServletRequest, Portal portal,
+		RenderRequest renderRequest, RenderResponse renderResponse,
+		SynonymSetIndexNameBuilder synonymSetIndexNameBuilder,
 		SynonymSetIndexReader synonymSetIndexReader) {
 
 		_httpServletRequest = httpServletRequest;
+		_portal = portal;
 		_renderRequest = renderRequest;
 		_renderResponse = renderResponse;
+		_synonymSetIndexNameBuilder = synonymSetIndexNameBuilder;
 		_synonymSetIndexReader = synonymSetIndexReader;
 	}
 
@@ -48,7 +53,7 @@ public class EditSynonymSetsDisplayBuilder {
 		EditSynonymSetsDisplayContext editSynonymSetsDisplayContext =
 			new EditSynonymSetsDisplayContext();
 
-		_synonymSetOptional = _getSynonymSetOptional();
+		_synonymSetOptional = _getSynonymSetOptional(_getCompanyId());
 
 		_setBackURL(editSynonymSetsDisplayContext);
 		_setData(editSynonymSetsDisplayContext);
@@ -65,6 +70,10 @@ public class EditSynonymSetsDisplayBuilder {
 			_httpServletRequest, "backURL", _getRedirect());
 	}
 
+	private long _getCompanyId() {
+		return _portal.getCompanyId(_renderRequest);
+	}
+
 	private String _getFormName() {
 		return "synonymSetsForm";
 	}
@@ -77,11 +86,14 @@ public class EditSynonymSetsDisplayBuilder {
 		return ParamUtil.getString(_httpServletRequest, "redirect");
 	}
 
-	private Optional<SynonymSet> _getSynonymSetOptional() {
+	private Optional<SynonymSet> _getSynonymSetOptional(long companyId) {
+		SynonymSetIndexName synonymSetIndexName =
+			_synonymSetIndexNameBuilder.getSynonymSetIndexName(companyId);
+
 		return Optional.ofNullable(
 			ParamUtil.getString(_renderRequest, "synonymSetId", null)
 		).flatMap(
-			_synonymSetIndexReader::fetchOptional
+			id -> _synonymSetIndexReader.fetchOptional(synonymSetIndexName, id)
 		);
 	}
 
@@ -102,15 +114,14 @@ public class EditSynonymSetsDisplayBuilder {
 	private void _setData(
 		EditSynonymSetsDisplayContext editSynonymSetsDisplayContext) {
 
-		Map<String, Object> data = HashMapBuilder.<String, Object>put(
-			"formName", _renderResponse.getNamespace() + _getFormName()
-		).put(
-			"inputName", _renderResponse.getNamespace() + _getInputName()
-		).put(
-			"synonymSets", _getSynonymSets()
-		).build();
-
-		editSynonymSetsDisplayContext.setData(data);
+		editSynonymSetsDisplayContext.setData(
+			HashMapBuilder.<String, Object>put(
+				"formName", _renderResponse.getNamespace() + _getFormName()
+			).put(
+				"inputName", _renderResponse.getNamespace() + _getInputName()
+			).put(
+				"synonymSets", _getSynonymSets()
+			).build());
 	}
 
 	private void _setFormName(
@@ -140,8 +151,10 @@ public class EditSynonymSetsDisplayBuilder {
 	}
 
 	private final HttpServletRequest _httpServletRequest;
+	private final Portal _portal;
 	private final RenderRequest _renderRequest;
 	private final RenderResponse _renderResponse;
+	private final SynonymSetIndexNameBuilder _synonymSetIndexNameBuilder;
 	private final SynonymSetIndexReader _synonymSetIndexReader;
 	private Optional<SynonymSet> _synonymSetOptional;
 

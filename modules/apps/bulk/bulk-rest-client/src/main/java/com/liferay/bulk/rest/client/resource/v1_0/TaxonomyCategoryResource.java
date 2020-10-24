@@ -14,11 +14,14 @@
 
 package com.liferay.bulk.rest.client.resource.v1_0;
 
+import com.liferay.bulk.rest.client.dto.v1_0.TaxonomyCategoryBulkSelection;
 import com.liferay.bulk.rest.client.http.HttpInvoker;
+import com.liferay.bulk.rest.client.problem.Problem;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Generated;
@@ -35,23 +38,19 @@ public interface TaxonomyCategoryResource {
 	}
 
 	public void patchTaxonomyCategoryBatch(
-			com.liferay.bulk.rest.client.dto.v1_0.TaxonomyCategoryBulkSelection
-				taxonomyCategoryBulkSelection)
+			TaxonomyCategoryBulkSelection taxonomyCategoryBulkSelection)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse patchTaxonomyCategoryBatchHttpResponse(
-			com.liferay.bulk.rest.client.dto.v1_0.TaxonomyCategoryBulkSelection
-				taxonomyCategoryBulkSelection)
+			TaxonomyCategoryBulkSelection taxonomyCategoryBulkSelection)
 		throws Exception;
 
 	public void putTaxonomyCategoryBatch(
-			com.liferay.bulk.rest.client.dto.v1_0.TaxonomyCategoryBulkSelection
-				taxonomyCategoryBulkSelection)
+			TaxonomyCategoryBulkSelection taxonomyCategoryBulkSelection)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse putTaxonomyCategoryBatchHttpResponse(
-			com.liferay.bulk.rest.client.dto.v1_0.TaxonomyCategoryBulkSelection
-				taxonomyCategoryBulkSelection)
+			TaxonomyCategoryBulkSelection taxonomyCategoryBulkSelection)
 		throws Exception;
 
 	public static class Builder {
@@ -99,8 +98,8 @@ public interface TaxonomyCategoryResource {
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
-		private String _login = "test@liferay.com";
-		private String _password = "test";
+		private String _login = "";
+		private String _password = "";
 		private Map<String, String> _parameters = new LinkedHashMap<>();
 		private int _port = 8080;
 		private String _scheme = "http";
@@ -111,8 +110,7 @@ public interface TaxonomyCategoryResource {
 		implements TaxonomyCategoryResource {
 
 		public void patchTaxonomyCategoryBatch(
-				com.liferay.bulk.rest.client.dto.v1_0.
-					TaxonomyCategoryBulkSelection taxonomyCategoryBulkSelection)
+				TaxonomyCategoryBulkSelection taxonomyCategoryBulkSelection)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -126,11 +124,21 @@ public interface TaxonomyCategoryResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse patchTaxonomyCategoryBatchHttpResponse(
-				com.liferay.bulk.rest.client.dto.v1_0.
-					TaxonomyCategoryBulkSelection taxonomyCategoryBulkSelection)
+				TaxonomyCategoryBulkSelection taxonomyCategoryBulkSelection)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -168,8 +176,7 @@ public interface TaxonomyCategoryResource {
 		}
 
 		public void putTaxonomyCategoryBatch(
-				com.liferay.bulk.rest.client.dto.v1_0.
-					TaxonomyCategoryBulkSelection taxonomyCategoryBulkSelection)
+				TaxonomyCategoryBulkSelection taxonomyCategoryBulkSelection)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -183,11 +190,21 @@ public interface TaxonomyCategoryResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse putTaxonomyCategoryBatchHttpResponse(
-				com.liferay.bulk.rest.client.dto.v1_0.
-					TaxonomyCategoryBulkSelection taxonomyCategoryBulkSelection)
+				TaxonomyCategoryBulkSelection taxonomyCategoryBulkSelection)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();

@@ -16,11 +16,13 @@ package com.liferay.portlet.asset.service.persistence.impl;
 
 import com.liferay.asset.kernel.exception.NoSuchCategoryException;
 import com.liferay.asset.kernel.model.AssetCategory;
+import com.liferay.asset.kernel.model.AssetCategoryTable;
 import com.liferay.asset.kernel.service.persistence.AssetCategoryPersistence;
 import com.liferay.asset.kernel.service.persistence.AssetEntryPersistence;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
+import com.liferay.portal.kernel.dao.orm.ArgumentsResolver;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
@@ -32,6 +34,7 @@ import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -41,6 +44,7 @@ import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.service.persistence.impl.TableMapper;
 import com.liferay.portal.kernel.service.persistence.impl.TableMapperFactory;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
@@ -50,6 +54,9 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portlet.asset.model.impl.AssetCategoryImpl;
 import com.liferay.portlet.asset.model.impl.AssetCategoryModelImpl;
+import com.liferay.registry.Registry;
+import com.liferay.registry.RegistryUtil;
+import com.liferay.registry.ServiceRegistration;
 
 import java.io.Serializable;
 
@@ -66,6 +73,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The persistence implementation for the asset category service.
@@ -81,7 +89,7 @@ public class AssetCategoryPersistenceImpl
 	extends BasePersistenceImpl<AssetCategory>
 	implements AssetCategoryPersistence {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>AssetCategoryUtil</code> to access the asset category persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -210,54 +218,54 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_UUID_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -265,12 +273,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -300,16 +304,16 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -351,16 +355,16 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -426,8 +430,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -438,28 +442,28 @@ public class AssetCategoryPersistenceImpl
 		Session session, AssetCategory assetCategory, String uuid,
 		OrderByComparator<AssetCategory> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+		sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_UUID_3);
+			sb.append(_FINDER_COLUMN_UUID_UUID_3);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_UUID_2);
+			sb.append(_FINDER_COLUMN_UUID_UUID_2);
 		}
 
 		if (orderByComparator != null) {
@@ -467,72 +471,72 @@ public class AssetCategoryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+			sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
 		if (orderByComparator != null) {
@@ -540,11 +544,11 @@ public class AssetCategoryPersistenceImpl
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -596,48 +600,44 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_UUID_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -671,23 +671,23 @@ public class AssetCategoryPersistenceImpl
 		AssetCategory assetCategory = fetchByUUID_G(uuid, groupId);
 
 		if (assetCategory == null) {
-			StringBundler msg = new StringBundler(6);
+			StringBundler sb = new StringBundler(6);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("uuid=");
-			msg.append(uuid);
+			sb.append("uuid=");
+			sb.append(uuid);
 
-			msg.append(", groupId=");
-			msg.append(groupId);
+			sb.append(", groupId=");
+			sb.append(groupId);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchCategoryException(msg.toString());
+			throw new NoSuchCategoryException(sb.toString());
 		}
 
 		return assetCategory;
@@ -746,41 +746,41 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_G_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_G_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
+			sb.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				List<AssetCategory> list = q.list();
+				List<AssetCategory> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache && productionMode) {
@@ -796,13 +796,8 @@ public class AssetCategoryPersistenceImpl
 					cacheResult(assetCategory);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(
-						_finderPathFetchByUUID_G, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -862,52 +857,48 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_G_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_G_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_G_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
+			sb.append(_FINDER_COLUMN_UUID_G_GROUPID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1050,58 +1041,58 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -1109,12 +1100,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1146,19 +1133,19 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append(", companyId=");
-		msg.append(companyId);
+		sb.append(", companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -1206,19 +1193,19 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("uuid=");
-		msg.append(uuid);
+		sb.append("uuid=");
+		sb.append(uuid);
 
-		msg.append(", companyId=");
-		msg.append(companyId);
+		sb.append(", companyId=");
+		sb.append(companyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -1289,8 +1276,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1302,117 +1289,117 @@ public class AssetCategoryPersistenceImpl
 		long companyId, OrderByComparator<AssetCategory> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+		sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
 		boolean bindUuid = false;
 
 		if (uuid.isEmpty()) {
-			query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 		}
 		else {
 			bindUuid = true;
 
-			query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 		}
 
-		query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+		sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+			sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindUuid) {
-			qPos.add(uuid);
+			queryPos.add(uuid);
 		}
 
-		qPos.add(companyId);
+		queryPos.add(companyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -1468,52 +1455,48 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
 			boolean bindUuid = false;
 
 			if (uuid.isEmpty()) {
-				query.append(_FINDER_COLUMN_UUID_C_UUID_3);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_3);
 			}
 			else {
 				bindUuid = true;
 
-				query.append(_FINDER_COLUMN_UUID_C_UUID_2);
+				sb.append(_FINDER_COLUMN_UUID_C_UUID_2);
 			}
 
-			query.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_UUID_C_COMPANYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindUuid) {
-					qPos.add(uuid);
+					queryPos.add(uuid);
 				}
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1643,43 +1626,43 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
+			sb.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -1687,12 +1670,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -1722,16 +1701,16 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -1775,16 +1754,16 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -1848,8 +1827,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -1860,102 +1839,102 @@ public class AssetCategoryPersistenceImpl
 		Session session, AssetCategory assetCategory, long groupId,
 		OrderByComparator<AssetCategory> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+		sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
+		sb.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+			sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -2018,52 +1997,52 @@ public class AssetCategoryPersistenceImpl
 			return findByGroupId(groupId, start, end, orderByComparator);
 		}
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				3 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
+		sb.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -2071,24 +2050,26 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
 			return (List<AssetCategory>)QueryUtil.list(
-				q, getDialect(), start, end);
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2134,8 +2115,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2146,29 +2127,29 @@ public class AssetCategoryPersistenceImpl
 		Session session, AssetCategory assetCategory, long groupId,
 		OrderByComparator<AssetCategory> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
+		sb.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
@@ -2177,18 +2158,18 @@ public class AssetCategoryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -2196,95 +2177,95 @@ public class AssetCategoryPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -2335,37 +2316,33 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
+			sb.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2387,14 +2364,14 @@ public class AssetCategoryPersistenceImpl
 			return countByGroupId(groupId);
 		}
 
-		StringBundler query = new StringBundler(2);
+		StringBundler sb = new StringBundler(2);
 
-		query.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
+		sb.append(_FINDER_COLUMN_GROUPID_GROUPID_2);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -2402,21 +2379,21 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2544,43 +2521,43 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_PARENTCATEGORYID_PARENTCATEGORYID_2);
+			sb.append(_FINDER_COLUMN_PARENTCATEGORYID_PARENTCATEGORYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(parentCategoryId);
+				queryPos.add(parentCategoryId);
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -2588,12 +2565,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -2624,16 +2597,16 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("parentCategoryId=");
-		msg.append(parentCategoryId);
+		sb.append("parentCategoryId=");
+		sb.append(parentCategoryId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -2679,16 +2652,16 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("parentCategoryId=");
-		msg.append(parentCategoryId);
+		sb.append("parentCategoryId=");
+		sb.append(parentCategoryId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -2755,8 +2728,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -2767,102 +2740,102 @@ public class AssetCategoryPersistenceImpl
 		Session session, AssetCategory assetCategory, long parentCategoryId,
 		OrderByComparator<AssetCategory> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+		sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_PARENTCATEGORYID_PARENTCATEGORYID_2);
+		sb.append(_FINDER_COLUMN_PARENTCATEGORYID_PARENTCATEGORYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+			sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(parentCategoryId);
+		queryPos.add(parentCategoryId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -2914,37 +2887,33 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_PARENTCATEGORYID_PARENTCATEGORYID_2);
+			sb.append(_FINDER_COLUMN_PARENTCATEGORYID_PARENTCATEGORYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(parentCategoryId);
+				queryPos.add(parentCategoryId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3074,43 +3043,43 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					3 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(3);
+				sb = new StringBundler(3);
 			}
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_VOCABULARYID_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_VOCABULARYID_VOCABULARYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -3118,12 +3087,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3154,16 +3119,16 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append("vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -3208,16 +3173,16 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append("vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -3281,8 +3246,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -3293,102 +3258,102 @@ public class AssetCategoryPersistenceImpl
 		Session session, AssetCategory assetCategory, long vocabularyId,
 		OrderByComparator<AssetCategory> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(3);
+			sb = new StringBundler(3);
 		}
 
-		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+		sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_VOCABULARYID_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_VOCABULARYID_VOCABULARYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+			sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(vocabularyId);
+		queryPos.add(vocabularyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -3439,37 +3404,33 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(2);
+			StringBundler sb = new StringBundler(2);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_VOCABULARYID_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_VOCABULARYID_VOCABULARYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3606,47 +3567,47 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_P_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_P_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_P_PARENTCATEGORYID_2);
+			sb.append(_FINDER_COLUMN_G_P_PARENTCATEGORYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(parentCategoryId);
+				queryPos.add(parentCategoryId);
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -3654,12 +3615,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -3691,19 +3648,19 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append(", parentCategoryId=");
-		msg.append(parentCategoryId);
+		sb.append(", parentCategoryId=");
+		sb.append(parentCategoryId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -3751,19 +3708,19 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append(", parentCategoryId=");
-		msg.append(parentCategoryId);
+		sb.append(", parentCategoryId=");
+		sb.append(parentCategoryId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -3832,8 +3789,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -3845,106 +3802,106 @@ public class AssetCategoryPersistenceImpl
 		long parentCategoryId,
 		OrderByComparator<AssetCategory> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+		sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_G_P_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_P_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_P_PARENTCATEGORYID_2);
+		sb.append(_FINDER_COLUMN_G_P_PARENTCATEGORYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+			sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
-		qPos.add(parentCategoryId);
+		queryPos.add(parentCategoryId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -4014,54 +3971,54 @@ public class AssetCategoryPersistenceImpl
 				groupId, parentCategoryId, start, end, orderByComparator);
 		}
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_P_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_P_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_P_PARENTCATEGORYID_2);
+		sb.append(_FINDER_COLUMN_G_P_PARENTCATEGORYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -4069,26 +4026,28 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
-			qPos.add(parentCategoryId);
+			queryPos.add(parentCategoryId);
 
 			return (List<AssetCategory>)QueryUtil.list(
-				q, getDialect(), start, end);
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -4137,8 +4096,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -4150,31 +4109,31 @@ public class AssetCategoryPersistenceImpl
 		long parentCategoryId,
 		OrderByComparator<AssetCategory> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_P_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_P_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_P_PARENTCATEGORYID_2);
+		sb.append(_FINDER_COLUMN_G_P_PARENTCATEGORYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
@@ -4183,18 +4142,18 @@ public class AssetCategoryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -4202,97 +4161,97 @@ public class AssetCategoryPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
-		qPos.add(parentCategoryId);
+		queryPos.add(parentCategoryId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -4346,41 +4305,37 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_P_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_P_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_P_PARENTCATEGORYID_2);
+			sb.append(_FINDER_COLUMN_G_P_PARENTCATEGORYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(parentCategoryId);
+				queryPos.add(parentCategoryId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -4403,16 +4358,16 @@ public class AssetCategoryPersistenceImpl
 			return countByG_P(groupId, parentCategoryId);
 		}
 
-		StringBundler query = new StringBundler(3);
+		StringBundler sb = new StringBundler(3);
 
-		query.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_G_P_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_P_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_P_PARENTCATEGORYID_2);
+		sb.append(_FINDER_COLUMN_G_P_PARENTCATEGORYID_2);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -4420,23 +4375,23 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
-			qPos.add(parentCategoryId);
+			queryPos.add(parentCategoryId);
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -4572,47 +4527,47 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_V_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_V_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_G_V_VOCABULARYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -4620,12 +4575,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -4657,19 +4608,19 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append(", vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append(", vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -4717,19 +4668,19 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append(", vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append(", vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -4798,8 +4749,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -4811,106 +4762,106 @@ public class AssetCategoryPersistenceImpl
 		long vocabularyId, OrderByComparator<AssetCategory> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+		sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_G_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_V_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_V_VOCABULARYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+			sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
-		qPos.add(vocabularyId);
+		queryPos.add(vocabularyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -4979,54 +4930,54 @@ public class AssetCategoryPersistenceImpl
 				groupId, vocabularyId, start, end, orderByComparator);
 		}
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				4 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_V_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_V_VOCABULARYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -5034,26 +4985,28 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
-			qPos.add(vocabularyId);
+			queryPos.add(vocabularyId);
 
 			return (List<AssetCategory>)QueryUtil.list(
-				q, getDialect(), start, end);
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -5102,8 +5055,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -5115,31 +5068,31 @@ public class AssetCategoryPersistenceImpl
 		long vocabularyId, OrderByComparator<AssetCategory> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_V_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_V_VOCABULARYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
@@ -5148,18 +5101,18 @@ public class AssetCategoryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -5167,97 +5120,97 @@ public class AssetCategoryPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
-		qPos.add(vocabularyId);
+		queryPos.add(vocabularyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -5333,60 +5286,59 @@ public class AssetCategoryPersistenceImpl
 			vocabularyIds = ArrayUtil.sortedUnique(vocabularyIds);
 		}
 
-		StringBundler query = new StringBundler();
+		StringBundler sb = new StringBundler();
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_V_GROUPID_2);
 
 		if (vocabularyIds.length > 0) {
-			query.append("(");
+			sb.append("(");
 
-			query.append(_FINDER_COLUMN_G_V_VOCABULARYID_7);
+			sb.append(_FINDER_COLUMN_G_V_VOCABULARYID_7);
 
-			query.append(StringUtil.merge(vocabularyIds));
+			sb.append(StringUtil.merge(vocabularyIds));
 
-			query.append(")");
+			sb.append(")");
 
-			query.append(")");
+			sb.append(")");
 		}
 
-		query.setStringAt(
-			removeConjunction(query.stringAt(query.index() - 1)),
-			query.index() - 1);
+		sb.setStringAt(
+			removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -5394,24 +5346,26 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
 			return (List<AssetCategory>)QueryUtil.list(
-				q, getDialect(), start, end);
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -5553,51 +5507,50 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = new StringBundler();
+			StringBundler sb = new StringBundler();
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_V_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_V_GROUPID_2);
 
 			if (vocabularyIds.length > 0) {
-				query.append("(");
+				sb.append("(");
 
-				query.append(_FINDER_COLUMN_G_V_VOCABULARYID_7);
+				sb.append(_FINDER_COLUMN_G_V_VOCABULARYID_7);
 
-				query.append(StringUtil.merge(vocabularyIds));
+				sb.append(StringUtil.merge(vocabularyIds));
 
-				query.append(")");
+				sb.append(")");
 
-				query.append(")");
+				sb.append(")");
 			}
 
-			query.setStringAt(
-				removeConjunction(query.stringAt(query.index() - 1)),
-				query.index() - 1);
+			sb.setStringAt(
+				removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -5606,13 +5559,8 @@ public class AssetCategoryPersistenceImpl
 						_finderPathWithPaginationFindByG_V, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(
-						_finderPathWithPaginationFindByG_V, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -5666,41 +5614,37 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_V_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_V_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_G_V_VOCABULARYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -5743,55 +5687,49 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler();
+			StringBundler sb = new StringBundler();
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_V_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_V_GROUPID_2);
 
 			if (vocabularyIds.length > 0) {
-				query.append("(");
+				sb.append("(");
 
-				query.append(_FINDER_COLUMN_G_V_VOCABULARYID_7);
+				sb.append(_FINDER_COLUMN_G_V_VOCABULARYID_7);
 
-				query.append(StringUtil.merge(vocabularyIds));
+				sb.append(StringUtil.merge(vocabularyIds));
 
-				query.append(")");
+				sb.append(")");
 
-				query.append(")");
+				sb.append(")");
 			}
 
-			query.setStringAt(
-				removeConjunction(query.stringAt(query.index() - 1)),
-				query.index() - 1);
+			sb.setStringAt(
+				removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(
 						_finderPathWithPaginationCountByG_V, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(
-						_finderPathWithPaginationCountByG_V, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -5814,16 +5752,16 @@ public class AssetCategoryPersistenceImpl
 			return countByG_V(groupId, vocabularyId);
 		}
 
-		StringBundler query = new StringBundler(3);
+		StringBundler sb = new StringBundler(3);
 
-		query.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_G_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_V_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_V_VOCABULARYID_2);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -5831,23 +5769,23 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
-			qPos.add(vocabularyId);
+			queryPos.add(vocabularyId);
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -5874,30 +5812,29 @@ public class AssetCategoryPersistenceImpl
 			vocabularyIds = ArrayUtil.sortedUnique(vocabularyIds);
 		}
 
-		StringBundler query = new StringBundler();
+		StringBundler sb = new StringBundler();
 
-		query.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_G_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_V_GROUPID_2);
 
 		if (vocabularyIds.length > 0) {
-			query.append("(");
+			sb.append("(");
 
-			query.append(_FINDER_COLUMN_G_V_VOCABULARYID_7);
+			sb.append(_FINDER_COLUMN_G_V_VOCABULARYID_7);
 
-			query.append(StringUtil.merge(vocabularyIds));
+			sb.append(StringUtil.merge(vocabularyIds));
 
-			query.append(")");
+			sb.append(")");
 
-			query.append(")");
+			sb.append(")");
 		}
 
-		query.setStringAt(
-			removeConjunction(query.stringAt(query.index() - 1)),
-			query.index() - 1);
+		sb.setStringAt(
+			removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -5905,21 +5842,21 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -6060,58 +5997,58 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_P_N_PARENTCATEGORYID_2);
+			sb.append(_FINDER_COLUMN_P_N_PARENTCATEGORYID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_P_N_NAME_3);
+				sb.append(_FINDER_COLUMN_P_N_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_P_N_NAME_2);
+				sb.append(_FINDER_COLUMN_P_N_NAME_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(parentCategoryId);
+				queryPos.add(parentCategoryId);
 
 				if (bindName) {
-					qPos.add(name);
+					queryPos.add(name);
 				}
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -6119,12 +6056,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -6156,19 +6089,19 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("parentCategoryId=");
-		msg.append(parentCategoryId);
+		sb.append("parentCategoryId=");
+		sb.append(parentCategoryId);
 
-		msg.append(", name=");
-		msg.append(name);
+		sb.append(", name=");
+		sb.append(name);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -6216,19 +6149,19 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("parentCategoryId=");
-		msg.append(parentCategoryId);
+		sb.append("parentCategoryId=");
+		sb.append(parentCategoryId);
 
-		msg.append(", name=");
-		msg.append(name);
+		sb.append(", name=");
+		sb.append(name);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -6299,8 +6232,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -6312,30 +6245,30 @@ public class AssetCategoryPersistenceImpl
 		String name, OrderByComparator<AssetCategory> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+		sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_P_N_PARENTCATEGORYID_2);
+		sb.append(_FINDER_COLUMN_P_N_PARENTCATEGORYID_2);
 
 		boolean bindName = false;
 
 		if (name.isEmpty()) {
-			query.append(_FINDER_COLUMN_P_N_NAME_3);
+			sb.append(_FINDER_COLUMN_P_N_NAME_3);
 		}
 		else {
 			bindName = true;
 
-			query.append(_FINDER_COLUMN_P_N_NAME_2);
+			sb.append(_FINDER_COLUMN_P_N_NAME_2);
 		}
 
 		if (orderByComparator != null) {
@@ -6343,74 +6276,74 @@ public class AssetCategoryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+			sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(parentCategoryId);
+		queryPos.add(parentCategoryId);
 
 		if (bindName) {
-			qPos.add(name);
+			queryPos.add(name);
 		}
 
 		if (orderByComparator != null) {
@@ -6418,11 +6351,11 @@ public class AssetCategoryPersistenceImpl
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -6478,52 +6411,48 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_P_N_PARENTCATEGORYID_2);
+			sb.append(_FINDER_COLUMN_P_N_PARENTCATEGORYID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_P_N_NAME_3);
+				sb.append(_FINDER_COLUMN_P_N_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_P_N_NAME_2);
+				sb.append(_FINDER_COLUMN_P_N_NAME_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(parentCategoryId);
+				queryPos.add(parentCategoryId);
 
 				if (bindName) {
-					qPos.add(name);
+					queryPos.add(name);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -6669,47 +6598,47 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_P_V_PARENTCATEGORYID_2);
+			sb.append(_FINDER_COLUMN_P_V_PARENTCATEGORYID_2);
 
-			query.append(_FINDER_COLUMN_P_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_P_V_VOCABULARYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(parentCategoryId);
+				queryPos.add(parentCategoryId);
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -6717,12 +6646,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -6754,19 +6679,19 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("parentCategoryId=");
-		msg.append(parentCategoryId);
+		sb.append("parentCategoryId=");
+		sb.append(parentCategoryId);
 
-		msg.append(", vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append(", vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -6814,19 +6739,19 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("parentCategoryId=");
-		msg.append(parentCategoryId);
+		sb.append("parentCategoryId=");
+		sb.append(parentCategoryId);
 
-		msg.append(", vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append(", vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -6896,8 +6821,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -6909,106 +6834,106 @@ public class AssetCategoryPersistenceImpl
 		long vocabularyId, OrderByComparator<AssetCategory> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+		sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_P_V_PARENTCATEGORYID_2);
+		sb.append(_FINDER_COLUMN_P_V_PARENTCATEGORYID_2);
 
-		query.append(_FINDER_COLUMN_P_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_P_V_VOCABULARYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+			sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(parentCategoryId);
+		queryPos.add(parentCategoryId);
 
-		qPos.add(vocabularyId);
+		queryPos.add(vocabularyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -7062,41 +6987,37 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_P_V_PARENTCATEGORYID_2);
+			sb.append(_FINDER_COLUMN_P_V_PARENTCATEGORYID_2);
 
-			query.append(_FINDER_COLUMN_P_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_P_V_VOCABULARYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(parentCategoryId);
+				queryPos.add(parentCategoryId);
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -7236,58 +7157,58 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					4 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(4);
+				sb = new StringBundler(4);
 			}
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_N_V_NAME_3);
+				sb.append(_FINDER_COLUMN_N_V_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_N_V_NAME_2);
+				sb.append(_FINDER_COLUMN_N_V_NAME_2);
 			}
 
-			query.append(_FINDER_COLUMN_N_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_N_V_VOCABULARYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindName) {
-					qPos.add(name);
+					queryPos.add(name);
 				}
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -7295,12 +7216,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -7332,19 +7249,19 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("name=");
-		msg.append(name);
+		sb.append("name=");
+		sb.append(name);
 
-		msg.append(", vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append(", vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -7392,19 +7309,19 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(6);
+		StringBundler sb = new StringBundler(6);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("name=");
-		msg.append(name);
+		sb.append("name=");
+		sb.append(name);
 
-		msg.append(", vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append(", vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -7475,8 +7392,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -7488,117 +7405,117 @@ public class AssetCategoryPersistenceImpl
 		long vocabularyId, OrderByComparator<AssetCategory> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(4);
+			sb = new StringBundler(4);
 		}
 
-		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+		sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
 		boolean bindName = false;
 
 		if (name.isEmpty()) {
-			query.append(_FINDER_COLUMN_N_V_NAME_3);
+			sb.append(_FINDER_COLUMN_N_V_NAME_3);
 		}
 		else {
 			bindName = true;
 
-			query.append(_FINDER_COLUMN_N_V_NAME_2);
+			sb.append(_FINDER_COLUMN_N_V_NAME_2);
 		}
 
-		query.append(_FINDER_COLUMN_N_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_N_V_VOCABULARYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+			sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
 		if (bindName) {
-			qPos.add(name);
+			queryPos.add(name);
 		}
 
-		qPos.add(vocabularyId);
+		queryPos.add(vocabularyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -7654,52 +7571,48 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_N_V_NAME_3);
+				sb.append(_FINDER_COLUMN_N_V_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_N_V_NAME_2);
+				sb.append(_FINDER_COLUMN_N_V_NAME_2);
 			}
 
-			query.append(_FINDER_COLUMN_N_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_N_V_VOCABULARYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
 				if (bindName) {
-					qPos.add(name);
+					queryPos.add(name);
 				}
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -7855,51 +7768,51 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					5 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(5);
+				sb = new StringBundler(5);
 			}
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_P_V_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_P_V_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_P_V_PARENTCATEGORYID_2);
+			sb.append(_FINDER_COLUMN_G_P_V_PARENTCATEGORYID_2);
 
-			query.append(_FINDER_COLUMN_G_P_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_G_P_V_VOCABULARYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(parentCategoryId);
+				queryPos.add(parentCategoryId);
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -7907,12 +7820,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -7945,22 +7854,22 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(8);
+		StringBundler sb = new StringBundler(8);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append(", parentCategoryId=");
-		msg.append(parentCategoryId);
+		sb.append(", parentCategoryId=");
+		sb.append(parentCategoryId);
 
-		msg.append(", vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append(", vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -8010,22 +7919,22 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(8);
+		StringBundler sb = new StringBundler(8);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append(", parentCategoryId=");
-		msg.append(parentCategoryId);
+		sb.append(", parentCategoryId=");
+		sb.append(parentCategoryId);
 
-		msg.append(", vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append(", vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -8098,8 +8007,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -8111,110 +8020,110 @@ public class AssetCategoryPersistenceImpl
 		long parentCategoryId, long vocabularyId,
 		OrderByComparator<AssetCategory> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
-		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+		sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_G_P_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_P_V_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_P_V_PARENTCATEGORYID_2);
+		sb.append(_FINDER_COLUMN_G_P_V_PARENTCATEGORYID_2);
 
-		query.append(_FINDER_COLUMN_G_P_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_P_V_VOCABULARYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+			sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
-		qPos.add(parentCategoryId);
+		queryPos.add(parentCategoryId);
 
-		qPos.add(vocabularyId);
+		queryPos.add(vocabularyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -8290,56 +8199,56 @@ public class AssetCategoryPersistenceImpl
 				orderByComparator);
 		}
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(6);
+			sb = new StringBundler(6);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_P_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_P_V_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_P_V_PARENTCATEGORYID_2);
+		sb.append(_FINDER_COLUMN_G_P_V_PARENTCATEGORYID_2);
 
-		query.append(_FINDER_COLUMN_G_P_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_P_V_VOCABULARYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -8347,28 +8256,30 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
-			qPos.add(parentCategoryId);
+			queryPos.add(parentCategoryId);
 
-			qPos.add(vocabularyId);
+			queryPos.add(vocabularyId);
 
 			return (List<AssetCategory>)QueryUtil.list(
-				q, getDialect(), start, end);
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -8420,8 +8331,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -8433,33 +8344,33 @@ public class AssetCategoryPersistenceImpl
 		long parentCategoryId, long vocabularyId,
 		OrderByComparator<AssetCategory> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				7 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(6);
+			sb = new StringBundler(6);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_P_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_P_V_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_P_V_PARENTCATEGORYID_2);
+		sb.append(_FINDER_COLUMN_G_P_V_PARENTCATEGORYID_2);
 
-		query.append(_FINDER_COLUMN_G_P_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_P_V_VOCABULARYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
@@ -8468,18 +8379,18 @@ public class AssetCategoryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -8487,99 +8398,99 @@ public class AssetCategoryPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
-		qPos.add(parentCategoryId);
+		queryPos.add(parentCategoryId);
 
-		qPos.add(vocabularyId);
+		queryPos.add(vocabularyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -8639,45 +8550,41 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_P_V_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_P_V_GROUPID_2);
 
-			query.append(_FINDER_COLUMN_G_P_V_PARENTCATEGORYID_2);
+			sb.append(_FINDER_COLUMN_G_P_V_PARENTCATEGORYID_2);
 
-			query.append(_FINDER_COLUMN_G_P_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_G_P_V_VOCABULARYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
-				qPos.add(parentCategoryId);
+				queryPos.add(parentCategoryId);
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -8703,18 +8610,18 @@ public class AssetCategoryPersistenceImpl
 			return countByG_P_V(groupId, parentCategoryId, vocabularyId);
 		}
 
-		StringBundler query = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		query.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_G_P_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_P_V_GROUPID_2);
 
-		query.append(_FINDER_COLUMN_G_P_V_PARENTCATEGORYID_2);
+		sb.append(_FINDER_COLUMN_G_P_V_PARENTCATEGORYID_2);
 
-		query.append(_FINDER_COLUMN_G_P_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_P_V_VOCABULARYID_2);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -8722,25 +8629,25 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
-			qPos.add(parentCategoryId);
+			queryPos.add(parentCategoryId);
 
-			qPos.add(vocabularyId);
+			queryPos.add(vocabularyId);
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -8881,62 +8788,62 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					5 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(5);
+				sb = new StringBundler(5);
 			}
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_LIKET_V_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_LIKET_V_GROUPID_2);
 
 			boolean bindTreePath = false;
 
 			if (treePath.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_3);
+				sb.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_3);
 			}
 			else {
 				bindTreePath = true;
 
-				query.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_2);
+				sb.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_2);
 			}
 
-			query.append(_FINDER_COLUMN_G_LIKET_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_G_LIKET_V_VOCABULARYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
 				if (bindTreePath) {
-					qPos.add(treePath);
+					queryPos.add(treePath);
 				}
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -8944,12 +8851,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -8982,22 +8885,22 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(8);
+		StringBundler sb = new StringBundler(8);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append(", treePathLIKE");
-		msg.append(treePath);
+		sb.append(", treePathLIKE");
+		sb.append(treePath);
 
-		msg.append(", vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append(", vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -9047,22 +8950,22 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(8);
+		StringBundler sb = new StringBundler(8);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append(", treePathLIKE");
-		msg.append(treePath);
+		sb.append(", treePathLIKE");
+		sb.append(treePath);
 
-		msg.append(", vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append(", vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -9136,8 +9039,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -9149,121 +9052,121 @@ public class AssetCategoryPersistenceImpl
 		String treePath, long vocabularyId,
 		OrderByComparator<AssetCategory> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
-		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+		sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_G_LIKET_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_LIKET_V_GROUPID_2);
 
 		boolean bindTreePath = false;
 
 		if (treePath.isEmpty()) {
-			query.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_3);
+			sb.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_3);
 		}
 		else {
 			bindTreePath = true;
 
-			query.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_2);
+			sb.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_2);
 		}
 
-		query.append(_FINDER_COLUMN_G_LIKET_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_LIKET_V_VOCABULARYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+			sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
 		if (bindTreePath) {
-			qPos.add(treePath);
+			queryPos.add(treePath);
 		}
 
-		qPos.add(vocabularyId);
+		queryPos.add(vocabularyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -9339,65 +9242,65 @@ public class AssetCategoryPersistenceImpl
 
 		treePath = Objects.toString(treePath, "");
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(6);
+			sb = new StringBundler(6);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_LIKET_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_LIKET_V_GROUPID_2);
 
 		boolean bindTreePath = false;
 
 		if (treePath.isEmpty()) {
-			query.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_3);
+			sb.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_3);
 		}
 		else {
 			bindTreePath = true;
 
-			query.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_2);
+			sb.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_2);
 		}
 
-		query.append(_FINDER_COLUMN_G_LIKET_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_LIKET_V_VOCABULARYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -9405,30 +9308,32 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
 			if (bindTreePath) {
-				qPos.add(treePath);
+				queryPos.add(treePath);
 			}
 
-			qPos.add(vocabularyId);
+			queryPos.add(vocabularyId);
 
 			return (List<AssetCategory>)QueryUtil.list(
-				q, getDialect(), start, end);
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -9480,8 +9385,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -9493,42 +9398,42 @@ public class AssetCategoryPersistenceImpl
 		String treePath, long vocabularyId,
 		OrderByComparator<AssetCategory> orderByComparator, boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				7 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(6);
+			sb = new StringBundler(6);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_LIKET_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_LIKET_V_GROUPID_2);
 
 		boolean bindTreePath = false;
 
 		if (treePath.isEmpty()) {
-			query.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_3);
+			sb.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_3);
 		}
 		else {
 			bindTreePath = true;
 
-			query.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_2);
+			sb.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_2);
 		}
 
-		query.append(_FINDER_COLUMN_G_LIKET_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_LIKET_V_VOCABULARYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
@@ -9537,18 +9442,18 @@ public class AssetCategoryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -9556,101 +9461,101 @@ public class AssetCategoryPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
 		if (bindTreePath) {
-			qPos.add(treePath);
+			queryPos.add(treePath);
 		}
 
-		qPos.add(vocabularyId);
+		queryPos.add(vocabularyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -9712,56 +9617,52 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_LIKET_V_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_LIKET_V_GROUPID_2);
 
 			boolean bindTreePath = false;
 
 			if (treePath.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_3);
+				sb.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_3);
 			}
 			else {
 				bindTreePath = true;
 
-				query.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_2);
+				sb.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_2);
 			}
 
-			query.append(_FINDER_COLUMN_G_LIKET_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_G_LIKET_V_VOCABULARYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
 				if (bindTreePath) {
-					qPos.add(treePath);
+					queryPos.add(treePath);
 				}
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -9789,27 +9690,27 @@ public class AssetCategoryPersistenceImpl
 
 		treePath = Objects.toString(treePath, "");
 
-		StringBundler query = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		query.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_G_LIKET_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_LIKET_V_GROUPID_2);
 
 		boolean bindTreePath = false;
 
 		if (treePath.isEmpty()) {
-			query.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_3);
+			sb.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_3);
 		}
 		else {
 			bindTreePath = true;
 
-			query.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_2);
+			sb.append(_FINDER_COLUMN_G_LIKET_V_TREEPATH_2);
 		}
 
-		query.append(_FINDER_COLUMN_G_LIKET_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_LIKET_V_VOCABULARYID_2);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -9817,27 +9718,27 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
 			if (bindTreePath) {
-				qPos.add(treePath);
+				queryPos.add(treePath);
 			}
 
-			qPos.add(vocabularyId);
+			queryPos.add(vocabularyId);
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -9979,62 +9880,62 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					5 + (orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
-				query = new StringBundler(5);
+				sb = new StringBundler(5);
 			}
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
+				sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
+				sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
 			}
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
 				if (bindName) {
-					qPos.add(StringUtil.toLowerCase(name));
+					queryPos.add(StringUtil.toLowerCase(name));
 				}
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -10042,12 +9943,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -10080,22 +9977,22 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(8);
+		StringBundler sb = new StringBundler(8);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append(", nameLIKE");
-		msg.append(name);
+		sb.append(", nameLIKE");
+		sb.append(name);
 
-		msg.append(", vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append(", vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -10145,22 +10042,22 @@ public class AssetCategoryPersistenceImpl
 			return assetCategory;
 		}
 
-		StringBundler msg = new StringBundler(8);
+		StringBundler sb = new StringBundler(8);
 
-		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-		msg.append("groupId=");
-		msg.append(groupId);
+		sb.append("groupId=");
+		sb.append(groupId);
 
-		msg.append(", nameLIKE");
-		msg.append(name);
+		sb.append(", nameLIKE");
+		sb.append(name);
 
-		msg.append(", vocabularyId=");
-		msg.append(vocabularyId);
+		sb.append(", vocabularyId=");
+		sb.append(vocabularyId);
 
-		msg.append("}");
+		sb.append("}");
 
-		throw new NoSuchCategoryException(msg.toString());
+		throw new NoSuchCategoryException(sb.toString());
 	}
 
 	/**
@@ -10233,8 +10130,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -10246,121 +10143,121 @@ public class AssetCategoryPersistenceImpl
 		long vocabularyId, OrderByComparator<AssetCategory> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(5);
+			sb = new StringBundler(5);
 		}
 
-		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+		sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
 
 		boolean bindName = false;
 
 		if (name.isEmpty()) {
-			query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
 		}
 		else {
 			bindName = true;
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
 		}
 
-		query.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByConditionFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
-				query.append(_ORDER_BY_ENTITY_ALIAS);
-				query.append(orderByFields[i]);
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
-			query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+			sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 		}
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
-		Query q = session.createQuery(sql);
+		Query query = session.createQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		query.setFirstResult(0);
+		query.setMaxResults(2);
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(query);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
 		if (bindName) {
-			qPos.add(StringUtil.toLowerCase(name));
+			queryPos.add(StringUtil.toLowerCase(name));
 		}
 
-		qPos.add(vocabularyId);
+		queryPos.add(vocabularyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = query.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -10436,65 +10333,65 @@ public class AssetCategoryPersistenceImpl
 
 		name = Objects.toString(name, "");
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				5 + (orderByComparator.getOrderByFields().length * 2));
 		}
 		else {
-			query = new StringBundler(6);
+			sb = new StringBundler(6);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
 
 		boolean bindName = false;
 
 		if (name.isEmpty()) {
-			query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
 		}
 		else {
 			bindName = true;
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
 		}
 
-		query.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -10502,30 +10399,32 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
 			if (bindName) {
-				qPos.add(StringUtil.toLowerCase(name));
+				queryPos.add(StringUtil.toLowerCase(name));
 			}
 
-			qPos.add(vocabularyId);
+			queryPos.add(vocabularyId);
 
 			return (List<AssetCategory>)QueryUtil.list(
-				q, getDialect(), start, end);
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -10577,8 +10476,8 @@ public class AssetCategoryPersistenceImpl
 
 			return array;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -10590,42 +10489,42 @@ public class AssetCategoryPersistenceImpl
 		long vocabularyId, OrderByComparator<AssetCategory> orderByComparator,
 		boolean previous) {
 
-		StringBundler query = null;
+		StringBundler sb = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(
+			sb = new StringBundler(
 				7 + (orderByComparator.getOrderByConditionFields().length * 3) +
 					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
-			query = new StringBundler(6);
+			sb = new StringBundler(6);
 		}
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
 
 		boolean bindName = false;
 
 		if (name.isEmpty()) {
-			query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
 		}
 		else {
 			bindName = true;
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
 		}
 
-		query.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_2);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
@@ -10634,18 +10533,18 @@ public class AssetCategoryPersistenceImpl
 				orderByComparator.getOrderByConditionFields();
 
 			if (orderByConditionFields.length > 0) {
-				query.append(WHERE_AND);
+				sb.append(WHERE_AND);
 			}
 
 			for (int i = 0; i < orderByConditionFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
 							true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
 							true));
@@ -10653,101 +10552,101 @@ public class AssetCategoryPersistenceImpl
 
 				if ((i + 1) < orderByConditionFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN_HAS_NEXT);
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN_HAS_NEXT);
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(WHERE_GREATER_THAN);
+						sb.append(WHERE_GREATER_THAN);
 					}
 					else {
-						query.append(WHERE_LESSER_THAN);
+						sb.append(WHERE_LESSER_THAN);
 					}
 				}
 			}
 
-			query.append(ORDER_BY_CLAUSE);
+			sb.append(ORDER_BY_CLAUSE);
 
 			String[] orderByFields = orderByComparator.getOrderByFields();
 
 			for (int i = 0; i < orderByFields.length; i++) {
 				if (getDB().isSupportsInlineDistinct()) {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
 				}
 				else {
-					query.append(
+					sb.append(
 						getColumnName(
 							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
 				}
 
 				if ((i + 1) < orderByFields.length) {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC_HAS_NEXT);
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
 					}
 					else {
-						query.append(ORDER_BY_DESC_HAS_NEXT);
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
 					}
 				}
 				else {
 					if (orderByComparator.isAscending() ^ previous) {
-						query.append(ORDER_BY_ASC);
+						sb.append(ORDER_BY_ASC);
 					}
 					else {
-						query.append(ORDER_BY_DESC);
+						sb.append(ORDER_BY_DESC);
 					}
 				}
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSynchronizedSQLQuery(sql);
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-		q.setFirstResult(0);
-		q.setMaxResults(2);
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
 
 		if (getDB().isSupportsInlineDistinct()) {
-			q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 		}
 		else {
-			q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+			sqlQuery.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 		}
 
-		QueryPos qPos = QueryPos.getInstance(q);
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-		qPos.add(groupId);
+		queryPos.add(groupId);
 
 		if (bindName) {
-			qPos.add(StringUtil.toLowerCase(name));
+			queryPos.add(StringUtil.toLowerCase(name));
 		}
 
-		qPos.add(vocabularyId);
+		queryPos.add(vocabularyId);
 
 		if (orderByComparator != null) {
 			for (Object orderByConditionValue :
 					orderByComparator.getOrderByConditionValues(
 						assetCategory)) {
 
-				qPos.add(orderByConditionValue);
+				queryPos.add(orderByConditionValue);
 			}
 		}
 
-		List<AssetCategory> list = q.list();
+		List<AssetCategory> list = sqlQuery.list();
 
 		if (list.size() == 2) {
 			return list.get(1);
@@ -10830,71 +10729,70 @@ public class AssetCategoryPersistenceImpl
 			vocabularyIds = ArrayUtil.sortedUnique(vocabularyIds);
 		}
 
-		StringBundler query = new StringBundler();
+		StringBundler sb = new StringBundler();
 
 		if (getDB().isSupportsInlineDistinct()) {
-			query.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_FILTER_SQL_SELECT_ASSETCATEGORY_WHERE);
 		}
 		else {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		query.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
 
 		boolean bindName = false;
 
 		if (name.isEmpty()) {
-			query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
 		}
 		else {
 			bindName = true;
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
 		}
 
 		if (vocabularyIds.length > 0) {
-			query.append("(");
+			sb.append("(");
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_7);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_7);
 
-			query.append(StringUtil.merge(vocabularyIds));
+			sb.append(StringUtil.merge(vocabularyIds));
 
-			query.append(")");
+			sb.append(")");
 
-			query.append(")");
+			sb.append(")");
 		}
 
-		query.setStringAt(
-			removeConjunction(query.stringAt(query.index() - 1)),
-			query.index() - 1);
+		sb.setStringAt(
+			removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
 
 		if (!getDB().isSupportsInlineDistinct()) {
-			query.append(
+			sb.append(
 				_FILTER_SQL_SELECT_ASSETCATEGORY_NO_INLINE_DISTINCT_WHERE_2);
 		}
 
 		if (orderByComparator != null) {
 			if (getDB().isSupportsInlineDistinct()) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
 			}
 			else {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
 			}
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_SQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_SQL);
 			}
 		}
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -10902,28 +10800,30 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
-				q.addEntity(_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, AssetCategoryImpl.class);
 			}
 			else {
-				q.addEntity(_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, AssetCategoryImpl.class);
 			}
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
 			if (bindName) {
-				qPos.add(StringUtil.toLowerCase(name));
+				queryPos.add(StringUtil.toLowerCase(name));
 			}
 
 			return (List<AssetCategory>)QueryUtil.list(
-				q, getDialect(), start, end);
+				sqlQuery, getDialect(), start, end);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -11077,66 +10977,65 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = new StringBundler();
+			StringBundler sb = new StringBundler();
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
+				sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
+				sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
 			}
 
 			if (vocabularyIds.length > 0) {
-				query.append("(");
+				sb.append("(");
 
-				query.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_7);
+				sb.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_7);
 
-				query.append(StringUtil.merge(vocabularyIds));
+				sb.append(StringUtil.merge(vocabularyIds));
 
-				query.append(")");
+				sb.append(")");
 
-				query.append(")");
+				sb.append(")");
 			}
 
-			query.setStringAt(
-				removeConjunction(query.stringAt(query.index() - 1)),
-				query.index() - 1);
+			sb.setStringAt(
+				removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 			}
 			else {
-				query.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
+				sb.append(AssetCategoryModelImpl.ORDER_BY_JPQL);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
 				if (bindName) {
-					qPos.add(StringUtil.toLowerCase(name));
+					queryPos.add(StringUtil.toLowerCase(name));
 				}
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -11146,13 +11045,8 @@ public class AssetCategoryPersistenceImpl
 						list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(
-						_finderPathWithPaginationFindByG_LikeN_V, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -11212,56 +11106,52 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
+				sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
+				sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
 			}
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
 				if (bindName) {
-					qPos.add(StringUtil.toLowerCase(name));
+					queryPos.add(StringUtil.toLowerCase(name));
 				}
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -11309,57 +11199,56 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler();
+			StringBundler sb = new StringBundler();
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
+				sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
+				sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
 			}
 
 			if (vocabularyIds.length > 0) {
-				query.append("(");
+				sb.append("(");
 
-				query.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_7);
+				sb.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_7);
 
-				query.append(StringUtil.merge(vocabularyIds));
+				sb.append(StringUtil.merge(vocabularyIds));
 
-				query.append(")");
+				sb.append(")");
 
-				query.append(")");
+				sb.append(")");
 			}
 
-			query.setStringAt(
-				removeConjunction(query.stringAt(query.index() - 1)),
-				query.index() - 1);
+			sb.setStringAt(
+				removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(groupId);
+				queryPos.add(groupId);
 
 				if (bindName) {
-					qPos.add(StringUtil.toLowerCase(name));
+					queryPos.add(StringUtil.toLowerCase(name));
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(
@@ -11367,13 +11256,8 @@ public class AssetCategoryPersistenceImpl
 						count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(
-						_finderPathWithPaginationCountByG_LikeN_V, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -11401,27 +11285,27 @@ public class AssetCategoryPersistenceImpl
 
 		name = Objects.toString(name, "");
 
-		StringBundler query = new StringBundler(4);
+		StringBundler sb = new StringBundler(4);
 
-		query.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
 
 		boolean bindName = false;
 
 		if (name.isEmpty()) {
-			query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
 		}
 		else {
 			bindName = true;
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
 		}
 
-		query.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_2);
+		sb.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_2);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -11429,27 +11313,27 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
 			if (bindName) {
-				qPos.add(StringUtil.toLowerCase(name));
+				queryPos.add(StringUtil.toLowerCase(name));
 			}
 
-			qPos.add(vocabularyId);
+			queryPos.add(vocabularyId);
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -11481,41 +11365,40 @@ public class AssetCategoryPersistenceImpl
 			vocabularyIds = ArrayUtil.sortedUnique(vocabularyIds);
 		}
 
-		StringBundler query = new StringBundler();
+		StringBundler sb = new StringBundler();
 
-		query.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
+		sb.append(_FILTER_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-		query.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
+		sb.append(_FINDER_COLUMN_G_LIKEN_V_GROUPID_2);
 
 		boolean bindName = false;
 
 		if (name.isEmpty()) {
-			query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_3);
 		}
 		else {
 			bindName = true;
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_NAME_2);
 		}
 
 		if (vocabularyIds.length > 0) {
-			query.append("(");
+			sb.append("(");
 
-			query.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_7);
+			sb.append(_FINDER_COLUMN_G_LIKEN_V_VOCABULARYID_7);
 
-			query.append(StringUtil.merge(vocabularyIds));
+			sb.append(StringUtil.merge(vocabularyIds));
 
-			query.append(")");
+			sb.append(")");
 
-			query.append(")");
+			sb.append(")");
 		}
 
-		query.setStringAt(
-			removeConjunction(query.stringAt(query.index() - 1)),
-			query.index() - 1);
+		sb.setStringAt(
+			removeConjunction(sb.stringAt(sb.index() - 1)), sb.index() - 1);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(
-			query.toString(), AssetCategory.class.getName(),
+			sb.toString(), AssetCategory.class.getName(),
 			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
 		Session session = null;
@@ -11523,25 +11406,25 @@ public class AssetCategoryPersistenceImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
-			q.addScalar(
+			sqlQuery.addScalar(
 				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
 
-			QueryPos qPos = QueryPos.getInstance(q);
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
 
-			qPos.add(groupId);
+			queryPos.add(groupId);
 
 			if (bindName) {
-				qPos.add(StringUtil.toLowerCase(name));
+				queryPos.add(StringUtil.toLowerCase(name));
 			}
 
-			Long count = (Long)q.uniqueResult();
+			Long count = (Long)sqlQuery.uniqueResult();
 
 			return count.intValue();
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -11584,26 +11467,26 @@ public class AssetCategoryPersistenceImpl
 			parentCategoryId, name, vocabularyId);
 
 		if (assetCategory == null) {
-			StringBundler msg = new StringBundler(8);
+			StringBundler sb = new StringBundler(8);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("parentCategoryId=");
-			msg.append(parentCategoryId);
+			sb.append("parentCategoryId=");
+			sb.append(parentCategoryId);
 
-			msg.append(", name=");
-			msg.append(name);
+			sb.append(", name=");
+			sb.append(name);
 
-			msg.append(", vocabularyId=");
-			msg.append(vocabularyId);
+			sb.append(", vocabularyId=");
+			sb.append(vocabularyId);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchCategoryException(msg.toString());
+			throw new NoSuchCategoryException(sb.toString());
 		}
 
 		return assetCategory;
@@ -11668,45 +11551,45 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(5);
+			StringBundler sb = new StringBundler(5);
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_P_N_V_PARENTCATEGORYID_2);
+			sb.append(_FINDER_COLUMN_P_N_V_PARENTCATEGORYID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_P_N_V_NAME_3);
+				sb.append(_FINDER_COLUMN_P_N_V_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_P_N_V_NAME_2);
+				sb.append(_FINDER_COLUMN_P_N_V_NAME_2);
 			}
 
-			query.append(_FINDER_COLUMN_P_N_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_P_N_V_VOCABULARYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(parentCategoryId);
+				queryPos.add(parentCategoryId);
 
 				if (bindName) {
-					qPos.add(name);
+					queryPos.add(name);
 				}
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
-				List<AssetCategory> list = q.list();
+				List<AssetCategory> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache && productionMode) {
@@ -11722,13 +11605,8 @@ public class AssetCategoryPersistenceImpl
 					cacheResult(assetCategory);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(
-						_finderPathFetchByP_N_V, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -11794,56 +11672,52 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_P_N_V_PARENTCATEGORYID_2);
+			sb.append(_FINDER_COLUMN_P_N_V_PARENTCATEGORYID_2);
 
 			boolean bindName = false;
 
 			if (name.isEmpty()) {
-				query.append(_FINDER_COLUMN_P_N_V_NAME_3);
+				sb.append(_FINDER_COLUMN_P_N_V_NAME_3);
 			}
 			else {
 				bindName = true;
 
-				query.append(_FINDER_COLUMN_P_N_V_NAME_2);
+				sb.append(_FINDER_COLUMN_P_N_V_NAME_2);
 			}
 
-			query.append(_FINDER_COLUMN_P_N_V_VOCABULARYID_2);
+			sb.append(_FINDER_COLUMN_P_N_V_VOCABULARYID_2);
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(parentCategoryId);
+				queryPos.add(parentCategoryId);
 
 				if (bindName) {
-					qPos.add(name);
+					queryPos.add(name);
 				}
 
-				qPos.add(vocabularyId);
+				queryPos.add(vocabularyId);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -11885,23 +11759,23 @@ public class AssetCategoryPersistenceImpl
 			companyId, externalReferenceCode);
 
 		if (assetCategory == null) {
-			StringBundler msg = new StringBundler(6);
+			StringBundler sb = new StringBundler(6);
 
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
 
-			msg.append("companyId=");
-			msg.append(companyId);
+			sb.append("companyId=");
+			sb.append(companyId);
 
-			msg.append(", externalReferenceCode=");
-			msg.append(externalReferenceCode);
+			sb.append(", externalReferenceCode=");
+			sb.append(externalReferenceCode);
 
-			msg.append("}");
+			sb.append("}");
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(msg.toString());
+				_log.debug(sb.toString());
 			}
 
-			throw new NoSuchCategoryException(msg.toString());
+			throw new NoSuchCategoryException(sb.toString());
 		}
 
 		return assetCategory;
@@ -11964,41 +11838,41 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (result == null) {
-			StringBundler query = new StringBundler(4);
+			StringBundler sb = new StringBundler(4);
 
-			query.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_SELECT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_C_ERC_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_C_ERC_COMPANYID_2);
 
 			boolean bindExternalReferenceCode = false;
 
 			if (externalReferenceCode.isEmpty()) {
-				query.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_3);
+				sb.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_3);
 			}
 			else {
 				bindExternalReferenceCode = true;
 
-				query.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_2);
+				sb.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				if (bindExternalReferenceCode) {
-					qPos.add(externalReferenceCode);
+					queryPos.add(externalReferenceCode);
 				}
 
-				List<AssetCategory> list = q.list();
+				List<AssetCategory> list = query.list();
 
 				if (list.isEmpty()) {
 					if (useFinderCache && productionMode) {
@@ -12031,13 +11905,8 @@ public class AssetCategoryPersistenceImpl
 					cacheResult(assetCategory);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(
-						_finderPathFetchByC_ERC, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -12099,52 +11968,48 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (count == null) {
-			StringBundler query = new StringBundler(3);
+			StringBundler sb = new StringBundler(3);
 
-			query.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
+			sb.append(_SQL_COUNT_ASSETCATEGORY_WHERE);
 
-			query.append(_FINDER_COLUMN_C_ERC_COMPANYID_2);
+			sb.append(_FINDER_COLUMN_C_ERC_COMPANYID_2);
 
 			boolean bindExternalReferenceCode = false;
 
 			if (externalReferenceCode.isEmpty()) {
-				query.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_3);
+				sb.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_3);
 			}
 			else {
 				bindExternalReferenceCode = true;
 
-				query.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_2);
+				sb.append(_FINDER_COLUMN_C_ERC_EXTERNALREFERENCECODE_2);
 			}
 
-			String sql = query.toString();
+			String sql = sb.toString();
 
 			Session session = null;
 
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
-				QueryPos qPos = QueryPos.getInstance(q);
+				QueryPos queryPos = QueryPos.getInstance(query);
 
-				qPos.add(companyId);
+				queryPos.add(companyId);
 
 				if (bindExternalReferenceCode) {
-					qPos.add(externalReferenceCode);
+					queryPos.add(externalReferenceCode);
 				}
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(finderPath, finderArgs, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -12164,17 +12029,18 @@ public class AssetCategoryPersistenceImpl
 		"(assetCategory.externalReferenceCode IS NULL OR assetCategory.externalReferenceCode = '')";
 
 	public AssetCategoryPersistenceImpl() {
-		setModelClass(AssetCategory.class);
-
-		setModelImplClass(AssetCategoryImpl.class);
-		setModelPKClass(long.class);
-		setEntityCacheEnabled(AssetCategoryModelImpl.ENTITY_CACHE_ENABLED);
-
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
 		dbColumnNames.put("uuid", "uuid_");
 
 		setDBColumnNames(dbColumnNames);
+
+		setModelClass(AssetCategory.class);
+
+		setModelImplClass(AssetCategoryImpl.class);
+		setModelPKClass(long.class);
+
+		setTable(AssetCategoryTable.INSTANCE);
 	}
 
 	/**
@@ -12185,13 +12051,10 @@ public class AssetCategoryPersistenceImpl
 	@Override
 	public void cacheResult(AssetCategory assetCategory) {
 		if (assetCategory.getCtCollectionId() != 0) {
-			assetCategory.resetOriginalValues();
-
 			return;
 		}
 
 		EntityCacheUtil.putResult(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
 			AssetCategoryImpl.class, assetCategory.getPrimaryKey(),
 			assetCategory);
 
@@ -12215,8 +12078,6 @@ public class AssetCategoryPersistenceImpl
 				assetCategory.getExternalReferenceCode()
 			},
 			assetCategory);
-
-		assetCategory.resetOriginalValues();
 	}
 
 	/**
@@ -12228,20 +12089,14 @@ public class AssetCategoryPersistenceImpl
 	public void cacheResult(List<AssetCategory> assetCategories) {
 		for (AssetCategory assetCategory : assetCategories) {
 			if (assetCategory.getCtCollectionId() != 0) {
-				assetCategory.resetOriginalValues();
-
 				continue;
 			}
 
 			if (EntityCacheUtil.getResult(
-					AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
 					AssetCategoryImpl.class, assetCategory.getPrimaryKey()) ==
 						null) {
 
 				cacheResult(assetCategory);
-			}
-			else {
-				assetCategory.resetOriginalValues();
 			}
 		}
 	}
@@ -12271,28 +12126,14 @@ public class AssetCategoryPersistenceImpl
 	 */
 	@Override
 	public void clearCache(AssetCategory assetCategory) {
-		EntityCacheUtil.removeResult(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryImpl.class, assetCategory.getPrimaryKey());
-
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
-		clearUniqueFindersCache((AssetCategoryModelImpl)assetCategory, true);
+		EntityCacheUtil.removeResult(AssetCategoryImpl.class, assetCategory);
 	}
 
 	@Override
 	public void clearCache(List<AssetCategory> assetCategories) {
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
 		for (AssetCategory assetCategory : assetCategories) {
 			EntityCacheUtil.removeResult(
-				AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-				AssetCategoryImpl.class, assetCategory.getPrimaryKey());
-
-			clearUniqueFindersCache(
-				(AssetCategoryModelImpl)assetCategory, true);
+				AssetCategoryImpl.class, assetCategory);
 		}
 	}
 
@@ -12303,9 +12144,7 @@ public class AssetCategoryPersistenceImpl
 		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
 		for (Serializable primaryKey : primaryKeys) {
-			EntityCacheUtil.removeResult(
-				AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-				AssetCategoryImpl.class, primaryKey);
+			EntityCacheUtil.removeResult(AssetCategoryImpl.class, primaryKey);
 		}
 	}
 
@@ -12342,78 +12181,6 @@ public class AssetCategoryPersistenceImpl
 			_finderPathCountByC_ERC, args, Long.valueOf(1), false);
 		FinderCacheUtil.putResult(
 			_finderPathFetchByC_ERC, args, assetCategoryModelImpl, false);
-	}
-
-	protected void clearUniqueFindersCache(
-		AssetCategoryModelImpl assetCategoryModelImpl, boolean clearCurrent) {
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				assetCategoryModelImpl.getUuid(),
-				assetCategoryModelImpl.getGroupId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByUUID_G, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByUUID_G, args);
-		}
-
-		if ((assetCategoryModelImpl.getColumnBitmask() &
-			 _finderPathFetchByUUID_G.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				assetCategoryModelImpl.getOriginalUuid(),
-				assetCategoryModelImpl.getOriginalGroupId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByUUID_G, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByUUID_G, args);
-		}
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				assetCategoryModelImpl.getParentCategoryId(),
-				assetCategoryModelImpl.getName(),
-				assetCategoryModelImpl.getVocabularyId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByP_N_V, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByP_N_V, args);
-		}
-
-		if ((assetCategoryModelImpl.getColumnBitmask() &
-			 _finderPathFetchByP_N_V.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				assetCategoryModelImpl.getOriginalParentCategoryId(),
-				assetCategoryModelImpl.getOriginalName(),
-				assetCategoryModelImpl.getOriginalVocabularyId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByP_N_V, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByP_N_V, args);
-		}
-
-		if (clearCurrent) {
-			Object[] args = new Object[] {
-				assetCategoryModelImpl.getCompanyId(),
-				assetCategoryModelImpl.getExternalReferenceCode()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByC_ERC, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByC_ERC, args);
-		}
-
-		if ((assetCategoryModelImpl.getColumnBitmask() &
-			 _finderPathFetchByC_ERC.getColumnBitmask()) != 0) {
-
-			Object[] args = new Object[] {
-				assetCategoryModelImpl.getOriginalCompanyId(),
-				assetCategoryModelImpl.getOriginalExternalReferenceCode()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByC_ERC, args);
-			FinderCacheUtil.removeResult(_finderPathFetchByC_ERC, args);
-		}
 	}
 
 	/**
@@ -12482,11 +12249,11 @@ public class AssetCategoryPersistenceImpl
 
 			return remove(assetCategory);
 		}
-		catch (NoSuchCategoryException nsee) {
-			throw nsee;
+		catch (NoSuchCategoryException noSuchEntityException) {
+			throw noSuchEntityException;
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -12498,10 +12265,6 @@ public class AssetCategoryPersistenceImpl
 		assetCategoryToAssetEntryTableMapper.deleteLeftPrimaryKeyTableMappings(
 			assetCategory.getPrimaryKey());
 
-		if (!CTPersistenceHelperUtil.isRemove(assetCategory)) {
-			return assetCategory;
-		}
-
 		Session session = null;
 
 		try {
@@ -12512,12 +12275,14 @@ public class AssetCategoryPersistenceImpl
 					AssetCategoryImpl.class, assetCategory.getPrimaryKeyObj());
 			}
 
-			if (assetCategory != null) {
+			if ((assetCategory != null) &&
+				CTPersistenceHelperUtil.isRemove(assetCategory)) {
+
 				session.delete(assetCategory);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -12591,391 +12356,42 @@ public class AssetCategoryPersistenceImpl
 
 			if (CTPersistenceHelperUtil.isInsert(assetCategory)) {
 				if (!isNew) {
-					AssetCategory oldAssetCategory = (AssetCategory)session.get(
+					session.evict(
 						AssetCategoryImpl.class,
 						assetCategory.getPrimaryKeyObj());
-
-					if (oldAssetCategory != null) {
-						session.evict(oldAssetCategory);
-					}
 				}
 
 				session.save(assetCategory);
-
-				assetCategory.setNew(false);
 			}
 			else {
 				assetCategory = (AssetCategory)session.merge(assetCategory);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
 		}
 
 		if (assetCategory.getCtCollectionId() != 0) {
+			if (isNew) {
+				assetCategory.setNew(false);
+			}
+
 			assetCategory.resetOriginalValues();
 
 			return assetCategory;
 		}
 
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-
-		if (!AssetCategoryModelImpl.COLUMN_BITMASK_ENABLED) {
-			FinderCacheUtil.clearCache(
-				FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-		}
-		else if (isNew) {
-			Object[] args = new Object[] {assetCategoryModelImpl.getUuid()};
-
-			FinderCacheUtil.removeResult(_finderPathCountByUuid, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByUuid, args);
-
-			args = new Object[] {
-				assetCategoryModelImpl.getUuid(),
-				assetCategoryModelImpl.getCompanyId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByUuid_C, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByUuid_C, args);
-
-			args = new Object[] {assetCategoryModelImpl.getGroupId()};
-
-			FinderCacheUtil.removeResult(_finderPathCountByGroupId, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByGroupId, args);
-
-			args = new Object[] {assetCategoryModelImpl.getParentCategoryId()};
-
-			FinderCacheUtil.removeResult(
-				_finderPathCountByParentCategoryId, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByParentCategoryId, args);
-
-			args = new Object[] {assetCategoryModelImpl.getVocabularyId()};
-
-			FinderCacheUtil.removeResult(_finderPathCountByVocabularyId, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByVocabularyId, args);
-
-			args = new Object[] {
-				assetCategoryModelImpl.getGroupId(),
-				assetCategoryModelImpl.getParentCategoryId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByG_P, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByG_P, args);
-
-			args = new Object[] {
-				assetCategoryModelImpl.getGroupId(),
-				assetCategoryModelImpl.getVocabularyId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByG_V, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByG_V, args);
-
-			args = new Object[] {
-				assetCategoryModelImpl.getParentCategoryId(),
-				assetCategoryModelImpl.getName()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByP_N, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByP_N, args);
-
-			args = new Object[] {
-				assetCategoryModelImpl.getParentCategoryId(),
-				assetCategoryModelImpl.getVocabularyId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByP_V, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByP_V, args);
-
-			args = new Object[] {
-				assetCategoryModelImpl.getName(),
-				assetCategoryModelImpl.getVocabularyId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByN_V, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByN_V, args);
-
-			args = new Object[] {
-				assetCategoryModelImpl.getGroupId(),
-				assetCategoryModelImpl.getParentCategoryId(),
-				assetCategoryModelImpl.getVocabularyId()
-			};
-
-			FinderCacheUtil.removeResult(_finderPathCountByG_P_V, args);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindByG_P_V, args);
-
-			FinderCacheUtil.removeResult(
-				_finderPathCountAll, FINDER_ARGS_EMPTY);
-			FinderCacheUtil.removeResult(
-				_finderPathWithoutPaginationFindAll, FINDER_ARGS_EMPTY);
-		}
-		else {
-			if ((assetCategoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByUuid.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					assetCategoryModelImpl.getOriginalUuid()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByUuid, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByUuid, args);
-
-				args = new Object[] {assetCategoryModelImpl.getUuid()};
-
-				FinderCacheUtil.removeResult(_finderPathCountByUuid, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByUuid, args);
-			}
-
-			if ((assetCategoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByUuid_C.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					assetCategoryModelImpl.getOriginalUuid(),
-					assetCategoryModelImpl.getOriginalCompanyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByUuid_C, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByUuid_C, args);
-
-				args = new Object[] {
-					assetCategoryModelImpl.getUuid(),
-					assetCategoryModelImpl.getCompanyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByUuid_C, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByUuid_C, args);
-			}
-
-			if ((assetCategoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByGroupId.
-					 getColumnBitmask()) != 0) {
-
-				Object[] args = new Object[] {
-					assetCategoryModelImpl.getOriginalGroupId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByGroupId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByGroupId, args);
-
-				args = new Object[] {assetCategoryModelImpl.getGroupId()};
-
-				FinderCacheUtil.removeResult(_finderPathCountByGroupId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByGroupId, args);
-			}
-
-			if ((assetCategoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByParentCategoryId.
-					 getColumnBitmask()) != 0) {
-
-				Object[] args = new Object[] {
-					assetCategoryModelImpl.getOriginalParentCategoryId()
-				};
-
-				FinderCacheUtil.removeResult(
-					_finderPathCountByParentCategoryId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByParentCategoryId, args);
-
-				args = new Object[] {
-					assetCategoryModelImpl.getParentCategoryId()
-				};
-
-				FinderCacheUtil.removeResult(
-					_finderPathCountByParentCategoryId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByParentCategoryId, args);
-			}
-
-			if ((assetCategoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByVocabularyId.
-					 getColumnBitmask()) != 0) {
-
-				Object[] args = new Object[] {
-					assetCategoryModelImpl.getOriginalVocabularyId()
-				};
-
-				FinderCacheUtil.removeResult(
-					_finderPathCountByVocabularyId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByVocabularyId, args);
-
-				args = new Object[] {assetCategoryModelImpl.getVocabularyId()};
-
-				FinderCacheUtil.removeResult(
-					_finderPathCountByVocabularyId, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByVocabularyId, args);
-			}
-
-			if ((assetCategoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByG_P.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					assetCategoryModelImpl.getOriginalGroupId(),
-					assetCategoryModelImpl.getOriginalParentCategoryId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByG_P, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByG_P, args);
-
-				args = new Object[] {
-					assetCategoryModelImpl.getGroupId(),
-					assetCategoryModelImpl.getParentCategoryId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByG_P, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByG_P, args);
-			}
-
-			if ((assetCategoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByG_V.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					assetCategoryModelImpl.getOriginalGroupId(),
-					assetCategoryModelImpl.getOriginalVocabularyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByG_V, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByG_V, args);
-
-				args = new Object[] {
-					assetCategoryModelImpl.getGroupId(),
-					assetCategoryModelImpl.getVocabularyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByG_V, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByG_V, args);
-			}
-
-			if ((assetCategoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByP_N.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					assetCategoryModelImpl.getOriginalParentCategoryId(),
-					assetCategoryModelImpl.getOriginalName()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByP_N, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByP_N, args);
-
-				args = new Object[] {
-					assetCategoryModelImpl.getParentCategoryId(),
-					assetCategoryModelImpl.getName()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByP_N, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByP_N, args);
-			}
-
-			if ((assetCategoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByP_V.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					assetCategoryModelImpl.getOriginalParentCategoryId(),
-					assetCategoryModelImpl.getOriginalVocabularyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByP_V, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByP_V, args);
-
-				args = new Object[] {
-					assetCategoryModelImpl.getParentCategoryId(),
-					assetCategoryModelImpl.getVocabularyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByP_V, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByP_V, args);
-			}
-
-			if ((assetCategoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByN_V.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					assetCategoryModelImpl.getOriginalName(),
-					assetCategoryModelImpl.getOriginalVocabularyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByN_V, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByN_V, args);
-
-				args = new Object[] {
-					assetCategoryModelImpl.getName(),
-					assetCategoryModelImpl.getVocabularyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByN_V, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByN_V, args);
-			}
-
-			if ((assetCategoryModelImpl.getColumnBitmask() &
-				 _finderPathWithoutPaginationFindByG_P_V.getColumnBitmask()) !=
-					 0) {
-
-				Object[] args = new Object[] {
-					assetCategoryModelImpl.getOriginalGroupId(),
-					assetCategoryModelImpl.getOriginalParentCategoryId(),
-					assetCategoryModelImpl.getOriginalVocabularyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByG_P_V, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByG_P_V, args);
-
-				args = new Object[] {
-					assetCategoryModelImpl.getGroupId(),
-					assetCategoryModelImpl.getParentCategoryId(),
-					assetCategoryModelImpl.getVocabularyId()
-				};
-
-				FinderCacheUtil.removeResult(_finderPathCountByG_P_V, args);
-				FinderCacheUtil.removeResult(
-					_finderPathWithoutPaginationFindByG_P_V, args);
-			}
-		}
-
 		EntityCacheUtil.putResult(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryImpl.class, assetCategory.getPrimaryKey(),
-			assetCategory, false);
+			AssetCategoryImpl.class, assetCategoryModelImpl, false, true);
 
-		clearUniqueFindersCache(assetCategoryModelImpl, false);
 		cacheUniqueFindersCache(assetCategoryModelImpl);
+
+		if (isNew) {
+			assetCategory.setNew(false);
+		}
 
 		assetCategory.resetOriginalValues();
 
@@ -13047,8 +12463,8 @@ public class AssetCategoryPersistenceImpl
 				cacheResult(assetCategory);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -13097,40 +12513,42 @@ public class AssetCategoryPersistenceImpl
 			return map;
 		}
 
-		StringBundler query = new StringBundler(primaryKeys.size() * 2 + 1);
+		StringBundler sb = new StringBundler((primaryKeys.size() * 2) + 1);
 
-		query.append(getSelectSQL());
-		query.append(" WHERE ");
-		query.append(getPKDBName());
-		query.append(" IN (");
+		sb.append(getSelectSQL());
+		sb.append(" WHERE ");
+		sb.append(getPKDBName());
+		sb.append(" IN (");
 
 		for (Serializable primaryKey : primaryKeys) {
-			query.append((long)primaryKey);
+			sb.append((long)primaryKey);
 
-			query.append(",");
+			sb.append(",");
 		}
 
-		query.setIndex(query.index() - 1);
+		sb.setIndex(sb.index() - 1);
 
-		query.append(")");
+		sb.append(")");
 
-		String sql = query.toString();
+		String sql = sb.toString();
 
 		Session session = null;
 
 		try {
 			session = openSession();
 
-			Query q = session.createQuery(sql);
+			Query query = session.createQuery(sql);
 
-			for (AssetCategory assetCategory : (List<AssetCategory>)q.list()) {
+			for (AssetCategory assetCategory :
+					(List<AssetCategory>)query.list()) {
+
 				map.put(assetCategory.getPrimaryKeyObj(), assetCategory);
 
 				cacheResult(assetCategory);
 			}
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 		finally {
 			closeSession(session);
@@ -13230,19 +12648,19 @@ public class AssetCategoryPersistenceImpl
 		}
 
 		if (list == null) {
-			StringBundler query = null;
+			StringBundler sb = null;
 			String sql = null;
 
 			if (orderByComparator != null) {
-				query = new StringBundler(
+				sb = new StringBundler(
 					2 + (orderByComparator.getOrderByFields().length * 2));
 
-				query.append(_SQL_SELECT_ASSETCATEGORY);
+				sb.append(_SQL_SELECT_ASSETCATEGORY);
 
 				appendOrderByComparator(
-					query, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
 
-				sql = query.toString();
+				sql = sb.toString();
 			}
 			else {
 				sql = _SQL_SELECT_ASSETCATEGORY;
@@ -13255,10 +12673,10 @@ public class AssetCategoryPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(sql);
+				Query query = session.createQuery(sql);
 
 				list = (List<AssetCategory>)QueryUtil.list(
-					q, getDialect(), start, end);
+					query, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -13266,12 +12684,8 @@ public class AssetCategoryPersistenceImpl
 					FinderCacheUtil.putResult(finderPath, finderArgs, list);
 				}
 			}
-			catch (Exception e) {
-				if (useFinderCache && productionMode) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -13315,22 +12729,17 @@ public class AssetCategoryPersistenceImpl
 			try {
 				session = openSession();
 
-				Query q = session.createQuery(_SQL_COUNT_ASSETCATEGORY);
+				Query query = session.createQuery(_SQL_COUNT_ASSETCATEGORY);
 
-				count = (Long)q.uniqueResult();
+				count = (Long)query.uniqueResult();
 
 				if (productionMode) {
 					FinderCacheUtil.putResult(
 						_finderPathCountAll, FINDER_ARGS_EMPTY, count);
 				}
 			}
-			catch (Exception e) {
-				if (productionMode) {
-					FinderCacheUtil.removeResult(
-						_finderPathCountAll, FINDER_ARGS_EMPTY);
-				}
-
-				throw processException(e);
+			catch (Exception exception) {
+				throw processException(exception);
 			}
 			finally {
 				closeSession(session);
@@ -13660,8 +13069,8 @@ public class AssetCategoryPersistenceImpl
 
 			setAssetEntries(pk, assetEntryPKs);
 		}
-		catch (Exception e) {
-			throw processException(e);
+		catch (Exception exception) {
+			throw processException(exception);
 		}
 	}
 
@@ -13693,6 +13102,11 @@ public class AssetCategoryPersistenceImpl
 	}
 
 	@Override
+	public List<String> getMappingTableNames() {
+		return _mappingTableNames;
+	}
+
+	@Override
 	public Map<String, Integer> getTableColumnsMap() {
 		return AssetCategoryModelImpl.TABLE_COLUMNS_MAP;
 	}
@@ -13710,6 +13124,8 @@ public class AssetCategoryPersistenceImpl
 	private static final Map<CTColumnResolutionType, Set<String>>
 		_ctColumnNamesMap = new EnumMap<CTColumnResolutionType, Set<String>>(
 			CTColumnResolutionType.class);
+	private static final List<String> _mappingTableNames =
+		new ArrayList<String>();
 	private static final List<String[]> _uniqueIndexColumnNames =
 		new ArrayList<String[]>();
 
@@ -13748,6 +13164,8 @@ public class AssetCategoryPersistenceImpl
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.STRICT, ctStrictColumnNames);
 
+		_mappingTableNames.add("AssetEntries_AssetCategories");
+
 		_uniqueIndexColumnNames.add(new String[] {"uuid_", "groupId"});
 
 		_uniqueIndexColumnNames.add(
@@ -13758,418 +13176,327 @@ public class AssetCategoryPersistenceImpl
 	 * Initializes the asset category persistence.
 	 */
 	public void afterPropertiesSet() {
+		Registry registry = RegistryUtil.getRegistry();
+
+		_argumentsResolverServiceRegistration = registry.registerService(
+			ArgumentsResolver.class, new AssetCategoryModelArgumentsResolver(),
+			HashMapBuilder.<String, Object>put(
+				"model.class.name", AssetCategory.class.getName()
+			).build());
+
 		assetCategoryToAssetEntryTableMapper =
 			TableMapperFactory.getTableMapper(
 				"AssetEntries_AssetCategories", "companyId", "categoryId",
 				"entryId", this, assetEntryPersistence);
 
-		_finderPathWithPaginationFindAll = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findAll", new String[0]);
+		_finderPathWithPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0],
+			new String[0], true);
 
-		_finderPathWithoutPaginationFindAll = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findAll", new String[0]);
+		_finderPathWithoutPaginationFindAll = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll", new String[0],
+			new String[0], true);
 
-		_finderPathCountAll = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountAll = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
-			new String[0]);
+			new String[0], new String[0], false);
 
-		_finderPathWithPaginationFindByUuid = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByUuid",
+		_finderPathWithPaginationFindByUuid = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid",
 			new String[] {
 				String.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"uuid_"}, true);
 
-		_finderPathWithoutPaginationFindByUuid = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByUuid", new String[] {String.class.getName()},
-			AssetCategoryModelImpl.UUID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.NAME_COLUMN_BITMASK);
+		_finderPathWithoutPaginationFindByUuid = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid",
+			new String[] {String.class.getName()}, new String[] {"uuid_"},
+			true);
 
-		_finderPathCountByUuid = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByUuid = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid",
-			new String[] {String.class.getName()});
+			new String[] {String.class.getName()}, new String[] {"uuid_"},
+			false);
 
-		_finderPathFetchByUUID_G = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_ENTITY, "fetchByUUID_G",
+		_finderPathFetchByUUID_G = _createFinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByUUID_G",
 			new String[] {String.class.getName(), Long.class.getName()},
-			AssetCategoryModelImpl.UUID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.GROUPID_COLUMN_BITMASK);
+			new String[] {"uuid_", "groupId"}, true);
 
-		_finderPathCountByUUID_G = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByUUID_G = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUUID_G",
-			new String[] {String.class.getName(), Long.class.getName()});
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"uuid_", "groupId"}, false);
 
-		_finderPathWithPaginationFindByUuid_C = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByUuid_C",
+		_finderPathWithPaginationFindByUuid_C = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid_C",
 			new String[] {
 				String.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"uuid_", "companyId"}, true);
 
-		_finderPathWithoutPaginationFindByUuid_C = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByUuid_C",
+		_finderPathWithoutPaginationFindByUuid_C = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid_C",
 			new String[] {String.class.getName(), Long.class.getName()},
-			AssetCategoryModelImpl.UUID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.COMPANYID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.NAME_COLUMN_BITMASK);
+			new String[] {"uuid_", "companyId"}, true);
 
-		_finderPathCountByUuid_C = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByUuid_C = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid_C",
-			new String[] {String.class.getName(), Long.class.getName()});
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"uuid_", "companyId"}, false);
 
-		_finderPathWithPaginationFindByGroupId = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByGroupId",
+		_finderPathWithPaginationFindByGroupId = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByGroupId",
 			new String[] {
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"groupId"}, true);
 
-		_finderPathWithoutPaginationFindByGroupId = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByGroupId", new String[] {Long.class.getName()},
-			AssetCategoryModelImpl.GROUPID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.NAME_COLUMN_BITMASK);
+		_finderPathWithoutPaginationFindByGroupId = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByGroupId",
+			new String[] {Long.class.getName()}, new String[] {"groupId"},
+			true);
 
-		_finderPathCountByGroupId = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByGroupId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByGroupId",
-			new String[] {Long.class.getName()});
+			new String[] {Long.class.getName()}, new String[] {"groupId"},
+			false);
 
-		_finderPathWithPaginationFindByParentCategoryId = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByParentCategoryId",
+		_finderPathWithPaginationFindByParentCategoryId = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByParentCategoryId",
 			new String[] {
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"parentCategoryId"}, true);
 
-		_finderPathWithoutPaginationFindByParentCategoryId = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByParentCategoryId", new String[] {Long.class.getName()},
-			AssetCategoryModelImpl.PARENTCATEGORYID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.NAME_COLUMN_BITMASK);
+		_finderPathWithoutPaginationFindByParentCategoryId = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByParentCategoryId",
+			new String[] {Long.class.getName()},
+			new String[] {"parentCategoryId"}, true);
 
-		_finderPathCountByParentCategoryId = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByParentCategoryId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"countByParentCategoryId", new String[] {Long.class.getName()});
+			"countByParentCategoryId", new String[] {Long.class.getName()},
+			new String[] {"parentCategoryId"}, false);
 
-		_finderPathWithPaginationFindByVocabularyId = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByVocabularyId",
+		_finderPathWithPaginationFindByVocabularyId = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByVocabularyId",
 			new String[] {
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"vocabularyId"}, true);
 
-		_finderPathWithoutPaginationFindByVocabularyId = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByVocabularyId", new String[] {Long.class.getName()},
-			AssetCategoryModelImpl.VOCABULARYID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.NAME_COLUMN_BITMASK);
+		_finderPathWithoutPaginationFindByVocabularyId = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByVocabularyId",
+			new String[] {Long.class.getName()}, new String[] {"vocabularyId"},
+			true);
 
-		_finderPathCountByVocabularyId = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByVocabularyId = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByVocabularyId",
-			new String[] {Long.class.getName()});
+			new String[] {Long.class.getName()}, new String[] {"vocabularyId"},
+			false);
 
-		_finderPathWithPaginationFindByG_P = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByG_P",
+		_finderPathWithPaginationFindByG_P = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_P",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"groupId", "parentCategoryId"}, true);
 
-		_finderPathWithoutPaginationFindByG_P = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByG_P",
+		_finderPathWithoutPaginationFindByG_P = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_P",
 			new String[] {Long.class.getName(), Long.class.getName()},
-			AssetCategoryModelImpl.GROUPID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.PARENTCATEGORYID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.NAME_COLUMN_BITMASK);
+			new String[] {"groupId", "parentCategoryId"}, true);
 
-		_finderPathCountByG_P = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByG_P = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_P",
-			new String[] {Long.class.getName(), Long.class.getName()});
+			new String[] {Long.class.getName(), Long.class.getName()},
+			new String[] {"groupId", "parentCategoryId"}, false);
 
-		_finderPathWithPaginationFindByG_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByG_V",
+		_finderPathWithPaginationFindByG_V = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_V",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"groupId", "vocabularyId"}, true);
 
-		_finderPathWithoutPaginationFindByG_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByG_V",
+		_finderPathWithoutPaginationFindByG_V = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_V",
 			new String[] {Long.class.getName(), Long.class.getName()},
-			AssetCategoryModelImpl.GROUPID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.VOCABULARYID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.NAME_COLUMN_BITMASK);
+			new String[] {"groupId", "vocabularyId"}, true);
 
-		_finderPathCountByG_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByG_V = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_V",
-			new String[] {Long.class.getName(), Long.class.getName()});
+			new String[] {Long.class.getName(), Long.class.getName()},
+			new String[] {"groupId", "vocabularyId"}, false);
 
-		_finderPathWithPaginationCountByG_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathWithPaginationCountByG_V = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByG_V",
-			new String[] {Long.class.getName(), Long.class.getName()});
+			new String[] {Long.class.getName(), Long.class.getName()},
+			new String[] {"groupId", "vocabularyId"}, false);
 
-		_finderPathWithPaginationFindByP_N = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByP_N",
+		_finderPathWithPaginationFindByP_N = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByP_N",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"parentCategoryId", "name"}, true);
 
-		_finderPathWithoutPaginationFindByP_N = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByP_N",
+		_finderPathWithoutPaginationFindByP_N = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByP_N",
 			new String[] {Long.class.getName(), String.class.getName()},
-			AssetCategoryModelImpl.PARENTCATEGORYID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.NAME_COLUMN_BITMASK);
+			new String[] {"parentCategoryId", "name"}, true);
 
-		_finderPathCountByP_N = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByP_N = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByP_N",
-			new String[] {Long.class.getName(), String.class.getName()});
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"parentCategoryId", "name"}, false);
 
-		_finderPathWithPaginationFindByP_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByP_V",
+		_finderPathWithPaginationFindByP_V = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByP_V",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"parentCategoryId", "vocabularyId"}, true);
 
-		_finderPathWithoutPaginationFindByP_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByP_V",
+		_finderPathWithoutPaginationFindByP_V = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByP_V",
 			new String[] {Long.class.getName(), Long.class.getName()},
-			AssetCategoryModelImpl.PARENTCATEGORYID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.VOCABULARYID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.NAME_COLUMN_BITMASK);
+			new String[] {"parentCategoryId", "vocabularyId"}, true);
 
-		_finderPathCountByP_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByP_V = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByP_V",
-			new String[] {Long.class.getName(), Long.class.getName()});
+			new String[] {Long.class.getName(), Long.class.getName()},
+			new String[] {"parentCategoryId", "vocabularyId"}, false);
 
-		_finderPathWithPaginationFindByN_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByN_V",
+		_finderPathWithPaginationFindByN_V = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByN_V",
 			new String[] {
 				String.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
 				OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"name", "vocabularyId"}, true);
 
-		_finderPathWithoutPaginationFindByN_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByN_V",
+		_finderPathWithoutPaginationFindByN_V = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByN_V",
 			new String[] {String.class.getName(), Long.class.getName()},
-			AssetCategoryModelImpl.NAME_COLUMN_BITMASK |
-			AssetCategoryModelImpl.VOCABULARYID_COLUMN_BITMASK);
+			new String[] {"name", "vocabularyId"}, true);
 
-		_finderPathCountByN_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByN_V = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByN_V",
-			new String[] {String.class.getName(), Long.class.getName()});
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"name", "vocabularyId"}, false);
 
-		_finderPathWithPaginationFindByG_P_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByG_P_V",
+		_finderPathWithPaginationFindByG_P_V = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_P_V",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"groupId", "parentCategoryId", "vocabularyId"}, true);
 
-		_finderPathWithoutPaginationFindByG_P_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
-			"findByG_P_V",
+		_finderPathWithoutPaginationFindByG_P_V = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_P_V",
 			new String[] {
 				Long.class.getName(), Long.class.getName(), Long.class.getName()
 			},
-			AssetCategoryModelImpl.GROUPID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.PARENTCATEGORYID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.VOCABULARYID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.NAME_COLUMN_BITMASK);
+			new String[] {"groupId", "parentCategoryId", "vocabularyId"}, true);
 
-		_finderPathCountByG_P_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByG_P_V = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_P_V",
 			new String[] {
 				Long.class.getName(), Long.class.getName(), Long.class.getName()
-			});
+			},
+			new String[] {"groupId", "parentCategoryId", "vocabularyId"},
+			false);
 
-		_finderPathWithPaginationFindByG_LikeT_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByG_LikeT_V",
+		_finderPathWithPaginationFindByG_LikeT_V = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_LikeT_V",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"groupId", "treePath", "vocabularyId"}, true);
 
-		_finderPathWithPaginationCountByG_LikeT_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathWithPaginationCountByG_LikeT_V = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByG_LikeT_V",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				Long.class.getName()
-			});
+			},
+			new String[] {"groupId", "treePath", "vocabularyId"}, false);
 
-		_finderPathWithPaginationFindByG_LikeN_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByG_LikeN_V",
+		_finderPathWithPaginationFindByG_LikeN_V = _createFinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_LikeN_V",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				Long.class.getName(), Integer.class.getName(),
 				Integer.class.getName(), OrderByComparator.class.getName()
-			});
+			},
+			new String[] {"groupId", "name", "vocabularyId"}, true);
 
-		_finderPathWithPaginationCountByG_LikeN_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathWithPaginationCountByG_LikeN_V = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByG_LikeN_V",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				Long.class.getName()
-			});
+			},
+			new String[] {"groupId", "name", "vocabularyId"}, false);
 
-		_finderPathFetchByP_N_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_ENTITY, "fetchByP_N_V",
+		_finderPathFetchByP_N_V = _createFinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByP_N_V",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				Long.class.getName()
 			},
-			AssetCategoryModelImpl.PARENTCATEGORYID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.NAME_COLUMN_BITMASK |
-			AssetCategoryModelImpl.VOCABULARYID_COLUMN_BITMASK);
+			new String[] {"parentCategoryId", "name", "vocabularyId"}, true);
 
-		_finderPathCountByP_N_V = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByP_N_V = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByP_N_V",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				Long.class.getName()
-			});
+			},
+			new String[] {"parentCategoryId", "name", "vocabularyId"}, false);
 
-		_finderPathFetchByC_ERC = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED,
-			AssetCategoryImpl.class, FINDER_CLASS_NAME_ENTITY, "fetchByC_ERC",
+		_finderPathFetchByC_ERC = _createFinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByC_ERC",
 			new String[] {Long.class.getName(), String.class.getName()},
-			AssetCategoryModelImpl.COMPANYID_COLUMN_BITMASK |
-			AssetCategoryModelImpl.EXTERNALREFERENCECODE_COLUMN_BITMASK);
+			new String[] {"companyId", "externalReferenceCode"}, true);
 
-		_finderPathCountByC_ERC = new FinderPath(
-			AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
-			AssetCategoryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+		_finderPathCountByC_ERC = _createFinderPath(
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_ERC",
-			new String[] {Long.class.getName(), String.class.getName()});
+			new String[] {Long.class.getName(), String.class.getName()},
+			new String[] {"companyId", "externalReferenceCode"}, false);
 	}
 
 	public void destroy() {
 		EntityCacheUtil.removeCache(AssetCategoryImpl.class.getName());
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_ENTITY);
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		_argumentsResolverServiceRegistration.unregister();
+
+		for (ServiceRegistration<FinderPath> serviceRegistration :
+				_serviceRegistrations) {
+
+			serviceRegistration.unregister();
+		}
 
 		TableMapperFactory.removeTableMapper("AssetEntries_AssetCategories");
 	}
@@ -14229,5 +13556,108 @@ public class AssetCategoryPersistenceImpl
 
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid"});
+
+	private FinderPath _createFinderPath(
+		String cacheName, String methodName, String[] params,
+		String[] columnNames, boolean baseModelResult) {
+
+		FinderPath finderPath = new FinderPath(
+			cacheName, methodName, params, columnNames, baseModelResult);
+
+		if (!cacheName.equals(FINDER_CLASS_NAME_LIST_WITH_PAGINATION)) {
+			Registry registry = RegistryUtil.getRegistry();
+
+			_serviceRegistrations.add(
+				registry.registerService(
+					FinderPath.class, finderPath,
+					HashMapBuilder.<String, Object>put(
+						"cache.name", cacheName
+					).build()));
+		}
+
+		return finderPath;
+	}
+
+	private ServiceRegistration<ArgumentsResolver>
+		_argumentsResolverServiceRegistration;
+	private Set<ServiceRegistration<FinderPath>> _serviceRegistrations =
+		new HashSet<>();
+
+	private static class AssetCategoryModelArgumentsResolver
+		implements ArgumentsResolver {
+
+		@Override
+		public Object[] getArguments(
+			FinderPath finderPath, BaseModel<?> baseModel, boolean checkColumn,
+			boolean original) {
+
+			String[] columnNames = finderPath.getColumnNames();
+
+			if ((columnNames == null) || (columnNames.length == 0)) {
+				if (baseModel.isNew()) {
+					return FINDER_ARGS_EMPTY;
+				}
+
+				return null;
+			}
+
+			AssetCategoryModelImpl assetCategoryModelImpl =
+				(AssetCategoryModelImpl)baseModel;
+
+			long columnBitmask = assetCategoryModelImpl.getColumnBitmask();
+
+			if (!checkColumn || (columnBitmask == 0)) {
+				return _getValue(assetCategoryModelImpl, columnNames, original);
+			}
+
+			Long finderPathColumnBitmask = _finderPathColumnBitmasksCache.get(
+				finderPath);
+
+			if (finderPathColumnBitmask == null) {
+				finderPathColumnBitmask = 0L;
+
+				for (String columnName : columnNames) {
+					finderPathColumnBitmask |=
+						assetCategoryModelImpl.getColumnBitmask(columnName);
+				}
+
+				_finderPathColumnBitmasksCache.put(
+					finderPath, finderPathColumnBitmask);
+			}
+
+			if ((columnBitmask & finderPathColumnBitmask) != 0) {
+				return _getValue(assetCategoryModelImpl, columnNames, original);
+			}
+
+			return null;
+		}
+
+		private Object[] _getValue(
+			AssetCategoryModelImpl assetCategoryModelImpl, String[] columnNames,
+			boolean original) {
+
+			Object[] arguments = new Object[columnNames.length];
+
+			for (int i = 0; i < arguments.length; i++) {
+				String columnName = columnNames[i];
+
+				if (original) {
+					arguments[i] =
+						assetCategoryModelImpl.getColumnOriginalValue(
+							columnName);
+				}
+				else {
+					arguments[i] = assetCategoryModelImpl.getColumnValue(
+						columnName);
+				}
+			}
+
+			return arguments;
+		}
+
+		private static Map<FinderPath, Long> _finderPathColumnBitmasksCache =
+			new ConcurrentHashMap<>();
+
+	}
 
 }

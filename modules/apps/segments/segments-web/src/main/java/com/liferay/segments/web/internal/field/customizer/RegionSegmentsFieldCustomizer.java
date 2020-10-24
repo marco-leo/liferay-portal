@@ -68,10 +68,11 @@ public class RegionSegmentsFieldCustomizer extends BaseSegmentsFieldCustomizer {
 			region -> new Field.Option(
 				_getRegionLabel(region, locale), region.getName())
 		).sorted(
-			(a, b) -> a.getLabel(
-			).compareTo(
-				b.getLabel()
-			)
+			(a, b) -> {
+				String aLabel = a.getLabel();
+
+				return aLabel.compareTo(b.getLabel());
+			}
 		).collect(
 			Collectors.toList()
 		);
@@ -84,8 +85,8 @@ public class RegionSegmentsFieldCustomizer extends BaseSegmentsFieldCustomizer {
 			return StringBundler.concat(
 				country.getName(locale), " - ", region.getName());
 		}
-		catch (Exception e) {
-			return ReflectionUtil.throwException(e);
+		catch (Exception exception) {
+			return ReflectionUtil.throwException(exception);
 		}
 	}
 

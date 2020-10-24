@@ -33,11 +33,6 @@ public class ScreensDDLRecordServiceWrapper
 		_screensDDLRecordService = screensDDLRecordService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link ScreensDDLRecordServiceUtil} to access the screens ddl record remote service. Add custom service methods to <code>com.liferay.screens.service.impl.ScreensDDLRecordServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.portal.kernel.json.JSONObject getDDLRecord(
 			long ddlRecordId, java.util.Locale locale)
@@ -50,11 +45,12 @@ public class ScreensDDLRecordServiceWrapper
 	public com.liferay.portal.kernel.json.JSONArray getDDLRecords(
 			long ddlRecordSetId, java.util.Locale locale, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.dynamic.data.lists.model.DDLRecord> obc)
+				<com.liferay.dynamic.data.lists.model.DDLRecord>
+					orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _screensDDLRecordService.getDDLRecords(
-			ddlRecordSetId, locale, start, end, obc);
+			ddlRecordSetId, locale, start, end, orderByComparator);
 	}
 
 	@Override
@@ -62,11 +58,12 @@ public class ScreensDDLRecordServiceWrapper
 			long ddlRecordSetId, long userId, java.util.Locale locale,
 			int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.dynamic.data.lists.model.DDLRecord> obc)
+				<com.liferay.dynamic.data.lists.model.DDLRecord>
+					orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _screensDDLRecordService.getDDLRecords(
-			ddlRecordSetId, userId, locale, start, end, obc);
+			ddlRecordSetId, userId, locale, start, end, orderByComparator);
 	}
 
 	@Override

@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Contact;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
@@ -583,6 +584,14 @@ public class AnnouncementsEntryLocalServiceImpl
 			throw new EntryTitleException();
 		}
 
+		int titleMaxLength = ModelHintsUtil.getMaxLength(
+			AnnouncementsEntry.class.getName(), "title");
+
+		if (title.length() > titleMaxLength) {
+			throw new EntryTitleException(
+				"Title has more than " + titleMaxLength + " characters");
+		}
+
 		if (Validator.isNull(content)) {
 			throw new EntryContentException();
 		}
@@ -681,8 +690,8 @@ public class AnnouncementsEntryLocalServiceImpl
 
 			mailService.sendEmail(mailMessage);
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 	}
 

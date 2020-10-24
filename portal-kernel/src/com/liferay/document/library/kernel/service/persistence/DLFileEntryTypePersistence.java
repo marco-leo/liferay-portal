@@ -17,6 +17,7 @@ package com.liferay.document.library.kernel.service.persistence;
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryTypeException;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -33,9 +34,9 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface DLFileEntryTypePersistence
-	extends BasePersistence<DLFileEntryType> {
+	extends BasePersistence<DLFileEntryType>, CTPersistence<DLFileEntryType> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link DLFileEntryTypeUtil} to access the document library file entry type persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

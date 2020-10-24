@@ -15,12 +15,15 @@
 package com.liferay.headless.delivery.client.resource.v1_0;
 
 import com.liferay.headless.delivery.client.dto.v1_0.BlogPosting;
+import com.liferay.headless.delivery.client.dto.v1_0.Rating;
 import com.liferay.headless.delivery.client.http.HttpInvoker;
 import com.liferay.headless.delivery.client.pagination.Page;
 import com.liferay.headless.delivery.client.pagination.Pagination;
+import com.liferay.headless.delivery.client.problem.Problem;
 import com.liferay.headless.delivery.client.serdes.v1_0.BlogPostingSerDes;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
@@ -45,6 +48,13 @@ public interface BlogPostingResource {
 			Long blogPostingId)
 		throws Exception;
 
+	public void deleteBlogPostingBatch(String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse deleteBlogPostingBatchHttpResponse(
+			String callbackURL, Object object)
+		throws Exception;
+
 	public BlogPosting getBlogPosting(Long blogPostingId) throws Exception;
 
 	public HttpInvoker.HttpResponse getBlogPostingHttpResponse(
@@ -67,50 +77,47 @@ public interface BlogPostingResource {
 			Long blogPostingId, BlogPosting blogPosting)
 		throws Exception;
 
+	public void putBlogPostingBatch(String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse putBlogPostingBatchHttpResponse(
+			String callbackURL, Object object)
+		throws Exception;
+
 	public void deleteBlogPostingMyRating(Long blogPostingId) throws Exception;
 
 	public HttpInvoker.HttpResponse deleteBlogPostingMyRatingHttpResponse(
 			Long blogPostingId)
 		throws Exception;
 
-	public com.liferay.headless.delivery.client.dto.v1_0.Rating
-			getBlogPostingMyRating(Long blogPostingId)
-		throws Exception;
+	public Rating getBlogPostingMyRating(Long blogPostingId) throws Exception;
 
 	public HttpInvoker.HttpResponse getBlogPostingMyRatingHttpResponse(
 			Long blogPostingId)
 		throws Exception;
 
-	public com.liferay.headless.delivery.client.dto.v1_0.Rating
-			postBlogPostingMyRating(
-				Long blogPostingId,
-				com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+	public Rating postBlogPostingMyRating(Long blogPostingId, Rating rating)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse postBlogPostingMyRatingHttpResponse(
-			Long blogPostingId,
-			com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+			Long blogPostingId, Rating rating)
 		throws Exception;
 
-	public com.liferay.headless.delivery.client.dto.v1_0.Rating
-			putBlogPostingMyRating(
-				Long blogPostingId,
-				com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+	public Rating putBlogPostingMyRating(Long blogPostingId, Rating rating)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse putBlogPostingMyRatingHttpResponse(
-			Long blogPostingId,
-			com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+			Long blogPostingId, Rating rating)
 		throws Exception;
 
 	public Page<BlogPosting> getSiteBlogPostingsPage(
-			Long siteId, String search, String filterString,
-			Pagination pagination, String sortString)
+			Long siteId, String search, List<String> aggregations,
+			String filterString, Pagination pagination, String sortString)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse getSiteBlogPostingsPageHttpResponse(
-			Long siteId, String search, String filterString,
-			Pagination pagination, String sortString)
+			Long siteId, String search, List<String> aggregations,
+			String filterString, Pagination pagination, String sortString)
 		throws Exception;
 
 	public BlogPosting postSiteBlogPosting(Long siteId, BlogPosting blogPosting)
@@ -118,6 +125,14 @@ public interface BlogPostingResource {
 
 	public HttpInvoker.HttpResponse postSiteBlogPostingHttpResponse(
 			Long siteId, BlogPosting blogPosting)
+		throws Exception;
+
+	public void postSiteBlogPostingBatch(
+			Long siteId, String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse postSiteBlogPostingBatchHttpResponse(
+			Long siteId, String callbackURL, Object object)
 		throws Exception;
 
 	public void putSiteBlogPostingSubscribe(Long siteId) throws Exception;
@@ -177,8 +192,8 @@ public interface BlogPostingResource {
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
-		private String _login = "test@liferay.com";
-		private String _password = "test";
+		private String _login = "";
+		private String _password = "";
 		private Map<String, String> _parameters = new LinkedHashMap<>();
 		private int _port = 8080;
 		private String _scheme = "http";
@@ -198,6 +213,17 @@ public interface BlogPostingResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse deleteBlogPostingHttpResponse(
@@ -237,6 +263,62 @@ public interface BlogPostingResource {
 			return httpInvoker.invoke();
 		}
 
+		public void deleteBlogPostingBatch(String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				deleteBlogPostingBatchHttpResponse(callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse deleteBlogPostingBatchHttpResponse(
+				String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.DELETE);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/blog-postings/batch");
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public BlogPosting getBlogPosting(Long blogPostingId) throws Exception {
 			HttpInvoker.HttpResponse httpResponse = getBlogPostingHttpResponse(
 				blogPostingId);
@@ -257,7 +339,7 @@ public interface BlogPostingResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -321,7 +403,7 @@ public interface BlogPostingResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -387,7 +469,7 @@ public interface BlogPostingResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -430,6 +512,64 @@ public interface BlogPostingResource {
 			return httpInvoker.invoke();
 		}
 
+		public void putBlogPostingBatch(String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putBlogPostingBatchHttpResponse(callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse putBlogPostingBatchHttpResponse(
+				String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/blog-postings/batch");
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public void deleteBlogPostingMyRating(Long blogPostingId)
 			throws Exception {
 
@@ -443,6 +583,17 @@ public interface BlogPostingResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse deleteBlogPostingMyRatingHttpResponse(
@@ -482,8 +633,7 @@ public interface BlogPostingResource {
 			return httpInvoker.invoke();
 		}
 
-		public com.liferay.headless.delivery.client.dto.v1_0.Rating
-				getBlogPostingMyRating(Long blogPostingId)
+		public Rating getBlogPostingMyRating(Long blogPostingId)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -506,7 +656,7 @@ public interface BlogPostingResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -547,10 +697,7 @@ public interface BlogPostingResource {
 			return httpInvoker.invoke();
 		}
 
-		public com.liferay.headless.delivery.client.dto.v1_0.Rating
-				postBlogPostingMyRating(
-					Long blogPostingId,
-					com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+		public Rating postBlogPostingMyRating(Long blogPostingId, Rating rating)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -573,13 +720,12 @@ public interface BlogPostingResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
 		public HttpInvoker.HttpResponse postBlogPostingMyRatingHttpResponse(
-				Long blogPostingId,
-				com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+				Long blogPostingId, Rating rating)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -617,10 +763,7 @@ public interface BlogPostingResource {
 			return httpInvoker.invoke();
 		}
 
-		public com.liferay.headless.delivery.client.dto.v1_0.Rating
-				putBlogPostingMyRating(
-					Long blogPostingId,
-					com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+		public Rating putBlogPostingMyRating(Long blogPostingId, Rating rating)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -643,13 +786,12 @@ public interface BlogPostingResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
 		public HttpInvoker.HttpResponse putBlogPostingMyRatingHttpResponse(
-				Long blogPostingId,
-				com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+				Long blogPostingId, Rating rating)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -688,13 +830,14 @@ public interface BlogPostingResource {
 		}
 
 		public Page<BlogPosting> getSiteBlogPostingsPage(
-				Long siteId, String search, String filterString,
-				Pagination pagination, String sortString)
+				Long siteId, String search, List<String> aggregations,
+				String filterString, Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
 				getSiteBlogPostingsPageHttpResponse(
-					siteId, search, filterString, pagination, sortString);
+					siteId, search, aggregations, filterString, pagination,
+					sortString);
 
 			String content = httpResponse.getContent();
 
@@ -704,12 +847,21 @@ public interface BlogPostingResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return Page.of(content, BlogPostingSerDes::toDTO);
+			try {
+				return Page.of(content, BlogPostingSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse getSiteBlogPostingsPageHttpResponse(
-				Long siteId, String search, String filterString,
-				Pagination pagination, String sortString)
+				Long siteId, String search, List<String> aggregations,
+				String filterString, Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -787,7 +939,7 @@ public interface BlogPostingResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -830,6 +982,67 @@ public interface BlogPostingResource {
 			return httpInvoker.invoke();
 		}
 
+		public void postSiteBlogPostingBatch(
+				Long siteId, String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postSiteBlogPostingBatchHttpResponse(
+					siteId, callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse postSiteBlogPostingBatchHttpResponse(
+				Long siteId, String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/sites/{siteId}/blog-postings/batch",
+				siteId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public void putSiteBlogPostingSubscribe(Long siteId) throws Exception {
 			HttpInvoker.HttpResponse httpResponse =
 				putSiteBlogPostingSubscribeHttpResponse(siteId);
@@ -841,6 +1054,17 @@ public interface BlogPostingResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse putSiteBlogPostingSubscribeHttpResponse(
@@ -895,6 +1119,17 @@ public interface BlogPostingResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse

@@ -29,9 +29,9 @@ definition {
 	@description = "This ensures that the language can be set in a depot."
 	@priority = "5"
 	test Smoke {
-		DepotNavigator.openDepotAdmin();
+		property portal.acceptance = "true";
 
-		Depot.addDepot(
+		JSONDepot.addDepot(
 			depotDescription = "This is the description of a depot",
 			depotName = "Test Depot Name");
 
@@ -43,8 +43,8 @@ definition {
 
 		Depot.viewDefaultLanguagesConfiguration();
 
-		Click(
-			key_languagesOption = "Define a custom default language and additional available languages for this repository.",
+		Click.clickNoMouseOverNoWaitForVisible(
+			key_languagesOption = "Define a custom default language and additional active languages for this asset library.",
 			locator1 = "Radio#DEPOT_LANGUAGES_OPTION");
 
 		Depot.viewDefaultLanguage(defaultDepotLanguage = "English (United States)");
@@ -54,28 +54,72 @@ definition {
 
 	@description = "This ensures that the web content language can be set in a depot."
 	@priority = "5"
-	test ViewCustomLanguagesForWebContent {
-		DepotNavigator.openDepotAdmin();
-
-		Depot.addDepot(
+	test ViewCustomLanguagesOrderForWebContent {
+		JSONDepot.addDepot(
 			depotDescription = "This is the description of a depot",
 			depotName = "Test Depot Name");
 
 		DepotNavigator.openDepotAdmin();
 
-		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
-
-		DepotNavigator.gotoLanguages(depotName = "Test Depot Name");
-
-		Click(
-			key_languagesOption = "Define a custom default language and additional available languages for this repository.",
-			locator1 = "Radio#DEPOT_LANGUAGES_OPTION");
+		DepotNavigator.gotoDefineCustomLanguages(depotName = "Test Depot Name");
 
 		Depot.viewDefaultLanguage(defaultDepotLanguage = "English (United States)");
 
-		LanguagePortlet.moveAllLanguagesToAvailable();
+		DepotNavigator.openDepotAdmin();
 
-		LanguagePortlet.moveLanguagesToCurrent(currentLanguages = "English (United States),Japanese (Japan),Spanish (Spain)");
+		DepotNavigator.gotoDefineCustomLanguages(depotName = "Test Depot Name");
+
+		Depot.viewLanguageItems(
+			depotLanguage = "English (United States)",
+			firstLanguageItem = "true");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoDefineCustomLanguages(depotName = "Test Depot Name");
+
+		Depot.moveLanguage(
+			depotLanguage = "English (United States)",
+			moveDown = "true");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoDefineCustomLanguages(depotName = "Test Depot Name");
+
+		Depot.viewLanguageItems(depotLanguage = "English (United States)");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoDefineCustomLanguages(depotName = "Test Depot Name");
+
+		Depot.moveLanguage(depotLanguage = "English (United States)");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoDefineCustomLanguages(depotName = "Test Depot Name");
+
+		Depot.viewLanguageItems(
+			depotLanguage = "English (United States)",
+			firstLanguageItem = "true");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoDefineCustomLanguages(depotName = "Test Depot Name");
+
+		Button.click(button = "Edit");
+
+		Depot.configureCurrentLanguages(
+			currentLanguages = "English (United States),French (France),Japanese (Japan),Spanish (Spain)",
+			defaultDepotLanguage = "English (United States)");
+
+		Depot.changeLanguagesOrder(
+			fromRowNumber = "2",
+			toRowNumber = "3");
+
+		Depot.changeLanguagesOrder(
+			fromRowNumber = "4",
+			toRowNumber = "1");
+
+		Button.click(button = "Save");
 
 		DepotNavigator.openDepotAdmin();
 
@@ -83,25 +127,35 @@ definition {
 
 		DepotNavigator.gotoGeneral(depotName = "Test Depot Name");
 
-		Depot.viewGeneralLanguageOptions(currentLanguageList = "en_US,ja_JP,es_ES");
+		Pause(locator1 = "3000");
 
-		DepotNavigator.openDepotAdmin();
+		for (var fieldName : list "Name,Description") {
+			Click(
+				key_fieldName = "${fieldName}",
+				locator1 = "Button#LOCALIZATION");
 
-		DepotNavigator.gotoDepot(
-			depotName = "Test Depot Name",
-			portlet = "Web Content");
+			Depot.view4LanguagesOrder(
+				localizationName1 = "en-US",
+				localizationName2 = "es-ES",
+				localizationName3 = "ja-JP",
+				localizationName4 = "fr-FR");
+		}
 
-		WebContentNavigator.gotoAddCP();
+		JSONWebcontent.addWebContent(
+			content = "WC WebContent Content",
+			groupName = "Test Depot Name",
+			site = "false",
+			title = "WC WebContent Title");
 
-		WebContent.addCP(
-			webContentContent = "WC WebContent Content",
-			webContentTitle = "WC WebContent Title");
-
-		PortletEntry.publish();
+		DepotNavigator.openDepotWebContentAdmin(depotName = "Test Depot Name");
 
 		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
 
-		Depot.viewLanguageOptionsInWebContent(currentLanguageList = "en_US,ja_JP,es_ES");
+		Depot.viewLanguageOrderInWebContent(
+			localizationName1 = "en-US",
+			localizationName2 = "es-ES",
+			localizationName3 = "ja-JP",
+			localizationName4 = "fr-FR");
 	}
 
 }

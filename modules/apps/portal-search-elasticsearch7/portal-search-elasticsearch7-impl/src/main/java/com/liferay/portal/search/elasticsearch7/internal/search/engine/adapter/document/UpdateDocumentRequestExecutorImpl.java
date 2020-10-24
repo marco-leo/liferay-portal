@@ -44,23 +44,29 @@ public class UpdateDocumentRequestExecutorImpl
 		UpdateRequest updateRequest =
 			_bulkableDocumentRequestTranslator.translate(updateDocumentRequest);
 
-		UpdateResponse updateResponse = getUpdateResponse(updateRequest);
+		UpdateResponse updateResponse = getUpdateResponse(
+			updateRequest, updateDocumentRequest);
 
 		RestStatus restStatus = updateResponse.status();
 
 		return new UpdateDocumentResponse(restStatus.getStatus());
 	}
 
-	protected UpdateResponse getUpdateResponse(UpdateRequest updateRequest) {
+	protected UpdateResponse getUpdateResponse(
+		UpdateRequest updateRequest,
+		UpdateDocumentRequest updateDocumentRequest) {
+
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				updateDocumentRequest.getConnectionId(),
+				updateDocumentRequest.isPreferLocalCluster());
 
 		try {
 			return restHighLevelClient.update(
 				updateRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class AccountRoleLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.account.service.impl.AccountRoleLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class AccountRoleLocalServiceUtil {
 
 	/**
 	 * Adds the account role to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AccountRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param accountRole the account role
 	 * @return the account role that was added
@@ -80,7 +84,21 @@ public class AccountRoleLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the account role from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AccountRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param accountRole the account role
 	 * @return the account role that was removed
@@ -95,6 +113,10 @@ public class AccountRoleLocalServiceUtil {
 
 	/**
 	 * Deletes the account role with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AccountRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param accountRoleId the primary key of the account role
 	 * @return the account role that was removed
@@ -120,6 +142,12 @@ public class AccountRoleLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -301,11 +329,34 @@ public class AccountRoleLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	public static com.liferay.portal.kernel.search.BaseModelSearchResult
+		<com.liferay.account.model.AccountRole> searchAccountRoles(
+			long accountEntryId, String keywords, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator<?>
+				orderByComparator) {
+
+		return getService().searchAccountRoles(
+			accountEntryId, keywords, start, end, orderByComparator);
+	}
+
+	public static com.liferay.portal.kernel.search.BaseModelSearchResult
+		<com.liferay.account.model.AccountRole> searchAccountRoles(
+			long[] accountEntryIds, String keywords, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator<?>
+				orderByComparator) {
+
+		return getService().searchAccountRoles(
+			accountEntryIds, keywords, start, end, orderByComparator);
 	}
 
 	public static void unassociateUser(
@@ -317,6 +368,10 @@ public class AccountRoleLocalServiceUtil {
 
 	/**
 	 * Updates the account role in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AccountRoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param accountRole the account role
 	 * @return the account role that was updated

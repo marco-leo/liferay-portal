@@ -43,8 +43,6 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -87,17 +85,15 @@ public class FragmentEntryLinkServicePermissionTest {
 	public void testAddFragmentEntryLink() throws Exception {
 		_addSiteMemberUpdatePermission();
 
-		ServiceTestUtil.setUser(_user);
-
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
+		UserTestUtil.setUser(_user);
 
 		_fragmentEntryLinkService.addFragmentEntryLink(
-			_group.getGroupId(), 0, _fragmentEntry.getFragmentEntryId(),
-			PortalUtil.getClassNameId(Layout.class), _layout.getPlid(),
-			StringPool.BLANK, "<div>test</div>", StringPool.BLANK,
-			"{fieldSets: []}", StringPool.BLANK, StringPool.BLANK, 0, null,
-			serviceContext);
+			_group.getGroupId(), 0, _fragmentEntry.getFragmentEntryId(), 0,
+			_layout.getPlid(), StringPool.BLANK, "<div>test</div>",
+			StringPool.BLANK, "{fieldSets: []}", StringPool.BLANK,
+			StringPool.BLANK, 0, null,
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
 	}
 
 	@Test(expected = PrincipalException.MustHavePermission.class)
@@ -105,12 +101,11 @@ public class FragmentEntryLinkServicePermissionTest {
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
 
-		ServiceTestUtil.setUser(_user);
+		UserTestUtil.setUser(_user);
 
 		_fragmentEntryLinkService.addFragmentEntryLink(
-			_group.getGroupId(), 0, _fragmentEntry.getFragmentEntryId(),
-			PortalUtil.getClassNameId(Layout.class),
-			RandomTestUtil.randomLong(), _fragmentEntry.getCss(),
+			_group.getGroupId(), 0, _fragmentEntry.getFragmentEntryId(), 0,
+			_layout.getPlid(), _fragmentEntry.getCss(),
 			_fragmentEntry.getHtml(), _fragmentEntry.getJs(),
 			_fragmentEntry.getConfiguration(), StringPool.BLANK,
 			StringPool.BLANK, 0, null, serviceContext);
@@ -120,12 +115,11 @@ public class FragmentEntryLinkServicePermissionTest {
 	public void testDeleteFragmentEntryLink() throws Exception {
 		FragmentEntryLink fragmentEntryLink =
 			FragmentTestUtil.addFragmentEntryLink(
-				_fragmentEntry, PortalUtil.getClassNameId(Layout.class),
-				_layout.getPlid());
+				_fragmentEntry, _layout.getPlid());
 
 		_addSiteMemberUpdatePermission();
 
-		ServiceTestUtil.setUser(_user);
+		UserTestUtil.setUser(_user);
 
 		_fragmentEntryLinkService.deleteFragmentEntryLink(
 			fragmentEntryLink.getFragmentEntryLinkId());
@@ -137,10 +131,9 @@ public class FragmentEntryLinkServicePermissionTest {
 
 		FragmentEntryLink fragmentEntryLink =
 			FragmentTestUtil.addFragmentEntryLink(
-				_fragmentEntry, PortalUtil.getClassNameId(Layout.class),
-				RandomTestUtil.randomLong());
+				_fragmentEntry, _layout.getPlid());
 
-		ServiceTestUtil.setUser(_user);
+		UserTestUtil.setUser(_user);
 
 		_fragmentEntryLinkService.deleteFragmentEntryLink(
 			fragmentEntryLink.getFragmentEntryLinkId());
@@ -150,12 +143,11 @@ public class FragmentEntryLinkServicePermissionTest {
 	public void testUpdateFragmentEntryLink() throws Exception {
 		FragmentEntryLink fragmentEntryLink =
 			FragmentTestUtil.addFragmentEntryLink(
-				_fragmentEntry, PortalUtil.getClassNameId(Layout.class),
-				_layout.getPlid());
+				_fragmentEntry, _layout.getPlid());
 
 		_addSiteMemberUpdatePermission();
 
-		ServiceTestUtil.setUser(_user);
+		UserTestUtil.setUser(_user);
 
 		_fragmentEntryLinkService.updateFragmentEntryLink(
 			fragmentEntryLink.getFragmentEntryLinkId(),
@@ -167,26 +159,21 @@ public class FragmentEntryLinkServicePermissionTest {
 		FragmentEntry fragmentEntry = FragmentEntryTestUtil.addFragmentEntry(
 			_fragmentCollection.getFragmentCollectionId());
 
-		FragmentTestUtil.addFragmentEntryLink(
-			fragmentEntry, PortalUtil.getClassNameId(Layout.class),
-			_layout.getPlid());
+		FragmentTestUtil.addFragmentEntryLink(fragmentEntry, _layout.getPlid());
 
 		_addSiteMemberUpdatePermission();
 
-		ServiceTestUtil.setUser(_user);
-
-		long[] fragmentEntryIds = {
-			_fragmentEntry.getFragmentEntryId(),
-			fragmentEntry.getFragmentEntryId()
-		};
-
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
+		UserTestUtil.setUser(_user);
 
 		_fragmentEntryLinkService.updateFragmentEntryLinks(
-			_group.getGroupId(), PortalUtil.getClassNameId(Layout.class),
-			_layout.getPlid(), fragmentEntryIds, _createEditableValues(),
-			serviceContext);
+			_group.getGroupId(), _layout.getPlid(),
+			new long[] {
+				_fragmentEntry.getFragmentEntryId(),
+				fragmentEntry.getFragmentEntryId()
+			},
+			_createEditableValues(),
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
 	}
 
 	@Test(expected = PrincipalException.MustHavePermission.class)
@@ -196,24 +183,19 @@ public class FragmentEntryLinkServicePermissionTest {
 		FragmentEntry fragmentEntry = FragmentEntryTestUtil.addFragmentEntry(
 			_fragmentCollection.getFragmentCollectionId());
 
-		FragmentTestUtil.addFragmentEntryLink(
-			fragmentEntry, PortalUtil.getClassNameId(Layout.class),
-			_layout.getPlid());
+		FragmentTestUtil.addFragmentEntryLink(fragmentEntry, _layout.getPlid());
 
-		ServiceTestUtil.setUser(_user);
-
-		long[] fragmentEntryIds = {
-			_fragmentEntry.getFragmentEntryId(),
-			fragmentEntry.getFragmentEntryId()
-		};
-
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
+		UserTestUtil.setUser(_user);
 
 		_fragmentEntryLinkService.updateFragmentEntryLinks(
-			_group.getGroupId(), PortalUtil.getClassNameId(Layout.class),
-			_layout.getPlid(), fragmentEntryIds, _createEditableValues(),
-			serviceContext);
+			_group.getGroupId(), _layout.getPlid(),
+			new long[] {
+				_fragmentEntry.getFragmentEntryId(),
+				fragmentEntry.getFragmentEntryId()
+			},
+			_createEditableValues(),
+			ServiceContextTestUtil.getServiceContext(
+				_group, _user.getUserId()));
 	}
 
 	@Test(expected = PrincipalException.MustHavePermission.class)
@@ -222,10 +204,9 @@ public class FragmentEntryLinkServicePermissionTest {
 
 		FragmentEntryLink fragmentEntryLink =
 			FragmentTestUtil.addFragmentEntryLink(
-				_fragmentEntry, PortalUtil.getClassNameId(Layout.class),
-				RandomTestUtil.randomLong());
+				_fragmentEntry, _layout.getPlid());
 
-		ServiceTestUtil.setUser(_user);
+		UserTestUtil.setUser(_user);
 
 		_fragmentEntryLinkService.updateFragmentEntryLink(
 			fragmentEntryLink.getFragmentEntryLinkId(),

@@ -119,8 +119,8 @@ public class ServiceComponentLocalServiceImpl
 				classLoader,
 				serviceComponentConfiguration.getModelHintsInputStream());
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 
 		try {
@@ -128,18 +128,18 @@ public class ServiceComponentLocalServiceImpl
 				classLoader,
 				serviceComponentConfiguration.getModelHintsExtInputStream());
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 
 		long previousBuildNumber = 0;
 		ServiceComponent previousServiceComponent = null;
-		ServiceComponent serviceComponent = null;
 
 		Map<String, ServiceComponent> serviceComponents =
 			_getServiceComponents();
 
-		serviceComponent = serviceComponents.get(buildNamespace);
+		ServiceComponent serviceComponent = serviceComponents.get(
+			buildNamespace);
 
 		if (serviceComponent == null) {
 			long serviceComponentId = counterLocalService.increment();
@@ -230,8 +230,8 @@ public class ServiceComponentLocalServiceImpl
 
 			return serviceComponent;
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -294,8 +294,8 @@ public class ServiceComponentLocalServiceImpl
 
 				releaseLocalService.updateRelease(release);
 			}
-			catch (Exception e) {
-				_log.error(e, e);
+			catch (Exception exception) {
+				_log.error(exception, exception);
 			}
 		}
 	}
@@ -316,7 +316,7 @@ public class ServiceComponentLocalServiceImpl
 
 			modelNames.addAll(getModelNames(xml));
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isInfoEnabled()) {
 				_log.info(
 					"No optional file META-INF/portlet-model-hints-ext.xml " +
@@ -390,7 +390,7 @@ public class ServiceComponentLocalServiceImpl
 
 			return upgradeTableListener;
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
 				_log.debug(
 					"Unable to instantiate " + upgradeTableListenerClassName);
@@ -531,9 +531,9 @@ public class ServiceComponentLocalServiceImpl
 				_log.info("Running " + buildNamespace + " SQL scripts");
 			}
 
-			db.runSQLTemplateString(tablesSQL, true, false);
-			db.runSQLTemplateString(sequencesSQL, true, false);
-			db.runSQLTemplateString(indexesSQL, true, false);
+			db.runSQLTemplateString(tablesSQL, false);
+			db.runSQLTemplateString(sequencesSQL, false);
+			db.runSQLTemplateString(indexesSQL, false);
 		}
 		else if (PropsValues.SCHEMA_MODULE_BUILD_AUTO_UPGRADE) {
 			if (_log.isWarnEnabled()) {
@@ -555,7 +555,7 @@ public class ServiceComponentLocalServiceImpl
 					_log.info("Upgrading database with tables.sql");
 				}
 
-				db.runSQLTemplateString(tablesSQL, true, false);
+				db.runSQLTemplateString(tablesSQL, false);
 
 				upgradeModels(classLoader, previousServiceComponent, tablesSQL);
 			}
@@ -567,7 +567,7 @@ public class ServiceComponentLocalServiceImpl
 					_log.info("Upgrading database with sequences.sql");
 				}
 
-				db.runSQLTemplateString(sequencesSQL, true, false);
+				db.runSQLTemplateString(sequencesSQL, false);
 			}
 
 			if (!indexesSQL.equals(previousServiceComponent.getIndexesSQL()) ||
@@ -577,7 +577,7 @@ public class ServiceComponentLocalServiceImpl
 					_log.info("Upgrading database with indexes.sql");
 				}
 
-				db.runSQLTemplateString(indexesSQL, true, false);
+				db.runSQLTemplateString(indexesSQL, false);
 			}
 		}
 	}

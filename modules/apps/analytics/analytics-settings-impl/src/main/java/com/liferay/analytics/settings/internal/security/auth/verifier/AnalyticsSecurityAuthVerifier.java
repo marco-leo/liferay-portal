@@ -16,6 +16,7 @@ package com.liferay.analytics.settings.internal.security.auth.verifier;
 
 import com.liferay.analytics.settings.configuration.AnalyticsConfiguration;
 import com.liferay.analytics.settings.security.constants.AnalyticsSecurityConstants;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -31,7 +32,8 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.Base64;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.StringBundler;
+
+import java.nio.charset.Charset;
 
 import java.security.KeyFactory;
 import java.security.Signature;
@@ -54,7 +56,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	enabled = false,
-	property = "auth.verifier.AnalyticsSecurityAuthVerifier.urls.includes=/api/jsonws/*",
+	property = "auth.verifier.AnalyticsSecurityAuthVerifier.urls.includes=/o/segments-asah/v1.0/experiments/*",
 	service = AuthVerifier.class
 )
 public class AnalyticsSecurityAuthVerifier implements AuthVerifier {
@@ -154,8 +156,8 @@ public class AnalyticsSecurityAuthVerifier implements AuthVerifier {
 
 			return authVerifierResult;
 		}
-		catch (Exception e) {
-			throw new AuthException(e);
+		catch (Exception exception) {
+			throw new AuthException(exception);
 		}
 	}
 
@@ -190,8 +192,9 @@ public class AnalyticsSecurityAuthVerifier implements AuthVerifier {
 		sortedParameters.put(
 			"Liferay-Analytics-Cloud-Security-Timestamp", timestamp);
 
-		StringBundler sb = new StringBundler((2 * sortedParameters.size()) + 2);
+		StringBundler sb = new StringBundler((2 * sortedParameters.size()) + 3);
 
+		sb.append(httpServletRequest.getContextPath());
 		sb.append(httpServletRequest.getServletPath());
 		sb.append(httpServletRequest.getPathInfo());
 
@@ -202,7 +205,7 @@ public class AnalyticsSecurityAuthVerifier implements AuthVerifier {
 
 		String requestContent = sb.toString();
 
-		signature.update(requestContent.getBytes());
+		signature.update(requestContent.getBytes(Charset.defaultCharset()));
 
 		return signature.verify(Base64.decode(signatureString));
 	}

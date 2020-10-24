@@ -15,14 +15,17 @@
 package com.liferay.headless.delivery.client.resource.v1_0;
 
 import com.liferay.headless.delivery.client.dto.v1_0.Document;
+import com.liferay.headless.delivery.client.dto.v1_0.Rating;
 import com.liferay.headless.delivery.client.http.HttpInvoker;
 import com.liferay.headless.delivery.client.pagination.Page;
 import com.liferay.headless.delivery.client.pagination.Pagination;
+import com.liferay.headless.delivery.client.problem.Problem;
 import com.liferay.headless.delivery.client.serdes.v1_0.DocumentSerDes;
 
 import java.io.File;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
@@ -41,14 +44,48 @@ public interface DocumentResource {
 		return new Builder();
 	}
 
+	public Page<Document> getAssetLibraryDocumentsPage(
+			Long assetLibraryId, Boolean flatten, String search,
+			List<String> aggregations, String filterString,
+			Pagination pagination, String sortString)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse getAssetLibraryDocumentsPageHttpResponse(
+			Long assetLibraryId, Boolean flatten, String search,
+			List<String> aggregations, String filterString,
+			Pagination pagination, String sortString)
+		throws Exception;
+
+	public Document postAssetLibraryDocument(
+			Long assetLibraryId, Document document,
+			Map<String, File> multipartFiles)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse postAssetLibraryDocumentHttpResponse(
+			Long assetLibraryId, Document document,
+			Map<String, File> multipartFiles)
+		throws Exception;
+
+	public void postAssetLibraryDocumentBatch(
+			Long assetLibraryId, Document document,
+			Map<String, File> multipartFiles, String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse postAssetLibraryDocumentBatchHttpResponse(
+			Long assetLibraryId, Document document,
+			Map<String, File> multipartFiles, String callbackURL, Object object)
+		throws Exception;
+
 	public Page<Document> getDocumentFolderDocumentsPage(
 			Long documentFolderId, Boolean flatten, String search,
-			String filterString, Pagination pagination, String sortString)
+			List<String> aggregations, String filterString,
+			Pagination pagination, String sortString)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse getDocumentFolderDocumentsPageHttpResponse(
 			Long documentFolderId, Boolean flatten, String search,
-			String filterString, Pagination pagination, String sortString)
+			List<String> aggregations, String filterString,
+			Pagination pagination, String sortString)
 		throws Exception;
 
 	public Document postDocumentFolderDocument(
@@ -61,9 +98,26 @@ public interface DocumentResource {
 			Map<String, File> multipartFiles)
 		throws Exception;
 
+	public void postDocumentFolderDocumentBatch(
+			Long documentFolderId, Document document,
+			Map<String, File> multipartFiles, String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse postDocumentFolderDocumentBatchHttpResponse(
+			Long documentFolderId, Document document,
+			Map<String, File> multipartFiles, String callbackURL, Object object)
+		throws Exception;
+
 	public void deleteDocument(Long documentId) throws Exception;
 
 	public HttpInvoker.HttpResponse deleteDocumentHttpResponse(Long documentId)
+		throws Exception;
+
+	public void deleteDocumentBatch(String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse deleteDocumentBatchHttpResponse(
+			String callbackURL, Object object)
 		throws Exception;
 
 	public Document getDocument(Long documentId) throws Exception;
@@ -91,49 +145,51 @@ public interface DocumentResource {
 			Map<String, File> multipartFiles)
 		throws Exception;
 
+	public void putDocumentBatch(
+			Document document, Map<String, File> multipartFiles,
+			String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse putDocumentBatchHttpResponse(
+			Document document, Map<String, File> multipartFiles,
+			String callbackURL, Object object)
+		throws Exception;
+
 	public void deleteDocumentMyRating(Long documentId) throws Exception;
 
 	public HttpInvoker.HttpResponse deleteDocumentMyRatingHttpResponse(
 			Long documentId)
 		throws Exception;
 
-	public com.liferay.headless.delivery.client.dto.v1_0.Rating
-			getDocumentMyRating(Long documentId)
-		throws Exception;
+	public Rating getDocumentMyRating(Long documentId) throws Exception;
 
 	public HttpInvoker.HttpResponse getDocumentMyRatingHttpResponse(
 			Long documentId)
 		throws Exception;
 
-	public com.liferay.headless.delivery.client.dto.v1_0.Rating
-			postDocumentMyRating(
-				Long documentId,
-				com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+	public Rating postDocumentMyRating(Long documentId, Rating rating)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse postDocumentMyRatingHttpResponse(
-			Long documentId,
-			com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+			Long documentId, Rating rating)
 		throws Exception;
 
-	public com.liferay.headless.delivery.client.dto.v1_0.Rating
-			putDocumentMyRating(
-				Long documentId,
-				com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+	public Rating putDocumentMyRating(Long documentId, Rating rating)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse putDocumentMyRatingHttpResponse(
-			Long documentId,
-			com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+			Long documentId, Rating rating)
 		throws Exception;
 
 	public Page<Document> getSiteDocumentsPage(
-			Long siteId, Boolean flatten, String search, String filterString,
+			Long siteId, Boolean flatten, String search,
+			List<String> aggregations, String filterString,
 			Pagination pagination, String sortString)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse getSiteDocumentsPageHttpResponse(
-			Long siteId, Boolean flatten, String search, String filterString,
+			Long siteId, Boolean flatten, String search,
+			List<String> aggregations, String filterString,
 			Pagination pagination, String sortString)
 		throws Exception;
 
@@ -143,6 +199,16 @@ public interface DocumentResource {
 
 	public HttpInvoker.HttpResponse postSiteDocumentHttpResponse(
 			Long siteId, Document document, Map<String, File> multipartFiles)
+		throws Exception;
+
+	public void postSiteDocumentBatch(
+			Long siteId, Document document, Map<String, File> multipartFiles,
+			String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse postSiteDocumentBatchHttpResponse(
+			Long siteId, Document document, Map<String, File> multipartFiles,
+			String callbackURL, Object object)
 		throws Exception;
 
 	public static class Builder {
@@ -190,8 +256,8 @@ public interface DocumentResource {
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
-		private String _login = "test@liferay.com";
-		private String _password = "test";
+		private String _login = "";
+		private String _password = "";
 		private Map<String, String> _parameters = new LinkedHashMap<>();
 		private int _port = 8080;
 		private String _scheme = "http";
@@ -200,15 +266,16 @@ public interface DocumentResource {
 
 	public static class DocumentResourceImpl implements DocumentResource {
 
-		public Page<Document> getDocumentFolderDocumentsPage(
-				Long documentFolderId, Boolean flatten, String search,
-				String filterString, Pagination pagination, String sortString)
+		public Page<Document> getAssetLibraryDocumentsPage(
+				Long assetLibraryId, Boolean flatten, String search,
+				List<String> aggregations, String filterString,
+				Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
-				getDocumentFolderDocumentsPageHttpResponse(
-					documentFolderId, flatten, search, filterString, pagination,
-					sortString);
+				getAssetLibraryDocumentsPageHttpResponse(
+					assetLibraryId, flatten, search, aggregations, filterString,
+					pagination, sortString);
 
 			String content = httpResponse.getContent();
 
@@ -218,14 +285,259 @@ public interface DocumentResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return Page.of(content, DocumentSerDes::toDTO);
+			try {
+				return Page.of(content, DocumentSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				getAssetLibraryDocumentsPageHttpResponse(
+					Long assetLibraryId, Boolean flatten, String search,
+					List<String> aggregations, String filterString,
+					Pagination pagination, String sortString)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			if (flatten != null) {
+				httpInvoker.parameter("flatten", String.valueOf(flatten));
+			}
+
+			if (search != null) {
+				httpInvoker.parameter("search", String.valueOf(search));
+			}
+
+			if (filterString != null) {
+				httpInvoker.parameter("filter", filterString);
+			}
+
+			if (pagination != null) {
+				httpInvoker.parameter(
+					"page", String.valueOf(pagination.getPage()));
+				httpInvoker.parameter(
+					"pageSize", String.valueOf(pagination.getPageSize()));
+			}
+
+			if (sortString != null) {
+				httpInvoker.parameter("sort", sortString);
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/documents",
+				assetLibraryId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public Document postAssetLibraryDocument(
+				Long assetLibraryId, Document document,
+				Map<String, File> multipartFiles)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postAssetLibraryDocumentHttpResponse(
+					assetLibraryId, document, multipartFiles);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return DocumentSerDes.toDTO(content);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse postAssetLibraryDocumentHttpResponse(
+				Long assetLibraryId, Document document,
+				Map<String, File> multipartFiles)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.multipart();
+
+			httpInvoker.part("document", DocumentSerDes.toJSON(document));
+
+			for (Map.Entry<String, File> entry : multipartFiles.entrySet()) {
+				httpInvoker.part(entry.getKey(), entry.getValue());
+			}
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/documents",
+				assetLibraryId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void postAssetLibraryDocumentBatch(
+				Long assetLibraryId, Document document,
+				Map<String, File> multipartFiles, String callbackURL,
+				Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postAssetLibraryDocumentBatchHttpResponse(
+					assetLibraryId, document, multipartFiles, callbackURL,
+					object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				postAssetLibraryDocumentBatchHttpResponse(
+					Long assetLibraryId, Document document,
+					Map<String, File> multipartFiles, String callbackURL,
+					Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/asset-libraries/{assetLibraryId}/documents/batch",
+				assetLibraryId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public Page<Document> getDocumentFolderDocumentsPage(
+				Long documentFolderId, Boolean flatten, String search,
+				List<String> aggregations, String filterString,
+				Pagination pagination, String sortString)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				getDocumentFolderDocumentsPageHttpResponse(
+					documentFolderId, flatten, search, aggregations,
+					filterString, pagination, sortString);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return Page.of(content, DocumentSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse
 				getDocumentFolderDocumentsPageHttpResponse(
 					Long documentFolderId, Boolean flatten, String search,
-					String filterString, Pagination pagination,
-					String sortString)
+					List<String> aggregations, String filterString,
+					Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -309,7 +621,7 @@ public interface DocumentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -359,6 +671,73 @@ public interface DocumentResource {
 			return httpInvoker.invoke();
 		}
 
+		public void postDocumentFolderDocumentBatch(
+				Long documentFolderId, Document document,
+				Map<String, File> multipartFiles, String callbackURL,
+				Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postDocumentFolderDocumentBatchHttpResponse(
+					documentFolderId, document, multipartFiles, callbackURL,
+					object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				postDocumentFolderDocumentBatchHttpResponse(
+					Long documentFolderId, Document document,
+					Map<String, File> multipartFiles, String callbackURL,
+					Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/document-folders/{documentFolderId}/documents/batch",
+				documentFolderId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public void deleteDocument(Long documentId) throws Exception {
 			HttpInvoker.HttpResponse httpResponse = deleteDocumentHttpResponse(
 				documentId);
@@ -370,6 +749,17 @@ public interface DocumentResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse deleteDocumentHttpResponse(
@@ -409,6 +799,62 @@ public interface DocumentResource {
 			return httpInvoker.invoke();
 		}
 
+		public void deleteDocumentBatch(String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				deleteDocumentBatchHttpResponse(callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse deleteDocumentBatchHttpResponse(
+				String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.DELETE);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/documents/batch");
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public Document getDocument(Long documentId) throws Exception {
 			HttpInvoker.HttpResponse httpResponse = getDocumentHttpResponse(
 				documentId);
@@ -429,7 +875,7 @@ public interface DocumentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -493,7 +939,7 @@ public interface DocumentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -567,7 +1013,7 @@ public interface DocumentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -617,6 +1063,68 @@ public interface DocumentResource {
 			return httpInvoker.invoke();
 		}
 
+		public void putDocumentBatch(
+				Document document, Map<String, File> multipartFiles,
+				String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putDocumentBatchHttpResponse(
+					document, multipartFiles, callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse putDocumentBatchHttpResponse(
+				Document document, Map<String, File> multipartFiles,
+				String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/documents/batch");
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public void deleteDocumentMyRating(Long documentId) throws Exception {
 			HttpInvoker.HttpResponse httpResponse =
 				deleteDocumentMyRatingHttpResponse(documentId);
@@ -628,6 +1136,17 @@ public interface DocumentResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse deleteDocumentMyRatingHttpResponse(
@@ -667,10 +1186,7 @@ public interface DocumentResource {
 			return httpInvoker.invoke();
 		}
 
-		public com.liferay.headless.delivery.client.dto.v1_0.Rating
-				getDocumentMyRating(Long documentId)
-			throws Exception {
-
+		public Rating getDocumentMyRating(Long documentId) throws Exception {
 			HttpInvoker.HttpResponse httpResponse =
 				getDocumentMyRatingHttpResponse(documentId);
 
@@ -691,7 +1207,7 @@ public interface DocumentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -732,10 +1248,7 @@ public interface DocumentResource {
 			return httpInvoker.invoke();
 		}
 
-		public com.liferay.headless.delivery.client.dto.v1_0.Rating
-				postDocumentMyRating(
-					Long documentId,
-					com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+		public Rating postDocumentMyRating(Long documentId, Rating rating)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -758,13 +1271,12 @@ public interface DocumentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
 		public HttpInvoker.HttpResponse postDocumentMyRatingHttpResponse(
-				Long documentId,
-				com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+				Long documentId, Rating rating)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -802,10 +1314,7 @@ public interface DocumentResource {
 			return httpInvoker.invoke();
 		}
 
-		public com.liferay.headless.delivery.client.dto.v1_0.Rating
-				putDocumentMyRating(
-					Long documentId,
-					com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+		public Rating putDocumentMyRating(Long documentId, Rating rating)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
@@ -828,13 +1337,12 @@ public interface DocumentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
 		public HttpInvoker.HttpResponse putDocumentMyRatingHttpResponse(
-				Long documentId,
-				com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+				Long documentId, Rating rating)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -874,13 +1382,14 @@ public interface DocumentResource {
 
 		public Page<Document> getSiteDocumentsPage(
 				Long siteId, Boolean flatten, String search,
-				String filterString, Pagination pagination, String sortString)
+				List<String> aggregations, String filterString,
+				Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
 				getSiteDocumentsPageHttpResponse(
-					siteId, flatten, search, filterString, pagination,
-					sortString);
+					siteId, flatten, search, aggregations, filterString,
+					pagination, sortString);
 
 			String content = httpResponse.getContent();
 
@@ -890,12 +1399,22 @@ public interface DocumentResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return Page.of(content, DocumentSerDes::toDTO);
+			try {
+				return Page.of(content, DocumentSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse getSiteDocumentsPageHttpResponse(
 				Long siteId, Boolean flatten, String search,
-				String filterString, Pagination pagination, String sortString)
+				List<String> aggregations, String filterString,
+				Pagination pagination, String sortString)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -978,7 +1497,7 @@ public interface DocumentResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -1020,6 +1539,71 @@ public interface DocumentResource {
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
 						"/o/headless-delivery/v1.0/sites/{siteId}/documents",
+				siteId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void postSiteDocumentBatch(
+				Long siteId, Document document,
+				Map<String, File> multipartFiles, String callbackURL,
+				Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postSiteDocumentBatchHttpResponse(
+					siteId, document, multipartFiles, callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse postSiteDocumentBatchHttpResponse(
+				Long siteId, Document document,
+				Map<String, File> multipartFiles, String callbackURL,
+				Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/sites/{siteId}/documents/batch",
 				siteId);
 
 			httpInvoker.userNameAndPassword(

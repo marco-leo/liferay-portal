@@ -47,7 +47,7 @@ const VALID_KEY_CODES = [
 	54,
 	55,
 	56,
-	57
+	57,
 ];
 
 /**
@@ -68,8 +68,8 @@ const DocumentPreviewer = ({baseImageURL, initialPage, totalPages}) => {
 	const [loadedPages] = useState({
 		[currentPage]: {
 			loaded: true,
-			pagePromise: Promise.resolve()
-		}
+			pagePromise: Promise.resolve(),
+		},
 	});
 	const [nextPageDisabled, setNextPageDisabled] = useState(
 		currentPage === totalPages
@@ -93,7 +93,7 @@ const DocumentPreviewer = ({baseImageURL, initialPage, totalPages}) => {
 
 	const isMounted = useIsMounted();
 
-	const goToPage = page => {
+	const goToPage = (page) => {
 		setNextPageDisabled(page === totalPages);
 		setPreviousPageDisabled(page === 1);
 
@@ -108,22 +108,24 @@ const DocumentPreviewer = ({baseImageURL, initialPage, totalPages}) => {
 		setCurrentPage(page);
 	};
 
-	const handleBlurPageInput = event => {
+	const handleBlurPageInput = (event) => {
 		processPageInput(event.currentTarget.value);
 
 		hidePageInput(false);
 	};
 
-	const handleKeyDownPageInput = event => {
+	const handleKeyDownPageInput = (event) => {
 		const code = event.keyCode || event.charCode;
 
 		if (code === KEY_CODE_ENTER) {
 			processPageInput(event.currentTarget.value);
 
 			hidePageInput();
-		} else if (code === KEY_CODE_ESC) {
+		}
+		else if (code === KEY_CODE_ESC) {
 			hidePageInput();
-		} else if (VALID_KEY_CODES.indexOf(code) === -1) {
+		}
+		else if (VALID_KEY_CODES.indexOf(code) === -1) {
 			event.preventDefault();
 		}
 	};
@@ -140,7 +142,7 @@ const DocumentPreviewer = ({baseImageURL, initialPage, totalPages}) => {
 		}
 	};
 
-	const loadPage = page => {
+	const loadPage = (page) => {
 		let pagePromise = loadedPages[page] && loadedPages[page].pagePromise;
 
 		if (!pagePromise) {
@@ -150,7 +152,7 @@ const DocumentPreviewer = ({baseImageURL, initialPage, totalPages}) => {
 
 			loadedPages[page] = {
 				loaded: false,
-				pagePromise
+				pagePromise,
 			};
 		}
 
@@ -169,7 +171,7 @@ const DocumentPreviewer = ({baseImageURL, initialPage, totalPages}) => {
 		}
 	};
 
-	const loadCurrentPage = debounce(page => {
+	const loadCurrentPage = debounce((page) => {
 		loadPage(page)
 			.then(() => {
 				loadAdjacentPages(page);
@@ -181,7 +183,7 @@ const DocumentPreviewer = ({baseImageURL, initialPage, totalPages}) => {
 			});
 	}, WAIT_BETWEEN_GO_TO_PAGE);
 
-	const processPageInput = value => {
+	const processPageInput = (value) => {
 		let pageNumber = Number.parseInt(value, 10);
 
 		pageNumber = pageNumber
@@ -207,8 +209,9 @@ const DocumentPreviewer = ({baseImageURL, initialPage, totalPages}) => {
 					<ClayLoadingIndicator />
 				) : (
 					<img
-						className={`preview-file-document ${!expanded &&
-							'preview-file-document-fit'}`}
+						className={`preview-file-document ${
+							!expanded && 'preview-file-document-fit'
+						}`}
 						src={`${baseImageURL}${currentPage}`}
 					/>
 				)}
@@ -296,9 +299,7 @@ const DocumentPreviewer = ({baseImageURL, initialPage, totalPages}) => {
 DocumentPreviewer.propTypes = {
 	baseImageURL: PropTypes.string,
 	initialPage: PropTypes.number,
-	totalPages: PropTypes.number
+	totalPages: PropTypes.number,
 };
 
-export default function(props) {
-	return <DocumentPreviewer {...props} />;
-}
+export default DocumentPreviewer;

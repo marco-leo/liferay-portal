@@ -18,8 +18,8 @@ import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetLink;
 import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
 import com.liferay.asset.kernel.service.AssetLinkLocalServiceUtil;
-import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationConstants;
 import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationSettingsMapFactoryUtil;
+import com.liferay.exportimport.kernel.configuration.constants.ExportImportConfigurationConstants;
 import com.liferay.exportimport.kernel.lar.ExportImportClassedModelUtil;
 import com.liferay.exportimport.kernel.lar.PortletDataHandlerBoolean;
 import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
@@ -36,9 +36,9 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.DateTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -244,18 +244,12 @@ public abstract class BaseExportImportTestCase {
 			StagedModel stagedModel, StagedModel importedStagedModel)
 		throws Exception {
 
-		Assert.assertTrue(
-			stagedModel.getCreateDate() + " " +
-				importedStagedModel.getCreateDate(),
-			DateUtil.equals(
-				stagedModel.getCreateDate(),
-				importedStagedModel.getCreateDate()));
-		Assert.assertTrue(
-			stagedModel.getModifiedDate() + " " +
-				importedStagedModel.getModifiedDate(),
-			DateUtil.equals(
-				stagedModel.getModifiedDate(),
-				importedStagedModel.getModifiedDate()));
+		DateTestUtil.assertEquals(
+			stagedModel.getCreateDate(), importedStagedModel.getCreateDate());
+		DateTestUtil.assertEquals(
+			stagedModel.getModifiedDate(),
+			importedStagedModel.getModifiedDate());
+
 		Assert.assertEquals(
 			stagedModel.getUuid(), importedStagedModel.getUuid());
 	}

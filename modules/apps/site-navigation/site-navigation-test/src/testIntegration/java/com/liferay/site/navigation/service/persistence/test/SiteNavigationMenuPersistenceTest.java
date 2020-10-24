@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -45,7 +46,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import org.junit.After;
@@ -233,6 +233,11 @@ public class SiteNavigationMenuPersistenceTest {
 	}
 
 	@Test
+	public void testCountByGroupIdArrayable() throws Exception {
+		_persistence.countByGroupId(new long[] {RandomTestUtil.nextLong(), 0L});
+	}
+
+	@Test
 	public void testCountByG_N() throws Exception {
 		_persistence.countByG_N(RandomTestUtil.nextLong(), "");
 
@@ -248,6 +253,13 @@ public class SiteNavigationMenuPersistenceTest {
 		_persistence.countByG_LikeN(0L, "null");
 
 		_persistence.countByG_LikeN(0L, (String)null);
+	}
+
+	@Test
+	public void testCountByG_LikeNArrayable() throws Exception {
+		_persistence.countByG_LikeN(
+			new long[] {RandomTestUtil.nextLong(), 0L},
+			RandomTestUtil.randomString());
 	}
 
 	@Test
@@ -534,33 +546,74 @@ public class SiteNavigationMenuPersistenceTest {
 
 		_persistence.clearCache();
 
-		SiteNavigationMenu existingSiteNavigationMenu =
+		_assertOriginalValues(
 			_persistence.findByPrimaryKey(
-				newSiteNavigationMenu.getPrimaryKey());
+				newSiteNavigationMenu.getPrimaryKey()));
+	}
 
-		Assert.assertTrue(
-			Objects.equals(
-				existingSiteNavigationMenu.getUuid(),
-				ReflectionTestUtil.invoke(
-					existingSiteNavigationMenu, "getOriginalUuid",
-					new Class<?>[0])));
+	@Test
+	public void testResetOriginalValuesWithDynamicQueryLoadFromDatabase()
+		throws Exception {
+
+		_testResetOriginalValuesWithDynamicQuery(true);
+	}
+
+	@Test
+	public void testResetOriginalValuesWithDynamicQueryLoadFromSession()
+		throws Exception {
+
+		_testResetOriginalValuesWithDynamicQuery(false);
+	}
+
+	private void _testResetOriginalValuesWithDynamicQuery(boolean clearSession)
+		throws Exception {
+
+		SiteNavigationMenu newSiteNavigationMenu = addSiteNavigationMenu();
+
+		if (clearSession) {
+			Session session = _persistence.openSession();
+
+			session.flush();
+
+			session.clear();
+		}
+
+		DynamicQuery dynamicQuery = DynamicQueryFactoryUtil.forClass(
+			SiteNavigationMenu.class, _dynamicQueryClassLoader);
+
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.eq(
+				"siteNavigationMenuId",
+				newSiteNavigationMenu.getSiteNavigationMenuId()));
+
+		List<SiteNavigationMenu> result = _persistence.findWithDynamicQuery(
+			dynamicQuery);
+
+		_assertOriginalValues(result.get(0));
+	}
+
+	private void _assertOriginalValues(SiteNavigationMenu siteNavigationMenu) {
 		Assert.assertEquals(
-			Long.valueOf(existingSiteNavigationMenu.getGroupId()),
+			siteNavigationMenu.getUuid(),
+			ReflectionTestUtil.invoke(
+				siteNavigationMenu, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "uuid_"));
+		Assert.assertEquals(
+			Long.valueOf(siteNavigationMenu.getGroupId()),
 			ReflectionTestUtil.<Long>invoke(
-				existingSiteNavigationMenu, "getOriginalGroupId",
-				new Class<?>[0]));
+				siteNavigationMenu, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "groupId"));
 
 		Assert.assertEquals(
-			Long.valueOf(existingSiteNavigationMenu.getGroupId()),
+			Long.valueOf(siteNavigationMenu.getGroupId()),
 			ReflectionTestUtil.<Long>invoke(
-				existingSiteNavigationMenu, "getOriginalGroupId",
-				new Class<?>[0]));
-		Assert.assertTrue(
-			Objects.equals(
-				existingSiteNavigationMenu.getName(),
-				ReflectionTestUtil.invoke(
-					existingSiteNavigationMenu, "getOriginalName",
-					new Class<?>[0])));
+				siteNavigationMenu, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "groupId"));
+		Assert.assertEquals(
+			siteNavigationMenu.getName(),
+			ReflectionTestUtil.invoke(
+				siteNavigationMenu, "getColumnOriginalValue",
+				new Class<?>[] {String.class}, "name"));
 	}
 
 	protected SiteNavigationMenu addSiteNavigationMenu() throws Exception {

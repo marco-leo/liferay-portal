@@ -14,6 +14,7 @@
 
 package com.liferay.document.library.kernel.service;
 
+import com.liferay.document.library.kernel.model.DLFileVersion;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
 /**
@@ -32,24 +33,17 @@ public class DLFileVersionServiceWrapper
 		_dlFileVersionService = dlFileVersionService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link DLFileVersionServiceUtil} to access the document library file version remote service. Add custom service methods to <code>com.liferay.portlet.documentlibrary.service.impl.DLFileVersionServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
-	public com.liferay.document.library.kernel.model.DLFileVersion
-			getFileVersion(long fileVersionId)
+	public DLFileVersion getFileVersion(long fileVersionId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlFileVersionService.getFileVersion(fileVersionId);
 	}
 
 	@Override
-	public java.util.List
-		<com.liferay.document.library.kernel.model.DLFileVersion>
-				getFileVersions(long fileEntryId, int status)
-			throws com.liferay.portal.kernel.exception.PortalException {
+	public java.util.List<DLFileVersion> getFileVersions(
+			long fileEntryId, int status)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlFileVersionService.getFileVersions(fileEntryId, status);
 	}
@@ -62,16 +56,15 @@ public class DLFileVersionServiceWrapper
 	}
 
 	@Override
-	public com.liferay.document.library.kernel.model.DLFileVersion
-			getLatestFileVersion(long fileEntryId)
+	public DLFileVersion getLatestFileVersion(long fileEntryId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlFileVersionService.getLatestFileVersion(fileEntryId);
 	}
 
 	@Override
-	public com.liferay.document.library.kernel.model.DLFileVersion
-			getLatestFileVersion(long fileEntryId, boolean excludeWorkingCopy)
+	public DLFileVersion getLatestFileVersion(
+			long fileEntryId, boolean excludeWorkingCopy)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlFileVersionService.getLatestFileVersion(

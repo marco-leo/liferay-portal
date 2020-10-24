@@ -153,7 +153,7 @@ public class LayoutSetImpl extends LayoutSetBaseImpl {
 				return logoId;
 			}
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			return logoId;
 		}
 
@@ -188,34 +188,34 @@ public class LayoutSetImpl extends LayoutSetBaseImpl {
 
 	@Override
 	public String getSettings() {
-		if (_settingsProperties == null) {
+		if (_settingsUnicodeProperties == null) {
 			return super.getSettings();
 		}
 
-		return _settingsProperties.toString();
+		return _settingsUnicodeProperties.toString();
 	}
 
 	@Override
 	public UnicodeProperties getSettingsProperties() {
-		if (_settingsProperties == null) {
-			_settingsProperties = new UnicodeProperties(true);
+		if (_settingsUnicodeProperties == null) {
+			_settingsUnicodeProperties = new UnicodeProperties(true);
 
 			try {
-				_settingsProperties.load(super.getSettings());
+				_settingsUnicodeProperties.load(super.getSettings());
 			}
-			catch (IOException ioe) {
-				_log.error(ioe, ioe);
+			catch (IOException ioException) {
+				_log.error(ioException, ioException);
 			}
 		}
 
-		return _settingsProperties;
+		return _settingsUnicodeProperties;
 	}
 
 	@Override
 	public String getSettingsProperty(String key) {
-		UnicodeProperties settingsProperties = getSettingsProperties();
+		UnicodeProperties settingsUnicodeProperties = getSettingsProperties();
 
-		return settingsProperties.getProperty(key);
+		return settingsUnicodeProperties.getProperty(key);
 	}
 
 	@Override
@@ -226,9 +226,10 @@ public class LayoutSetImpl extends LayoutSetBaseImpl {
 	@Override
 	public String getThemeSetting(String key, String device) {
 		if (!Validator.isBlank(super.getSettings())) {
-			UnicodeProperties settingsProperties = getSettingsProperties();
+			UnicodeProperties settingsUnicodeProperties =
+				getSettingsProperties();
 
-			String value = settingsProperties.getProperty(
+			String value = settingsUnicodeProperties.getProperty(
 				ThemeSettingImpl.namespaceProperty(device, key));
 
 			if (value != null) {
@@ -249,9 +250,8 @@ public class LayoutSetImpl extends LayoutSetBaseImpl {
 	 * "/web/sitename" or "/group/sitename" can be omitted.
 	 * </p>
 	 *
-	 * @return the layout set's default virtual host name, or an empty string if
-	 *         the layout set has no virtual hosts configured
-	 *
+	 * @return     the layout set's default virtual host name, or an empty
+	 *             string if the layout set has no virtual hosts configured
 	 * @deprecated As of Mueller (7.2.x), replaced by {@link
 	 *             #getVirtualHostnames()}
 	 */
@@ -275,8 +275,8 @@ public class LayoutSetImpl extends LayoutSetBaseImpl {
 	 * "/web/sitename" or "/group/sitename" can be omitted.
 	 * </p>
 	 *
-	 * @return the layout set's virtual host names, or an empty string if
-	 *         the layout set has no virtual hosts configured
+	 * @return the layout set's virtual host names, or an empty string if the
+	 *         layout set has no virtual hosts configured
 	 */
 	@Override
 	public TreeMap<String, String> getVirtualHostnames() {
@@ -290,8 +290,8 @@ public class LayoutSetImpl extends LayoutSetBaseImpl {
 			virtualHosts = VirtualHostLocalServiceUtil.getVirtualHosts(
 				getCompanyId(), getLayoutSetId());
 		}
-		catch (PortalException pe) {
-			_log.error(pe, pe);
+		catch (PortalException portalException) {
+			_log.error(portalException, portalException);
 		}
 
 		if ((virtualHosts == null) || virtualHosts.isEmpty()) {
@@ -341,24 +341,25 @@ public class LayoutSetImpl extends LayoutSetBaseImpl {
 
 	@Override
 	public void setSettings(String settings) {
-		_settingsProperties = null;
+		_settingsUnicodeProperties = null;
 
 		super.setSettings(settings);
 	}
 
 	@Override
-	public void setSettingsProperties(UnicodeProperties settingsProperties) {
-		_settingsProperties = settingsProperties;
+	public void setSettingsProperties(
+		UnicodeProperties settingsUnicodeProperties) {
 
-		super.setSettings(_settingsProperties.toString());
+		_settingsUnicodeProperties = settingsUnicodeProperties;
+
+		super.setSettings(_settingsUnicodeProperties.toString());
 	}
 
 	/**
 	 * Sets the name of the layout set's virtual host.
 	 *
-	 * @param virtualHostname the name of the layout set's virtual host
-	 * @see   #getVirtualHostname()
-	 *
+	 * @param      virtualHostname the name of the layout set's virtual host
+	 * @see        #getVirtualHostname()
 	 * @deprecated As of Mueller (7.2.x), replaced by {@link
 	 *             #setVirtualHostnames(TreeMap)}
 	 */
@@ -390,7 +391,7 @@ public class LayoutSetImpl extends LayoutSetBaseImpl {
 
 			controlPanel = group.isControlPanel();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 		}
 
 		if (controlPanel) {
@@ -409,7 +410,7 @@ public class LayoutSetImpl extends LayoutSetBaseImpl {
 	@CacheField(propagateToInterface = true)
 	private String _companyFallbackVirtualHostname;
 
-	private UnicodeProperties _settingsProperties;
+	private UnicodeProperties _settingsUnicodeProperties;
 
 	@CacheField(propagateToInterface = true)
 	private TreeMap<String, String> _virtualHostnames;

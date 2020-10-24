@@ -108,11 +108,11 @@ public class PreFilterContributorHelperImpl
 					booleanFilter, searchContext);
 			}
 		}
-		catch (RuntimeException re) {
-			throw re;
+		catch (RuntimeException runtimeException) {
+			throw runtimeException;
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -164,7 +164,7 @@ public class PreFilterContributorHelperImpl
 		return booleanFilter;
 	}
 
-	private ModelSearchSettings _getModelSearchSettings(Indexer indexer) {
+	private ModelSearchSettings _getModelSearchSettings(Indexer<?> indexer) {
 		ModelSearchSettingsImpl modelSearchSettingsImpl =
 			new ModelSearchSettingsImpl(indexer.getClassName());
 

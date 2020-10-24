@@ -15,16 +15,30 @@
 package com.liferay.data.engine.rest.internal.resource.v2_0;
 
 import com.liferay.data.engine.rest.dto.v2_0.DataDefinition;
-import com.liferay.data.engine.rest.dto.v2_0.DataDefinitionPermission;
 import com.liferay.data.engine.rest.resource.v2_0.DataDefinitionResource;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.ResourceActionLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
+import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
+import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
+import com.liferay.portal.vulcan.permission.ModelPermissionsUtil;
+import com.liferay.portal.vulcan.permission.PermissionUtil;
+import com.liferay.portal.vulcan.resource.EntityModelResource;
+import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
 
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,8 +47,12 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
 
+import java.io.Serializable;
+
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.annotation.Generated;
 
@@ -53,6 +71,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 /**
@@ -62,7 +83,60 @@ import javax.ws.rs.core.UriInfo;
 @Generated("")
 @Path("/v2.0")
 public abstract class BaseDataDefinitionResourceImpl
-	implements DataDefinitionResource {
+	implements DataDefinitionResource, EntityModelResource,
+			   VulcanBatchEngineTaskItemDelegate<DataDefinition> {
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/by-content-type/{contentType}'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@GET
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "contentType"),
+			@Parameter(in = ParameterIn.QUERY, name = "keywords"),
+			@Parameter(in = ParameterIn.QUERY, name = "page"),
+			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
+			@Parameter(in = ParameterIn.QUERY, name = "sort")
+		}
+	)
+	@Path("/data-definitions/by-content-type/{contentType}")
+	@Produces({"application/json", "application/xml"})
+	@Tags(value = {@Tag(name = "DataDefinition")})
+	public Page<DataDefinition> getDataDefinitionByContentTypeContentTypePage(
+			@NotNull @Parameter(hidden = true) @PathParam("contentType") String
+				contentType,
+			@Parameter(hidden = true) @QueryParam("keywords") String keywords,
+			@Context Pagination pagination, @Context Sort[] sorts)
+		throws Exception {
+
+		return Page.of(Collections.emptyList());
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/by-content-type/{contentType}' -d $'{"availableLanguageIds": ___, "contentType": ___, "dataDefinitionFields": ___, "dataDefinitionKey": ___, "dataRules": ___, "dateCreated": ___, "dateModified": ___, "defaultDataLayout": ___, "defaultLanguageId": ___, "description": ___, "id": ___, "name": ___, "siteId": ___, "storageType": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 */
+	@Override
+	@Consumes({"application/json", "application/xml"})
+	@POST
+	@Parameters(
+		value = {@Parameter(in = ParameterIn.PATH, name = "contentType")}
+	)
+	@Path("/data-definitions/by-content-type/{contentType}")
+	@Produces({"application/json", "application/xml"})
+	@Tags(value = {@Tag(name = "DataDefinition")})
+	public DataDefinition postDataDefinitionByContentType(
+			@NotNull @Parameter(hidden = true) @PathParam("contentType") String
+				contentType,
+			DataDefinition dataDefinition)
+		throws Exception {
+
+		return new DataDefinition();
+	}
 
 	/**
 	 * Invoke this method with the command line:
@@ -72,7 +146,7 @@ public abstract class BaseDataDefinitionResourceImpl
 	@Override
 	@GET
 	@Path("/data-definitions/data-definition-fields/field-types")
-	@Produces("application/json")
+	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "DataDefinition")})
 	public String getDataDefinitionDataDefinitionFieldFieldTypes()
 		throws Exception {
@@ -91,12 +165,48 @@ public abstract class BaseDataDefinitionResourceImpl
 		value = {@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId")}
 	)
 	@Path("/data-definitions/{dataDefinitionId}")
-	@Produces("application/json")
+	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "DataDefinition")})
 	public void deleteDataDefinition(
 			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
 				Long dataDefinitionId)
 		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'DELETE' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/batch'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@Consumes("application/json")
+	@DELETE
+	@Parameters(
+		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	)
+	@Path("/data-definitions/batch")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "DataDefinition")})
+	public Response deleteDataDefinitionBatch(
+			@Parameter(hidden = true) @QueryParam("callbackURL") String
+				callbackURL,
+			Object object)
+		throws Exception {
+
+		vulcanBatchEngineImportTaskResource.setContextAcceptLanguage(
+			contextAcceptLanguage);
+		vulcanBatchEngineImportTaskResource.setContextCompany(contextCompany);
+		vulcanBatchEngineImportTaskResource.setContextHttpServletRequest(
+			contextHttpServletRequest);
+		vulcanBatchEngineImportTaskResource.setContextUriInfo(contextUriInfo);
+		vulcanBatchEngineImportTaskResource.setContextUser(contextUser);
+
+		Response.ResponseBuilder responseBuilder = Response.accepted();
+
+		return responseBuilder.entity(
+			vulcanBatchEngineImportTaskResource.deleteImportTask(
+				DataDefinition.class.getName(), callbackURL, object)
+		).build();
 	}
 
 	/**
@@ -123,7 +233,7 @@ public abstract class BaseDataDefinitionResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}' -d $'{"availableLanguageIds": ___, "classNameId": ___, "dataDefinitionFields": ___, "dataDefinitionKey": ___, "dataDefinitionRules": ___, "dateCreated": ___, "dateModified": ___, "defaultLanguageId": ___, "description": ___, "id": ___, "name": ___, "siteId": ___, "storageType": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}' -d $'{"availableLanguageIds": ___, "contentType": ___, "dataDefinitionFields": ___, "dataDefinitionKey": ___, "dataRules": ___, "dateCreated": ___, "dateModified": ___, "defaultDataLayout": ___, "defaultLanguageId": ___, "description": ___, "id": ___, "name": ___, "siteId": ___, "storageType": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
 	@Override
 	@Consumes({"application/json", "application/xml"})
@@ -146,106 +256,145 @@ public abstract class BaseDataDefinitionResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-definition-field-links'  -u 'test@liferay.com:test'
+	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/batch'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@Consumes("application/json")
+	@PUT
+	@Parameters(
+		value = {@Parameter(in = ParameterIn.QUERY, name = "callbackURL")}
+	)
+	@Path("/data-definitions/batch")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "DataDefinition")})
+	public Response putDataDefinitionBatch(
+			@Parameter(hidden = true) @QueryParam("callbackURL") String
+				callbackURL,
+			Object object)
+		throws Exception {
+
+		vulcanBatchEngineImportTaskResource.setContextAcceptLanguage(
+			contextAcceptLanguage);
+		vulcanBatchEngineImportTaskResource.setContextCompany(contextCompany);
+		vulcanBatchEngineImportTaskResource.setContextHttpServletRequest(
+			contextHttpServletRequest);
+		vulcanBatchEngineImportTaskResource.setContextUriInfo(contextUriInfo);
+		vulcanBatchEngineImportTaskResource.setContextUser(contextUser);
+
+		Response.ResponseBuilder responseBuilder = Response.accepted();
+
+		return responseBuilder.entity(
+			vulcanBatchEngineImportTaskResource.putImportTask(
+				DataDefinition.class.getName(), callbackURL, object)
+		).build();
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/permissions'  -u 'test@liferay.com:test'
 	 */
 	@Override
 	@GET
 	@Parameters(
 		value = {
 			@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId"),
-			@Parameter(in = ParameterIn.QUERY, name = "fieldName")
+			@Parameter(in = ParameterIn.QUERY, name = "roleNames")
 		}
 	)
-	@Path("/data-definitions/{dataDefinitionId}/data-definition-field-links")
-	@Produces("application/json")
+	@Path("/data-definitions/{dataDefinitionId}/permissions")
+	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "DataDefinition")})
-	public String getDataDefinitionDataDefinitionFieldLinks(
-			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
-				Long dataDefinitionId,
-			@NotNull @Parameter(hidden = true) @QueryParam("fieldName") String
-				fieldName)
+	public Page<com.liferay.portal.vulcan.permission.Permission>
+			getDataDefinitionPermissionsPage(
+				@NotNull @Parameter(hidden = true)
+				@PathParam("dataDefinitionId") Long dataDefinitionId,
+				@Parameter(hidden = true) @QueryParam("roleNames") String
+					roleNames)
 		throws Exception {
 
-		return StringPool.BLANK;
+		String resourceName = getPermissionCheckerResourceName(
+			dataDefinitionId);
+
+		PermissionUtil.checkPermission(
+			ActionKeys.PERMISSIONS, groupLocalService, resourceName,
+			dataDefinitionId, getPermissionCheckerGroupId(dataDefinitionId));
+
+		return Page.of(
+			transform(
+				PermissionUtil.getRoles(
+					contextCompany, roleLocalService,
+					StringUtil.split(roleNames)),
+				role -> PermissionUtil.toPermission(
+					contextCompany.getCompanyId(), dataDefinitionId,
+					resourceActionLocalService.getResourceActions(resourceName),
+					resourceName, resourcePermissionLocalService, role)));
 	}
 
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/data-definition-permissions' -d $'{"addDataDefinition": ___, "definePermissions": ___, "delete": ___, "roleNames": ___, "update": ___, "view": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'PUT' 'http://localhost:8080/o/data-engine/v2.0/data-definitions/{dataDefinitionId}/permissions'  -u 'test@liferay.com:test'
 	 */
 	@Override
-	@Consumes({"application/json", "application/xml"})
-	@POST
+	@PUT
 	@Parameters(
-		value = {
-			@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId"),
-			@Parameter(in = ParameterIn.QUERY, name = "operation")
-		}
+		value = {@Parameter(in = ParameterIn.PATH, name = "dataDefinitionId")}
 	)
-	@Path("/data-definitions/{dataDefinitionId}/data-definition-permissions")
-	@Produces("application/json")
+	@Path("/data-definitions/{dataDefinitionId}/permissions")
+	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "DataDefinition")})
-	public void postDataDefinitionDataDefinitionPermission(
+	public void putDataDefinitionPermission(
 			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionId")
 				Long dataDefinitionId,
-			@NotNull @Parameter(hidden = true) @QueryParam("operation") String
-				operation,
-			DataDefinitionPermission dataDefinitionPermission)
+			com.liferay.portal.vulcan.permission.Permission[] permissions)
 		throws Exception {
+
+		String resourceName = getPermissionCheckerResourceName(
+			dataDefinitionId);
+
+		PermissionUtil.checkPermission(
+			ActionKeys.PERMISSIONS, groupLocalService, resourceName,
+			dataDefinitionId, getPermissionCheckerGroupId(dataDefinitionId));
+
+		resourcePermissionLocalService.updateResourcePermissions(
+			contextCompany.getCompanyId(), 0, resourceName,
+			String.valueOf(dataDefinitionId),
+			ModelPermissionsUtil.toModelPermissions(
+				contextCompany.getCompanyId(), permissions, dataDefinitionId,
+				resourceName, resourceActionLocalService,
+				resourcePermissionLocalService, roleLocalService));
 	}
 
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-definition-permissions' -d $'{"addDataDefinition": ___, "definePermissions": ___, "delete": ___, "roleNames": ___, "update": ___, "view": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
-	 */
-	@Override
-	@Consumes({"application/json", "application/xml"})
-	@POST
-	@Parameters(
-		value = {
-			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "operation")
-		}
-	)
-	@Path("/sites/{siteId}/data-definition-permissions")
-	@Produces("application/json")
-	@Tags(value = {@Tag(name = "DataDefinition")})
-	public void postSiteDataDefinitionPermission(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@NotNull @Parameter(hidden = true) @QueryParam("operation") String
-				operation,
-			DataDefinitionPermission dataDefinitionPermission)
-		throws Exception {
-	}
-
-	/**
-	 * Invoke this method with the command line:
-	 *
-	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-definitions'  -u 'test@liferay.com:test'
+	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-definitions/by-content-type/{contentType}'  -u 'test@liferay.com:test'
 	 */
 	@Override
 	@GET
 	@Parameters(
 		value = {
 			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.QUERY, name = "classNameId"),
+			@Parameter(in = ParameterIn.PATH, name = "contentType"),
 			@Parameter(in = ParameterIn.QUERY, name = "keywords"),
 			@Parameter(in = ParameterIn.QUERY, name = "page"),
 			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
 			@Parameter(in = ParameterIn.QUERY, name = "sort")
 		}
 	)
-	@Path("/sites/{siteId}/data-definitions")
+	@Path("/sites/{siteId}/data-definitions/by-content-type/{contentType}")
 	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "DataDefinition")})
-	public Page<DataDefinition> getSiteDataDefinitionsPage(
-			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
-			@Parameter(hidden = true) @QueryParam("classNameId") Long
-				classNameId,
-			@Parameter(hidden = true) @QueryParam("keywords") String keywords,
-			@Context Pagination pagination, @Context Sort[] sorts)
+	public Page<DataDefinition>
+			getSiteDataDefinitionByContentTypeContentTypePage(
+				@NotNull @Parameter(hidden = true) @PathParam("siteId") Long
+					siteId,
+				@NotNull @Parameter(hidden = true) @PathParam("contentType")
+					String contentType,
+				@Parameter(hidden = true) @QueryParam("keywords") String
+					keywords,
+				@Context Pagination pagination, @Context Sort[] sorts)
 		throws Exception {
 
 		return Page.of(Collections.emptyList());
@@ -254,17 +403,24 @@ public abstract class BaseDataDefinitionResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-definitions' -d $'{"availableLanguageIds": ___, "classNameId": ___, "dataDefinitionFields": ___, "dataDefinitionKey": ___, "dataDefinitionRules": ___, "dateCreated": ___, "dateModified": ___, "defaultLanguageId": ___, "description": ___, "id": ___, "name": ___, "siteId": ___, "storageType": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'POST' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-definitions/by-content-type/{contentType}' -d $'{"availableLanguageIds": ___, "contentType": ___, "dataDefinitionFields": ___, "dataDefinitionKey": ___, "dataRules": ___, "dateCreated": ___, "dateModified": ___, "defaultDataLayout": ___, "defaultLanguageId": ___, "description": ___, "id": ___, "name": ___, "siteId": ___, "storageType": ___, "userId": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
 	@Override
 	@Consumes({"application/json", "application/xml"})
 	@POST
-	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
-	@Path("/sites/{siteId}/data-definitions")
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "siteId"),
+			@Parameter(in = ParameterIn.PATH, name = "contentType")
+		}
+	)
+	@Path("/sites/{siteId}/data-definitions/by-content-type/{contentType}")
 	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "DataDefinition")})
-	public DataDefinition postSiteDataDefinition(
+	public DataDefinition postSiteDataDefinitionByContentType(
 			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
+			@NotNull @Parameter(hidden = true) @PathParam("contentType") String
+				contentType,
 			DataDefinition dataDefinition)
 		throws Exception {
 
@@ -274,36 +430,144 @@ public abstract class BaseDataDefinitionResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-definitions/{dataDefinitionKey}'  -u 'test@liferay.com:test'
+	 * curl -X 'GET' 'http://localhost:8080/o/data-engine/v2.0/sites/{siteId}/data-definitions/by-content-type/{contentType}/by-data-definition-key/{dataDefinitionKey}'  -u 'test@liferay.com:test'
 	 */
 	@Override
 	@GET
 	@Parameters(
 		value = {
 			@Parameter(in = ParameterIn.PATH, name = "siteId"),
-			@Parameter(in = ParameterIn.PATH, name = "dataDefinitionKey"),
-			@Parameter(in = ParameterIn.QUERY, name = "classNameId")
+			@Parameter(in = ParameterIn.PATH, name = "contentType"),
+			@Parameter(in = ParameterIn.PATH, name = "dataDefinitionKey")
 		}
 	)
-	@Path("/sites/{siteId}/data-definitions/{dataDefinitionKey}")
+	@Path(
+		"/sites/{siteId}/data-definitions/by-content-type/{contentType}/by-data-definition-key/{dataDefinitionKey}"
+	)
 	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "DataDefinition")})
-	public DataDefinition getSiteDataDefinition(
+	public DataDefinition getSiteDataDefinitionByContentTypeByDataDefinitionKey(
 			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
+			@NotNull @Parameter(hidden = true) @PathParam("contentType") String
+				contentType,
 			@NotNull @Parameter(hidden = true) @PathParam("dataDefinitionKey")
-				String dataDefinitionKey,
-			@Parameter(hidden = true) @QueryParam("classNameId") Long
-				classNameId)
+				String dataDefinitionKey)
 		throws Exception {
 
 		return new DataDefinition();
+	}
+
+	@Override
+	@SuppressWarnings("PMD.UnusedLocalVariable")
+	public void create(
+			java.util.Collection<DataDefinition> dataDefinitions,
+			Map<String, Serializable> parameters)
+		throws Exception {
+	}
+
+	@Override
+	public void delete(
+			java.util.Collection<DataDefinition> dataDefinitions,
+			Map<String, Serializable> parameters)
+		throws Exception {
+
+		for (DataDefinition dataDefinition : dataDefinitions) {
+			deleteDataDefinition(dataDefinition.getId());
+		}
+	}
+
+	@Override
+	public EntityModel getEntityModel(Map<String, List<String>> multivaluedMap)
+		throws Exception {
+
+		return getEntityModel(
+			new MultivaluedHashMap<String, Object>(multivaluedMap));
+	}
+
+	@Override
+	public EntityModel getEntityModel(MultivaluedMap multivaluedMap)
+		throws Exception {
+
+		return null;
+	}
+
+	@Override
+	public Page<DataDefinition> read(
+			Filter filter, Pagination pagination, Sort[] sorts,
+			Map<String, Serializable> parameters, String search)
+		throws Exception {
+
+		return null;
+	}
+
+	@Override
+	public void setLanguageId(String languageId) {
+		this.contextAcceptLanguage = new AcceptLanguage() {
+
+			@Override
+			public List<Locale> getLocales() {
+				return null;
+			}
+
+			@Override
+			public String getPreferredLanguageId() {
+				return languageId;
+			}
+
+			@Override
+			public Locale getPreferredLocale() {
+				return LocaleUtil.fromLanguageId(languageId);
+			}
+
+		};
+	}
+
+	@Override
+	public void update(
+			java.util.Collection<DataDefinition> dataDefinitions,
+			Map<String, Serializable> parameters)
+		throws Exception {
+
+		for (DataDefinition dataDefinition : dataDefinitions) {
+			putDataDefinition(
+				dataDefinition.getId() != null ? dataDefinition.getId() :
+				(Long)parameters.get("dataDefinitionId"),
+				dataDefinition);
+		}
+	}
+
+	protected String getPermissionCheckerActionsResourceName(Object id)
+		throws Exception {
+
+		return getPermissionCheckerResourceName(id);
+	}
+
+	protected Long getPermissionCheckerGroupId(Object id) throws Exception {
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected String getPermissionCheckerPortletName(Object id)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected String getPermissionCheckerResourceName(Object id)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {
 		this.contextAcceptLanguage = contextAcceptLanguage;
 	}
 
-	public void setContextCompany(Company contextCompany) {
+	public void setContextCompany(
+		com.liferay.portal.kernel.model.Company contextCompany) {
+
 		this.contextCompany = contextCompany;
 	}
 
@@ -323,12 +587,52 @@ public abstract class BaseDataDefinitionResourceImpl
 		this.contextUriInfo = contextUriInfo;
 	}
 
-	public void setContextUser(User contextUser) {
+	public void setContextUser(
+		com.liferay.portal.kernel.model.User contextUser) {
+
 		this.contextUser = contextUser;
 	}
 
-	protected void preparePatch(
-		DataDefinition dataDefinition, DataDefinition existingDataDefinition) {
+	public void setGroupLocalService(GroupLocalService groupLocalService) {
+		this.groupLocalService = groupLocalService;
+	}
+
+	public void setRoleLocalService(RoleLocalService roleLocalService) {
+		this.roleLocalService = roleLocalService;
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, GroupedModel groupedModel, String methodName) {
+
+		return ActionUtil.addAction(
+			actionName, getClass(), groupedModel, methodName,
+			contextScopeChecker, contextUriInfo);
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, Long id, String methodName, Long ownerId,
+		String permissionName, Long siteId) {
+
+		return ActionUtil.addAction(
+			actionName, getClass(), id, methodName, contextScopeChecker,
+			ownerId, permissionName, siteId, contextUriInfo);
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, Long id, String methodName,
+		ModelResourcePermission modelResourcePermission) {
+
+		return ActionUtil.addAction(
+			actionName, getClass(), id, methodName, contextScopeChecker,
+			modelResourcePermission, contextUriInfo);
+	}
+
+	protected Map<String, String> addAction(
+		String actionName, String methodName, String permissionName,
+		Long siteId) {
+
+		return addAction(
+			actionName, siteId, methodName, null, permissionName, siteId);
 	}
 
 	protected <T, R> List<R> transform(
@@ -360,10 +664,17 @@ public abstract class BaseDataDefinitionResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
-	protected Company contextCompany;
+	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;
+	protected Object contextScopeChecker;
 	protected UriInfo contextUriInfo;
-	protected User contextUser;
+	protected com.liferay.portal.kernel.model.User contextUser;
+	protected GroupLocalService groupLocalService;
+	protected ResourceActionLocalService resourceActionLocalService;
+	protected ResourcePermissionLocalService resourcePermissionLocalService;
+	protected RoleLocalService roleLocalService;
+	protected VulcanBatchEngineImportTaskResource
+		vulcanBatchEngineImportTaskResource;
 
 }

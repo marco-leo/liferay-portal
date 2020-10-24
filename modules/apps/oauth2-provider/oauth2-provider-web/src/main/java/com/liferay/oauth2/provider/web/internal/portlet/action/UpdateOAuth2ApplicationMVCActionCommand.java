@@ -90,9 +90,9 @@ public class UpdateOAuth2ApplicationMVCActionCommand
 
 		OAuth2AdminPortletDisplayContext oAuth2AdminPortletDisplayContext =
 			new OAuth2AdminPortletDisplayContext(
-				_oAuth2ApplicationService,
-				_oAuth2ApplicationScopeAliasesLocalService,
-				_oAuth2ProviderConfiguration, request, null, _dlurlHelper);
+				_dlurlHelper, _oAuth2ApplicationScopeAliasesLocalService,
+				_oAuth2ApplicationService, _oAuth2ProviderConfiguration,
+				request, null);
 
 		String[] oAuth2Features =
 			oAuth2AdminPortletDisplayContext.getOAuth2Features(
@@ -101,7 +101,7 @@ public class UpdateOAuth2ApplicationMVCActionCommand
 		List<String> featuresList = new ArrayList<>();
 
 		for (String feature : oAuth2Features) {
-			if (ParamUtil.getBoolean(request, "feature-" + feature, false)) {
+			if (ParamUtil.getBoolean(request, "feature-" + feature)) {
 				featuresList.add(feature);
 			}
 		}
@@ -197,14 +197,14 @@ public class UpdateOAuth2ApplicationMVCActionCommand
 				}
 			}
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
+				_log.debug(portalException, portalException);
 			}
 
-			Class<?> peClass = pe.getClass();
+			Class<?> peClass = portalException.getClass();
 
-			SessionErrors.add(request, peClass.getName(), pe);
+			SessionErrors.add(request, peClass.getName(), portalException);
 		}
 
 		String backURL = ParamUtil.get(request, "backURL", StringPool.BLANK);

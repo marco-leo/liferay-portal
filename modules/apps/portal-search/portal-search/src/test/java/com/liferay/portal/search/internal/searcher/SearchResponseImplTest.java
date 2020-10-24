@@ -16,6 +16,7 @@ package com.liferay.portal.search.internal.searcher;
 
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.search.hits.SearchHits;
 import com.liferay.portal.search.searcher.SearchResponse;
 
 import java.util.List;
@@ -52,7 +53,7 @@ public class SearchResponseImplTest {
 		assertIs(searchResponse.getRequest(), nullValue());
 		assertIs(searchResponse.getRequestString(), blank());
 		assertIs(searchResponse.getResponseString(), blank());
-		assertIs(searchResponse.getSearchHits(), nullValue());
+		assertIs(searchResponse.getSearchHits(), instanceOf(SearchHits.class));
 		assertIs(searchResponse.getStatsResponseMap(), emptyMap());
 		assertIs(searchResponse.getTotalHits(), zeroInt());
 	}
@@ -61,19 +62,19 @@ public class SearchResponseImplTest {
 		consumer.accept(actual);
 	}
 
-	protected static Consumer blank() {
+	protected static Consumer<String> blank() {
 		return string -> Assert.assertEquals(StringPool.BLANK, string);
 	}
 
-	protected static Consumer<List> emptyList() {
+	protected static Consumer<List<?>> emptyList() {
 		return list -> Assert.assertEquals("[]", String.valueOf(list));
 	}
 
-	protected static Consumer<Map> emptyMap() {
+	protected static Consumer<Map<String, ?>> emptyMap() {
 		return map -> Assert.assertEquals("{}", String.valueOf(map));
 	}
 
-	protected static Consumer<Stream> emptyStream() {
+	protected static Consumer<Stream<?>> emptyStream() {
 		return stream -> Assert.assertEquals(
 			"[]",
 			String.valueOf(
@@ -84,11 +85,15 @@ public class SearchResponseImplTest {
 				)));
 	}
 
-	protected static Consumer nullValue() {
+	protected static Consumer<Object> instanceOf(Class<?> clazz) {
+		return object -> Assert.assertTrue(clazz.isInstance(object));
+	}
+
+	protected static Consumer<Object> nullValue() {
 		return object -> Assert.assertNull(object);
 	}
 
-	protected static Consumer same(Object expected) {
+	protected static Consumer<Object> same(Object expected) {
 		return actual -> Assert.assertSame(expected, actual);
 	}
 

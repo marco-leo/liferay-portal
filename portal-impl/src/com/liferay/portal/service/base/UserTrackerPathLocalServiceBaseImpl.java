@@ -14,6 +14,7 @@
 
 package com.liferay.portal.service.base;
 
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -35,6 +36,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.service.UserTrackerPathLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.UserTrackerPathPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -61,7 +63,7 @@ public abstract class UserTrackerPathLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements IdentifiableOSGiService, UserTrackerPathLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>UserTrackerPathLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.UserTrackerPathLocalServiceUtil</code>.
@@ -69,6 +71,10 @@ public abstract class UserTrackerPathLocalServiceBaseImpl
 
 	/**
 	 * Adds the user tracker path to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserTrackerPathLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param userTrackerPath the user tracker path
 	 * @return the user tracker path that was added
@@ -96,6 +102,10 @@ public abstract class UserTrackerPathLocalServiceBaseImpl
 	/**
 	 * Deletes the user tracker path with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserTrackerPathLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param userTrackerPathId the primary key of the user tracker path
 	 * @return the user tracker path that was removed
 	 * @throws PortalException if a user tracker path with the primary key could not be found
@@ -111,6 +121,10 @@ public abstract class UserTrackerPathLocalServiceBaseImpl
 	/**
 	 * Deletes the user tracker path from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserTrackerPathLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param userTrackerPath the user tracker path
 	 * @return the user tracker path that was removed
 	 */
@@ -120,6 +134,11 @@ public abstract class UserTrackerPathLocalServiceBaseImpl
 		UserTrackerPath userTrackerPath) {
 
 		return userTrackerPathPersistence.remove(userTrackerPath);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return userTrackerPathPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -274,6 +293,17 @@ public abstract class UserTrackerPathLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return userTrackerPathPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -281,6 +311,14 @@ public abstract class UserTrackerPathLocalServiceBaseImpl
 			(UserTrackerPath)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<UserTrackerPath> getBasePersistence() {
+		return userTrackerPathPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -316,6 +354,10 @@ public abstract class UserTrackerPathLocalServiceBaseImpl
 
 	/**
 	 * Updates the user tracker path in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserTrackerPathLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param userTrackerPath the user tracker path
 	 * @return the user tracker path that was updated
@@ -439,8 +481,8 @@ public abstract class UserTrackerPathLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

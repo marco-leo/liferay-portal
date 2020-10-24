@@ -44,23 +44,29 @@ public class DeleteDocumentRequestExecutorImpl
 		DeleteRequest deleteRequest =
 			_bulkableDocumentRequestTranslator.translate(deleteDocumentRequest);
 
-		DeleteResponse deleteResponse = getDeleteResponse(deleteRequest);
+		DeleteResponse deleteResponse = getDeleteResponse(
+			deleteRequest, deleteDocumentRequest);
 
 		RestStatus restStatus = deleteResponse.status();
 
 		return new DeleteDocumentResponse(restStatus.getStatus());
 	}
 
-	protected DeleteResponse getDeleteResponse(DeleteRequest deleteRequest) {
+	protected DeleteResponse getDeleteResponse(
+		DeleteRequest deleteRequest,
+		DeleteDocumentRequest deleteDocumentRequest) {
+
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				deleteDocumentRequest.getConnectionId(),
+				deleteDocumentRequest.isPreferLocalCluster());
 
 		try {
 			return restHighLevelClient.delete(
 				deleteRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

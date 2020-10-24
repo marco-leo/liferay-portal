@@ -42,7 +42,6 @@ import com.liferay.portal.kernel.util.TreeMapBuilder;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.impl.LayoutSetImpl;
-import com.liferay.portal.model.impl.LayoutSetModelImpl;
 import com.liferay.portal.service.base.LayoutSetLocalServiceBaseImpl;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
@@ -86,9 +85,7 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 
 		layoutSet = initLayoutSet(layoutSet);
 
-		layoutSetPersistence.update(layoutSet);
-
-		return layoutSet;
+		return layoutSetPersistence.update(layoutSet);
 	}
 
 	@Override
@@ -116,11 +113,11 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 			try {
 				imageLocalService.deleteImage(layoutSet.getLogoId());
 			}
-			catch (NoSuchImageException nsie) {
+			catch (NoSuchImageException noSuchImageException) {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
 						"Unable to delete image " + layoutSet.getLogoId(),
-						nsie);
+						noSuchImageException);
 				}
 			}
 		}
@@ -134,7 +131,7 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 
 			layoutSet.setLogoId(layoutSet.getLogoId());
 
-			layoutSetPersistence.update(layoutSet);
+			layoutSet = layoutSetPersistence.update(layoutSet);
 		}
 		else {
 			layoutSetPersistence.removeByG_P(groupId, privateLayout);
@@ -199,13 +196,13 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 			virtualHost = virtualHostPersistence.findByHostname(
 				virtualHostname);
 		}
-		catch (NoSuchVirtualHostException nsvhe) {
+		catch (NoSuchVirtualHostException noSuchVirtualHostException) {
 			if (virtualHostname.contains("xn--")) {
 				virtualHost = virtualHostPersistence.findByHostname(
 					IDN.toUnicode(virtualHostname));
 			}
 			else {
-				throw nsvhe;
+				throw noSuchVirtualHostException;
 			}
 		}
 
@@ -331,8 +328,8 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 		try {
 			bytes = FileUtil.getBytes(file);
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 
 		return updateLogo(groupId, privateLayout, hasLogo, bytes);
@@ -341,25 +338,25 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 	@Override
 	public LayoutSet updateLogo(
 			long groupId, boolean privateLayout, boolean hasLogo,
-			InputStream is)
+			InputStream inputStream)
 		throws PortalException {
 
-		return updateLogo(groupId, privateLayout, hasLogo, is, true);
+		return updateLogo(groupId, privateLayout, hasLogo, inputStream, true);
 	}
 
 	@Override
 	public LayoutSet updateLogo(
 			long groupId, boolean privateLayout, boolean hasLogo,
-			InputStream is, boolean cleanUpStream)
+			InputStream inputStream, boolean cleanUpStream)
 		throws PortalException {
 
 		byte[] bytes = null;
 
 		try {
-			bytes = FileUtil.getBytes(is, -1, cleanUpStream);
+			bytes = FileUtil.getBytes(inputStream, -1, cleanUpStream);
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 
 		return updateLogo(groupId, privateLayout, hasLogo, bytes);
@@ -392,7 +389,7 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 			layoutSet.setColorSchemeId(colorSchemeId);
 			layoutSet.setCss(css);
 
-			layoutSetPersistence.update(layoutSet);
+			layoutSet = layoutSetPersistence.update(layoutSet);
 
 			if (PrefsPropsUtil.getBoolean(
 					PropsKeys.THEME_SYNC_ON_GROUP,
@@ -434,9 +431,9 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 			long groupId, boolean privateLayout, String settings)
 		throws PortalException {
 
-		UnicodeProperties settingsProperties = new UnicodeProperties();
+		UnicodeProperties settingsUnicodeProperties = new UnicodeProperties();
 
-		settingsProperties.fastLoad(settings);
+		settingsUnicodeProperties.fastLoad(settings);
 
 		LayoutSet layoutSet = layoutSetPersistence.findByG_P(
 			groupId, privateLayout);
@@ -447,21 +444,19 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 			layoutSet.setModifiedDate(new Date());
 
 			validateSettings(
-				layoutSet.getSettingsProperties(), settingsProperties);
+				layoutSet.getSettingsProperties(), settingsUnicodeProperties);
 
-			layoutSet.setSettingsProperties(settingsProperties);
+			layoutSet.setSettingsProperties(settingsUnicodeProperties);
 
-			layoutSetPersistence.update(layoutSet);
-
-			return layoutSet;
+			return layoutSetPersistence.update(layoutSet);
 		}
 
 		layoutSetBranch.setModifiedDate(new Date());
 
 		validateSettings(
-			layoutSetBranch.getSettingsProperties(), settingsProperties);
+			layoutSetBranch.getSettingsProperties(), settingsUnicodeProperties);
 
-		layoutSetBranch.setSettingsProperties(settingsProperties);
+		layoutSetBranch.setSettingsProperties(settingsUnicodeProperties);
 
 		layoutSetBranchPersistence.update(layoutSetBranch);
 
@@ -518,7 +513,6 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 					@Override
 					public Void call() {
 						EntityCacheUtil.removeResult(
-							LayoutSetModelImpl.ENTITY_CACHE_ENABLED,
 							LayoutSetImpl.class, layoutSet.getLayoutSetId());
 
 						return null;
@@ -582,17 +576,18 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 	}
 
 	protected void validateSettings(
-		UnicodeProperties oldSettingsProperties,
-		UnicodeProperties newSettingsProperties) {
+		UnicodeProperties oldSettingsUnicodeProperties,
+		UnicodeProperties newSettingsUnicodeProperties) {
 
 		boolean enableJavaScript =
 			PropsValues.
 				FIELD_ENABLE_COM_LIFERAY_PORTAL_KERNEL_MODEL_LAYOUTSET_JAVASCRIPT;
 
 		if (!enableJavaScript) {
-			String javaScript = oldSettingsProperties.getProperty("javascript");
+			String javaScript = oldSettingsUnicodeProperties.getProperty(
+				"javascript");
 
-			newSettingsProperties.setProperty("javascript", javaScript);
+			newSettingsUnicodeProperties.setProperty("javascript", javaScript);
 		}
 	}
 

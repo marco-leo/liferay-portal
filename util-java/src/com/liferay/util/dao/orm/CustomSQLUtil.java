@@ -147,8 +147,10 @@ public class CustomSQLUtil {
 			sql, field, operator, last, values);
 	}
 
-	public static String replaceOrderBy(String sql, OrderByComparator<?> obc) {
-		return _customSQLUtil._customSQL.replaceOrderBy(sql, obc);
+	public static String replaceOrderBy(
+		String sql, OrderByComparator<?> orderByComparator) {
+
+		return _customSQLUtil._customSQL.replaceOrderBy(sql, orderByComparator);
 	}
 
 	private CustomSQLUtil() {
@@ -157,8 +159,8 @@ public class CustomSQLUtil {
 		try {
 			customSQL = new CustomSQL();
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+		catch (Exception exception) {
+			_log.error(exception, exception);
 		}
 
 		_customSQL = customSQL;

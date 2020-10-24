@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class SamlIdpSpSessionLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.saml.persistence.service.impl.SamlIdpSpSessionLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SamlIdpSpSessionLocalServiceUtil} to access the saml idp sp session local service. Add custom service methods to <code>com.liferay.saml.persistence.service.impl.SamlIdpSpSessionLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.saml.persistence.model.SamlIdpSpSession
 			addSamlIdpSpSession(
@@ -58,6 +52,10 @@ public class SamlIdpSpSessionLocalServiceUtil {
 	/**
 	 * Adds the saml idp sp session to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSpSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param samlIdpSpSession the saml idp sp session
 	 * @return the saml idp sp session that was added
 	 */
@@ -67,6 +65,16 @@ public class SamlIdpSpSessionLocalServiceUtil {
 				samlIdpSpSession) {
 
 		return getService().addSamlIdpSpSession(samlIdpSpSession);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -95,6 +103,10 @@ public class SamlIdpSpSessionLocalServiceUtil {
 	/**
 	 * Deletes the saml idp sp session with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSpSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param samlIdpSpSessionId the primary key of the saml idp sp session
 	 * @return the saml idp sp session that was removed
 	 * @throws PortalException if a saml idp sp session with the primary key could not be found
@@ -109,6 +121,10 @@ public class SamlIdpSpSessionLocalServiceUtil {
 	/**
 	 * Deletes the saml idp sp session from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSpSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param samlIdpSpSession the saml idp sp session
 	 * @return the saml idp sp session that was removed
 	 */
@@ -118,6 +134,12 @@ public class SamlIdpSpSessionLocalServiceUtil {
 				samlIdpSpSession) {
 
 		return getService().deleteSamlIdpSpSession(samlIdpSpSession);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -233,6 +255,9 @@ public class SamlIdpSpSessionLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -306,6 +331,10 @@ public class SamlIdpSpSessionLocalServiceUtil {
 
 	/**
 	 * Updates the saml idp sp session in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSpSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param samlIdpSpSession the saml idp sp session
 	 * @return the saml idp sp session that was updated

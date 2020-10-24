@@ -18,9 +18,11 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.background.task.constants.BackgroundTaskContextMapConstants;
 import com.liferay.portal.background.task.service.BackgroundTaskLocalService;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
+import com.liferay.portal.kernel.backgroundtask.BackgroundTaskExecutor;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.messaging.BaseMessageListener;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.Message;
@@ -38,11 +40,13 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.workflow.metrics.internal.background.task.WorkflowMetricsSLAProcessBackgroundTaskExecutor;
 import com.liferay.portal.workflow.metrics.internal.configuration.WorkflowMetricsConfiguration;
 import com.liferay.portal.workflow.metrics.model.WorkflowMetricsSLADefinition;
+import com.liferay.portal.workflow.metrics.search.background.task.WorkflowMetricsReindexStatusMessageSender;
 import com.liferay.portal.workflow.metrics.service.WorkflowMetricsSLADefinitionLocalService;
 
 import java.io.Serializable;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -54,7 +58,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Rafael Praxedes
  */
 @Component(
-	configurationPid = "com.liferay.portal.workflow.metrics.configuration.WorkflowMetricsConfiguration",
+	configurationPid = "com.liferay.portal.workflow.metrics.internal.configuration.WorkflowMetricsConfiguration",
 	immediate = true,
 	service = {
 		MessageListener.class, WorkflowMetricsSLAProcessMessageListener.class
@@ -64,7 +68,6 @@ public class WorkflowMetricsSLAProcessMessageListener
 	extends BaseMessageListener {
 
 	@Activate
-	@Modified
 	protected void activate(Map<String, Object> properties) {
 		_workflowMetricsConfiguration = ConfigurableUtil.createConfigurable(
 			WorkflowMetricsConfiguration.class, properties);
@@ -98,15 +101,16 @@ public class WorkflowMetricsSLAProcessMessageListener
 
 		actionableDynamicQuery.setAddCriteriaMethod(
 			dynamicQuery -> {
-				Property activeProperty = PropertyFactoryUtil.forName("active");
-
-				dynamicQuery.add(activeProperty.eq(true));
-
 				Property statusProperty = PropertyFactoryUtil.forName("status");
 
 				dynamicQuery.add(
 					statusProperty.eq(WorkflowConstants.STATUS_APPROVED));
 			});
+
+		long total = actionableDynamicQuery.performCount();
+
+		AtomicInteger atomicCounter = new AtomicInteger(0);
+
 		actionableDynamicQuery.setPerformActionMethod(
 			(WorkflowMetricsSLADefinition workflowMetricsSLADefinition) -> {
 				int count = _backgroundTaskLocalService.getBackgroundTasksCount(
@@ -125,6 +129,8 @@ public class WorkflowMetricsSLAProcessMessageListener
 						BackgroundTaskContextMapConstants.DELETE_ON_SUCCESS,
 						true
 					).put(
+						"reindex", _isReindex(message)
+					).put(
 						"workflowMetricsSLADefinitionId",
 						workflowMetricsSLADefinition.getPrimaryKey()
 					).build();
@@ -136,12 +142,28 @@ public class WorkflowMetricsSLAProcessMessageListener
 					WorkflowMetricsSLAProcessBackgroundTaskExecutor.class.
 						getName(),
 					taskContextMap, new ServiceContext());
+
+				if (_isReindex(message)) {
+					_workflowMetricsReindexStatusMessageSender.
+						sendStatusMessage(
+							atomicCounter.incrementAndGet(), total,
+							"sla-instance-result");
+				}
 			});
 
 		actionableDynamicQuery.performActions();
 	}
 
-	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")
+	@Modified
+	protected void modified(Map<String, Object> properties) {
+		deactivate();
+
+		activate(properties);
+	}
+
+	@Reference(
+		target = ModuleServiceLifecycle.PORTLETS_INITIALIZED, unbind = "-"
+	)
 	protected void setModuleServiceLifecycle(
 		ModuleServiceLifecycle moduleServiceLifecycle) {
 	}
@@ -153,6 +175,16 @@ public class WorkflowMetricsSLAProcessMessageListener
 			WorkflowMetricsSLAProcessMessageListener.class.getSimpleName(), "-",
 			workflowMetricsSLADefinition.getProcessId(),
 			workflowMetricsSLADefinition.getPrimaryKey());
+	}
+
+	private boolean _isReindex(Message message) {
+		JSONObject payloadJSONObject = (JSONObject)message.getPayload();
+
+		if (payloadJSONObject == null) {
+			return false;
+		}
+
+		return payloadJSONObject.getBoolean("reindex", false);
 	}
 
 	@Reference
@@ -167,7 +199,17 @@ public class WorkflowMetricsSLAProcessMessageListener
 	private volatile WorkflowMetricsConfiguration _workflowMetricsConfiguration;
 
 	@Reference
+	private WorkflowMetricsReindexStatusMessageSender
+		_workflowMetricsReindexStatusMessageSender;
+
+	@Reference
 	private WorkflowMetricsSLADefinitionLocalService
 		_workflowMetricsSLADefinitionLocalService;
+
+	@Reference(
+		target = "(background.task.executor.class.name=com.liferay.portal.workflow.metrics.internal.background.task.WorkflowMetricsSLAProcessBackgroundTaskExecutor)"
+	)
+	private BackgroundTaskExecutor
+		_workflowMetricsSLAProcessBackgroundTaskExecutor;
 
 }

@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class AMImageEntryLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.adaptive.media.image.service.impl.AMImageEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -73,6 +73,10 @@ public class AMImageEntryLocalServiceUtil {
 	/**
 	 * Adds the am image entry to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AMImageEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param amImageEntry the am image entry
 	 * @return the am image entry that was added
 	 */
@@ -96,6 +100,16 @@ public class AMImageEntryLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes all the adaptive media images generated for the configuration in
 	 * the company. This method deletes both the adaptive media image entry from
 	 * the database and the bytes from the file store.
@@ -115,6 +129,10 @@ public class AMImageEntryLocalServiceUtil {
 	/**
 	 * Deletes the am image entry from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AMImageEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param amImageEntry the am image entry
 	 * @return the am image entry that was removed
 	 */
@@ -127,6 +145,10 @@ public class AMImageEntryLocalServiceUtil {
 
 	/**
 	 * Deletes the am image entry with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AMImageEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param amImageEntryId the primary key of the am image entry
 	 * @return the am image entry that was removed
@@ -180,6 +202,12 @@ public class AMImageEntryLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -324,6 +352,20 @@ public class AMImageEntryLocalServiceUtil {
 			int start, int end) {
 
 		return getService().getAMImageEntries(start, end);
+	}
+
+	/**
+	 * Returns the list of adaptive media image entries generated for the
+	 * file version.
+	 *
+	 * @param fileVersionId the primary key of the file version
+	 * @return the list of adaptive media image entries in the file version
+	 */
+	public static java.util.List
+		<com.liferay.adaptive.media.image.model.AMImageEntry> getAMImageEntries(
+			long fileVersionId) {
+
+		return getService().getAMImageEntries(fileVersionId);
 	}
 
 	/**
@@ -482,6 +524,9 @@ public class AMImageEntryLocalServiceUtil {
 		return getService().getPercentage(companyId, configurationUuid);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -491,6 +536,10 @@ public class AMImageEntryLocalServiceUtil {
 
 	/**
 	 * Updates the am image entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect AMImageEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param amImageEntry the am image entry
 	 * @return the am image entry that was updated

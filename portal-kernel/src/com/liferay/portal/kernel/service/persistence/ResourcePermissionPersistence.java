@@ -36,7 +36,7 @@ public interface ResourcePermissionPersistence
 	extends BasePersistence<ResourcePermission>,
 			CTPersistence<ResourcePermission> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link ResourcePermissionUtil} to access the resource permission persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

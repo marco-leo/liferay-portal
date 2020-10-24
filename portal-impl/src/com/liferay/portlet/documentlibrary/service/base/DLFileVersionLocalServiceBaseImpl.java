@@ -28,6 +28,8 @@ import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerRegistryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
+import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -54,6 +56,8 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -80,7 +84,7 @@ public abstract class DLFileVersionLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements DLFileVersionLocalService, IdentifiableOSGiService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>DLFileVersionLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.document.library.kernel.service.DLFileVersionLocalServiceUtil</code>.
@@ -88,6 +92,10 @@ public abstract class DLFileVersionLocalServiceBaseImpl
 
 	/**
 	 * Adds the document library file version to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dlFileVersion the document library file version
 	 * @return the document library file version that was added
@@ -115,6 +123,10 @@ public abstract class DLFileVersionLocalServiceBaseImpl
 	/**
 	 * Deletes the document library file version with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param fileVersionId the primary key of the document library file version
 	 * @return the document library file version that was removed
 	 * @throws PortalException if a document library file version with the primary key could not be found
@@ -130,6 +142,10 @@ public abstract class DLFileVersionLocalServiceBaseImpl
 	/**
 	 * Deletes the document library file version from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param dlFileVersion the document library file version
 	 * @return the document library file version that was removed
 	 */
@@ -137,6 +153,11 @@ public abstract class DLFileVersionLocalServiceBaseImpl
 	@Override
 	public DLFileVersion deleteDLFileVersion(DLFileVersion dlFileVersion) {
 		return dlFileVersionPersistence.remove(dlFileVersion);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return dlFileVersionPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -432,6 +453,17 @@ public abstract class DLFileVersionLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return dlFileVersionPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -439,6 +471,14 @@ public abstract class DLFileVersionLocalServiceBaseImpl
 			(DLFileVersion)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<DLFileVersion> getBasePersistence() {
+		return dlFileVersionPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -523,6 +563,10 @@ public abstract class DLFileVersionLocalServiceBaseImpl
 
 	/**
 	 * Updates the document library file version in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect DLFileVersionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param dlFileVersion the document library file version
 	 * @return the document library file version that was updated
@@ -739,8 +783,23 @@ public abstract class DLFileVersionLocalServiceBaseImpl
 		return DLFileVersionLocalService.class.getName();
 	}
 
-	protected Class<?> getModelClass() {
+	@Override
+	public CTPersistence<DLFileVersion> getCTPersistence() {
+		return dlFileVersionPersistence;
+	}
+
+	@Override
+	public Class<DLFileVersion> getModelClass() {
 		return DLFileVersion.class;
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<DLFileVersion>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return updateUnsafeFunction.apply(dlFileVersionPersistence);
 	}
 
 	protected String getModelClassName() {
@@ -766,8 +825,8 @@ public abstract class DLFileVersionLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

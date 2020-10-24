@@ -34,7 +34,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface VersionedEntryVersionModel
 	extends BaseModel<VersionedEntryVersion>, VersionModel<VersionedEntry> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a versioned entry version model instance should use the {@link VersionedEntryVersion} interface instead.

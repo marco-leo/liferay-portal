@@ -16,12 +16,14 @@ package com.liferay.headless.admin.workflow.internal.graphql.servlet.v1_0;
 
 import com.liferay.headless.admin.workflow.internal.graphql.mutation.v1_0.Mutation;
 import com.liferay.headless.admin.workflow.internal.graphql.query.v1_0.Query;
-import com.liferay.headless.admin.workflow.resource.v1_0.CreatorResource;
+import com.liferay.headless.admin.workflow.resource.v1_0.AssigneeResource;
 import com.liferay.headless.admin.workflow.resource.v1_0.TransitionResource;
 import com.liferay.headless.admin.workflow.resource.v1_0.WorkflowDefinitionResource;
 import com.liferay.headless.admin.workflow.resource.v1_0.WorkflowInstanceResource;
 import com.liferay.headless.admin.workflow.resource.v1_0.WorkflowLogResource;
+import com.liferay.headless.admin.workflow.resource.v1_0.WorkflowTaskAssignableUsersResource;
 import com.liferay.headless.admin.workflow.resource.v1_0.WorkflowTaskResource;
+import com.liferay.headless.admin.workflow.resource.v1_0.WorkflowTaskTransitionsResource;
 import com.liferay.portal.vulcan.graphql.servlet.ServletData;
 
 import javax.annotation.Generated;
@@ -49,9 +51,13 @@ public class ServletDataImpl implements ServletData {
 			_workflowInstanceResourceComponentServiceObjects);
 		Mutation.setWorkflowTaskResourceComponentServiceObjects(
 			_workflowTaskResourceComponentServiceObjects);
+		Mutation.setWorkflowTaskAssignableUsersResourceComponentServiceObjects(
+			_workflowTaskAssignableUsersResourceComponentServiceObjects);
+		Mutation.setWorkflowTaskTransitionsResourceComponentServiceObjects(
+			_workflowTaskTransitionsResourceComponentServiceObjects);
 
-		Query.setCreatorResourceComponentServiceObjects(
-			_creatorResourceComponentServiceObjects);
+		Query.setAssigneeResourceComponentServiceObjects(
+			_assigneeResourceComponentServiceObjects);
 		Query.setTransitionResourceComponentServiceObjects(
 			_transitionResourceComponentServiceObjects);
 		Query.setWorkflowDefinitionResourceComponentServiceObjects(
@@ -69,11 +75,7 @@ public class ServletDataImpl implements ServletData {
 		return new Mutation();
 	}
 
-	/**
-	 * @deprecated
-	 */
 	@Override
-	@Deprecated
 	public String getPath() {
 		return "/headless-admin-workflow-graphql/v1_0";
 	}
@@ -96,8 +98,16 @@ public class ServletDataImpl implements ServletData {
 		_workflowTaskResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
-	private ComponentServiceObjects<CreatorResource>
-		_creatorResourceComponentServiceObjects;
+	private ComponentServiceObjects<WorkflowTaskAssignableUsersResource>
+		_workflowTaskAssignableUsersResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<WorkflowTaskTransitionsResource>
+		_workflowTaskTransitionsResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<AssigneeResource>
+		_assigneeResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<TransitionResource>

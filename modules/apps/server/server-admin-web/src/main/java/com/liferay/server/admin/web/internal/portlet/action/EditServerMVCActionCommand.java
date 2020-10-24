@@ -200,10 +200,10 @@ public class EditServerMVCActionCommand extends BaseMVCActionCommand {
 			try {
 				installXuggler(actionRequest, actionResponse);
 			}
-			catch (XugglerInstallException xie) {
+			catch (XugglerInstallException xugglerInstallException) {
 				SessionErrors.add(
 					actionRequest, XugglerInstallException.class.getName(),
-					xie);
+					xugglerInstallException);
 			}
 		}
 		else if (cmd.equals("runScript")) {
@@ -381,15 +381,16 @@ public class EditServerMVCActionCommand extends BaseMVCActionCommand {
 						return;
 					}
 
-					UnicodeProperties typeSettingsProperties =
+					UnicodeProperties typeSettingsUnicodeProperties =
 						layout.getTypeSettingsProperties();
 
-					Set<String> keys = typeSettingsProperties.keySet();
+					Set<String> keys = typeSettingsUnicodeProperties.keySet();
 
 					boolean orphan = true;
 
 					for (String key : keys) {
-						String value = typeSettingsProperties.getProperty(key);
+						String value =
+							typeSettingsUnicodeProperties.getProperty(key);
 
 						if (value.contains(pref.getPortletId())) {
 							orphan = false;
@@ -448,8 +449,9 @@ public class EditServerMVCActionCommand extends BaseMVCActionCommand {
 		try {
 			convertProcess.validate();
 		}
-		catch (ConvertException ce) {
-			SessionErrors.add(actionRequest, ce.getClass(), ce);
+		catch (ConvertException convertException) {
+			SessionErrors.add(
+				actionRequest, convertException.getClass(), convertException);
 
 			return null;
 		}
@@ -530,13 +532,14 @@ public class EditServerMVCActionCommand extends BaseMVCActionCommand {
 				actionRequest, "scriptOutput",
 				unsyncByteArrayOutputStream.toString());
 		}
-		catch (ScriptingException se) {
+		catch (ScriptingException scriptingException) {
 			SessionErrors.add(
-				actionRequest, ScriptingException.class.getName(), se);
+				actionRequest, ScriptingException.class.getName(),
+				scriptingException);
 
 			Log log = SanitizerLogWrapper.allowCRLF(_log);
 
-			log.error(se.getMessage());
+			log.error(scriptingException.getMessage());
 		}
 	}
 
@@ -592,10 +595,10 @@ public class EditServerMVCActionCommand extends BaseMVCActionCommand {
 		portletPreferences.setValue(
 			PropsKeys.XUGGLER_ENABLED, String.valueOf(xugglerEnabled));
 
-		Enumeration<String> enu = actionRequest.getParameterNames();
+		Enumeration<String> enumeration = actionRequest.getParameterNames();
 
-		while (enu.hasMoreElements()) {
-			String name = enu.nextElement();
+		while (enumeration.hasMoreElements()) {
+			String name = enumeration.nextElement();
 
 			if (name.startsWith("imageMagickLimit")) {
 				String key = StringUtil.toLowerCase(name.substring(16));
@@ -615,10 +618,10 @@ public class EditServerMVCActionCommand extends BaseMVCActionCommand {
 	protected void updateLogLevels(ActionRequest actionRequest)
 		throws Exception {
 
-		Enumeration<String> enu = actionRequest.getParameterNames();
+		Enumeration<String> enumeration = actionRequest.getParameterNames();
 
-		while (enu.hasMoreElements()) {
-			String name = enu.nextElement();
+		while (enumeration.hasMoreElements()) {
+			String name = enumeration.nextElement();
 
 			if (name.startsWith("logLevel")) {
 				String loggerName = name.substring(8);
@@ -648,6 +651,8 @@ public class EditServerMVCActionCommand extends BaseMVCActionCommand {
 			actionRequest, "smtpPassword");
 		int smtpPort = ParamUtil.getInteger(actionRequest, "smtpPort");
 		boolean smtpSecure = ParamUtil.getBoolean(actionRequest, "smtpSecure");
+		boolean smtpStartTLSEnable = ParamUtil.getBoolean(
+			actionRequest, "smtpStartTLSEnable");
 		String smtpUser = ParamUtil.getString(actionRequest, "smtpUser");
 
 		String storeProtocol = Account.PROTOCOL_POP;
@@ -688,6 +693,9 @@ public class EditServerMVCActionCommand extends BaseMVCActionCommand {
 
 		portletPreferences.setValue(
 			PropsKeys.MAIL_SESSION_MAIL_SMTP_PORT, String.valueOf(smtpPort));
+		portletPreferences.setValue(
+			PropsKeys.MAIL_SESSION_MAIL_SMTP_STARTTLS_ENABLE,
+			String.valueOf(smtpStartTLSEnable));
 		portletPreferences.setValue(
 			PropsKeys.MAIL_SESSION_MAIL_SMTP_USER, smtpUser);
 		portletPreferences.setValue(

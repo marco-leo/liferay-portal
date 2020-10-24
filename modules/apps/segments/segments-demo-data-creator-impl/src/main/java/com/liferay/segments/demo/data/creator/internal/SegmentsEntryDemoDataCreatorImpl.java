@@ -79,14 +79,9 @@ public class SegmentsEntryDemoDataCreatorImpl
 				User.class.getName(), serviceContext);
 
 		if (Validator.isNull(criteria)) {
-			long[] groupUserIds = _userLocalService.getGroupUserIds(groupId);
-
-			for (long groupUserId : groupUserIds) {
-				_segmentsEntryRelLocalService.addSegmentsEntryRel(
-					segmentsEntry.getSegmentsEntryId(),
-					_portal.getClassNameId(User.class), groupUserId,
-					serviceContext);
-			}
+			_segmentsEntryLocalService.addSegmentsEntryClassPKs(
+				segmentsEntry.getSegmentsEntryId(),
+				_userLocalService.getGroupUserIds(groupId), serviceContext);
 		}
 
 		_segmentsEntryIds.add(segmentsEntry.getSegmentsEntryId());
@@ -100,9 +95,9 @@ public class SegmentsEntryDemoDataCreatorImpl
 			try {
 				_segmentsEntryLocalService.deleteSegmentsEntry(entryId);
 			}
-			catch (NoSuchEntryException nsee) {
+			catch (NoSuchEntryException noSuchEntryException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(nsee, nsee);
+					_log.warn(noSuchEntryException, noSuchEntryException);
 				}
 			}
 
@@ -134,7 +129,7 @@ public class SegmentsEntryDemoDataCreatorImpl
 
 			return CriteriaSerializer.serialize(criteria);
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 			return StringPool.BLANK;
 		}
 	}

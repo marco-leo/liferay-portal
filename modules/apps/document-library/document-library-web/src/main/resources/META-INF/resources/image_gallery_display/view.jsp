@@ -50,13 +50,11 @@ if (permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId)) {
 	status = WorkflowConstants.STATUS_ANY;
 }
 
-Map<String, Object> contextObjects = new HashMap<String, Object>();
-
-contextObjects.put("dlPortletInstanceSettings", dlPortletInstanceSettings);
+Map<String, Object> contextObjects = HashMapBuilder.<String, Object>put(
+	"dlPortletInstanceSettings", dlPortletInstanceSettings
+).build();
 
 String[] mediaGalleryMimeTypes = dlPortletInstanceSettings.getMimeTypes();
-
-List fileEntries = DLAppServiceUtil.getGroupFileEntries(scopeGroupId, 0, folderId, mediaGalleryMimeTypes, status, 0, SearchContainer.MAX_DELTA, null);
 %>
 
 <liferay-ddm:template-renderer
@@ -64,7 +62,7 @@ List fileEntries = DLAppServiceUtil.getGroupFileEntries(scopeGroupId, 0, folderI
 	contextObjects="<%= contextObjects %>"
 	displayStyle="<%= displayStyle %>"
 	displayStyleGroupId="<%= displayStyleGroupId %>"
-	entries="<%= fileEntries %>"
+	entries="<%= DLAppServiceUtil.getGroupFileEntries(scopeGroupId, 0, folderId, mediaGalleryMimeTypes, status, 0, SearchContainer.MAX_DELTA, null) %>"
 >
 
 	<%
@@ -85,8 +83,6 @@ List fileEntries = DLAppServiceUtil.getGroupFileEntries(scopeGroupId, 0, folderI
 
 	portletURL.setParameter("topLink", topLink);
 	portletURL.setParameter("folderId", String.valueOf(folderId));
-
-	request.setAttribute("view.jsp-folder", folder);
 
 	request.setAttribute("view.jsp-rootFolderId", String.valueOf(rootFolderId));
 
@@ -117,7 +113,7 @@ List fileEntries = DLAppServiceUtil.getGroupFileEntries(scopeGroupId, 0, folderI
 			/>
 
 			<%
-			SearchContainer igSearchContainer = new SearchContainer(renderRequest, null, null, "cur2", SearchContainer.DEFAULT_DELTA, portletURL, null, null);
+			SearchContainer<AssetEntry> igSearchContainer = new SearchContainer(renderRequest, null, null, "cur2", SearchContainer.DEFAULT_DELTA, portletURL, null, null);
 
 			long[] classNameIds = {PortalUtil.getClassNameId(DLFileEntryConstants.getClassName()), PortalUtil.getClassNameId(DLFileShortcutConstants.getClassName())};
 
@@ -130,7 +126,7 @@ List fileEntries = DLAppServiceUtil.getGroupFileEntries(scopeGroupId, 0, folderI
 
 			igSearchContainer.setTotal(total);
 
-			List results = AssetEntryServiceUtil.getEntries(assetEntryQuery);
+			List<AssetEntry> results = AssetEntryServiceUtil.getEntries(assetEntryQuery);
 
 			igSearchContainer.setResults(results);
 
@@ -151,7 +147,7 @@ List fileEntries = DLAppServiceUtil.getGroupFileEntries(scopeGroupId, 0, folderI
 			</c:if>
 
 			<%
-			SearchContainer igSearchContainer = new SearchContainer(renderRequest, null, null, "cur2", SearchContainer.DEFAULT_DELTA, portletURL, null, null);
+			SearchContainer<Object> igSearchContainer = new SearchContainer(renderRequest, null, null, "cur2", SearchContainer.DEFAULT_DELTA, portletURL, null, null);
 
 			int foldersCount = DLAppServiceUtil.getFoldersCount(repositoryId, folderId, true);
 
@@ -161,7 +157,7 @@ List fileEntries = DLAppServiceUtil.getGroupFileEntries(scopeGroupId, 0, folderI
 
 			igSearchContainer.setTotal(total);
 
-			List results = DLAppServiceUtil.getFoldersAndFileEntriesAndFileShortcuts(repositoryId, folderId, status, mediaGalleryMimeTypes, true, igSearchContainer.getStart(), igSearchContainer.getEnd(), igSearchContainer.getOrderByComparator());
+			List<Object> results = DLAppServiceUtil.getFoldersAndFileEntriesAndFileShortcuts(repositoryId, folderId, status, mediaGalleryMimeTypes, true, igSearchContainer.getStart(), igSearchContainer.getEnd(), igSearchContainer.getOrderByComparator());
 
 			igSearchContainer.setResults(results);
 
@@ -243,13 +239,13 @@ List fileEntries = DLAppServiceUtil.getGroupFileEntries(scopeGroupId, 0, folderI
 				groupImagesUserId = user.getUserId();
 			}
 
-			SearchContainer igSearchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, null, null);
+			SearchContainer<FileEntry> igSearchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, null, null);
 
 			int total = DLAppServiceUtil.getGroupFileEntriesCount(repositoryId, groupImagesUserId, rootFolderId, mediaGalleryMimeTypes, status);
 
 			igSearchContainer.setTotal(total);
 
-			List results = DLAppServiceUtil.getGroupFileEntries(repositoryId, groupImagesUserId, rootFolderId, mediaGalleryMimeTypes, status, igSearchContainer.getStart(), igSearchContainer.getEnd(), igSearchContainer.getOrderByComparator());
+			List<FileEntry> results = DLAppServiceUtil.getGroupFileEntries(repositoryId, groupImagesUserId, rootFolderId, mediaGalleryMimeTypes, status, igSearchContainer.getStart(), igSearchContainer.getEnd(), igSearchContainer.getOrderByComparator());
 
 			igSearchContainer.setResults(results);
 
@@ -257,13 +253,13 @@ List fileEntries = DLAppServiceUtil.getGroupFileEntries(scopeGroupId, 0, folderI
 			request.setAttribute("view.jsp-mediaGalleryMimeTypes", mediaGalleryMimeTypes);
 			%>
 
-			<aui:row>
+			<clay:row>
 				<liferay-ui:header
 					title="<%= topLink %>"
 				/>
 
 				<liferay-util:include page="/image_gallery_display/view_images.jsp" servletContext="<%= application %>" />
-			</aui:row>
+			</clay:row>
 
 			<%
 			PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, topLink), currentURL);

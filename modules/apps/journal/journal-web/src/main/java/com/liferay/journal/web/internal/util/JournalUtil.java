@@ -17,9 +17,9 @@ package com.liferay.journal.web.internal.util;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.journal.configuration.JournalGroupServiceConfiguration;
 import com.liferay.journal.configuration.JournalServiceConfiguration;
+import com.liferay.journal.constants.JournalFolderConstants;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
-import com.liferay.journal.model.JournalFolderConstants;
 import com.liferay.journal.service.JournalArticleServiceUtil;
 import com.liferay.journal.service.JournalFolderLocalServiceUtil;
 import com.liferay.journal.util.comparator.ArticleVersionComparator;
@@ -249,10 +249,11 @@ public class JournalUtil {
 			return journalServiceConfiguration.
 				singleAssetPublishIncludeVersionHistory();
 		}
-		catch (ConfigurationException ce) {
+		catch (ConfigurationException configurationException) {
 			if (_log.isDebugEnabled()) {
 				_log.debug(
-					"Unable to retrieve journal service configuration", ce);
+					"Unable to retrieve journal service configuration",
+					configurationException);
 			}
 
 			return false;
@@ -313,17 +314,17 @@ public class JournalUtil {
 
 		Stack<JournalArticle> stack = _getRecentArticles(portletRequest);
 
-		Iterator<JournalArticle> itr = stack.iterator();
+		Iterator<JournalArticle> iterator = stack.iterator();
 
-		while (itr.hasNext()) {
-			JournalArticle journalArticle = itr.next();
+		while (iterator.hasNext()) {
+			JournalArticle journalArticle = iterator.next();
 
 			String journalArticleId = journalArticle.getArticleId();
 
 			if (journalArticleId.equals(articleId) &&
 				((journalArticle.getVersion() == version) || (version == 0))) {
 
-				itr.remove();
+				iterator.remove();
 			}
 		}
 	}

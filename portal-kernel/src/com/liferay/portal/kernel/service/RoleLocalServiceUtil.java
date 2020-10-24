@@ -30,16 +30,10 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
  */
 public class RoleLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.RoleLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link RoleLocalServiceUtil} to access the role local service. Add custom service methods to <code>com.liferay.portal.service.impl.RoleLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static void addGroupRole(long groupId, long roleId) {
 		getService().addGroupRole(groupId, roleId);
@@ -97,6 +91,10 @@ public class RoleLocalServiceUtil {
 
 	/**
 	 * Adds the role to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param role the role
 	 * @return the role that was added
@@ -182,6 +180,16 @@ public class RoleLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Creates a new role with the primary key. Does not add the role to the database.
 	 *
 	 * @param roleId the primary key for the new role
@@ -226,6 +234,10 @@ public class RoleLocalServiceUtil {
 	/**
 	 * Deletes the role with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param roleId the primary key of the role
 	 * @return the role that was removed
 	 * @throws PortalException if a role with the primary key could not be found
@@ -238,6 +250,10 @@ public class RoleLocalServiceUtil {
 
 	/**
 	 * Deletes the role from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param role the role
 	 * @return the role that was removed
@@ -287,6 +303,12 @@ public class RoleLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		getService().deleteUserRoles(userId, roleIds);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -531,6 +553,9 @@ public class RoleLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -1027,7 +1052,10 @@ public class RoleLocalServiceUtil {
 	 * @param name the role's name (optionally <code>null</code>)
 	 * @return the role with the name, or <code>null</code> if a role with the
 	 name could not be found in the company
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 #fetchRole(long, String)}
 	 */
+	@Deprecated
 	public static com.liferay.portal.kernel.model.Role loadFetchRole(
 		long companyId, String name) {
 
@@ -1040,7 +1068,10 @@ public class RoleLocalServiceUtil {
 	 * @param companyId the primary key of the company
 	 * @param name the role's name
 	 * @return the role with the name in the company
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 #getRole(long, String)}
 	 */
+	@Deprecated
 	public static com.liferay.portal.kernel.model.Role loadGetRole(
 			long companyId, String name)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -1069,18 +1100,19 @@ public class RoleLocalServiceUtil {
 	 * @param start the lower bound of the range of roles to return
 	 * @param end the upper bound of the range of roles to return (not
 	 inclusive)
-	 * @param obc the comparator to order the roles (optionally
+	 * @param orderByComparator the comparator to order the roles (optionally
 	 <code>null</code>)
 	 * @return the ordered range of the matching roles, ordered by
-	 <code>obc</code>
+	 <code>orderByComparator</code>
 	 * @see com.liferay.portal.kernel.service.persistence.RoleFinder
 	 */
 	public static java.util.List<com.liferay.portal.kernel.model.Role> search(
 		long companyId, String keywords, Integer[] types, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.portal.kernel.model.Role> obc) {
+			<com.liferay.portal.kernel.model.Role> orderByComparator) {
 
-		return getService().search(companyId, keywords, types, start, end, obc);
+		return getService().search(
+			companyId, keywords, types, start, end, orderByComparator);
 	}
 
 	/**
@@ -1107,20 +1139,20 @@ public class RoleLocalServiceUtil {
 	 * @param start the lower bound of the range of roles to return
 	 * @param end the upper bound of the range of roles to return (not
 	 inclusive)
-	 * @param obc the comparator to order the roles (optionally
+	 * @param orderByComparator the comparator to order the roles (optionally
 	 <code>null</code>)
 	 * @return the ordered range of the matching roles, ordered by
-	 <code>obc</code>
+	 <code>orderByComparator</code>
 	 * @see com.liferay.portal.kernel.service.persistence.RoleFinder
 	 */
 	public static java.util.List<com.liferay.portal.kernel.model.Role> search(
 		long companyId, String keywords, Integer[] types,
 		java.util.LinkedHashMap<String, Object> params, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.portal.kernel.model.Role> obc) {
+			<com.liferay.portal.kernel.model.Role> orderByComparator) {
 
 		return getService().search(
-			companyId, keywords, types, params, start, end, obc);
+			companyId, keywords, types, params, start, end, orderByComparator);
 	}
 
 	/**
@@ -1144,20 +1176,20 @@ public class RoleLocalServiceUtil {
 	 * @param start the lower bound of the range of the roles to return
 	 * @param end the upper bound of the range of the roles to return (not
 	 inclusive)
-	 * @param obc the comparator to order the roles (optionally
+	 * @param orderByComparator the comparator to order the roles (optionally
 	 <code>null</code>)
 	 * @return the ordered range of the matching roles, ordered by
-	 <code>obc</code>
+	 <code>orderByComparator</code>
 	 * @see com.liferay.portal.kernel.service.persistence.RoleFinder
 	 */
 	public static java.util.List<com.liferay.portal.kernel.model.Role> search(
 		long companyId, String name, String description, Integer[] types,
 		int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.portal.kernel.model.Role> obc) {
+			<com.liferay.portal.kernel.model.Role> orderByComparator) {
 
 		return getService().search(
-			companyId, name, description, types, start, end, obc);
+			companyId, name, description, types, start, end, orderByComparator);
 	}
 
 	/**
@@ -1184,20 +1216,21 @@ public class RoleLocalServiceUtil {
 	 * @param start the lower bound of the range of the roles to return
 	 * @param end the upper bound of the range of the roles to return (not
 	 inclusive)
-	 * @param obc the comparator to order the roles (optionally
+	 * @param orderByComparator the comparator to order the roles (optionally
 	 <code>null</code>)
 	 * @return the ordered range of the matching roles, ordered by
-	 <code>obc</code>
+	 <code>orderByComparator</code>
 	 * @see com.liferay.portal.kernel.service.persistence.RoleFinder
 	 */
 	public static java.util.List<com.liferay.portal.kernel.model.Role> search(
 		long companyId, String name, String description, Integer[] types,
 		java.util.LinkedHashMap<String, Object> params, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.portal.kernel.model.Role> obc) {
+			<com.liferay.portal.kernel.model.Role> orderByComparator) {
 
 		return getService().search(
-			companyId, name, description, types, params, start, end, obc);
+			companyId, name, description, types, params, start, end,
+			orderByComparator);
 	}
 
 	/**
@@ -1324,6 +1357,10 @@ public class RoleLocalServiceUtil {
 	/**
 	 * Updates the role in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect RoleLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param role the role
 	 * @return the role that was updated
 	 */
@@ -1331,6 +1368,12 @@ public class RoleLocalServiceUtil {
 		com.liferay.portal.kernel.model.Role role) {
 
 		return getService().updateRole(role);
+	}
+
+	public static void validateName(String name)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		getService().validateName(name);
 	}
 
 	public static RoleLocalService getService() {

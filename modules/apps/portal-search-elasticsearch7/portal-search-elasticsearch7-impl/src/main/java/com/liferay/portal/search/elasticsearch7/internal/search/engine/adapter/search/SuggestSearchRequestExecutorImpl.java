@@ -54,7 +54,8 @@ public class SuggestSearchRequestExecutorImpl
 
 		SearchRequest searchRequest = createSearchRequest(suggestSearchRequest);
 
-		SearchResponse searchResponse = getSearchResponse(searchRequest);
+		SearchResponse searchResponse = getSearchResponse(
+			searchRequest, suggestSearchRequest);
 
 		Suggest suggest = searchResponse.getSuggest();
 
@@ -112,16 +113,21 @@ public class SuggestSearchRequestExecutorImpl
 		return searchRequest;
 	}
 
-	protected SearchResponse getSearchResponse(SearchRequest searchRequest) {
+	protected SearchResponse getSearchResponse(
+		SearchRequest searchRequest,
+		SuggestSearchRequest suggestSearchRequest) {
+
 		RestHighLevelClient restHighLevelClient =
-			_elasticsearchClientResolver.getRestHighLevelClient();
+			_elasticsearchClientResolver.getRestHighLevelClient(
+				suggestSearchRequest.getConnectionId(),
+				suggestSearchRequest.isPreferLocalCluster());
 
 		try {
 			return restHighLevelClient.search(
 				searchRequest, RequestOptions.DEFAULT);
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 

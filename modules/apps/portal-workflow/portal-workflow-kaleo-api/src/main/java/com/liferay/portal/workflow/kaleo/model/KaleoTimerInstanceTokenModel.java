@@ -40,7 +40,7 @@ public interface KaleoTimerInstanceTokenModel
 	extends BaseModel<KaleoTimerInstanceToken>, GroupedModel, MVCCModel,
 			ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a kaleo timer instance token model instance should use the {@link KaleoTimerInstanceToken} interface instead.
@@ -231,6 +231,20 @@ public interface KaleoTimerInstanceTokenModel
 	 * @param kaleoClassPK the kaleo class pk of this kaleo timer instance token
 	 */
 	public void setKaleoClassPK(long kaleoClassPK);
+
+	/**
+	 * Returns the kaleo definition ID of this kaleo timer instance token.
+	 *
+	 * @return the kaleo definition ID of this kaleo timer instance token
+	 */
+	public long getKaleoDefinitionId();
+
+	/**
+	 * Sets the kaleo definition ID of this kaleo timer instance token.
+	 *
+	 * @param kaleoDefinitionId the kaleo definition ID of this kaleo timer instance token
+	 */
+	public void setKaleoDefinitionId(long kaleoDefinitionId);
 
 	/**
 	 * Returns the kaleo definition version ID of this kaleo timer instance token.

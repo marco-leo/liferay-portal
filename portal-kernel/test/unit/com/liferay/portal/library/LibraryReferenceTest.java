@@ -320,7 +320,7 @@ public class LibraryReferenceTest {
 		}
 	}
 
-	private static void _initGitIgnoreJars() throws IOException {
+	private static void _initGitIgnoreJars() throws Exception {
 		try (UnsyncBufferedReader unsyncBufferedReader =
 				new UnsyncBufferedReader(
 					new FileReader(new File(_GIT_IGNORE_FILE_NAME)))) {
@@ -357,7 +357,7 @@ public class LibraryReferenceTest {
 		}
 	}
 
-	private static void _initLibJars(String dirName) throws IOException {
+	private static void _initLibJars(String dirName) throws Exception {
 		Path libDirPath = Paths.get(dirName);
 
 		_readLines(_excludeJars, libDirPath.resolve("versions-ignore.txt"));
@@ -442,7 +442,7 @@ public class LibraryReferenceTest {
 			});
 	}
 
-	private static void _initModuleSourceDirs() throws IOException {
+	private static void _initModuleSourceDirs() throws Exception {
 		Files.walkFileTree(
 			_portalPath.resolve(_MODULES_DIR_NAME),
 			new SimpleFileVisitor<Path>() {
@@ -557,7 +557,7 @@ public class LibraryReferenceTest {
 	}
 
 	private static void _readLines(Set<String> lines, Path path)
-		throws IOException {
+		throws Exception {
 
 		if (Files.notExists(path)) {
 			return;
@@ -639,7 +639,6 @@ public class LibraryReferenceTest {
 	private static final Set<String> _ideExcludeJars = new HashSet<>();
 	private static final List<String> _intelliJFileNames = Arrays.asList(
 		"portal-impl/portal-impl.iml", "portal-kernel/portal-kernel.iml",
-		"portal-test-integration/portal-test-integration.iml",
 		"portal-test/portal-test.iml", "portal-web/portal-web.iml",
 		"util-bridges/util-bridges.iml", "util-java/util-java.iml",
 		"util-slf4j/util-slf4j.iml", "util-taglib/util-taglib.iml");

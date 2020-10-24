@@ -14,13 +14,11 @@
 
 package com.liferay.analytics.message.sender.internal.model.listener;
 
-import com.liferay.analytics.settings.configuration.AnalyticsConfiguration;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.analytics.message.sender.model.listener.BaseEntityModelListener;
+import com.liferay.analytics.message.sender.model.listener.EntityModelListener;
 import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.model.User;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
@@ -28,17 +26,19 @@ import org.osgi.service.component.annotations.Component;
 /**
  * @author Rachael Koestartyo
  */
-@Component(immediate = true, service = ModelListener.class)
+@Component(
+	immediate = true, service = {EntityModelListener.class, ModelListener.class}
+)
 public class UserModelListener extends BaseEntityModelListener<User> {
 
 	@Override
-	protected List<String> getAttributeNames() {
-		return _attributeNames;
+	public List<String> getAttributeNames(long companyId) {
+		return getUserAttributeNames(companyId);
 	}
 
 	@Override
-	protected User getOriginalModel(User user) throws Exception {
-		return userLocalService.getUser(user.getUserId());
+	protected User getModel(long id) throws Exception {
+		return userLocalService.getUser(id);
 	}
 
 	@Override
@@ -48,35 +48,7 @@ public class UserModelListener extends BaseEntityModelListener<User> {
 
 	@Override
 	protected boolean isExcluded(User user) {
-		AnalyticsConfiguration analyticsConfiguration =
-			analyticsConfigurationTracker.getAnalyticsConfiguration(
-				user.getCompanyId());
-
-		if (analyticsConfiguration.syncAllContacts()) {
-			return false;
-		}
-
-		try {
-			return isExcluded(analyticsConfiguration, user);
-		}
-		catch (Exception e) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
-			}
-
-			return true;
-		}
+		return isUserExcluded(user);
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		UserModelListener.class);
-
-	private static final List<String> _attributeNames = Arrays.asList(
-		"agreedToTermsOfUse", "comments", "companyId", "contactId",
-		"createDate", "defaultUser", "emailAddress", "emailAddressVerified",
-		"externalReferenceCode", "facebookId", "firstName", "googleUserId",
-		"greeting", "jobTitle", "languageId", "lastName", "ldapServerId",
-		"middleName", "openId", "portraitId", "screenName", "status",
-		"timeZoneId", "uuid");
 
 }

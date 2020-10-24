@@ -64,14 +64,14 @@ public class JavadocFormatterUtil {
 
 		Element rootElement = document.addElement("deprecations");
 
-		String[] excludes = {
-			"**/.git/**", "**/.gradle/**", "**/bin/**", "**/build/**",
-			"**/classes/**", "**/node_modules/**", "**/node_modules_cache/**",
-			"**/portal-client/**", "**/tmp/**"
-		};
-
 		List<String> fileNames = scanForFiles(
-			dirName, excludes, new String[] {"**/*.java"});
+			dirName,
+			new String[] {
+				"**/.git/**", "**/.gradle/**", "**/bin/**", "**/build/**",
+				"**/classes/**", "**/node_modules/**",
+				"**/node_modules_cache/**", "**/portal-client/**", "**/tmp/**"
+			},
+			new String[] {"**/*.java"});
 
 		for (String fileName : fileNames) {
 			fileName = StringUtil.replace(
@@ -86,7 +86,7 @@ public class JavadocFormatterUtil {
 			try {
 				javaProjectBuilder.addSource(new UnsyncStringReader(content));
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				continue;
 			}
 
@@ -256,8 +256,8 @@ public class JavadocFormatterUtil {
 
 			return canonicalFile.toPath();
 		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
 		}
 	}
 
@@ -302,9 +302,8 @@ public class JavadocFormatterUtil {
 				JavaExecutable javaExecutable =
 					(JavaExecutable)javaAnnotatedElement;
 
-				List<JavaType> javaTypes = javaExecutable.getParameterTypes();
-
-				String signature = javaTypes.toString();
+				String signature = String.valueOf(
+					javaExecutable.getParameterTypes());
 
 				if (!signature.equals(
 						deprecatedElement.attributeValue("signature"))) {

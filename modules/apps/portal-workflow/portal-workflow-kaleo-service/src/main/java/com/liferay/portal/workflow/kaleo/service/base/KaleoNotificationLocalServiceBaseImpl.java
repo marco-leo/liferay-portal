@@ -14,6 +14,7 @@
 
 package com.liferay.portal.workflow.kaleo.service.base;
 
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -33,6 +34,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -83,7 +85,7 @@ public abstract class KaleoNotificationLocalServiceBaseImpl
 	implements AopService, IdentifiableOSGiService,
 			   KaleoNotificationLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>KaleoNotificationLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.workflow.kaleo.service.KaleoNotificationLocalServiceUtil</code>.
@@ -91,6 +93,10 @@ public abstract class KaleoNotificationLocalServiceBaseImpl
 
 	/**
 	 * Adds the kaleo notification to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoNotificationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoNotification the kaleo notification
 	 * @return the kaleo notification that was added
@@ -120,6 +126,10 @@ public abstract class KaleoNotificationLocalServiceBaseImpl
 	/**
 	 * Deletes the kaleo notification with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoNotificationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param kaleoNotificationId the primary key of the kaleo notification
 	 * @return the kaleo notification that was removed
 	 * @throws PortalException if a kaleo notification with the primary key could not be found
@@ -135,6 +145,10 @@ public abstract class KaleoNotificationLocalServiceBaseImpl
 	/**
 	 * Deletes the kaleo notification from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoNotificationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param kaleoNotification the kaleo notification
 	 * @return the kaleo notification that was removed
 	 */
@@ -144,6 +158,11 @@ public abstract class KaleoNotificationLocalServiceBaseImpl
 		KaleoNotification kaleoNotification) {
 
 		return kaleoNotificationPersistence.remove(kaleoNotification);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return kaleoNotificationPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -302,6 +321,17 @@ public abstract class KaleoNotificationLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return kaleoNotificationPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -309,6 +339,14 @@ public abstract class KaleoNotificationLocalServiceBaseImpl
 			(KaleoNotification)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<KaleoNotification> getBasePersistence() {
+		return kaleoNotificationPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -344,6 +382,10 @@ public abstract class KaleoNotificationLocalServiceBaseImpl
 
 	/**
 	 * Updates the kaleo notification in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect KaleoNotificationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param kaleoNotification the kaleo notification
 	 * @return the kaleo notification that was updated
@@ -407,8 +449,8 @@ public abstract class KaleoNotificationLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

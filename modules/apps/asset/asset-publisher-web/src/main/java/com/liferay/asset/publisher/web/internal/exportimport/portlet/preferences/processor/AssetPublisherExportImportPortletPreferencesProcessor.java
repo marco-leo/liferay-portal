@@ -28,11 +28,11 @@ import com.liferay.asset.list.service.AssetListEntryLocalService;
 import com.liferay.asset.publisher.constants.AssetPublisherPortletKeys;
 import com.liferay.asset.publisher.util.AssetPublisherHelper;
 import com.liferay.asset.publisher.web.internal.configuration.AssetPublisherWebConfiguration;
-import com.liferay.asset.publisher.web.internal.util.AssetPublisherWebUtil;
+import com.liferay.asset.publisher.web.internal.display.context.AssetPublisherDisplayContext;
+import com.liferay.asset.publisher.web.internal.helper.AssetPublisherWebHelper;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
-import com.liferay.dynamic.data.mapping.kernel.DDMStructureManager;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.util.DDMIndexer;
@@ -52,9 +52,9 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.NoSuchLayoutException;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -155,14 +155,18 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 				portletDataContext, portletDataContext.getPortletId(),
 				portletPreferences);
 		}
-		catch (Exception e) {
-			PortletDataException pde = new PortletDataException(
-				"Unable to update portlet preferences during export", e);
+		catch (Exception exception) {
+			PortletDataException portletDataException =
+				new PortletDataException(
+					"Unable to update portlet preferences during export",
+					exception);
 
-			pde.setPortletId(AssetPublisherPortletKeys.ASSET_PUBLISHER);
-			pde.setType(PortletDataException.EXPORT_PORTLET_DATA);
+			portletDataException.setPortletId(
+				AssetPublisherPortletKeys.ASSET_PUBLISHER);
+			portletDataException.setType(
+				PortletDataException.EXPORT_PORTLET_DATA);
 
-			throw pde;
+			throw portletDataException;
 		}
 	}
 
@@ -180,14 +184,18 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 			return updateImportPortletPreferences(
 				portletDataContext, portletPreferences);
 		}
-		catch (Exception e) {
-			PortletDataException pde = new PortletDataException(
-				"Unable to update portlet preferences during import", e);
+		catch (Exception exception) {
+			PortletDataException portletDataException =
+				new PortletDataException(
+					"Unable to update portlet preferences during import",
+					exception);
 
-			pde.setPortletId(AssetPublisherPortletKeys.ASSET_PUBLISHER);
-			pde.setType(PortletDataException.IMPORT_PORTLET_DATA);
+			portletDataException.setPortletId(
+				AssetPublisherPortletKeys.ASSET_PUBLISHER);
+			portletDataException.setType(
+				PortletDataException.IMPORT_PORTLET_DATA);
 
-			throw pde;
+			throw portletDataException;
 		}
 	}
 
@@ -268,7 +276,7 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 				continue;
 			}
 
-			AssetRendererFactory assetRendererFactory =
+			AssetRendererFactory<?> assetRendererFactory =
 				assetRenderer.getAssetRendererFactory();
 
 			if ((assetRendererFactory != null) &&
@@ -280,9 +288,13 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 				continue;
 			}
 
-			StagedModelDataHandlerUtil.exportReferenceStagedModel(
-				portletDataContext, portletDataContext.getPortletId(),
-				(StagedModel)assetRenderer.getAssetObject());
+			if (!portletDataContext.addPrimaryKey(
+					AssetEntry.class, assetRenderer.getUuid())) {
+
+				StagedModelDataHandlerUtil.exportReferenceStagedModel(
+					portletDataContext, portletDataContext.getPortletId(),
+					(StagedModel)assetRenderer.getAssetObject());
+			}
 		}
 	}
 
@@ -304,6 +316,16 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 		assetEntryQuery.setEnablePermissions(false);
 
 		int end = _assetPublisherWebConfiguration.dynamicExportLimit();
+
+		if (_isPaginationTypeNone(portletPreferences)) {
+			int delta = GetterUtil.getInteger(
+				portletPreferences.getValue("delta", null),
+				SearchContainer.DEFAULT_DELTA);
+
+			if ((delta < end) || (end == 0)) {
+				end = delta;
+			}
+		}
 
 		if (end == 0) {
 			end = QueryUtil.ALL_POS;
@@ -636,7 +658,7 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 
 				newValues[i++] = className;
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
 						"Unable to get class name ID for class name " +
@@ -734,10 +756,10 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 		Portlet portlet = portletLocalService.getPortletById(
 			portletDataContext.getCompanyId(), portletId);
 
-		Enumeration<String> enu = portletPreferences.getNames();
+		Enumeration<String> enumeration = portletPreferences.getNames();
 
-		while (enu.hasMoreElements()) {
-			String name = enu.nextElement();
+		while (enumeration.hasMoreElements()) {
+			String name = enumeration.nextElement();
 
 			String value = GetterUtil.getString(
 				portletPreferences.getValue(name, null));
@@ -774,7 +796,9 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 						anyClassTypeDLFileEntryAssetRendererFactory) &&
 					anyClassTypeDLFileEntryAssetRendererFactory.equals(
 						"false") &&
-					(classTypeIdsDLFileEntryAssetRendererFactory.length == 1)) {
+					(classTypeIdsDLFileEntryAssetRendererFactory.length == 1) &&
+					!classTypeIdsDLFileEntryAssetRendererFactory[0].contains(
+						StringPool.COMMA)) {
 
 					portletPreferences.setValue(
 						"anyClassTypeDLFileEntryAssetRendererFactory",
@@ -828,7 +852,9 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 					anyClassTypeJournalArticleAssetRendererFactory.equals(
 						"false") &&
 					(classTypeIdsJournalArticleAssetRendererFactory.length ==
-						1)) {
+						1) &&
+					!classTypeIdsJournalArticleAssetRendererFactory[0].contains(
+						StringPool.COMMA)) {
 
 					portletPreferences.setValue(
 						"anyClassTypeJournalArticleAssetRendererFactory",
@@ -891,8 +917,7 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 			}
 			else if (name.startsWith("orderByColumn") &&
 					 StringUtil.startsWith(
-						 value,
-						 DDMStructureManager.STRUCTURE_INDEXER_FIELD_PREFIX)) {
+						 value, DDMIndexer.DDM_FIELD_PREFIX)) {
 
 				updateExportOrderByColumnClassPKs(
 					portletDataContext, portlet, portletPreferences, name);
@@ -984,7 +1009,7 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 				newValues[i++] = String.valueOf(
 					portal.getClassNameId(oldValue));
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
 						"Unable to find class name ID for class name " +
@@ -1046,10 +1071,10 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 		String anyAssetTypeClassName = portletPreferences.getValue(
 			"anyAssetType", StringPool.BLANK);
 
-		Enumeration<String> enu = portletPreferences.getNames();
+		Enumeration<String> enumeration = portletPreferences.getNames();
 
-		while (enu.hasMoreElements()) {
-			String name = enu.nextElement();
+		while (enumeration.hasMoreElements()) {
+			String name = enumeration.nextElement();
 
 			String value = GetterUtil.getString(
 				portletPreferences.getValue(name, null));
@@ -1088,8 +1113,7 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 			}
 			else if (name.startsWith("orderByColumn") &&
 					 StringUtil.startsWith(
-						 value,
-						 DDMStructureManager.STRUCTURE_INDEXER_FIELD_PREFIX)) {
+						 value, DDMIndexer.DDM_FIELD_PREFIX)) {
 
 				updateImportOrderByColumnClassPKs(
 					portletDataContext, portletPreferences, name,
@@ -1192,7 +1216,7 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 			}
 
 			try {
-				if (!assetPublisherWebUtil.isScopeIdSelectable(
+				if (!assetPublisherWebHelper.isScopeIdSelectable(
 						PermissionThreadLocal.getPermissionChecker(), newValue,
 						companyGroupId, layout, false)) {
 
@@ -1201,32 +1225,32 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 
 				newValues.add(newValue);
 			}
-			catch (NoSuchGroupException nsge) {
+			catch (NoSuchGroupException noSuchGroupException) {
 				if (_log.isInfoEnabled()) {
 					_log.info(
 						StringBundler.concat(
 							"Ignoring scope ", newValue, " because the ",
 							"referenced group was not found"),
-						nsge);
+						noSuchGroupException);
 				}
 			}
-			catch (NoSuchLayoutException nsle) {
+			catch (NoSuchLayoutException noSuchLayoutException) {
 				if (_log.isInfoEnabled()) {
 					_log.info(
 						StringBundler.concat(
 							"Ignoring scope ", newValue, " because the ",
 							"referenced layout was not found"),
-						nsle);
+						noSuchLayoutException);
 				}
 			}
-			catch (PrincipalException pe) {
+			catch (PrincipalException principalException) {
 				if (_log.isInfoEnabled()) {
 					_log.info(
 						StringBundler.concat(
 							"Ignoring scope ", newValue, " because the ",
 							"referenced parent group no longer allows sharing ",
 							"content with child sites"),
-						pe);
+						principalException);
 				}
 			}
 		}
@@ -1250,7 +1274,7 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 	protected AssetPublisherHelper assetPublisherHelper;
 
 	@Reference
-	protected AssetPublisherWebUtil assetPublisherWebUtil;
+	protected AssetPublisherWebHelper assetPublisherWebHelper;
 
 	@Reference
 	protected AssetVocabularyLocalService assetVocabularyLocalService;
@@ -1288,7 +1312,7 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 	private String _getExportScopeId(
 			PortletDataContext portletDataContext,
 			Element groupIdMappingsElement, Layout layout, String value)
-		throws PortalException, PortletDataException {
+		throws Exception {
 
 		if (value.startsWith(AssetPublisherHelper.SCOPE_ID_LAYOUT_PREFIX)) {
 
@@ -1299,8 +1323,20 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 
 			long scopeIdLayoutId = GetterUtil.getLong(scopeIdSuffix);
 
-			Layout scopeIdLayout = layoutLocalService.getLayout(
+			Layout scopeIdLayout = layoutLocalService.fetchLayout(
 				layout.getGroupId(), layout.isPrivateLayout(), scopeIdLayoutId);
+
+			if (scopeIdLayout == null) {
+				if (_log.isInfoEnabled()) {
+					_log.info(
+						StringBundler.concat(
+							"Ignoring scope ", value,
+							" because the referenced layout ", scopeIdLayoutId,
+							" was not found"));
+				}
+
+				return value;
+			}
 
 			if (layout.getPlid() != scopeIdLayout.getPlid()) {
 				StagedModelDataHandlerUtil.exportReferenceStagedModel(
@@ -1319,9 +1355,21 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 				AssetPublisherHelper.SCOPE_ID_LAYOUT_UUID_PREFIX.length());
 
 			Layout scopeUuidLayout =
-				layoutLocalService.getLayoutByUuidAndGroupId(
+				layoutLocalService.fetchLayoutByUuidAndGroupId(
 					scopeLayoutUuid, portletDataContext.getGroupId(),
 					portletDataContext.isPrivateLayout());
+
+			if (scopeUuidLayout == null) {
+				if (_log.isInfoEnabled()) {
+					_log.info(
+						StringBundler.concat(
+							"Ignoring scope ", value,
+							" because the referenced layout ", scopeLayoutUuid,
+							" was not found"));
+				}
+
+				return value;
+			}
 
 			if (layout.getPlid() != scopeUuidLayout.getPlid()) {
 				StagedModelDataHandlerUtil.exportReferenceStagedModel(
@@ -1332,9 +1380,36 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 			return value;
 		}
 
-		long groupId = assetPublisherHelper.getGroupIdFromScopeId(
-			value, portletDataContext.getGroupId(),
-			portletDataContext.isPrivateLayout());
+		long groupId = GroupConstants.DEFAULT_LIVE_GROUP_ID;
+
+		try {
+			groupId = assetPublisherHelper.getGroupIdFromScopeId(
+				value, portletDataContext.getGroupId(),
+				portletDataContext.isPrivateLayout());
+		}
+		catch (NoSuchGroupException noSuchGroupException) {
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					StringBundler.concat(
+						"Ignoring scope ", value, " because the referenced ",
+						"group was not found"),
+					noSuchGroupException);
+			}
+
+			return value;
+		}
+		catch (PrincipalException principalException) {
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					StringBundler.concat(
+						"Ignoring scope ", value, " because the referenced ",
+						"parent group no longer allows sharing content with ",
+						"child sites"),
+					principalException);
+			}
+
+			return value;
+		}
 
 		Group group = groupLocalService.fetchGroup(groupId);
 
@@ -1361,6 +1436,29 @@ public class AssetPublisherExportImportPortletPreferencesProcessor
 		groupIdMappingElement.addAttribute("group-key", group.getGroupKey());
 
 		return String.valueOf(groupId);
+	}
+
+	private boolean _isPaginationTypeNone(
+		PortletPreferences portletPreferences) {
+
+		String paginationType = GetterUtil.getString(
+			portletPreferences.getValue("paginationType", null));
+
+		if (!ArrayUtil.contains(
+				AssetPublisherDisplayContext.PAGINATION_TYPES,
+				paginationType)) {
+
+			return true;
+		}
+
+		if (Objects.equals(
+				paginationType,
+				AssetPublisherDisplayContext.PAGINATION_TYPE_NONE)) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

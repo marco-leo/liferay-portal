@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class FriendlyURLEntryLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.friendly.url.service.impl.FriendlyURLEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class FriendlyURLEntryLocalServiceUtil {
 
 	/**
 	 * Adds the friendly url entry to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect FriendlyURLEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param friendlyURLEntry the friendly url entry
 	 * @return the friendly url entry that was added
@@ -108,7 +112,21 @@ public class FriendlyURLEntryLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the friendly url entry from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect FriendlyURLEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param friendlyURLEntry the friendly url entry
 	 * @return the friendly url entry that was removed
@@ -123,6 +141,10 @@ public class FriendlyURLEntryLocalServiceUtil {
 	/**
 	 * Deletes the friendly url entry with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect FriendlyURLEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param friendlyURLEntryId the primary key of the friendly url entry
 	 * @return the friendly url entry that was removed
 	 * @throws PortalException if a friendly url entry with the primary key could not be found
@@ -135,10 +157,23 @@ public class FriendlyURLEntryLocalServiceUtil {
 	}
 
 	public static void deleteFriendlyURLEntry(
-			long groupId, Class<?> clazz, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException {
+		long groupId, Class<?> clazz, long classPK) {
 
 		getService().deleteFriendlyURLEntry(groupId, clazz, classPK);
+	}
+
+	public static void deleteFriendlyURLEntry(
+		long groupId, long classNameId, long classPK) {
+
+		getService().deleteFriendlyURLEntry(groupId, classNameId, classPK);
+	}
+
+	public static void deleteFriendlyURLLocalizationEntry(
+			long friendlyURLEntryId, String languageId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		getService().deleteFriendlyURLLocalizationEntry(
+			friendlyURLEntryId, languageId);
 	}
 
 	public static void deleteGroupFriendlyURLEntries(
@@ -156,6 +191,12 @@ public class FriendlyURLEntryLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -425,6 +466,20 @@ public class FriendlyURLEntryLocalServiceUtil {
 			friendlyURLEntryId);
 	}
 
+	public static java.util.List
+		<com.liferay.friendly.url.model.FriendlyURLEntryLocalization>
+			getFriendlyURLEntryLocalizations(
+				long groupId, long classNameId, long classPK, String languageId,
+				int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.friendly.url.model.
+						FriendlyURLEntryLocalization> orderByComparator) {
+
+		return getService().getFriendlyURLEntryLocalizations(
+			groupId, classNameId, classPK, languageId, start, end,
+			orderByComparator);
+	}
+
 	public static
 		com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery
 			getIndexableActionableDynamicQuery() {
@@ -455,6 +510,9 @@ public class FriendlyURLEntryLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -477,6 +535,10 @@ public class FriendlyURLEntryLocalServiceUtil {
 
 	/**
 	 * Updates the friendly url entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect FriendlyURLEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param friendlyURLEntry the friendly url entry
 	 * @return the friendly url entry that was updated

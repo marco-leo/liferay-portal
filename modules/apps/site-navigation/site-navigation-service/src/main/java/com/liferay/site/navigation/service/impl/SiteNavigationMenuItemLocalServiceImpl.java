@@ -93,9 +93,7 @@ public class SiteNavigationMenuItemLocalServiceImpl
 		siteNavigationMenuItem.setTypeSettings(typeSettings);
 		siteNavigationMenuItem.setOrder(order);
 
-		siteNavigationMenuItemPersistence.update(siteNavigationMenuItem);
-
-		return siteNavigationMenuItem;
+		return siteNavigationMenuItemPersistence.update(siteNavigationMenuItem);
 	}
 
 	@Override
@@ -242,7 +240,8 @@ public class SiteNavigationMenuItemLocalServiceImpl
 			parentSiteNavigationMenuItemId);
 		siteNavigationMenuItem.setOrder(order);
 
-		siteNavigationMenuItemPersistence.update(siteNavigationMenuItem);
+		siteNavigationMenuItem = siteNavigationMenuItemPersistence.update(
+			siteNavigationMenuItem);
 
 		// Child site navigation menu item
 
@@ -346,10 +345,9 @@ public class SiteNavigationMenuItemLocalServiceImpl
 			serviceContext.getModifiedDate(new Date()));
 		siteNavigationMenuItem.setName(name);
 		siteNavigationMenuItem.setTypeSettings(typeSettings);
+		siteNavigationMenuItem.setExpandoBridgeAttributes(serviceContext);
 
-		siteNavigationMenuItemPersistence.update(siteNavigationMenuItem);
-
-		return siteNavigationMenuItem;
+		return siteNavigationMenuItemPersistence.update(siteNavigationMenuItem);
 	}
 
 	protected void validate(
@@ -378,20 +376,22 @@ public class SiteNavigationMenuItemLocalServiceImpl
 	}
 
 	protected void validateLayout(String typeSettings) throws PortalException {
-		UnicodeProperties typeSettingsProperties = new UnicodeProperties(true);
+		UnicodeProperties typeSettingsUnicodeProperties = new UnicodeProperties(
+			true);
 
-		typeSettingsProperties.fastLoad(typeSettings);
+		typeSettingsUnicodeProperties.fastLoad(typeSettings);
 
-		String layoutUuid = typeSettingsProperties.getProperty("layoutUuid");
+		String layoutUuid = typeSettingsUnicodeProperties.getProperty(
+			"layoutUuid");
 
 		if (Validator.isNull(layoutUuid)) {
 			return;
 		}
 
 		long groupId = GetterUtil.getLong(
-			typeSettingsProperties.getProperty("groupId"));
+			typeSettingsUnicodeProperties.getProperty("groupId"));
 		boolean privateLayout = GetterUtil.getBoolean(
-			typeSettingsProperties.getProperty("privateLayout"));
+			typeSettingsUnicodeProperties.getProperty("privateLayout"));
 
 		_layoutService.getLayoutByUuidAndGroupId(
 			layoutUuid, groupId, privateLayout);

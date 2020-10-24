@@ -27,13 +27,12 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.StagedModel;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.service.test.ServiceTestUtil;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.ArrayList;
@@ -61,7 +60,7 @@ public class BookmarksPortletDataHandlerTest
 	@Before
 	@Override
 	public void setUp() throws Exception {
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		UserTestUtil.setUser(TestPropsValues.getUser());
 
 		super.setUp();
 	}
@@ -100,10 +99,10 @@ public class BookmarksPortletDataHandlerTest
 		BookmarksTestUtil.addFolder(
 			stagingGroup.getGroupId(), RandomTestUtil.randomString());
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(stagingGroup.getGroupId());
-
-		BookmarksTestUtil.addEntry(folder1.getFolderId(), true, serviceContext);
+		BookmarksTestUtil.addEntry(
+			folder1.getFolderId(), true,
+			ServiceContextTestUtil.getServiceContext(
+				stagingGroup.getGroupId()));
 	}
 
 	@Override

@@ -73,7 +73,7 @@ public class DDMFormBuilderContextFactoryHelper {
 		DDMFormTemplateContextFactory ddmFormTemplateContextFactory,
 		HttpServletRequest httpServletRequest,
 		HttpServletResponse httpServletResponse, JSONFactory jsonFactory,
-		Locale locale, boolean readOnly) {
+		Locale locale, String portletNamespace, boolean readOnly) {
 
 		_ddmStructureOptional = ddmStructureOptional;
 		_ddmStructureVersionOptional = ddmStructureVersionOptional;
@@ -83,6 +83,7 @@ public class DDMFormBuilderContextFactoryHelper {
 		_httpServletResponse = httpServletResponse;
 		_jsonFactory = jsonFactory;
 		_locale = locale;
+		_portletNamespace = portletNamespace;
 		_readOnly = readOnly;
 	}
 
@@ -129,7 +130,7 @@ public class DDMFormBuilderContextFactoryHelper {
 		ddmFormRenderingContext.setHttpServletRequest(_httpServletRequest);
 		ddmFormRenderingContext.setHttpServletResponse(_httpServletResponse);
 		ddmFormRenderingContext.setLocale(_locale);
-		ddmFormRenderingContext.setPortletNamespace(StringPool.BLANK);
+		ddmFormRenderingContext.setPortletNamespace(_portletNamespace);
 		ddmFormRenderingContext.setReadOnly(_readOnly);
 
 		Map<String, Object> ddmFormTemplateContext =
@@ -146,8 +147,8 @@ public class DDMFormBuilderContextFactoryHelper {
 		try {
 			return doCreateFormContext(ddmStructure);
 		}
-		catch (PortalException pe) {
-			_log.error("Unable to create form context", pe);
+		catch (PortalException portalException) {
+			_log.error("Unable to create form context", portalException);
 		}
 
 		return createEmptyStateContext();
@@ -159,8 +160,8 @@ public class DDMFormBuilderContextFactoryHelper {
 		try {
 			return doCreateFormContext(ddmStructureVersion);
 		}
-		catch (PortalException pe) {
-			_log.error("Unable to create form context", pe);
+		catch (PortalException portalException) {
+			_log.error("Unable to create form context", portalException);
 		}
 
 		return createEmptyStateContext();
@@ -210,7 +211,7 @@ public class DDMFormBuilderContextFactoryHelper {
 		ddmFormRenderingContext.setHttpServletRequest(_httpServletRequest);
 		ddmFormRenderingContext.setHttpServletResponse(_httpServletResponse);
 		ddmFormRenderingContext.setLocale(_locale);
-		ddmFormRenderingContext.setPortletNamespace(StringPool.BLANK);
+		ddmFormRenderingContext.setPortletNamespace(_portletNamespace);
 
 		DDMFormValues ddmFormValues =
 			doCreateDDMFormFieldSettingContextDDMFormValues(
@@ -412,9 +413,10 @@ public class DDMFormBuilderContextFactoryHelper {
 								doCreateDDMFormFieldSettingContext(
 									ddmFormFieldsMap.get(fieldName)));
 						}
-						catch (PortalException pe) {
+						catch (PortalException portalException) {
 							_log.error(
-								"Unable to create field settings context", pe);
+								"Unable to create field settings context",
+								portalException);
 						}
 					}
 
@@ -448,6 +450,7 @@ public class DDMFormBuilderContextFactoryHelper {
 	private final HttpServletResponse _httpServletResponse;
 	private final JSONFactory _jsonFactory;
 	private final Locale _locale;
+	private final String _portletNamespace;
 	private final boolean _readOnly;
 
 	private static class DDMFormBuilderContextFieldVisitor {
@@ -474,6 +477,11 @@ public class DDMFormBuilderContextFactoryHelper {
 		protected void traverseFields(List<Map<String, Object>> fields) {
 			for (Map<String, Object> field : fields) {
 				_fieldConsumer.accept(field);
+
+				if (field.containsKey("nestedFields")) {
+					traverseFields(
+						(List<Map<String, Object>>)field.get("nestedFields"));
+				}
 			}
 		}
 

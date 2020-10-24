@@ -10,85 +10,75 @@
  */
 
 import getClassName from 'classnames';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
-export default class FilterItem extends React.Component {
-	onChange(event) {
-		const {multiple, onChange} = this.props;
+const FilterItem = ({
+	active = false,
+	description,
+	dividerAfter,
+	hideControl,
+	labelPropertyName = 'name',
+	multiple,
+	name,
+	onClick,
+	preventClick,
+	...otherProps
+}) => {
+	const [checked, setChecked] = useState(active);
 
-		onChange(event);
-
-		if (!multiple) {
-			document.dispatchEvent(new Event('mousedown'));
-		}
-	}
-
-	render() {
-		const {
-			active,
-			description,
-			dividerAfter,
-			hideControl,
-			itemKey,
-			multiple,
-			name,
-			onClick
-		} = this.props;
-
-		const controlClassName = getClassName(
+	const classes = {
+		control: getClassName(
 			'custom-control',
 			multiple ? 'custom-checkbox' : 'custom-radio'
-		);
-
-		const dropDownClassName = getClassName(
+		),
+		dropdown: getClassName(
 			'dropdown-item',
-			active && 'active',
+			checked && 'active',
 			description && 'with-description',
 			hideControl && 'control-hidden'
-		);
+		),
+	};
 
-		const inputProps = {
-			type: 'checkbox'
-		};
+	useEffect(() => {
+		setChecked(active);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [active]);
 
-		if (!multiple) {
-			inputProps.name = 'filter-item-radio-group';
-			inputProps.type = 'radio';
+	const onClickFilter = (event) => {
+		onClick(event);
+
+		if (!preventClick) {
+			setChecked(!checked);
 		}
+	};
 
-		return (
-			<>
-				<li className={dropDownClassName}>
-					<label className={controlClassName}>
-						<input
-							{...inputProps}
-							checked={!!active}
-							className="custom-control-input"
-							data-key={itemKey}
-							data-testid="filterItemInput"
-							onChange={this.onChange.bind(this)}
-							onClick={onClick}
-						/>
+	return (
+		<>
+			<div className={classes.dropdown} onClick={onClickFilter}>
+				<div className={classes.control}>
+					<input
+						checked={checked}
+						className="custom-control-input"
+						type={multiple ? 'checkbox' : 'radio'}
+					/>
 
-						<span className="custom-control-label">
-							<span
-								className="custom-control-label-text"
-								data-testid="filterItemName"
-							>
-								{name}
-							</span>
-
-							{description && (
-								<span className="custom-control-label-text dropdown-item-description">
-									{description}
-								</span>
-							)}
+					<span className="custom-control-label">
+						<span className="custom-control-label-text">
+							{otherProps[labelPropertyName] || name}
 						</span>
-					</label>
-				</li>
 
-				{dividerAfter && <li className="dropdown-divider" />}
-			</>
-		);
-	}
-}
+						{description && (
+							<span className="custom-control-label-text dropdown-item-description">
+								{description}
+							</span>
+						)}
+					</span>
+				</div>
+			</div>
+
+			{dividerAfter && <li className="dropdown-divider" />}
+		</>
+	);
+};
+
+export {FilterItem};

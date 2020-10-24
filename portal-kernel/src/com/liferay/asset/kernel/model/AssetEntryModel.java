@@ -46,7 +46,7 @@ public interface AssetEntryModel
 	extends AttachedModel, BaseModel<AssetEntry>, CTModel<AssetEntry>,
 			GroupedModel, LocalizedModel, MVCCModel, ShardedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a asset entry model instance should use the {@link AssetEntry} interface instead.

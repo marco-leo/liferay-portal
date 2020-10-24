@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class LayoutPageTemplateCollectionLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.layout.page.template.service.impl.LayoutPageTemplateCollectionLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class LayoutPageTemplateCollectionLocalServiceUtil {
 
 	/**
 	 * Adds the layout page template collection to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPageTemplateCollectionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPageTemplateCollection the layout page template collection
 	 * @return the layout page template collection that was added
@@ -82,7 +86,21 @@ public class LayoutPageTemplateCollectionLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the layout page template collection from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPageTemplateCollectionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPageTemplateCollection the layout page template collection
 	 * @return the layout page template collection that was removed
@@ -102,6 +120,10 @@ public class LayoutPageTemplateCollectionLocalServiceUtil {
 
 	/**
 	 * Deletes the layout page template collection with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPageTemplateCollectionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPageTemplateCollectionId the primary key of the layout page template collection
 	 * @return the layout page template collection that was removed
@@ -126,6 +148,12 @@ public class LayoutPageTemplateCollectionLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -220,6 +248,15 @@ public class LayoutPageTemplateCollectionLocalServiceUtil {
 
 		return getService().fetchLayoutPageTemplateCollection(
 			layoutPageTemplateCollectionId);
+	}
+
+	public static
+		com.liferay.layout.page.template.model.LayoutPageTemplateCollection
+			fetchLayoutPageTemplateCollection(
+				long groupId, String layoutPageTemplateCollectionKey) {
+
+		return getService().fetchLayoutPageTemplateCollection(
+			groupId, layoutPageTemplateCollectionKey);
 	}
 
 	/**
@@ -400,6 +437,9 @@ public class LayoutPageTemplateCollectionLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -409,6 +449,10 @@ public class LayoutPageTemplateCollectionLocalServiceUtil {
 
 	/**
 	 * Updates the layout page template collection in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect LayoutPageTemplateCollectionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param layoutPageTemplateCollection the layout page template collection
 	 * @return the layout page template collection that was updated

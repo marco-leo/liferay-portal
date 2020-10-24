@@ -18,6 +18,7 @@ import com.liferay.dynamic.data.mapping.constants.DDMConstants;
 import com.liferay.dynamic.data.mapping.constants.DDMPortletKeys;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceLocalService;
+import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.PortletDataException;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
@@ -26,6 +27,8 @@ import com.liferay.exportimport.portlet.preferences.processor.ExportImportPortle
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
@@ -70,9 +73,9 @@ public class DDMFormExportImportPortletPreferencesProcessor
 			portletDataContext.addPortletPermissions(
 				DDMConstants.RESOURCE_NAME);
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			throw new PortletDataException(
-				"Unable to export portlet permissions", pe);
+				"Unable to export portlet permissions", portalException);
 		}
 
 		String portletId = portletDataContext.getPortletId();
@@ -85,6 +88,39 @@ public class DDMFormExportImportPortletPreferencesProcessor
 				_log.warn(
 					"FormInstance ID is not set for preferences of portlet " +
 						portletId);
+			}
+
+			return portletPreferences;
+		}
+
+		long groupId = GetterUtil.getLong(
+			portletPreferences.getValue("groupId", null));
+
+		if (groupId == 0) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"No group ID found in preferences of portlet " + portletId);
+			}
+
+			return portletPreferences;
+		}
+
+		Group group = _groupLocalService.fetchGroup(groupId);
+
+		if (group == null) {
+			if (_log.isWarnEnabled()) {
+				_log.warn("No group found with group ID " + groupId);
+			}
+
+			return portletPreferences;
+		}
+
+		if (ExportImportThreadLocal.isStagingInProcess() &&
+			!group.isStagedPortlet(
+				DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM_ADMIN)) {
+
+			if (_log.isDebugEnabled()) {
+				_log.debug("Form is not staged in the site " + group.getName());
 			}
 
 			return portletPreferences;
@@ -111,9 +147,9 @@ public class DDMFormExportImportPortletPreferencesProcessor
 			portletDataContext.importPortletPermissions(
 				DDMConstants.RESOURCE_NAME);
 		}
-		catch (PortalException pe) {
+		catch (PortalException portalException) {
 			throw new PortletDataException(
-				"Unable to export portlet permissions", pe);
+				"Unable to export portlet permissions", portalException);
 		}
 
 		long importedFormInstanceId = GetterUtil.getLong(
@@ -130,9 +166,10 @@ public class DDMFormExportImportPortletPreferencesProcessor
 			portletPreferences.setValue(
 				"formInstanceId", String.valueOf(formInstanceId));
 		}
-		catch (ReadOnlyException roe) {
+		catch (ReadOnlyException readOnlyException) {
 			throw new PortletDataException(
-				"Unable to update portlet preferences during import", roe);
+				"Unable to update portlet preferences during import",
+				readOnlyException);
 		}
 
 		return portletPreferences;
@@ -146,5 +183,8 @@ public class DDMFormExportImportPortletPreferencesProcessor
 
 	@Reference
 	private DDMFormInstanceLocalService _ddmFormInstanceLocalService;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 }

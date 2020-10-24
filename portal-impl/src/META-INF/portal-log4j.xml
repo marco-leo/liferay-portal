@@ -332,10 +332,6 @@
 		<priority value="INFO" />
 	</category>
 
-	<category name="com.liferay.portal.kernel.resiliency">
-		<priority value="INFO" />
-	</category>
-
 	<category name="com.liferay.portal.kernel.search.HitsOpenSearchImpl">
 		<priority value="WARN" />
 	</category>
@@ -492,10 +488,6 @@
 		<priority value="WARN" />
 	</category>
 
-	<category name="com.liferay.portal.security.lang.PortalSecurityManager">
-		<priority value="INFO" />
-	</category>
-
 	<category name="com.liferay.portal.security.permission.AdvancedPermissionChecker">
 		<priority value="ERROR" />
 	</category>
@@ -573,10 +565,6 @@
 	</category>
 
 	<category name="com.liferay.portal.servlet">
-		<priority value="ERROR" />
-	</category>
-
-	<category name="com.liferay.portal.servlet.FriendlyURLServlet">
 		<priority value="ERROR" />
 	</category>
 
@@ -768,10 +756,6 @@
 		<priority value="ERROR" />
 	</category>
 
-	<category name="com.liferay.portal.util.CookieKeys">
-		<priority value="ERROR" />
-	</category>
-
 	<category name="com.liferay.portal.util.EntityResolver">
 		<priority value="ERROR" />
 	</category>
@@ -821,10 +805,6 @@
 	</category>
 
 	<category name="com.liferay.portal.verify">
-		<priority value="INFO" />
-	</category>
-
-	<category name="com.liferay.portal.verify.VerifyUser">
 		<priority value="INFO" />
 	</category>
 
@@ -912,10 +892,6 @@
 		<priority value="ERROR" />
 	</category>
 
-	<category name="com.liferay.portlet.usersadmin.util.OrganizationIndexer">
-		<priority value="WARN" />
-	</category>
-
 	<category name="com.liferay.portlet.usersadmin.util.OrganizationSearchTerms">
 		<priority value="WARN" />
 	</category>
@@ -949,10 +925,6 @@
 	</category>
 
 	<category name="com.liferay.util.dao.orm.CustomSQLUtil">
-		<priority value="INFO" />
-	</category>
-
-	<category name="com.liferay.util.resiliency">
 		<priority value="INFO" />
 	</category>
 

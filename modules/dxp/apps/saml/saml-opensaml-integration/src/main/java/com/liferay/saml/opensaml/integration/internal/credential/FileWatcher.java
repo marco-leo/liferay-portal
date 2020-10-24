@@ -102,7 +102,9 @@ public class FileWatcher implements Closeable {
 				try {
 					watchKey = _watchService.take();
 				}
-				catch (ClosedWatchServiceException | InterruptedException e) {
+				catch (ClosedWatchServiceException | InterruptedException
+							exception) {
+
 					return;
 				}
 
@@ -127,26 +129,24 @@ public class FileWatcher implements Closeable {
 							}
 						));
 
-				CompletableFuture[] completableFutures =
-					watchEventsPathStream.map(
-						watchEvent -> (Runnable)() -> _consumer.accept(
-							watchEvent)
-					).map(
-						runnable -> CompletableFuture.runAsync(
-							runnable, notificationsExecutorService)
-					).toArray(
-						CompletableFuture[]::new
-					);
-
 				CompletableFuture<Void> completableFuture =
-					CompletableFuture.allOf(completableFutures);
+					CompletableFuture.allOf(
+						watchEventsPathStream.map(
+							watchEvent -> (Runnable)() -> _consumer.accept(
+								watchEvent)
+						).map(
+							runnable -> CompletableFuture.runAsync(
+								runnable, notificationsExecutorService)
+						).toArray(
+							CompletableFuture[]::new
+						));
 
 				try {
 					completableFuture.get(
 						notificationTimeout, notificationTimeUnit);
 				}
 				catch (ExecutionException | InterruptedException |
-					   TimeoutException e) {
+					   TimeoutException exception) {
 
 					return;
 				}
@@ -161,7 +161,7 @@ public class FileWatcher implements Closeable {
 		try {
 			_watchService.close();
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 		}
 
 		_notificationsExecutorService.shutdown();

@@ -17,7 +17,7 @@
 <%@ include file="/init.jsp" %>
 
 <clay:management-toolbar
-	displayContext="<%= new JournalSelectArticleTranslationsManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, journalDisplayContext) %>"
+	displayContext="<%= new JournalSelectArticleTranslationsManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, journalDisplayContext) %>"
 />
 
 <aui:form cssClass="container-fluid-1280" name="fm">
@@ -66,11 +66,11 @@
 		'<portlet:namespace />articleTranslations'
 	);
 
-	searchContainer.on('rowToggled', function(event) {
+	searchContainer.on('rowToggled', function (event) {
 		Liferay.Util.getOpener().Liferay.fire(
 			'<%= HtmlUtil.escapeJS(journalDisplayContext.getDeleteTranslationsEventName()) %>',
 			{
-				data: event.elements.allSelectedElements.getDOMNodes()
+				data: event.elements.allSelectedElements.getDOMNodes(),
 			}
 		);
 	});

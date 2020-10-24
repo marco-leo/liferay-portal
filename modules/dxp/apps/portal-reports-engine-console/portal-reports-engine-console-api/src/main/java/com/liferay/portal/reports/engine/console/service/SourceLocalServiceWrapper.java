@@ -30,11 +30,6 @@ public class SourceLocalServiceWrapper
 		_sourceLocalService = sourceLocalService;
 	}
 
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link SourceLocalServiceUtil} to access the source local service. Add custom service methods to <code>com.liferay.portal.reports.engine.console.service.impl.SourceLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
-	 */
 	@Override
 	public com.liferay.portal.reports.engine.console.model.Source addSource(
 			long userId, long groupId,
@@ -52,6 +47,10 @@ public class SourceLocalServiceWrapper
 	/**
 	 * Adds the source to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param source the source
 	 * @return the source that was added
 	 */
@@ -60,6 +59,17 @@ public class SourceLocalServiceWrapper
 		com.liferay.portal.reports.engine.console.model.Source source) {
 
 		return _sourceLocalService.addSource(source);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _sourceLocalService.createPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -89,6 +99,10 @@ public class SourceLocalServiceWrapper
 	/**
 	 * Deletes the source with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param sourceId the primary key of the source
 	 * @return the source that was removed
 	 * @throws PortalException if a source with the primary key could not be found
@@ -103,6 +117,10 @@ public class SourceLocalServiceWrapper
 
 	/**
 	 * Deletes the source from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param source the source
 	 * @return the source that was removed
@@ -121,6 +139,11 @@ public class SourceLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_sourceLocalService.deleteSources(groupId);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _sourceLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -267,6 +290,9 @@ public class SourceLocalServiceWrapper
 		return _sourceLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -331,7 +357,8 @@ public class SourceLocalServiceWrapper
 			long groupId, String name, String driverUrl, boolean andSearch,
 			int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				orderByComparator) {
+				<com.liferay.portal.reports.engine.console.model.Source>
+					orderByComparator) {
 
 		return _sourceLocalService.getSources(
 			groupId, name, driverUrl, andSearch, start, end, orderByComparator);
@@ -409,6 +436,10 @@ public class SourceLocalServiceWrapper
 
 	/**
 	 * Updates the source in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SourceLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param source the source
 	 * @return the source that was updated

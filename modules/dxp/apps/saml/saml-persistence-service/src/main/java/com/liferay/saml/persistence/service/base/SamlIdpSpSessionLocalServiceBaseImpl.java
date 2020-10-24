@@ -14,6 +14,7 @@
 
 package com.liferay.saml.persistence.service.base;
 
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -33,6 +34,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -70,7 +72,7 @@ public abstract class SamlIdpSpSessionLocalServiceBaseImpl
 	implements AopService, IdentifiableOSGiService,
 			   SamlIdpSpSessionLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>SamlIdpSpSessionLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.saml.persistence.service.SamlIdpSpSessionLocalServiceUtil</code>.
@@ -78,6 +80,10 @@ public abstract class SamlIdpSpSessionLocalServiceBaseImpl
 
 	/**
 	 * Adds the saml idp sp session to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSpSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param samlIdpSpSession the saml idp sp session
 	 * @return the saml idp sp session that was added
@@ -107,6 +113,10 @@ public abstract class SamlIdpSpSessionLocalServiceBaseImpl
 	/**
 	 * Deletes the saml idp sp session with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSpSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param samlIdpSpSessionId the primary key of the saml idp sp session
 	 * @return the saml idp sp session that was removed
 	 * @throws PortalException if a saml idp sp session with the primary key could not be found
@@ -122,6 +132,10 @@ public abstract class SamlIdpSpSessionLocalServiceBaseImpl
 	/**
 	 * Deletes the saml idp sp session from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSpSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param samlIdpSpSession the saml idp sp session
 	 * @return the saml idp sp session that was removed
 	 */
@@ -131,6 +145,11 @@ public abstract class SamlIdpSpSessionLocalServiceBaseImpl
 		SamlIdpSpSession samlIdpSpSession) {
 
 		return samlIdpSpSessionPersistence.remove(samlIdpSpSession);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return samlIdpSpSessionPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -288,6 +307,17 @@ public abstract class SamlIdpSpSessionLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return samlIdpSpSessionPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -295,6 +325,14 @@ public abstract class SamlIdpSpSessionLocalServiceBaseImpl
 			(SamlIdpSpSession)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<SamlIdpSpSession> getBasePersistence() {
+		return samlIdpSpSessionPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -330,6 +368,10 @@ public abstract class SamlIdpSpSessionLocalServiceBaseImpl
 
 	/**
 	 * Updates the saml idp sp session in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect SamlIdpSpSessionLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param samlIdpSpSession the saml idp sp session
 	 * @return the saml idp sp session that was updated
@@ -392,8 +434,8 @@ public abstract class SamlIdpSpSessionLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

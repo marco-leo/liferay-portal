@@ -12,8 +12,7 @@
  * details.
  */
 
-import * as FormSupport from 'dynamic-data-mapping-form-renderer/js/components/FormRenderer/FormSupport.es';
-import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
+import {FormSupport, PagesVisitor} from 'dynamic-data-mapping-form-renderer';
 import {EventHandler} from 'metal-events';
 import Component from 'metal-jsx';
 import {Config} from 'metal-state';
@@ -40,7 +39,7 @@ class StateSyncronizer extends Component {
 				),
 				translationManager.on('editingLocale', ({newValue}) => {
 					this.syncEditors(newValue);
-				})
+				}),
 			];
 		}
 	}
@@ -58,7 +57,9 @@ class StateSyncronizer extends Component {
 		this._eventHandler.removeAllListeners();
 
 		if (this._translationManagerHandles) {
-			this._translationManagerHandles.forEach(handle => handle.detach());
+			this._translationManagerHandles.forEach((handle) =>
+				handle.detach()
+			);
 		}
 	}
 
@@ -110,7 +111,7 @@ class StateSyncronizer extends Component {
 			pages: store.state.pages,
 			paginationMode: store.state.paginationMode,
 			rules: store.getRules(),
-			successPageSettings: store.state.successPageSettings
+			successPageSettings: store.state.successPageSettings,
 		};
 
 		return state;
@@ -141,7 +142,7 @@ class StateSyncronizer extends Component {
 			descriptionEditor,
 			localizedDescription,
 			localizedName,
-			nameEditor
+			nameEditor,
 		} = this.props;
 
 		let description = localizedDescription[editingLanguageId];
@@ -166,21 +167,21 @@ class StateSyncronizer extends Component {
 		const state = this.getState();
 		const {description, name} = state;
 
-		Object.keys(state.name).forEach(key => {
+		Object.keys(state.name).forEach((key) => {
 			state.name[key] = Liferay.Util.unescape(state.name[key]);
 		});
 
-		Object.keys(state.description).forEach(key => {
+		Object.keys(state.description).forEach((key) => {
 			state.description[key] = Liferay.Util.unescape(
 				state.description[key]
 			);
 		});
 
-		if (settingsDDMForm) {
+		if (settingsDDMForm && settingsDDMForm.reactComponentRef.current) {
 			document.querySelector(
 				`#${namespace}serializedSettingsContext`
 			).value = JSON.stringify({
-				pages: settingsDDMForm.pages
+				pages: settingsDDMForm.reactComponentRef.current.get('pages'),
 			});
 		}
 
@@ -200,11 +201,11 @@ class StateSyncronizer extends Component {
 
 		const visitor = new PagesVisitor(state.pages);
 
-		const pages = visitor.mapPages(page => {
+		const pages = visitor.mapPages((page) => {
 			return {
 				...page,
 				description: page.localizedDescription,
-				title: page.localizedTitle
+				title: page.localizedTitle,
 			};
 		});
 
@@ -212,7 +213,7 @@ class StateSyncronizer extends Component {
 
 		return JSON.stringify({
 			...state,
-			pages: visitor.mapFields(field => {
+			pages: visitor.mapFields((field) => {
 				return {
 					...field,
 					settingsContext: {
@@ -221,10 +222,10 @@ class StateSyncronizer extends Component {
 						defaultLanguageId: this.getDefaultLanguageId(),
 						pages: this._getSerializedSettingsContextPages(
 							field.settingsContext.pages
-						)
-					}
+						),
+					},
 				};
-			})
+			}),
 		});
 	}
 
@@ -232,12 +233,12 @@ class StateSyncronizer extends Component {
 		const defaultLanguageId = this.getDefaultLanguageId();
 		const visitor = new PagesVisitor(pages);
 
-		return visitor.mapFields(field => {
+		return visitor.mapFields((field) => {
 			if (field.type === 'options') {
 				const {value} = field;
 				const newValue = {};
 
-				Object.keys(value).forEach(locale => {
+				Object.keys(value).forEach((locale) => {
 					newValue[locale] = value[locale].filter(
 						({value}) => value !== ''
 					);
@@ -249,7 +250,7 @@ class StateSyncronizer extends Component {
 
 				field = {
 					...field,
-					value: newValue
+					value: newValue,
 				};
 			}
 
@@ -281,7 +282,7 @@ StateSyncronizer.PROPS = {
 	published: Config.bool(),
 	settingsDDMForm: Config.any(),
 	store: Config.any(),
-	translationManager: Config.any()
+	translationManager: Config.any(),
 };
 
 export default StateSyncronizer;

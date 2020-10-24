@@ -30,7 +30,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface LayoutSet extends LayoutSetModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.portal.model.impl.LayoutSetImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -115,8 +115,8 @@ public interface LayoutSet extends LayoutSetModel, PersistedModel {
 	 * "/web/sitename" or "/group/sitename" can be omitted.
 	 * </p>
 	 *
-	 * @return the layout set's default virtual host name, or an empty string if
-	 the layout set has no virtual hosts configured
+	 * @return the layout set's default virtual host name, or an empty
+	 string if the layout set has no virtual hosts configured
 	 * @deprecated As of Mueller (7.2.x), replaced by {@link
 	 #getVirtualHostnames()}
 	 */
@@ -131,8 +131,8 @@ public interface LayoutSet extends LayoutSetModel, PersistedModel {
 	 * "/web/sitename" or "/group/sitename" can be omitted.
 	 * </p>
 	 *
-	 * @return the layout set's virtual host names, or an empty string if
-	 the layout set has no virtual hosts configured
+	 * @return the layout set's virtual host names, or an empty string if the
+	 layout set has no virtual hosts configured
 	 */
 	public java.util.TreeMap<String, String> getVirtualHostnames();
 
@@ -146,7 +146,8 @@ public interface LayoutSet extends LayoutSetModel, PersistedModel {
 		String companyFallbackVirtualHostname);
 
 	public void setSettingsProperties(
-		com.liferay.portal.kernel.util.UnicodeProperties settingsProperties);
+		com.liferay.portal.kernel.util.UnicodeProperties
+			settingsUnicodeProperties);
 
 	/**
 	 * Sets the name of the layout set's virtual host.

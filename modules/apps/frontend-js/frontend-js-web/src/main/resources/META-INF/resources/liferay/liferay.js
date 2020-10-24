@@ -14,12 +14,12 @@
 
 Liferay = window.Liferay || {};
 
-(function($, Liferay) {
-	var isFunction = function(val) {
+(function (Liferay) {
+	var isFunction = function (val) {
 		return typeof val === 'function';
 	};
 
-	var isNode = function(node) {
+	var isNode = function (node) {
 		return node && (node._node || node.jquery || node.nodeType);
 	};
 
@@ -39,79 +39,14 @@ Liferay = window.Liferay || {};
 		for (var part; parts.length && (part = parts.shift()); ) {
 			if (obj[part] && obj[part] !== Object.prototype[part]) {
 				obj = obj[part];
-			} else {
+			}
+			else {
 				obj = obj[part] = {};
 			}
 		}
 
 		return obj;
 	};
-
-	$.ajaxSetup({
-		data: {},
-		type: 'POST'
-	});
-
-	$.ajaxPrefilter(options => {
-		if (options.crossDomain) {
-			options.contents.script = false;
-		}
-
-		if (options.url) {
-			options.url = Liferay.Util.getURLWithSessionId(options.url);
-		}
-	});
-
-	var jqueryInit = $.prototype.init;
-
-	$.prototype.init = function(selector, context, root) {
-		if (selector === '#') {
-			selector = '';
-		}
-
-		return new jqueryInit(selector, context, root);
-	};
-
-	$(document).on('show.bs.collapse', event => {
-		var target = $(event.target);
-
-		var ancestor = target.parents('.panel-group');
-
-		if (target.hasClass('panel-collapse') && ancestor.length) {
-			var openChildren = ancestor.find('.panel-collapse.in').not(target);
-
-			if (
-				openChildren.length &&
-				ancestor.find('[data-parent="#' + ancestor.attr('id') + '"]')
-					.length
-			) {
-				openChildren.removeClass('in');
-			}
-		}
-
-		if (target.hasClass('in')) {
-			target.addClass('show');
-			target.removeClass('in');
-
-			target.collapse('hide');
-
-			return false;
-		}
-	});
-
-	$(document).on('show.bs.dropdown', () => {
-		Liferay.fire('dropdownShow', {
-			src: 'BootstrapDropdown'
-		});
-	});
-
-	Liferay.on('dropdownShow', event => {
-		if (event.src !== 'BootstrapDropdown') {
-			$(
-				'.dropdown.show .dropdown-toggle[data-toggle="dropdown"]'
-			).dropdown('toggle');
-		}
-	});
 
 	/**
 	 * OPTIONS
@@ -125,7 +60,7 @@ Liferay = window.Liferay || {};
 	 * exceptionCallback {function}: A function to execute when the response from the server contains a service exception. It receives a the exception message as it's first parameter.
 	 */
 
-	var Service = function() {
+	var Service = function () {
 		var args = Service.parseInvokeArgs(
 			Array.prototype.slice.call(arguments, 0)
 		);
@@ -135,17 +70,17 @@ Liferay = window.Liferay || {};
 
 	Service.URL_INVOKE = themeDisplay.getPathContext() + '/api/jsonws/invoke';
 
-	Service.bind = function() {
+	Service.bind = function () {
 		var args = Array.prototype.slice.call(arguments, 0);
 
-		return function() {
+		return function () {
 			var newArgs = Array.prototype.slice.call(arguments, 0);
 
 			return Service.apply(Service, args.concat(newArgs));
 		};
 	};
 
-	Service.parseInvokeArgs = function(args) {
+	Service.parseInvokeArgs = function (args) {
 		var instance = this;
 
 		var payload = args[0];
@@ -167,7 +102,7 @@ Liferay = window.Liferay || {};
 		return [payload, ioConfig];
 	};
 
-	Service.parseIOConfig = function(args) {
+	Service.parseIOConfig = function (args) {
 		var payload = args[0];
 
 		var ioConfig = payload.io || {};
@@ -184,9 +119,9 @@ Liferay = window.Liferay || {};
 				callbackException = callbackSuccess;
 			}
 
-			ioConfig.complete = function(xhr) {
-				var response = xhr.responseJSON;
+			ioConfig.error = callbackException;
 
+			ioConfig.complete = function (response) {
 				if (
 					response !== null &&
 					!Object.prototype.hasOwnProperty.call(response, 'exception')
@@ -194,7 +129,8 @@ Liferay = window.Liferay || {};
 					if (callbackSuccess) {
 						callbackSuccess.call(this, response);
 					}
-				} else if (callbackException) {
+				}
+				else if (callbackException) {
 					var exception = response
 						? response.exception
 						: 'The server returned an empty response';
@@ -218,20 +154,19 @@ Liferay = window.Liferay || {};
 		return ioConfig;
 	};
 
-	Service.parseIOFormConfig = function(ioConfig, args) {
+	Service.parseIOFormConfig = function (ioConfig, args) {
 		var form = args[1];
 
 		if (isNode(form)) {
-			ioConfig.form = form;
-
-			if (ioConfig.form.enctype == STR_MULTIPART) {
-				ioConfig.contentType = false;
-				ioConfig.processData = false;
+			if (form.enctype == STR_MULTIPART) {
+				ioConfig.contentType = 'multipart/form-data';
 			}
+
+			ioConfig.formData = new FormData(form);
 		}
 	};
 
-	Service.parseStringPayload = function(args) {
+	Service.parseStringPayload = function (args) {
 		var params = {};
 		var payload = {};
 
@@ -246,46 +181,32 @@ Liferay = window.Liferay || {};
 		return payload;
 	};
 
-	Service.invoke = function(payload, ioConfig) {
+	Service.invoke = function (payload, ioConfig) {
 		var instance = this;
 
 		var cmd = JSON.stringify(payload);
-		var p_auth = Liferay.authToken;
 
-		ioConfig = {
-			data: {
-				cmd,
-				p_auth
-			},
-			dataType: 'JSON',
-			...ioConfig
-		};
+		var data = cmd;
 
-		if (ioConfig.form) {
-			if (
-				ioConfig.form.enctype == STR_MULTIPART &&
-				isFunction(window.FormData)
-			) {
-				ioConfig.data = new FormData(ioConfig.form);
-
-				ioConfig.data.append('cmd', cmd);
-				ioConfig.data.append('p_auth', p_auth);
-			} else {
-				$(ioConfig.form)
-					.serializeArray()
-					.forEach(item => {
-						ioConfig.data[item.name] = item.value;
-					});
-			}
-
-			delete ioConfig.form;
+		if (ioConfig.formData) {
+			ioConfig.formData.append('cmd', cmd);
+			data = ioConfig.formData;
 		}
 
-		return $.ajax(instance.URL_INVOKE, ioConfig);
+		return Liferay.Util.fetch(instance.URL_INVOKE, {
+			body: data,
+			headers: {
+				contentType: ioConfig.contentType,
+			},
+			method: 'POST',
+		})
+			.then((response) => response.json())
+			.then(ioConfig.complete)
+			.catch(ioConfig.error);
 	};
 
 	function getHttpMethodFunction(httpMethodName) {
-		return function() {
+		return function () {
 			var args = Array.prototype.slice.call(arguments, 0);
 
 			var method = {method: httpMethodName};
@@ -306,19 +227,6 @@ Liferay = window.Liferay || {};
 
 	Liferay.Template = {
 		PORTLET:
-			'<div class="portlet"><div class="portlet-topper"><div class="portlet-title"></div></div><div class="portlet-content"></div><div class="forbidden-action"></div></div>'
+			'<div class="portlet"><div class="portlet-topper"><div class="portlet-title"></div></div><div class="portlet-content"></div><div class="forbidden-action"></div></div>',
 	};
-})(AUI.$, Liferay);
-
-(function(A, Liferay) {
-	A.mix(
-		A.namespace('config.io'),
-		{
-			method: 'POST',
-			uriFormatter(value) {
-				return Liferay.Util.getURLWithSessionId(value);
-			}
-		},
-		true
-	);
-})(AUI(), Liferay);
+})(Liferay);

@@ -23,9 +23,11 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.dispatch.service.http.DispatchTriggerServiceSoap}.
  *
- * @author Alessio Antonio Rendina
+ * @author Matija Petanjek
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  * @generated
  */
+@Deprecated
 public class DispatchTriggerSoap implements Serializable {
 
 	public static DispatchTriggerSoap toSoapModel(DispatchTrigger model) {
@@ -42,10 +44,11 @@ public class DispatchTriggerSoap implements Serializable {
 		soapModel.setCronExpression(model.getCronExpression());
 		soapModel.setEndDate(model.getEndDate());
 		soapModel.setName(model.getName());
+		soapModel.setOverlapAllowed(model.isOverlapAllowed());
 		soapModel.setStartDate(model.getStartDate());
 		soapModel.setSystem(model.isSystem());
-		soapModel.setType(model.getType());
-		soapModel.setTypeSettings(model.getTypeSettings());
+		soapModel.setTaskSettings(model.getTaskSettings());
+		soapModel.setTaskType(model.getTaskType());
 
 		return soapModel;
 	}
@@ -197,6 +200,18 @@ public class DispatchTriggerSoap implements Serializable {
 		_name = name;
 	}
 
+	public boolean getOverlapAllowed() {
+		return _overlapAllowed;
+	}
+
+	public boolean isOverlapAllowed() {
+		return _overlapAllowed;
+	}
+
+	public void setOverlapAllowed(boolean overlapAllowed) {
+		_overlapAllowed = overlapAllowed;
+	}
+
 	public Date getStartDate() {
 		return _startDate;
 	}
@@ -217,20 +232,20 @@ public class DispatchTriggerSoap implements Serializable {
 		_system = system;
 	}
 
-	public String getType() {
-		return _type;
+	public String getTaskSettings() {
+		return _taskSettings;
 	}
 
-	public void setType(String type) {
-		_type = type;
+	public void setTaskSettings(String taskSettings) {
+		_taskSettings = taskSettings;
 	}
 
-	public String getTypeSettings() {
-		return _typeSettings;
+	public String getTaskType() {
+		return _taskType;
 	}
 
-	public void setTypeSettings(String typeSettings) {
-		_typeSettings = typeSettings;
+	public void setTaskType(String taskType) {
+		_taskType = taskType;
 	}
 
 	private long _mvccVersion;
@@ -244,9 +259,10 @@ public class DispatchTriggerSoap implements Serializable {
 	private String _cronExpression;
 	private Date _endDate;
 	private String _name;
+	private boolean _overlapAllowed;
 	private Date _startDate;
 	private boolean _system;
-	private String _type;
-	private String _typeSettings;
+	private String _taskSettings;
+	private String _taskType;
 
 }

@@ -248,11 +248,9 @@ public class IconTag extends IncludeTag {
 		}
 
 		if (Validator.isNotNull(id) && Validator.isNotNull(message)) {
-			id = id.concat(
-				StringPool.UNDERLINE
-			).concat(
-				FriendlyURLNormalizerUtil.normalize(message)
-			);
+			id = StringBundler.concat(
+				id, StringPool.UNDERLINE,
+				FriendlyURLNormalizerUtil.normalize(message));
 
 			PortletResponse portletResponse =
 				(PortletResponse)httpServletRequest.getAttribute(
@@ -272,9 +270,7 @@ public class IconTag extends IncludeTag {
 				httpServletRequest, IconTag.class.getName());
 		}
 
-		id = HtmlUtil.getAUICompatibleId(id);
-
-		return id;
+		return HtmlUtil.getAUICompatibleId(id);
 	}
 
 	protected String getImage() {
@@ -318,7 +314,7 @@ public class IconTag extends IncludeTag {
 			sb.append("event.preventDefault();");
 			sb.append(onClick);
 			sb.append("submitForm(document.hrefFm, '");
-			sb.append(getUrl());
+			sb.append(HtmlUtil.escapeJS(getUrl()));
 			sb.append("')");
 
 			onClick = sb.toString();
@@ -527,8 +523,9 @@ public class IconTag extends IncludeTag {
 		String details = null;
 
 		if (_alt != null) {
-			details =
-				" alt=\"" + LanguageUtil.get(_getResourceBundle(), _alt) + "\"";
+			String alt = LanguageUtil.get(_getResourceBundle(), _alt);
+
+			details = " alt=\"" + HtmlUtil.escapeAttribute(alt) + "\"";
 		}
 		else if (isLabel()) {
 			details = " alt=\"\"";
@@ -540,7 +537,8 @@ public class IconTag extends IncludeTag {
 
 			String localizedProcessedMessage = StringPool.BLANK;
 
-			String processedMessage = getProcessedMessage();
+			String processedMessage = HtmlUtil.escapeAttribute(
+				getProcessedMessage());
 
 			if (processedMessage != null) {
 				localizedProcessedMessage = LanguageUtil.get(
@@ -566,7 +564,7 @@ public class IconTag extends IncludeTag {
 		String spriteFileName = null;
 		String spriteFileURL = null;
 
-		String imageFileName = StringUtil.replace(_src, "common/../", "");
+		String imageFileName = StringUtil.removeSubstring(_src, "common/../");
 
 		HttpServletRequest httpServletRequest = getRequest();
 
@@ -584,7 +582,7 @@ public class IconTag extends IncludeTag {
 
 					imageFileName = imageURL.getPath();
 				}
-				catch (MalformedURLException murle) {
+				catch (MalformedURLException malformedURLException) {
 				}
 			}
 		}
@@ -658,7 +656,7 @@ public class IconTag extends IncludeTag {
 
 			sb.append(details);
 			sb.append(" style=\"background-image: url('");
-			sb.append(spriteFileURL);
+			sb.append(HtmlUtil.escapeCSS(spriteFileURL));
 			sb.append("'); background-position: 50% -");
 			sb.append(spriteImage.getOffset());
 			sb.append("px; background-repeat: no-repeat; height: ");
@@ -700,7 +698,7 @@ public class IconTag extends IncludeTag {
 			sb.append(_image);
 			sb.append(".png");
 
-			return StringUtil.replace(sb.toString(), "common/../", "");
+			return StringUtil.removeSubstring(sb.toString(), "common/../");
 		}
 
 		return StringPool.BLANK;

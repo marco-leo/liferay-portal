@@ -22,10 +22,15 @@ import com.liferay.portal.kernel.template.TemplateResourceCache;
 import com.liferay.portal.template.BaseTemplate;
 import com.liferay.portal.template.TemplateContextHelper;
 import com.liferay.portal.template.TemplateResourceThreadLocal;
+import com.liferay.taglib.util.VelocityTaglib;
+import com.liferay.taglib.util.VelocityTaglibImpl;
 
 import java.io.Writer;
 
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -45,10 +50,11 @@ public class VelocityTemplate extends BaseTemplate {
 
 		super(templateResource, context, templateContextHelper, restricted);
 
-		_velocityContext = new VelocityContext(super.context);
 		_velocityEngine = velocityEngine;
 		_templateResourceCache = templateResourceCache;
 		_restricted = restricted;
+
+		_velocityContext = new VelocityContext(super.context);
 
 		if (templateResourceCache.isEnabled()) {
 			cacheTemplateResource(templateResourceCache, templateResource);
@@ -56,9 +62,25 @@ public class VelocityTemplate extends BaseTemplate {
 	}
 
 	@Override
+	public void prepareTaglib(
+		HttpServletRequest httpServletRequest,
+		HttpServletResponse httpServletResponse) {
+
+		VelocityTaglib velocityTaglib = new VelocityTaglibImpl(
+			httpServletRequest.getServletContext(), httpServletRequest,
+			httpServletResponse, context);
+
+		context.put("taglibLiferay", velocityTaglib);
+
+		// Legacy support
+
+		context.put("theme", velocityTaglib);
+	}
+
+	@Override
 	protected void handleException(
 			TemplateResource templateResource,
-			TemplateResource errorTemplateResource, Exception exception,
+			TemplateResource errorTemplateResource, Exception exception1,
 			Writer writer)
 		throws TemplateException {
 
@@ -67,7 +89,7 @@ public class VelocityTemplate extends BaseTemplate {
 				_templateResourceCache, errorTemplateResource);
 		}
 
-		put("exception", exception.getMessage());
+		put("exception", exception1.getMessage());
 
 		if (templateResource instanceof StringTemplateResource) {
 			StringTemplateResource stringTemplateResource =
@@ -76,21 +98,22 @@ public class VelocityTemplate extends BaseTemplate {
 			put("script", stringTemplateResource.getContent());
 		}
 
-		if (exception instanceof ParseErrorException) {
-			ParseErrorException pee = (ParseErrorException)exception;
+		if (exception1 instanceof ParseErrorException) {
+			ParseErrorException parseErrorException =
+				(ParseErrorException)exception1;
 
-			put("column", pee.getColumnNumber());
-			put("line", pee.getLineNumber());
+			put("column", parseErrorException.getColumnNumber());
+			put("line", parseErrorException.getLineNumber());
 		}
 
 		try {
 			processTemplate(errorTemplateResource, writer);
 		}
-		catch (Exception e) {
+		catch (Exception exception2) {
 			throw new TemplateException(
 				"Unable to process Velocity template " +
 					errorTemplateResource.getTemplateId(),
-				e);
+				exception2);
 		}
 	}
 

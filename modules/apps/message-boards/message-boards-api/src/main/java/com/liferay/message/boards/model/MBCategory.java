@@ -31,7 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface MBCategory extends MBCategoryModel, PersistedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.message.boards.model.impl.MBCategoryImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -62,8 +62,12 @@ public interface MBCategory extends MBCategoryModel, PersistedModel {
 	public java.util.List<MBCategory> getAncestors()
 		throws com.liferay.portal.kernel.exception.PortalException;
 
+	public int getMessageCount();
+
 	public MBCategory getParentCategory()
 		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public int getThreadCount();
 
 	public boolean isRoot();
 

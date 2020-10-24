@@ -18,6 +18,7 @@ import com.liferay.headless.admin.user.client.dto.v1_0.Site;
 import com.liferay.headless.admin.user.client.http.HttpInvoker;
 import com.liferay.headless.admin.user.client.pagination.Page;
 import com.liferay.headless.admin.user.client.pagination.Pagination;
+import com.liferay.headless.admin.user.client.problem.Problem;
 import com.liferay.headless.admin.user.client.serdes.v1_0.SiteSerDes;
 
 import java.util.LinkedHashMap;
@@ -103,8 +104,8 @@ public interface SiteResource {
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
-		private String _login = "test@liferay.com";
-		private String _password = "test";
+		private String _login = "";
+		private String _password = "";
 		private Map<String, String> _parameters = new LinkedHashMap<>();
 		private int _port = 8080;
 		private String _scheme = "http";
@@ -127,7 +128,16 @@ public interface SiteResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return Page.of(content, SiteSerDes::toDTO);
+			try {
+				return Page.of(content, SiteSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse getMyUserAccountSitesPageHttpResponse(
@@ -195,7 +205,7 @@ public interface SiteResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -255,7 +265,7 @@ public interface SiteResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 

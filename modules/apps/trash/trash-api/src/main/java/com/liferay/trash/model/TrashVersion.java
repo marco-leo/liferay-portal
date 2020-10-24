@@ -31,7 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface TrashVersion extends PersistedModel, TrashVersionModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.trash.model.impl.TrashVersionImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -65,6 +65,6 @@ public interface TrashVersion extends PersistedModel, TrashVersionModel {
 
 	public void setTypeSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties
-			typeSettingsProperties);
+			typeSettingsUnicodeProperties);
 
 }

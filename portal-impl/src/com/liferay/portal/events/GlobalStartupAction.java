@@ -74,8 +74,9 @@ public class GlobalStartupAction extends SimpleAction {
 
 				autoDeployListeners.add(autoDeployListener);
 			}
-			catch (Exception e) {
-				_log.error("Unable to initialiaze auto deploy listener", e);
+			catch (Exception exception) {
+				_log.error(
+					"Unable to initialiaze auto deploy listener", exception);
 			}
 		}
 
@@ -106,8 +107,9 @@ public class GlobalStartupAction extends SimpleAction {
 
 				hotDeployListeners.add(hotDeployListener);
 			}
-			catch (Exception e) {
-				_log.error("Unable to initialiaze hot deploy listener", e);
+			catch (Exception exception) {
+				_log.error(
+					"Unable to initialiaze hot deploy listener", exception);
 			}
 		}
 
@@ -126,12 +128,9 @@ public class GlobalStartupAction extends SimpleAction {
 			File destDir = new File(DeployUtil.getAutoDeployDestDir());
 			long interval = PropsValues.AUTO_DEPLOY_INTERVAL;
 
-			List<AutoDeployListener> autoDeployListeners =
-				getAutoDeployListeners(false);
-
 			AutoDeployDir autoDeployDir = new AutoDeployDir(
 				AutoDeployDir.DEFAULT_NAME, deployDir, destDir, interval,
-				autoDeployListeners);
+				getAutoDeployListeners(false));
 
 			if (PropsValues.AUTO_DEPLOY_ENABLED) {
 				if (_log.isInfoEnabled()) {
@@ -146,8 +145,8 @@ public class GlobalStartupAction extends SimpleAction {
 				}
 			}
 		}
-		catch (Exception e) {
-			_log.error("Unable to register auto deploy directories", e);
+		catch (Exception exception) {
+			_log.error("Unable to register auto deploy directories", exception);
 		}
 
 		// Hot deploy

@@ -86,8 +86,8 @@ public class SharingConfigurationFactoryImpl
 				group, sharingGroupConfiguration, sharingCompanyConfiguration,
 				_sharingSystemConfiguration);
 		}
-		catch (ConfigurationException ce) {
-			_log.error(ce, ce);
+		catch (ConfigurationException configurationException) {
+			_log.error(configurationException, configurationException);
 
 			return new SharingConfigurationImpl(
 				null, null, null, _sharingSystemConfiguration);
@@ -117,6 +117,25 @@ public class SharingConfigurationFactoryImpl
 		}
 
 		@Override
+		public boolean isAvailable() {
+			if (!_sharingSystemConfiguration.enabled()) {
+				return false;
+			}
+
+			if ((_sharingCompanyConfiguration != null) &&
+				!_sharingCompanyConfiguration.enabled()) {
+
+				return false;
+			}
+
+			if ((_group != null) && _group.isStagingGroup()) {
+				return false;
+			}
+
+			return true;
+		}
+
+		@Override
 		public boolean isEnabled() {
 			if (!_sharingSystemConfiguration.enabled()) {
 				return false;
@@ -136,12 +155,12 @@ public class SharingConfigurationFactoryImpl
 				return false;
 			}
 
-			UnicodeProperties typeSettingsProperties =
+			UnicodeProperties typeSettingsUnicodeProperties =
 				_group.getTypeSettingsProperties();
 
-			if (typeSettingsProperties.containsKey("sharingEnabled")) {
+			if (typeSettingsUnicodeProperties.containsKey("sharingEnabled")) {
 				return GetterUtil.getBoolean(
-					typeSettingsProperties.get("sharingEnabled"));
+					typeSettingsUnicodeProperties.get("sharingEnabled"));
 			}
 
 			if (_sharingGroupConfiguration == null) {

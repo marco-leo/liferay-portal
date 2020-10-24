@@ -75,11 +75,9 @@ public class SAPEntryScopeDescriptorFinderRegistrator {
 						serviceRegistration.unregister();
 					}
 
-					serviceRegistration = _bundleContext.registerService(
+					return _bundleContext.registerService(
 						ScopeDescriptor.class, sapEntryScopeDescriptorFinder,
 						_buildScopeDescriptorProperties(companyId));
-
-					return serviceRegistration;
 				});
 
 			Dictionary<String, Object> properties = new HashMapDictionary<>();
@@ -105,11 +103,11 @@ public class SAPEntryScopeDescriptorFinderRegistrator {
 					return serviceRegistration;
 				});
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			_log.error(
 				"Unable to register SAP entry scope descriptor finder for " +
 					"company " + companyId,
-				e);
+				exception);
 		}
 	}
 
@@ -147,16 +145,17 @@ public class SAPEntryScopeDescriptorFinderRegistrator {
 			GetterUtil.getString(
 				serviceReference.getProperty("osgi.jaxrs.name")));
 
-		for (Map.Entry<Long, ServiceRegistration> entry :
+		for (Map.Entry<Long, ServiceRegistration<ScopeDescriptor>> entry :
 				_scopeDescriptorServiceRegistrations.entrySet()) {
 
-			ServiceRegistration serviceRegistration = entry.getValue();
+			ServiceRegistration<ScopeDescriptor> serviceRegistration =
+				entry.getValue();
 
 			try {
 				serviceRegistration.setProperties(
 					_buildScopeDescriptorProperties(entry.getKey()));
 			}
-			catch (IllegalStateException ise) {
+			catch (IllegalStateException illegalStateException) {
 
 				// Concurrent unregistration from register(long)
 
@@ -166,7 +165,7 @@ public class SAPEntryScopeDescriptorFinderRegistrator {
 
 	@Deactivate
 	protected void deactivate() {
-		for (ServiceRegistration serviceRegistration :
+		for (ServiceRegistration<ScopeFinder> serviceRegistration :
 				_scopeFinderServiceRegistrations.values()) {
 
 			serviceRegistration.unregister();
@@ -174,7 +173,7 @@ public class SAPEntryScopeDescriptorFinderRegistrator {
 
 		_scopeFinderServiceRegistrations.clear();
 
-		for (ServiceRegistration serviceRegistration :
+		for (ServiceRegistration<ScopeDescriptor> serviceRegistration :
 				_scopeDescriptorServiceRegistrations.values()) {
 
 			serviceRegistration.unregister();
@@ -210,16 +209,17 @@ public class SAPEntryScopeDescriptorFinderRegistrator {
 			GetterUtil.getString(
 				serviceReference.getProperty("osgi.jaxrs.name")));
 
-		for (Map.Entry<Long, ServiceRegistration> entry :
+		for (Map.Entry<Long, ServiceRegistration<ScopeDescriptor>> entry :
 				_scopeDescriptorServiceRegistrations.entrySet()) {
 
-			ServiceRegistration serviceRegistration = entry.getValue();
+			ServiceRegistration<ScopeDescriptor> serviceRegistration =
+				entry.getValue();
 
 			try {
 				serviceRegistration.setProperties(
 					_buildScopeDescriptorProperties(entry.getKey()));
 			}
-			catch (IllegalStateException ise) {
+			catch (IllegalStateException illegalStateException) {
 
 				// Concurrent unregistration from register(long)
 
@@ -268,9 +268,9 @@ public class SAPEntryScopeDescriptorFinderRegistrator {
 	private SAPEntryLocalService _sapEntryLocalService;
 
 	private String _sapEntryOAuth2Prefix = "OAUTH2_";
-	private final Map<Long, ServiceRegistration>
+	private final Map<Long, ServiceRegistration<ScopeDescriptor>>
 		_scopeDescriptorServiceRegistrations = new ConcurrentHashMap<>();
-	private final Map<Long, ServiceRegistration>
+	private final Map<Long, ServiceRegistration<ScopeFinder>>
 		_scopeFinderServiceRegistrations = new ConcurrentHashMap<>();
 
 }

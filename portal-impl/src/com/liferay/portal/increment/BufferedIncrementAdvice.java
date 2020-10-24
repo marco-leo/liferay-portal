@@ -58,10 +58,6 @@ public class BufferedIncrementAdvice extends ChainableMethodAdvice {
 			BufferedIncrementProcessorUtil.getBufferedIncrementProcessor(
 				bufferedIncrement.configuration());
 
-		if (bufferedIncrementProcessor == null) {
-			return null;
-		}
-
 		return new BufferedIncrementContext(
 			bufferedIncrementProcessor, bufferedIncrement.incrementClass());
 	}
@@ -107,9 +103,9 @@ public class BufferedIncrementAdvice extends ChainableMethodAdvice {
 					return null;
 				});
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn("Unable to increment", e);
+				_log.warn("Unable to increment", exception);
 			}
 		}
 

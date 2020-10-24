@@ -17,6 +17,7 @@ package com.liferay.portal.kernel.util;
 import com.liferay.petra.memory.FinalizeAction;
 import com.liferay.petra.memory.FinalizeManager;
 import com.liferay.petra.reflect.ReflectionUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.internal.util.SystemCheckerUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -87,8 +88,8 @@ public class ServiceProxyFactory {
 				serviceClass, null, field, filterString, blocking,
 				useNullAsDummyService);
 		}
-		catch (ReflectiveOperationException roe) {
-			return ReflectionUtil.throwException(roe);
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			return ReflectionUtil.throwException(reflectiveOperationException);
 		}
 	}
 
@@ -125,8 +126,8 @@ public class ServiceProxyFactory {
 
 			return serviceInstance;
 		}
-		catch (ReflectiveOperationException roe) {
-			return ReflectionUtil.throwException(roe);
+		catch (ReflectiveOperationException reflectiveOperationException) {
+			return ReflectionUtil.throwException(reflectiveOperationException);
 		}
 	}
 
@@ -242,8 +243,10 @@ public class ServiceProxyFactory {
 						try {
 							return method.invoke(service, arguments);
 						}
-						catch (InvocationTargetException ite) {
-							throw ite.getCause();
+						catch (InvocationTargetException
+									invocationTargetException) {
+
+							throw invocationTargetException.getCause();
 						}
 					}
 

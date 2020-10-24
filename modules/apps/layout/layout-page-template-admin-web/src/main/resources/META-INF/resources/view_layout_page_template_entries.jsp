@@ -17,9 +17,9 @@
 <%@ include file="/init.jsp" %>
 
 <%
-LayoutPageTemplateDisplayContext layoutPageTemplateDisplayContext = new LayoutPageTemplateDisplayContext(renderRequest, renderResponse, request);
+LayoutPageTemplateDisplayContext layoutPageTemplateDisplayContext = new LayoutPageTemplateDisplayContext(request, renderRequest, renderResponse);
 
-LayoutPageTemplateManagementToolbarDisplayContext layoutPageTemplateManagementToolbarDisplayContext = new LayoutPageTemplateManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, layoutPageTemplateDisplayContext);
+LayoutPageTemplateManagementToolbarDisplayContext layoutPageTemplateManagementToolbarDisplayContext = new LayoutPageTemplateManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, layoutPageTemplateDisplayContext);
 %>
 
 <clay:management-toolbar
@@ -31,7 +31,7 @@ LayoutPageTemplateManagementToolbarDisplayContext layoutPageTemplateManagementTo
 </portlet:actionURL>
 
 <aui:form action="<%= deleteLayoutPageTemplateEntryURL %>" name="fm">
-	<liferay-ui:error key="<%= PortalException.class.getName() %>" message="one-or-more-entries-could-not-be-deleted" />
+	<liferay-ui:error key="<%= PortalException.class.getName() %>" message="you-cannot-delete-page-templates-that-are-used-by-a-page" />
 
 	<liferay-ui:search-container
 		id="layoutPageTemplateEntries"
@@ -46,9 +46,9 @@ LayoutPageTemplateManagementToolbarDisplayContext layoutPageTemplateManagementTo
 			<%
 			row.setCssClass("entry-card lfr-asset-item " + row.getCssClass());
 
-			Map<String, Object> rowData = new HashMap<>();
-
-			rowData.put("actions", layoutPageTemplateManagementToolbarDisplayContext.getAvailableActions(layoutPageTemplateEntry));
+			Map<String, Object> rowData = HashMapBuilder.<String, Object>put(
+				"actions", layoutPageTemplateManagementToolbarDisplayContext.getAvailableActions(layoutPageTemplateEntry)
+			).build();
 
 			row.setData(rowData);
 			%>

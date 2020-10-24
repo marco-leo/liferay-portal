@@ -46,12 +46,12 @@ public abstract class BaseAppManagerManagementToolbarDisplayContext
 	extends BaseManagementToolbarDisplayContext {
 
 	public BaseAppManagerManagementToolbarDisplayContext(
+		HttpServletRequest httpServletRequest,
 		LiferayPortletRequest liferayPortletRequest,
-		LiferayPortletResponse liferayPortletResponse,
-		HttpServletRequest httpServletRequest) {
+		LiferayPortletResponse liferayPortletResponse) {
 
 		super(
-			liferayPortletRequest, liferayPortletResponse, httpServletRequest);
+			httpServletRequest, liferayPortletRequest, liferayPortletResponse);
 	}
 
 	public String getCategory() {
@@ -108,7 +108,8 @@ public abstract class BaseAppManagerManagementToolbarDisplayContext
 		return searchActionURL.toString();
 	}
 
-	public abstract SearchContainer getSearchContainer() throws Exception;
+	public abstract SearchContainer<Object> getSearchContainer()
+		throws Exception;
 
 	public String getState() {
 		if (Validator.isNull(_state)) {

@@ -14,6 +14,7 @@
 
 package com.liferay.portal.service.base;
 
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -35,6 +36,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
 import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.service.UserNotificationEventLocalService;
+import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.UserFinder;
 import com.liferay.portal.kernel.service.persistence.UserNotificationEventPersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
@@ -63,7 +65,7 @@ public abstract class UserNotificationEventLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements IdentifiableOSGiService, UserNotificationEventLocalService {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>UserNotificationEventLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.portal.kernel.service.UserNotificationEventLocalServiceUtil</code>.
@@ -71,6 +73,10 @@ public abstract class UserNotificationEventLocalServiceBaseImpl
 
 	/**
 	 * Adds the user notification event to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserNotificationEventLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param userNotificationEvent the user notification event
 	 * @return the user notification event that was added
@@ -102,6 +108,10 @@ public abstract class UserNotificationEventLocalServiceBaseImpl
 	/**
 	 * Deletes the user notification event with the primary key from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserNotificationEventLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param userNotificationEventId the primary key of the user notification event
 	 * @return the user notification event that was removed
 	 * @throws PortalException if a user notification event with the primary key could not be found
@@ -118,6 +128,10 @@ public abstract class UserNotificationEventLocalServiceBaseImpl
 	/**
 	 * Deletes the user notification event from the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserNotificationEventLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param userNotificationEvent the user notification event
 	 * @return the user notification event that was removed
 	 */
@@ -127,6 +141,11 @@ public abstract class UserNotificationEventLocalServiceBaseImpl
 		UserNotificationEvent userNotificationEvent) {
 
 		return userNotificationEventPersistence.remove(userNotificationEvent);
+	}
+
+	@Override
+	public <T> T dslQuery(DSLQuery dslQuery) {
+		return userNotificationEventPersistence.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -308,6 +327,17 @@ public abstract class UserNotificationEventLocalServiceBaseImpl
 	 * @throws PortalException
 	 */
 	@Override
+	public PersistedModel createPersistedModel(Serializable primaryKeyObj)
+		throws PortalException {
+
+		return userNotificationEventPersistence.create(
+			((Long)primaryKeyObj).longValue());
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
 	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
 		throws PortalException {
 
@@ -315,6 +345,14 @@ public abstract class UserNotificationEventLocalServiceBaseImpl
 			(UserNotificationEvent)persistedModel);
 	}
 
+	@Override
+	public BasePersistence<UserNotificationEvent> getBasePersistence() {
+		return userNotificationEventPersistence;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException {
@@ -369,6 +407,10 @@ public abstract class UserNotificationEventLocalServiceBaseImpl
 
 	/**
 	 * Updates the user notification event in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect UserNotificationEventLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param userNotificationEvent the user notification event
 	 * @return the user notification event that was updated
@@ -557,8 +599,8 @@ public abstract class UserNotificationEventLocalServiceBaseImpl
 
 			sqlUpdate.update();
 		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 

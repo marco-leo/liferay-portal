@@ -39,7 +39,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface DDLRecordModel
 	extends BaseModel<DDLRecord>, MVCCModel, ShardedModel, StagedGroupedModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a ddl record model instance should use the {@link DDLRecord} interface instead.
@@ -304,6 +304,35 @@ public interface DDLRecordModel
 	 * @param recordSetVersion the record set version of this ddl record
 	 */
 	public void setRecordSetVersion(String recordSetVersion);
+
+	/**
+	 * Returns the class name of this ddl record.
+	 *
+	 * @return the class name of this ddl record
+	 */
+	@AutoEscape
+	public String getClassName();
+
+	/**
+	 * Sets the class name of this ddl record.
+	 *
+	 * @param className the class name of this ddl record
+	 */
+	public void setClassName(String className);
+
+	/**
+	 * Returns the class pk of this ddl record.
+	 *
+	 * @return the class pk of this ddl record
+	 */
+	public long getClassPK();
+
+	/**
+	 * Sets the class pk of this ddl record.
+	 *
+	 * @param classPK the class pk of this ddl record
+	 */
+	public void setClassPK(long classPK);
 
 	/**
 	 * Returns the version of this ddl record.

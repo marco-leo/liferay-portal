@@ -57,27 +57,27 @@ public class DDMDataProviderInvokerImpl implements DDMDataProviderInvoker {
 		try {
 			return doInvoke(ddmDataProviderRequest);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					"Unable to invoke DDM Data Provider instance ID " +
 						ddmDataProviderRequest.getDDMDataProviderId(),
-					e);
+					exception);
 			}
 
-			return createDDMDataProviderErrorResponse(e);
+			return createDDMDataProviderErrorResponse(exception);
 		}
 	}
 
 	protected DDMDataProviderResponse createDDMDataProviderErrorResponse(
-		Exception e) {
+		Exception exception) {
 
 		DDMDataProviderResponse.Builder builder =
 			DDMDataProviderResponse.Builder.newBuilder();
 
-		if (e instanceof HystrixRuntimeException) {
+		if (exception instanceof HystrixRuntimeException) {
 			HystrixRuntimeException.FailureType failureType =
-				getHystrixFailureType(e);
+				getHystrixFailureType(exception);
 
 			if (failureType ==
 					HystrixRuntimeException.FailureType.COMMAND_EXCEPTION) {
@@ -98,7 +98,7 @@ public class DDMDataProviderInvokerImpl implements DDMDataProviderInvoker {
 					DDMDataProviderResponseStatus.TIMEOUT);
 			}
 		}
-		else if (e instanceof PrincipalException) {
+		else if (exception instanceof PrincipalException) {
 			builder = builder.withStatus(
 				DDMDataProviderResponseStatus.UNAUTHORIZED);
 		}
@@ -200,10 +200,10 @@ public class DDMDataProviderInvokerImpl implements DDMDataProviderInvoker {
 	}
 
 	protected HystrixRuntimeException.FailureType getHystrixFailureType(
-		Exception e) {
+		Exception exception) {
 
 		HystrixRuntimeException hystrixRuntimeException =
-			(HystrixRuntimeException)e;
+			(HystrixRuntimeException)exception;
 
 		return hystrixRuntimeException.getFailureType();
 	}

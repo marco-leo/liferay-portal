@@ -73,8 +73,15 @@ public class MyGroupItemSelectorView
 	}
 
 	@Override
-	public boolean isVisible(ThemeDisplay themeDisplay) {
-		return true;
+	public boolean isVisible(
+		GroupItemSelectorCriterion groupItemSelectorCriterion,
+		ThemeDisplay themeDisplay) {
+
+		if (groupItemSelectorCriterion.isIncludeRecentSites()) {
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override

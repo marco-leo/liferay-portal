@@ -22,7 +22,6 @@ import com.liferay.portal.search.elasticsearch7.internal.ElasticsearchIndexingFi
 import com.liferay.portal.search.elasticsearch7.internal.LiferayElasticsearchIndexingFixtureFactory;
 import com.liferay.portal.search.elasticsearch7.internal.connection.ElasticsearchClientResolver;
 import com.liferay.portal.search.elasticsearch7.internal.connection.IndexCreationHelper;
-import com.liferay.portal.search.elasticsearch7.internal.index.LiferayTypeMappingsConstants;
 import com.liferay.portal.search.test.util.DocumentsAssert;
 import com.liferay.portal.search.test.util.indexing.BaseIndexingTestCase;
 import com.liferay.portal.search.test.util.indexing.DocumentCreationHelpers;
@@ -33,10 +32,10 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.PutMappingRequest;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
 
@@ -93,7 +92,7 @@ public class GeoLocationPointFieldTest extends BaseIndexingTestCase {
 
 		elasticsearchIndexingFixture.setIndexCreationHelper(
 			new CustomFieldLiferayIndexCreationHelper(
-				elasticsearchIndexingFixture.getElasticsearchFixture()));
+				elasticsearchIndexingFixture.getElasticsearchClientResolver()));
 
 		return elasticsearchIndexingFixture;
 	}
@@ -139,9 +138,6 @@ public class GeoLocationPointFieldTest extends BaseIndexingTestCase {
 
 			putMappingRequest.source(source, XContentType.JSON);
 
-			putMappingRequest.type(
-				LiferayTypeMappingsConstants.LIFERAY_DOCUMENT_TYPE);
-
 			RestHighLevelClient restHighLevelClient =
 				_elasticsearchClientResolver.getRestHighLevelClient();
 
@@ -151,8 +147,8 @@ public class GeoLocationPointFieldTest extends BaseIndexingTestCase {
 				indicesClient.putMapping(
 					putMappingRequest, RequestOptions.DEFAULT);
 			}
-			catch (IOException ioe) {
-				throw new RuntimeException(ioe);
+			catch (IOException ioException) {
+				throw new RuntimeException(ioException);
 			}
 		}
 

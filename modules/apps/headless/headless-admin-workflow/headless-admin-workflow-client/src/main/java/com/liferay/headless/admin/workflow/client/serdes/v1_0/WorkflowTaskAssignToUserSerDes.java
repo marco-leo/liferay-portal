@@ -103,6 +103,16 @@ public class WorkflowTaskAssignToUserSerDes {
 			sb.append("\"");
 		}
 
+		if (workflowTaskAssignToUser.getWorkflowTaskId() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"workflowTaskId\": ");
+
+			sb.append(workflowTaskAssignToUser.getWorkflowTaskId());
+		}
+
 		sb.append("}");
 
 		return sb.toString();
@@ -145,10 +155,24 @@ public class WorkflowTaskAssignToUserSerDes {
 				String.valueOf(workflowTaskAssignToUser.getComment()));
 		}
 
-		map.put(
-			"dueDate",
-			liferayToJSONDateFormat.format(
-				workflowTaskAssignToUser.getDueDate()));
+		if (workflowTaskAssignToUser.getDueDate() == null) {
+			map.put("dueDate", null);
+		}
+		else {
+			map.put(
+				"dueDate",
+				liferayToJSONDateFormat.format(
+					workflowTaskAssignToUser.getDueDate()));
+		}
+
+		if (workflowTaskAssignToUser.getWorkflowTaskId() == null) {
+			map.put("workflowTaskId", null);
+		}
+		else {
+			map.put(
+				"workflowTaskId",
+				String.valueOf(workflowTaskAssignToUser.getWorkflowTaskId()));
+		}
 
 		return map;
 	}
@@ -189,9 +213,14 @@ public class WorkflowTaskAssignToUserSerDes {
 						toDate((String)jsonParserFieldValue));
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (Objects.equals(jsonParserFieldName, "workflowTaskId")) {
+				if (jsonParserFieldValue != null) {
+					workflowTaskAssignToUser.setWorkflowTaskId(
+						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -247,10 +276,13 @@ public class WorkflowTaskAssignToUserSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

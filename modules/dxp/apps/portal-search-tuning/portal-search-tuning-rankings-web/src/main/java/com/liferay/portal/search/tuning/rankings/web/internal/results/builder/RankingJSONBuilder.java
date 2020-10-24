@@ -79,6 +79,8 @@ public class RankingJSONBuilder {
 		).put(
 			"date", _getDateString()
 		).put(
+			"deleted", _deleted
+		).put(
 			"description", _getDescription()
 		).put(
 			"hidden", _hidden
@@ -92,7 +94,15 @@ public class RankingJSONBuilder {
 			"title", _getTitle()
 		).put(
 			"type", _getType()
+		).put(
+			"viewURL", _getViewURL()
 		);
+	}
+
+	public RankingJSONBuilder deleted(boolean deleted) {
+		_deleted = deleted;
+
+		return this;
 	}
 
 	public RankingJSONBuilder document(Document document) {
@@ -109,6 +119,12 @@ public class RankingJSONBuilder {
 
 	public RankingJSONBuilder pinned(boolean pinned) {
 		_pinned = pinned;
+
+		return this;
+	}
+
+	public RankingJSONBuilder viewURL(String viewURL) {
+		_viewURL = viewURL;
 
 		return this;
 	}
@@ -164,9 +180,10 @@ public class RankingJSONBuilder {
 		try {
 			return dateFormat.parse(dateStringFieldValue);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			throw new IllegalArgumentException(
-				"Unable to parse date string: " + dateStringFieldValue, e);
+				"Unable to parse date string: " + dateStringFieldValue,
+				exception);
 		}
 	}
 
@@ -204,10 +221,11 @@ public class RankingJSONBuilder {
 
 				return _getIconFileMimeType(fileEntry.getMimeType());
 			}
-			catch (PortalException pe) {
+			catch (PortalException portalException) {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
-						"Unable to get file entry for " + entryClassPK, pe);
+						"Unable to get file entry for " + entryClassPK,
+						portalException);
 				}
 
 				return "document-default";
@@ -297,6 +315,10 @@ public class RankingJSONBuilder {
 		return _resourceActions.getModelResource(_locale, entryClassName);
 	}
 
+	private String _getViewURL() {
+		return _viewURL;
+	}
+
 	private boolean _isFileEntry() {
 		String entryClassName = _document.getString(Field.ENTRY_CLASS_NAME);
 
@@ -312,6 +334,7 @@ public class RankingJSONBuilder {
 	private static final Log _log = LogFactoryUtil.getLog(
 		RankingJSONBuilder.class);
 
+	private boolean _deleted;
 	private final DLAppLocalService _dlAppLocalService;
 	private final DLConfiguration _dlConfiguration;
 	private Document _document;
@@ -321,5 +344,6 @@ public class RankingJSONBuilder {
 	private boolean _pinned;
 	private final ResourceActions _resourceActions;
 	private final ThemeDisplay _themeDisplay;
+	private String _viewURL;
 
 }

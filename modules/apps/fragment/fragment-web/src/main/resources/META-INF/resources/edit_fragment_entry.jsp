@@ -17,11 +17,12 @@
 <%@ include file="/init.jsp" %>
 
 <%
-EditFragmentEntryDisplayContext editFragmentEntryDisplayContext = new EditFragmentEntryDisplayContext(renderResponse, request);
+EditFragmentEntryDisplayContext editFragmentEntryDisplayContext = new EditFragmentEntryDisplayContext(request, renderResponse);
 %>
 
-<soy:component-renderer
-	context="<%= editFragmentEntryDisplayContext.getFragmentEditorDisplayContext() %>"
-	module="js/FragmentEditor.es"
-	templateNamespace="com.liferay.fragment.web.FragmentEditor.render"
-/>
+<div>
+	<react:component
+		module="js/fragment-editor/FragmentEditor"
+		props="<%= editFragmentEntryDisplayContext.getFragmentEditorData() %>"
+	/>
+</div>

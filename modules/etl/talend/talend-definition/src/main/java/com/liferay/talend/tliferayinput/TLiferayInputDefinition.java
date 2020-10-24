@@ -14,15 +14,17 @@
 
 package com.liferay.talend.tliferayinput;
 
-import com.liferay.talend.LiferayBaseComponentDefinition;
-import com.liferay.talend.resource.LiferayInputResourceProperties;
+import com.liferay.talend.LiferayDefinition;
+import com.liferay.talend.properties.input.LiferayInputProperties;
 
 import java.util.EnumSet;
 import java.util.Set;
 
 import org.talend.components.api.component.ConnectorTopology;
 import org.talend.components.api.component.runtime.ExecutionEngine;
+import org.talend.components.api.exception.error.ComponentsErrorCode;
 import org.talend.components.api.properties.ComponentProperties;
+import org.talend.daikon.exception.TalendRuntimeException;
 import org.talend.daikon.properties.property.Property;
 import org.talend.daikon.runtime.RuntimeInfo;
 
@@ -30,7 +32,7 @@ import org.talend.daikon.runtime.RuntimeInfo;
  * @author Zoltán Takács
  * @author Ivica Cardic
  */
-public class TLiferayInputDefinition extends LiferayBaseComponentDefinition {
+public class TLiferayInputDefinition extends LiferayDefinition {
 
 	public static final String COMPONENT_NAME = "tLiferayInput";
 
@@ -45,7 +47,7 @@ public class TLiferayInputDefinition extends LiferayBaseComponentDefinition {
 		return concatPropertiesClasses(
 			super.getNestedCompatibleComponentPropertiesClass(),
 			(Class<? extends ComponentProperties>[])new Class<?>[] {
-				LiferayInputResourceProperties.class
+				LiferayInputProperties.class
 			});
 	}
 
@@ -66,9 +68,20 @@ public class TLiferayInputDefinition extends LiferayBaseComponentDefinition {
 		ComponentProperties componentProperties,
 		ConnectorTopology connectorTopology) {
 
+		if (connectorTopology != ConnectorTopology.OUTGOING) {
+			TalendRuntimeException.TalendRuntimeExceptionBuilder builder =
+				new TalendRuntimeException.TalendRuntimeExceptionBuilder(
+					ComponentsErrorCode.WRONG_CONNECTOR,
+					new IllegalArgumentException());
+
+			builder.put("component", COMPONENT_NAME);
+
+			throw builder.create();
+		}
+
 		assertEngineCompatibility(executionEngine);
 
-		return getCommonRuntimeInfo(RUNTIME_SOURCE_CLASS_NAME);
+		return getCommonRuntimeInfo(SOURCE_CLASS_NAME);
 	}
 
 	@Override

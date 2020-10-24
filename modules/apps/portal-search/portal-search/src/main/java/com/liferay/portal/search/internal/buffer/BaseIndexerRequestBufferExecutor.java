@@ -18,9 +18,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.IndexWriterHelper;
 import com.liferay.portal.kernel.search.SearchException;
-import com.liferay.portal.search.buffer.IndexerRequest;
-import com.liferay.portal.search.buffer.IndexerRequestBuffer;
-import com.liferay.portal.search.buffer.IndexerRequestBufferExecutor;
 
 import java.util.Set;
 
@@ -50,9 +47,10 @@ public abstract class BaseIndexerRequestBufferExecutor
 			try {
 				indexWriterHelper.commit(searchEngineId);
 			}
-			catch (SearchException se) {
+			catch (SearchException searchException) {
 				if (_log.isWarnEnabled()) {
-					_log.warn("Unable to commit search engine", se);
+					_log.warn(
+						"Unable to commit search engine", searchException);
 				}
 			}
 		}
@@ -66,10 +64,11 @@ public abstract class BaseIndexerRequestBufferExecutor
 
 			searchEngineIds.add(indexerRequest.getSearchEngineId());
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
-					"Unable to execute index request " + indexerRequest, e);
+					"Unable to execute index request " + indexerRequest,
+					exception);
 			}
 		}
 	}

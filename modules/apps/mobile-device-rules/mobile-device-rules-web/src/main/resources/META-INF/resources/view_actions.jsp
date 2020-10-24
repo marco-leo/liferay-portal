@@ -20,11 +20,6 @@
 MDRActionDisplayContext mdrActionDisplayContext = new MDRActionDisplayContext(renderRequest, renderResponse, resourceBundle);
 %>
 
-<clay:navigation-bar
-	inverted="<%= true %>"
-	navigationItems="<%= mdrActionDisplayContext.getActionNavigationItems() %>"
-/>
-
 <liferay-frontend:management-bar
 	includeCheckBox="<%= true %>"
 	searchContainerId="actionActions"
@@ -177,13 +172,13 @@ PortletURL portletURL = mdrActionDisplayContext.getPortletURL();
 </aui:form>
 
 <script>
-	(function() {
+	(function () {
 		var deleteActionsButton = document.getElementById(
 			'<portlet:namespace />deleteActions'
 		);
 
 		if (deleteActionsButton) {
-			deleteActionsButton.addEventListener('click', function() {
+			deleteActionsButton.addEventListener('click', function () {
 				if (
 					confirm(
 						'<%= UnicodeLanguageUtil.get(resourceBundle, "are-you-sure-you-want-to-delete-this") %>'

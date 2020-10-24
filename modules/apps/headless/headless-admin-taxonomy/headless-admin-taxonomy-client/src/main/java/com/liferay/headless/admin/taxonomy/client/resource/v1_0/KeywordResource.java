@@ -18,6 +18,7 @@ import com.liferay.headless.admin.taxonomy.client.dto.v1_0.Keyword;
 import com.liferay.headless.admin.taxonomy.client.http.HttpInvoker;
 import com.liferay.headless.admin.taxonomy.client.pagination.Page;
 import com.liferay.headless.admin.taxonomy.client.pagination.Pagination;
+import com.liferay.headless.admin.taxonomy.client.problem.Problem;
 import com.liferay.headless.admin.taxonomy.client.serdes.v1_0.KeywordSerDes;
 
 import java.util.LinkedHashMap;
@@ -39,9 +40,49 @@ public interface KeywordResource {
 		return new Builder();
 	}
 
+	public Page<Keyword> getAssetLibraryKeywordsPage(
+			Long assetLibraryId, String search, String filterString,
+			Pagination pagination, String sortString)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse getAssetLibraryKeywordsPageHttpResponse(
+			Long assetLibraryId, String search, String filterString,
+			Pagination pagination, String sortString)
+		throws Exception;
+
+	public Keyword postAssetLibraryKeyword(Long assetLibraryId, Keyword keyword)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse postAssetLibraryKeywordHttpResponse(
+			Long assetLibraryId, Keyword keyword)
+		throws Exception;
+
+	public void postAssetLibraryKeywordBatch(
+			Long assetLibraryId, String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse postAssetLibraryKeywordBatchHttpResponse(
+			Long assetLibraryId, String callbackURL, Object object)
+		throws Exception;
+
+	public Page<Keyword> getKeywordsRankedPage(
+			Long siteId, String search, Pagination pagination)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse getKeywordsRankedPageHttpResponse(
+			Long siteId, String search, Pagination pagination)
+		throws Exception;
+
 	public void deleteKeyword(Long keywordId) throws Exception;
 
 	public HttpInvoker.HttpResponse deleteKeywordHttpResponse(Long keywordId)
+		throws Exception;
+
+	public void deleteKeywordBatch(String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse deleteKeywordBatchHttpResponse(
+			String callbackURL, Object object)
 		throws Exception;
 
 	public Keyword getKeyword(Long keywordId) throws Exception;
@@ -53,6 +94,13 @@ public interface KeywordResource {
 
 	public HttpInvoker.HttpResponse putKeywordHttpResponse(
 			Long keywordId, Keyword keyword)
+		throws Exception;
+
+	public void putKeywordBatch(String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse putKeywordBatchHttpResponse(
+			String callbackURL, Object object)
 		throws Exception;
 
 	public Page<Keyword> getSiteKeywordsPage(
@@ -70,6 +118,14 @@ public interface KeywordResource {
 
 	public HttpInvoker.HttpResponse postSiteKeywordHttpResponse(
 			Long siteId, Keyword keyword)
+		throws Exception;
+
+	public void postSiteKeywordBatch(
+			Long siteId, String callbackURL, Object object)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse postSiteKeywordBatchHttpResponse(
+			Long siteId, String callbackURL, Object object)
 		throws Exception;
 
 	public static class Builder {
@@ -117,8 +173,8 @@ public interface KeywordResource {
 		private Map<String, String> _headers = new LinkedHashMap<>();
 		private String _host = "localhost";
 		private Locale _locale;
-		private String _login = "test@liferay.com";
-		private String _password = "test";
+		private String _login = "";
+		private String _password = "";
 		private Map<String, String> _parameters = new LinkedHashMap<>();
 		private int _port = 8080;
 		private String _scheme = "http";
@@ -126,6 +182,299 @@ public interface KeywordResource {
 	}
 
 	public static class KeywordResourceImpl implements KeywordResource {
+
+		public Page<Keyword> getAssetLibraryKeywordsPage(
+				Long assetLibraryId, String search, String filterString,
+				Pagination pagination, String sortString)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				getAssetLibraryKeywordsPageHttpResponse(
+					assetLibraryId, search, filterString, pagination,
+					sortString);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return Page.of(content, KeywordSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse getAssetLibraryKeywordsPageHttpResponse(
+				Long assetLibraryId, String search, String filterString,
+				Pagination pagination, String sortString)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			if (search != null) {
+				httpInvoker.parameter("search", String.valueOf(search));
+			}
+
+			if (filterString != null) {
+				httpInvoker.parameter("filter", filterString);
+			}
+
+			if (pagination != null) {
+				httpInvoker.parameter(
+					"page", String.valueOf(pagination.getPage()));
+				httpInvoker.parameter(
+					"pageSize", String.valueOf(pagination.getPageSize()));
+			}
+
+			if (sortString != null) {
+				httpInvoker.parameter("sort", sortString);
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-admin-taxonomy/v1.0/asset-libraries/{assetLibraryId}/keywords",
+				assetLibraryId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public Keyword postAssetLibraryKeyword(
+				Long assetLibraryId, Keyword keyword)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postAssetLibraryKeywordHttpResponse(assetLibraryId, keyword);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return KeywordSerDes.toDTO(content);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse postAssetLibraryKeywordHttpResponse(
+				Long assetLibraryId, Keyword keyword)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(keyword.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-admin-taxonomy/v1.0/asset-libraries/{assetLibraryId}/keywords",
+				assetLibraryId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void postAssetLibraryKeywordBatch(
+				Long assetLibraryId, String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postAssetLibraryKeywordBatchHttpResponse(
+					assetLibraryId, callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				postAssetLibraryKeywordBatchHttpResponse(
+					Long assetLibraryId, String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-admin-taxonomy/v1.0/asset-libraries/{assetLibraryId}/keywords/batch",
+				assetLibraryId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public Page<Keyword> getKeywordsRankedPage(
+				Long siteId, String search, Pagination pagination)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				getKeywordsRankedPageHttpResponse(siteId, search, pagination);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return Page.of(content, KeywordSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
+		}
+
+		public HttpInvoker.HttpResponse getKeywordsRankedPageHttpResponse(
+				Long siteId, String search, Pagination pagination)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			if (siteId != null) {
+				httpInvoker.parameter("siteId", String.valueOf(siteId));
+			}
+
+			if (search != null) {
+				httpInvoker.parameter("search", String.valueOf(search));
+			}
+
+			if (pagination != null) {
+				httpInvoker.parameter(
+					"page", String.valueOf(pagination.getPage()));
+				httpInvoker.parameter(
+					"pageSize", String.valueOf(pagination.getPageSize()));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-admin-taxonomy/v1.0/keywords/ranked");
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
 
 		public void deleteKeyword(Long keywordId) throws Exception {
 			HttpInvoker.HttpResponse httpResponse = deleteKeywordHttpResponse(
@@ -138,6 +487,17 @@ public interface KeywordResource {
 			_logger.fine("HTTP response message: " + httpResponse.getMessage());
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return;
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse deleteKeywordHttpResponse(
@@ -177,6 +537,62 @@ public interface KeywordResource {
 			return httpInvoker.invoke();
 		}
 
+		public void deleteKeywordBatch(String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				deleteKeywordBatchHttpResponse(callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse deleteKeywordBatchHttpResponse(
+				String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.DELETE);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-admin-taxonomy/v1.0/keywords/batch");
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public Keyword getKeyword(Long keywordId) throws Exception {
 			HttpInvoker.HttpResponse httpResponse = getKeywordHttpResponse(
 				keywordId);
@@ -197,7 +613,7 @@ public interface KeywordResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -259,7 +675,7 @@ public interface KeywordResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -302,6 +718,64 @@ public interface KeywordResource {
 			return httpInvoker.invoke();
 		}
 
+		public void putKeywordBatch(String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse = putKeywordBatchHttpResponse(
+				callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse putKeywordBatchHttpResponse(
+				String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-admin-taxonomy/v1.0/keywords/batch");
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public Page<Keyword> getSiteKeywordsPage(
 				Long siteId, String search, String filterString,
 				Pagination pagination, String sortString)
@@ -319,7 +793,16 @@ public interface KeywordResource {
 			_logger.fine(
 				"HTTP response status code: " + httpResponse.getStatusCode());
 
-			return Page.of(content, KeywordSerDes::toDTO);
+			try {
+				return Page.of(content, KeywordSerDes::toDTO);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw new Problem.ProblemException(Problem.toDTO(content));
+			}
 		}
 
 		public HttpInvoker.HttpResponse getSiteKeywordsPageHttpResponse(
@@ -401,7 +884,7 @@ public interface KeywordResource {
 					Level.WARNING,
 					"Unable to process HTTP response: " + content, e);
 
-				throw e;
+				throw new Problem.ProblemException(Problem.toDTO(content));
 			}
 		}
 
@@ -436,6 +919,66 @@ public interface KeywordResource {
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
 						"/o/headless-admin-taxonomy/v1.0/sites/{siteId}/keywords",
+				siteId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void postSiteKeywordBatch(
+				Long siteId, String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postSiteKeywordBatchHttpResponse(siteId, callbackURL, object);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse postSiteKeywordBatchHttpResponse(
+				Long siteId, String callbackURL, Object object)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(object.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			if (callbackURL != null) {
+				httpInvoker.parameter(
+					"callbackURL", String.valueOf(callbackURL));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-admin-taxonomy/v1.0/sites/{siteId}/keywords/batch",
 				siteId);
 
 			httpInvoker.userNameAndPassword(

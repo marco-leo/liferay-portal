@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.search.facet.Facet;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.search.searcher.SearchRequest;
+import com.liferay.portal.search.searcher.SearchResponse;
 import com.liferay.portal.search.web.internal.category.facet.builder.AssetCategoriesFacetConfiguration;
 import com.liferay.portal.search.web.internal.category.facet.builder.AssetCategoriesFacetConfigurationImpl;
 import com.liferay.portal.search.web.internal.category.facet.constants.CategoryFacetPortletKeys;
@@ -113,7 +115,7 @@ public class CategoryFacetPortlet extends MVCPortlet {
 
 		AssetCategoriesSearchFacetDisplayBuilder
 			assetCategoriesSearchFacetDisplayBuilder =
-				new AssetCategoriesSearchFacetDisplayBuilder();
+				new AssetCategoriesSearchFacetDisplayBuilder(renderRequest);
 
 		assetCategoriesSearchFacetDisplayBuilder.setAssetCategoryLocalService(
 			assetCategoryLocalService);
@@ -126,6 +128,10 @@ public class CategoryFacetPortlet extends MVCPortlet {
 			assetCategoriesFacetConfiguration.getFrequencyThreshold());
 		assetCategoriesSearchFacetDisplayBuilder.setMaxTerms(
 			assetCategoriesFacetConfiguration.getMaxTerms());
+		assetCategoriesSearchFacetDisplayBuilder.
+			setPaginationStartParameterName(
+				getPaginationStartParameterName(portletSharedSearchResponse));
+		assetCategoriesSearchFacetDisplayBuilder.setPortal(portal);
 
 		ThemeDisplay themeDisplay = portletSharedSearchResponse.getThemeDisplay(
 			renderRequest);
@@ -162,6 +168,17 @@ public class CategoryFacetPortlet extends MVCPortlet {
 
 	protected String getAggregationName(RenderRequest renderRequest) {
 		return portal.getPortletId(renderRequest);
+	}
+
+	protected String getPaginationStartParameterName(
+		PortletSharedSearchResponse portletSharedSearchResponse) {
+
+		SearchResponse searchResponse =
+			portletSharedSearchResponse.getSearchResponse();
+
+		SearchRequest searchRequest = searchResponse.getRequest();
+
+		return searchRequest.getPaginationStartParameterName();
 	}
 
 	@Reference

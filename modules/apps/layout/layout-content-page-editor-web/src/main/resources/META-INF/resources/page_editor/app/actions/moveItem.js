@@ -12,15 +12,12 @@
  * details.
  */
 
-import {MOVE_ITEM as type} from './types';
+import {MOVE_ITEM} from './types';
 
-const ACTION = {type};
-
-export default function moveItem({itemId, position, siblingId}) {
+export default function moveItem({itemId, layoutData}) {
 	return {
-		...ACTION,
 		itemId,
-		position,
-		siblingId
+		layoutData,
+		type: MOVE_ITEM,
 	};
 }

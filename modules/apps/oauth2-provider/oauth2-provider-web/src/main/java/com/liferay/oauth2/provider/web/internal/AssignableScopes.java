@@ -14,9 +14,9 @@
 
 package com.liferay.oauth2.provider.web.internal;
 
-import com.liferay.oauth2.provider.scope.liferay.ApplicationDescriptorLocator;
 import com.liferay.oauth2.provider.scope.liferay.LiferayOAuth2Scope;
-import com.liferay.oauth2.provider.scope.liferay.ScopeDescriptorLocator;
+import com.liferay.oauth2.provider.scope.liferay.spi.ApplicationDescriptorLocator;
+import com.liferay.oauth2.provider.scope.liferay.spi.ScopeDescriptorLocator;
 import com.liferay.oauth2.provider.scope.spi.application.descriptor.ApplicationDescriptor;
 import com.liferay.oauth2.provider.scope.spi.scope.descriptor.ScopeDescriptor;
 import com.liferay.petra.string.StringUtil;
@@ -93,16 +93,16 @@ public class AssignableScopes {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+	public boolean equals(Object object) {
+		if (this == object) {
 			return true;
 		}
 
-		if (!(obj instanceof AssignableScopes)) {
+		if (!(object instanceof AssignableScopes)) {
 			return false;
 		}
 
-		AssignableScopes assignableScopes = (AssignableScopes)obj;
+		AssignableScopes assignableScopes = (AssignableScopes)object;
 
 		if (Objects.equals(
 				_liferayOAuth2Scopes,

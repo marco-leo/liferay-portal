@@ -118,10 +118,10 @@ public class AutoCloseUtil {
 		try {
 			sb.append(Dom4JUtil.format(build.getGitHubMessageElement(), false));
 		}
-		catch (Exception e) {
-			e.printStackTrace();
+		catch (Exception exception) {
+			exception.printStackTrace();
 
-			throw e;
+			throw exception;
 		}
 
 		if (!_autoCloseGitHubCommentMentionUsernames.isEmpty()) {
@@ -258,10 +258,10 @@ public class AutoCloseUtil {
 							failedDownstreamBuild.getGitHubMessageElement(),
 							false));
 				}
-				catch (Exception e) {
-					e.printStackTrace();
+				catch (Exception exception) {
+					exception.printStackTrace();
 
-					throw e;
+					throw exception;
 				}
 			}
 
@@ -345,43 +345,42 @@ public class AutoCloseUtil {
 					localLiferayJenkinsEEBuildProperties,
 					"subrepository.package.names");
 
-			if (gitSubrepositoryPackageNames != null) {
-				for (String gitSubrepositoryPackageName :
-						gitSubrepositoryPackageNames.split(",")) {
+			if (gitSubrepositoryPackageNames == null) {
+				continue;
+			}
 
-					if (!jenkinsJobFailureURLs.isEmpty()) {
-						break;
+			for (String gitSubrepositoryPackageName :
+					gitSubrepositoryPackageNames.split(",")) {
+
+				if (!jenkinsJobFailureURLs.isEmpty()) {
+					break;
+				}
+
+				List<TestResult> testResults = new ArrayList<>();
+
+				testResults.addAll(downstreamBuild.getTestResults("FAILED"));
+				testResults.addAll(
+					downstreamBuild.getTestResults("REGRESSION"));
+
+				for (TestResult testResult : testResults) {
+					if (!testResult.isUniqueFailure()) {
+						continue;
 					}
 
-					List<TestResult> testResults = new ArrayList<>();
+					if (gitSubrepositoryPackageName.equals(
+							testResult.getPackageName())) {
 
-					testResults.addAll(
-						downstreamBuild.getTestResults("FAILED"));
-					testResults.addAll(
-						downstreamBuild.getTestResults("REGRESSION"));
+						failedDownstreamBuild = downstreamBuild;
 
-					for (TestResult testResult : testResults) {
-						if (UpstreamFailureUtil.isTestFailingInUpstreamJob(
-								testResult)) {
+						StringBuilder sb = new StringBuilder();
 
-							continue;
-						}
+						sb.append("<a href=\"");
+						sb.append(testResult.getTestReportURL());
+						sb.append("\">");
+						sb.append(testResult.getClassName());
+						sb.append("</a>");
 
-						if (gitSubrepositoryPackageName.equals(
-								testResult.getPackageName())) {
-
-							failedDownstreamBuild = downstreamBuild;
-
-							StringBuilder sb = new StringBuilder();
-
-							sb.append("<a href=\"");
-							sb.append(testResult.getTestReportURL());
-							sb.append("\">");
-							sb.append(testResult.getClassName());
-							sb.append("</a>");
-
-							jenkinsJobFailureURLs.add(sb.toString());
-						}
+						jenkinsJobFailureURLs.add(sb.toString());
 					}
 				}
 			}
@@ -431,10 +430,10 @@ public class AutoCloseUtil {
 						failedDownstreamBuild.getGitHubMessageElement(),
 						false));
 			}
-			catch (Exception e) {
-				e.printStackTrace();
+			catch (Exception exception) {
+				exception.printStackTrace();
 
-				throw e;
+				throw exception;
 			}
 
 			if (!_autoCloseGitHubCommentMentionUsernames.isEmpty()) {
@@ -594,9 +593,9 @@ public class AutoCloseUtil {
 			return JenkinsResultsParserUtil.getBuildPropertyAsList(
 				true, propertyName);
 		}
-		catch (IOException ioe) {
+		catch (IOException ioException) {
 			throw new RuntimeException(
-				"Unable to get property " + propertyName, ioe);
+				"Unable to get property " + propertyName, ioException);
 		}
 	}
 
@@ -657,31 +656,10 @@ public class AutoCloseUtil {
 						continue;
 					}
 
-					List<TestResult> testResults = new ArrayList<>();
+					List<TestResult> uniqueFailureTestResults =
+						downstreamBuild.getUniqueFailureTestResults();
 
-					testResults.addAll(
-						downstreamBuild.getTestResults("FAILED"));
-					testResults.addAll(
-						downstreamBuild.getTestResults("REGRESSION"));
-
-					boolean containsUniqueTestFailure = false;
-
-					if (testResults.isEmpty()) {
-						containsUniqueTestFailure = true;
-					}
-					else {
-						for (TestResult testResult : testResults) {
-							if (!UpstreamFailureUtil.isTestFailingInUpstreamJob(
-									testResult)) {
-
-								containsUniqueTestFailure = true;
-
-								break;
-							}
-						}
-					}
-
-					if (!containsUniqueTestFailure) {
+					if (uniqueFailureTestResults.isEmpty()) {
 						failingInUpstreamJobDownstreamBuilds.add(
 							downstreamBuild);
 					}

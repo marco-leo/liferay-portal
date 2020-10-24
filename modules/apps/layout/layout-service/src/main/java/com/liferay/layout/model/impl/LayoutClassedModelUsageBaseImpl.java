@@ -33,7 +33,7 @@ public abstract class LayoutClassedModelUsageBaseImpl
 	extends LayoutClassedModelUsageModelImpl
 	implements LayoutClassedModelUsage {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a layout classed model usage model instance should use the <code>LayoutClassedModelUsage</code> interface instead.

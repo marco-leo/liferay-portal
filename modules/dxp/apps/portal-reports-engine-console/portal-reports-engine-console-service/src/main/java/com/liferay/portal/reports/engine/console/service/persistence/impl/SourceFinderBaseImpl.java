@@ -58,7 +58,6 @@ public abstract class SourceFinderBaseImpl extends BasePersistenceImpl<Source> {
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
-		super.setConfiguration(configuration);
 	}
 
 	@Override
@@ -89,8 +88,8 @@ public abstract class SourceFinderBaseImpl extends BasePersistenceImpl<Source> {
 		try {
 			Class.forName(ReportsPersistenceConstants.class.getName());
 		}
-		catch (ClassNotFoundException cnfe) {
-			throw new ExceptionInInitializerError(cnfe);
+		catch (ClassNotFoundException classNotFoundException) {
+			throw new ExceptionInInitializerError(classNotFoundException);
 		}
 	}
 

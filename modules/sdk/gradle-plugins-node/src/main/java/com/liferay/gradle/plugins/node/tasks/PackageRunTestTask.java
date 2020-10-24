@@ -15,11 +15,13 @@
 package com.liferay.gradle.plugins.node.tasks;
 
 import org.gradle.api.logging.Logger;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.VerificationTask;
 
 /**
  * @author Peter Shin
  */
+@CacheableTask
 public class PackageRunTestTask
 	extends PackageRunTask implements VerificationTask {
 
@@ -32,16 +34,16 @@ public class PackageRunTestTask
 		try {
 			super.executeNode();
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			if (isIgnoreFailures()) {
 				Logger logger = getLogger();
 
 				if (logger.isWarnEnabled()) {
-					logger.warn(e.getMessage());
+					logger.warn(exception.getMessage());
 				}
 			}
 			else {
-				throw e;
+				throw exception;
 			}
 		}
 	}

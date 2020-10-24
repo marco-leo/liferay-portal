@@ -59,6 +59,16 @@ public class WikiNodeSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (wikiNode.getActions() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"actions\": ");
+
+			sb.append(_toJSON(wikiNode.getActions()));
+		}
+
 		if (wikiNode.getCreator() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -202,6 +212,13 @@ public class WikiNodeSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (wikiNode.getActions() == null) {
+			map.put("actions", null);
+		}
+		else {
+			map.put("actions", String.valueOf(wikiNode.getActions()));
+		}
+
 		if (wikiNode.getCreator() == null) {
 			map.put("creator", null);
 		}
@@ -209,13 +226,23 @@ public class WikiNodeSerDes {
 			map.put("creator", String.valueOf(wikiNode.getCreator()));
 		}
 
-		map.put(
-			"dateCreated",
-			liferayToJSONDateFormat.format(wikiNode.getDateCreated()));
+		if (wikiNode.getDateCreated() == null) {
+			map.put("dateCreated", null);
+		}
+		else {
+			map.put(
+				"dateCreated",
+				liferayToJSONDateFormat.format(wikiNode.getDateCreated()));
+		}
 
-		map.put(
-			"dateModified",
-			liferayToJSONDateFormat.format(wikiNode.getDateModified()));
+		if (wikiNode.getDateModified() == null) {
+			map.put("dateModified", null);
+		}
+		else {
+			map.put(
+				"dateModified",
+				liferayToJSONDateFormat.format(wikiNode.getDateModified()));
+		}
 
 		if (wikiNode.getDescription() == null) {
 			map.put("description", null);
@@ -288,7 +315,14 @@ public class WikiNodeSerDes {
 			WikiNode wikiNode, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "creator")) {
+			if (Objects.equals(jsonParserFieldName, "actions")) {
+				if (jsonParserFieldValue != null) {
+					wikiNode.setActions(
+						(Map)WikiNodeSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "creator")) {
 				if (jsonParserFieldValue != null) {
 					wikiNode.setCreator(
 						CreatorSerDes.toDTO((String)jsonParserFieldValue));
@@ -345,9 +379,8 @@ public class WikiNodeSerDes {
 							(String)jsonParserFieldValue));
 				}
 			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
+			else if (jsonParserFieldName.equals("status")) {
+				throw new IllegalArgumentException();
 			}
 		}
 
@@ -403,10 +436,13 @@ public class WikiNodeSerDes {
 
 				sb.append("]");
 			}
-			else {
+			else if (value instanceof String) {
 				sb.append("\"");
 				sb.append(_escape(entry.getValue()));
 				sb.append("\"");
+			}
+			else {
+				sb.append(String.valueOf(entry.getValue()));
 			}
 
 			if (iterator.hasNext()) {

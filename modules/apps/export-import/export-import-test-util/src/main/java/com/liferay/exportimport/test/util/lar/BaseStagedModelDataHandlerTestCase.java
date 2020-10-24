@@ -48,11 +48,12 @@ import com.liferay.portal.kernel.service.IdentityServiceContextFunction;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.DateTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.DateUtil;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Time;
@@ -64,7 +65,6 @@ import com.liferay.portal.kernel.zip.ZipReader;
 import com.liferay.portal.kernel.zip.ZipReaderFactoryUtil;
 import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.kernel.zip.ZipWriterFactoryUtil;
-import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.ratings.kernel.model.RatingsEntry;
 import com.liferay.ratings.kernel.service.RatingsEntryLocalServiceUtil;
 import com.liferay.ratings.test.util.RatingsTestUtil;
@@ -92,14 +92,18 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 	@Before
 	public void setUp() throws Exception {
 		liveGroup = GroupTestUtil.addGroup();
+
 		stagingGroup = GroupTestUtil.addGroup();
 
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
+		stagingGroup.setLiveGroupId(liveGroup.getGroupId());
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(stagingGroup.getGroupId());
+		stagingGroup = GroupLocalServiceUtil.updateGroup(stagingGroup);
 
-		ServiceContextThreadLocal.pushServiceContext(serviceContext);
+		UserTestUtil.setUser(TestPropsValues.getUser());
+
+		ServiceContextThreadLocal.pushServiceContext(
+			ServiceContextTestUtil.getServiceContext(
+				stagingGroup.getGroupId()));
 	}
 
 	@After
@@ -129,7 +133,7 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 
 		AssetTag assetTag = AssetTestUtil.addTag(stagingGroup.getGroupId());
 
-		assetEntry = AssetEntryLocalServiceUtil.updateEntry(
+		AssetEntryLocalServiceUtil.updateEntry(
 			TestPropsValues.getUserId(), stagingGroup.getGroupId(),
 			assetEntry.getCreateDate(), assetEntry.getModifiedDate(),
 			assetEntry.getClassName(), assetEntry.getClassPK(),
@@ -168,7 +172,7 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 
 		assetEntry = fetchAssetEntry(stagedModel, stagingGroup);
 
-		assetEntry = AssetEntryLocalServiceUtil.updateEntry(
+		AssetEntryLocalServiceUtil.updateEntry(
 			TestPropsValues.getUserId(), stagingGroup.getGroupId(),
 			assetEntry.getCreateDate(), assetEntry.getModifiedDate(),
 			assetEntry.getClassName(), assetEntry.getClassPK(),
@@ -1070,18 +1074,12 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 			StagedModel stagedModel, StagedModel importedStagedModel)
 		throws Exception {
 
-		Assert.assertTrue(
-			stagedModel.getCreateDate() + " " +
-				importedStagedModel.getCreateDate(),
-			DateUtil.equals(
-				stagedModel.getCreateDate(),
-				importedStagedModel.getCreateDate()));
-		Assert.assertTrue(
-			stagedModel.getModifiedDate() + " " +
-				importedStagedModel.getModifiedDate(),
-			DateUtil.equals(
-				stagedModel.getModifiedDate(),
-				importedStagedModel.getModifiedDate()));
+		DateTestUtil.assertEquals(
+			stagedModel.getCreateDate(), importedStagedModel.getCreateDate());
+		DateTestUtil.assertEquals(
+			stagedModel.getModifiedDate(),
+			importedStagedModel.getModifiedDate());
+
 		Assert.assertEquals(
 			stagedModel.getUuid(), importedStagedModel.getUuid());
 	}
@@ -1133,10 +1131,7 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 	protected Element missingReferencesElement;
 	protected PortletDataContext portletDataContext;
 	protected Element rootElement;
-
-	@DeleteAfterTestRun
 	protected Group stagingGroup;
-
 	protected UserIdStrategy userIdStrategy;
 	protected ZipReader zipReader;
 	protected ZipWriter zipWriter;
@@ -1211,7 +1206,7 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 			try {
 				return TestPropsValues.getUserId();
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				return 0;
 			}
 		}

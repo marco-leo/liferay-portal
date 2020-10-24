@@ -32,7 +32,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface MBMessage extends MBMessageModel, PersistedModel, TreeModel {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.message.boards.model.impl.MBMessageImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.

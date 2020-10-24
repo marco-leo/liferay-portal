@@ -35,7 +35,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface LVEntryLocalizationVersionPersistence
 	extends BasePersistence<LVEntryLocalizationVersion> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link LVEntryLocalizationVersionUtil} to access the lv entry localization version persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.

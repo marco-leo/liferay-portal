@@ -21,7 +21,6 @@ import com.liferay.css.builder.internal.util.CSSBuilderUtil;
 import com.liferay.css.builder.internal.util.FileUtil;
 import com.liferay.rtl.css.RTLCSSConverter;
 import com.liferay.sass.compiler.SassCompiler;
-import com.liferay.sass.compiler.SassCompilerException;
 import com.liferay.sass.compiler.jni.internal.JniSassCompiler;
 import com.liferay.sass.compiler.jsass.internal.JSassCompiler;
 import com.liferay.sass.compiler.ruby.internal.RubySassCompiler;
@@ -81,8 +80,8 @@ public class CSSBuilder implements AutoCloseable {
 				}
 			}
 		}
-		catch (ParameterException pe) {
-			System.err.println(pe.getMessage());
+		catch (ParameterException parameterException) {
+			System.err.println(parameterException.getMessage());
 
 			_printHelp(jCommander);
 
@@ -260,16 +259,16 @@ public class CSSBuilder implements AutoCloseable {
 
 			rtlCss = _rtlCSSConverter.process(rtlCss);
 		}
-		catch (Exception e) {
+		catch (Exception exception) {
 			System.out.println(
 				"Unable to generate RTL version for " + fileName + ", " +
-					e.getMessage());
+					exception.getMessage());
 		}
 
 		return rtlCss;
 	}
 
-	private String[] _getScssFiles(String baseDir) throws IOException {
+	private String[] _getScssFiles(String baseDir) throws Exception {
 		String[] includes = {"**/*.scss"};
 
 		String[] excludes = Arrays.copyOf(_excludes, _excludes.length + 1);
@@ -279,10 +278,9 @@ public class CSSBuilder implements AutoCloseable {
 		return FileUtil.getFilesFromDirectory(baseDir, includes, excludes);
 	}
 
-	private String[] _getScssFragments(String baseDir) throws IOException {
-		String[] includes = {"**/_*.scss"};
-
-		return FileUtil.getFilesFromDirectory(baseDir, includes, _excludes);
+	private String[] _getScssFragments(String baseDir) throws Exception {
+		return FileUtil.getFilesFromDirectory(
+			baseDir, new String[] {"**/_*.scss"}, _excludes);
 	}
 
 	private void _initSassCompiler(String sassCompilerClassName)
@@ -299,7 +297,7 @@ public class CSSBuilder implements AutoCloseable {
 
 				System.out.println("Using native Sass compiler");
 			}
-			catch (Throwable t) {
+			catch (Throwable throwable) {
 				System.out.println(
 					"Unable to load native compiler, falling back to Ruby");
 
@@ -314,7 +312,7 @@ public class CSSBuilder implements AutoCloseable {
 
 				System.out.println("Using native 32-bit Sass compiler");
 			}
-			catch (Throwable t) {
+			catch (Throwable throwable) {
 				System.out.println(
 					"Unable to load native compiler, falling back to Ruby");
 
@@ -327,7 +325,7 @@ public class CSSBuilder implements AutoCloseable {
 
 				System.out.println("Using Ruby Sass compiler");
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 				System.out.println(
 					"Unable to load Ruby compiler, falling back to native");
 
@@ -365,12 +363,10 @@ public class CSSBuilder implements AutoCloseable {
 		return fileName;
 	}
 
-	private String _parseSass(String fileName) throws SassCompilerException {
+	private String _parseSass(String fileName) throws Exception {
 		File sassFile = new File(_cssBuilderArgs.getBaseDir(), fileName);
 
-		Path path = sassFile.toPath();
-
-		String filePath = path.toString();
+		String filePath = String.valueOf(sassFile.toPath());
 
 		String cssBasePath = filePath;
 
@@ -427,7 +423,7 @@ public class CSSBuilder implements AutoCloseable {
 		_writeOutputFile(fileName, rtlContent, true);
 	}
 
-	private File _unzipImport(File importFile) throws IOException {
+	private File _unzipImport(File importFile) throws Exception {
 		Path outputPath = _importPath.resolve(importFile.getName());
 
 		try (ZipFile zipFile = new ZipFile(importFile)) {

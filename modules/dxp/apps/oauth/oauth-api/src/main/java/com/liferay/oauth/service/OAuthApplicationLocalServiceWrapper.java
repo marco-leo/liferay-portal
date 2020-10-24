@@ -34,10 +34,11 @@ public class OAuthApplicationLocalServiceWrapper
 	}
 
 	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link OAuthApplicationLocalServiceUtil} to access the o auth application local service. Add custom service methods to <code>com.liferay.oauth.service.impl.OAuthApplicationLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 #addOAuthApplication(long, String, String, String, int
+	 boolean, String, String, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public com.liferay.oauth.model.OAuthApplication addOAuthApplication(
 			long userId, String name, String description, int accessLevel,
@@ -50,8 +51,25 @@ public class OAuthApplicationLocalServiceWrapper
 			callbackURI, websiteURL, serviceContext);
 	}
 
+	@Override
+	public com.liferay.oauth.model.OAuthApplication addOAuthApplication(
+			long userId, String name, String description, String token,
+			int accessLevel, boolean shareableAccessToken, String callbackURI,
+			String websiteURL,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuthApplicationLocalService.addOAuthApplication(
+			userId, name, description, token, accessLevel, shareableAccessToken,
+			callbackURI, websiteURL, serviceContext);
+	}
+
 	/**
 	 * Adds the o auth application to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuthApplicationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuthApplication the o auth application
 	 * @return the o auth application that was added
@@ -78,6 +96,18 @@ public class OAuthApplicationLocalServiceWrapper
 			oAuthApplicationId);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel createPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _oAuthApplicationLocalService.createPersistedModel(
+			primaryKeyObj);
+	}
+
 	@Override
 	public void deleteLogo(long oAuthApplicationId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -87,6 +117,10 @@ public class OAuthApplicationLocalServiceWrapper
 
 	/**
 	 * Deletes the o auth application with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuthApplicationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuthApplicationId the primary key of the o auth application
 	 * @return the o auth application that was removed
@@ -103,6 +137,10 @@ public class OAuthApplicationLocalServiceWrapper
 
 	/**
 	 * Deletes the o auth application from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuthApplicationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuthApplication the o auth application
 	 * @return the o auth application that was removed
@@ -127,6 +165,11 @@ public class OAuthApplicationLocalServiceWrapper
 
 		return _oAuthApplicationLocalService.deletePersistedModel(
 			persistedModel);
+	}
+
+	@Override
+	public <T> T dslQuery(com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+		return _oAuthApplicationLocalService.dslQuery(dslQuery);
 	}
 
 	@Override
@@ -297,7 +340,7 @@ public class OAuthApplicationLocalServiceWrapper
 		getOAuthApplications(
 			long companyId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
-				orderByComparator) {
+				<com.liferay.oauth.model.OAuthApplication> orderByComparator) {
 
 		return _oAuthApplicationLocalService.getOAuthApplications(
 			companyId, start, end, orderByComparator);
@@ -329,6 +372,9 @@ public class OAuthApplicationLocalServiceWrapper
 		return _oAuthApplicationLocalService.getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
@@ -341,7 +387,8 @@ public class OAuthApplicationLocalServiceWrapper
 	public java.util.List<com.liferay.oauth.model.OAuthApplication> search(
 		long companyId, String keywords,
 		java.util.LinkedHashMap<String, Object> params, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		com.liferay.portal.kernel.util.OrderByComparator
+			<com.liferay.oauth.model.OAuthApplication> orderByComparator) {
 
 		return _oAuthApplicationLocalService.search(
 			companyId, keywords, params, start, end, orderByComparator);
@@ -379,6 +426,10 @@ public class OAuthApplicationLocalServiceWrapper
 
 	/**
 	 * Updates the o auth application in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect OAuthApplicationLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param oAuthApplication the o auth application
 	 * @return the o auth application that was updated

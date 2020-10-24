@@ -33,7 +33,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface TestEntityModel extends BaseModel<TestEntity> {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a test entity model instance should use the {@link TestEntity} interface instead.

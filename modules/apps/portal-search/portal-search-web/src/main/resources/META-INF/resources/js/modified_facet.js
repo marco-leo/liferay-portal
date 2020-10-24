@@ -14,14 +14,13 @@
 
 AUI.add(
 	'liferay-search-modified-facet',
-	A => {
+	(A) => {
 		var DEFAULTS_FORM_VALIDATOR = A.config.FormValidator;
 
 		var FacetUtil = Liferay.Search.FacetUtil;
-		var Language = Liferay.Language;
 		var Util = Liferay.Util;
 
-		var ModifiedFacetFilter = function(config) {
+		var ModifiedFacetFilter = function (config) {
 			var instance = this;
 
 			instance.form = config.form;
@@ -37,13 +36,20 @@ AUI.add(
 
 			instance._initializeFormValidator();
 
-			instance.searchCustomRangeButton.on(
-				'click',
-				A.bind(instance.filter, instance)
-			);
+			if (instance.searchCustomRangeButton) {
+				instance.searchCustomRangeButton.on(
+					'click',
+					A.bind(instance.filter, instance)
+				);
+			}
 
-			instance.fromInput.on('keydown', instance._onDateInputKeyDown);
-			instance.toInput.on('keydown', instance._onDateInputKeyDown);
+			if (instance.fromInput) {
+				instance.fromInput.on('keydown', instance._onDateInputKeyDown);
+			}
+
+			if (instance.toInput) {
+				instance.toInput.on('keydown', instance._onDateInputKeyDown);
+			}
 		};
 
 		A.mix(ModifiedFacetFilter.prototype, {
@@ -55,9 +61,9 @@ AUI.add(
 				A.mix(
 					DEFAULTS_FORM_VALIDATOR.STRINGS,
 					{
-						[dateRangeRuleName]: Language.get(
+						[dateRangeRuleName]: Liferay.Language.get(
 							'search-custom-range-invalid-date-range'
-						)
+						),
 					},
 					true
 				);
@@ -70,7 +76,7 @@ AUI.add(
 								instance.toInputDatePicker.getDate(),
 								instance.fromInputDatePicker.getDate()
 							);
-						}
+						},
 					},
 					true
 				);
@@ -90,31 +96,35 @@ AUI.add(
 								instance.searchCustomRangeButton,
 								false
 							);
-						}
+						},
 					},
 					rules: {
 						[instance.fromInputName]: {
-							[dateRangeRuleName]: true
+							[dateRangeRuleName]: true,
 						},
 						[instance.toInputName]: {
-							[dateRangeRuleName]: true
-						}
-					}
+							[dateRangeRuleName]: true,
+						},
+					},
 				});
 
-				var onRangeSelectionChange = function() {
+				var onRangeSelectionChange = function () {
 					customRangeValidator.validate();
 				};
 
-				instance.fromInputDatePicker.on(
-					'selectionChange',
-					onRangeSelectionChange
-				);
+				if (instance.fromInputDatePicker) {
+					instance.fromInputDatePicker.on(
+						'selectionChange',
+						onRangeSelectionChange
+					);
+				}
 
-				instance.toInputDatePicker.on(
-					'selectionChange',
-					onRangeSelectionChange
-				);
+				if (instance.toInputDatePicker) {
+					instance.toInputDatePicker.on(
+						'selectionChange',
+						onRangeSelectionChange
+					);
+				}
 			},
 
 			_onDateInputKeyDown(event) {
@@ -161,6 +171,17 @@ AUI.add(
 					parameterArray
 				);
 
+				var startParameterNameElement = document.getElementById(
+					instance.namespace + 'start-parameter-name'
+				);
+
+				if (startParameterNameElement) {
+					parameterArray = FacetUtil.removeURLParameters(
+						startParameterNameElement.value,
+						parameterArray
+					);
+				}
+
 				parameterArray = FacetUtil.addURLParameter(
 					paramFrom,
 					modifiedFromParameter,
@@ -174,7 +195,7 @@ AUI.add(
 				);
 
 				ModifiedFacetFilterUtil.submitSearch(parameterArray.join('&'));
-			}
+			},
 		});
 
 		Liferay.namespace('Search').ModifiedFacetFilter = ModifiedFacetFilter;
@@ -228,7 +249,7 @@ AUI.add(
 				);
 
 				return localDate.toISOString().split('T')[0];
-			}
+			},
 		};
 
 		Liferay.namespace(
@@ -237,6 +258,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-form-validator', 'liferay-search-facet-util']
+		requires: ['aui-form-validator', 'liferay-search-facet-util'],
 	}
 );

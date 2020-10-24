@@ -32,16 +32,10 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class MicroblogsEntryLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.microblogs.service.impl.MicroblogsEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
-	 */
-
-	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link MicroblogsEntryLocalServiceUtil} to access the microblogs entry local service. Add custom service methods to <code>com.liferay.microblogs.service.impl.MicroblogsEntryLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static com.liferay.microblogs.model.MicroblogsEntry
 			addMicroblogsEntry(
@@ -71,6 +65,10 @@ public class MicroblogsEntryLocalServiceUtil {
 	/**
 	 * Adds the microblogs entry to the database. Also notifies the appropriate model listeners.
 	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MicroblogsEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
+	 *
 	 * @param microblogsEntry the microblogs entry
 	 * @return the microblogs entry that was added
 	 */
@@ -93,6 +91,16 @@ public class MicroblogsEntryLocalServiceUtil {
 		return getService().createMicroblogsEntry(microblogsEntryId);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
 	public static void deleteMicroblogsEntries(
 			long creatorClassNameId, long creatorClassPK)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -103,6 +111,10 @@ public class MicroblogsEntryLocalServiceUtil {
 
 	/**
 	 * Deletes the microblogs entry with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MicroblogsEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param microblogsEntryId the primary key of the microblogs entry
 	 * @return the microblogs entry that was removed
@@ -117,6 +129,10 @@ public class MicroblogsEntryLocalServiceUtil {
 
 	/**
 	 * Deletes the microblogs entry from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MicroblogsEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param microblogsEntry the microblogs entry
 	 * @return the microblogs entry that was removed
@@ -145,6 +161,12 @@ public class MicroblogsEntryLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		getService().deleteUserMicroblogsEntries(userId);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -281,10 +303,13 @@ public class MicroblogsEntryLocalServiceUtil {
 	public static java.util.List<com.liferay.microblogs.model.MicroblogsEntry>
 		getMicroblogsEntries(
 			long companyId, long creatorClassNameId, int type, int start,
-			int end, com.liferay.portal.kernel.util.OrderByComparator obc) {
+			int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.microblogs.model.MicroblogsEntry>
+					orderByComparator) {
 
 		return getService().getMicroblogsEntries(
-			companyId, creatorClassNameId, type, start, end, obc);
+			companyId, creatorClassNameId, type, start, end, orderByComparator);
 	}
 
 	public static java.util.List<com.liferay.microblogs.model.MicroblogsEntry>
@@ -404,6 +429,9 @@ public class MicroblogsEntryLocalServiceUtil {
 			type, parentMicroblogsEntryId);
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -452,6 +480,10 @@ public class MicroblogsEntryLocalServiceUtil {
 
 	/**
 	 * Updates the microblogs entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MicroblogsEntryLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param microblogsEntry the microblogs entry
 	 * @return the microblogs entry that was updated

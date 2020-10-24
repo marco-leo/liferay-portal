@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import java.io.Serializable;
 
@@ -36,7 +37,6 @@ import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.text.ParseException;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -52,7 +52,8 @@ import java.util.stream.Stream;
 public class CustomFieldsUtil {
 
 	public static CustomField[] toCustomFields(
-		String className, long classPK, long companyId, Locale locale) {
+		boolean acceptAllLanguages, String className, long classPK,
+		long companyId, Locale locale) {
 
 		ExpandoBridge expandoBridge = ExpandoBridgeFactoryUtil.getExpandoBridge(
 			companyId, className, classPK);
@@ -74,7 +75,8 @@ public class CustomFieldsUtil {
 						ExpandoColumnConstants.PROPERTY_HIDDEN));
 			}
 		).map(
-			entry -> _toCustomField(entry, expandoBridge, locale)
+			entry -> _toCustomField(
+				acceptAllLanguages, entry, expandoBridge, locale)
 		).toArray(
 			CustomField[]::new
 		);
@@ -148,13 +150,25 @@ public class CustomFieldsUtil {
 					else if (ExpandoColumnConstants.STRING_LOCALIZED ==
 								attributeType) {
 
-						return (Serializable)Collections.singletonMap(
-							locale, data);
+						return (Serializable)LocalizedMapUtil.getLocalizedMap(
+							locale, (String)data, customValue.getData_i18n());
 					}
 
 					return (Serializable)data;
 				})
 		);
+	}
+
+	private static Map<String, String> _getLocalizedValues(
+		boolean acceptAllLanguages, int attributeType, Object value) {
+
+		if (ExpandoColumnConstants.STRING_LOCALIZED == attributeType) {
+			Map<Locale, String> map = (Map<Locale, String>)value;
+
+			return LocalizedMapUtil.getI18nMap(acceptAllLanguages, map);
+		}
+
+		return null;
 	}
 
 	private static Object _getValue(
@@ -203,15 +217,15 @@ public class CustomFieldsUtil {
 		try {
 			return dateFormat.parse(data);
 		}
-		catch (ParseException pe) {
+		catch (ParseException parseException) {
 			throw new IllegalArgumentException(
-				"Unable to parse date from " + data, pe);
+				"Unable to parse date from " + data, parseException);
 		}
 	}
 
 	private static CustomField _toCustomField(
-		Map.Entry<String, Serializable> entry, ExpandoBridge expandoBridge,
-		Locale locale) {
+		boolean acceptAllLanguages, Map.Entry<String, Serializable> entry,
+		ExpandoBridge expandoBridge, Locale locale) {
 
 		String key = entry.getKey();
 
@@ -257,6 +271,8 @@ public class CustomFieldsUtil {
 						}
 
 						data = _getValue(attributeType, locale, value);
+						data_i18n = _getLocalizedValues(
+							acceptAllLanguages, attributeType, value);
 					}
 				};
 				dataType = ExpandoColumnConstants.getDataType(attributeType);

@@ -24,7 +24,7 @@ definition {
 		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
 	}
 
-    @summary = "Directly calls the JSON WS API to delete a layout"
+	@summary = "Directly calls the JSON WS API to delete a layout"
 	macro _deleteLayout {
 		Variables.assertDefined(parameterList = "${groupId},${layoutId},${privateLayout},${serviceContext}");
 
@@ -40,6 +40,29 @@ definition {
 		''';
 
 		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "Get the default plid from a site by using groupId"
+	macro _getDefaultPlidByGroupId {
+		Variables.assertDefined(parameterList = "${groupId},${privateLayout}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/layout/get-default-plid \
+				-u test@liferay.com:test \
+				-d groupId=${groupId} \
+				-d privateLayout=${privateLayout}
+		''';
+
+		var defaultPlid = JSONCurlUtil.post("${curl}");
+		var defaultPlid = StringUtil.extractDigits("${defaultPlid}");
+
+		if ("${defaultPlid}" == "[]") {
+			fail("FAIL. Cannot find defaultPlid.");
+		}
+
+		return "${defaultPlid}";
 	}
 
 	@summary = "Get the layoutId from a layout by using groupId and layoutName"
@@ -94,23 +117,18 @@ definition {
 	macro _updateTypeSettings {
 		Variables.assertDefined(parameterList = "${groupId},${privateLayout},${layoutId},${typeSettings}");
 
-		var javaScript =
-		'''Liferay.Service(
-			'/layout/update-layout',
-			{
-				groupId: ${groupId},
-				privateLayout: ${privateLayout},
-				layoutId: ${layoutId},
-				typeSettings: '${typeSettings}'
-			},
-			function(obj) {
-				console.log(obj);
-			}
-		);''';
+		var portalURL = JSONCompany.getPortalURL();
 
-		var JSON = selenium.getEval("${javaScript}");
+		var curl = '''
+			${portalURL}/api/jsonws/layout/update-layout \
+				-u test@liferay.com:test \
+				-d groupId=${groupId} \
+				-d privateLayout=${privateLayout} \
+				-d layoutId=${layoutId} \
+				-d typeSettings=${typeSettings}
+		''';
 
-		return "${JSON}";
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
 	}
 
 }

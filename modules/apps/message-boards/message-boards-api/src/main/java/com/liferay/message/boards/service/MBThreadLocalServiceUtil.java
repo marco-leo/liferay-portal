@@ -32,7 +32,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class MBThreadLocalServiceUtil {
 
-	/**
+	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.message.boards.service.impl.MBThreadLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -40,6 +40,10 @@ public class MBThreadLocalServiceUtil {
 
 	/**
 	 * Adds the message boards thread to the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBThreadLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param mbThread the message boards thread
 	 * @return the message boards thread that was added
@@ -71,7 +75,21 @@ public class MBThreadLocalServiceUtil {
 	}
 
 	/**
+	 * @throws PortalException
+	 */
+	public static com.liferay.portal.kernel.model.PersistedModel
+			createPersistedModel(java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().createPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	 * Deletes the message boards thread with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBThreadLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param threadId the primary key of the message boards thread
 	 * @return the message boards thread that was removed
@@ -86,6 +104,10 @@ public class MBThreadLocalServiceUtil {
 
 	/**
 	 * Deletes the message boards thread from the database. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBThreadLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param mbThread the message boards thread
 	 * @return the message boards thread that was removed
@@ -131,6 +153,12 @@ public class MBThreadLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		getService().deleteThreads(groupId, categoryId, includeTrashedEntries);
+	}
+
+	public static <T> T dslQuery(
+		com.liferay.petra.sql.dsl.query.DSLQuery dslQuery) {
+
+		return getService().dslQuery(dslQuery);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
@@ -433,6 +461,10 @@ public class MBThreadLocalServiceUtil {
 		return getService().getMBThreadsCount();
 	}
 
+	public static int getMessageCount(long threadId, int status) {
+		return getService().getMessageCount(threadId, status);
+	}
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -442,6 +474,9 @@ public class MBThreadLocalServiceUtil {
 		return getService().getOSGiServiceIdentifier();
 	}
 
+	/**
+	 * @throws PortalException
+	 */
 	public static com.liferay.portal.kernel.model.PersistedModel
 			getPersistedModel(java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -573,8 +608,18 @@ public class MBThreadLocalServiceUtil {
 			userId, messageId, subject, serviceContext);
 	}
 
+	public static void updateLastPostDate(
+		long threadId, java.util.Date lastPostDate) {
+
+		getService().updateLastPostDate(threadId, lastPostDate);
+	}
+
 	/**
 	 * Updates the message boards thread in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * <p>
+	 * <strong>Important:</strong> Inspect MBThreadLocalServiceImpl for overloaded versions of the method. If provided, use these entry points to the API, as the implementation logic may require the additional parameters defined there.
+	 * </p>
 	 *
 	 * @param mbThread the message boards thread
 	 * @return the message boards thread that was updated
@@ -583,12 +628,6 @@ public class MBThreadLocalServiceUtil {
 		com.liferay.message.boards.model.MBThread mbThread) {
 
 		return getService().updateMBThread(mbThread);
-	}
-
-	public static com.liferay.message.boards.model.MBThread updateMessageCount(
-		long threadId) {
-
-		return getService().updateMessageCount(threadId);
 	}
 
 	public static void updateQuestion(long threadId, boolean question)

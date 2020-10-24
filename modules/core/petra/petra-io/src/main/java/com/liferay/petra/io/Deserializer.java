@@ -14,6 +14,7 @@
 
 package com.liferay.petra.io;
 
+import com.liferay.petra.io.constants.SerializationConstants;
 import com.liferay.petra.lang.ClassLoaderPool;
 import com.liferay.petra.lang.ClassResolverUtil;
 
@@ -154,8 +155,8 @@ public class Deserializer {
 
 				return (T)objectInputStream.readObject();
 			}
-			catch (IOException ioe) {
-				throw new RuntimeException(ioe);
+			catch (IOException ioException) {
+				throw new RuntimeException(ioException);
 			}
 		}
 

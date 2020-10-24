@@ -41,12 +41,24 @@ import org.osgi.service.component.annotations.Deactivate;
 public class SegmentsFieldCustomizerRegistryImpl
 	implements SegmentsFieldCustomizerRegistry {
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getSegmentsFieldCustomizerOptional(String, String)}
+	 */
+	@Deprecated
 	@Override
 	public Optional<SegmentsFieldCustomizer> getSegmentFieldCustomizerOptional(
 		String entityName, String fieldName) {
 
+		return getSegmentsFieldCustomizerOptional(entityName, fieldName);
+	}
+
+	@Override
+	public Optional<SegmentsFieldCustomizer> getSegmentsFieldCustomizerOptional(
+		String entityName, String fieldName) {
+
 		List<SegmentsFieldCustomizer> segmentsFieldCustomizers =
-			getSegmentFieldCustomizers(entityName);
+			getSegmentsFieldCustomizers(entityName);
 
 		Stream<SegmentsFieldCustomizer> stream =
 			segmentsFieldCustomizers.stream();
@@ -68,7 +80,7 @@ public class SegmentsFieldCustomizerRegistryImpl
 			"(segments.field.customizer.entity.name=*)",
 			new FieldCustomizerServiceReferenceMapper(),
 			Collections.reverseOrder(
-				new PropertyServiceReferenceComparator(
+				new PropertyServiceReferenceComparator<>(
 					"segments.field.customizer.priority")));
 	}
 
@@ -77,7 +89,7 @@ public class SegmentsFieldCustomizerRegistryImpl
 		_serviceTrackerMap.close();
 	}
 
-	protected List<SegmentsFieldCustomizer> getSegmentFieldCustomizers(
+	protected List<SegmentsFieldCustomizer> getSegmentsFieldCustomizers(
 		String name) {
 
 		if (Validator.isNull(name)) {

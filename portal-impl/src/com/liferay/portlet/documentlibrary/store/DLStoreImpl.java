@@ -84,25 +84,24 @@ public class DLStoreImpl implements DLStore {
 			store.addFile(
 				companyId, repositoryId, fileName, Store.VERSION_DEFAULT, is);
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 	}
 
 	@Override
 	public void addFile(
 			long companyId, long repositoryId, String fileName,
-			boolean validateFileExtension, InputStream is)
+			boolean validateFileExtension, InputStream inputStream)
 		throws PortalException {
 
-		if (is instanceof ByteArrayFileInputStream) {
+		if (inputStream instanceof ByteArrayFileInputStream) {
 			ByteArrayFileInputStream byteArrayFileInputStream =
-				(ByteArrayFileInputStream)is;
-
-			File file = byteArrayFileInputStream.getFile();
+				(ByteArrayFileInputStream)inputStream;
 
 			addFile(
-				companyId, repositoryId, fileName, validateFileExtension, file);
+				companyId, repositoryId, fileName, validateFileExtension,
+				byteArrayFileInputStream.getFile());
 
 			return;
 		}
@@ -119,7 +118,7 @@ public class DLStoreImpl implements DLStore {
 			try {
 				tempFile = FileUtil.createTempFile();
 
-				FileUtil.write(tempFile, is);
+				FileUtil.write(tempFile, inputStream);
 
 				AntivirusScannerUtil.scan(tempFile);
 
@@ -129,9 +128,9 @@ public class DLStoreImpl implements DLStore {
 						Store.VERSION_DEFAULT, fis);
 				}
 			}
-			catch (IOException ioe) {
+			catch (IOException ioException) {
 				throw new SystemException(
-					"Unable to scan file " + fileName, ioe);
+					"Unable to scan file " + fileName, ioException);
 			}
 			finally {
 				if (tempFile != null) {
@@ -143,10 +142,10 @@ public class DLStoreImpl implements DLStore {
 			try {
 				store.addFile(
 					companyId, repositoryId, fileName, Store.VERSION_DEFAULT,
-					is);
+					inputStream);
 			}
-			catch (AccessDeniedException ade) {
-				throw new PrincipalException(ade);
+			catch (AccessDeniedException accessDeniedException) {
+				throw new PrincipalException(accessDeniedException);
 			}
 		}
 	}
@@ -169,10 +168,11 @@ public class DLStoreImpl implements DLStore {
 
 	@Override
 	public void addFile(
-			long companyId, long repositoryId, String fileName, InputStream is)
+			long companyId, long repositoryId, String fileName,
+			InputStream inputStream)
 		throws PortalException {
 
-		addFile(companyId, repositoryId, fileName, true, is);
+		addFile(companyId, repositoryId, fileName, true, inputStream);
 	}
 
 	@Override
@@ -183,14 +183,15 @@ public class DLStoreImpl implements DLStore {
 
 		Store store = _storeFactory.getStore();
 
-		InputStream is = store.getFileAsStream(
+		InputStream inputStream = store.getFileAsStream(
 			companyId, repositoryId, fileName, fromVersionLabel);
 
-		if (is == null) {
-			is = new UnsyncByteArrayInputStream(new byte[0]);
+		if (inputStream == null) {
+			inputStream = new UnsyncByteArrayInputStream(new byte[0]);
 		}
 
-		store.addFile(companyId, repositoryId, fileName, toVersionLabel, is);
+		store.addFile(
+			companyId, repositoryId, fileName, toVersionLabel, inputStream);
 	}
 
 	@Override
@@ -230,8 +231,8 @@ public class DLStoreImpl implements DLStore {
 		try {
 			store.deleteFile(companyId, repositoryId, fileName, versionLabel);
 		}
-		catch (AccessDeniedException ade) {
-			throw new PrincipalException(ade);
+		catch (AccessDeniedException accessDeniedException) {
+			throw new PrincipalException(accessDeniedException);
 		}
 	}
 
@@ -249,8 +250,8 @@ public class DLStoreImpl implements DLStore {
 				store.getFileAsStream(
 					companyId, repositoryId, fileName, StringPool.BLANK));
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 	}
 
@@ -269,8 +270,8 @@ public class DLStoreImpl implements DLStore {
 				store.getFileAsStream(
 					companyId, repositoryId, fileName, versionLabel));
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 	}
 
@@ -352,14 +353,24 @@ public class DLStoreImpl implements DLStore {
 		return store.hasFile(companyId, repositoryId, fileName, versionLabel);
 	}
 
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             DLValidatorUtil#isValidName(String)}
-	 */
-	@Deprecated
 	@Override
-	public boolean isValidName(String name) {
-		return DLValidatorUtil.isValidName(name);
+	public void updateFile(
+			long companyId, long repositoryId, long newRepositoryId,
+			String fileName)
+		throws PortalException {
+
+		Store store = _storeFactory.getStore();
+
+		for (String versionLabel :
+				store.getFileVersions(companyId, repositoryId, fileName)) {
+
+			store.addFile(
+				companyId, newRepositoryId, fileName, versionLabel,
+				store.getFileAsStream(
+					companyId, repositoryId, fileName, versionLabel));
+
+			store.deleteFile(companyId, repositoryId, fileName, versionLabel);
+		}
 	}
 
 	@Override
@@ -383,8 +394,8 @@ public class DLStoreImpl implements DLStore {
 		try (InputStream is = new FileInputStream(file)) {
 			store.addFile(companyId, repositoryId, fileName, versionLabel, is);
 		}
-		catch (IOException ioe) {
-			throw new SystemException(ioe);
+		catch (IOException ioException) {
+			throw new SystemException(ioException);
 		}
 	}
 
@@ -392,15 +403,15 @@ public class DLStoreImpl implements DLStore {
 	public void updateFile(
 			long companyId, long repositoryId, String fileName,
 			String fileExtension, boolean validateFileExtension,
-			String versionLabel, String sourceFileName, InputStream is)
+			String versionLabel, String sourceFileName, InputStream inputStream)
 		throws PortalException {
 
 		validate(
 			fileName, fileExtension, sourceFileName, validateFileExtension);
 
-		if (is instanceof ByteArrayFileInputStream) {
+		if (inputStream instanceof ByteArrayFileInputStream) {
 			ByteArrayFileInputStream byteArrayFileInputStream =
-				(ByteArrayFileInputStream)is;
+				(ByteArrayFileInputStream)inputStream;
 
 			File file = byteArrayFileInputStream.getFile();
 
@@ -412,7 +423,8 @@ public class DLStoreImpl implements DLStore {
 
 			Store store = _storeFactory.getStore();
 
-			store.addFile(companyId, repositoryId, fileName, versionLabel, is);
+			store.addFile(
+				companyId, repositoryId, fileName, versionLabel, inputStream);
 
 			return;
 		}
@@ -429,7 +441,7 @@ public class DLStoreImpl implements DLStore {
 			try {
 				tempFile = FileUtil.createTempFile();
 
-				FileUtil.write(tempFile, is);
+				FileUtil.write(tempFile, inputStream);
 
 				AntivirusScannerUtil.scan(tempFile);
 
@@ -438,9 +450,9 @@ public class DLStoreImpl implements DLStore {
 						companyId, repositoryId, fileName, versionLabel, fis);
 				}
 			}
-			catch (IOException ioe) {
+			catch (IOException ioException) {
 				throw new SystemException(
-					"Unable to scan file " + fileName, ioe);
+					"Unable to scan file " + fileName, ioException);
 			}
 			finally {
 				if (tempFile != null) {
@@ -451,10 +463,11 @@ public class DLStoreImpl implements DLStore {
 		else {
 			try {
 				store.addFile(
-					companyId, repositoryId, fileName, versionLabel, is);
+					companyId, repositoryId, fileName, versionLabel,
+					inputStream);
 			}
-			catch (AccessDeniedException ade) {
-				throw new PrincipalException(ade);
+			catch (AccessDeniedException accessDeniedException) {
+				throw new PrincipalException(accessDeniedException);
 			}
 		}
 	}
@@ -467,14 +480,15 @@ public class DLStoreImpl implements DLStore {
 
 		Store store = _storeFactory.getStore();
 
-		InputStream is = store.getFileAsStream(
+		InputStream inputStream = store.getFileAsStream(
 			companyId, repositoryId, fileName, fromVersionLabel);
 
-		if (is == null) {
-			is = new UnsyncByteArrayInputStream(new byte[0]);
+		if (inputStream == null) {
+			inputStream = new UnsyncByteArrayInputStream(new byte[0]);
 		}
 
-		store.addFile(companyId, repositoryId, fileName, toVersionLabel, is);
+		store.addFile(
+			companyId, repositoryId, fileName, toVersionLabel, inputStream);
 
 		store.deleteFile(companyId, repositoryId, fileName, fromVersionLabel);
 	}
@@ -512,12 +526,13 @@ public class DLStoreImpl implements DLStore {
 
 	@Override
 	public void validate(
-			String fileName, boolean validateFileExtension, InputStream is)
+			String fileName, boolean validateFileExtension,
+			InputStream inputStream)
 		throws PortalException {
 
 		validate(fileName, validateFileExtension);
 
-		DLValidatorUtil.validateFileSize(fileName, is);
+		DLValidatorUtil.validateFileSize(fileName, inputStream);
 	}
 
 	@Override
@@ -547,25 +562,13 @@ public class DLStoreImpl implements DLStore {
 	@Override
 	public void validate(
 			String fileName, String fileExtension, String sourceFileName,
-			boolean validateFileExtension, InputStream is)
+			boolean validateFileExtension, InputStream inputStream)
 		throws PortalException {
 
 		validate(
 			fileName, fileExtension, sourceFileName, validateFileExtension);
 
-		DLValidatorUtil.validateFileSize(fileName, is);
-	}
-
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             DLValidatorUtil#validateDirectoryName(String)}
-	 */
-	@Deprecated
-	@Override
-	public void validateDirectoryName(String directoryName)
-		throws PortalException {
-
-		DLValidatorUtil.validateDirectoryName(directoryName);
+		DLValidatorUtil.validateFileSize(fileName, inputStream);
 	}
 
 	protected void validate(
@@ -591,11 +594,13 @@ public class DLStoreImpl implements DLStore {
 
 	protected void validate(
 			String fileName, String fileExtension, String sourceFileName,
-			boolean validateFileExtension, InputStream is, String versionLabel)
+			boolean validateFileExtension, InputStream inputStream,
+			String versionLabel)
 		throws PortalException {
 
 		validate(
-			fileName, fileExtension, sourceFileName, validateFileExtension, is);
+			fileName, fileExtension, sourceFileName, validateFileExtension,
+			inputStream);
 
 		DLValidatorUtil.validateVersionLabel(versionLabel);
 	}
