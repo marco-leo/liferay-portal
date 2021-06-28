@@ -79,7 +79,7 @@ public class ObjectDefinitionSampleGenerator {
 
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.addObjectDefinition(
-				user.getUserId(), "SampleObjectDefinition",
+				user.getUserId(), "C_SampleObjectDefinition",
 				Arrays.asList(
 					_createObjectField("able", "Long"),
 					_createObjectField("baker", "Boolean"),
@@ -91,7 +91,8 @@ public class ObjectDefinitionSampleGenerator {
 					_createObjectField(false, false, null, "how", "String"),
 					_createObjectField("item", "Double"),
 					_createObjectField("jig", "Integer"),
-					_createObjectField("king", "BigDecimal")));
+					_createObjectField("king", "BigDecimal")),
+				false);
 
 		for (int i = 0; i < 100; i++) {
 			_objectEntryLocalService.addObjectEntry(
