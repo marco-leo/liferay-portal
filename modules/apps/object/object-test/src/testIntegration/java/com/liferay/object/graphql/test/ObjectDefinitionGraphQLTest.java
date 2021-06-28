@@ -69,14 +69,15 @@ public class ObjectDefinitionGraphQLTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_objectDefinitionName = "A" + RandomTestUtil.randomString(5);
+		_objectDefinitionName = "C_A" + RandomTestUtil.randomString(5);
 		_objectFieldName = "a" + RandomTestUtil.randomString(5);
 
 		_objectDefinition =
 			ObjectDefinitionLocalServiceUtil.addObjectDefinition(
 				TestPropsValues.getUserId(), _objectDefinitionName,
 				Collections.singletonList(
-					_createObjectField(_objectFieldName, "String")));
+					_createObjectField(_objectFieldName, "String")),
+				false);
 
 		_objectEntry = ObjectEntryLocalServiceUtil.addObjectEntry(
 			TestPropsValues.getUserId(), TestPropsValues.getGroupId(),
