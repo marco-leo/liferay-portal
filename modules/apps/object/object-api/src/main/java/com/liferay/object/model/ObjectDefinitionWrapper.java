@@ -213,6 +213,11 @@ public class ObjectDefinitionWrapper
 		return model.getRESTContextPath();
 	}
 
+	@Override
+	public String getShortName() {
+		return model.getShortName();
+	}
+
 	/**
 	 * Returns the user ID of this object definition.
 	 *
@@ -251,6 +256,11 @@ public class ObjectDefinitionWrapper
 	@Override
 	public String getUuid() {
 		return model.getUuid();
+	}
+
+	@Override
+	public boolean isSystem() {
+		return model.isSystem();
 	}
 
 	@Override

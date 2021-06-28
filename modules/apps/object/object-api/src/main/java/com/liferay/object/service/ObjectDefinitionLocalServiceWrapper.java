@@ -36,11 +36,12 @@ public class ObjectDefinitionLocalServiceWrapper
 	@Override
 	public com.liferay.object.model.ObjectDefinition addObjectDefinition(
 			long userId, String name,
-			java.util.List<com.liferay.object.model.ObjectField> objectFields)
+			java.util.List<com.liferay.object.model.ObjectField> objectFields,
+			boolean system)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _objectDefinitionLocalService.addObjectDefinition(
-			userId, name, objectFields);
+			userId, name, objectFields, system);
 	}
 
 	/**

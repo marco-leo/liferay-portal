@@ -46,10 +46,12 @@ public class ObjectDefinitionLocalServiceUtil {
 	 */
 	public static ObjectDefinition addObjectDefinition(
 			long userId, String name,
-			List<com.liferay.object.model.ObjectField> objectFields)
+			List<com.liferay.object.model.ObjectField> objectFields,
+			boolean system)
 		throws PortalException {
 
-		return getService().addObjectDefinition(userId, name, objectFields);
+		return getService().addObjectDefinition(
+			userId, name, objectFields, system);
 	}
 
 	/**
