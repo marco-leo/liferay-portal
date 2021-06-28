@@ -301,7 +301,7 @@ public interface ObjectDefinitionLocalService
 		throws PortalException;
 
 	@Clusterable
-	public void undeployObjectDefinition(long objectDefinitionId);
+	public void undeployObjectDefinition(ObjectDefinition objectDefinition);
 
 	/**
 	 * Updates the object definition in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.

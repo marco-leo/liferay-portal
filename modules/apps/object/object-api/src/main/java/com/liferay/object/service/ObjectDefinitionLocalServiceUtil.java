@@ -349,8 +349,10 @@ public class ObjectDefinitionLocalServiceUtil {
 		return getService().getPersistedModel(primaryKeyObj);
 	}
 
-	public static void undeployObjectDefinition(long objectDefinitionId) {
-		getService().undeployObjectDefinition(objectDefinitionId);
+	public static void undeployObjectDefinition(
+		ObjectDefinition objectDefinition) {
+
+		getService().undeployObjectDefinition(objectDefinition);
 	}
 
 	/**

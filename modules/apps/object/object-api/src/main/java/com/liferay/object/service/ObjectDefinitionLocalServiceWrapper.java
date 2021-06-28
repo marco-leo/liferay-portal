@@ -389,9 +389,11 @@ public class ObjectDefinitionLocalServiceWrapper
 	}
 
 	@Override
-	public void undeployObjectDefinition(long objectDefinitionId) {
+	public void undeployObjectDefinition(
+		com.liferay.object.model.ObjectDefinition objectDefinition) {
+
 		_objectDefinitionLocalService.undeployObjectDefinition(
-			objectDefinitionId);
+			objectDefinition);
 	}
 
 	/**
