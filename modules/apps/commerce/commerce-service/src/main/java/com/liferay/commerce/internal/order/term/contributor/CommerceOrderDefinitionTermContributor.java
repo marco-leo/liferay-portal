@@ -180,9 +180,6 @@ public class CommerceOrderDefinitionTermContributor
 		if (!Validator.isBlank(commerceAddress.getStreet3())) {
 			addressSB.append(commerceAddress.getStreet3());
 			addressSB.append("<br/>");
-		}
-
-		if (!Validator.isBlank(commerceAddress.getStreet3())) {
 			addressSB.append(commerceAddress.getStreet3());
 			addressSB.append("<br/>");
 		}
