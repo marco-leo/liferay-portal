@@ -19,6 +19,7 @@ import com.liferay.commerce.order.rule.model.CommerceOrderRuleEntry;
 import com.liferay.commerce.order.rule.service.base.CommerceOrderRuleEntryServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionFactory;
@@ -41,6 +42,41 @@ import org.osgi.service.component.annotations.Component;
 )
 public class CommerceOrderRuleEntryServiceImpl
 	extends CommerceOrderRuleEntryServiceBaseImpl {
+
+	@Override
+	public CommerceOrderRuleEntry fetchCommerceOrderRuleEntry(
+			long commerceOrderRuleEntryId)
+		throws PortalException {
+
+		CommerceOrderRuleEntry commerceOrderRuleEntry =
+			commerceOrderRuleEntryLocalService.
+				fetchCommerceOrderRuleEntry(commerceOrderRuleEntryId);
+
+		if (commerceOrderRuleEntry != null) {
+			_commerceOrderRuleEntryModelResourcePermission.check(
+				getPermissionChecker(), commerceOrderRuleEntry, ActionKeys.VIEW);
+		}
+
+		return commerceOrderRuleEntry;
+	}
+
+	@Override
+	public CommerceOrderRuleEntry fetchByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException {
+
+		CommerceOrderRuleEntry commerceOrderRuleEntry =
+			commerceOrderRuleEntryLocalService.
+				fetchCommerceOrderRuleEntryByExternalReferenceCode(
+					companyId, externalReferenceCode);
+
+		if (commerceOrderRuleEntry != null) {
+			_commerceOrderRuleEntryModelResourcePermission.check(
+				getPermissionChecker(), commerceOrderRuleEntry, ActionKeys.VIEW);
+		}
+
+		return commerceOrderRuleEntry;
+	}
 
 	@Override
 	public CommerceOrderRuleEntry addCommerceOrderRuleEntry(

@@ -52,6 +52,93 @@ import com.liferay.portal.kernel.util.MethodKey;
 public class CommerceOrderRuleEntryServiceHttp {
 
 	public static com.liferay.commerce.order.rule.model.CommerceOrderRuleEntry
+			fetchCommerceOrderRuleEntry(
+				HttpPrincipal httpPrincipal, long commerceOrderRuleEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				CommerceOrderRuleEntryServiceUtil.class,
+				"fetchCommerceOrderRuleEntry",
+				_fetchCommerceOrderRuleEntryParameterTypes0);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, commerceOrderRuleEntryId);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (com.liferay.commerce.order.rule.model.
+				CommerceOrderRuleEntry)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
+	public static com.liferay.commerce.order.rule.model.CommerceOrderRuleEntry
+			fetchByExternalReferenceCode(
+				HttpPrincipal httpPrincipal, long companyId,
+				String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				CommerceOrderRuleEntryServiceUtil.class,
+				"fetchByExternalReferenceCode",
+				_fetchByExternalReferenceCodeParameterTypes1);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, companyId, externalReferenceCode);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (com.liferay.commerce.order.rule.model.
+				CommerceOrderRuleEntry)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
+	public static com.liferay.commerce.order.rule.model.CommerceOrderRuleEntry
 			addCommerceOrderRuleEntry(
 				HttpPrincipal httpPrincipal, String externalReferenceCode,
 				boolean active, String description, String name, int priority,
@@ -62,7 +149,7 @@ public class CommerceOrderRuleEntryServiceHttp {
 			MethodKey methodKey = new MethodKey(
 				CommerceOrderRuleEntryServiceUtil.class,
 				"addCommerceOrderRuleEntry",
-				_addCommerceOrderRuleEntryParameterTypes0);
+				_addCommerceOrderRuleEntryParameterTypes2);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, externalReferenceCode, active, description, name,
@@ -106,7 +193,7 @@ public class CommerceOrderRuleEntryServiceHttp {
 			MethodKey methodKey = new MethodKey(
 				CommerceOrderRuleEntryServiceUtil.class,
 				"deleteCommerceOrderRuleEntry",
-				_deleteCommerceOrderRuleEntryParameterTypes1);
+				_deleteCommerceOrderRuleEntryParameterTypes3);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, commerceOrderRuleEntryId);
@@ -151,7 +238,7 @@ public class CommerceOrderRuleEntryServiceHttp {
 			MethodKey methodKey = new MethodKey(
 				CommerceOrderRuleEntryServiceUtil.class,
 				"getCommerceOrderRuleEntries",
-				_getCommerceOrderRuleEntriesParameterTypes2);
+				_getCommerceOrderRuleEntriesParameterTypes4);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, companyId, active, start, end);
@@ -197,7 +284,7 @@ public class CommerceOrderRuleEntryServiceHttp {
 			MethodKey methodKey = new MethodKey(
 				CommerceOrderRuleEntryServiceUtil.class,
 				"getCommerceOrderRuleEntries",
-				_getCommerceOrderRuleEntriesParameterTypes3);
+				_getCommerceOrderRuleEntriesParameterTypes5);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, companyId, active, type, start, end);
@@ -243,7 +330,7 @@ public class CommerceOrderRuleEntryServiceHttp {
 			MethodKey methodKey = new MethodKey(
 				CommerceOrderRuleEntryServiceUtil.class,
 				"getCommerceOrderRuleEntries",
-				_getCommerceOrderRuleEntriesParameterTypes4);
+				_getCommerceOrderRuleEntriesParameterTypes6);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, companyId, type, start, end);
@@ -289,7 +376,7 @@ public class CommerceOrderRuleEntryServiceHttp {
 			MethodKey methodKey = new MethodKey(
 				CommerceOrderRuleEntryServiceUtil.class,
 				"updateCommerceOrderRuleEntry",
-				_updateCommerceOrderRuleEntryParameterTypes5);
+				_updateCommerceOrderRuleEntryParameterTypes7);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, commerceOrderRuleEntryId, active, description, name,
@@ -327,27 +414,33 @@ public class CommerceOrderRuleEntryServiceHttp {
 	private static Log _log = LogFactoryUtil.getLog(
 		CommerceOrderRuleEntryServiceHttp.class);
 
-	private static final Class<?>[] _addCommerceOrderRuleEntryParameterTypes0 =
+	private static final Class<?>[]
+		_fetchCommerceOrderRuleEntryParameterTypes0 = new Class[] {long.class};
+	private static final Class<?>[]
+		_fetchByExternalReferenceCodeParameterTypes1 = new Class[] {
+			long.class, String.class
+		};
+	private static final Class<?>[] _addCommerceOrderRuleEntryParameterTypes2 =
 		new Class[] {
 			String.class, boolean.class, String.class, String.class, int.class,
 			String.class, String.class
 		};
 	private static final Class<?>[]
-		_deleteCommerceOrderRuleEntryParameterTypes1 = new Class[] {long.class};
+		_deleteCommerceOrderRuleEntryParameterTypes3 = new Class[] {long.class};
 	private static final Class<?>[]
-		_getCommerceOrderRuleEntriesParameterTypes2 = new Class[] {
+		_getCommerceOrderRuleEntriesParameterTypes4 = new Class[] {
 			long.class, boolean.class, int.class, int.class
 		};
 	private static final Class<?>[]
-		_getCommerceOrderRuleEntriesParameterTypes3 = new Class[] {
+		_getCommerceOrderRuleEntriesParameterTypes5 = new Class[] {
 			long.class, boolean.class, String.class, int.class, int.class
 		};
 	private static final Class<?>[]
-		_getCommerceOrderRuleEntriesParameterTypes4 = new Class[] {
+		_getCommerceOrderRuleEntriesParameterTypes6 = new Class[] {
 			long.class, String.class, int.class, int.class
 		};
 	private static final Class<?>[]
-		_updateCommerceOrderRuleEntryParameterTypes5 = new Class[] {
+		_updateCommerceOrderRuleEntryParameterTypes7 = new Class[] {
 			long.class, boolean.class, String.class, String.class, int.class,
 			String.class
 		};
