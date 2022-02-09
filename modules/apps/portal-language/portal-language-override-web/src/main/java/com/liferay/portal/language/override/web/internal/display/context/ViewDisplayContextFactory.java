@@ -24,8 +24,8 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
-import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
+import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactory;
 import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
@@ -40,6 +40,7 @@ import com.liferay.portal.language.LanguageResources;
 import com.liferay.portal.language.override.constants.PLOActionKeys;
 import com.liferay.portal.language.override.model.PLOEntry;
 import com.liferay.portal.language.override.service.PLOEntryLocalService;
+import com.liferay.portal.language.override.web.internal.constants.PLOPortletKeys;
 import com.liferay.portal.language.override.web.internal.display.LanguageItemDisplay;
 
 import java.util.ArrayList;
@@ -123,28 +124,25 @@ public class ViewDisplayContextFactory {
 
 		LiferayPortletRequest liferayPortletRequest =
 			_portal.getLiferayPortletRequest(renderRequest);
-		LiferayPortletResponse liferayPortletResponse =
-			_portal.getLiferayPortletResponse(renderResponse);
 
 		SearchContainer<LanguageItemDisplay> searchContainer =
 			new SearchContainer<>(
 				liferayPortletRequest,
 				PortletURLUtil.getCurrent(
-					liferayPortletRequest, liferayPortletResponse),
+					liferayPortletRequest,
+					_portal.getLiferayPortletResponse(renderResponse)),
 				Arrays.asList("key", "value"),
 				"no-language-entries-were-found");
 
 		searchContainer.setId("portalLanguageOverrideEntries");
-
-		String orderByCol = ParamUtil.getString(
-			liferayPortletRequest, "orderByCol", "name");
-
-		searchContainer.setOrderByCol(orderByCol);
-
-		String orderByType = ParamUtil.getString(
-			liferayPortletRequest, "orderByType", "asc");
-
-		searchContainer.setOrderByType(orderByType);
+		searchContainer.setOrderByCol(
+			SearchOrderByUtil.getOrderByCol(
+				liferayPortletRequest, PLOPortletKeys.PORTAL_LANGUAGE_OVERRIDE,
+				"name"));
+		searchContainer.setOrderByType(
+			SearchOrderByUtil.getOrderByType(
+				liferayPortletRequest, PLOPortletKeys.PORTAL_LANGUAGE_OVERRIDE,
+				"asc"));
 
 		_setResults(renderRequest, searchContainer);
 
@@ -290,8 +288,6 @@ public class ViewDisplayContextFactory {
 			}
 		}
 
-		searchContainer.setTotal(languageItemDisplays.size());
-
 		// Sorting
 
 		Comparator<LanguageItemDisplay> comparator = Comparator.comparing(
@@ -309,8 +305,9 @@ public class ViewDisplayContextFactory {
 			searchContainer.getStart(), searchContainer.getEnd(),
 			searchContainer.getTotal());
 
-		searchContainer.setResults(
-			languageItemDisplays.subList(startAndEnd[0], startAndEnd[1]));
+		searchContainer.setResultsAndTotal(
+			() -> languageItemDisplays.subList(startAndEnd[0], startAndEnd[1]),
+			languageItemDisplays.size());
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

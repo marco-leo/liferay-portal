@@ -997,7 +997,7 @@
     classnames "^2.2.6"
     date-fns "^2.14.0"
 
-"@clayui/drop-down@3.43.0", "@clayui/drop-down@^3.43.0":
+"@clayui/drop-down@3.43.0", "@clayui/drop-down@^3.41.0", "@clayui/drop-down@^3.43.0":
   version "3.43.0"
   resolved "https://registry.yarnpkg.com/@clayui/drop-down/-/drop-down-3.43.0.tgz#c5b028c96eb206fdb1860217bf3b83db765252f3"
   integrity sha512-SKSeGgyj4wMrNMztgMmXPYhh6H6XNFa6licl8ZXd9nSEEcx722gXj990uVesDs4ec7NuxoMEhr+9P9oSzP3dBg==
@@ -1018,7 +1018,7 @@
   dependencies:
     classnames "^2.2.6"
 
-"@clayui/form@3.42.0", "@clayui/form@^3.42.0":
+"@clayui/form@3.42.0", "@clayui/form@^3.40.0", "@clayui/form@^3.42.0":
   version "3.42.0"
   resolved "https://registry.yarnpkg.com/@clayui/form/-/form-3.42.0.tgz#c3cdb166f2b56c07110a9c9df85bf7e6b5919109"
   integrity sha512-j0Z15thowkIKWyTzOr5AM9IQSY8Se8dUWWiNLqMRJtxsXVhfaSdKZB2OloKOARSez3ny8OTvNW8CDd5YZgqojg==
@@ -1080,6 +1080,19 @@
   resolved "https://registry.yarnpkg.com/@clayui/loading-indicator/-/loading-indicator-3.40.0.tgz#0c39745a3f72bbab31344ef17f6590dcd1052471"
   integrity sha512-JCi88NLnjPZwkQLORxKMJDvLMsbZKd4ftWJ1uUIW4xZSi2GzCG+VzkGJpg+90fbtUiMt12tLn4In741JxWHz8w==
   dependencies:
+    classnames "^2.2.6"
+
+"@clayui/localized-input@3.41.0":
+  version "3.41.0"
+  resolved "https://registry.yarnpkg.com/@clayui/localized-input/-/localized-input-3.41.0.tgz#10683f4774336dffe93e2da21c62b29727d062f6"
+  integrity sha512-dMdlkpaXsJEUMIDXGX3cTIGTavk9En4yv6hIhZ/cYFQc+WOFLpU2UuyB/QnA6FfSLdJTcWd+AyZsV3QJmFVjqw==
+  dependencies:
+    "@clayui/button" "^3.40.0"
+    "@clayui/drop-down" "^3.41.0"
+    "@clayui/form" "^3.40.0"
+    "@clayui/icon" "^3.40.0"
+    "@clayui/label" "^3.40.0"
+    "@clayui/layout" "^3.40.0"
     classnames "^2.2.6"
 
 "@clayui/localized-input@3.43.0":
@@ -1643,10 +1656,10 @@
     xml-js "^1.6.8"
     yargs "^14.0.0"
 
-"@liferay/npm-scripts@47.0.0":
-  version "47.0.0"
-  resolved "https://registry.yarnpkg.com/@liferay/npm-scripts/-/npm-scripts-47.0.0.tgz#f4f6535d9b15408de15e1e02bcda80101a677dce"
-  integrity sha512-VsHbsGlAh9oR+I3/+7ke+rxLXIlGz0WCH5DZBlzzP2tYFYWPJb7GMa6aPFlLhU4SSdMNO5O7r/MgEiiWOZbvaA==
+"@liferay/npm-scripts@47.2.0":
+  version "47.2.0"
+  resolved "https://registry.yarnpkg.com/@liferay/npm-scripts/-/npm-scripts-47.2.0.tgz#ef521b946c080dfb9869d83e926824c84b921ae9"
+  integrity sha512-H8ECgR2JlPAPYmOW8E16A7Y+yuP+2+UC1VZ/vmFH8qFm7O94O4FFn6UrW0OQY+W0wvQ2HBTVCX9CjvQ40nKdXw==
   dependencies:
     "@babel/cli" "^7.2.3"
     "@babel/core" "^7.8.3"

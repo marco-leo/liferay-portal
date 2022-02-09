@@ -388,6 +388,12 @@ definition {
 		AssertElementPresent(locator1 = "ObjectAdmin#FIELD_BLOCK_ADD_FIELD_BUTTON");
 	}
 
+	macro assertClobTypeText {
+		AssertElementPresent(
+			key_clobType = "${clobType}",
+			locator1 = "ObjectAdmin#VIEW_CLOB_TYPE_TEXT_ENTRY");
+	}
+
 	macro assertEntryOnPageNotPresent {
 		AssertElementNotPresent(
 			key_entryName = "${entryName}",
@@ -634,6 +640,16 @@ definition {
 			locator1 = "ObjectAdmin#SELECT_LANGUAGE");
 	}
 
+	macro chooseAnyLanguage {
+		Click(
+			key_symbolName = "",
+			locator1 = "FormViewBuilder#BUTTON_LOCALIZATION");
+
+		Click(
+			key_newLanguage = "${newLanguage}",
+			locator1 = "ObjectAdmin#CHOOSE_ANY_LANGUAGE");
+	}
+
 	macro clickFieldsSearchableSectionRadioOption {
 		Click.javaScriptClick(
 			key_radioOption = "${radioOption}",
@@ -716,6 +732,30 @@ definition {
 			value1 = "${newEntryValue}");
 
 		Button.clickSave();
+	}
+
+	macro editObjectAction {
+		ObjectAdmin.goToActionDetails(viewEntry = "${viewEntry}");
+
+		ObjectAdmin.viewFieldDetails();
+
+		if (isSet(newActionName)) {
+			Type(
+				locator1 = "ObjectAdmin#VIEW_ACTION_NAME_ON_SIDE_PANEL",
+				value1 = "${newActionName}");
+		}
+
+		Button.clickSave();
+
+		Refresh();
+	}
+
+	macro goToActionDetails {
+		Click(
+			key_objectLabel = "${viewEntry}",
+			locator1 = "ObjectAdmin#OBJECT_KEBAB_MENU");
+
+		MenuItem.clickNoError(menuItem = "View");
 	}
 
 	macro goToActionsTab {

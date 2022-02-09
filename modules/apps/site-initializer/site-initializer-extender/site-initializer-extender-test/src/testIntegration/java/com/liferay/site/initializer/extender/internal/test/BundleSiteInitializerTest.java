@@ -66,6 +66,7 @@ import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.petra.io.StreamUtil;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.ResourcePermission;
@@ -92,6 +93,8 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.security.service.access.policy.model.SAPEntry;
+import com.liferay.portal.security.service.access.policy.service.SAPEntryLocalService;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -181,6 +184,8 @@ public class BundleSiteInitializerTest {
 			_assertObjectDefinitions(group, serviceContext);
 			_assertPermissions(group);
 			_assertRemoteApp(group);
+			_assertSAPEntries(group);
+			_assertSiteConfiguration(group.getGroupId());
 			_assertSiteNavigationMenu(group);
 			_assertStyleBookEntry(group);
 			_assertUserRoles(group);
@@ -821,8 +826,17 @@ public class BundleSiteInitializerTest {
 
 		ResourcePermission resourcePermission =
 			_resourcePermissionLocalService.fetchResourcePermission(
-				group.getCompanyId(), "com.liferay.commerce.product", 3, "0",
-				role.getRoleId());
+				group.getCompanyId(), "com.liferay.commerce.product", 1,
+				String.valueOf(group.getCompanyId()), role.getRoleId());
+
+		Assert.assertNotNull(resourcePermission);
+
+		role = _roleLocalService.fetchRole(group.getCompanyId(), "Test Role 2");
+
+		resourcePermission =
+			_resourcePermissionLocalService.fetchResourcePermission(
+				group.getCompanyId(), "com.liferay.commerce.product", 2,
+				String.valueOf(group.getGroupId()), role.getRoleId());
 
 		Assert.assertNotNull(resourcePermission);
 	}
@@ -851,6 +865,46 @@ public class BundleSiteInitializerTest {
 
 		Assert.assertNotNull(role4);
 		Assert.assertEquals(2, role4.getType());
+	}
+
+	private void _assertSAPEntries(Group group) {
+		SAPEntry sapEntry1 = _sapEntryLocalService.fetchSAPEntry(
+			group.getCompanyId(), "TEST_SAP_ENTRY_1");
+
+		Assert.assertNotNull(sapEntry1);
+		Assert.assertTrue(sapEntry1.isDefaultSAPEntry());
+		Assert.assertTrue(sapEntry1.isEnabled());
+
+		List<String> allowedServiceSignaturesList1 =
+			sapEntry1.getAllowedServiceSignaturesList();
+
+		Assert.assertEquals(
+			allowedServiceSignaturesList1.toString(), 3,
+			allowedServiceSignaturesList1.size());
+
+		SAPEntry sapEntry2 = _sapEntryLocalService.fetchSAPEntry(
+			group.getCompanyId(), "TEST_SAP_ENTRY_2");
+
+		Assert.assertNotNull(sapEntry2);
+		Assert.assertFalse(sapEntry2.isDefaultSAPEntry());
+		Assert.assertTrue(sapEntry2.isEnabled());
+
+		List<String> allowedServiceSignaturesList2 =
+			sapEntry2.getAllowedServiceSignaturesList();
+
+		Assert.assertEquals(
+			allowedServiceSignaturesList2.toString(), 5,
+			allowedServiceSignaturesList2.size());
+	}
+
+	private void _assertSiteConfiguration(Long groupId) {
+		Group group = _groupLocalService.fetchGroup(groupId);
+
+		Assert.assertEquals(
+			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
+			group.getMembershipRestriction());
+		Assert.assertEquals(GroupConstants.TYPE_SITE_OPEN, group.getType());
+		Assert.assertTrue(group.isManualMembership());
 	}
 
 	private void _assertSiteNavigationMenu(Group group) {
@@ -1077,6 +1131,9 @@ public class BundleSiteInitializerTest {
 
 	@Inject
 	private RoleLocalService _roleLocalService;
+
+	@Inject
+	private SAPEntryLocalService _sapEntryLocalService;
 
 	@Inject
 	private ServletContext _servletContext;
