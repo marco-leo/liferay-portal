@@ -1,0 +1,11 @@
+apiDir: "../commerce-qualifier-rest-api/src/main/java"
+apiPackagePath: "com.liferay.commerce.qualifier.rest"
+application:
+    baseURI: "/headless-commerce-qualifier"
+    className: "CommerceQualifierRESTApplication"
+    name: "Liferay.Headless.Commerce.Qualifier"
+author: "Riccardo Alberti"
+clientDir: "../commerce-qualifier-rest-client/src/main/java"
+forcePredictableOperationId: true
+generateOpenAPI: true
+liferayEnterpriseApp: true
