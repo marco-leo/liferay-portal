@@ -34,6 +34,11 @@ public abstract class BaseCommerceQualifierMetadata<T>
 	implements CommerceQualifierMetadata {
 
 	@Override
+	public String getDisplayCategory() {
+		return "uncategorized";
+	}
+
+	@Override
 	public String getExternalReferenceCode(long id) {
 		return StringPool.BLANK;
 	}
@@ -49,8 +54,17 @@ public abstract class BaseCommerceQualifierMetadata<T>
 		return Collections.emptyMap();
 	}
 
+	@Override
+	public Map<String, String> getRESTInfoColumNames(
+		String allowedTargetClassName) {
+
+		return Collections.emptyMap();
+	}
+
 	@Activate
-	protected void activate(BundleContext bundleContext) {
+	protected void activate(
+		BundleContext bundleContext, Map<String, Object> properties) {
+
 		commerceQualifierDeployer.deploy(this);
 	}
 

@@ -71,6 +71,9 @@ components:
                 name:
                     example: Source Entity Name
                     type: string
+                targetDefault:
+                    example: true
+                    type: boolean
                 type:
                     example: Channel
                     type: string
@@ -303,15 +306,6 @@ paths:
                       minimum: 0
                       type: integer
                   style: simple
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: "#/components/schemas/Qualifier"
-                    application/xml:
-                        schema:
-                            $ref: "#/components/schemas/Qualifier"
-                required: true
             responses:
                 200:
                     content:

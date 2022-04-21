@@ -198,6 +198,27 @@ public class QualifierEntity implements Cloneable, Serializable {
 
 	protected String name;
 
+	public Boolean getTargetDefault() {
+		return targetDefault;
+	}
+
+	public void setTargetDefault(Boolean targetDefault) {
+		this.targetDefault = targetDefault;
+	}
+
+	public void setTargetDefault(
+		UnsafeSupplier<Boolean, Exception> targetDefaultUnsafeSupplier) {
+
+		try {
+			targetDefault = targetDefaultUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean targetDefault;
+
 	public String getType() {
 		return type;
 	}

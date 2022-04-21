@@ -17,6 +17,7 @@ package com.liferay.commerce.qualifier.web.internal.portlet.action;
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadata;
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadataRegistry;
 import com.liferay.commerce.qualifier.service.CommerceQualifierEntryService;
+import com.liferay.commerce.qualifier.util.CommerceQualifierUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
@@ -71,22 +72,30 @@ public class EditCommerceQualifierEntryMVCActionCommand
 			_commerceQualifierMetadataRegistry.getCommerceQualifierMetadata(
 				sourceClassName);
 
-		String[] allowedTargetClassNames =
-			commerceQualifierMetadata.getAllowedTargetClassNames();
+		String[][] allowedTargetClassNameGroups =
+			commerceQualifierMetadata.getAllowedTargetClassNameGroups();
 
-		for (String allowedTargetClassName : allowedTargetClassNames) {
-			CommerceQualifierMetadata targetCommerceQualifierMetadata =
-				_commerceQualifierMetadataRegistry.getCommerceQualifierMetadata(
-					allowedTargetClassName);
+		for (String[] allowedTargetClassNameGroup :
+				allowedTargetClassNameGroups) {
 
-			String targetQualifierOption = ParamUtil.getString(
-				actionRequest,
-				targetCommerceQualifierMetadata.getLabel() + "-option");
+			if (allowedTargetClassNameGroup.length <= 1) {
+				continue;
+			}
 
-			if (Objects.equals(targetQualifierOption, "all")) {
-				_commerceQualifierEntryService.
-					deleteCommerceQualifierEntriesBySource(
-						sourceClassName, sourceClassPK, allowedTargetClassName);
+			String allowedTargetClassNameGroupName =
+				CommerceQualifierUtil.getAllowedTargetClassNameGroupName(
+					allowedTargetClassNameGroup);
+
+			String activeQualifiers = ParamUtil.getString(
+				actionRequest, allowedTargetClassNameGroupName + "-option");
+
+			for (String allowedTargetClassName : allowedTargetClassNameGroup) {
+				if (!Objects.equals(allowedTargetClassName, activeQualifiers)) {
+					_commerceQualifierEntryService.
+						deleteCommerceQualifierEntriesBySource(
+							sourceClassName, sourceClassPK,
+							allowedTargetClassName);
+				}
 			}
 		}
 	}

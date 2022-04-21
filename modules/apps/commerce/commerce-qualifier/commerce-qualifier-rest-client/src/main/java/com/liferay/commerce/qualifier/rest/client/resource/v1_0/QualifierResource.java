@@ -78,11 +78,9 @@ public interface QualifierResource {
 			Long id, String callbackURL, Object object)
 		throws Exception;
 
-	public Qualifier patchQualifier(Long id, Qualifier qualifier)
-		throws Exception;
+	public Qualifier patchQualifier(Long id) throws Exception;
 
-	public HttpInvoker.HttpResponse patchQualifierHttpResponse(
-			Long id, Qualifier qualifier)
+	public HttpInvoker.HttpResponse patchQualifierHttpResponse(Long id)
 		throws Exception;
 
 	public static class Builder {
@@ -569,11 +567,9 @@ public interface QualifierResource {
 			return httpInvoker.invoke();
 		}
 
-		public Qualifier patchQualifier(Long id, Qualifier qualifier)
-			throws Exception {
-
+		public Qualifier patchQualifier(Long id) throws Exception {
 			HttpInvoker.HttpResponse httpResponse = patchQualifierHttpResponse(
-				id, qualifier);
+				id);
 
 			String content = httpResponse.getContent();
 
@@ -612,13 +608,10 @@ public interface QualifierResource {
 			}
 		}
 
-		public HttpInvoker.HttpResponse patchQualifierHttpResponse(
-				Long id, Qualifier qualifier)
+		public HttpInvoker.HttpResponse patchQualifierHttpResponse(Long id)
 			throws Exception {
 
 			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-			httpInvoker.body(qualifier.toString(), "application/json");
 
 			if (_builder._locale != null) {
 				httpInvoker.header(

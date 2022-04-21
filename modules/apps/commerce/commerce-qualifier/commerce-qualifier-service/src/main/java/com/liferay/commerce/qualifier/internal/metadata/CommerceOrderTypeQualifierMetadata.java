@@ -12,15 +12,14 @@
  * details.
  */
 
-package com.liferay.commerce.pricing.web.internal.qualifier;
+package com.liferay.commerce.qualifier.internal.metadata;
 
-import com.liferay.commerce.discount.model.CommerceDiscount;
-import com.liferay.commerce.discount.model.CommerceDiscountTable;
-import com.liferay.commerce.discount.service.CommerceDiscountLocalService;
 import com.liferay.commerce.model.CommerceOrderType;
+import com.liferay.commerce.model.CommerceOrderTypeTable;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.qualifier.metadata.BaseCommerceQualifierMetadata;
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadata;
+import com.liferay.commerce.service.CommerceOrderTypeLocalService;
 import com.liferay.petra.sql.dsl.Column;
 import com.liferay.petra.sql.dsl.Table;
 import com.liferay.petra.sql.dsl.query.sort.OrderByExpression;
@@ -28,6 +27,7 @@ import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LocaleUtil;
 
 import java.util.Map;
 
@@ -40,69 +40,74 @@ import org.osgi.service.component.annotations.Reference;
 @Component(
 	enabled = false, immediate = true, service = CommerceQualifierMetadata.class
 )
-public class CommerceDiscountQualifierMetadata
-	extends BaseCommerceQualifierMetadata<CommerceDiscount> {
+public class CommerceOrderTypeQualifierMetadata
+	extends BaseCommerceQualifierMetadata<CommerceOrderType> {
 
 	@Override
-	public String[] getAllowedTargetClassNames() {
-		return new String[] {
-			CommerceChannel.class.getName(), CommerceOrderType.class.getName()
-		};
+	public String[][] getAllowedTargetClassNameGroups() {
+		return new String[][] {{CommerceChannel.class.getName()}};
+	}
+
+	@Override
+	public String getDisplayCategory() {
+		return "order";
 	}
 
 	@Override
 	public Column<?, String> getKeywordsColumn() {
-		return CommerceDiscountTable.INSTANCE.title;
+		return CommerceOrderTypeTable.INSTANCE.name;
 	}
 
 	@Override
 	public String getLabel() {
-		return "discount";
+		return "order-type";
 	}
 
 	@Override
-	public Class<CommerceDiscount> getModelClass() {
-		return CommerceDiscount.class;
+	public Class<CommerceOrderType> getModelClass() {
+		return CommerceOrderType.class;
 	}
 
 	@Override
 	public String getModelClassName() {
-		return CommerceDiscount.class.getName();
+		return CommerceOrderType.class.getName();
 	}
 
 	@Override
-	public ModelResourcePermission<CommerceDiscount>
+	public ModelResourcePermission<CommerceOrderType>
 		getModelResourcePermission() {
 
-		return _commerceDiscountModelResourcePermission;
+		return _commerceOrderTypeModelResourcePermission;
 	}
 
 	@Override
 	public String getMVCRenderCommandName() {
-		return "/commerce_discounts/edit_commerce_discount";
+		return "/commerce_order_type/edit_commerce_order_type";
 	}
 
 	@Override
-	public OrderByExpression[] getOrderByExpressions() {
+	public OrderByExpression[] getOrderByExpressions(
+		String... targetDefaultClassNames) {
+
 		return new OrderByExpression[] {
-			CommerceDiscountTable.INSTANCE.commerceDiscountId.descending()
+			CommerceOrderTypeTable.INSTANCE.commerceOrderTypeId.descending()
 		};
 	}
 
 	@Override
 	public PersistedModelLocalService getPersistedModelLocalService() {
-		return _commerceDiscountLocalService;
+		return _commerceOrderTypeLocalService;
 	}
 
 	@Override
 	public String getPluralLabel() {
-		return "discounts";
+		return "order-types";
 	}
 
 	@Override
 	public Map<String, String[]> getPortletParameters() {
 		return HashMapBuilder.put(
-			"commerceDiscountId", new String[] {"{qualifierEntity.id}"}
+			"commerceOrderTypeId", new String[] {"{qualifierEntity.id}"}
 		).build();
 	}
 
@@ -113,49 +118,62 @@ public class CommerceDiscountQualifierMetadata
 
 	@Override
 	public Column<?, Long> getPrimaryKeyColumn() {
-		return CommerceDiscountTable.INSTANCE.commerceDiscountId;
+		return CommerceOrderTypeTable.INSTANCE.commerceOrderTypeId;
 	}
 
 	@Override
 	public String getRESTContextPath() {
-		return "/o/headless-commerce-admin-pricing/v2.0/discounts";
+		return "/o/headless-commerce-admin-order/v1.0/order-types";
+	}
+
+	@Override
+	public Map<String, String> getRESTInfo(long id) {
+		return HashMapBuilder.put(
+			"info1",
+			() -> {
+				CommerceOrderType commerceOrderType =
+					_commerceOrderTypeLocalService.fetchCommerceOrderType(id);
+
+				return commerceOrderType.getDescription();
+			}
+		).build();
 	}
 
 	@Override
 	public String getRESTModelName() {
-		return "discount";
+		return "order-type";
 	}
 
 	@Override
 	public String getRESTName(long id) {
-		CommerceDiscount commerceDiscount =
-			_commerceDiscountLocalService.fetchCommerceDiscount(id);
+		CommerceOrderType commerceOrderType =
+			_commerceOrderTypeLocalService.fetchCommerceOrderType(id);
 
-		return commerceDiscount.getTitle();
+		return commerceOrderType.getName(LocaleUtil.getDefault());
 	}
 
 	@Override
 	public String getRESTSchema() {
-		return "[{\"fieldName\": \"title\"}]";
+		return "[{\"fieldName\": [\"name\", \"LANG\"]}]";
 	}
 
 	@Override
 	public Table getTable() {
-		return CommerceDiscountTable.INSTANCE;
+		return CommerceOrderTypeTable.INSTANCE;
 	}
 
 	@Override
 	public boolean isSidePanel() {
-		return true;
+		return false;
 	}
 
 	@Reference
-	private CommerceDiscountLocalService _commerceDiscountLocalService;
+	private CommerceOrderTypeLocalService _commerceOrderTypeLocalService;
 
 	@Reference(
-		target = "(model.class.name=com.liferay.commerce.discount.model.CommerceDiscount)"
+		target = "(model.class.name=com.liferay.commerce.model.CommerceOrderType)"
 	)
-	private ModelResourcePermission<CommerceDiscount>
-		_commerceDiscountModelResourcePermission;
+	private ModelResourcePermission<CommerceOrderType>
+		_commerceOrderTypeModelResourcePermission;
 
 }

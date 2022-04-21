@@ -90,6 +90,7 @@ public class QualifierEntityDTOConverter
 				info5 = info.getOrDefault("info5", StringPool.BLANK);
 				name = commerceQualifierMetadata.getRESTName(
 					_getClassPK(commerceQualifierEntry, qualifierMode));
+				targetDefault = commerceQualifierEntry.getTargetDefault();
 				type = commerceQualifierMetadata.getRESTModelName();
 			}
 		};

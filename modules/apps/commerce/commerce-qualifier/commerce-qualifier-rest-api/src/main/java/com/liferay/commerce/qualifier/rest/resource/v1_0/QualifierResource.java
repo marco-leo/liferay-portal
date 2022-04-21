@@ -75,8 +75,7 @@ public interface QualifierResource {
 			Long id, String callbackURL, Object object)
 		throws Exception;
 
-	public Qualifier patchQualifier(Long id, Qualifier qualifier)
-		throws Exception;
+	public Qualifier patchQualifier(Long id) throws Exception;
 
 	public default void setContextAcceptLanguage(
 		AcceptLanguage contextAcceptLanguage) {

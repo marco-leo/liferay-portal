@@ -62,7 +62,7 @@ public class QualifierResourceImpl extends BaseQualifierResourceImpl {
 
 		Map<String, CommerceQualifierMetadata> commerceQualifiersMetadata =
 			_commerceQualifierMetadataRegistry.
-				getCommerceQualifiersMetadataByRESTModelName();
+				getCommerceQualifiersMetadataRESTModelName();
 
 		CommerceQualifierMetadata commerceQualifierMetadata1 =
 			commerceQualifiersMetadata.get(qualifierEntityName1);
@@ -106,8 +106,8 @@ public class QualifierResourceImpl extends BaseQualifierResourceImpl {
 				_commerceQualifierEntryService.
 					getCommerceQualifierEntriesByTarget(
 						contextCompany.getCompanyId(),
-						commerceQualifierMetadata1.getModelClassName(),
 						commerceQualifierMetadata2.getModelClassName(),
+						commerceQualifierMetadata1.getModelClassName(),
 						qualifierEntityId1, search,
 						pagination.getStartPosition(),
 						pagination.getEndPosition()),
@@ -116,31 +116,27 @@ public class QualifierResourceImpl extends BaseQualifierResourceImpl {
 			_commerceQualifierEntryService.
 				getCommerceQualifierEntriesByTargetCount(
 					contextCompany.getCompanyId(),
-					commerceQualifierMetadata1.getModelClassName(),
 					commerceQualifierMetadata2.getModelClassName(),
+					commerceQualifierMetadata1.getModelClassName(),
 					qualifierEntityId1, search));
 	}
 
 	@Override
-	public Qualifier patchQualifier(Long id, Qualifier qualifier)
-		throws Exception {
-
+	public Qualifier patchQualifier(Long id) throws Exception {
 		CommerceQualifierEntry commerceQualifierEntry =
 			_commerceQualifierEntryService.getCommerceQualifierEntry(id);
 
 		return _toQualifier(
 			_commerceQualifierEntryService.updateCommerceQualifierEntry(
 				commerceQualifierEntry.getCommerceQualifierEntryId(),
-				GetterUtil.getBoolean(
-					qualifier.getTargetDefault(),
-					commerceQualifierEntry.isTargetDefault())));
+				!commerceQualifierEntry.isTargetDefault()));
 	}
 
 	@Override
 	public Qualifier postQualifier(Qualifier qualifier) throws Exception {
 		Map<String, CommerceQualifierMetadata> commerceQualifiersMetadata =
 			_commerceQualifierMetadataRegistry.
-				getCommerceQualifiersMetadataByRESTModelName();
+				getCommerceQualifiersMetadataRESTModelName();
 
 		CommerceQualifierMetadata sourceCommerceQualifierMetadata =
 			commerceQualifiersMetadata.get(qualifier.getSourceName());
@@ -170,8 +166,14 @@ public class QualifierResourceImpl extends BaseQualifierResourceImpl {
 		return HashMapBuilder.<String, Map<String, String>>put(
 			"delete",
 			addAction(
-				"UPDATE", commerceQualifierEntry.getCommerceQualifierEntryId(),
+				"DELETE", commerceQualifierEntry.getCommerceQualifierEntryId(),
 				"deleteQualifier",
+				_commerceQualifierEntryModelResourcePermission)
+		).put(
+			"update",
+			addAction(
+				"UPDATE", commerceQualifierEntry.getCommerceQualifierEntryId(),
+				"patchQualifier",
 				_commerceQualifierEntryModelResourcePermission)
 		).build();
 	}

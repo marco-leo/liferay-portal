@@ -21,16 +21,20 @@ import com.liferay.frontend.data.set.view.table.FDSTableSchemaBuilderFactory;
 import com.liferay.frontend.data.set.view.table.FDSTableSchemaField;
 
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Riccardo Alberti
  */
-public class TargetCommerceQualifierEntryFDSView extends BaseTableFDSView {
+public class CommerceQualifierEntryFDSView extends BaseTableFDSView {
 
-	public TargetCommerceQualifierEntryFDSView(
-		FDSTableSchemaBuilderFactory fdsTableSchemaBuilderFactory) {
+	public CommerceQualifierEntryFDSView(
+		FDSTableSchemaBuilderFactory fdsTableSchemaBuilderFactory,
+		Map<String, String> infoColumnNames, boolean showTargetDefault) {
 
 		_fdsTableSchemaBuilderFactory = fdsTableSchemaBuilderFactory;
+		_infoColumnNames = infoColumnNames;
+		_showTargetDefault = showTargetDefault;
 	}
 
 	@Override
@@ -44,24 +48,27 @@ public class TargetCommerceQualifierEntryFDSView extends BaseTableFDSView {
 
 		nameFDSTableSchemaField.setContentRenderer("actionLink");
 
-		fdsTableSchemaBuilder.addFDSTableSchemaField(
-			"qualifierEntity.info1", "info1");
+		for (Map.Entry<String, String> infoColumnName :
+				_infoColumnNames.entrySet()) {
 
-		fdsTableSchemaBuilder.addFDSTableSchemaField(
-			"qualifierEntity.info2", "info2");
+			fdsTableSchemaBuilder.addFDSTableSchemaField(
+				"qualifierEntity." + infoColumnName.getKey(),
+				infoColumnName.getValue());
+		}
 
-		fdsTableSchemaBuilder.addFDSTableSchemaField(
-			"qualifierEntity.info3", "info3");
+		if (_showTargetDefault) {
+			FDSTableSchemaField targetDefault =
+				fdsTableSchemaBuilder.addFDSTableSchemaField(
+					"qualifierEntity.targetDefault", "default");
 
-		fdsTableSchemaBuilder.addFDSTableSchemaField(
-			"qualifierEntity.info4", "info4");
-
-		fdsTableSchemaBuilder.addFDSTableSchemaField(
-			"qualifierEntity.info5", "info5");
+			targetDefault.setContentRenderer("boolean");
+		}
 
 		return fdsTableSchemaBuilder.build();
 	}
 
 	private final FDSTableSchemaBuilderFactory _fdsTableSchemaBuilderFactory;
+	private final Map<String, String> _infoColumnNames;
+	private final boolean _showTargetDefault;
 
 }

@@ -18,7 +18,6 @@ dependencies {
 	compileOnly project(":apps:commerce:commerce-payment-api")
 	compileOnly project(":apps:commerce:commerce-product-api")
 	compileOnly project(":apps:commerce:commerce-product-item-selector-api")
-	compileOnly project(":apps:commerce:commerce-qualifier:commerce-qualifier-api")
 	compileOnly project(":apps:commerce:commerce-taglib")
 	compileOnly project(":apps:commerce:commerce-term-api")
 	compileOnly project(":apps:expando:expando-taglib")

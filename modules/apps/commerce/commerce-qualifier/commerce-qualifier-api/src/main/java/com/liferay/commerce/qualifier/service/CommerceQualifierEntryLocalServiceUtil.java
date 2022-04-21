@@ -352,11 +352,12 @@ public class CommerceQualifierEntryLocalServiceUtil {
 	public static <E> List<E> getCommerceQualifierEntriesSourcesByTargets(
 		long companyId, boolean exclusive, Class<E> sourceClass,
 		Map<String, Object> sourceExtraParameterMap,
-		Map<String, Object> targetCommerceQualifierMap) {
+		java.util.LinkedHashMap<String, Object> targetCommerceQualifierMap,
+		String[] orderByTargetClassNames) {
 
 		return getService().getCommerceQualifierEntriesSourcesByTargets(
 			companyId, exclusive, sourceClass, sourceExtraParameterMap,
-			targetCommerceQualifierMap);
+			targetCommerceQualifierMap, orderByTargetClassNames);
 	}
 
 	/**

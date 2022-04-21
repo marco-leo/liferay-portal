@@ -283,7 +283,7 @@ public abstract class BaseQualifierResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'PATCH' 'http://localhost:8080/o/headless-commerce-qualifier/v1.0/qualifiers/{id}' -d $'{"sourceId": ___, "sourceName": ___, "targetDefault": ___, "targetId": ___, "targetName": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'PATCH' 'http://localhost:8080/o/headless-commerce-qualifier/v1.0/qualifiers/{id}'  -u 'test@liferay.com:test'
 	 */
 	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
@@ -296,7 +296,6 @@ public abstract class BaseQualifierResourceImpl
 	@io.swagger.v3.oas.annotations.tags.Tags(
 		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "Qualifier")}
 	)
-	@javax.ws.rs.Consumes({"application/json", "application/xml"})
 	@javax.ws.rs.PATCH
 	@javax.ws.rs.Path("/qualifiers/{id}")
 	@javax.ws.rs.Produces({"application/json", "application/xml"})
@@ -304,8 +303,7 @@ public abstract class BaseQualifierResourceImpl
 	public Qualifier patchQualifier(
 			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
 			@javax.validation.constraints.NotNull @javax.ws.rs.PathParam("id")
-			Long id,
-			Qualifier qualifier)
+			Long id)
 		throws Exception {
 
 		return new Qualifier();

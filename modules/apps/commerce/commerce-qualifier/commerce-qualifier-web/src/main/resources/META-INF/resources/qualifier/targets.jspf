@@ -32,11 +32,11 @@
 			).put(
 				"rootPortletId", portletDisplay.getRootPortletId()
 			).put(
-				"sourceId", commerceQualifierEntriesDisplayContext.getSourceClassPK()
+				"sourceId", commerceQualifierEntriesDisplayContext.getClassPK()
 			).put(
-				"sourceName", commerceQualifierEntriesDisplayContext.getSourceRESTModelName()
+				"sourceName", commerceQualifierEntriesDisplayContext.getRESTModelName1()
 			).put(
-				"targetName", commerceQualifierEntriesDisplayContext.getTargetRESTModelName(allowedTargetClassName)
+				"targetName", commerceQualifierEntriesDisplayContext.getRESTModelName2(allowedTargetClassName)
 			).put(
 				"targetRESTContextPath", commerceQualifierEntriesDisplayContext.getRESTContextPath(allowedTargetClassName)
 			).put(

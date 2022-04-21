@@ -408,12 +408,13 @@ public class CommerceQualifierEntryLocalServiceWrapper
 	public <E> java.util.List<E> getCommerceQualifierEntriesSourcesByTargets(
 		long companyId, boolean exclusive, Class<E> sourceClass,
 		java.util.Map<String, Object> sourceExtraParameterMap,
-		java.util.Map<String, Object> targetCommerceQualifierMap) {
+		java.util.LinkedHashMap<String, Object> targetCommerceQualifierMap,
+		String[] orderByTargetClassNames) {
 
 		return _commerceQualifierEntryLocalService.
 			getCommerceQualifierEntriesSourcesByTargets(
 				companyId, exclusive, sourceClass, sourceExtraParameterMap,
-				targetCommerceQualifierMap);
+				targetCommerceQualifierMap, orderByTargetClassNames);
 	}
 
 	/**

@@ -36,6 +36,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.io.Serializable;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -291,7 +292,8 @@ public interface CommerceQualifierEntryLocalService
 	public <E> List<E> getCommerceQualifierEntriesSourcesByTargets(
 		long companyId, boolean exclusive, Class<E> sourceClass,
 		Map<String, Object> sourceExtraParameterMap,
-		Map<String, Object> targetCommerceQualifierMap);
+		LinkedHashMap<String, Object> targetCommerceQualifierMap,
+		String[] orderByTargetClassNames);
 
 	/**
 	 * Returns the commerce qualifier entry with the primary key.

@@ -45,9 +45,11 @@ import com.liferay.portal.kernel.util.Validator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -301,6 +303,8 @@ public class CommerceQualifierEntryLocalServiceImpl
 				true, targetClassName, targetClassPK,
 				sourceCommerceQualifierMetadata.getModelClassName(), keywords,
 				sourceCommerceQualifierMetadata.getKeywordsColumn()
+			).orderBy(
+				CommerceQualifierEntryTable.INSTANCE.targetDefault.descending()
 			).limit(
 				start, end
 			));
@@ -341,7 +345,8 @@ public class CommerceQualifierEntryLocalServiceImpl
 	public <E> List<E> getCommerceQualifierEntriesSourcesByTargets(
 		long companyId, boolean exclusive, Class<E> sourceClass,
 		Map<String, Object> sourceExtraParameterMap,
-		Map<String, Object> targetCommerceQualifierMap) {
+		LinkedHashMap<String, Object> targetCommerceQualifierMap,
+		String[] orderByTargetClassNames) {
 
 		CommerceQualifierMetadata sourceCommerceQualifierMetadata =
 			_commerceQualifierMetadataRegistry.getCommerceQualifierMetadata(
@@ -362,7 +367,8 @@ public class CommerceQualifierEntryLocalServiceImpl
 				sourceCommerceQualifierMetadata, sourceExtraParameterMap,
 				targetCommerceQualifierMap
 			).orderBy(
-				sourceCommerceQualifierMetadata.getOrderByExpressions()
+				sourceCommerceQualifierMetadata.getOrderByExpressions(
+					orderByTargetClassNames)
 			));
 	}
 
@@ -503,39 +509,35 @@ public class CommerceQualifierEntryLocalServiceImpl
 		List<Expression<?>> groupByExpressions = new ArrayList<>(
 			sourceTable.getColumns());
 
-		String[] allowedTargetClassNames =
-			sourceCommerceQualifierMetadata.getAllowedTargetClassNames();
+		String[] allowedTargetClassNames = Stream.of(
+			sourceCommerceQualifierMetadata.getAllowedTargetClassNameGroups()
+		).flatMap(
+			Stream::of
+		).toArray(
+			String[]::new
+		);
 
 		for (String allowedTargetClassName : allowedTargetClassNames) {
-			CommerceQualifierMetadata targetCommerceQualifierMetadata =
-				_commerceQualifierMetadataRegistry.getCommerceQualifierMetadata(
+			CommerceQualifierEntryTable tableAlias =
+				CommerceQualifierUtil.getCommerceQualifierTableAlias(
+					sourceCommerceQualifierMetadata.getModelClassName(),
 					allowedTargetClassName);
 
-			if (targetCommerceQualifierMetadata == null) {
-				continue;
-			}
-
-			Table targetTable = targetCommerceQualifierMetadata.getTable();
-
-			CommerceQualifierEntryTable aliasTable =
-				CommerceQualifierUtil.getCommerceQualifierTableAlias(
-					sourceTable.getName(), targetTable.getName());
-
-			groupByExpressions.add(aliasTable.commerceQualifierEntryId);
+			groupByExpressions.add(tableAlias.commerceQualifierEntryId);
 
 			joinStep = joinStep.leftJoinOn(
-				aliasTable,
+				tableAlias,
 				_getPredicate(
-					aliasTable.sourceClassNameId,
+					tableAlias.sourceClassNameId,
 					sourceCommerceQualifierMetadata.getModelClassName(),
-					aliasTable.sourceClassPK,
+					tableAlias.sourceClassPK,
 					sourceCommerceQualifierMetadata.getPrimaryKeyColumn(),
-					aliasTable.targetClassNameId, allowedTargetClassName));
+					tableAlias.targetClassNameId, allowedTargetClassName));
 
 			predicate = predicate.and(
 				() -> {
 					if ((targetCommerceQualifierMap == null) && exclusive) {
-						return aliasTable.commerceQualifierEntryId.isNull();
+						return tableAlias.commerceQualifierEntryId.isNull();
 					}
 
 					if (targetCommerceQualifierMap == null) {
@@ -546,7 +548,7 @@ public class CommerceQualifierEntryLocalServiceImpl
 						allowedTargetClassName);
 
 					if ((value == null) && exclusive) {
-						return aliasTable.commerceQualifierEntryId.isNull();
+						return tableAlias.commerceQualifierEntryId.isNull();
 					}
 
 					if (value == null) {
@@ -554,7 +556,7 @@ public class CommerceQualifierEntryLocalServiceImpl
 					}
 
 					if (value instanceof Long) {
-						return aliasTable.targetClassPK.eq((Long)value);
+						return tableAlias.targetClassPK.eq((Long)value);
 					}
 					else if (value instanceof long[]) {
 						long[] valueArray = (long[])value;
@@ -565,7 +567,7 @@ public class CommerceQualifierEntryLocalServiceImpl
 
 						LongStream longStream = Arrays.stream(valueArray);
 
-						return aliasTable.targetClassPK.in(
+						return tableAlias.targetClassPK.in(
 							longStream.boxed(
 							).toArray(
 								Long[]::new

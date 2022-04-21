@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
@@ -175,10 +176,10 @@ public class CommerceQualifierEntryTest {
 					).put(
 						"type_", "price-list"
 					).build(),
-					HashMapBuilder.<String, Object>put(
+					LinkedHashMapBuilder.<String, Object>put(
 						CommerceChannel.class.getName(),
 						_commerceChannel.getCommerceChannelId()
-					).build());
+					).build(), null);
 
 		Assert.assertTrue(commercePriceLists.isEmpty());
 	}
@@ -256,10 +257,10 @@ public class CommerceQualifierEntryTest {
 					).put(
 						"type_", "price-list"
 					).build(),
-					HashMapBuilder.<String, Object>put(
+					LinkedHashMapBuilder.<String, Object>put(
 						CommerceChannel.class.getName(),
 						_commerceChannel.getCommerceChannelId()
-					).build());
+					).build(), null);
 
 		CommercePriceList discoveredPriceList = commercePriceLists.get(0);
 

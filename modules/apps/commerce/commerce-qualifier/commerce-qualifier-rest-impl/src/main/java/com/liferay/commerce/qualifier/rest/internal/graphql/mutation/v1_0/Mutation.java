@@ -104,16 +104,13 @@ public class Mutation {
 	}
 
 	@GraphQLField
-	public Qualifier patchQualifier(
-			@GraphQLName("id") Long id,
-			@GraphQLName("qualifier") Qualifier qualifier)
+	public Qualifier patchQualifier(@GraphQLName("id") Long id)
 		throws Exception {
 
 		return _applyComponentServiceObjects(
 			_qualifierResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			qualifierResource -> qualifierResource.patchQualifier(
-				id, qualifier));
+			qualifierResource -> qualifierResource.patchQualifier(id));
 	}
 
 	private <T, R, E1 extends Throwable, E2 extends Throwable> R

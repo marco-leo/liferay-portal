@@ -18,7 +18,7 @@ import com.liferay.commerce.qualifier.deployer.CommerceQualifierDeployer;
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadata;
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadataRegistry;
 import com.liferay.commerce.qualifier.service.CommerceQualifierEntryService;
-import com.liferay.commerce.qualifier.web.internal.frontend.taglib.data.set.view.table.TargetCommerceQualifierEntryFDSView;
+import com.liferay.commerce.qualifier.web.internal.frontend.taglib.data.set.view.table.CommerceQualifierEntryFDSView;
 import com.liferay.commerce.qualifier.web.internal.portlet.action.EditCommerceQualifierEntryMVCActionCommand;
 import com.liferay.frontend.data.set.view.FDSView;
 import com.liferay.frontend.data.set.view.table.FDSTableSchemaBuilderFactory;
@@ -32,6 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Stream;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -50,23 +51,46 @@ public class CommerceQualifierDeployerImpl
 
 	@Override
 	public void deploy(CommerceQualifierMetadata commerceQualifierMetadata) {
-		String[] allowedTargets =
-			commerceQualifierMetadata.getAllowedTargetClassNames();
+		String[] allowedTargetClassNames = Stream.of(
+			commerceQualifierMetadata.getAllowedTargetClassNameGroups()
+		).distinct(
+		).flatMap(
+			Stream::of
+		).toArray(
+			String[]::new
+		);
 
 		List<ServiceRegistration<?>> serviceRegistrations =
 			new CopyOnWriteArrayList<>();
 
-		for (String allowedTarget : allowedTargets) {
+		for (String allowedTargetClassName : allowedTargetClassNames) {
 			serviceRegistrations.add(
 				_bundleContext.registerService(
 					FDSView.class,
-					new TargetCommerceQualifierEntryFDSView(
-						_fdsTableSchemaBuilderFactory),
+					new CommerceQualifierEntryFDSView(
+						_fdsTableSchemaBuilderFactory,
+						commerceQualifierMetadata.getRESTInfoColumNames(
+							allowedTargetClassName),
+						false),
 					HashMapDictionaryBuilder.put(
 						"frontend.data.set.name",
 						_getCommerceQualifierFDSName(
 							commerceQualifierMetadata.getModelClassName(),
-							allowedTarget)
+							allowedTargetClassName)
+					).build()));
+
+			serviceRegistrations.add(
+				_bundleContext.registerService(
+					FDSView.class,
+					new CommerceQualifierEntryFDSView(
+						_fdsTableSchemaBuilderFactory,
+						commerceQualifierMetadata.getRESTInfoColumNames(null),
+						true),
+					HashMapDictionaryBuilder.put(
+						"frontend.data.set.name",
+						_getCommerceQualifierFDSName(
+							allowedTargetClassName,
+							commerceQualifierMetadata.getModelClassName())
 					).build()));
 		}
 

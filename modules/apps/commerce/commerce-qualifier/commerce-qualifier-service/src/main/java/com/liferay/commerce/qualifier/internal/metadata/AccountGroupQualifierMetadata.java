@@ -12,11 +12,12 @@
  * details.
  */
 
-package com.liferay.commerce.channel.web.internal.qualifier;
+package com.liferay.commerce.qualifier.internal.metadata;
 
-import com.liferay.commerce.product.model.CommerceChannel;
-import com.liferay.commerce.product.model.CommerceChannelTable;
-import com.liferay.commerce.product.service.CommerceChannelLocalService;
+import com.liferay.account.constants.AccountPortletKeys;
+import com.liferay.account.model.AccountGroup;
+import com.liferay.account.model.AccountGroupTable;
+import com.liferay.account.service.AccountGroupLocalService;
 import com.liferay.commerce.qualifier.metadata.BaseCommerceQualifierMetadata;
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadata;
 import com.liferay.petra.sql.dsl.Column;
@@ -38,83 +39,88 @@ import org.osgi.service.component.annotations.Reference;
 @Component(
 	enabled = false, immediate = true, service = CommerceQualifierMetadata.class
 )
-public class CommerceChannelQualifierMetadata
-	extends BaseCommerceQualifierMetadata<CommerceChannel> {
+public class AccountGroupQualifierMetadata
+	extends BaseCommerceQualifierMetadata<AccountGroup> {
 
 	@Override
-	public String[] getAllowedTargetClassNames() {
-		return new String[] {null};
+	public String[][] getAllowedTargetClassNameGroups() {
+		return new String[0][0];
 	}
 
 	@Override
 	public Column<?, String> getKeywordsColumn() {
-		return CommerceChannelTable.INSTANCE.name;
+		return AccountGroupTable.INSTANCE.name;
 	}
 
 	@Override
 	public String getLabel() {
-		return "channel";
+		return "account-group";
 	}
 
 	@Override
-	public Class<CommerceChannel> getModelClass() {
-		return CommerceChannel.class;
+	public Class<AccountGroup> getModelClass() {
+		return AccountGroup.class;
 	}
 
 	@Override
 	public String getModelClassName() {
-		return CommerceChannel.class.getName();
+		return AccountGroup.class.getName();
 	}
 
 	@Override
-	public ModelResourcePermission<CommerceChannel>
-		getModelResourcePermission() {
-
-		return _commerceChannelModelResourcePermission;
+	public ModelResourcePermission<AccountGroup> getModelResourcePermission() {
+		return _accountGroupModelResourcePermission;
 	}
 
 	@Override
 	public String getMVCRenderCommandName() {
-		return "/commerce_channels/edit_commerce_channel";
+		return "/account_admin/edit_account_entry";
 	}
 
 	@Override
-	public OrderByExpression[] getOrderByExpressions() {
+	public OrderByExpression[] getOrderByExpressions(
+		String... targetDefaultClassNames) {
+
 		return new OrderByExpression[] {
-			CommerceChannelTable.INSTANCE.commerceChannelId.descending()
+			AccountGroupTable.INSTANCE.accountGroupId.descending()
 		};
 	}
 
 	@Override
 	public PersistedModelLocalService getPersistedModelLocalService() {
-		return _commerceChannelLocalService;
+		return _accountGroupLocalService;
 	}
 
 	@Override
 	public String getPluralLabel() {
-		return "channels";
+		return "account-groups";
+	}
+
+	@Override
+	public String getPortletId() {
+		return AccountPortletKeys.ACCOUNT_GROUPS_ADMIN;
 	}
 
 	@Override
 	public Map<String, String[]> getPortletParameters() {
 		return HashMapBuilder.put(
-			"commerceChannelId", new String[] {"{qualifierEntity.id}"}
+			"AccountGroupId", new String[] {"{qualifierEntity.id}"}
 		).build();
 	}
 
 	@Override
 	public PortletProvider.Action getPortletProviderAction() {
-		return PortletProvider.Action.MANAGE;
+		return PortletProvider.Action.VIEW;
 	}
 
 	@Override
 	public Column<?, Long> getPrimaryKeyColumn() {
-		return CommerceChannelTable.INSTANCE.commerceChannelId;
+		return AccountGroupTable.INSTANCE.accountGroupId;
 	}
 
 	@Override
 	public String getRESTContextPath() {
-		return "/o/headless-commerce-admin-channel/v1.0/channels";
+		return "/o/headless-commerce-admin-account/v1.0/accountGroups";
 	}
 
 	@Override
@@ -122,25 +128,25 @@ public class CommerceChannelQualifierMetadata
 		return HashMapBuilder.put(
 			"info1",
 			() -> {
-				CommerceChannel commerceChannel =
-					_commerceChannelLocalService.fetchCommerceChannel(id);
+				AccountGroup accountGroup =
+					_accountGroupLocalService.fetchAccountGroup(id);
 
-				return commerceChannel.getType();
+				return accountGroup.getType();
 			}
 		).build();
 	}
 
 	@Override
 	public String getRESTModelName() {
-		return "channel";
+		return "accountGroup";
 	}
 
 	@Override
 	public String getRESTName(long id) {
-		CommerceChannel commerceChannel =
-			_commerceChannelLocalService.fetchCommerceChannel(id);
+		AccountGroup accountGroup = _accountGroupLocalService.fetchAccountGroup(
+			id);
 
-		return commerceChannel.getName();
+		return accountGroup.getName();
 	}
 
 	@Override
@@ -150,7 +156,7 @@ public class CommerceChannelQualifierMetadata
 
 	@Override
 	public Table getTable() {
-		return CommerceChannelTable.INSTANCE;
+		return AccountGroupTable.INSTANCE;
 	}
 
 	@Override
@@ -159,12 +165,12 @@ public class CommerceChannelQualifierMetadata
 	}
 
 	@Reference
-	private CommerceChannelLocalService _commerceChannelLocalService;
+	private AccountGroupLocalService _accountGroupLocalService;
 
 	@Reference(
-		target = "(model.class.name=com.liferay.commerce.product.model.CommerceChannel)"
+		target = "(model.class.name=com.liferay.account.model.AccountGroup)"
 	)
-	private ModelResourcePermission<CommerceChannel>
-		_commerceChannelModelResourcePermission;
+	private ModelResourcePermission<AccountGroup>
+		_accountGroupModelResourcePermission;
 
 }

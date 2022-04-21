@@ -280,6 +280,34 @@ public class QualifierEntity implements Serializable {
 	protected String name;
 
 	@Schema
+	public Boolean getTargetDefault() {
+		return targetDefault;
+	}
+
+	public void setTargetDefault(Boolean targetDefault) {
+		this.targetDefault = targetDefault;
+	}
+
+	@JsonIgnore
+	public void setTargetDefault(
+		UnsafeSupplier<Boolean, Exception> targetDefaultUnsafeSupplier) {
+
+		try {
+			targetDefault = targetDefaultUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Boolean targetDefault;
+
+	@Schema
 	public String getType() {
 		return type;
 	}
@@ -438,6 +466,16 @@ public class QualifierEntity implements Serializable {
 			sb.append(_escape(name));
 
 			sb.append("\"");
+		}
+
+		if (targetDefault != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"targetDefault\": ");
+
+			sb.append(targetDefault);
 		}
 
 		if (type != null) {

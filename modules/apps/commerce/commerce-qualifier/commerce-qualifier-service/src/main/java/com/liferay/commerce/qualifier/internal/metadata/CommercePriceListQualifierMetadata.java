@@ -12,21 +12,20 @@
  * details.
  */
 
-package com.liferay.commerce.pricing.web.internal.qualifier;
+package com.liferay.commerce.qualifier.internal.metadata;
 
+import com.liferay.account.model.AccountEntry;
+import com.liferay.account.model.AccountGroup;
 import com.liferay.commerce.model.CommerceOrderType;
-import com.liferay.commerce.model.CommerceOrderTypeTable;
 import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.commerce.price.list.model.CommercePriceListTable;
 import com.liferay.commerce.price.list.service.CommercePriceListLocalService;
 import com.liferay.commerce.product.model.CommerceChannel;
-import com.liferay.commerce.product.model.CommerceChannelTable;
 import com.liferay.commerce.qualifier.metadata.BaseCommerceQualifierMetadata;
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadata;
 import com.liferay.commerce.qualifier.model.CommerceQualifierEntryTable;
 import com.liferay.commerce.qualifier.util.CommerceQualifierUtil;
 import com.liferay.petra.sql.dsl.Column;
-import com.liferay.petra.sql.dsl.DSLFunctionFactoryUtil;
 import com.liferay.petra.sql.dsl.Table;
 import com.liferay.petra.sql.dsl.query.sort.OrderByExpression;
 import com.liferay.portal.kernel.portlet.PortletProvider;
@@ -34,6 +33,8 @@ import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermi
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -49,10 +50,17 @@ public class CommercePriceListQualifierMetadata
 	extends BaseCommerceQualifierMetadata<CommercePriceList> {
 
 	@Override
-	public String[] getAllowedTargetClassNames() {
-		return new String[] {
-			CommerceChannel.class.getName(), CommerceOrderType.class.getName()
+	public String[][] getAllowedTargetClassNameGroups() {
+		return new String[][] {
+			{AccountEntry.class.getName(), AccountGroup.class.getName()},
+			{CommerceChannel.class.getName()},
+			{CommerceOrderType.class.getName()}
 		};
+	}
+
+	@Override
+	public String getDisplayCategory() {
+		return "pricing";
 	}
 
 	@Override
@@ -88,50 +96,32 @@ public class CommercePriceListQualifierMetadata
 	}
 
 	@Override
-	public OrderByExpression[] getOrderByExpressions() {
-		CommerceQualifierEntryTable aliasCommercePriceListCommerceChannelTable =
-			CommerceQualifierUtil.getCommerceQualifierTableAlias(
-				CommercePriceListTable.INSTANCE.getName(),
-				CommerceChannelTable.INSTANCE.getName());
+	public OrderByExpression[] getOrderByExpressions(
+		String... targetDefaultClassNames) {
 
-		CommerceQualifierEntryTable
-			aliasCommercePriceListCommerceOrderTypeTable =
+		if ((targetDefaultClassNames == null) ||
+			(targetDefaultClassNames.length == 0)) {
+
+			return new OrderByExpression[] {
+				CommercePriceListTable.INSTANCE.priority.descending()
+			};
+		}
+
+		List<OrderByExpression> orderByExpressions = new LinkedList<>();
+
+		for (String targetDefaultClassName : targetDefaultClassNames) {
+			CommerceQualifierEntryTable targetDefaultTableAlias =
 				CommerceQualifierUtil.getCommerceQualifierTableAlias(
-					CommercePriceListTable.INSTANCE.getName(),
-					CommerceOrderTypeTable.INSTANCE.getName());
+					getModelClassName(), targetDefaultClassName);
 
-		return new OrderByExpression[] {
-			aliasCommercePriceListCommerceChannelTable.targetDefault.
-				descending(),
-			DSLFunctionFactoryUtil.caseWhenThen(
-				aliasCommercePriceListCommerceChannelTable.
-					commerceQualifierEntryId.isNotNull(
-					).and(
-						aliasCommercePriceListCommerceOrderTypeTable.
-							commerceQualifierEntryId.isNotNull()
-					),
-				3
-			).whenThen(
-				aliasCommercePriceListCommerceChannelTable.
-					commerceQualifierEntryId.isNull(
-					).and(
-						aliasCommercePriceListCommerceOrderTypeTable.
-							commerceQualifierEntryId.isNotNull()
-					),
-				2
-			).whenThen(
-				aliasCommercePriceListCommerceChannelTable.
-					commerceQualifierEntryId.isNotNull(
-					).and(
-						aliasCommercePriceListCommerceOrderTypeTable.
-							commerceQualifierEntryId.isNull()
-					),
-				1
-			).elseEnd(
-				0
-			).descending(),
-			CommercePriceListTable.INSTANCE.priority.descending()
-		};
+			orderByExpressions.add(
+				targetDefaultTableAlias.targetDefault.descending());
+		}
+
+		orderByExpressions.add(
+			CommercePriceListTable.INSTANCE.priority.descending());
+
+		return orderByExpressions.toArray(new OrderByExpression[0]);
 	}
 
 	@Override
@@ -153,7 +143,7 @@ public class CommercePriceListQualifierMetadata
 
 	@Override
 	public PortletProvider.Action getPortletProviderAction() {
-		return PortletProvider.Action.MANAGE;
+		return PortletProvider.Action.EDIT;
 	}
 
 	@Override
@@ -163,7 +153,8 @@ public class CommercePriceListQualifierMetadata
 
 	@Override
 	public String getRESTContextPath() {
-		return "/o/headless-commerce-admin-pricing/v2.0/price-lists";
+		return "/o/headless-commerce-admin-pricing/v2.0/price-lists?filter=" +
+			"catalogBasePriceList eq false";
 	}
 
 	@Override
