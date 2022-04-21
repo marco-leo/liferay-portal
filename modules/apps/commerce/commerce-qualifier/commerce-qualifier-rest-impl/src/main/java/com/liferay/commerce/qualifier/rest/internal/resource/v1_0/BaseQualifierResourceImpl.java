@@ -144,7 +144,7 @@ public abstract class BaseQualifierResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/headless-commerce-qualifier/v1.0/qualifiers' -d $'{"sourceId": ___, "sourceName": ___, "targetDefault": ___, "targetId": ___, "targetName": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'POST' 'http://localhost:8080/o/headless-commerce-qualifier/v1.0/qualifiers' -d $'{"sourceId": ___, "sourceName": ___, "targetId": ___, "targetName": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
 	@io.swagger.v3.oas.annotations.tags.Tags(
 		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "Qualifier")}
@@ -278,37 +278,6 @@ public abstract class BaseQualifierResourceImpl
 			vulcanBatchEngineImportTaskResource.deleteImportTask(
 				Qualifier.class.getName(), callbackURL, object)
 		).build();
-	}
-
-	/**
-	 * Invoke this method with the command line:
-	 *
-	 * curl -X 'PATCH' 'http://localhost:8080/o/headless-commerce-qualifier/v1.0/qualifiers/{id}' -d $'{"sourceId": ___, "sourceName": ___, "targetDefault": ___, "targetId": ___, "targetName": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
-	 */
-	@io.swagger.v3.oas.annotations.Parameters(
-		value = {
-			@io.swagger.v3.oas.annotations.Parameter(
-				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
-				name = "id"
-			)
-		}
-	)
-	@io.swagger.v3.oas.annotations.tags.Tags(
-		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "Qualifier")}
-	)
-	@javax.ws.rs.Consumes({"application/json", "application/xml"})
-	@javax.ws.rs.PATCH
-	@javax.ws.rs.Path("/qualifiers/{id}")
-	@javax.ws.rs.Produces({"application/json", "application/xml"})
-	@Override
-	public Qualifier patchQualifier(
-			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
-			@javax.validation.constraints.NotNull @javax.ws.rs.PathParam("id")
-			Long id,
-			Qualifier qualifier)
-		throws Exception {
-
-		return new Qualifier();
 	}
 
 	@Override

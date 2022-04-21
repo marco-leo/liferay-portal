@@ -107,16 +107,6 @@ public class QualifierSerDes {
 			sb.append("\"");
 		}
 
-		if (qualifier.getTargetDefault() != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"targetDefault\": ");
-
-			sb.append(qualifier.getTargetDefault());
-		}
-
 		if (qualifier.getTargetId() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -196,14 +186,6 @@ public class QualifierSerDes {
 			map.put("sourceName", String.valueOf(qualifier.getSourceName()));
 		}
 
-		if (qualifier.getTargetDefault() == null) {
-			map.put("targetDefault", null);
-		}
-		else {
-			map.put(
-				"targetDefault", String.valueOf(qualifier.getTargetDefault()));
-		}
-
 		if (qualifier.getTargetId() == null) {
 			map.put("targetId", null);
 		}
@@ -266,11 +248,6 @@ public class QualifierSerDes {
 			else if (Objects.equals(jsonParserFieldName, "sourceName")) {
 				if (jsonParserFieldValue != null) {
 					qualifier.setSourceName((String)jsonParserFieldValue);
-				}
-			}
-			else if (Objects.equals(jsonParserFieldName, "targetDefault")) {
-				if (jsonParserFieldValue != null) {
-					qualifier.setTargetDefault((Boolean)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "targetId")) {

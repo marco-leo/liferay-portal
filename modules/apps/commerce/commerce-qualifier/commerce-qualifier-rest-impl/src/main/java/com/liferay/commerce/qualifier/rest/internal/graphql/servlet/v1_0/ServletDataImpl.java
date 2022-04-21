@@ -16,6 +16,8 @@ package com.liferay.commerce.qualifier.rest.internal.graphql.servlet.v1_0;
 
 import com.liferay.commerce.qualifier.rest.internal.graphql.mutation.v1_0.Mutation;
 import com.liferay.commerce.qualifier.rest.internal.graphql.query.v1_0.Query;
+import com.liferay.commerce.qualifier.rest.resource.v1_0.DefaultSettingEntityResource;
+import com.liferay.commerce.qualifier.rest.resource.v1_0.DefaultSettingResource;
 import com.liferay.commerce.qualifier.rest.resource.v1_0.QualifierEntityResource;
 import com.liferay.commerce.qualifier.rest.resource.v1_0.QualifierResource;
 import com.liferay.portal.vulcan.graphql.servlet.ServletData;
@@ -39,9 +41,17 @@ public class ServletDataImpl implements ServletData {
 
 	@Activate
 	public void activate(BundleContext bundleContext) {
+		Mutation.setDefaultSettingResourceComponentServiceObjects(
+			_defaultSettingResourceComponentServiceObjects);
+		Mutation.setDefaultSettingEntityResourceComponentServiceObjects(
+			_defaultSettingEntityResourceComponentServiceObjects);
 		Mutation.setQualifierResourceComponentServiceObjects(
 			_qualifierResourceComponentServiceObjects);
 
+		Query.setDefaultSettingResourceComponentServiceObjects(
+			_defaultSettingResourceComponentServiceObjects);
+		Query.setDefaultSettingEntityResourceComponentServiceObjects(
+			_defaultSettingEntityResourceComponentServiceObjects);
 		Query.setQualifierResourceComponentServiceObjects(
 			_qualifierResourceComponentServiceObjects);
 		Query.setQualifierEntityResourceComponentServiceObjects(
@@ -62,6 +72,14 @@ public class ServletDataImpl implements ServletData {
 	public Query getQuery() {
 		return new Query();
 	}
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<DefaultSettingResource>
+		_defaultSettingResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<DefaultSettingEntityResource>
+		_defaultSettingEntityResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<QualifierResource>

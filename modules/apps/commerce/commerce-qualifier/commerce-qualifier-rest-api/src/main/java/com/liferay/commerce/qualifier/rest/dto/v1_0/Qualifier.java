@@ -210,34 +210,6 @@ public class Qualifier implements Serializable {
 	@NotEmpty
 	protected String sourceName;
 
-	@Schema
-	public Boolean getTargetDefault() {
-		return targetDefault;
-	}
-
-	public void setTargetDefault(Boolean targetDefault) {
-		this.targetDefault = targetDefault;
-	}
-
-	@JsonIgnore
-	public void setTargetDefault(
-		UnsafeSupplier<Boolean, Exception> targetDefaultUnsafeSupplier) {
-
-		try {
-			targetDefault = targetDefaultUnsafeSupplier.get();
-		}
-		catch (RuntimeException re) {
-			throw re;
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@GraphQLField
-	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected Boolean targetDefault;
-
 	@DecimalMin("0")
 	@Schema
 	public Long getTargetId() {
@@ -376,16 +348,6 @@ public class Qualifier implements Serializable {
 			sb.append(_escape(sourceName));
 
 			sb.append("\"");
-		}
-
-		if (targetDefault != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"targetDefault\": ");
-
-			sb.append(targetDefault);
 		}
 
 		if (targetId != null) {

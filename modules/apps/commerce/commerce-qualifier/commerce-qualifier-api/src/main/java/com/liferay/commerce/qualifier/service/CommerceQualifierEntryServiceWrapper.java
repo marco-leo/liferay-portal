@@ -41,13 +41,11 @@ public class CommerceQualifierEntryServiceWrapper
 	public com.liferay.commerce.qualifier.model.CommerceQualifierEntry
 			addCommerceQualifierEntry(
 				String sourceClassName, long sourceClassPK,
-				String targetClassName, long targetClassPK,
-				boolean targetDefault)
+				String targetClassName, long targetClassPK)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceQualifierEntryService.addCommerceQualifierEntry(
-			sourceClassName, sourceClassPK, targetClassName, targetClassPK,
-			targetDefault);
+			sourceClassName, sourceClassPK, targetClassName, targetClassPK);
 	}
 
 	@Override
@@ -176,16 +174,6 @@ public class CommerceQualifierEntryServiceWrapper
 	@Override
 	public String getOSGiServiceIdentifier() {
 		return _commerceQualifierEntryService.getOSGiServiceIdentifier();
-	}
-
-	@Override
-	public com.liferay.commerce.qualifier.model.CommerceQualifierEntry
-			updateCommerceQualifierEntry(
-				long commerceQualifierEntryId, boolean targetDefault)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _commerceQualifierEntryService.updateCommerceQualifierEntry(
-			commerceQualifierEntryId, targetDefault);
 	}
 
 	@Override

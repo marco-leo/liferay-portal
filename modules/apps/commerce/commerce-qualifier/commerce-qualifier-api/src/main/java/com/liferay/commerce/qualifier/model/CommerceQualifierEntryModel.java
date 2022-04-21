@@ -243,27 +243,6 @@ public interface CommerceQualifierEntryModel
 	 */
 	public void setTargetClassPK(long targetClassPK);
 
-	/**
-	 * Returns the target default of this commerce qualifier entry.
-	 *
-	 * @return the target default of this commerce qualifier entry
-	 */
-	public boolean getTargetDefault();
-
-	/**
-	 * Returns <code>true</code> if this commerce qualifier entry is target default.
-	 *
-	 * @return <code>true</code> if this commerce qualifier entry is target default; <code>false</code> otherwise
-	 */
-	public boolean isTargetDefault();
-
-	/**
-	 * Sets whether this commerce qualifier entry is target default.
-	 *
-	 * @param targetDefault the target default of this commerce qualifier entry
-	 */
-	public void setTargetDefault(boolean targetDefault);
-
 	@Override
 	public CommerceQualifierEntry cloneWithOriginalValues();
 

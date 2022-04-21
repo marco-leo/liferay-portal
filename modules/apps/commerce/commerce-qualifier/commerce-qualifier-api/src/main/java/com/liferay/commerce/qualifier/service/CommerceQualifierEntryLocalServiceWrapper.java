@@ -62,13 +62,20 @@ public class CommerceQualifierEntryLocalServiceWrapper
 	public com.liferay.commerce.qualifier.model.CommerceQualifierEntry
 			addCommerceQualifierEntry(
 				long userId, String sourceClassName, long sourceClassPK,
-				String targetClassName, long targetClassPK,
-				boolean targetDefault)
+				String targetClassName, long targetClassPK)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceQualifierEntryLocalService.addCommerceQualifierEntry(
 			userId, sourceClassName, sourceClassPK, targetClassName,
-			targetClassPK, targetDefault);
+			targetClassPK);
+	}
+
+	@Override
+	public void cleanCommerceQualifierEntryCache(
+		long companyId, String sourceClassName) {
+
+		_commerceQualifierEntryLocalService.cleanCommerceQualifierEntryCache(
+			companyId, sourceClassName);
 	}
 
 	/**
@@ -406,14 +413,13 @@ public class CommerceQualifierEntryLocalServiceWrapper
 
 	@Override
 	public <E> java.util.List<E> getCommerceQualifierEntriesSourcesByTargets(
-		long companyId, boolean exclusive, Class<E> sourceClass,
-		java.util.Map<String, Object> sourceExtraParameterMap,
-		java.util.Map<String, Object> targetCommerceQualifierMap) {
+		long companyId, Class<E> sourceClass,
+		com.liferay.commerce.qualifier.search.context.
+			CommerceQualifierSearchContext commerceQualifierSearchContext) {
 
 		return _commerceQualifierEntryLocalService.
 			getCommerceQualifierEntriesSourcesByTargets(
-				companyId, exclusive, sourceClass, sourceExtraParameterMap,
-				targetCommerceQualifierMap);
+				companyId, sourceClass, commerceQualifierSearchContext);
 	}
 
 	/**
@@ -480,16 +486,6 @@ public class CommerceQualifierEntryLocalServiceWrapper
 
 		return _commerceQualifierEntryLocalService.updateCommerceQualifierEntry(
 			commerceQualifierEntry);
-	}
-
-	@Override
-	public com.liferay.commerce.qualifier.model.CommerceQualifierEntry
-			updateCommerceQualifierEntry(
-				long commerceQualifierEntryId, boolean targetDefault)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _commerceQualifierEntryLocalService.updateCommerceQualifierEntry(
-			commerceQualifierEntryId, targetDefault);
 	}
 
 	@Override

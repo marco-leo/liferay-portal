@@ -14,15 +14,24 @@
 
 package com.liferay.commerce.discount.internal;
 
+import com.liferay.account.model.AccountEntry;
+import com.liferay.account.model.AccountGroup;
 import com.liferay.commerce.account.util.CommerceAccountHelper;
 import com.liferay.commerce.context.CommerceContext;
 import com.liferay.commerce.discount.CommerceDiscountCalculation;
 import com.liferay.commerce.discount.model.CommerceDiscount;
 import com.liferay.commerce.discount.service.CommerceDiscountLocalService;
+import com.liferay.commerce.discount.service.CommerceDiscountRelLocalService;
+import com.liferay.commerce.model.CommerceOrderType;
+import com.liferay.commerce.product.model.CommerceChannel;
+import com.liferay.commerce.qualifier.search.context.CommerceQualifierSearchContext;
+import com.liferay.commerce.qualifier.service.CommerceQualifierEntryLocalService;
 import com.liferay.commerce.util.CommerceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Reference;
 
@@ -60,12 +69,47 @@ public abstract class BaseCommerceDiscountCalculation
 	@Reference
 	protected CommerceDiscountLocalService commerceDiscountLocalService;
 
+	@Reference
+	protected CommerceDiscountRelLocalService commerceDiscountRelLocalService;
+
+	@Reference
+	protected CommerceQualifierEntryLocalService
+		commerceQualifierEntryLocalService;
+
 	private List<CommerceDiscount> _getOrderCommerceDiscountByHierarchy(
 			long companyId, long commerceAccountId, long commerceChannelId,
 			long commerceOrderTypeId, String target)
 		throws PortalException {
 
-		List<CommerceDiscount> commerceDiscounts =
+		CommerceQualifierSearchContext.Builder
+			commerceQualifierSearchContextBuilder =
+				new CommerceQualifierSearchContext.Builder();
+
+		CommerceQualifierSearchContext commerceQualifierSearchContext =
+			commerceQualifierSearchContextBuilder.setExclusive(
+				false
+			).setSourceAdditionalAttribute(
+				"active_", true
+			).setSourceAdditionalAttribute(
+				"target", target
+			).setTargetAttribute(
+				AccountEntry.class.getName(), commerceAccountId
+			).setTargetAttribute(
+				AccountGroup.class.getName(),
+				commerceAccountHelper.getCommerceAccountGroupIds(
+					commerceAccountId)
+			).setTargetAttribute(
+				CommerceChannel.class.getName(), commerceChannelId
+			).setTargetAttribute(
+				CommerceOrderType.class.getName(), commerceOrderTypeId
+			).build();
+
+		return commerceQualifierEntryLocalService.
+			getCommerceQualifierEntriesSourcesByTargets(
+				companyId, CommerceDiscount.class,
+				commerceQualifierSearchContext);
+
+		/*List<CommerceDiscount> commerceDiscounts =
 			commerceDiscountLocalService.
 				getAccountAndChannelAndOrderTypeCommerceDiscounts(
 					commerceAccountId, commerceChannelId, commerceOrderTypeId,
@@ -165,7 +209,7 @@ public abstract class BaseCommerceDiscountCalculation
 		}
 
 		return commerceDiscountLocalService.getUnqualifiedCommerceDiscounts(
-			companyId, target);
+			companyId, target);*/
 	}
 
 	private List<CommerceDiscount> _getProductCommerceDiscountByHierarchy(
@@ -173,7 +217,56 @@ public abstract class BaseCommerceDiscountCalculation
 			long commerceOrderTypeId, long cpDefinitionId, long cpInstanceId)
 		throws PortalException {
 
-		List<CommerceDiscount> commerceDiscounts =
+		CommerceQualifierSearchContext.Builder
+			commerceQualifierSearchContextBuilder =
+				new CommerceQualifierSearchContext.Builder();
+
+		CommerceQualifierSearchContext commerceQualifierSearchContext =
+			commerceQualifierSearchContextBuilder.setExclusive(
+				false
+			).setSourceAdditionalAttribute(
+				"active_", true
+			).setTargetAttribute(
+				AccountEntry.class.getName(), commerceAccountId
+			).setTargetAttribute(
+				AccountGroup.class.getName(),
+				commerceAccountHelper.getCommerceAccountGroupIds(
+					commerceAccountId)
+			).setTargetAttribute(
+				CommerceChannel.class.getName(), commerceChannelId
+			).setTargetAttribute(
+				CommerceOrderType.class.getName(), commerceOrderTypeId
+			).build();
+
+		List<CommerceDiscount> commerceQualifierEntriesSourcesByTargets =
+			commerceQualifierEntryLocalService.
+				getCommerceQualifierEntriesSourcesByTargets(
+					companyId, CommerceDiscount.class,
+					commerceQualifierSearchContext);
+
+		Stream<CommerceDiscount> stream =
+			commerceQualifierEntriesSourcesByTargets.stream();
+
+		return stream.filter(
+			commerceDiscount -> {
+				int commerceDiscountRelsCount =
+					commerceDiscountRelLocalService.
+						getCommerceDiscountRelsCount(
+							commerceDiscount.getCommerceDiscountId(),
+							cpDefinitionId, cpInstanceId,
+							commerceDiscount.getTarget());
+
+				if (commerceDiscountRelsCount == 0) {
+					return false;
+				}
+
+				return true;
+			}
+		).collect(
+			Collectors.toList()
+		);
+
+		/*List<CommerceDiscount> commerceDiscounts =
 			commerceDiscountLocalService.
 				getAccountAndChannelAndOrderTypeCommerceDiscounts(
 					commerceAccountId, commerceChannelId, commerceOrderTypeId,
@@ -258,7 +351,7 @@ public abstract class BaseCommerceDiscountCalculation
 		}
 
 		return commerceDiscountLocalService.getUnqualifiedCommerceDiscounts(
-			companyId, cpDefinitionId, cpInstanceId);
+			companyId, cpDefinitionId, cpInstanceId);*/
 	}
 
 }

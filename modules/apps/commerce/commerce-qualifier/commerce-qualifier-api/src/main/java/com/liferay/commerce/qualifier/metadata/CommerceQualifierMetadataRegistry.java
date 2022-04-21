@@ -14,6 +14,7 @@
 
 package com.liferay.commerce.qualifier.metadata;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,7 +25,9 @@ public interface CommerceQualifierMetadataRegistry {
 	public CommerceQualifierMetadata getCommerceQualifierMetadata(
 		String className);
 
+	public List<CommerceQualifierMetadata> getCommerceQualifiersMetadata();
+
 	public Map<String, CommerceQualifierMetadata>
-		getCommerceQualifiersMetadataByRESTModelName();
+		getCommerceQualifiersMetadataRESTModelName();
 
 }

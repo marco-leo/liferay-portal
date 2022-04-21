@@ -67,9 +67,6 @@ public class CommerceQualifierEntryTable
 	public final Column<CommerceQualifierEntryTable, Long> targetClassPK =
 		createColumn(
 			"targetClassPK", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
-	public final Column<CommerceQualifierEntryTable, Boolean> targetDefault =
-		createColumn(
-			"targetDefault", Boolean.class, Types.BOOLEAN, Column.FLAG_DEFAULT);
 
 	private CommerceQualifierEntryTable() {
 		super("CommerceQualifierEntry", CommerceQualifierEntryTable::new);

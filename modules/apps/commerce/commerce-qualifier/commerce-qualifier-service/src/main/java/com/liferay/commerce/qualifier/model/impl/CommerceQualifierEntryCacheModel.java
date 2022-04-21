@@ -78,7 +78,7 @@ public class CommerceQualifierEntryCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(25);
+		StringBundler sb = new StringBundler(23);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -102,8 +102,6 @@ public class CommerceQualifierEntryCacheModel
 		sb.append(targetClassNameId);
 		sb.append(", targetClassPK=");
 		sb.append(targetClassPK);
-		sb.append(", targetDefault=");
-		sb.append(targetDefault);
 		sb.append("}");
 
 		return sb.toString();
@@ -145,7 +143,6 @@ public class CommerceQualifierEntryCacheModel
 		commerceQualifierEntryImpl.setSourceClassPK(sourceClassPK);
 		commerceQualifierEntryImpl.setTargetClassNameId(targetClassNameId);
 		commerceQualifierEntryImpl.setTargetClassPK(targetClassPK);
-		commerceQualifierEntryImpl.setTargetDefault(targetDefault);
 
 		commerceQualifierEntryImpl.resetOriginalValues();
 
@@ -172,8 +169,6 @@ public class CommerceQualifierEntryCacheModel
 		targetClassNameId = objectInput.readLong();
 
 		targetClassPK = objectInput.readLong();
-
-		targetDefault = objectInput.readBoolean();
 	}
 
 	@Override
@@ -203,8 +198,6 @@ public class CommerceQualifierEntryCacheModel
 		objectOutput.writeLong(targetClassNameId);
 
 		objectOutput.writeLong(targetClassPK);
-
-		objectOutput.writeBoolean(targetDefault);
 	}
 
 	public long mvccVersion;
@@ -218,6 +211,5 @@ public class CommerceQualifierEntryCacheModel
 	public long sourceClassPK;
 	public long targetClassNameId;
 	public long targetClassPK;
-	public boolean targetDefault;
 
 }

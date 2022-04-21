@@ -29,7 +29,9 @@ import java.util.Map;
  */
 public interface CommerceQualifierMetadata<T extends ClassedModel> {
 
-	public String[] getAllowedTargetClassNames();
+	public String[][] getAllowedTargetClassNameGroups();
+
+	public String getDisplayCategory();
 
 	public String getExternalReferenceCode(long id);
 
@@ -37,15 +39,14 @@ public interface CommerceQualifierMetadata<T extends ClassedModel> {
 
 	public String getLabel();
 
-	public Class<T> getModelClass();
-
 	public String getModelClassName();
 
 	public ModelResourcePermission<T> getModelResourcePermission();
 
 	public String getMVCRenderCommandName();
 
-	public OrderByExpression[] getOrderByExpressions();
+	public OrderByExpression[] getOrderByExpressions(
+		Map<String, ?> targetAttributes);
 
 	public PersistedModelLocalService getPersistedModelLocalService();
 
@@ -62,6 +63,8 @@ public interface CommerceQualifierMetadata<T extends ClassedModel> {
 	public String getRESTContextPath();
 
 	public Map<String, String> getRESTInfo(long id);
+
+	public Map<String, String> getRESTInfoColumNames(String className);
 
 	public String getRESTModelName();
 

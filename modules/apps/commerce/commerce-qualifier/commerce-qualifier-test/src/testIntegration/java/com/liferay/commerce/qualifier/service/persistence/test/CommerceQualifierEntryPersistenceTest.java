@@ -151,9 +151,6 @@ public class CommerceQualifierEntryPersistenceTest {
 
 		newCommerceQualifierEntry.setTargetClassPK(RandomTestUtil.nextLong());
 
-		newCommerceQualifierEntry.setTargetDefault(
-			RandomTestUtil.randomBoolean());
-
 		_commerceQualifierEntries.add(
 			_persistence.update(newCommerceQualifierEntry));
 
@@ -197,9 +194,6 @@ public class CommerceQualifierEntryPersistenceTest {
 		Assert.assertEquals(
 			existingCommerceQualifierEntry.getTargetClassPK(),
 			newCommerceQualifierEntry.getTargetClassPK());
-		Assert.assertEquals(
-			existingCommerceQualifierEntry.isTargetDefault(),
-			newCommerceQualifierEntry.isTargetDefault());
 	}
 
 	@Test
@@ -277,8 +271,7 @@ public class CommerceQualifierEntryPersistenceTest {
 			"commerceQualifierEntryId", true, "companyId", true, "userId", true,
 			"userName", true, "createDate", true, "modifiedDate", true,
 			"sourceClassNameId", true, "sourceClassPK", true,
-			"targetClassNameId", true, "targetClassPK", true, "targetDefault",
-			true);
+			"targetClassNameId", true, "targetClassPK", true);
 	}
 
 	@Test
@@ -622,8 +615,6 @@ public class CommerceQualifierEntryPersistenceTest {
 		commerceQualifierEntry.setTargetClassNameId(RandomTestUtil.nextLong());
 
 		commerceQualifierEntry.setTargetClassPK(RandomTestUtil.nextLong());
-
-		commerceQualifierEntry.setTargetDefault(RandomTestUtil.randomBoolean());
 
 		_commerceQualifierEntries.add(
 			_persistence.update(commerceQualifierEntry));

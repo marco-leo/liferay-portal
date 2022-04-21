@@ -4,6 +4,72 @@
 <service-builder auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.commerce.qualifier" short-no-such-exception-enabled="false">
 	<author>Riccardo Alberti</author>
 	<namespace>Commerce</namespace>
+	<entity local-service="true" name="CommerceDefaultSetting" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="commerceDefaultSettingId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="name" type="String" />
+
+		<!-- Order -->
+
+		<order by="desc">
+			<order-column name="createDate" />
+		</order>
+	</entity>
+	<entity local-service="true" name="CommerceDefaultSettingRel" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="commerceDefaultSettingRelId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="classNameId" type="long" />
+		<column name="classPK" type="long" />
+		<column name="commerceDefaultSettingId" type="long" />
+		<column name="priority" type="double" />
+		<column name="type" type="String" />
+
+		<!-- Order -->
+
+		<order by="desc">
+			<order-column name="createDate" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="CommerceDefaultSettingId" return-type="Collection">
+			<finder-column name="commerceDefaultSettingId" />
+		</finder>
+		<finder name="C_C" return-type="Collection">
+			<finder-column name="classNameId" />
+			<finder-column name="classPK" />
+		</finder>
+		<finder name="C_T" return-type="Collection">
+			<finder-column name="commerceDefaultSettingId" />
+			<finder-column name="type" />
+		</finder>
+	</entity>
 	<entity local-service="true" name="CommerceQualifierEntry" remote-service="true">
 
 		<!-- PK fields -->
@@ -24,7 +90,6 @@
 		<column name="sourceClassPK" type="long" />
 		<column name="targetClassNameId" type="long" />
 		<column name="targetClassPK" type="long" />
-		<column name="targetDefault" type="boolean" />
 
 		<!-- Order -->
 

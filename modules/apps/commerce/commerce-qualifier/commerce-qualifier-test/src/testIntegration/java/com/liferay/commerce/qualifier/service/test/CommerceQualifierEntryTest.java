@@ -14,9 +14,11 @@
 
 package com.liferay.commerce.qualifier.service.test;
 
+import com.liferay.account.model.AccountEntry;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.commerce.currency.model.CommerceCurrency;
 import com.liferay.commerce.currency.test.util.CommerceCurrencyTestUtil;
+import com.liferay.commerce.discount.model.CommerceDiscount;
 import com.liferay.commerce.model.CommerceOrderType;
 import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.commerce.price.list.service.CommercePriceListLocalService;
@@ -24,6 +26,7 @@ import com.liferay.commerce.product.model.CommerceCatalog;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CommerceCatalogLocalService;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
+import com.liferay.commerce.qualifier.search.context.CommerceQualifierSearchContext;
 import com.liferay.commerce.qualifier.service.CommerceQualifierEntryLocalService;
 import com.liferay.commerce.service.CommerceOrderTypeLocalService;
 import com.liferay.commerce.test.util.CommerceTestUtil;
@@ -36,7 +39,6 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
-import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
@@ -103,6 +105,26 @@ public class CommerceQualifierEntryTest {
 	}
 
 	@Test
+	public void testOnDb() {
+		CommerceQualifierSearchContext.Builder
+			commerceQualifierSearchContextBuilder =
+				new CommerceQualifierSearchContext.Builder();
+
+		_commerceQualifierEntryLocalService.
+			getCommerceQualifierEntriesSourcesByTargets(
+				38301, CommerceDiscount.class,
+				commerceQualifierSearchContextBuilder.setExclusive(
+					true
+				).setTargetAttribute(
+					AccountEntry.class.getName(), 42934L
+				).setSourceAdditionalAttribute(
+					CommerceChannel.class.getName(), 43117L
+				).setSourceAdditionalAttribute(
+					CommerceOrderType.class.getName(), 44907L
+				).build());
+	}
+
+	@Test
 	public void testRetrievePriceListByQualifiersExclusive() throws Exception {
 		Calendar calendar = CalendarFactoryUtil.getCalendar(
 			_user.getTimeZone());
@@ -148,34 +170,39 @@ public class CommerceQualifierEntryTest {
 			_user.getUserId(), CommercePriceList.class.getName(),
 			commercePriceList1.getCommercePriceListId(),
 			CommerceOrderType.class.getName(),
-			_commerceOrderType.getCommerceOrderTypeId(), false);
+			_commerceOrderType.getCommerceOrderTypeId());
 
 		_commerceQualifierEntryLocalService.addCommerceQualifierEntry(
 			_user.getUserId(), CommercePriceList.class.getName(),
 			commercePriceList1.getCommercePriceListId(),
 			CommerceChannel.class.getName(),
-			_commerceChannel.getCommerceChannelId(), false);
+			_commerceChannel.getCommerceChannelId());
 
 		_commerceQualifierEntryLocalService.addCommerceQualifierEntry(
 			_user.getUserId(), CommercePriceList.class.getName(),
 			commercePriceList2.getCommercePriceListId(),
 			CommerceChannel.class.getName(),
-			_commerceChannel.getCommerceChannelId(), false);
+			_commerceChannel.getCommerceChannelId());
+
+		CommerceQualifierSearchContext.Builder
+			commerceQualifierSearchContextBuilder =
+				new CommerceQualifierSearchContext.Builder();
 
 		List<CommercePriceList> commercePriceLists =
 			_commerceQualifierEntryLocalService.
 				getCommerceQualifierEntriesSourcesByTargets(
-					_user.getCompanyId(), true, CommercePriceList.class,
-					HashMapBuilder.<String, Object>put(
+					_user.getCompanyId(), CommercePriceList.class,
+					commerceQualifierSearchContextBuilder.setExclusive(
+						true
+					).setSourceAdditionalAttribute(
 						"catalogBasePriceList", false
-					).put(
+					).setSourceAdditionalAttribute(
 						"groupId", _commerceCatalog.getGroupId()
-					).put(
+					).setSourceAdditionalAttribute(
 						"status", WorkflowConstants.STATUS_APPROVED
-					).put(
+					).setSourceAdditionalAttribute(
 						"type_", "price-list"
-					).build(),
-					HashMapBuilder.<String, Object>put(
+					).setTargetAttribute(
 						CommerceChannel.class.getName(),
 						_commerceChannel.getCommerceChannelId()
 					).build());
@@ -229,37 +256,41 @@ public class CommerceQualifierEntryTest {
 			_user.getUserId(), CommercePriceList.class.getName(),
 			commercePriceList1.getCommercePriceListId(),
 			CommerceOrderType.class.getName(),
-			_commerceOrderType.getCommerceOrderTypeId(), false);
+			_commerceOrderType.getCommerceOrderTypeId());
 
 		_commerceQualifierEntryLocalService.addCommerceQualifierEntry(
 			_user.getUserId(), CommercePriceList.class.getName(),
 			commercePriceList1.getCommercePriceListId(),
 			CommerceChannel.class.getName(),
-			_commerceChannel.getCommerceChannelId(), false);
+			_commerceChannel.getCommerceChannelId());
 
 		_commerceQualifierEntryLocalService.addCommerceQualifierEntry(
 			_user.getUserId(), CommercePriceList.class.getName(),
 			commercePriceList2.getCommercePriceListId(),
 			CommerceChannel.class.getName(),
-			_commerceChannel.getCommerceChannelId(), false);
+			_commerceChannel.getCommerceChannelId());
+
+		CommerceQualifierSearchContext.Builder
+			commerceQualifierSearchContextBuilder =
+				new CommerceQualifierSearchContext.Builder();
 
 		List<CommercePriceList> commercePriceLists =
 			_commerceQualifierEntryLocalService.
 				getCommerceQualifierEntriesSourcesByTargets(
-					_user.getCompanyId(), false, CommercePriceList.class,
-					HashMapBuilder.<String, Object>put(
-						"catalogBasePriceList", false
-					).put(
-						"groupId", _commerceCatalog.getGroupId()
-					).put(
-						"status", WorkflowConstants.STATUS_APPROVED
-					).put(
-						"type_", "price-list"
-					).build(),
-					HashMapBuilder.<String, Object>put(
-						CommerceChannel.class.getName(),
-						_commerceChannel.getCommerceChannelId()
-					).build());
+					_user.getCompanyId(), CommercePriceList.class,
+					commerceQualifierSearchContextBuilder.
+						setSourceAdditionalAttribute(
+							"catalogBasePriceList", false
+						).setSourceAdditionalAttribute(
+							"groupId", _commerceCatalog.getGroupId()
+						).setSourceAdditionalAttribute(
+							"status", WorkflowConstants.STATUS_APPROVED
+						).setSourceAdditionalAttribute(
+							"type_", "price-list"
+						).setTargetAttribute(
+							CommerceChannel.class.getName(),
+							_commerceChannel.getCommerceChannelId()
+						).build());
 
 		CommercePriceList discoveredPriceList = commercePriceLists.get(0);
 

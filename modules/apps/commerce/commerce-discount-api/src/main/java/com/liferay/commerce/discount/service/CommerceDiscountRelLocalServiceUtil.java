@@ -330,6 +330,14 @@ public class CommerceDiscountRelLocalServiceUtil {
 	}
 
 	public static int getCommerceDiscountRelsCount(
+		long commerceDiscountId, long cpDefinitionId, long cpInstanceId,
+		String target) {
+
+		return getService().getCommerceDiscountRelsCount(
+			commerceDiscountId, cpDefinitionId, cpInstanceId, target);
+	}
+
+	public static int getCommerceDiscountRelsCount(
 		long commerceDiscountId, String className) {
 
 		return getService().getCommerceDiscountRelsCount(

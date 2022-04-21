@@ -14,7 +14,7 @@
 
 package com.liferay.commerce.qualifier.screen.navigator;
 
-import com.liferay.commerce.qualifier.display.context.CommerceQualifierEntriesDisplayContext;
+import com.liferay.commerce.qualifier.display.context.CommerceQualifiersDisplayContext;
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadataRegistry;
 import com.liferay.commerce.qualifier.service.CommerceQualifierEntryService;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
@@ -72,7 +72,7 @@ public abstract class BaseCommerceQualifierScreenNavigationCategory<T>
 
 		httpServletRequest.setAttribute(
 			WebKeys.PORTLET_DISPLAY_CONTEXT,
-			new CommerceQualifierEntriesDisplayContext(
+			new CommerceQualifiersDisplayContext(
 				commerceQualifierEntryService,
 				commerceQualifierMetadataRegistry, getSourceName(),
 				ParamUtil.getLong(
@@ -81,7 +81,7 @@ public abstract class BaseCommerceQualifierScreenNavigationCategory<T>
 
 		jspRenderer.renderJSP(
 			servletContext, httpServletRequest, httpServletResponse,
-			"/qualifiers.jsp");
+			"/qualifiers/qualifiers.jsp");
 	}
 
 	@Reference

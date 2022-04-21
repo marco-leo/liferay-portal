@@ -53,8 +53,7 @@ public class CommerceQualifierEntryServiceHttp {
 	public static com.liferay.commerce.qualifier.model.CommerceQualifierEntry
 			addCommerceQualifierEntry(
 				HttpPrincipal httpPrincipal, String sourceClassName,
-				long sourceClassPK, String targetClassName, long targetClassPK,
-				boolean targetDefault)
+				long sourceClassPK, String targetClassName, long targetClassPK)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -65,7 +64,7 @@ public class CommerceQualifierEntryServiceHttp {
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, sourceClassName, sourceClassPK, targetClassName,
-				targetClassPK, targetDefault);
+				targetClassPK);
 
 			Object returnObj = null;
 
@@ -561,57 +560,11 @@ public class CommerceQualifierEntryServiceHttp {
 		}
 	}
 
-	public static com.liferay.commerce.qualifier.model.CommerceQualifierEntry
-			updateCommerceQualifierEntry(
-				HttpPrincipal httpPrincipal, long commerceQualifierEntryId,
-				boolean targetDefault)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		try {
-			MethodKey methodKey = new MethodKey(
-				CommerceQualifierEntryServiceUtil.class,
-				"updateCommerceQualifierEntry",
-				_updateCommerceQualifierEntryParameterTypes12);
-
-			MethodHandler methodHandler = new MethodHandler(
-				methodKey, commerceQualifierEntryId, targetDefault);
-
-			Object returnObj = null;
-
-			try {
-				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
-			}
-			catch (Exception exception) {
-				if (exception instanceof
-						com.liferay.portal.kernel.exception.PortalException) {
-
-					throw (com.liferay.portal.kernel.exception.PortalException)
-						exception;
-				}
-
-				throw new com.liferay.portal.kernel.exception.SystemException(
-					exception);
-			}
-
-			return (com.liferay.commerce.qualifier.model.CommerceQualifierEntry)
-				returnObj;
-		}
-		catch (com.liferay.portal.kernel.exception.SystemException
-					systemException) {
-
-			_log.error(systemException, systemException);
-
-			throw systemException;
-		}
-	}
-
 	private static Log _log = LogFactoryUtil.getLog(
 		CommerceQualifierEntryServiceHttp.class);
 
 	private static final Class<?>[] _addCommerceQualifierEntryParameterTypes0 =
-		new Class[] {
-			String.class, long.class, String.class, long.class, boolean.class
-		};
+		new Class[] {String.class, long.class, String.class, long.class};
 	private static final Class<?>[]
 		_deleteCommerceQualifierEntriesBySourceParameterTypes1 = new Class[] {
 			String.class, long.class
@@ -655,9 +608,5 @@ public class CommerceQualifierEntryServiceHttp {
 			};
 	private static final Class<?>[] _getCommerceQualifierEntryParameterTypes11 =
 		new Class[] {long.class};
-	private static final Class<?>[]
-		_updateCommerceQualifierEntryParameterTypes12 = new Class[] {
-			long.class, boolean.class
-		};
 
 }

@@ -14,7 +14,11 @@
 
 package com.liferay.commerce.qualifier.util;
 
+import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadata;
+import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadataRegistry;
+import com.liferay.commerce.qualifier.model.CommerceDefaultSettingRelTable;
 import com.liferay.commerce.qualifier.model.CommerceQualifierEntryTable;
+import com.liferay.petra.sql.dsl.Table;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.StringBundler;
 
@@ -23,12 +27,60 @@ import com.liferay.portal.kernel.util.StringBundler;
  */
 public class CommerceQualifierUtil {
 
+	public static String getAllowedTargetClassNameGroupName(
+		String[] allowedTargetClassNameGroup) {
+
+		StringBundler sb = new StringBundler();
+
+		for (String allowedTargetClassName : allowedTargetClassNameGroup) {
+			CommerceQualifierMetadata commerceQualifierMetadata =
+				_commerceQualifierMetadataRegistry.getCommerceQualifierMetadata(
+					allowedTargetClassName);
+
+			if (commerceQualifierMetadata == null) {
+				continue;
+			}
+
+			sb = sb.append("_");
+			sb = sb.append(commerceQualifierMetadata.getLabel());
+		}
+
+		return sb.toString();
+	}
+
+	public static CommerceDefaultSettingRelTable
+		getCommerceDefaultSettingRelTableAlias(String targetClassName) {
+
+		return CommerceDefaultSettingRelTable.INSTANCE.as(
+			StringBundler.concat(
+				_getTableNameByClassName(targetClassName), StringPool.UNDERLINE,
+				_getTableNameByClassName(targetClassName)));
+	}
+
 	public static CommerceQualifierEntryTable getCommerceQualifierTableAlias(
-		String sourceTableName, String targetTableName) {
+		String sourceClassName, String targetClassName) {
 
 		return CommerceQualifierEntryTable.INSTANCE.as(
 			StringBundler.concat(
-				sourceTableName, StringPool.UNDERLINE, targetTableName));
+				_getTableNameByClassName(sourceClassName), StringPool.UNDERLINE,
+				_getTableNameByClassName(targetClassName)));
 	}
+
+	private static String _getTableNameByClassName(String className) {
+		CommerceQualifierMetadata commerceQualifierMetadata =
+			_commerceQualifierMetadataRegistry.getCommerceQualifierMetadata(
+				className);
+
+		if (commerceQualifierMetadata == null) {
+			return StringPool.BLANK;
+		}
+
+		Table table = commerceQualifierMetadata.getTable();
+
+		return table.getName();
+	}
+
+	private static volatile CommerceQualifierMetadataRegistry
+		_commerceQualifierMetadataRegistry;
 
 }

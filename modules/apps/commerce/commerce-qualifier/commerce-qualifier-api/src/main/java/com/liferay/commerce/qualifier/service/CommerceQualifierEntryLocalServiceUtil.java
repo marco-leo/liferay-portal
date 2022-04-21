@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import java.io.Serializable;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Provides the local service utility for CommerceQualifierEntry. This utility wraps
@@ -64,12 +63,19 @@ public class CommerceQualifierEntryLocalServiceUtil {
 
 	public static CommerceQualifierEntry addCommerceQualifierEntry(
 			long userId, String sourceClassName, long sourceClassPK,
-			String targetClassName, long targetClassPK, boolean targetDefault)
+			String targetClassName, long targetClassPK)
 		throws PortalException {
 
 		return getService().addCommerceQualifierEntry(
 			userId, sourceClassName, sourceClassPK, targetClassName,
-			targetClassPK, targetDefault);
+			targetClassPK);
+	}
+
+	public static void cleanCommerceQualifierEntryCache(
+		long companyId, String sourceClassName) {
+
+		getService().cleanCommerceQualifierEntryCache(
+			companyId, sourceClassName);
 	}
 
 	/**
@@ -350,13 +356,12 @@ public class CommerceQualifierEntryLocalServiceUtil {
 	}
 
 	public static <E> List<E> getCommerceQualifierEntriesSourcesByTargets(
-		long companyId, boolean exclusive, Class<E> sourceClass,
-		Map<String, Object> sourceExtraParameterMap,
-		Map<String, Object> targetCommerceQualifierMap) {
+		long companyId, Class<E> sourceClass,
+		com.liferay.commerce.qualifier.search.context.
+			CommerceQualifierSearchContext commerceQualifierSearchContext) {
 
 		return getService().getCommerceQualifierEntriesSourcesByTargets(
-			companyId, exclusive, sourceClass, sourceExtraParameterMap,
-			targetCommerceQualifierMap);
+			companyId, sourceClass, commerceQualifierSearchContext);
 	}
 
 	/**
@@ -413,14 +418,6 @@ public class CommerceQualifierEntryLocalServiceUtil {
 
 		return getService().updateCommerceQualifierEntry(
 			commerceQualifierEntry);
-	}
-
-	public static CommerceQualifierEntry updateCommerceQualifierEntry(
-			long commerceQualifierEntryId, boolean targetDefault)
-		throws PortalException {
-
-		return getService().updateCommerceQualifierEntry(
-			commerceQualifierEntryId, targetDefault);
 	}
 
 	public static CommerceQualifierEntryLocalService getService() {

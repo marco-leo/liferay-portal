@@ -385,6 +385,15 @@ public class CommerceDiscountRelLocalServiceWrapper
 
 	@Override
 	public int getCommerceDiscountRelsCount(
+		long commerceDiscountId, long cpDefinitionId, long cpInstanceId,
+		String target) {
+
+		return _commerceDiscountRelLocalService.getCommerceDiscountRelsCount(
+			commerceDiscountId, cpDefinitionId, cpInstanceId, target);
+	}
+
+	@Override
+	public int getCommerceDiscountRelsCount(
 		long commerceDiscountId, String className) {
 
 		return _commerceDiscountRelLocalService.getCommerceDiscountRelsCount(

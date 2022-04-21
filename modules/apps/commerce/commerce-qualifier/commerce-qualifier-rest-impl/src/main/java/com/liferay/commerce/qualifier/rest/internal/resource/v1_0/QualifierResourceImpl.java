@@ -23,7 +23,6 @@ import com.liferay.commerce.qualifier.rest.resource.v1_0.QualifierResource;
 import com.liferay.commerce.qualifier.service.CommerceQualifierEntryService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
@@ -62,7 +61,7 @@ public class QualifierResourceImpl extends BaseQualifierResourceImpl {
 
 		Map<String, CommerceQualifierMetadata> commerceQualifiersMetadata =
 			_commerceQualifierMetadataRegistry.
-				getCommerceQualifiersMetadataByRESTModelName();
+				getCommerceQualifiersMetadataRESTModelName();
 
 		CommerceQualifierMetadata commerceQualifierMetadata1 =
 			commerceQualifiersMetadata.get(qualifierEntityName1);
@@ -106,8 +105,8 @@ public class QualifierResourceImpl extends BaseQualifierResourceImpl {
 				_commerceQualifierEntryService.
 					getCommerceQualifierEntriesByTarget(
 						contextCompany.getCompanyId(),
-						commerceQualifierMetadata1.getModelClassName(),
 						commerceQualifierMetadata2.getModelClassName(),
+						commerceQualifierMetadata1.getModelClassName(),
 						qualifierEntityId1, search,
 						pagination.getStartPosition(),
 						pagination.getEndPosition()),
@@ -116,31 +115,16 @@ public class QualifierResourceImpl extends BaseQualifierResourceImpl {
 			_commerceQualifierEntryService.
 				getCommerceQualifierEntriesByTargetCount(
 					contextCompany.getCompanyId(),
-					commerceQualifierMetadata1.getModelClassName(),
 					commerceQualifierMetadata2.getModelClassName(),
+					commerceQualifierMetadata1.getModelClassName(),
 					qualifierEntityId1, search));
-	}
-
-	@Override
-	public Qualifier patchQualifier(Long id, Qualifier qualifier)
-		throws Exception {
-
-		CommerceQualifierEntry commerceQualifierEntry =
-			_commerceQualifierEntryService.getCommerceQualifierEntry(id);
-
-		return _toQualifier(
-			_commerceQualifierEntryService.updateCommerceQualifierEntry(
-				commerceQualifierEntry.getCommerceQualifierEntryId(),
-				GetterUtil.getBoolean(
-					qualifier.getTargetDefault(),
-					commerceQualifierEntry.isTargetDefault())));
 	}
 
 	@Override
 	public Qualifier postQualifier(Qualifier qualifier) throws Exception {
 		Map<String, CommerceQualifierMetadata> commerceQualifiersMetadata =
 			_commerceQualifierMetadataRegistry.
-				getCommerceQualifiersMetadataByRESTModelName();
+				getCommerceQualifiersMetadataRESTModelName();
 
 		CommerceQualifierMetadata sourceCommerceQualifierMetadata =
 			commerceQualifiersMetadata.get(qualifier.getSourceName());
@@ -159,8 +143,7 @@ public class QualifierResourceImpl extends BaseQualifierResourceImpl {
 				sourceCommerceQualifierMetadata.getModelClassName(),
 				qualifier.getSourceId(),
 				targetCommerceQualifierMetadata.getModelClassName(),
-				qualifier.getTargetId(),
-				GetterUtil.getBoolean(qualifier.getTargetDefault())));
+				qualifier.getTargetId()));
 	}
 
 	private Map<String, Map<String, String>> _getActions(
@@ -170,7 +153,7 @@ public class QualifierResourceImpl extends BaseQualifierResourceImpl {
 		return HashMapBuilder.<String, Map<String, String>>put(
 			"delete",
 			addAction(
-				"UPDATE", commerceQualifierEntry.getCommerceQualifierEntryId(),
+				"DELETE", commerceQualifierEntry.getCommerceQualifierEntryId(),
 				"deleteQualifier",
 				_commerceQualifierEntryModelResourcePermission)
 		).build();

@@ -58,7 +58,6 @@ public class QualifierDTOConverter
 				sourceId = commerceQualifierEntry.getSourceClassPK();
 				sourceName = _getRESTModelClassName(
 					commerceQualifierEntry.getSourceClassNameId());
-				targetDefault = commerceQualifierEntry.isTargetDefault();
 				targetId = commerceQualifierEntry.getTargetClassPK();
 				targetName = _getRESTModelClassName(
 					commerceQualifierEntry.getTargetClassNameId());

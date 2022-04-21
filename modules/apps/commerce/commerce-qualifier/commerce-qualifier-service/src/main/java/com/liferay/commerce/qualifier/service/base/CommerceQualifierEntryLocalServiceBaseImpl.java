@@ -17,6 +17,8 @@ package com.liferay.commerce.qualifier.service.base;
 import com.liferay.commerce.qualifier.model.CommerceQualifierEntry;
 import com.liferay.commerce.qualifier.service.CommerceQualifierEntryLocalService;
 import com.liferay.commerce.qualifier.service.CommerceQualifierEntryLocalServiceUtil;
+import com.liferay.commerce.qualifier.service.persistence.CommerceDefaultSettingPersistence;
+import com.liferay.commerce.qualifier.service.persistence.CommerceDefaultSettingRelPersistence;
 import com.liferay.commerce.qualifier.service.persistence.CommerceQualifierEntryPersistence;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.aop.AopService;
@@ -488,6 +490,14 @@ public abstract class CommerceQualifierEntryLocalServiceBaseImpl
 			throw new RuntimeException(reflectiveOperationException);
 		}
 	}
+
+	@Reference
+	protected CommerceDefaultSettingPersistence
+		commerceDefaultSettingPersistence;
+
+	@Reference
+	protected CommerceDefaultSettingRelPersistence
+		commerceDefaultSettingRelPersistence;
 
 	protected CommerceQualifierEntryLocalService
 		commerceQualifierEntryLocalService;

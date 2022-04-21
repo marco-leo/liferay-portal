@@ -53,7 +53,7 @@ public interface CommerceQualifierEntryService extends BaseService {
 	 */
 	public CommerceQualifierEntry addCommerceQualifierEntry(
 			String sourceClassName, long sourceClassPK, String targetClassName,
-			long targetClassPK, boolean targetDefault)
+			long targetClassPK)
 		throws PortalException;
 
 	public void deleteCommerceQualifierEntriesBySource(
@@ -117,9 +117,5 @@ public interface CommerceQualifierEntryService extends BaseService {
 	 * @return the OSGi service identifier
 	 */
 	public String getOSGiServiceIdentifier();
-
-	public CommerceQualifierEntry updateCommerceQualifierEntry(
-			long commerceQualifierEntryId, boolean targetDefault)
-		throws PortalException;
 
 }

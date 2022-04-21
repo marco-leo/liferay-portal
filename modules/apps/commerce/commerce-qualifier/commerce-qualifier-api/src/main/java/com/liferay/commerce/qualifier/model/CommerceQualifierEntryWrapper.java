@@ -56,7 +56,6 @@ public class CommerceQualifierEntryWrapper
 		attributes.put("sourceClassPK", getSourceClassPK());
 		attributes.put("targetClassNameId", getTargetClassNameId());
 		attributes.put("targetClassPK", getTargetClassPK());
-		attributes.put("targetDefault", isTargetDefault());
 
 		return attributes;
 	}
@@ -128,12 +127,6 @@ public class CommerceQualifierEntryWrapper
 
 		if (targetClassPK != null) {
 			setTargetClassPK(targetClassPK);
-		}
-
-		Boolean targetDefault = (Boolean)attributes.get("targetDefault");
-
-		if (targetDefault != null) {
-			setTargetDefault(targetDefault);
 		}
 	}
 
@@ -243,16 +236,6 @@ public class CommerceQualifierEntryWrapper
 	}
 
 	/**
-	 * Returns the target default of this commerce qualifier entry.
-	 *
-	 * @return the target default of this commerce qualifier entry
-	 */
-	@Override
-	public boolean getTargetDefault() {
-		return model.getTargetDefault();
-	}
-
-	/**
 	 * Returns the user ID of this commerce qualifier entry.
 	 *
 	 * @return the user ID of this commerce qualifier entry
@@ -280,16 +263,6 @@ public class CommerceQualifierEntryWrapper
 	@Override
 	public String getUserUuid() {
 		return model.getUserUuid();
-	}
-
-	/**
-	 * Returns <code>true</code> if this commerce qualifier entry is target default.
-	 *
-	 * @return <code>true</code> if this commerce qualifier entry is target default; <code>false</code> otherwise
-	 */
-	@Override
-	public boolean isTargetDefault() {
-		return model.isTargetDefault();
 	}
 
 	@Override
@@ -395,16 +368,6 @@ public class CommerceQualifierEntryWrapper
 	@Override
 	public void setTargetClassPK(long targetClassPK) {
 		model.setTargetClassPK(targetClassPK);
-	}
-
-	/**
-	 * Sets whether this commerce qualifier entry is target default.
-	 *
-	 * @param targetDefault the target default of this commerce qualifier entry
-	 */
-	@Override
-	public void setTargetDefault(boolean targetDefault) {
-		model.setTargetDefault(targetDefault);
 	}
 
 	/**

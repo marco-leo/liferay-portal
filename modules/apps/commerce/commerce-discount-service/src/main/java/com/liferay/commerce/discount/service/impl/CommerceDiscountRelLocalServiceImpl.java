@@ -16,6 +16,9 @@ package com.liferay.commerce.discount.service.impl;
 
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetCategoryTable;
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.commerce.discount.constants.CommerceDiscountConstants;
 import com.liferay.commerce.discount.model.CommerceDiscount;
 import com.liferay.commerce.discount.model.CommerceDiscountRel;
 import com.liferay.commerce.discount.model.CommerceDiscountRelTable;
@@ -23,6 +26,7 @@ import com.liferay.commerce.discount.service.base.CommerceDiscountRelLocalServic
 import com.liferay.commerce.discount.util.comparator.CommerceDiscountRelCreateDateComparator;
 import com.liferay.commerce.pricing.model.CommercePricingClass;
 import com.liferay.commerce.pricing.model.CommercePricingClassTable;
+import com.liferay.commerce.pricing.service.CommercePricingClassLocalService;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CPDefinitionLocalizationTable;
 import com.liferay.commerce.product.model.CPDefinitionTable;
@@ -36,6 +40,8 @@ import com.liferay.petra.sql.dsl.query.GroupByStep;
 import com.liferay.petra.sql.dsl.query.JoinStep;
 import com.liferay.portal.dao.orm.custom.sql.CustomSQL;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexer;
@@ -47,7 +53,13 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 /**
  * @author Marco Leo
@@ -226,6 +238,25 @@ public class CommerceDiscountRelLocalServiceImpl
 
 	@Override
 	public int getCommerceDiscountRelsCount(
+		long commerceDiscountId, long cpDefinitionId, long cpInstanceId,
+		String target) {
+
+		return dslQueryCount(
+			DSLQueryFactoryUtil.countDistinct(
+				CommerceDiscountRelTable.INSTANCE.commerceDiscountRelId
+			).from(
+				CommerceDiscountRelTable.INSTANCE
+			).where(
+				CommerceDiscountRelTable.INSTANCE.commerceDiscountId.eq(
+					commerceDiscountId
+				).and(
+					_toTargetPredicate(cpDefinitionId, cpInstanceId, target)
+				)
+			));
+	}
+
+	@Override
+	public int getCommerceDiscountRelsCount(
 		long commerceDiscountId, String className) {
 
 		return commerceDiscountRelPersistence.countByCD_CN(
@@ -387,6 +418,32 @@ public class CommerceDiscountRelLocalServiceImpl
 		indexer.reindex(commerceDiscount);
 	}
 
+	private long[] _getAssetCategoryIds(long cpDefinitionId) {
+		try {
+			AssetEntry assetEntry = _assetEntryLocalService.getEntry(
+				CPDefinition.class.getName(), cpDefinitionId);
+
+			Set<AssetCategory> assetCategories = new HashSet<>();
+
+			for (AssetCategory assetCategory : assetEntry.getCategories()) {
+				assetCategories.add(assetCategory);
+				assetCategories.addAll(assetCategory.getAncestors());
+			}
+
+			Stream<AssetCategory> stream = assetCategories.stream();
+
+			LongStream longStream = stream.mapToLong(
+				AssetCategory::getCategoryId);
+
+			return longStream.toArray();
+		}
+		catch (PortalException portalException) {
+			_log.error(portalException);
+		}
+
+		return new long[0];
+	}
+
 	private GroupByStep _getGroupByStep(
 		JoinStep joinStep, String className, Long commerceDiscountId,
 		String keywords, Expression<String> keywordsPredicateExpression) {
@@ -413,6 +470,95 @@ public class CommerceDiscountRelLocalServiceImpl
 				return predicate;
 			});
 	}
+
+	private Predicate _toTargetPredicate(
+		long cpDefinitionId, long cpInstanceId, String target) {
+
+		if (Objects.equals(CommerceDiscountConstants.TARGET_PRODUCTS, target)) {
+			return CommerceDiscountRelTable.INSTANCE.classPK.eq(
+				cpDefinitionId
+			).and(
+				CommerceDiscountRelTable.INSTANCE.classNameId.eq(
+					classNameLocalService.getClassNameId(
+						CPDefinition.class.getName()))
+			);
+		}
+
+		if (Objects.equals(CommerceDiscountConstants.TARGET_SKUS, target)) {
+			return CommerceDiscountRelTable.INSTANCE.classPK.eq(
+				cpInstanceId
+			).and(
+				CommerceDiscountRelTable.INSTANCE.classNameId.eq(
+					classNameLocalService.getClassNameId(
+						CPInstance.class.getName()))
+			);
+		}
+
+		if (Objects.equals(
+				CommerceDiscountConstants.TARGET_CATEGORIES, target)) {
+
+			long[] assetCategoryIds = _getAssetCategoryIds(cpDefinitionId);
+
+			if (assetCategoryIds != null) {
+				if (assetCategoryIds.length == 0) {
+					assetCategoryIds = new long[] {0};
+				}
+
+				LongStream assetCategoryIdsLongStream = Arrays.stream(
+					assetCategoryIds);
+
+				return CommerceDiscountRelTable.INSTANCE.classPK.in(
+					assetCategoryIdsLongStream.boxed(
+					).toArray(
+						Long[]::new
+					)
+				).and(
+					CommerceDiscountRelTable.INSTANCE.classNameId.eq(
+						classNameLocalService.getClassNameId(
+							AssetCategory.class.getName()))
+				);
+			}
+		}
+
+		if (Objects.equals(
+				CommerceDiscountConstants.TARGET_PRODUCT_GROUPS, target)) {
+
+			long[] commercePricingClasses =
+				_commercePricingClassLocalService.
+					getCommercePricingClassByCPDefinition(cpDefinitionId);
+
+			if (commercePricingClasses != null) {
+				if (commercePricingClasses.length == 0) {
+					commercePricingClasses = new long[] {0};
+				}
+
+				LongStream commercePricingClassesLongStream = Arrays.stream(
+					commercePricingClasses);
+
+				return CommerceDiscountRelTable.INSTANCE.classPK.in(
+					commercePricingClassesLongStream.boxed(
+					).toArray(
+						Long[]::new
+					)
+				).and(
+					CommerceDiscountRelTable.INSTANCE.classNameId.eq(
+						classNameLocalService.getClassNameId(
+							AssetCategory.class.getName()))
+				);
+			}
+		}
+
+		return null;
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		CommerceDiscountRelLocalServiceImpl.class);
+
+	@ServiceReference(type = AssetEntryLocalService.class)
+	private AssetEntryLocalService _assetEntryLocalService;
+
+	@ServiceReference(type = CommercePricingClassLocalService.class)
+	private CommercePricingClassLocalService _commercePricingClassLocalService;
 
 	@ServiceReference(type = CustomSQL.class)
 	private CustomSQL _customSQL;

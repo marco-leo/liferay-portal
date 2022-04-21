@@ -46,14 +46,14 @@ public class CommerceQualifierEntryServiceImpl
 	@Override
 	public CommerceQualifierEntry addCommerceQualifierEntry(
 			String sourceClassName, long sourceClassPK, String targetClassName,
-			long targetClassPK, boolean targetDefault)
+			long targetClassPK)
 		throws PortalException {
 
 		_checkPermission(sourceClassName, sourceClassPK, ActionKeys.UPDATE);
 
 		return commerceQualifierEntryLocalService.addCommerceQualifierEntry(
 			getUserId(), sourceClassName, sourceClassPK, targetClassName,
-			targetClassPK, targetDefault);
+			targetClassPK);
 	}
 
 	@Override
@@ -211,27 +211,6 @@ public class CommerceQualifierEntryServiceImpl
 			ActionKeys.VIEW);
 
 		return commerceQualifierEntry;
-	}
-
-	@Override
-	public CommerceQualifierEntry updateCommerceQualifierEntry(
-			long commerceQualifierEntryId, boolean targetDefault)
-		throws PortalException {
-
-		CommerceQualifierEntry commerceQualifierEntry =
-			commerceQualifierEntryLocalService.getCommerceQualifierEntry(
-				commerceQualifierEntryId);
-
-		ModelResourcePermission<?> modelResourcePermission =
-			_getModelResourcePermission(
-				commerceQualifierEntry.getTargetClassNameId());
-
-		modelResourcePermission.check(
-			getPermissionChecker(), commerceQualifierEntry.getTargetClassPK(),
-			ActionKeys.UPDATE);
-
-		return commerceQualifierEntryLocalService.updateCommerceQualifierEntry(
-			commerceQualifierEntryId, targetDefault);
 	}
 
 	private void _checkPermission(String className, long classPK, String action)

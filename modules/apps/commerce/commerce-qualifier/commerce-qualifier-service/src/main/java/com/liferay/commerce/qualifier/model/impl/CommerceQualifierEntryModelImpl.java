@@ -78,8 +78,7 @@ public class CommerceQualifierEntryModelImpl
 		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
 		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
 		{"sourceClassNameId", Types.BIGINT}, {"sourceClassPK", Types.BIGINT},
-		{"targetClassNameId", Types.BIGINT}, {"targetClassPK", Types.BIGINT},
-		{"targetDefault", Types.BOOLEAN}
+		{"targetClassNameId", Types.BIGINT}, {"targetClassPK", Types.BIGINT}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -97,11 +96,10 @@ public class CommerceQualifierEntryModelImpl
 		TABLE_COLUMNS_MAP.put("sourceClassPK", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("targetClassNameId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("targetClassPK", Types.BIGINT);
-		TABLE_COLUMNS_MAP.put("targetDefault", Types.BOOLEAN);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table CommerceQualifierEntry (mvccVersion LONG default 0 not null,commerceQualifierEntryId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,sourceClassNameId LONG,sourceClassPK LONG,targetClassNameId LONG,targetClassPK LONG,targetDefault BOOLEAN)";
+		"create table CommerceQualifierEntry (mvccVersion LONG default 0 not null,commerceQualifierEntryId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,sourceClassNameId LONG,sourceClassPK LONG,targetClassNameId LONG,targetClassPK LONG)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table CommerceQualifierEntry";
@@ -331,12 +329,6 @@ public class CommerceQualifierEntryModelImpl
 			"targetClassPK",
 			(BiConsumer<CommerceQualifierEntry, Long>)
 				CommerceQualifierEntry::setTargetClassPK);
-		attributeGetterFunctions.put(
-			"targetDefault", CommerceQualifierEntry::getTargetDefault);
-		attributeSetterBiConsumers.put(
-			"targetDefault",
-			(BiConsumer<CommerceQualifierEntry, Boolean>)
-				CommerceQualifierEntry::setTargetDefault);
 
 		_attributeGetterFunctions = Collections.unmodifiableMap(
 			attributeGetterFunctions);
@@ -576,27 +568,6 @@ public class CommerceQualifierEntryModelImpl
 			this.<Long>getColumnOriginalValue("targetClassPK"));
 	}
 
-	@JSON
-	@Override
-	public boolean getTargetDefault() {
-		return _targetDefault;
-	}
-
-	@JSON
-	@Override
-	public boolean isTargetDefault() {
-		return _targetDefault;
-	}
-
-	@Override
-	public void setTargetDefault(boolean targetDefault) {
-		if (_columnOriginalValues == Collections.EMPTY_MAP) {
-			_setColumnOriginalValues();
-		}
-
-		_targetDefault = targetDefault;
-	}
-
 	public long getColumnBitmask() {
 		if (_columnBitmask > 0) {
 			return _columnBitmask;
@@ -667,7 +638,6 @@ public class CommerceQualifierEntryModelImpl
 		commerceQualifierEntryImpl.setSourceClassPK(getSourceClassPK());
 		commerceQualifierEntryImpl.setTargetClassNameId(getTargetClassNameId());
 		commerceQualifierEntryImpl.setTargetClassPK(getTargetClassPK());
-		commerceQualifierEntryImpl.setTargetDefault(isTargetDefault());
 
 		commerceQualifierEntryImpl.resetOriginalValues();
 
@@ -701,8 +671,6 @@ public class CommerceQualifierEntryModelImpl
 			this.<Long>getColumnOriginalValue("targetClassNameId"));
 		commerceQualifierEntryImpl.setTargetClassPK(
 			this.<Long>getColumnOriginalValue("targetClassPK"));
-		commerceQualifierEntryImpl.setTargetDefault(
-			this.<Boolean>getColumnOriginalValue("targetDefault"));
 
 		return commerceQualifierEntryImpl;
 	}
@@ -829,8 +797,6 @@ public class CommerceQualifierEntryModelImpl
 
 		commerceQualifierEntryCacheModel.targetClassPK = getTargetClassPK();
 
-		commerceQualifierEntryCacheModel.targetDefault = isTargetDefault();
-
 		return commerceQualifierEntryCacheModel;
 	}
 
@@ -937,7 +903,6 @@ public class CommerceQualifierEntryModelImpl
 	private long _sourceClassPK;
 	private long _targetClassNameId;
 	private long _targetClassPK;
-	private boolean _targetDefault;
 
 	public <T> T getColumnValue(String columnName) {
 		Function<CommerceQualifierEntry, Object> function =
@@ -978,7 +943,6 @@ public class CommerceQualifierEntryModelImpl
 		_columnOriginalValues.put("sourceClassPK", _sourceClassPK);
 		_columnOriginalValues.put("targetClassNameId", _targetClassNameId);
 		_columnOriginalValues.put("targetClassPK", _targetClassPK);
-		_columnOriginalValues.put("targetDefault", _targetDefault);
 	}
 
 	private transient Map<String, Object> _columnOriginalValues;
@@ -1013,8 +977,6 @@ public class CommerceQualifierEntryModelImpl
 		columnBitmasks.put("targetClassNameId", 512L);
 
 		columnBitmasks.put("targetClassPK", 1024L);
-
-		columnBitmasks.put("targetDefault", 2048L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

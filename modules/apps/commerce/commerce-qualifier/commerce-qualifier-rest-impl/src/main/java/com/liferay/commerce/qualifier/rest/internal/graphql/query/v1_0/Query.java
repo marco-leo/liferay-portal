@@ -14,8 +14,12 @@
 
 package com.liferay.commerce.qualifier.rest.internal.graphql.query.v1_0;
 
+import com.liferay.commerce.qualifier.rest.dto.v1_0.DefaultSetting;
+import com.liferay.commerce.qualifier.rest.dto.v1_0.DefaultSettingEntity;
 import com.liferay.commerce.qualifier.rest.dto.v1_0.Qualifier;
 import com.liferay.commerce.qualifier.rest.dto.v1_0.QualifierEntity;
+import com.liferay.commerce.qualifier.rest.resource.v1_0.DefaultSettingEntityResource;
+import com.liferay.commerce.qualifier.rest.resource.v1_0.DefaultSettingResource;
 import com.liferay.commerce.qualifier.rest.resource.v1_0.QualifierEntityResource;
 import com.liferay.commerce.qualifier.rest.resource.v1_0.QualifierResource;
 import com.liferay.petra.function.UnsafeConsumer;
@@ -49,6 +53,22 @@ import org.osgi.service.component.ComponentServiceObjects;
 @Generated("")
 public class Query {
 
+	public static void setDefaultSettingResourceComponentServiceObjects(
+		ComponentServiceObjects<DefaultSettingResource>
+			defaultSettingResourceComponentServiceObjects) {
+
+		_defaultSettingResourceComponentServiceObjects =
+			defaultSettingResourceComponentServiceObjects;
+	}
+
+	public static void setDefaultSettingEntityResourceComponentServiceObjects(
+		ComponentServiceObjects<DefaultSettingEntityResource>
+			defaultSettingEntityResourceComponentServiceObjects) {
+
+		_defaultSettingEntityResourceComponentServiceObjects =
+			defaultSettingEntityResourceComponentServiceObjects;
+	}
+
 	public static void setQualifierResourceComponentServiceObjects(
 		ComponentServiceObjects<QualifierResource>
 			qualifierResourceComponentServiceObjects) {
@@ -63,6 +83,70 @@ public class Query {
 
 		_qualifierEntityResourceComponentServiceObjects =
 			qualifierEntityResourceComponentServiceObjects;
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {defaultSettings(filter: ___, page: ___, pageSize: ___, search: ___, sorts: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 */
+	@GraphQLField
+	public DefaultSettingPage defaultSettings(
+			@GraphQLName("search") String search,
+			@GraphQLName("filter") String filterString,
+			@GraphQLName("pageSize") int pageSize,
+			@GraphQLName("page") int page,
+			@GraphQLName("sort") String sortsString)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_defaultSettingResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			defaultSettingResource -> new DefaultSettingPage(
+				defaultSettingResource.getDefaultSettingsPage(
+					search,
+					_filterBiFunction.apply(
+						defaultSettingResource, filterString),
+					Pagination.of(page, pageSize),
+					_sortsBiFunction.apply(
+						defaultSettingResource, sortsString))));
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {defaultSetting(id: ___){actions, customFields, defaultSettingEntities, id, name}}"}' -u 'test@liferay.com:test'
+	 */
+	@GraphQLField
+	public DefaultSetting defaultSetting(@GraphQLName("id") Long id)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_defaultSettingResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			defaultSettingResource -> defaultSettingResource.getDefaultSetting(
+				id));
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {defaultSettingIdDefaultSettingEntities(id: ___, page: ___, pageSize: ___, search: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 */
+	@GraphQLField
+	public DefaultSettingEntityPage defaultSettingIdDefaultSettingEntities(
+			@GraphQLName("id") Long id, @GraphQLName("search") String search,
+			@GraphQLName("pageSize") int pageSize,
+			@GraphQLName("page") int page)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_defaultSettingEntityResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			defaultSettingEntityResource -> new DefaultSettingEntityPage(
+				defaultSettingEntityResource.
+					getDefaultSettingIdDefaultSettingEntitiesPage(
+						id, search, Pagination.of(page, pageSize))));
 	}
 
 	/**
@@ -106,6 +190,72 @@ public class Query {
 			this::_populateResourceContext,
 			qualifierEntityResource ->
 				qualifierEntityResource.getQualifierIdQualifierEntity(id));
+	}
+
+	@GraphQLName("DefaultSettingPage")
+	public class DefaultSettingPage {
+
+		public DefaultSettingPage(Page defaultSettingPage) {
+			actions = defaultSettingPage.getActions();
+
+			items = defaultSettingPage.getItems();
+			lastPage = defaultSettingPage.getLastPage();
+			page = defaultSettingPage.getPage();
+			pageSize = defaultSettingPage.getPageSize();
+			totalCount = defaultSettingPage.getTotalCount();
+		}
+
+		@GraphQLField
+		protected Map<String, Map> actions;
+
+		@GraphQLField
+		protected java.util.Collection<DefaultSetting> items;
+
+		@GraphQLField
+		protected long lastPage;
+
+		@GraphQLField
+		protected long page;
+
+		@GraphQLField
+		protected long pageSize;
+
+		@GraphQLField
+		protected long totalCount;
+
+	}
+
+	@GraphQLName("DefaultSettingEntityPage")
+	public class DefaultSettingEntityPage {
+
+		public DefaultSettingEntityPage(Page defaultSettingEntityPage) {
+			actions = defaultSettingEntityPage.getActions();
+
+			items = defaultSettingEntityPage.getItems();
+			lastPage = defaultSettingEntityPage.getLastPage();
+			page = defaultSettingEntityPage.getPage();
+			pageSize = defaultSettingEntityPage.getPageSize();
+			totalCount = defaultSettingEntityPage.getTotalCount();
+		}
+
+		@GraphQLField
+		protected Map<String, Map> actions;
+
+		@GraphQLField
+		protected java.util.Collection<DefaultSettingEntity> items;
+
+		@GraphQLField
+		protected long lastPage;
+
+		@GraphQLField
+		protected long page;
+
+		@GraphQLField
+		protected long pageSize;
+
+		@GraphQLField
+		protected long totalCount;
+
 	}
 
 	@GraphQLName("QualifierPage")
@@ -193,6 +343,38 @@ public class Query {
 		}
 	}
 
+	private void _populateResourceContext(
+			DefaultSettingResource defaultSettingResource)
+		throws Exception {
+
+		defaultSettingResource.setContextAcceptLanguage(_acceptLanguage);
+		defaultSettingResource.setContextCompany(_company);
+		defaultSettingResource.setContextHttpServletRequest(
+			_httpServletRequest);
+		defaultSettingResource.setContextHttpServletResponse(
+			_httpServletResponse);
+		defaultSettingResource.setContextUriInfo(_uriInfo);
+		defaultSettingResource.setContextUser(_user);
+		defaultSettingResource.setGroupLocalService(_groupLocalService);
+		defaultSettingResource.setRoleLocalService(_roleLocalService);
+	}
+
+	private void _populateResourceContext(
+			DefaultSettingEntityResource defaultSettingEntityResource)
+		throws Exception {
+
+		defaultSettingEntityResource.setContextAcceptLanguage(_acceptLanguage);
+		defaultSettingEntityResource.setContextCompany(_company);
+		defaultSettingEntityResource.setContextHttpServletRequest(
+			_httpServletRequest);
+		defaultSettingEntityResource.setContextHttpServletResponse(
+			_httpServletResponse);
+		defaultSettingEntityResource.setContextUriInfo(_uriInfo);
+		defaultSettingEntityResource.setContextUser(_user);
+		defaultSettingEntityResource.setGroupLocalService(_groupLocalService);
+		defaultSettingEntityResource.setRoleLocalService(_roleLocalService);
+	}
+
 	private void _populateResourceContext(QualifierResource qualifierResource)
 		throws Exception {
 
@@ -222,6 +404,10 @@ public class Query {
 		qualifierEntityResource.setRoleLocalService(_roleLocalService);
 	}
 
+	private static ComponentServiceObjects<DefaultSettingResource>
+		_defaultSettingResourceComponentServiceObjects;
+	private static ComponentServiceObjects<DefaultSettingEntityResource>
+		_defaultSettingEntityResourceComponentServiceObjects;
 	private static ComponentServiceObjects<QualifierResource>
 		_qualifierResourceComponentServiceObjects;
 	private static ComponentServiceObjects<QualifierEntityResource>

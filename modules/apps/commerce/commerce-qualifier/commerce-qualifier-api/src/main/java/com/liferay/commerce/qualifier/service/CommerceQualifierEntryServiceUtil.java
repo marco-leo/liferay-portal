@@ -40,12 +40,11 @@ public class CommerceQualifierEntryServiceUtil {
 	 */
 	public static CommerceQualifierEntry addCommerceQualifierEntry(
 			String sourceClassName, long sourceClassPK, String targetClassName,
-			long targetClassPK, boolean targetDefault)
+			long targetClassPK)
 		throws PortalException {
 
 		return getService().addCommerceQualifierEntry(
-			sourceClassName, sourceClassPK, targetClassName, targetClassPK,
-			targetDefault);
+			sourceClassName, sourceClassPK, targetClassName, targetClassPK);
 	}
 
 	public static void deleteCommerceQualifierEntriesBySource(
@@ -153,14 +152,6 @@ public class CommerceQualifierEntryServiceUtil {
 	 */
 	public static String getOSGiServiceIdentifier() {
 		return getService().getOSGiServiceIdentifier();
-	}
-
-	public static CommerceQualifierEntry updateCommerceQualifierEntry(
-			long commerceQualifierEntryId, boolean targetDefault)
-		throws PortalException {
-
-		return getService().updateCommerceQualifierEntry(
-			commerceQualifierEntryId, targetDefault);
 	}
 
 	public static CommerceQualifierEntryService getService() {

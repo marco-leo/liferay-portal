@@ -1,0 +1,106 @@
+<%--
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+--%>
+
+<%
+List<CommerceDefaultSettingRel> commerceDefaultSettingRels = commerceDefaultSettingDisplayContext.getCommerceDefaultSettingRels("source");
+
+for (CommerceDefaultSettingRel commerceDefaultSettingRel : commerceDefaultSettingRels) {
+%>
+
+	<div class="mb-3 row">
+		<div class="col">
+			<aui:select label="type" name='<%= "sourceType--" + commerceDefaultSettingRel.getCommerceDefaultSettingRelId() + "--" %>' wrapperCssClass="mb-0">
+
+				<%
+				for (CommerceQualifierMetadata commerceQualifierMetadata : commerceDefaultSettingDisplayContext.getCommerceQualifiersMetadata()) {
+				%>
+
+					<aui:option label="<%= commerceQualifierMetadata.getLabel() %>" selected="<%= Objects.equals(commerceDefaultSettingRel.getClassName(), commerceQualifierMetadata.getModelClassName()) %>" value="<%= commerceQualifierMetadata.getModelClassName() %>" />
+
+				<%
+				}
+				%>
+
+			</aui:select>
+		</div>
+
+		<div class="col">
+			<aui:input autoFocus="<%= true %>" label="id" name='<%= "sourceId--" + commerceDefaultSettingRel.getCommerceDefaultSettingRelId() + "--" %>' value="<%= commerceDefaultSettingRel.getClassPK() %>" wrapperCssClass="mb-0">
+				<aui:validator name="number" />
+				<aui:validator name="min">0</aui:validator>
+			</aui:input>
+		</div>
+
+		<div class="col-sm-auto">
+			<aui:input label="priority" name='<%= "sourcePriority--" + commerceDefaultSettingRel.getCommerceDefaultSettingRelId() + "--" %>' value="<%= commerceDefaultSettingRel.getPriority() %>" wrapperCssClass="mb-0">
+				<aui:validator name="number" />
+				<aui:validator name="min">0</aui:validator>
+			</aui:input>
+		</div>
+
+		<div class="col-auto d-flex flex-column justify-content-end">
+			<portlet:actionURL name="/default_settings/edit_commerce_default_setting" var="editCommerceDefaultSettingActionURL">
+				<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.DELETE %>" />
+				<portlet:param name="redirect" value="<%= currentURL %>" />
+				<portlet:param name="commerceDefaultSettingRelId" value="<%= String.valueOf(commerceDefaultSettingRel.getCommerceDefaultSettingRelId()) %>" />
+			</portlet:actionURL>
+
+			<clay:link
+				borderless="<%= true %>"
+				cssClass="btn-monospaced"
+				displayType="secondary"
+				href="<%= editCommerceDefaultSettingActionURL %>"
+				icon="trash"
+				type="button"
+			/>
+		</div>
+	</div>
+
+<%
+}
+%>
+
+<div class="mb-3 row">
+	<div class="col">
+		<aui:select label="type" name="sourceType--new--" showEmptyOption="<%= true %>" wrapperCssClass="mb-0">
+
+			<%
+			for (CommerceQualifierMetadata commerceQualifierMetadata : commerceDefaultSettingDisplayContext.getCommerceQualifiersMetadata()) {
+			%>
+
+				<aui:option label="<%= commerceQualifierMetadata.getLabel() %>" value="<%= commerceQualifierMetadata.getModelClassName() %>" />
+
+			<%
+			}
+			%>
+
+		</aui:select>
+	</div>
+
+	<div class="col">
+		<aui:input autoFocus="<%= true %>" label="id" name="sourceId--new--" wrapperCssClass="mb-0">
+			<aui:validator name="number" />
+			<aui:validator name="min">0</aui:validator>
+		</aui:input>
+	</div>
+
+	<div class="col-sm-auto">
+		<aui:input label="priority" name="sourcePriority--new--" wrapperCssClass="mb-0">
+			<aui:validator name="number" />
+			<aui:validator name="min">0</aui:validator>
+		</aui:input>
+	</div>
+</div>

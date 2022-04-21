@@ -286,6 +286,11 @@ public interface CommerceDiscountRelLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getCommerceDiscountRelsCount(
+		long commerceDiscountId, long cpDefinitionId, long cpInstanceId,
+		String target);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getCommerceDiscountRelsCount(
 		long commerceDiscountId, String className);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)

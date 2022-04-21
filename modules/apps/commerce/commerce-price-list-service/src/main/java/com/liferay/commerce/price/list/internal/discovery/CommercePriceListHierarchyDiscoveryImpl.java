@@ -14,12 +14,21 @@
 
 package com.liferay.commerce.price.list.internal.discovery;
 
+import com.liferay.account.model.AccountEntry;
+import com.liferay.account.model.AccountGroup;
 import com.liferay.commerce.account.util.CommerceAccountHelper;
+import com.liferay.commerce.model.CommerceOrderType;
 import com.liferay.commerce.price.list.discovery.CommercePriceListDiscovery;
 import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.commerce.price.list.service.CommercePriceListLocalService;
 import com.liferay.commerce.pricing.constants.CommercePricingConstants;
+import com.liferay.commerce.product.model.CommerceChannel;
+import com.liferay.commerce.qualifier.search.context.CommerceQualifierSearchContext;
+import com.liferay.commerce.qualifier.service.CommerceQualifierEntryLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+
+import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -41,7 +50,44 @@ public class CommercePriceListHierarchyDiscoveryImpl
 			long commerceOrderTypeId, String cPInstanceUuid, String type)
 		throws PortalException {
 
-		CommercePriceList commercePriceList =
+		CommerceQualifierSearchContext.Builder
+			commerceQualifierSearchContextBuilder =
+				new CommerceQualifierSearchContext.Builder();
+
+		CommerceQualifierSearchContext commerceQualifierSearchContext =
+			commerceQualifierSearchContextBuilder.setExclusive(
+				false
+			).setSourceAdditionalAttribute(
+				"groupId", groupId
+			).setSourceAdditionalAttribute(
+				"status", 0
+			).setSourceAdditionalAttribute(
+				"type_", type
+			).setTargetAttribute(
+				AccountEntry.class.getName(), commerceAccountId
+			).setTargetAttribute(
+				AccountGroup.class.getName(),
+				_commerceAccountHelper.getCommerceAccountGroupIds(
+					commerceAccountId)
+			).setTargetAttribute(
+				CommerceChannel.class.getName(), commerceChannelId
+			).setTargetAttribute(
+				CommerceOrderType.class.getName(), commerceOrderTypeId
+			).build();
+
+		List<CommercePriceList> commerceQualifierEntriesSourcesByTargets =
+			_commerceQualifierEntryLocalService.
+				getCommerceQualifierEntriesSourcesByTargets(
+					CompanyThreadLocal.getCompanyId(), CommercePriceList.class,
+					commerceQualifierSearchContext);
+
+		if (commerceQualifierEntriesSourcesByTargets.isEmpty()) {
+			return null;
+		}
+
+		return commerceQualifierEntriesSourcesByTargets.get(0);
+
+		/*CommercePriceList commercePriceList =
 			_commercePriceListLocalService.
 				getCommercePriceListByAccountAndChannelAndOrderTypeId(
 					groupId, commerceAccountId, commerceChannelId,
@@ -152,7 +198,7 @@ public class CommercePriceListHierarchyDiscoveryImpl
 			return commercePriceList;
 		}
 
-		return null;
+		return null;*/
 	}
 
 	@Reference
@@ -160,5 +206,9 @@ public class CommercePriceListHierarchyDiscoveryImpl
 
 	@Reference
 	private CommercePriceListLocalService _commercePriceListLocalService;
+
+	@Reference
+	private CommerceQualifierEntryLocalService
+		_commerceQualifierEntryLocalService;
 
 }

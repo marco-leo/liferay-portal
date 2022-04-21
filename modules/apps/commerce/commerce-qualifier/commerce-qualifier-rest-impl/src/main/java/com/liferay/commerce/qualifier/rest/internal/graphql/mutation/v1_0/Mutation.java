@@ -14,7 +14,11 @@
 
 package com.liferay.commerce.qualifier.rest.internal.graphql.mutation.v1_0;
 
+import com.liferay.commerce.qualifier.rest.dto.v1_0.DefaultSetting;
+import com.liferay.commerce.qualifier.rest.dto.v1_0.DefaultSettingEntity;
 import com.liferay.commerce.qualifier.rest.dto.v1_0.Qualifier;
+import com.liferay.commerce.qualifier.rest.resource.v1_0.DefaultSettingEntityResource;
+import com.liferay.commerce.qualifier.rest.resource.v1_0.DefaultSettingResource;
 import com.liferay.commerce.qualifier.rest.resource.v1_0.QualifierResource;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
@@ -45,12 +49,171 @@ import org.osgi.service.component.ComponentServiceObjects;
 @Generated("")
 public class Mutation {
 
+	public static void setDefaultSettingResourceComponentServiceObjects(
+		ComponentServiceObjects<DefaultSettingResource>
+			defaultSettingResourceComponentServiceObjects) {
+
+		_defaultSettingResourceComponentServiceObjects =
+			defaultSettingResourceComponentServiceObjects;
+	}
+
+	public static void setDefaultSettingEntityResourceComponentServiceObjects(
+		ComponentServiceObjects<DefaultSettingEntityResource>
+			defaultSettingEntityResourceComponentServiceObjects) {
+
+		_defaultSettingEntityResourceComponentServiceObjects =
+			defaultSettingEntityResourceComponentServiceObjects;
+	}
+
 	public static void setQualifierResourceComponentServiceObjects(
 		ComponentServiceObjects<QualifierResource>
 			qualifierResourceComponentServiceObjects) {
 
 		_qualifierResourceComponentServiceObjects =
 			qualifierResourceComponentServiceObjects;
+	}
+
+	@GraphQLField
+	public DefaultSetting createDefaultSetting(
+			@GraphQLName("defaultSetting") DefaultSetting defaultSetting)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_defaultSettingResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			defaultSettingResource -> defaultSettingResource.postDefaultSetting(
+				defaultSetting));
+	}
+
+	@GraphQLField
+	public Response createDefaultSettingBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_defaultSettingResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			defaultSettingResource ->
+				defaultSettingResource.postDefaultSettingBatch(
+					callbackURL, object));
+	}
+
+	@GraphQLField
+	public boolean deleteDefaultSetting(@GraphQLName("id") Long id)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_defaultSettingResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			defaultSettingResource ->
+				defaultSettingResource.deleteDefaultSetting(id));
+
+		return true;
+	}
+
+	@GraphQLField
+	public Response deleteDefaultSettingBatch(
+			@GraphQLName("id") Long id,
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_defaultSettingResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			defaultSettingResource ->
+				defaultSettingResource.deleteDefaultSettingBatch(
+					id, callbackURL, object));
+	}
+
+	@GraphQLField
+	public DefaultSetting patchDefaultSetting(
+			@GraphQLName("id") Long id,
+			@GraphQLName("defaultSetting") DefaultSetting defaultSetting)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_defaultSettingResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			defaultSettingResource ->
+				defaultSettingResource.patchDefaultSetting(id, defaultSetting));
+	}
+
+	@GraphQLField
+	public boolean deleteDefaultSettingEntity(
+			@GraphQLName("defaultSettingEntityId") Long defaultSettingEntityId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_defaultSettingEntityResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			defaultSettingEntityResource ->
+				defaultSettingEntityResource.deleteDefaultSettingEntity(
+					defaultSettingEntityId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public Response deleteDefaultSettingEntityBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_defaultSettingEntityResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			defaultSettingEntityResource ->
+				defaultSettingEntityResource.deleteDefaultSettingEntityBatch(
+					callbackURL, object));
+	}
+
+	@GraphQLField
+	public DefaultSettingEntity patchDefaultSettingEntity(
+			@GraphQLName("id") Long id,
+			@GraphQLName("defaultSettingEntity") DefaultSettingEntity
+				defaultSettingEntity)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_defaultSettingEntityResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			defaultSettingEntityResource ->
+				defaultSettingEntityResource.patchDefaultSettingEntity(
+					id, defaultSettingEntity));
+	}
+
+	@GraphQLField
+	public DefaultSettingEntity createDefaultSettingIdDefaultSettingEntity(
+			@GraphQLName("id") Long id,
+			@GraphQLName("defaultSettingEntity") DefaultSettingEntity
+				defaultSettingEntity)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_defaultSettingEntityResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			defaultSettingEntityResource ->
+				defaultSettingEntityResource.
+					postDefaultSettingIdDefaultSettingEntity(
+						id, defaultSettingEntity));
+	}
+
+	@GraphQLField
+	public Response createDefaultSettingIdDefaultSettingEntityBatch(
+			@GraphQLName("id") Long id,
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_defaultSettingEntityResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			defaultSettingEntityResource ->
+				defaultSettingEntityResource.
+					postDefaultSettingIdDefaultSettingEntityBatch(
+						id, callbackURL, object));
 	}
 
 	@GraphQLField
@@ -103,19 +266,6 @@ public class Mutation {
 				id, callbackURL, object));
 	}
 
-	@GraphQLField
-	public Qualifier patchQualifier(
-			@GraphQLName("id") Long id,
-			@GraphQLName("qualifier") Qualifier qualifier)
-		throws Exception {
-
-		return _applyComponentServiceObjects(
-			_qualifierResourceComponentServiceObjects,
-			this::_populateResourceContext,
-			qualifierResource -> qualifierResource.patchQualifier(
-				id, qualifier));
-	}
-
 	private <T, R, E1 extends Throwable, E2 extends Throwable> R
 			_applyComponentServiceObjects(
 				ComponentServiceObjects<T> componentServiceObjects,
@@ -154,6 +304,44 @@ public class Mutation {
 		}
 	}
 
+	private void _populateResourceContext(
+			DefaultSettingResource defaultSettingResource)
+		throws Exception {
+
+		defaultSettingResource.setContextAcceptLanguage(_acceptLanguage);
+		defaultSettingResource.setContextCompany(_company);
+		defaultSettingResource.setContextHttpServletRequest(
+			_httpServletRequest);
+		defaultSettingResource.setContextHttpServletResponse(
+			_httpServletResponse);
+		defaultSettingResource.setContextUriInfo(_uriInfo);
+		defaultSettingResource.setContextUser(_user);
+		defaultSettingResource.setGroupLocalService(_groupLocalService);
+		defaultSettingResource.setRoleLocalService(_roleLocalService);
+
+		defaultSettingResource.setVulcanBatchEngineImportTaskResource(
+			_vulcanBatchEngineImportTaskResource);
+	}
+
+	private void _populateResourceContext(
+			DefaultSettingEntityResource defaultSettingEntityResource)
+		throws Exception {
+
+		defaultSettingEntityResource.setContextAcceptLanguage(_acceptLanguage);
+		defaultSettingEntityResource.setContextCompany(_company);
+		defaultSettingEntityResource.setContextHttpServletRequest(
+			_httpServletRequest);
+		defaultSettingEntityResource.setContextHttpServletResponse(
+			_httpServletResponse);
+		defaultSettingEntityResource.setContextUriInfo(_uriInfo);
+		defaultSettingEntityResource.setContextUser(_user);
+		defaultSettingEntityResource.setGroupLocalService(_groupLocalService);
+		defaultSettingEntityResource.setRoleLocalService(_roleLocalService);
+
+		defaultSettingEntityResource.setVulcanBatchEngineImportTaskResource(
+			_vulcanBatchEngineImportTaskResource);
+	}
+
 	private void _populateResourceContext(QualifierResource qualifierResource)
 		throws Exception {
 
@@ -170,6 +358,10 @@ public class Mutation {
 			_vulcanBatchEngineImportTaskResource);
 	}
 
+	private static ComponentServiceObjects<DefaultSettingResource>
+		_defaultSettingResourceComponentServiceObjects;
+	private static ComponentServiceObjects<DefaultSettingEntityResource>
+		_defaultSettingEntityResourceComponentServiceObjects;
 	private static ComponentServiceObjects<QualifierResource>
 		_qualifierResourceComponentServiceObjects;
 

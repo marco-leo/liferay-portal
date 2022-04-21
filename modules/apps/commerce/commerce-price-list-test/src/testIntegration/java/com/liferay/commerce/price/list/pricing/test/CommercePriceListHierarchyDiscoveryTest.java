@@ -37,6 +37,8 @@ import com.liferay.commerce.product.service.CommerceCatalogLocalService;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.test.util.CommerceAccountGroupTestUtil;
 import com.liferay.commerce.test.util.CommerceTestUtil;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -50,6 +52,8 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+
+import java.io.Closeable;
 
 import org.frutilla.FrutillaRule;
 
@@ -209,23 +213,25 @@ public class CommercePriceListHierarchyDiscoveryTest {
 			"The price list is the default price list of the catalog"
 		);
 
-		CommerceCatalog catalog =
-			_commerceCatalogLocalService.addCommerceCatalog(
-				null, RandomTestUtil.randomString(),
-				_commerceCurrency.getCode(), LocaleUtil.US.getDisplayLanguage(),
-				_serviceContext);
+		try (Closeable closeable = _startTimer()) {
+			CommerceCatalog catalog =
+				_commerceCatalogLocalService.addCommerceCatalog(
+					null, RandomTestUtil.randomString(),
+					_commerceCurrency.getCode(),
+					LocaleUtil.US.getDisplayLanguage(), _serviceContext);
 
-		CommercePriceList commercePriceList =
-			_commercePriceListLocalService.fetchCatalogBaseCommercePriceList(
-				catalog.getGroupId());
+			CommercePriceList commercePriceList =
+				_commercePriceListLocalService.
+					fetchCatalogBaseCommercePriceList(catalog.getGroupId());
 
-		CommercePriceList discoveredPriceList =
-			_commercePriceListDiscovery.getCommercePriceList(
-				catalog.getGroupId(), 0, 0, 0, null, _TYPE);
+			CommercePriceList discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					catalog.getGroupId(), 0, 0, 0, null, _TYPE);
 
-		Assert.assertEquals(
-			commercePriceList.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				commercePriceList.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
+		}
 	}
 
 	@Test
@@ -241,92 +247,107 @@ public class CommercePriceListHierarchyDiscoveryTest {
 			"The price list with highest rank is retrieved"
 		);
 
-		CommerceCatalog catalog =
-			_commerceCatalogLocalService.addCommerceCatalog(
-				null, RandomTestUtil.randomString(),
-				_commerceCurrency.getCode(), LocaleUtil.US.getDisplayLanguage(),
-				_serviceContext);
+		try (Closeable closeable = _startTimer()) {
+			CommerceCatalog catalog =
+				_commerceCatalogLocalService.addCommerceCatalog(
+					null, RandomTestUtil.randomString(),
+					_commerceCurrency.getCode(),
+					LocaleUtil.US.getDisplayLanguage(), _serviceContext);
 
-		CommercePriceList commerceUnqualifiedPriceList =
-			CommercePriceListTestUtil.addCommercePriceList(
-				catalog.getGroupId(), false, _TYPE, 1.0);
+			CommercePriceList commerceUnqualifiedPriceList =
+				CommercePriceListTestUtil.addCommercePriceList(
+					catalog.getGroupId(), false, _TYPE, 1.0);
 
-		CommercePriceList discoveredPriceList =
-			_commercePriceListDiscovery.getCommercePriceList(
-				catalog.getGroupId(), _commerceAccount1.getCommerceAccountId(),
-				_commerceChannel1.getCommerceChannelId(), 0, null, _TYPE);
+			CommercePriceList discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					catalog.getGroupId(),
+					_commerceAccount1.getCommerceAccountId(),
+					_commerceChannel1.getCommerceChannelId(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			commerceUnqualifiedPriceList.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				commerceUnqualifiedPriceList.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
 
-		CommercePriceList commerceChannelPriceList =
-			CommercePriceListTestUtil.addChannelPriceList(
-				catalog.getGroupId(), _commerceChannel1.getCommerceChannelId(),
-				_TYPE);
+			CommercePriceList commerceChannelPriceList =
+				CommercePriceListTestUtil.addChannelPriceList(
+					catalog.getGroupId(),
+					_commerceChannel1.getCommerceChannelId(), _TYPE);
 
-		discoveredPriceList = _commercePriceListDiscovery.getCommercePriceList(
-			catalog.getGroupId(), _commerceAccount1.getCommerceAccountId(),
-			_commerceChannel1.getCommerceChannelId(), 0, null, _TYPE);
+			discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					catalog.getGroupId(),
+					_commerceAccount1.getCommerceAccountId(),
+					_commerceChannel1.getCommerceChannelId(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			commerceChannelPriceList.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				commerceChannelPriceList.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
 
-		long[] commerceAccountGroupIds =
-			_commerceAccountHelper.getCommerceAccountGroupIds(
-				_commerceAccount1.getCommerceAccountId());
+			long[] commerceAccountGroupIds =
+				_commerceAccountHelper.getCommerceAccountGroupIds(
+					_commerceAccount1.getCommerceAccountId());
 
-		CommercePriceList commerceAccountGroupPriceList =
-			CommercePriceListTestUtil.addAccountGroupPriceList(
-				catalog.getGroupId(), commerceAccountGroupIds, _TYPE);
+			CommercePriceList commerceAccountGroupPriceList =
+				CommercePriceListTestUtil.addAccountGroupPriceList(
+					catalog.getGroupId(), commerceAccountGroupIds, _TYPE);
 
-		discoveredPriceList = _commercePriceListDiscovery.getCommercePriceList(
-			catalog.getGroupId(), _commerceAccount1.getCommerceAccountId(),
-			_commerceChannel1.getCommerceChannelId(), 0, null, _TYPE);
+			discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					catalog.getGroupId(),
+					_commerceAccount1.getCommerceAccountId(),
+					_commerceChannel1.getCommerceChannelId(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			commerceAccountGroupPriceList.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				commerceAccountGroupPriceList.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
 
-		CommercePriceList commerceAccountGroupAndChannelPriceList =
-			CommercePriceListTestUtil.addAccountGroupAndChannelPriceList(
-				catalog.getGroupId(), commerceAccountGroupIds,
-				_commerceChannel1.getCommerceChannelId(), _TYPE);
+			CommercePriceList commerceAccountGroupAndChannelPriceList =
+				CommercePriceListTestUtil.addAccountGroupAndChannelPriceList(
+					catalog.getGroupId(), commerceAccountGroupIds,
+					_commerceChannel1.getCommerceChannelId(), _TYPE);
 
-		discoveredPriceList = _commercePriceListDiscovery.getCommercePriceList(
-			catalog.getGroupId(), _commerceAccount1.getCommerceAccountId(),
-			_commerceChannel1.getCommerceChannelId(), 0, null, _TYPE);
+			discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					catalog.getGroupId(),
+					_commerceAccount1.getCommerceAccountId(),
+					_commerceChannel1.getCommerceChannelId(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			commerceAccountGroupAndChannelPriceList.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				commerceAccountGroupAndChannelPriceList.
+					getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
 
-		CommercePriceList commerceAccountPriceList =
-			CommercePriceListTestUtil.addAccountPriceList(
-				catalog.getGroupId(), _commerceAccount1.getCommerceAccountId(),
-				_TYPE);
+			CommercePriceList commerceAccountPriceList =
+				CommercePriceListTestUtil.addAccountPriceList(
+					catalog.getGroupId(),
+					_commerceAccount1.getCommerceAccountId(), _TYPE);
 
-		discoveredPriceList = _commercePriceListDiscovery.getCommercePriceList(
-			catalog.getGroupId(), _commerceAccount1.getCommerceAccountId(),
-			_commerceChannel1.getCommerceChannelId(), 0, null, _TYPE);
+			discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					catalog.getGroupId(),
+					_commerceAccount1.getCommerceAccountId(),
+					_commerceChannel1.getCommerceChannelId(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			commerceAccountPriceList.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				commerceAccountPriceList.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
 
-		CommercePriceList commerceAccountAndChannelPriceList =
-			CommercePriceListTestUtil.addAccountAndChannelPriceList(
-				catalog.getGroupId(), _commerceAccount1.getCommerceAccountId(),
-				_commerceChannel1.getCommerceChannelId(), _TYPE);
+			CommercePriceList commerceAccountAndChannelPriceList =
+				CommercePriceListTestUtil.addAccountAndChannelPriceList(
+					catalog.getGroupId(),
+					_commerceAccount1.getCommerceAccountId(),
+					_commerceChannel1.getCommerceChannelId(), _TYPE);
 
-		discoveredPriceList = _commercePriceListDiscovery.getCommercePriceList(
-			catalog.getGroupId(), _commerceAccount1.getCommerceAccountId(),
-			_commerceChannel1.getCommerceChannelId(), 0, null, _TYPE);
+			discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					catalog.getGroupId(),
+					_commerceAccount1.getCommerceAccountId(),
+					_commerceChannel1.getCommerceChannelId(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			commerceAccountAndChannelPriceList.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				commerceAccountAndChannelPriceList.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
+		}
 	}
 
 	@Test
@@ -342,28 +363,31 @@ public class CommercePriceListHierarchyDiscoveryTest {
 			"Only the catalog base price list is returned"
 		);
 
-		CommerceCatalog catalog =
-			_commerceCatalogLocalService.addCommerceCatalog(
-				null, RandomTestUtil.randomString(),
-				_commerceCurrency.getCode(), LocaleUtil.US.getDisplayLanguage(),
-				_serviceContext);
+		try (Closeable closeable = _startTimer()) {
+			CommerceCatalog catalog =
+				_commerceCatalogLocalService.addCommerceCatalog(
+					null, RandomTestUtil.randomString(),
+					_commerceCurrency.getCode(),
+					LocaleUtil.US.getDisplayLanguage(), _serviceContext);
 
-		CommercePriceListTestUtil.addAccountAndChannelPriceList(
-			catalog.getGroupId(), _commerceAccount1.getCommerceAccountId(),
-			_commerceChannel1.getCommerceChannelId(), _TYPE);
-
-		CommercePriceList discoveredPriceList =
-			_commercePriceListDiscovery.getCommercePriceList(
+			CommercePriceListTestUtil.addAccountAndChannelPriceList(
 				catalog.getGroupId(), _commerceAccount1.getCommerceAccountId(),
-				RandomTestUtil.nextLong(), 0, null, _TYPE);
+				_commerceChannel1.getCommerceChannelId(), _TYPE);
 
-		CommercePriceList commercePriceList =
-			_commercePriceListLocalService.fetchCatalogBaseCommercePriceList(
-				catalog.getGroupId());
+			CommercePriceList discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					catalog.getGroupId(),
+					_commerceAccount1.getCommerceAccountId(),
+					RandomTestUtil.nextLong(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			commercePriceList.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			CommercePriceList commercePriceList =
+				_commercePriceListLocalService.
+					fetchCatalogBaseCommercePriceList(catalog.getGroupId());
+
+			Assert.assertEquals(
+				commercePriceList.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
+		}
 	}
 
 	@Test
@@ -379,30 +403,33 @@ public class CommercePriceListHierarchyDiscoveryTest {
 			"Only the catalog base price list is returned"
 		);
 
-		CommerceCatalog catalog =
-			_commerceCatalogLocalService.addCommerceCatalog(
-				null, RandomTestUtil.randomString(),
-				_commerceCurrency.getCode(), LocaleUtil.US.getDisplayLanguage(),
-				_serviceContext);
+		try (Closeable closeable = _startTimer()) {
+			CommerceCatalog catalog =
+				_commerceCatalogLocalService.addCommerceCatalog(
+					null, RandomTestUtil.randomString(),
+					_commerceCurrency.getCode(),
+					LocaleUtil.US.getDisplayLanguage(), _serviceContext);
 
-		CommercePriceListTestUtil.addAccountGroupAndChannelPriceList(
-			catalog.getGroupId(),
-			_commerceAccountHelper.getCommerceAccountGroupIds(
-				_commerceAccount1.getCommerceAccountId()),
-			_commerceChannel1.getCommerceChannelId(), _TYPE);
+			CommercePriceListTestUtil.addAccountGroupAndChannelPriceList(
+				catalog.getGroupId(),
+				_commerceAccountHelper.getCommerceAccountGroupIds(
+					_commerceAccount1.getCommerceAccountId()),
+				_commerceChannel1.getCommerceChannelId(), _TYPE);
 
-		CommercePriceList discoveredPriceList =
-			_commercePriceListDiscovery.getCommercePriceList(
-				catalog.getGroupId(), _commerceAccount1.getCommerceAccountId(),
-				RandomTestUtil.nextLong(), 0, null, _TYPE);
+			CommercePriceList discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					catalog.getGroupId(),
+					_commerceAccount1.getCommerceAccountId(),
+					RandomTestUtil.nextLong(), 0, null, _TYPE);
 
-		CommercePriceList commercePriceList =
-			_commercePriceListLocalService.fetchCatalogBaseCommercePriceList(
-				catalog.getGroupId());
+			CommercePriceList commercePriceList =
+				_commercePriceListLocalService.
+					fetchCatalogBaseCommercePriceList(catalog.getGroupId());
 
-		Assert.assertEquals(
-			commercePriceList.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				commercePriceList.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
+		}
 	}
 
 	@Test
@@ -418,14 +445,17 @@ public class CommercePriceListHierarchyDiscoveryTest {
 			"The price list associated to account is retrieved"
 		);
 
-		CommercePriceList discoveredPriceList =
-			_commercePriceListDiscovery.getCommercePriceList(
-				_catalog.getGroupId(), _commerceAccount3.getCommerceAccountId(),
-				_commerceChannel2.getCommerceChannelId(), 0, null, _TYPE);
+		try (Closeable closeable = _startTimer()) {
+			CommercePriceList discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					_catalog.getGroupId(),
+					_commerceAccount3.getCommerceAccountId(),
+					_commerceChannel2.getCommerceChannelId(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			_commercePriceList1.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				_commercePriceList1.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
+		}
 	}
 
 	@Test
@@ -441,14 +471,17 @@ public class CommercePriceListHierarchyDiscoveryTest {
 			"The price list associated to account group is retrieved"
 		);
 
-		CommercePriceList discoveredPriceList =
-			_commercePriceListDiscovery.getCommercePriceList(
-				_catalog.getGroupId(), _commerceAccount5.getCommerceAccountId(),
-				_commerceChannel2.getCommerceChannelId(), 0, null, _TYPE);
+		try (Closeable closeable = _startTimer()) {
+			CommercePriceList discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					_catalog.getGroupId(),
+					_commerceAccount5.getCommerceAccountId(),
+					_commerceChannel2.getCommerceChannelId(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			_commercePriceList3.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				_commercePriceList3.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
+		}
 	}
 
 	@Test
@@ -467,14 +500,17 @@ public class CommercePriceListHierarchyDiscoveryTest {
 				"retrieved"
 		);
 
-		CommercePriceList discoveredPriceList =
-			_commercePriceListDiscovery.getCommercePriceList(
-				_catalog.getGroupId(), _commerceAccount4.getCommerceAccountId(),
-				_commerceChannel3.getCommerceChannelId(), 0, null, _TYPE);
+		try (Closeable closeable = _startTimer()) {
+			CommercePriceList discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					_catalog.getGroupId(),
+					_commerceAccount4.getCommerceAccountId(),
+					_commerceChannel3.getCommerceChannelId(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			_commercePriceList2.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				_commercePriceList2.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
+		}
 	}
 
 	@Test
@@ -490,14 +526,17 @@ public class CommercePriceListHierarchyDiscoveryTest {
 			"The price list associated to account and channel is retrieved"
 		);
 
-		CommercePriceList discoveredPriceList =
-			_commercePriceListDiscovery.getCommercePriceList(
-				_catalog.getGroupId(), _commerceAccount2.getCommerceAccountId(),
-				_commerceChannel2.getCommerceChannelId(), 0, null, _TYPE);
+		try (Closeable closeable = _startTimer()) {
+			CommercePriceList discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					_catalog.getGroupId(),
+					_commerceAccount2.getCommerceAccountId(),
+					_commerceChannel2.getCommerceChannelId(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			_commercePriceList1.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				_commercePriceList1.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
+		}
 	}
 
 	@Test
@@ -513,14 +552,17 @@ public class CommercePriceListHierarchyDiscoveryTest {
 			"The price list associated to channel is retrieved"
 		);
 
-		CommercePriceList discoveredPriceList =
-			_commercePriceListDiscovery.getCommercePriceList(
-				_catalog.getGroupId(), _commerceAccount6.getCommerceAccountId(),
-				_commerceChannel4.getCommerceChannelId(), 0, null, _TYPE);
+		try (Closeable closeable = _startTimer()) {
+			CommercePriceList discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					_catalog.getGroupId(),
+					_commerceAccount6.getCommerceAccountId(),
+					_commerceChannel4.getCommerceChannelId(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			_commercePriceList4.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				_commercePriceList4.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
+		}
 	}
 
 	@Test
@@ -536,15 +578,17 @@ public class CommercePriceListHierarchyDiscoveryTest {
 			"The price list associated to the guest account is retrieved"
 		);
 
-		CommercePriceList discoveredPriceList =
-			_commercePriceListDiscovery.getCommercePriceList(
-				_catalog.getGroupId(),
-				CommerceAccountConstants.ACCOUNT_ID_GUEST,
-				_commerceChannel2.getCommerceChannelId(), 0, null, _TYPE);
+		try (Closeable closeable = _startTimer()) {
+			CommercePriceList discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					_catalog.getGroupId(),
+					CommerceAccountConstants.ACCOUNT_ID_GUEST,
+					_commerceChannel2.getCommerceChannelId(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			_commercePriceList1.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				_commercePriceList1.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
+		}
 	}
 
 	@Test
@@ -560,18 +604,42 @@ public class CommercePriceListHierarchyDiscoveryTest {
 			"The unqualified price list is retrieved"
 		);
 
-		CommercePriceList discoveredPriceList =
-			_commercePriceListDiscovery.getCommercePriceList(
-				_catalog.getGroupId(), _commerceAccount7.getCommerceAccountId(),
-				_commerceChannel5.getCommerceChannelId(), 0, null, _TYPE);
+		try (Closeable closeable = _startTimer()) {
+			CommercePriceList discoveredPriceList =
+				_commercePriceListDiscovery.getCommercePriceList(
+					_catalog.getGroupId(),
+					_commerceAccount7.getCommerceAccountId(),
+					_commerceChannel5.getCommerceChannelId(), 0, null, _TYPE);
 
-		Assert.assertEquals(
-			_commercePriceList5.getCommercePriceListId(),
-			discoveredPriceList.getCommercePriceListId());
+			Assert.assertEquals(
+				_commercePriceList5.getCommercePriceListId(),
+				discoveredPriceList.getCommercePriceListId());
+		}
 	}
 
 	@Rule
 	public FrutillaRule frutillaRule = new FrutillaRule();
+
+	private String _getInvokerName() {
+		Thread thread = Thread.currentThread();
+
+		StackTraceElement stackTraceElement = thread.getStackTrace()[3];
+
+		return StringBundler.concat(
+			stackTraceElement.getClassName(), StringPool.POUND,
+			stackTraceElement.getMethodName());
+	}
+
+	private Closeable _startTimer() {
+		String invokerName = _getInvokerName();
+
+		long startTime = System.currentTimeMillis();
+
+		return () -> System.out.println(
+			StringBundler.concat(
+				invokerName, " used ", System.currentTimeMillis() - startTime,
+				"ms"));
+	}
 
 	private static final String _TYPE =
 		CommercePriceListConstants.TYPE_PRICE_LIST;
