@@ -52,6 +52,7 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.search.expando.ExpandoBridgeIndexer;
 import com.liferay.portal.vulcan.aggregation.Aggregation;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
@@ -68,7 +69,6 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import java.util.Map;
-import java.util.Optional;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -144,8 +144,8 @@ public class BlogPostingResourceImpl
 		return new BlogPostingEntityModel(
 			EntityFieldsUtil.getEntityFields(
 				_portal.getClassNameId(BlogsEntry.class.getName()),
-				contextCompany.getCompanyId(), _expandoColumnLocalService,
-				_expandoTableLocalService));
+				contextCompany.getCompanyId(), _expandoBridgeIndexer,
+				_expandoColumnLocalService, _expandoTableLocalService));
 	}
 
 	@Override
@@ -342,19 +342,10 @@ public class BlogPostingResourceImpl
 	private ServiceContext _createServiceContext(
 		BlogPosting blogPosting, long groupId) {
 
-		ServiceContext serviceContext =
-			ServiceContextRequestUtil.createServiceContext(
-				blogPosting.getTaxonomyCategoryIds(), blogPosting.getKeywords(),
-				_getExpandoBridgeAttributes(blogPosting), groupId,
-				contextHttpServletRequest, blogPosting.getViewableByAsString());
-
-		Optional.ofNullable(
-			blogPosting.getPriority()
-		).ifPresent(
-			serviceContext::setAssetPriority
-		);
-
-		return serviceContext;
+		return ServiceContextRequestUtil.createServiceContext(
+			blogPosting.getTaxonomyCategoryIds(), blogPosting.getKeywords(),
+			_getExpandoBridgeAttributes(blogPosting), groupId,
+			contextHttpServletRequest, blogPosting.getViewableByAsString());
 	}
 
 	private String _getCaption(Image image) {
@@ -492,6 +483,9 @@ public class BlogPostingResourceImpl
 
 	@Reference
 	private DTOConverterRegistry _dtoConverterRegistry;
+
+	@Reference
+	private ExpandoBridgeIndexer _expandoBridgeIndexer;
 
 	@Reference
 	private ExpandoColumnLocalService _expandoColumnLocalService;

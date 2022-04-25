@@ -20,7 +20,6 @@ import com.liferay.jenkins.results.parser.BuildDatabaseUtil;
 import com.liferay.jenkins.results.parser.Dom4JUtil;
 import com.liferay.jenkins.results.parser.GitWorkingDirectory;
 import com.liferay.jenkins.results.parser.GitWorkingDirectoryFactory;
-import com.liferay.jenkins.results.parser.JenkinsConsoleTextLoader;
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.PortalGitWorkingDirectory;
 import com.liferay.jenkins.results.parser.TopLevelBuild;
@@ -58,6 +57,7 @@ public class TestrayAttachmentRecorder {
 
 			if (_build instanceof TopLevelBuild) {
 				_recordBuildResult();
+				_recordJobSummary();
 				_recordJenkinsReport();
 			}
 			else {
@@ -271,15 +271,12 @@ public class TestrayAttachmentRecorder {
 	}
 
 	private void _recordJenkinsConsole() {
-		JenkinsConsoleTextLoader jenkinsConsoleTextLoader =
-			new JenkinsConsoleTextLoader(_build.getBuildURL());
-
 		File jenkinsConsoleFile = new File(
 			_getRecordedFilesBuildDir(), "jenkins-console.txt");
 
 		try {
 			JenkinsResultsParserUtil.write(
-				jenkinsConsoleFile, jenkinsConsoleTextLoader.getConsoleText());
+				jenkinsConsoleFile, _build.getConsoleText());
 		}
 		catch (IOException ioException) {
 			throw new RuntimeException(ioException);
@@ -303,6 +300,31 @@ public class TestrayAttachmentRecorder {
 				jenkinsReportFile,
 				StringEscapeUtils.unescapeXml(
 					Dom4JUtil.format(jenkinsReportElement, true)));
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
+		}
+	}
+
+	private void _recordJobSummary() {
+		if (!(_build instanceof TopLevelBuild)) {
+			return;
+		}
+
+		TopLevelBuild topLevelBuild = (TopLevelBuild)_build;
+
+		File jobSummaryFile = new File(
+			topLevelBuild.getJobSummaryDir(), "index.html");
+
+		if (!jobSummaryFile.exists()) {
+			return;
+		}
+
+		try {
+			JenkinsResultsParserUtil.copy(
+				jobSummaryFile,
+				new File(
+					_getRecordedFilesBuildDir(), "job-summary/index.html"));
 		}
 		catch (IOException ioException) {
 			throw new RuntimeException(ioException);

@@ -28,23 +28,24 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.segments.constants.SegmentsEntryConstants;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.model.SegmentsEntry;
 import com.liferay.segments.model.SegmentsExperience;
 import com.liferay.segments.service.SegmentsEntryLocalServiceUtil;
+import com.liferay.segments.service.SegmentsExperienceLocalServiceUtil;
 import com.liferay.segments.service.SegmentsExperienceServiceUtil;
 import com.liferay.translation.exporter.TranslationInfoItemFieldValuesExporter;
 import com.liferay.translation.exporter.TranslationInfoItemFieldValuesExporterTracker;
 import com.liferay.translation.info.item.provider.InfoItemLanguagesProvider;
-import com.liferay.translation.web.internal.configuration.FFLayoutExperienceSelectorConfiguration;
 
 import java.net.URI;
 
@@ -67,10 +68,8 @@ import javax.servlet.http.HttpServletRequest;
 public class ExportTranslationDisplayContext {
 
 	public ExportTranslationDisplayContext(
-		long classNameId, long[] classPKs,
-		FFLayoutExperienceSelectorConfiguration
-			ffLayoutExperienceSelectorConfiguration,
-		long groupId, HttpServletRequest httpServletRequest,
+		long classNameId, long[] classPKs, long groupId,
+		HttpServletRequest httpServletRequest,
 		InfoItemServiceTracker infoItemServiceTracker,
 		LiferayPortletRequest liferayPortletRequest,
 		LiferayPortletResponse liferayPortletResponse, List<Object> models,
@@ -80,8 +79,6 @@ public class ExportTranslationDisplayContext {
 
 		_classNameId = classNameId;
 		_classPKs = classPKs;
-		_ffLayoutExperienceSelectorConfiguration =
-			ffLayoutExperienceSelectorConfiguration;
 		_groupId = groupId;
 		_httpServletRequest = httpServletRequest;
 		_infoItemServiceTracker = infoItemServiceTracker;
@@ -117,42 +114,12 @@ public class ExportTranslationDisplayContext {
 			return null;
 		}
 
-		Map<String, String> defaultExperience = HashMapBuilder.put(
-			"label",
-			SegmentsExperienceConstants.getDefaultSegmentsExperienceName(
-				_themeDisplay.getLocale())
-		).put(
-			"segment",
-			_getSegmentsEntryName(
-				SegmentsEntryConstants.ID_DEFAULT, _themeDisplay.getLocale())
-		).put(
-			"value",
-			String.valueOf((Object)SegmentsExperienceConstants.ID_DEFAULT)
-		).build();
-
 		List<Map<String, String>> experiences = new ArrayList<>();
-
-		if (!_ffLayoutExperienceSelectorConfiguration.enabled()) {
-			experiences.add(defaultExperience);
-
-			return experiences;
-		}
 
 		List<SegmentsExperience> segmentsExperiences =
 			_getSegmentsExperiences();
 
-		boolean addedDefault = false;
-
 		for (SegmentsExperience segmentsExperience : segmentsExperiences) {
-			if ((segmentsExperience.getPriority() <
-					SegmentsExperienceConstants.PRIORITY_DEFAULT) &&
-				!addedDefault) {
-
-				experiences.add(defaultExperience);
-
-				addedDefault = true;
-			}
-
 			experiences.add(
 				HashMapBuilder.put(
 					"label",
@@ -166,10 +133,6 @@ public class ExportTranslationDisplayContext {
 					"value",
 					String.valueOf(segmentsExperience.getSegmentsExperienceId())
 				).build());
-		}
-
-		if (!addedDefault) {
-			experiences.add(defaultExperience);
 		}
 
 		return experiences;
@@ -210,6 +173,17 @@ public class ExportTranslationDisplayContext {
 			"experiences", getExperiences()
 		).put(
 			"exportTranslationURL", _getExportTranslationURLString()
+		).put(
+			"multipleExperiences", _isMultipleExperiences()
+		).put(
+			"multiplePagesSelected",
+			() -> {
+				if (_classPKs.length > 1) {
+					return true;
+				}
+
+				return false;
+			}
 		).put(
 			"pathModule", PortalUtil.getPathModule()
 		).put(
@@ -366,11 +340,29 @@ public class ExportTranslationDisplayContext {
 		}
 	}
 
+	private boolean _isMultipleExperiences() {
+		if (!GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-142736")) ||
+			!_className.equals(Layout.class.getName())) {
+
+			return false;
+		}
+
+		for (long classPK : _classPKs) {
+			int segmentsExperiencesCount =
+				SegmentsExperienceLocalServiceUtil.getSegmentsExperiencesCount(
+					_groupId, _classNameId, classPK);
+
+			if (segmentsExperiencesCount >= 1) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private final String _className;
 	private final long _classNameId;
 	private final long[] _classPKs;
-	private final FFLayoutExperienceSelectorConfiguration
-		_ffLayoutExperienceSelectorConfiguration;
 	private final long _groupId;
 	private final HttpServletRequest _httpServletRequest;
 	private final InfoItemServiceTracker _infoItemServiceTracker;

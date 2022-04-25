@@ -242,7 +242,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteBlogPosting() throws Exception {
-		BlogPosting blogPosting = testGraphQLBlogPosting_addBlogPosting();
+		BlogPosting blogPosting = testGraphQLDeleteBlogPosting_addBlogPosting();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -255,7 +255,6 @@ public abstract class BaseBlogPostingResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteBlogPosting"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -269,6 +268,12 @@ public abstract class BaseBlogPostingResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected BlogPosting testGraphQLDeleteBlogPosting_addBlogPosting()
+		throws Exception {
+
+		return testGraphQLBlogPosting_addBlogPosting();
 	}
 
 	@Test
@@ -289,7 +294,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 
 	@Test
 	public void testGraphQLGetBlogPosting() throws Exception {
-		BlogPosting blogPosting = testGraphQLBlogPosting_addBlogPosting();
+		BlogPosting blogPosting = testGraphQLGetBlogPosting_addBlogPosting();
 
 		Assert.assertTrue(
 			equals(
@@ -328,6 +333,12 @@ public abstract class BaseBlogPostingResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected BlogPosting testGraphQLGetBlogPosting_addBlogPosting()
+		throws Exception {
+
+		return testGraphQLBlogPosting_addBlogPosting();
 	}
 
 	@Test
@@ -559,6 +570,39 @@ public abstract class BaseBlogPostingResourceTestCase {
 	}
 
 	@Test
+	public void testGetSiteBlogPostingsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long siteId = testGetSiteBlogPostingsPage_getSiteId();
+
+		BlogPosting blogPosting1 = testGetSiteBlogPostingsPage_addBlogPosting(
+			siteId, randomBlogPosting());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		BlogPosting blogPosting2 = testGetSiteBlogPostingsPage_addBlogPosting(
+			siteId, randomBlogPosting());
+
+		for (EntityField entityField : entityFields) {
+			Page<BlogPosting> page =
+				blogPostingResource.getSiteBlogPostingsPage(
+					siteId, null, null,
+					getFilterString(entityField, "eq", blogPosting1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(blogPosting1),
+				(List<BlogPosting>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetSiteBlogPostingsPageWithFilterStringEquals()
 		throws Exception {
 
@@ -636,6 +680,16 @@ public abstract class BaseBlogPostingResourceTestCase {
 				BeanUtils.setProperty(
 					blogPosting1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetSiteBlogPostingsPageWithSortDouble() throws Exception {
+		testGetSiteBlogPostingsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, blogPosting1, blogPosting2) -> {
+				BeanUtils.setProperty(blogPosting1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(blogPosting2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -788,8 +842,10 @@ public abstract class BaseBlogPostingResourceTestCase {
 
 		Assert.assertEquals(0, blogPostingsJSONObject.get("totalCount"));
 
-		BlogPosting blogPosting1 = testGraphQLBlogPosting_addBlogPosting();
-		BlogPosting blogPosting2 = testGraphQLBlogPosting_addBlogPosting();
+		BlogPosting blogPosting1 =
+			testGraphQLGetSiteBlogPostingsPage_addBlogPosting();
+		BlogPosting blogPosting2 =
+			testGraphQLGetSiteBlogPostingsPage_addBlogPosting();
 
 		blogPostingsJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -802,6 +858,12 @@ public abstract class BaseBlogPostingResourceTestCase {
 			Arrays.asList(
 				BlogPostingSerDes.toDTOs(
 					blogPostingsJSONObject.getString("items"))));
+	}
+
+	protected BlogPosting testGraphQLGetSiteBlogPostingsPage_addBlogPosting()
+		throws Exception {
+
+		return testGraphQLBlogPosting_addBlogPosting();
 	}
 
 	@Test
@@ -899,7 +961,8 @@ public abstract class BaseBlogPostingResourceTestCase {
 	public void testGraphQLGetSiteBlogPostingByExternalReferenceCode()
 		throws Exception {
 
-		BlogPosting blogPosting = testGraphQLBlogPosting_addBlogPosting();
+		BlogPosting blogPosting =
+			testGraphQLGetSiteBlogPostingByExternalReferenceCode_addBlogPosting();
 
 		Assert.assertTrue(
 			equals(
@@ -954,6 +1017,13 @@ public abstract class BaseBlogPostingResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected BlogPosting
+			testGraphQLGetSiteBlogPostingByExternalReferenceCode_addBlogPosting()
+		throws Exception {
+
+		return testGraphQLBlogPosting_addBlogPosting();
 	}
 
 	@Test
@@ -1503,14 +1573,6 @@ public abstract class BaseBlogPostingResourceTestCase {
 				continue;
 			}
 
-			if (Objects.equals("priority", additionalAssertFieldName)) {
-				if (blogPosting.getPriority() == null) {
-					valid = false;
-				}
-
-				continue;
-			}
-
 			if (Objects.equals("relatedContents", additionalAssertFieldName)) {
 				if (blogPosting.getRelatedContents() == null) {
 					valid = false;
@@ -1917,17 +1979,6 @@ public abstract class BaseBlogPostingResourceTestCase {
 				if (!Objects.deepEquals(
 						blogPosting1.getNumberOfComments(),
 						blogPosting2.getNumberOfComments())) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals("priority", additionalAssertFieldName)) {
-				if (!Objects.deepEquals(
-						blogPosting1.getPriority(),
-						blogPosting2.getPriority())) {
 
 					return false;
 				}
@@ -2375,13 +2426,9 @@ public abstract class BaseBlogPostingResourceTestCase {
 		}
 
 		if (entityFieldName.equals("numberOfComments")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
-		}
+			sb.append(String.valueOf(blogPosting.getNumberOfComments()));
 
-		if (entityFieldName.equals("priority")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("relatedContents")) {
@@ -2477,7 +2524,6 @@ public abstract class BaseBlogPostingResourceTestCase {
 					RandomTestUtil.randomString());
 				id = RandomTestUtil.randomLong();
 				numberOfComments = RandomTestUtil.randomInt();
-				priority = RandomTestUtil.randomDouble();
 				siteId = testGroup.getGroupId();
 			}
 		};

@@ -15,27 +15,25 @@
 import {Outlet} from 'react-router-dom';
 
 import HeaderContextProvider from '../../context/HeaderContext';
+import Sidebar from '../Sidebar';
 import Header from './Header';
-import Sidebar from './Sidebar';
 
-const Layout: React.FC = () => {
-	return (
-		<main className="testray-main">
-			<div className="testray-body">
-				<Sidebar />
+const Layout = () => (
+	<main className="testray-main">
+		<div className="testray-body">
+			<Sidebar />
 
-				<div className="testray-page">
-					<HeaderContextProvider>
-						<Header />
+			<div className="testray-page">
+				<HeaderContextProvider>
+					<Header />
 
-						<div className="testray-content">
-							<Outlet />
-						</div>
-					</HeaderContextProvider>
-				</div>
+					<div className="testray-content">
+						<Outlet />
+					</div>
+				</HeaderContextProvider>
 			</div>
-		</main>
-	);
-};
+		</div>
+	</main>
+);
 
 export default Layout;

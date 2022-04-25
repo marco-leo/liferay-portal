@@ -54,14 +54,11 @@ public class BlogPostingResourceTest extends BaseBlogPostingResourceTestCase {
 				ServiceContextTestUtil.getServiceContext(
 					testGroup.getGroupId()));
 
-		String blogPostingRenderedContentByDisplayPageDisplayPageKey =
+		Assert.assertNotNull(
 			blogPostingResource.
 				getBlogPostingRenderedContentByDisplayPageDisplayPageKey(
 					blogPosting.getId(),
-					layoutPageTemplateEntry.getLayoutPageTemplateEntryKey());
-
-		Assert.assertNotNull(
-			blogPostingRenderedContentByDisplayPageDisplayPageKey);
+					layoutPageTemplateEntry.getLayoutPageTemplateEntryKey()));
 	}
 
 	@Override
@@ -90,9 +87,7 @@ public class BlogPostingResourceTest extends BaseBlogPostingResourceTestCase {
 
 	@Override
 	protected String[] getAdditionalAssertFieldNames() {
-		return new String[] {
-			"articleBody", "description", "headline", "priority"
-		};
+		return new String[] {"articleBody", "description", "headline"};
 	}
 
 	@Override

@@ -20,10 +20,13 @@ import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.model.CommerceShipment;
 import com.liferay.commerce.service.CommerceAddressService;
 import com.liferay.commerce.service.CommerceOrderService;
+import com.liferay.commerce.service.CommerceShipmentItemService;
 import com.liferay.commerce.service.CommerceShipmentService;
 import com.liferay.headless.commerce.admin.shipment.dto.v1_0.Shipment;
+import com.liferay.headless.commerce.admin.shipment.dto.v1_0.ShipmentItem;
 import com.liferay.headless.commerce.admin.shipment.dto.v1_0.ShippingAddress;
 import com.liferay.headless.commerce.admin.shipment.internal.dto.v1_0.converter.ShipmentDTOConverter;
+import com.liferay.headless.commerce.admin.shipment.internal.util.v1_0.ShipmentItemUtil;
 import com.liferay.headless.commerce.admin.shipment.internal.util.v1_0.ShippingAddressUtil;
 import com.liferay.headless.commerce.admin.shipment.resource.v1_0.ShipmentResource;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
@@ -37,6 +40,7 @@ import com.liferay.portal.kernel.service.RegionService;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
@@ -75,8 +79,9 @@ public class ShipmentResourceImpl extends BaseShipmentResourceImpl {
 		throws Exception {
 
 		CommerceShipment commerceShipment =
-			_commerceShipmentService.fetchCommerceShipment(
-				contextCompany.getCompanyId(), externalReferenceCode);
+			_commerceShipmentService.
+				fetchCommerceShipmentByExternalReferenceCode(
+					contextCompany.getCompanyId(), externalReferenceCode);
 
 		if (commerceShipment == null) {
 			throw new NoSuchShipmentException(
@@ -99,8 +104,9 @@ public class ShipmentResourceImpl extends BaseShipmentResourceImpl {
 		throws Exception {
 
 		CommerceShipment commerceShipment =
-			_commerceShipmentService.fetchCommerceShipment(
-				contextCompany.getCompanyId(), externalReferenceCode);
+			_commerceShipmentService.
+				fetchCommerceShipmentByExternalReferenceCode(
+					contextCompany.getCompanyId(), externalReferenceCode);
 
 		if (commerceShipment == null) {
 			throw new NoSuchShipmentException(
@@ -141,8 +147,17 @@ public class ShipmentResourceImpl extends BaseShipmentResourceImpl {
 	public Shipment patchShipment(Long shipmentId, Shipment shipment)
 		throws Exception {
 
-		_updateCommerceShipment(
-			_commerceShipmentService.getCommerceShipment(shipmentId), shipment);
+		CommerceShipment commerceShipment =
+			_commerceShipmentService.getCommerceShipment(shipmentId);
+
+		_updateCommerceShipment(commerceShipment, shipment);
+
+		if (!Validator.isBlank(shipment.getExternalReferenceCode())) {
+			_commerceShipmentService.updateExternalReferenceCode(
+				shipmentId, shipment.getExternalReferenceCode());
+		}
+
+		_updateNestedResources(commerceShipment, shipment);
 
 		return _toShipment(shipmentId);
 	}
@@ -153,8 +168,9 @@ public class ShipmentResourceImpl extends BaseShipmentResourceImpl {
 		throws Exception {
 
 		CommerceShipment commerceShipment =
-			_commerceShipmentService.fetchCommerceShipment(
-				contextCompany.getCompanyId(), externalReferenceCode);
+			_commerceShipmentService.
+				fetchCommerceShipmentByExternalReferenceCode(
+					contextCompany.getCompanyId(), externalReferenceCode);
 
 		if (commerceShipment == null) {
 			throw new NoSuchShipmentException(
@@ -163,6 +179,8 @@ public class ShipmentResourceImpl extends BaseShipmentResourceImpl {
 		}
 
 		_updateCommerceShipment(commerceShipment, shipment);
+
+		_updateNestedResources(commerceShipment, shipment);
 
 		return _toShipment(commerceShipment);
 	}
@@ -181,6 +199,10 @@ public class ShipmentResourceImpl extends BaseShipmentResourceImpl {
 				commerceOrder.getShippingOptionName(),
 				_serviceContextHelper.getServiceContext(contextUser));
 
+		_updateCommerceShipment(commerceShipment, shipment);
+
+		_updateNestedResources(commerceShipment, shipment);
+
 		return _toShipment(commerceShipment.getCommerceShipmentId());
 	}
 
@@ -190,8 +212,9 @@ public class ShipmentResourceImpl extends BaseShipmentResourceImpl {
 		throws Exception {
 
 		CommerceShipment commerceShipment =
-			_commerceShipmentService.fetchCommerceShipment(
-				contextCompany.getCompanyId(), externalReferenceCode);
+			_commerceShipmentService.
+				fetchCommerceShipmentByExternalReferenceCode(
+					contextCompany.getCompanyId(), externalReferenceCode);
 
 		if (commerceShipment == null) {
 			throw new NoSuchShipmentException(
@@ -211,8 +234,9 @@ public class ShipmentResourceImpl extends BaseShipmentResourceImpl {
 		throws Exception {
 
 		CommerceShipment commerceShipment =
-			_commerceShipmentService.fetchCommerceShipment(
-				contextCompany.getCompanyId(), externalReferenceCode);
+			_commerceShipmentService.
+				fetchCommerceShipmentByExternalReferenceCode(
+					contextCompany.getCompanyId(), externalReferenceCode);
 
 		if (commerceShipment == null) {
 			throw new NoSuchShipmentException(
@@ -232,8 +256,9 @@ public class ShipmentResourceImpl extends BaseShipmentResourceImpl {
 		throws Exception {
 
 		CommerceShipment commerceShipment =
-			_commerceShipmentService.fetchCommerceShipment(
-				contextCompany.getCompanyId(), externalReferenceCode);
+			_commerceShipmentService.
+				fetchCommerceShipmentByExternalReferenceCode(
+					contextCompany.getCompanyId(), externalReferenceCode);
 
 		if (commerceShipment == null) {
 			throw new NoSuchShipmentException(
@@ -282,8 +307,9 @@ public class ShipmentResourceImpl extends BaseShipmentResourceImpl {
 		throws Exception {
 
 		CommerceShipment commerceShipment =
-			_commerceShipmentService.fetchCommerceShipment(
-				contextCompany.getCompanyId(), externalReferenceCode);
+			_commerceShipmentService.
+				fetchCommerceShipmentByExternalReferenceCode(
+					contextCompany.getCompanyId(), externalReferenceCode);
 
 		if (commerceShipment == null) {
 			CommerceOrder commerceOrder =
@@ -299,6 +325,8 @@ public class ShipmentResourceImpl extends BaseShipmentResourceImpl {
 		}
 
 		_updateCommerceShipment(commerceShipment, shipment);
+
+		_updateNestedResources(commerceShipment, shipment);
 
 		return _toShipment(commerceShipment);
 	}
@@ -377,15 +405,6 @@ public class ShipmentResourceImpl extends BaseShipmentResourceImpl {
 				expectedDay, expectedYear, expectedHour, expectedMinute);
 		}
 
-		ShippingAddress shippingAddress = shipment.getShippingAddress();
-
-		if (shippingAddress != null) {
-			ShippingAddressUtil.updateShippingAddress(
-				_commerceAddressService, _commerceShipmentService,
-				commerceShipment, _countryService, _regionService,
-				shippingAddress, _serviceContextHelper);
-		}
-
 		Date shippingDate = shipment.getShippingDate();
 
 		if (shippingDate != null) {
@@ -404,11 +423,48 @@ public class ShipmentResourceImpl extends BaseShipmentResourceImpl {
 		}
 	}
 
+	private CommerceShipment _updateNestedResources(
+			CommerceShipment commerceShipment, Shipment shipment)
+		throws Exception {
+
+		// Shipping address
+
+		ShippingAddress shippingAddress = shipment.getShippingAddress();
+
+		if (shippingAddress != null) {
+			ShippingAddressUtil.updateShippingAddress(
+				_commerceAddressService, _commerceShipmentService,
+				commerceShipment, _countryService, _regionService,
+				shippingAddress, _serviceContextHelper);
+		}
+
+		// Shipment items
+
+		ShipmentItem[] shipmentItems = shipment.getShipmentItems();
+
+		if (shipmentItems != null) {
+			_commerceShipmentItemService.deleteCommerceShipmentItems(
+				commerceShipment.getCommerceShipmentId(), true);
+
+			for (ShipmentItem shipmentItem : shipmentItems) {
+				ShipmentItemUtil.addOrUpdateShipmentItem(
+					shipmentItem.getExternalReferenceCode(), commerceShipment,
+					_commerceShipmentItemService, shipmentItem,
+					_serviceContextHelper);
+			}
+		}
+
+		return commerceShipment;
+	}
+
 	@Reference
 	private CommerceAddressService _commerceAddressService;
 
 	@Reference
 	private CommerceOrderService _commerceOrderService;
+
+	@Reference
+	private CommerceShipmentItemService _commerceShipmentItemService;
 
 	@Reference
 	private CommerceShipmentService _commerceShipmentService;

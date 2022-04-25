@@ -29,12 +29,18 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.sanitizer.Sanitizer;
+import com.liferay.portal.kernel.sanitizer.SanitizerException;
+import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -43,7 +49,7 @@ import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.io.Serializable;
@@ -7966,7 +7972,7 @@ public class CommerceOrderPersistenceImpl
 		commerceOrder.setNew(true);
 		commerceOrder.setPrimaryKey(commerceOrderId);
 
-		String uuid = PortalUUIDUtil.generate();
+		String uuid = _portalUUID.generate();
 
 		commerceOrder.setUuid(uuid);
 
@@ -8085,7 +8091,7 @@ public class CommerceOrderPersistenceImpl
 			(CommerceOrderModelImpl)commerceOrder;
 
 		if (Validator.isNull(commerceOrder.getUuid())) {
-			String uuid = PortalUUIDUtil.generate();
+			String uuid = _portalUUID.generate();
 
 			commerceOrder.setUuid(uuid);
 		}
@@ -8111,6 +8117,41 @@ public class CommerceOrderPersistenceImpl
 			else {
 				commerceOrder.setModifiedDate(
 					serviceContext.getModifiedDate(date));
+			}
+		}
+
+		long userId = GetterUtil.getLong(PrincipalThreadLocal.getName());
+
+		if (userId > 0) {
+			long companyId = commerceOrder.getCompanyId();
+
+			long groupId = commerceOrder.getGroupId();
+
+			long commerceOrderId = 0;
+
+			if (!isNew) {
+				commerceOrderId = commerceOrder.getPrimaryKey();
+			}
+
+			try {
+				commerceOrder.setDeliveryCommerceTermEntryDescription(
+					SanitizerUtil.sanitize(
+						companyId, groupId, userId,
+						CommerceOrder.class.getName(), commerceOrderId,
+						ContentTypes.TEXT_PLAIN, Sanitizer.MODE_ALL,
+						commerceOrder.getDeliveryCommerceTermEntryDescription(),
+						null));
+
+				commerceOrder.setPaymentCommerceTermEntryDescription(
+					SanitizerUtil.sanitize(
+						companyId, groupId, userId,
+						CommerceOrder.class.getName(), commerceOrderId,
+						ContentTypes.TEXT_PLAIN, Sanitizer.MODE_ALL,
+						commerceOrder.getPaymentCommerceTermEntryDescription(),
+						null));
+			}
+			catch (SanitizerException sanitizerException) {
+				throw new SystemException(sanitizerException);
 			}
 		}
 
@@ -8784,5 +8825,8 @@ public class CommerceOrderPersistenceImpl
 	protected FinderCache getFinderCache() {
 		return finderCache;
 	}
+
+	@ServiceReference(type = PortalUUID.class)
+	private PortalUUID _portalUUID;
 
 }

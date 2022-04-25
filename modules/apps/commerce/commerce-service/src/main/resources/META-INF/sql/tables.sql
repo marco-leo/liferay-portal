@@ -14,8 +14,9 @@ create table CPDAvailabilityEstimate (
 
 create table CPDefinitionInventory (
 	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
-	CPDefinitionInventoryId LONG not null primary key,
+	CPDefinitionInventoryId LONG not null,
 	groupId LONG,
 	companyId LONG,
 	userId LONG,
@@ -32,7 +33,22 @@ create table CPDefinitionInventory (
 	minOrderQuantity INTEGER,
 	maxOrderQuantity INTEGER,
 	allowedOrderQuantities VARCHAR(75) null,
-	multipleOrderQuantity INTEGER
+	multipleOrderQuantity INTEGER,
+	primary key (CPDefinitionInventoryId, ctCollectionId)
+);
+
+create table CSOptionAccountEntryRel (
+	mvccVersion LONG default 0 not null,
+	CSOptionAccountEntryRelId LONG not null primary key,
+	companyId LONG,
+	userId LONG,
+	userName VARCHAR(75) null,
+	createDate DATE null,
+	modifiedDate DATE null,
+	accountEntryId LONG,
+	commerceChannelId LONG,
+	commerceShippingMethodKey VARCHAR(75) null,
+	commerceShippingOptionKey VARCHAR(75) null
 );
 
 create table CommerceAddressRestriction (

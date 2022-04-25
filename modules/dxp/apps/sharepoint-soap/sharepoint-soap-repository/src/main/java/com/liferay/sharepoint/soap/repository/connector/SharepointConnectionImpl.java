@@ -19,6 +19,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.sharepoint.soap.repository.connector.operation.AddFolderOperation;
 import com.liferay.sharepoint.soap.repository.connector.operation.AddOrUpdateFileOperation;
+import com.liferay.sharepoint.soap.repository.connector.operation.BatchOperation;
 import com.liferay.sharepoint.soap.repository.connector.operation.CancelCheckOutFileOperation;
 import com.liferay.sharepoint.soap.repository.connector.operation.CheckInFileOperation;
 import com.liferay.sharepoint.soap.repository.connector.operation.CheckOutFileOperation;
@@ -58,6 +59,7 @@ import java.util.Set;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.client.Stub;
+import org.apache.axis2.namespace.Constants;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.axis2.transport.http.impl.httpclient3.HttpTransportPropertiesImpl;
 import org.apache.http.client.config.AuthSchemes;
@@ -303,6 +305,9 @@ public class SharepointConnectionImpl implements SharepointConnection {
 		_addFolderOperation = _buildOperation(AddFolderOperation.class);
 		_addOrUpdateFileOperation = _buildOperation(
 			AddOrUpdateFileOperation.class);
+
+		_buildOperation(BatchOperation.class);
+
 		_cancelCheckOutFileOperation = _buildOperation(
 			CancelCheckOutFileOperation.class);
 		_checkInFileOperation = _buildOperation(CheckInFileOperation.class);
@@ -362,6 +367,8 @@ public class SharepointConnectionImpl implements SharepointConnection {
 		authenticator.setUsername(_sharepointConnectionInfo.getUserName());
 
 		options.setProperty(HTTPConstants.AUTHENTICATE, authenticator);
+
+		options.setSoapVersionURI(Constants.URI_SOAP11_ENV);
 	}
 
 	private URL _getServiceURL(String serviceName) {

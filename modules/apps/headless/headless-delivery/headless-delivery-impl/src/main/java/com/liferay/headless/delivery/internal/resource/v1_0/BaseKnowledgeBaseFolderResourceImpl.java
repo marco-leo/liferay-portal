@@ -16,6 +16,7 @@ package com.liferay.headless.delivery.internal.resource.v1_0;
 
 import com.liferay.headless.delivery.dto.v1_0.KnowledgeBaseFolder;
 import com.liferay.headless.delivery.resource.v1_0.KnowledgeBaseFolderResource;
+import com.liferay.petra.function.UnsafeBiConsumer;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -1034,8 +1035,16 @@ public abstract class BaseKnowledgeBaseFolderResourceImpl
 					(Long)parameters.get("siteId"), knowledgeBaseFolder);
 		}
 
-		for (KnowledgeBaseFolder knowledgeBaseFolder : knowledgeBaseFolders) {
-			knowledgeBaseFolderUnsafeConsumer.accept(knowledgeBaseFolder);
+		if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				knowledgeBaseFolders, knowledgeBaseFolderUnsafeConsumer);
+		}
+		else {
+			for (KnowledgeBaseFolder knowledgeBaseFolder :
+					knowledgeBaseFolders) {
+
+				knowledgeBaseFolderUnsafeConsumer.accept(knowledgeBaseFolder);
+			}
 		}
 	}
 
@@ -1063,6 +1072,10 @@ public abstract class BaseKnowledgeBaseFolderResourceImpl
 		throws Exception {
 
 		return null;
+	}
+
+	public String getVersion() {
+		return "v1.0";
 	}
 
 	@Override
@@ -1183,6 +1196,15 @@ public abstract class BaseKnowledgeBaseFolderResourceImpl
 		this.contextAcceptLanguage = contextAcceptLanguage;
 	}
 
+	public void setContextBatchUnsafeConsumer(
+		UnsafeBiConsumer
+			<java.util.Collection<KnowledgeBaseFolder>,
+			 UnsafeConsumer<KnowledgeBaseFolder, Exception>, Exception>
+				contextBatchUnsafeConsumer) {
+
+		this.contextBatchUnsafeConsumer = contextBatchUnsafeConsumer;
+	}
+
 	public void setContextCompany(
 		com.liferay.portal.kernel.model.Company contextCompany) {
 
@@ -1241,6 +1263,14 @@ public abstract class BaseKnowledgeBaseFolderResourceImpl
 
 	public void setRoleLocalService(RoleLocalService roleLocalService) {
 		this.roleLocalService = roleLocalService;
+	}
+
+	public void setVulcanBatchEngineImportTaskResource(
+		VulcanBatchEngineImportTaskResource
+			vulcanBatchEngineImportTaskResource) {
+
+		this.vulcanBatchEngineImportTaskResource =
+			vulcanBatchEngineImportTaskResource;
 	}
 
 	@Override
@@ -1336,6 +1366,10 @@ public abstract class BaseKnowledgeBaseFolderResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
+	protected UnsafeBiConsumer
+		<java.util.Collection<KnowledgeBaseFolder>,
+		 UnsafeConsumer<KnowledgeBaseFolder, Exception>, Exception>
+			contextBatchUnsafeConsumer;
 	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;

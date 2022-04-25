@@ -490,6 +490,30 @@ public abstract class BaseSkuResourceTestCase {
 	}
 
 	@Test
+	public void testGetSkusPageWithFilterDoubleEquals() throws Exception {
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Sku sku1 = testGetSkusPage_addSku(randomSku());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Sku sku2 = testGetSkusPage_addSku(randomSku());
+
+		for (EntityField entityField : entityFields) {
+			Page<Sku> page = skuResource.getSkusPage(
+				null, getFilterString(entityField, "eq", sku1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(sku1), (List<Sku>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetSkusPageWithFilterStringEquals() throws Exception {
 		List<EntityField> entityFields = getEntityFields(
 			EntityField.Type.STRING);
@@ -557,6 +581,16 @@ public abstract class BaseSkuResourceTestCase {
 				BeanUtils.setProperty(
 					sku1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetSkusPageWithSortDouble() throws Exception {
+		testGetSkusPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, sku1, sku2) -> {
+				BeanUtils.setProperty(sku1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(sku2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -685,8 +719,8 @@ public abstract class BaseSkuResourceTestCase {
 
 		long totalCount = skusJSONObject.getLong("totalCount");
 
-		Sku sku1 = testGraphQLSku_addSku();
-		Sku sku2 = testGraphQLSku_addSku();
+		Sku sku1 = testGraphQLGetSkusPage_addSku();
+		Sku sku2 = testGraphQLGetSkusPage_addSku();
 
 		skusJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -701,6 +735,10 @@ public abstract class BaseSkuResourceTestCase {
 		assertContains(
 			sku2,
 			Arrays.asList(SkuSerDes.toDTOs(skusJSONObject.getString("items"))));
+	}
+
+	protected Sku testGraphQLGetSkusPage_addSku() throws Exception {
+		return testGraphQLSku_addSku();
 	}
 
 	@Test
@@ -749,7 +787,7 @@ public abstract class BaseSkuResourceTestCase {
 
 	@Test
 	public void testGraphQLGetSkuByExternalReferenceCode() throws Exception {
-		Sku sku = testGraphQLSku_addSku();
+		Sku sku = testGraphQLGetSkuByExternalReferenceCode_addSku();
 
 		Assert.assertTrue(
 			equals(
@@ -798,6 +836,12 @@ public abstract class BaseSkuResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Sku testGraphQLGetSkuByExternalReferenceCode_addSku()
+		throws Exception {
+
+		return testGraphQLSku_addSku();
+	}
+
 	@Test
 	public void testPatchSkuByExternalReferenceCode() throws Exception {
 		Assert.assertTrue(false);
@@ -825,7 +869,7 @@ public abstract class BaseSkuResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteSku() throws Exception {
-		Sku sku = testGraphQLSku_addSku();
+		Sku sku = testGraphQLDeleteSku_addSku();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -838,7 +882,6 @@ public abstract class BaseSkuResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteSku"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -852,6 +895,10 @@ public abstract class BaseSkuResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected Sku testGraphQLDeleteSku_addSku() throws Exception {
+		return testGraphQLSku_addSku();
 	}
 
 	@Test
@@ -871,7 +918,7 @@ public abstract class BaseSkuResourceTestCase {
 
 	@Test
 	public void testGraphQLGetSku() throws Exception {
-		Sku sku = testGraphQLSku_addSku();
+		Sku sku = testGraphQLGetSku_addSku();
 
 		Assert.assertTrue(
 			equals(
@@ -908,6 +955,10 @@ public abstract class BaseSkuResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Sku testGraphQLGetSku_addSku() throws Exception {
+		return testGraphQLSku_addSku();
 	}
 
 	@Test
@@ -1088,14 +1139,6 @@ public abstract class BaseSkuResourceTestCase {
 				continue;
 			}
 
-			if (Objects.equals("options", additionalAssertFieldName)) {
-				if (sku.getOptions() == null) {
-					valid = false;
-				}
-
-				continue;
-			}
-
 			if (Objects.equals("price", additionalAssertFieldName)) {
 				if (sku.getPrice() == null) {
 					valid = false;
@@ -1165,6 +1208,14 @@ public abstract class BaseSkuResourceTestCase {
 
 			if (Objects.equals("sku", additionalAssertFieldName)) {
 				if (sku.getSku() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("skuOptions", additionalAssertFieldName)) {
+				if (sku.getSkuOptions() == null) {
 					valid = false;
 				}
 
@@ -1413,14 +1464,6 @@ public abstract class BaseSkuResourceTestCase {
 				continue;
 			}
 
-			if (Objects.equals("options", additionalAssertFieldName)) {
-				if (!equals((Map)sku1.getOptions(), (Map)sku2.getOptions())) {
-					return false;
-				}
-
-				continue;
-			}
-
 			if (Objects.equals("price", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(sku1.getPrice(), sku2.getPrice())) {
 					return false;
@@ -1507,6 +1550,16 @@ public abstract class BaseSkuResourceTestCase {
 
 			if (Objects.equals("sku", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(sku1.getSku(), sku2.getSku())) {
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("skuOptions", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						sku1.getSkuOptions(), sku2.getSkuOptions())) {
+
 					return false;
 				}
 
@@ -1640,8 +1693,9 @@ public abstract class BaseSkuResourceTestCase {
 		}
 
 		if (entityFieldName.equals("depth")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(sku.getDepth()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("discontinued")) {
@@ -1759,8 +1813,9 @@ public abstract class BaseSkuResourceTestCase {
 		}
 
 		if (entityFieldName.equals("height")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(sku.getHeight()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("id")) {
@@ -1769,8 +1824,9 @@ public abstract class BaseSkuResourceTestCase {
 		}
 
 		if (entityFieldName.equals("inventoryLevel")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(sku.getInventoryLevel()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("manufacturerPartNumber")) {
@@ -1782,11 +1838,6 @@ public abstract class BaseSkuResourceTestCase {
 		}
 
 		if (entityFieldName.equals("neverExpire")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
-		}
-
-		if (entityFieldName.equals("options")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
@@ -1843,6 +1894,11 @@ public abstract class BaseSkuResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("skuOptions")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("unspsc")) {
 			sb.append("'");
 			sb.append(String.valueOf(sku.getUnspsc()));
@@ -1852,13 +1908,15 @@ public abstract class BaseSkuResourceTestCase {
 		}
 
 		if (entityFieldName.equals("weight")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(sku.getWeight()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("width")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(sku.getWidth()));
+
+			return sb.toString();
 		}
 
 		throw new IllegalArgumentException(

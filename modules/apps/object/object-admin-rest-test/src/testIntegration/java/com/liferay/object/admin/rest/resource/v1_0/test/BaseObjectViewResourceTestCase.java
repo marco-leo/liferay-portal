@@ -352,7 +352,7 @@ public abstract class BaseObjectViewResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteObjectView() throws Exception {
-		ObjectView objectView = testGraphQLObjectView_addObjectView();
+		ObjectView objectView = testGraphQLDeleteObjectView_addObjectView();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -365,7 +365,6 @@ public abstract class BaseObjectViewResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteObjectView"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -379,6 +378,12 @@ public abstract class BaseObjectViewResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected ObjectView testGraphQLDeleteObjectView_addObjectView()
+		throws Exception {
+
+		return testGraphQLObjectView_addObjectView();
 	}
 
 	@Test
@@ -399,7 +404,7 @@ public abstract class BaseObjectViewResourceTestCase {
 
 	@Test
 	public void testGraphQLGetObjectView() throws Exception {
-		ObjectView objectView = testGraphQLObjectView_addObjectView();
+		ObjectView objectView = testGraphQLGetObjectView_addObjectView();
 
 		Assert.assertTrue(
 			equals(
@@ -438,6 +443,12 @@ public abstract class BaseObjectViewResourceTestCase {
 				"Object/code"));
 	}
 
+	protected ObjectView testGraphQLGetObjectView_addObjectView()
+		throws Exception {
+
+		return testGraphQLObjectView_addObjectView();
+	}
+
 	@Test
 	public void testPutObjectView() throws Exception {
 		ObjectView postObjectView = testPutObjectView_addObjectView();
@@ -458,6 +469,25 @@ public abstract class BaseObjectViewResourceTestCase {
 	}
 
 	protected ObjectView testPutObjectView_addObjectView() throws Exception {
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testPostObjectViewCopy() throws Exception {
+		ObjectView randomObjectView = randomObjectView();
+
+		ObjectView postObjectView = testPostObjectViewCopy_addObjectView(
+			randomObjectView);
+
+		assertEquals(randomObjectView, postObjectView);
+		assertValid(postObjectView);
+	}
+
+	protected ObjectView testPostObjectViewCopy_addObjectView(
+			ObjectView objectView)
+		throws Exception {
+
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
 	}
@@ -594,6 +624,16 @@ public abstract class BaseObjectViewResourceTestCase {
 					"objectViewColumns", additionalAssertFieldName)) {
 
 				if (objectView.getObjectViewColumns() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"objectViewSortColumns", additionalAssertFieldName)) {
+
+				if (objectView.getObjectViewSortColumns() == null) {
 					valid = false;
 				}
 
@@ -776,6 +816,19 @@ public abstract class BaseObjectViewResourceTestCase {
 				if (!Objects.deepEquals(
 						objectView1.getObjectViewColumns(),
 						objectView2.getObjectViewColumns())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"objectViewSortColumns", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						objectView1.getObjectViewSortColumns(),
+						objectView2.getObjectViewSortColumns())) {
 
 					return false;
 				}
@@ -969,6 +1022,11 @@ public abstract class BaseObjectViewResourceTestCase {
 		}
 
 		if (entityFieldName.equals("objectViewColumns")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("objectViewSortColumns")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}

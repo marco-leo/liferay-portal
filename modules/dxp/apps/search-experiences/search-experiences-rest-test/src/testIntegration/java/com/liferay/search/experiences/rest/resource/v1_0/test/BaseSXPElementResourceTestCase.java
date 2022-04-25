@@ -258,6 +258,35 @@ public abstract class BaseSXPElementResourceTestCase {
 	}
 
 	@Test
+	public void testGetSXPElementsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		SXPElement sxpElement1 = testGetSXPElementsPage_addSXPElement(
+			randomSXPElement());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		SXPElement sxpElement2 = testGetSXPElementsPage_addSXPElement(
+			randomSXPElement());
+
+		for (EntityField entityField : entityFields) {
+			Page<SXPElement> page = sxpElementResource.getSXPElementsPage(
+				null, getFilterString(entityField, "eq", sxpElement1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(sxpElement1),
+				(List<SXPElement>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetSXPElementsPageWithFilterStringEquals()
 		throws Exception {
 
@@ -335,6 +364,16 @@ public abstract class BaseSXPElementResourceTestCase {
 				BeanUtils.setProperty(
 					sxpElement1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetSXPElementsPageWithSortDouble() throws Exception {
+		testGetSXPElementsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, sxpElement1, sxpElement2) -> {
+				BeanUtils.setProperty(sxpElement1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(sxpElement2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -511,7 +550,7 @@ public abstract class BaseSXPElementResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteSXPElement() throws Exception {
-		SXPElement sxpElement = testGraphQLSXPElement_addSXPElement();
+		SXPElement sxpElement = testGraphQLDeleteSXPElement_addSXPElement();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -524,7 +563,6 @@ public abstract class BaseSXPElementResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteSXPElement"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -538,6 +576,12 @@ public abstract class BaseSXPElementResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected SXPElement testGraphQLDeleteSXPElement_addSXPElement()
+		throws Exception {
+
+		return testGraphQLSXPElement_addSXPElement();
 	}
 
 	@Test
@@ -558,7 +602,7 @@ public abstract class BaseSXPElementResourceTestCase {
 
 	@Test
 	public void testGraphQLGetSXPElement() throws Exception {
-		SXPElement sxpElement = testGraphQLSXPElement_addSXPElement();
+		SXPElement sxpElement = testGraphQLGetSXPElement_addSXPElement();
 
 		Assert.assertTrue(
 			equals(
@@ -595,6 +639,12 @@ public abstract class BaseSXPElementResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected SXPElement testGraphQLGetSXPElement_addSXPElement()
+		throws Exception {
+
+		return testGraphQLSXPElement_addSXPElement();
 	}
 
 	@Test
@@ -1302,8 +1352,9 @@ public abstract class BaseSXPElementResourceTestCase {
 		}
 
 		if (entityFieldName.equals("type")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(sxpElement.getType()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("userName")) {

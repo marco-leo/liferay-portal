@@ -6,6 +6,7 @@ package ${configYAML.apiPackagePath}.internal.resource.${escapedVersion};
 
 import ${configYAML.apiPackagePath}.resource.${escapedVersion}.${schemaName}Resource;
 
+import com.liferay.petra.function.UnsafeBiConsumer;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.string.StringPool;
@@ -39,11 +40,7 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.permission.ModelPermissionsUtil;
 import com.liferay.portal.vulcan.permission.PermissionUtil;
-
-<#if configYAML.generateBatch>
-	import com.liferay.portal.vulcan.resource.EntityModelResource;
-</#if>
-
+import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.ActionUtil;
 import com.liferay.portal.vulcan.util.LocalDateTimeUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
@@ -371,8 +368,13 @@ public abstract class Base${schemaName}ResourceImpl
 					}
 				</#if>
 
-				for (${javaDataType} ${schemaVarName} : ${schemaVarNames}) {
-					${schemaVarName}UnsafeConsumer.accept(${schemaVarName});
+				if (contextBatchUnsafeConsumer != null) {
+					contextBatchUnsafeConsumer.accept(${schemaVarNames}, ${schemaVarName}UnsafeConsumer);
+				}
+				else {
+					for (${javaDataType} ${schemaVarName} : ${schemaVarNames}) {
+						${schemaVarName}UnsafeConsumer.accept(${schemaVarName});
+					}
 				}
 			</#if>
 		}
@@ -400,6 +402,10 @@ public abstract class Base${schemaName}ResourceImpl
 		@Override
 		public EntityModel getEntityModel(MultivaluedMap multivaluedMap) throws Exception {
 			return null;
+		}
+
+		public String getVersion() {
+			return "${freeMarkerTool.getVersion(openAPIYAML)}";
 		}
 
 		@Override
@@ -553,6 +559,12 @@ public abstract class Base${schemaName}ResourceImpl
 		this.contextAcceptLanguage = contextAcceptLanguage;
 	}
 
+	<#if generateBatch>
+		public void setContextBatchUnsafeConsumer(UnsafeBiConsumer<java.util.Collection<${javaDataType}>, UnsafeConsumer<${javaDataType}, Exception>, Exception> contextBatchUnsafeConsumer) {
+			this.contextBatchUnsafeConsumer = contextBatchUnsafeConsumer;
+		}
+	</#if>
+
 	public void setContextCompany(com.liferay.portal.kernel.model.Company contextCompany) {
 		this.contextCompany = contextCompany;
 	}
@@ -598,6 +610,10 @@ public abstract class Base${schemaName}ResourceImpl
 	}
 
 	<#if generateBatch>
+		public void setVulcanBatchEngineImportTaskResource(VulcanBatchEngineImportTaskResource vulcanBatchEngineImportTaskResource) {
+			this.vulcanBatchEngineImportTaskResource = vulcanBatchEngineImportTaskResource;
+		}
+
 		@Override
 		public Filter toFilter(String filterString, Map<String, List<String>> multivaluedMap) {
 			try {
@@ -655,6 +671,11 @@ public abstract class Base${schemaName}ResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
+
+	<#if generateBatch>
+		protected UnsafeBiConsumer<java.util.Collection<${javaDataType}>, UnsafeConsumer<${javaDataType}, Exception>, Exception> contextBatchUnsafeConsumer;
+	</#if>
+
 	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;

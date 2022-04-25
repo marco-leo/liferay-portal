@@ -21,49 +21,50 @@ import {
 	useParams,
 } from 'react-router-dom';
 
-import {getTestrayCase} from '../../../graphql/queries/testrayCase';
+import {TestrayCase, getCase} from '../../../graphql/queries';
 import useHeader from '../../../hooks/useHeader';
+import i18n from '../../../i18n';
 
 const CaseOutlet = () => {
 	const {testrayProject}: any = useOutletContext();
-	const {projectId, testrayCaseId} = useParams();
+	const {caseId, projectId} = useParams();
 	const {pathname} = useLocation();
-	const basePath = `/project/${projectId}/cases/${testrayCaseId}`;
+	const basePath = `/project/${projectId}/cases/${caseId}`;
 
 	const {setHeading} = useHeader({
 		useTabs: [
 			{
 				active: pathname === basePath,
 				path: basePath,
-				title: 'Case Details',
+				title: i18n.translate('case-details'),
 			},
 			{
 				active: pathname === `${basePath}/requirements`,
 				path: `${basePath}/requirements`,
-				title: 'Requirements',
+				title: i18n.translate('requirements'),
 			},
 		],
 	});
 
-	const {data} = useQuery(getTestrayCase, {
+	const {data} = useQuery<{case: TestrayCase}>(getCase, {
 		variables: {
-			testrayCaseId,
+			caseId,
 		},
 	});
 
-	const testrayCase = data?.c?.testrayCase;
+	const testrayCase = data?.case;
 
 	useEffect(() => {
 		if (testrayCase && testrayProject) {
 			setTimeout(() => {
 				setHeading([
 					{
-						category: 'PROJECT',
-						path: `/project/${testrayProject.testrayProjectId}/cases`,
+						category: i18n.translate('project').toUpperCase(),
+						path: `/project/${testrayProject.id}/cases`,
 						title: testrayProject.name,
 					},
 					{
-						category: 'CASE',
+						category: i18n.translate('case').toUpperCase(),
 						title: testrayCase.name,
 					},
 				]);

@@ -269,7 +269,8 @@ public abstract class BaseWarehouseResourceTestCase {
 	public void testGraphQLGetWarehousByExternalReferenceCode()
 		throws Exception {
 
-		Warehouse warehouse = testGraphQLWarehouse_addWarehouse();
+		Warehouse warehouse =
+			testGraphQLGetWarehousByExternalReferenceCode_addWarehouse();
 
 		Assert.assertTrue(
 			equals(
@@ -319,6 +320,13 @@ public abstract class BaseWarehouseResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Warehouse
+			testGraphQLGetWarehousByExternalReferenceCode_addWarehouse()
+		throws Exception {
+
+		return testGraphQLWarehouse_addWarehouse();
+	}
+
 	@Test
 	public void testPatchWarehousByExternalReferenceCode() throws Exception {
 		Assert.assertTrue(false);
@@ -365,7 +373,7 @@ public abstract class BaseWarehouseResourceTestCase {
 
 	@Test
 	public void testGraphQLGetWarehousId() throws Exception {
-		Warehouse warehouse = testGraphQLWarehouse_addWarehouse();
+		Warehouse warehouse = testGraphQLGetWarehousId_addWarehouse();
 
 		Assert.assertTrue(
 			equals(
@@ -402,6 +410,12 @@ public abstract class BaseWarehouseResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Warehouse testGraphQLGetWarehousId_addWarehouse()
+		throws Exception {
+
+		return testGraphQLWarehouse_addWarehouse();
 	}
 
 	@Test
@@ -450,6 +464,33 @@ public abstract class BaseWarehouseResourceTestCase {
 		for (EntityField entityField : entityFields) {
 			Page<Warehouse> page = warehouseResource.getWarehousesPage(
 				getFilterString(entityField, "between", warehouse1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(warehouse1),
+				(List<Warehouse>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetWarehousesPageWithFilterDoubleEquals() throws Exception {
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Warehouse warehouse1 = testGetWarehousesPage_addWarehouse(
+			randomWarehouse());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Warehouse warehouse2 = testGetWarehousesPage_addWarehouse(
+			randomWarehouse());
+
+		for (EntityField entityField : entityFields) {
+			Page<Warehouse> page = warehouseResource.getWarehousesPage(
+				getFilterString(entityField, "eq", warehouse1),
 				Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -534,6 +575,16 @@ public abstract class BaseWarehouseResourceTestCase {
 				BeanUtils.setProperty(
 					warehouse1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetWarehousesPageWithSortDouble() throws Exception {
+		testGetWarehousesPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, warehouse1, warehouse2) -> {
+				BeanUtils.setProperty(warehouse1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(warehouse2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -664,8 +715,8 @@ public abstract class BaseWarehouseResourceTestCase {
 
 		long totalCount = warehousesJSONObject.getLong("totalCount");
 
-		Warehouse warehouse1 = testGraphQLWarehouse_addWarehouse();
-		Warehouse warehouse2 = testGraphQLWarehouse_addWarehouse();
+		Warehouse warehouse1 = testGraphQLGetWarehousesPage_addWarehouse();
+		Warehouse warehouse2 = testGraphQLGetWarehousesPage_addWarehouse();
 
 		warehousesJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -684,6 +735,12 @@ public abstract class BaseWarehouseResourceTestCase {
 			Arrays.asList(
 				WarehouseSerDes.toDTOs(
 					warehousesJSONObject.getString("items"))));
+	}
+
+	protected Warehouse testGraphQLGetWarehousesPage_addWarehouse()
+		throws Exception {
+
+		return testGraphQLWarehouse_addWarehouse();
 	}
 
 	@Test
@@ -1326,13 +1383,15 @@ public abstract class BaseWarehouseResourceTestCase {
 		}
 
 		if (entityFieldName.equals("latitude")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(warehouse.getLatitude()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("longitude")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(warehouse.getLongitude()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("mvccVersion")) {

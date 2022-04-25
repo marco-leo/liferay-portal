@@ -255,6 +255,33 @@ public abstract class BasePriceListResourceTestCase {
 	}
 
 	@Test
+	public void testGetPriceListsPageWithFilterDoubleEquals() throws Exception {
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		PriceList priceList1 = testGetPriceListsPage_addPriceList(
+			randomPriceList());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		PriceList priceList2 = testGetPriceListsPage_addPriceList(
+			randomPriceList());
+
+		for (EntityField entityField : entityFields) {
+			Page<PriceList> page = priceListResource.getPriceListsPage(
+				getFilterString(entityField, "eq", priceList1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(priceList1),
+				(List<PriceList>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetPriceListsPageWithFilterStringEquals() throws Exception {
 		List<EntityField> entityFields = getEntityFields(
 			EntityField.Type.STRING);
@@ -330,6 +357,16 @@ public abstract class BasePriceListResourceTestCase {
 				BeanUtils.setProperty(
 					priceList1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetPriceListsPageWithSortDouble() throws Exception {
+		testGetPriceListsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, priceList1, priceList2) -> {
+				BeanUtils.setProperty(priceList1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(priceList2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -460,8 +497,8 @@ public abstract class BasePriceListResourceTestCase {
 
 		long totalCount = priceListsJSONObject.getLong("totalCount");
 
-		PriceList priceList1 = testGraphQLPriceList_addPriceList();
-		PriceList priceList2 = testGraphQLPriceList_addPriceList();
+		PriceList priceList1 = testGraphQLGetPriceListsPage_addPriceList();
+		PriceList priceList2 = testGraphQLGetPriceListsPage_addPriceList();
 
 		priceListsJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -480,6 +517,12 @@ public abstract class BasePriceListResourceTestCase {
 			Arrays.asList(
 				PriceListSerDes.toDTOs(
 					priceListsJSONObject.getString("items"))));
+	}
+
+	protected PriceList testGraphQLGetPriceListsPage_addPriceList()
+		throws Exception {
+
+		return testGraphQLPriceList_addPriceList();
 	}
 
 	@Test
@@ -555,7 +598,8 @@ public abstract class BasePriceListResourceTestCase {
 	public void testGraphQLGetPriceListByExternalReferenceCode()
 		throws Exception {
 
-		PriceList priceList = testGraphQLPriceList_addPriceList();
+		PriceList priceList =
+			testGraphQLGetPriceListByExternalReferenceCode_addPriceList();
 
 		Assert.assertTrue(
 			equals(
@@ -605,6 +649,13 @@ public abstract class BasePriceListResourceTestCase {
 				"Object/code"));
 	}
 
+	protected PriceList
+			testGraphQLGetPriceListByExternalReferenceCode_addPriceList()
+		throws Exception {
+
+		return testGraphQLPriceList_addPriceList();
+	}
+
 	@Test
 	public void testPatchPriceListByExternalReferenceCode() throws Exception {
 		Assert.assertTrue(false);
@@ -633,7 +684,7 @@ public abstract class BasePriceListResourceTestCase {
 
 	@Test
 	public void testGraphQLDeletePriceList() throws Exception {
-		PriceList priceList = testGraphQLPriceList_addPriceList();
+		PriceList priceList = testGraphQLDeletePriceList_addPriceList();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -646,7 +697,6 @@ public abstract class BasePriceListResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deletePriceList"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -660,6 +710,12 @@ public abstract class BasePriceListResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected PriceList testGraphQLDeletePriceList_addPriceList()
+		throws Exception {
+
+		return testGraphQLPriceList_addPriceList();
 	}
 
 	@Test
@@ -680,7 +736,7 @@ public abstract class BasePriceListResourceTestCase {
 
 	@Test
 	public void testGraphQLGetPriceList() throws Exception {
-		PriceList priceList = testGraphQLPriceList_addPriceList();
+		PriceList priceList = testGraphQLGetPriceList_addPriceList();
 
 		Assert.assertTrue(
 			equals(
@@ -717,6 +773,12 @@ public abstract class BasePriceListResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected PriceList testGraphQLGetPriceList_addPriceList()
+		throws Exception {
+
+		return testGraphQLPriceList_addPriceList();
 	}
 
 	@Test
@@ -1361,8 +1423,9 @@ public abstract class BasePriceListResourceTestCase {
 		}
 
 		if (entityFieldName.equals("priority")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(priceList.getPriority()));
+
+			return sb.toString();
 		}
 
 		throw new IllegalArgumentException(

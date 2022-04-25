@@ -16,12 +16,13 @@ import ClayIcon from '@clayui/icon';
 
 import Container from '../../../components/Layout/Container';
 import ListView from '../../../components/ListView/ListView';
-import {getTestrayRequirements} from '../../../graphql/queries';
+import {getRequirements} from '../../../graphql/queries';
+import i18n from '../../../i18n';
 
 const CaseRequirement = () => (
-	<Container title="Requirements">
+	<Container title={i18n.translate('requirements')}>
 		<ListView
-			query={getTestrayRequirements}
+			query={getRequirements}
 			tableProps={{
 				columns: [
 					{
@@ -47,17 +48,18 @@ const CaseRequirement = () => (
 						),
 						value: 'Link',
 					},
-					{key: 'team', value: 'Team'},
-					{key: 'component', value: 'Component'},
-					{key: 'components', value: 'Jira Components'},
-					{key: 'summary', value: 'Summary'},
-					{key: 'description', value: 'Description'},
+					{key: 'team', value: i18n.translate('team')},
+					{key: 'component', value: i18n.translate('component')},
+					{
+						key: 'components',
+						value: i18n.translate('jira-components'),
+					},
+					{key: 'summary', value: i18n.translate('summary')},
+					{key: 'description', value: i18n.translate('description')},
 				],
-				navigateTo: ({testrayRequirementId}) =>
-					testrayRequirementId?.toString(),
+				navigateTo: ({id}) => id?.toString(),
 			}}
-			transformData={(data) => data?.c?.testrayRequirements}
-			variables={{}}
+			transformData={(data) => data?.c?.requirements}
 		/>
 	</Container>
 );

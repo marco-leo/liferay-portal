@@ -57,7 +57,8 @@ public class CommerceShipmentItemLocalServiceImpl
 	public CommerceShipmentItem addCommerceShipmentItem(
 			String externalReferenceCode, long commerceShipmentId,
 			long commerceOrderItemId, long commerceInventoryWarehouseId,
-			int quantity, ServiceContext serviceContext)
+			int quantity, boolean validateInventory,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		// Commerce shipment item
@@ -69,11 +70,13 @@ public class CommerceShipmentItemLocalServiceImpl
 			commerceOrderItemLocalService.getCommerceOrderItem(
 				commerceOrderItemId);
 
-		validate(
-			commerceOrderItem,
-			commerceShipmentLocalService.getCommerceShipment(
-				commerceShipmentId),
-			commerceInventoryWarehouseId, quantity, quantity);
+		if (validateInventory) {
+			validate(
+				commerceOrderItem,
+				commerceShipmentLocalService.getCommerceShipment(
+					commerceShipmentId),
+				commerceInventoryWarehouseId, quantity, quantity);
+		}
 
 		long commerceShipmentItemId = counterLocalService.increment();
 
@@ -142,26 +145,31 @@ public class CommerceShipmentItemLocalServiceImpl
 	public CommerceShipmentItem addOrUpdateCommerceShipmentItem(
 			String externalReferenceCode, long commerceShipmentId,
 			long commerceOrderItemId, long commerceInventoryWarehouseId,
-			int quantity, ServiceContext serviceContext)
+			int quantity, boolean validateInventory,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		if (Validator.isBlank(externalReferenceCode)) {
 			externalReferenceCode = null;
 		}
 
-		CommerceShipmentItem commerceShipmentItem =
-			commerceShipmentItemPersistence.fetchByC_ERC(
+		CommerceShipmentItem commerceShipmentItem = null;
+
+		if (Validator.isNotNull(externalReferenceCode)) {
+			commerceShipmentItem = commerceShipmentItemPersistence.fetchByC_ERC(
 				serviceContext.getCompanyId(), externalReferenceCode);
+		}
 
 		if (commerceShipmentItem == null) {
 			return commerceShipmentItemLocalService.addCommerceShipmentItem(
 				externalReferenceCode, commerceShipmentId, commerceOrderItemId,
-				commerceInventoryWarehouseId, quantity, serviceContext);
+				commerceInventoryWarehouseId, quantity, validateInventory,
+				serviceContext);
 		}
 
 		return commerceShipmentItemLocalService.updateCommerceShipmentItem(
 			commerceShipmentItem.getCommerceShipmentItemId(),
-			commerceInventoryWarehouseId, quantity);
+			commerceInventoryWarehouseId, quantity, validateInventory);
 	}
 
 	@Indexable(type = IndexableType.DELETE)
@@ -319,27 +327,11 @@ public class CommerceShipmentItemLocalServiceImpl
 			commerceShipmentId, commerceOrderItemId);
 	}
 
-	@Override
-	public CommerceShipmentItem updateCommerceShipmentItem(
-			long commerceShipmentItemId, int quantity)
-		throws PortalException {
-
-		// Commerce shipment item
-
-		CommerceShipmentItem commerceShipmentItem =
-			commerceShipmentItemPersistence.findByPrimaryKey(
-				commerceShipmentItemId);
-
-		return updateCommerceShipmentItem(
-			commerceShipmentItemId,
-			commerceShipmentItem.getCommerceInventoryWarehouseId(), quantity);
-	}
-
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public CommerceShipmentItem updateCommerceShipmentItem(
 			long commerceShipmentItemId, long commerceInventoryWarehouseId,
-			int quantity)
+			int quantity, boolean validateInventory)
 		throws PortalException {
 
 		// Commerce shipment item
@@ -354,9 +346,11 @@ public class CommerceShipmentItemLocalServiceImpl
 
 		int originalQuantity = commerceShipmentItem.getQuantity();
 
-		validate(
-			commerceOrderItem, commerceShipmentItem.getCommerceShipment(),
-			commerceInventoryWarehouseId, originalQuantity, quantity);
+		if (validateInventory) {
+			validate(
+				commerceOrderItem, commerceShipmentItem.getCommerceShipment(),
+				commerceInventoryWarehouseId, originalQuantity, quantity);
+		}
 
 		commerceShipmentItem.setCommerceInventoryWarehouseId(
 			commerceInventoryWarehouseId);
@@ -391,6 +385,21 @@ public class CommerceShipmentItemLocalServiceImpl
 		return commerceShipmentItem;
 	}
 
+	@Indexable(type = IndexableType.REINDEX)
+	@Override
+	public CommerceShipmentItem updateExternalReferenceCode(
+			long commerceShipmentItemId, String externalReferenceCode)
+		throws PortalException {
+
+		CommerceShipmentItem commerceShipmentItem =
+			commerceShipmentItemPersistence.findByPrimaryKey(
+				commerceShipmentItemId);
+
+		commerceShipmentItem.setExternalReferenceCode(externalReferenceCode);
+
+		return commerceShipmentItemPersistence.update(commerceShipmentItem);
+	}
+
 	protected void validate(
 			CommerceOrderItem commerceOrderItem,
 			CommerceShipment commerceShipment,
@@ -420,10 +429,11 @@ public class CommerceShipmentItemLocalServiceImpl
 			commerceOrderItem.getQuantity() -
 				commerceOrderItem.getShippedQuantity();
 
-		CommerceShipmentItem commerceShipmentItem = fetchCommerceShipmentItem(
-			commerceShipment.getCommerceShipmentId(),
-			commerceOrderItem.getCommerceOrderItemId(),
-			commerceInventoryWarehouseId);
+		CommerceShipmentItem commerceShipmentItem =
+			commerceShipmentItemPersistence.fetchByC_C_C(
+				commerceShipment.getCommerceShipmentId(),
+				commerceOrderItem.getCommerceOrderItemId(),
+				commerceInventoryWarehouseId);
 
 		if (commerceShipmentItem != null) {
 			availableQuantity =

@@ -304,6 +304,42 @@ public abstract class BaseContentStructureResourceTestCase {
 	}
 
 	@Test
+	public void testGetAssetLibraryContentStructuresPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long assetLibraryId =
+			testGetAssetLibraryContentStructuresPage_getAssetLibraryId();
+
+		ContentStructure contentStructure1 =
+			testGetAssetLibraryContentStructuresPage_addContentStructure(
+				assetLibraryId, randomContentStructure());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		ContentStructure contentStructure2 =
+			testGetAssetLibraryContentStructuresPage_addContentStructure(
+				assetLibraryId, randomContentStructure());
+
+		for (EntityField entityField : entityFields) {
+			Page<ContentStructure> page =
+				contentStructureResource.getAssetLibraryContentStructuresPage(
+					assetLibraryId, null, null,
+					getFilterString(entityField, "eq", contentStructure1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(contentStructure1),
+				(List<ContentStructure>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetAssetLibraryContentStructuresPageWithFilterStringEquals()
 		throws Exception {
 
@@ -400,6 +436,20 @@ public abstract class BaseContentStructureResourceTestCase {
 				BeanUtils.setProperty(
 					contentStructure1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetAssetLibraryContentStructuresPageWithSortDouble()
+		throws Exception {
+
+		testGetAssetLibraryContentStructuresPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, contentStructure1, contentStructure2) -> {
+				BeanUtils.setProperty(
+					contentStructure1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					contentStructure2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -637,7 +687,7 @@ public abstract class BaseContentStructureResourceTestCase {
 	@Test
 	public void testGraphQLGetContentStructure() throws Exception {
 		ContentStructure contentStructure =
-			testGraphQLContentStructure_addContentStructure();
+			testGraphQLGetContentStructure_addContentStructure();
 
 		Assert.assertTrue(
 			equals(
@@ -678,6 +728,13 @@ public abstract class BaseContentStructureResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected ContentStructure
+			testGraphQLGetContentStructure_addContentStructure()
+		throws Exception {
+
+		return testGraphQLContentStructure_addContentStructure();
 	}
 
 	@Test
@@ -827,6 +884,41 @@ public abstract class BaseContentStructureResourceTestCase {
 	}
 
 	@Test
+	public void testGetSiteContentStructuresPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long siteId = testGetSiteContentStructuresPage_getSiteId();
+
+		ContentStructure contentStructure1 =
+			testGetSiteContentStructuresPage_addContentStructure(
+				siteId, randomContentStructure());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		ContentStructure contentStructure2 =
+			testGetSiteContentStructuresPage_addContentStructure(
+				siteId, randomContentStructure());
+
+		for (EntityField entityField : entityFields) {
+			Page<ContentStructure> page =
+				contentStructureResource.getSiteContentStructuresPage(
+					siteId, null, null,
+					getFilterString(entityField, "eq", contentStructure1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(contentStructure1),
+				(List<ContentStructure>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetSiteContentStructuresPageWithFilterStringEquals()
 		throws Exception {
 
@@ -921,6 +1013,20 @@ public abstract class BaseContentStructureResourceTestCase {
 				BeanUtils.setProperty(
 					contentStructure1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetSiteContentStructuresPageWithSortDouble()
+		throws Exception {
+
+		testGetSiteContentStructuresPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, contentStructure1, contentStructure2) -> {
+				BeanUtils.setProperty(
+					contentStructure1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					contentStructure2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -1088,9 +1194,9 @@ public abstract class BaseContentStructureResourceTestCase {
 		Assert.assertEquals(0, contentStructuresJSONObject.get("totalCount"));
 
 		ContentStructure contentStructure1 =
-			testGraphQLContentStructure_addContentStructure();
+			testGraphQLGetSiteContentStructuresPage_addContentStructure();
 		ContentStructure contentStructure2 =
-			testGraphQLContentStructure_addContentStructure();
+			testGraphQLGetSiteContentStructuresPage_addContentStructure();
 
 		contentStructuresJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -1104,6 +1210,13 @@ public abstract class BaseContentStructureResourceTestCase {
 			Arrays.asList(
 				ContentStructureSerDes.toDTOs(
 					contentStructuresJSONObject.getString("items"))));
+	}
+
+	protected ContentStructure
+			testGraphQLGetSiteContentStructuresPage_addContentStructure()
+		throws Exception {
+
+		return testGraphQLContentStructure_addContentStructure();
 	}
 
 	@Test

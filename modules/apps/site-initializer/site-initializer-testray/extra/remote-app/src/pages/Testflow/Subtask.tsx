@@ -15,18 +15,29 @@
 import {useEffect} from 'react';
 
 import {Avatar} from '../../components/Avatar';
+import Code from '../../components/Code';
 import Container from '../../components/Layout/Container';
+import ListView from '../../components/ListView/ListView';
 import StatusBadge from '../../components/StatusBadge';
-import Table from '../../components/Table';
 import QATable from '../../components/Table/QATable';
+import {getCaseResults} from '../../graphql/queries';
 import useHeader from '../../hooks/useHeader';
-import {Tests, subtask} from '../../util/mock';
+import i18n from '../../i18n';
+import {getStatusLabel} from '../../util/constants';
+import {subtask} from '../../util/mock';
 
 const Subtasks = () => {
 	const {setHeading} = useHeader();
 
 	useEffect(() => {
-		setHeading([{category: 'PROJECT', title: 'Subtask'}]);
+		setTimeout(() => {
+			setHeading([
+				{
+					category: i18n.translate('project').toUpperCase(),
+					title: i18n.translate('subtask'),
+				},
+			]);
+		});
 	}, [setHeading]);
 
 	return (
@@ -37,7 +48,7 @@ const Subtasks = () => {
 						<QATable
 							items={[
 								{
-									title: 'STATUS',
+									title: i18n.translate('status'),
 									value: (
 										<StatusBadge type="blocked">
 											Blocked
@@ -45,7 +56,7 @@ const Subtasks = () => {
 									),
 								},
 								{
-									title: 'ASSIGNEE',
+									title: i18n.translate('assignee'),
 									value: (
 										<Avatar
 											displayName
@@ -55,31 +66,45 @@ const Subtasks = () => {
 									),
 								},
 								{
-									title: 'UPDATED',
+									title: i18n.translate('updated'),
 									value: '6 Hours ago',
 								},
 								{
-									title: 'ISSUE',
+									title: i18n.translate('issue'),
 									value: '-',
 								},
 								{
-									title: 'COMMENT',
+									title: i18n.translate('comment'),
 									value: 'None',
 								},
 							]}
 						/>
 					</div>
 
-					<div className="col-4 col-lg-4 col-md-12 pb-5">
+					<div className="col-8 col-lg-8 col-md-12 pb-5">
 						<QATable
 							items={[
 								{
-									title: 'SCORE',
+									title: i18n.translate('score'),
 									value: '1052',
 								},
 								{
-									title: 'ASSIGNEE',
-									value: 'Failed prior to running test',
+									title: i18n.translate('error'),
+									value: (
+										<Code>
+											{`java.lang.Exception: Cookie
+											expiration date is not 6 months
+											ahead. The expected expiration date
+											is:'2022-10-08T09' while the actual
+											cookie has 'ERROR: Cookie not found,
+											or script not executed as
+											expected.'.`}
+										</Code>
+									),
+								},
+								{
+									title: i18n.translate('merged-with'),
+									value: 'ST-5, ST-6',
 								},
 							]}
 						/>
@@ -88,33 +113,72 @@ const Subtasks = () => {
 			</Container>
 
 			<Container className="mt-5" title="Tests">
-				<Table
-					columns={[
-						{clickable: true, key: 'run', value: 'RUN'},
-						{clickable: true, key: 'priority', value: 'PRIORITY'},
-						{clickable: true, key: 'team', value: 'TEAM'},
-						{clickable: true, key: 'component', value: 'COMPONENT'},
-						{
-							clickable: true,
-							key: 'case',
-							size: 'xl',
-							value: 'CASE',
-						},
-						{clickable: true, key: 'issues', value: 'ISSUES'},
-						{
-							clickable: true,
-							key: 'status',
-							render: () => (
-								<StatusBadge type="blocked">
-									Blocked
-								</StatusBadge>
-							),
+				<ListView
+					managementToolbarProps={{
+						visible: false,
+					}}
+					query={getCaseResults}
+					tableProps={{
+						columns: [
+							{
+								key: 'case',
+								render: (testrayCase) => {
+									return testrayCase?.caseNumber;
+								},
+								value: i18n.translate('run'),
+							},
+							{
+								key: 'case',
+								render: (testrayCase) => {
+									return testrayCase?.priority;
+								},
+								value: i18n.translate('priority'),
+							},
+							{
+								clickable: true,
+								key: 'component',
+								render: (component) => {
+									return component?.team?.name;
+								},
+								value: i18n.translate('team'),
+							},
+							{
+								clickable: true,
+								key: 'component',
+								render: (component) => {
+									return component?.name;
+								},
+								value: i18n.translate('component'),
+							},
+							{
+								clickable: true,
+								key: 'case',
+								render: (testrayCase) => testrayCase?.name,
+								size: 'md',
+								value: i18n.translate('case'),
+							},
+							{key: 'issues', value: i18n.translate('issues')},
 
-							value: 'STATUS',
-						},
-					]}
-					items={Tests}
-					navigateTo={() => '/testflow/details'}
+							{
+								key: 'dueStatus',
+								render: (dueStatus) => {
+									return (
+										<StatusBadge
+											type={getStatusLabel(
+												dueStatus
+											)?.toLowerCase()}
+										>
+											{getStatusLabel(dueStatus)}
+										</StatusBadge>
+									);
+								},
+								value: i18n.translate('status'),
+							},
+						],
+						navigateTo: ({build, id}) =>
+							`/project/routines/${build?.routine?.id}/build/${build?.id}/case-result/${id}`,
+					}}
+					transformData={(data) => data?.caseResults}
 				/>
 			</Container>
 		</>

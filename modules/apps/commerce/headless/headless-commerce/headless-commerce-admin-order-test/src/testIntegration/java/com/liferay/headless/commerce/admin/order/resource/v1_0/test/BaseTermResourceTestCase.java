@@ -254,6 +254,30 @@ public abstract class BaseTermResourceTestCase {
 	}
 
 	@Test
+	public void testGetTermsPageWithFilterDoubleEquals() throws Exception {
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Term term1 = testGetTermsPage_addTerm(randomTerm());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Term term2 = testGetTermsPage_addTerm(randomTerm());
+
+		for (EntityField entityField : entityFields) {
+			Page<Term> page = termResource.getTermsPage(
+				null, getFilterString(entityField, "eq", term1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(term1), (List<Term>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetTermsPageWithFilterStringEquals() throws Exception {
 		List<EntityField> entityFields = getEntityFields(
 			EntityField.Type.STRING);
@@ -322,6 +346,16 @@ public abstract class BaseTermResourceTestCase {
 				BeanUtils.setProperty(
 					term1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetTermsPageWithSortDouble() throws Exception {
+		testGetTermsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, term1, term2) -> {
+				BeanUtils.setProperty(term1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(term2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -450,8 +484,8 @@ public abstract class BaseTermResourceTestCase {
 
 		long totalCount = termsJSONObject.getLong("totalCount");
 
-		Term term1 = testGraphQLTerm_addTerm();
-		Term term2 = testGraphQLTerm_addTerm();
+		Term term1 = testGraphQLGetTermsPage_addTerm();
+		Term term2 = testGraphQLGetTermsPage_addTerm();
 
 		termsJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -468,6 +502,10 @@ public abstract class BaseTermResourceTestCase {
 			term2,
 			Arrays.asList(
 				TermSerDes.toDTOs(termsJSONObject.getString("items"))));
+	}
+
+	protected Term testGraphQLGetTermsPage_addTerm() throws Exception {
+		return testGraphQLTerm_addTerm();
 	}
 
 	@Test
@@ -533,7 +571,7 @@ public abstract class BaseTermResourceTestCase {
 
 	@Test
 	public void testGraphQLGetTermByExternalReferenceCode() throws Exception {
-		Term term = testGraphQLTerm_addTerm();
+		Term term = testGraphQLGetTermByExternalReferenceCode_addTerm();
 
 		Assert.assertTrue(
 			equals(
@@ -581,6 +619,12 @@ public abstract class BaseTermResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Term testGraphQLGetTermByExternalReferenceCode_addTerm()
+		throws Exception {
+
+		return testGraphQLTerm_addTerm();
 	}
 
 	@Test
@@ -633,7 +677,7 @@ public abstract class BaseTermResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteTerm() throws Exception {
-		Term term = testGraphQLTerm_addTerm();
+		Term term = testGraphQLDeleteTerm_addTerm();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -646,7 +690,6 @@ public abstract class BaseTermResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteTerm"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -660,6 +703,10 @@ public abstract class BaseTermResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected Term testGraphQLDeleteTerm_addTerm() throws Exception {
+		return testGraphQLTerm_addTerm();
 	}
 
 	@Test
@@ -679,7 +726,7 @@ public abstract class BaseTermResourceTestCase {
 
 	@Test
 	public void testGraphQLGetTerm() throws Exception {
-		Term term = testGraphQLTerm_addTerm();
+		Term term = testGraphQLGetTerm_addTerm();
 
 		Assert.assertTrue(
 			equals(
@@ -716,6 +763,10 @@ public abstract class BaseTermResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Term testGraphQLGetTerm_addTerm() throws Exception {
+		return testGraphQLTerm_addTerm();
 	}
 
 	@Test
@@ -1444,8 +1495,9 @@ public abstract class BaseTermResourceTestCase {
 		}
 
 		if (entityFieldName.equals("priority")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(term.getPriority()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("termOrderType")) {

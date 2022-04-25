@@ -321,6 +321,20 @@ public abstract class BaseMappedProductResourceTestCase {
 	}
 
 	@Test
+	public void testGetChannelProductMappedProductsPageWithSortDouble()
+		throws Exception {
+
+		testGetChannelProductMappedProductsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, mappedProduct1, mappedProduct2) -> {
+				BeanUtils.setProperty(
+					mappedProduct1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					mappedProduct2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetChannelProductMappedProductsPageWithSortInteger()
 		throws Exception {
 
@@ -591,14 +605,6 @@ public abstract class BaseMappedProductResourceTestCase {
 				continue;
 			}
 
-			if (Objects.equals("options", additionalAssertFieldName)) {
-				if (mappedProduct.getOptions() == null) {
-					valid = false;
-				}
-
-				continue;
-			}
-
 			if (Objects.equals("price", additionalAssertFieldName)) {
 				if (mappedProduct.getPrice() == null) {
 					valid = false;
@@ -716,6 +722,14 @@ public abstract class BaseMappedProductResourceTestCase {
 
 			if (Objects.equals("skuId", additionalAssertFieldName)) {
 				if (mappedProduct.getSkuId() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("skuOptions", additionalAssertFieldName)) {
+				if (mappedProduct.getSkuOptions() == null) {
 					valid = false;
 				}
 
@@ -887,17 +901,6 @@ public abstract class BaseMappedProductResourceTestCase {
 				continue;
 			}
 
-			if (Objects.equals("options", additionalAssertFieldName)) {
-				if (!equals(
-						(Map)mappedProduct1.getOptions(),
-						(Map)mappedProduct2.getOptions())) {
-
-					return false;
-				}
-
-				continue;
-			}
-
 			if (Objects.equals("price", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						mappedProduct1.getPrice(), mappedProduct2.getPrice())) {
@@ -1060,6 +1063,17 @@ public abstract class BaseMappedProductResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("skuOptions", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						mappedProduct1.getSkuOptions(),
+						mappedProduct2.getSkuOptions())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("thumbnail", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						mappedProduct1.getThumbnail(),
@@ -1209,11 +1223,6 @@ public abstract class BaseMappedProductResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
-		if (entityFieldName.equals("options")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
-		}
-
 		if (entityFieldName.equals("price")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -1255,8 +1264,9 @@ public abstract class BaseMappedProductResourceTestCase {
 		}
 
 		if (entityFieldName.equals("quantity")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(mappedProduct.getQuantity()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("replacementMappedProduct")) {
@@ -1298,6 +1308,11 @@ public abstract class BaseMappedProductResourceTestCase {
 		}
 
 		if (entityFieldName.equals("skuId")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("skuOptions")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}

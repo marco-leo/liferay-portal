@@ -292,6 +292,42 @@ public abstract class BaseListTypeEntryResourceTestCase {
 	}
 
 	@Test
+	public void testGetListTypeDefinitionListTypeEntriesPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long listTypeDefinitionId =
+			testGetListTypeDefinitionListTypeEntriesPage_getListTypeDefinitionId();
+
+		ListTypeEntry listTypeEntry1 =
+			testGetListTypeDefinitionListTypeEntriesPage_addListTypeEntry(
+				listTypeDefinitionId, randomListTypeEntry());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		ListTypeEntry listTypeEntry2 =
+			testGetListTypeDefinitionListTypeEntriesPage_addListTypeEntry(
+				listTypeDefinitionId, randomListTypeEntry());
+
+		for (EntityField entityField : entityFields) {
+			Page<ListTypeEntry> page =
+				listTypeEntryResource.getListTypeDefinitionListTypeEntriesPage(
+					listTypeDefinitionId, null, null,
+					getFilterString(entityField, "eq", listTypeEntry1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(listTypeEntry1),
+				(List<ListTypeEntry>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetListTypeDefinitionListTypeEntriesPageWithFilterStringEquals()
 		throws Exception {
 
@@ -390,6 +426,20 @@ public abstract class BaseListTypeEntryResourceTestCase {
 				BeanUtils.setProperty(
 					listTypeEntry1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetListTypeDefinitionListTypeEntriesPageWithSortDouble()
+		throws Exception {
+
+		testGetListTypeDefinitionListTypeEntriesPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, listTypeEntry1, listTypeEntry2) -> {
+				BeanUtils.setProperty(
+					listTypeEntry1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					listTypeEntry2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -587,7 +637,7 @@ public abstract class BaseListTypeEntryResourceTestCase {
 	@Test
 	public void testGraphQLDeleteListTypeEntry() throws Exception {
 		ListTypeEntry listTypeEntry =
-			testGraphQLListTypeEntry_addListTypeEntry();
+			testGraphQLDeleteListTypeEntry_addListTypeEntry();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -600,7 +650,6 @@ public abstract class BaseListTypeEntryResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteListTypeEntry"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -614,6 +663,12 @@ public abstract class BaseListTypeEntryResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected ListTypeEntry testGraphQLDeleteListTypeEntry_addListTypeEntry()
+		throws Exception {
+
+		return testGraphQLListTypeEntry_addListTypeEntry();
 	}
 
 	@Test
@@ -638,7 +693,7 @@ public abstract class BaseListTypeEntryResourceTestCase {
 	@Test
 	public void testGraphQLGetListTypeEntry() throws Exception {
 		ListTypeEntry listTypeEntry =
-			testGraphQLListTypeEntry_addListTypeEntry();
+			testGraphQLGetListTypeEntry_addListTypeEntry();
 
 		Assert.assertTrue(
 			equals(
@@ -679,6 +734,12 @@ public abstract class BaseListTypeEntryResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected ListTypeEntry testGraphQLGetListTypeEntry_addListTypeEntry()
+		throws Exception {
+
+		return testGraphQLListTypeEntry_addListTypeEntry();
 	}
 
 	@Test

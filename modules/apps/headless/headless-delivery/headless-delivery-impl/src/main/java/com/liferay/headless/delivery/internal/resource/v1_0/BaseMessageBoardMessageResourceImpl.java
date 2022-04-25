@@ -17,6 +17,7 @@ package com.liferay.headless.delivery.internal.resource.v1_0;
 import com.liferay.headless.delivery.dto.v1_0.MessageBoardMessage;
 import com.liferay.headless.delivery.dto.v1_0.Rating;
 import com.liferay.headless.delivery.resource.v1_0.MessageBoardMessageResource;
+import com.liferay.petra.function.UnsafeBiConsumer;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -1475,8 +1476,16 @@ public abstract class BaseMessageBoardMessageResourceImpl
 							(String)parameters.get("messageBoardThreadId")),
 						messageBoardMessage);
 
-		for (MessageBoardMessage messageBoardMessage : messageBoardMessages) {
-			messageBoardMessageUnsafeConsumer.accept(messageBoardMessage);
+		if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				messageBoardMessages, messageBoardMessageUnsafeConsumer);
+		}
+		else {
+			for (MessageBoardMessage messageBoardMessage :
+					messageBoardMessages) {
+
+				messageBoardMessageUnsafeConsumer.accept(messageBoardMessage);
+			}
 		}
 	}
 
@@ -1504,6 +1513,10 @@ public abstract class BaseMessageBoardMessageResourceImpl
 		throws Exception {
 
 		return null;
+	}
+
+	public String getVersion() {
+		return "v1.0";
 	}
 
 	@Override
@@ -1628,6 +1641,15 @@ public abstract class BaseMessageBoardMessageResourceImpl
 		this.contextAcceptLanguage = contextAcceptLanguage;
 	}
 
+	public void setContextBatchUnsafeConsumer(
+		UnsafeBiConsumer
+			<java.util.Collection<MessageBoardMessage>,
+			 UnsafeConsumer<MessageBoardMessage, Exception>, Exception>
+				contextBatchUnsafeConsumer) {
+
+		this.contextBatchUnsafeConsumer = contextBatchUnsafeConsumer;
+	}
+
 	public void setContextCompany(
 		com.liferay.portal.kernel.model.Company contextCompany) {
 
@@ -1686,6 +1708,14 @@ public abstract class BaseMessageBoardMessageResourceImpl
 
 	public void setRoleLocalService(RoleLocalService roleLocalService) {
 		this.roleLocalService = roleLocalService;
+	}
+
+	public void setVulcanBatchEngineImportTaskResource(
+		VulcanBatchEngineImportTaskResource
+			vulcanBatchEngineImportTaskResource) {
+
+		this.vulcanBatchEngineImportTaskResource =
+			vulcanBatchEngineImportTaskResource;
 	}
 
 	@Override
@@ -1781,6 +1811,10 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
+	protected UnsafeBiConsumer
+		<java.util.Collection<MessageBoardMessage>,
+		 UnsafeConsumer<MessageBoardMessage, Exception>, Exception>
+			contextBatchUnsafeConsumer;
 	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;

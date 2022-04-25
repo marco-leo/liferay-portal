@@ -20,7 +20,6 @@ import com.liferay.object.admin.rest.dto.v1_0.ObjectField;
 import com.liferay.object.admin.rest.dto.v1_0.ObjectLayout;
 import com.liferay.object.admin.rest.dto.v1_0.ObjectView;
 import com.liferay.object.admin.rest.dto.v1_0.Status;
-import com.liferay.object.admin.rest.internal.configuration.activator.FFObjectDefinitionPermissionsActionConfigurationActivator;
 import com.liferay.object.admin.rest.internal.dto.v1_0.util.ObjectActionUtil;
 import com.liferay.object.admin.rest.internal.dto.v1_0.util.ObjectFieldUtil;
 import com.liferay.object.admin.rest.internal.dto.v1_0.util.ObjectLayoutUtil;
@@ -32,6 +31,7 @@ import com.liferay.object.constants.ObjectConstants;
 import com.liferay.object.service.ObjectActionLocalService;
 import com.liferay.object.service.ObjectDefinitionService;
 import com.liferay.object.service.ObjectFieldLocalService;
+import com.liferay.object.service.ObjectFieldSettingLocalService;
 import com.liferay.object.service.ObjectLayoutLocalService;
 import com.liferay.object.service.ObjectViewLocalService;
 import com.liferay.object.util.LocalizedMapUtil;
@@ -140,7 +140,8 @@ public class ObjectDefinitionResourceImpl
 				transformToList(
 					objectDefinition.getObjectFields(),
 					objectField -> ObjectFieldUtil.toObjectField(
-						objectField, _objectFieldLocalService))));
+						objectField, _objectFieldLocalService,
+						_objectFieldSettingLocalService))));
 	}
 
 	@Override
@@ -211,18 +212,10 @@ public class ObjectDefinitionResourceImpl
 						objectDefinition.getObjectDefinitionId())
 				).put(
 					"permissions",
-					() -> {
-						if (!_ffObjectDefinitionPermissionsActionConfigurationActivator.
-								enabled()) {
-
-							return null;
-						}
-
-						return addAction(
-							ActionKeys.PERMISSIONS, "patchObjectDefinition",
-							permissionName,
-							objectDefinition.getObjectDefinitionId());
-					}
+					addAction(
+						ActionKeys.PERMISSIONS, "patchObjectDefinition",
+						permissionName,
+						objectDefinition.getObjectDefinitionId())
 				).put(
 					"publish",
 					() -> {
@@ -305,10 +298,6 @@ public class ObjectDefinitionResourceImpl
 		new ObjectDefinitionEntityModel();
 
 	@Reference
-	private FFObjectDefinitionPermissionsActionConfigurationActivator
-		_ffObjectDefinitionPermissionsActionConfigurationActivator;
-
-	@Reference
 	private ObjectActionLocalService _objectActionLocalService;
 
 	@Reference
@@ -316,6 +305,9 @@ public class ObjectDefinitionResourceImpl
 
 	@Reference
 	private ObjectFieldLocalService _objectFieldLocalService;
+
+	@Reference
+	private ObjectFieldSettingLocalService _objectFieldSettingLocalService;
 
 	@Reference
 	private ObjectLayoutLocalService _objectLayoutLocalService;

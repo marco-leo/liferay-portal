@@ -234,8 +234,8 @@ public abstract class BaseTimeRangeResourceTestCase {
 
 		long totalCount = timeRangesJSONObject.getLong("totalCount");
 
-		TimeRange timeRange1 = testGraphQLTimeRange_addTimeRange();
-		TimeRange timeRange2 = testGraphQLTimeRange_addTimeRange();
+		TimeRange timeRange1 = testGraphQLGetTimeRangesPage_addTimeRange();
+		TimeRange timeRange2 = testGraphQLGetTimeRangesPage_addTimeRange();
 
 		timeRangesJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -254,6 +254,12 @@ public abstract class BaseTimeRangeResourceTestCase {
 			Arrays.asList(
 				TimeRangeSerDes.toDTOs(
 					timeRangesJSONObject.getString("items"))));
+	}
+
+	protected TimeRange testGraphQLGetTimeRangesPage_addTimeRange()
+		throws Exception {
+
+		return testGraphQLTimeRange_addTimeRange();
 	}
 
 	protected TimeRange testGraphQLTimeRange_addTimeRange() throws Exception {
@@ -675,8 +681,9 @@ public abstract class BaseTimeRangeResourceTestCase {
 		}
 
 		if (entityFieldName.equals("id")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(timeRange.getId()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("name")) {

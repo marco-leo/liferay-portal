@@ -230,7 +230,8 @@ public abstract class BaseDiscountRuleResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteDiscountRule() throws Exception {
-		DiscountRule discountRule = testGraphQLDiscountRule_addDiscountRule();
+		DiscountRule discountRule =
+			testGraphQLDeleteDiscountRule_addDiscountRule();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -243,7 +244,6 @@ public abstract class BaseDiscountRuleResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteDiscountRule"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -257,6 +257,12 @@ public abstract class BaseDiscountRuleResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected DiscountRule testGraphQLDeleteDiscountRule_addDiscountRule()
+		throws Exception {
+
+		return testGraphQLDiscountRule_addDiscountRule();
 	}
 
 	@Test
@@ -279,7 +285,8 @@ public abstract class BaseDiscountRuleResourceTestCase {
 
 	@Test
 	public void testGraphQLGetDiscountRule() throws Exception {
-		DiscountRule discountRule = testGraphQLDiscountRule_addDiscountRule();
+		DiscountRule discountRule =
+			testGraphQLGetDiscountRule_addDiscountRule();
 
 		Assert.assertTrue(
 			equals(
@@ -316,6 +323,12 @@ public abstract class BaseDiscountRuleResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected DiscountRule testGraphQLGetDiscountRule_addDiscountRule()
+		throws Exception {
+
+		return testGraphQLDiscountRule_addDiscountRule();
 	}
 
 	@Test
@@ -590,6 +603,40 @@ public abstract class BaseDiscountRuleResourceTestCase {
 	}
 
 	@Test
+	public void testGetDiscountIdDiscountRulesPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long id = testGetDiscountIdDiscountRulesPage_getId();
+
+		DiscountRule discountRule1 =
+			testGetDiscountIdDiscountRulesPage_addDiscountRule(
+				id, randomDiscountRule());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		DiscountRule discountRule2 =
+			testGetDiscountIdDiscountRulesPage_addDiscountRule(
+				id, randomDiscountRule());
+
+		for (EntityField entityField : entityFields) {
+			Page<DiscountRule> page =
+				discountRuleResource.getDiscountIdDiscountRulesPage(
+					id, null, getFilterString(entityField, "eq", discountRule1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(discountRule1),
+				(List<DiscountRule>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetDiscountIdDiscountRulesPageWithFilterStringEquals()
 		throws Exception {
 
@@ -682,6 +729,20 @@ public abstract class BaseDiscountRuleResourceTestCase {
 				BeanUtils.setProperty(
 					discountRule1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetDiscountIdDiscountRulesPageWithSortDouble()
+		throws Exception {
+
+		testGetDiscountIdDiscountRulesPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, discountRule1, discountRule2) -> {
+				BeanUtils.setProperty(
+					discountRule1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					discountRule2, entityField.getName(), 0.5);
 			});
 	}
 

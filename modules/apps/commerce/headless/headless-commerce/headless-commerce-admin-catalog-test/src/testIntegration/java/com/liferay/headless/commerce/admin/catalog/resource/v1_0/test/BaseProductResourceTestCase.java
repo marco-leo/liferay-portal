@@ -257,6 +257,31 @@ public abstract class BaseProductResourceTestCase {
 	}
 
 	@Test
+	public void testGetProductsPageWithFilterDoubleEquals() throws Exception {
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Product product1 = testGetProductsPage_addProduct(randomProduct());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Product product2 = testGetProductsPage_addProduct(randomProduct());
+
+		for (EntityField entityField : entityFields) {
+			Page<Product> page = productResource.getProductsPage(
+				null, getFilterString(entityField, "eq", product1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(product1),
+				(List<Product>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetProductsPageWithFilterStringEquals() throws Exception {
 		List<EntityField> entityFields = getEntityFields(
 			EntityField.Type.STRING);
@@ -327,6 +352,16 @@ public abstract class BaseProductResourceTestCase {
 				BeanUtils.setProperty(
 					product1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetProductsPageWithSortDouble() throws Exception {
+		testGetProductsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, product1, product2) -> {
+				BeanUtils.setProperty(product1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(product2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -459,8 +494,8 @@ public abstract class BaseProductResourceTestCase {
 
 		long totalCount = productsJSONObject.getLong("totalCount");
 
-		Product product1 = testGraphQLProduct_addProduct();
-		Product product2 = testGraphQLProduct_addProduct();
+		Product product1 = testGraphQLGetProductsPage_addProduct();
+		Product product2 = testGraphQLGetProductsPage_addProduct();
 
 		productsJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -477,6 +512,10 @@ public abstract class BaseProductResourceTestCase {
 			product2,
 			Arrays.asList(
 				ProductSerDes.toDTOs(productsJSONObject.getString("items"))));
+	}
+
+	protected Product testGraphQLGetProductsPage_addProduct() throws Exception {
+		return testGraphQLProduct_addProduct();
 	}
 
 	@Test
@@ -547,7 +586,8 @@ public abstract class BaseProductResourceTestCase {
 	public void testGraphQLGetProductByExternalReferenceCode()
 		throws Exception {
 
-		Product product = testGraphQLProduct_addProduct();
+		Product product =
+			testGraphQLGetProductByExternalReferenceCode_addProduct();
 
 		Assert.assertTrue(
 			equals(
@@ -597,6 +637,12 @@ public abstract class BaseProductResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Product testGraphQLGetProductByExternalReferenceCode_addProduct()
+		throws Exception {
+
+		return testGraphQLProduct_addProduct();
+	}
+
 	@Test
 	public void testPatchProductByExternalReferenceCode() throws Exception {
 		Assert.assertTrue(false);
@@ -644,7 +690,7 @@ public abstract class BaseProductResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteProduct() throws Exception {
-		Product product = testGraphQLProduct_addProduct();
+		Product product = testGraphQLDeleteProduct_addProduct();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -657,7 +703,6 @@ public abstract class BaseProductResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteProduct"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -671,6 +716,10 @@ public abstract class BaseProductResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected Product testGraphQLDeleteProduct_addProduct() throws Exception {
+		return testGraphQLProduct_addProduct();
 	}
 
 	@Test
@@ -690,7 +739,7 @@ public abstract class BaseProductResourceTestCase {
 
 	@Test
 	public void testGraphQLGetProduct() throws Exception {
-		Product product = testGraphQLProduct_addProduct();
+		Product product = testGraphQLGetProduct_addProduct();
 
 		Assert.assertTrue(
 			equals(
@@ -727,6 +776,10 @@ public abstract class BaseProductResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Product testGraphQLGetProduct_addProduct() throws Exception {
+		return testGraphQLProduct_addProduct();
 	}
 
 	@Test
@@ -2214,8 +2267,9 @@ public abstract class BaseProductResourceTestCase {
 		}
 
 		if (entityFieldName.equals("productStatus")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(product.getProductStatus()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("productType")) {

@@ -82,12 +82,14 @@ public class CommerceShipmentServiceWrapper
 	}
 
 	@Override
-	public com.liferay.commerce.model.CommerceShipment fetchCommerceShipment(
-			long companyId, String externalReferenceCode)
+	public com.liferay.commerce.model.CommerceShipment
+			fetchCommerceShipmentByExternalReferenceCode(
+				long companyId, String externalReferenceCode)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _commerceShipmentService.fetchCommerceShipment(
-			companyId, externalReferenceCode);
+		return _commerceShipmentService.
+			fetchCommerceShipmentByExternalReferenceCode(
+				companyId, externalReferenceCode);
 	}
 
 	@Override
@@ -306,6 +308,16 @@ public class CommerceShipmentServiceWrapper
 		return _commerceShipmentService.updateExpectedDate(
 			commerceShipmentId, expectedDateMonth, expectedDateDay,
 			expectedDateYear, expectedDateHour, expectedDateMinute);
+	}
+
+	@Override
+	public com.liferay.commerce.model.CommerceShipment
+			updateExternalReferenceCode(
+				long commerceShipmentId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceShipmentService.updateExternalReferenceCode(
+			commerceShipmentId, externalReferenceCode);
 	}
 
 	@Override

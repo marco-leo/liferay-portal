@@ -229,7 +229,7 @@ public abstract class BaseProductOptionResourceTestCase {
 	@Test
 	public void testGraphQLDeleteProductOption() throws Exception {
 		ProductOption productOption =
-			testGraphQLProductOption_addProductOption();
+			testGraphQLDeleteProductOption_addProductOption();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -242,7 +242,6 @@ public abstract class BaseProductOptionResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteProductOption"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -256,6 +255,12 @@ public abstract class BaseProductOptionResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected ProductOption testGraphQLDeleteProductOption_addProductOption()
+		throws Exception {
+
+		return testGraphQLProductOption_addProductOption();
 	}
 
 	@Test
@@ -280,7 +285,7 @@ public abstract class BaseProductOptionResourceTestCase {
 	@Test
 	public void testGraphQLGetProductOption() throws Exception {
 		ProductOption productOption =
-			testGraphQLProductOption_addProductOption();
+			testGraphQLGetProductOption_addProductOption();
 
 		Assert.assertTrue(
 			equals(
@@ -317,6 +322,12 @@ public abstract class BaseProductOptionResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected ProductOption testGraphQLGetProductOption_addProductOption()
+		throws Exception {
+
+		return testGraphQLProductOption_addProductOption();
 	}
 
 	@Test
@@ -448,6 +459,20 @@ public abstract class BaseProductOptionResourceTestCase {
 				BeanUtils.setProperty(
 					productOption1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetProductByExternalReferenceCodeProductOptionsPageWithSortDouble()
+		throws Exception {
+
+		testGetProductByExternalReferenceCodeProductOptionsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, productOption1, productOption2) -> {
+				BeanUtils.setProperty(
+					productOption1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					productOption2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -713,6 +738,20 @@ public abstract class BaseProductOptionResourceTestCase {
 				BeanUtils.setProperty(
 					productOption1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetProductIdProductOptionsPageWithSortDouble()
+		throws Exception {
+
+		testGetProductIdProductOptionsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, productOption1, productOption2) -> {
+				BeanUtils.setProperty(
+					productOption1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					productOption2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -1401,8 +1440,9 @@ public abstract class BaseProductOptionResourceTestCase {
 		}
 
 		if (entityFieldName.equals("priority")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(productOption.getPriority()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("productOptionValues")) {

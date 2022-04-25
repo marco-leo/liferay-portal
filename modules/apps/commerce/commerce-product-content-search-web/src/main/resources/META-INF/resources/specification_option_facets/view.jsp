@@ -18,8 +18,6 @@
 
 <%
 CPSpecificationOptionFacetsDisplayContext cpSpecificationOptionFacetsDisplayContext = (CPSpecificationOptionFacetsDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
-
-CPSpecificationOptionFacetPortletInstanceConfiguration cpSpecificationOptionFacetPortletInstanceConfiguration = cpSpecificationOptionFacetsDisplayContext.getCPSpecificationOptionFacetPortletInstanceConfiguration();
 %>
 
 <c:choose>
@@ -67,7 +65,7 @@ CPSpecificationOptionFacetPortletInstanceConfiguration cpSpecificationOptionFace
 							"panelTitle", panelTitle
 						).build()
 					%>'
-					displayStyle="<%= cpSpecificationOptionFacetPortletInstanceConfiguration.displayStyle() %>"
+					displayStyle='<%= portletPreferences.getValue("displayStyle", "") %>'
 					displayStyleGroupId="<%= cpSpecificationOptionFacetsDisplayContext.getDisplayStyleGroupId() %>"
 					entries="<%= cpSpecificationOptionsSearchFacetDisplayContext.getTermDisplayContexts() %>"
 				>
@@ -86,7 +84,7 @@ CPSpecificationOptionFacetPortletInstanceConfiguration cpSpecificationOptionFace
 							title="<%= panelTitle %>"
 						>
 							<aui:fieldset>
-								<ul class="list-unstyled">
+								<ul class="list-unstyled" data-qa-id="<%= panelTitle %>">
 
 									<%
 									int i = 0;

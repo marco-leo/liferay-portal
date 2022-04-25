@@ -238,7 +238,7 @@ public abstract class BaseCartResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteCart() throws Exception {
-		Cart cart = testGraphQLCart_addCart();
+		Cart cart = testGraphQLDeleteCart_addCart();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -251,7 +251,6 @@ public abstract class BaseCartResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteCart"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -265,6 +264,10 @@ public abstract class BaseCartResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected Cart testGraphQLDeleteCart_addCart() throws Exception {
+		return testGraphQLCart_addCart();
 	}
 
 	@Test
@@ -284,7 +287,7 @@ public abstract class BaseCartResourceTestCase {
 
 	@Test
 	public void testGraphQLGetCart() throws Exception {
-		Cart cart = testGraphQLCart_addCart();
+		Cart cart = testGraphQLGetCart_addCart();
 
 		Assert.assertTrue(
 			equals(
@@ -321,6 +324,10 @@ public abstract class BaseCartResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Cart testGraphQLGetCart_addCart() throws Exception {
+		return testGraphQLCart_addCart();
 	}
 
 	@Test
@@ -1688,8 +1695,9 @@ public abstract class BaseCartResourceTestCase {
 		}
 
 		if (entityFieldName.equals("paymentStatus")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(cart.getPaymentStatus()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("paymentStatusInfo")) {

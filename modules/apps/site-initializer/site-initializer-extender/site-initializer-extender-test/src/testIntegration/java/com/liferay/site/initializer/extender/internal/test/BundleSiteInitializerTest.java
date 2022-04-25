@@ -25,6 +25,7 @@ import com.liferay.commerce.inventory.model.CommerceInventoryWarehouse;
 import com.liferay.commerce.inventory.service.CommerceInventoryWarehouseLocalService;
 import com.liferay.commerce.notification.model.CommerceNotificationTemplate;
 import com.liferay.commerce.notification.service.CommerceNotificationTemplateLocalService;
+import com.liferay.commerce.product.constants.CPConstants;
 import com.liferay.commerce.product.model.CPAttachmentFileEntry;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CPDefinitionOptionRel;
@@ -52,9 +53,13 @@ import com.liferay.headless.admin.list.type.dto.v1_0.ListTypeDefinition;
 import com.liferay.headless.admin.list.type.dto.v1_0.ListTypeEntry;
 import com.liferay.headless.admin.list.type.resource.v1_0.ListTypeDefinitionResource;
 import com.liferay.headless.admin.user.dto.v1_0.Account;
+import com.liferay.headless.admin.user.dto.v1_0.Organization;
 import com.liferay.headless.admin.user.dto.v1_0.UserAccount;
 import com.liferay.headless.admin.user.resource.v1_0.AccountResource;
+import com.liferay.headless.admin.user.resource.v1_0.OrganizationResource;
 import com.liferay.headless.admin.user.resource.v1_0.UserAccountResource;
+import com.liferay.headless.admin.workflow.dto.v1_0.WorkflowDefinition;
+import com.liferay.headless.admin.workflow.resource.v1_0.WorkflowDefinitionResource;
 import com.liferay.headless.commerce.admin.catalog.dto.v1_0.ProductSpecification;
 import com.liferay.headless.commerce.admin.catalog.resource.v1_0.ProductSpecificationResource;
 import com.liferay.journal.model.JournalArticle;
@@ -67,7 +72,9 @@ import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServ
 import com.liferay.object.admin.rest.dto.v1_0.ObjectRelationship;
 import com.liferay.object.admin.rest.resource.v1_0.ObjectRelationshipResource;
 import com.liferay.object.constants.ObjectDefinitionConstants;
+import com.liferay.object.model.ObjectAction;
 import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.service.ObjectActionLocalService;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.petra.io.StreamUtil;
@@ -79,6 +86,7 @@ import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.WorkflowDefinitionLink;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -90,6 +98,11 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
+import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
+import com.liferay.portal.kernel.settings.ModifiableSettings;
+import com.liferay.portal.kernel.settings.Settings;
+import com.liferay.portal.kernel.settings.SettingsFactory;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -136,6 +149,8 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 
+import org.springframework.mock.web.MockHttpServletRequest;
+
 /**
  * @author Brian Wing Shun Chan
  */
@@ -170,10 +185,19 @@ public class BundleSiteInitializerTest {
 			ServiceContextTestUtil.getServiceContext(
 				group.getGroupId(), TestPropsValues.getUserId());
 
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest();
+
+		mockHttpServletRequest.setParameter(
+			"currentURL", "http://www.liferay.com");
+
+		serviceContext.setRequest(mockHttpServletRequest);
+
 		ServiceContextThreadLocal.pushServiceContext(serviceContext);
 
 		try {
 			siteInitializer.initialize(group.getGroupId());
+
 			_assertAccounts(serviceContext);
 			_assertAssetListEntries(group);
 			_assertAssetVocabularies(group);
@@ -193,13 +217,16 @@ public class BundleSiteInitializerTest {
 			_assertLayoutSets(group);
 			_assertListTypeDefinitions(serviceContext);
 			_assertObjectDefinitions(group, serviceContext);
+			_assertOrganizations(serviceContext);
 			_assertPermissions(group);
+			_assertPortletSettings(group);
 			_assertRemoteApp(group);
 			_assertSAPEntries(group);
 			_assertSiteConfiguration(group.getGroupId());
 			_assertSiteNavigationMenu(group);
 			_assertStyleBookEntry(group);
 			_assertUserRoles(group);
+			_assertWorkflowDefinitions(group, serviceContext);
 		}
 		finally {
 			ServiceContextThreadLocal.popServiceContext();
@@ -411,6 +438,7 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals("site", commerceChannel.getType());
 
 		_assertCommerceNotificationTemplate(commerceChannel, group);
+		_assertDefaultCPDisplayLayout(commerceChannel, group);
 	}
 
 	private void _assertCommerceInventoryWarehouse(Group group) {
@@ -457,14 +485,14 @@ public class BundleSiteInitializerTest {
 
 		CPSpecificationOption cpSpecificationOption =
 			_cpSpecificationOptionLocalService.fetchCPSpecificationOption(
-				serviceContext.getCompanyId(), "product-specification-test-1");
+				serviceContext.getCompanyId(), "test-product-specification-1");
 
 		Assert.assertNotNull(cpSpecificationOption);
 
 		CPDefinition cpDefinition =
 			_cpDefinitionLocalService.
 				fetchCPDefinitionByCProductExternalReferenceCode(
-					"TEST001", serviceContext.getCompanyId());
+					"TESTPROD001", serviceContext.getCompanyId());
 
 		Assert.assertNotNull(cpDefinition);
 
@@ -486,7 +514,7 @@ public class BundleSiteInitializerTest {
 
 		Assert.assertNotNull(productSpecification);
 		Assert.assertEquals(
-			"product-specification-test-1",
+			"test-product-specification-1",
 			productSpecification.getSpecificationKey());
 	}
 
@@ -494,7 +522,7 @@ public class BundleSiteInitializerTest {
 		CPDefinition cpDefinition =
 			_cpDefinitionLocalService.
 				fetchCPDefinitionByCProductExternalReferenceCode(
-					"TEST001", group.getCompanyId());
+					"TESTPROD001", group.getCompanyId());
 
 		Assert.assertNotNull(cpDefinition);
 		Assert.assertEquals("Test Commerce Product", cpDefinition.getName());
@@ -515,7 +543,7 @@ public class BundleSiteInitializerTest {
 		CPDefinition cpDefinition =
 			_cpDefinitionLocalService.
 				fetchCPDefinitionByCProductExternalReferenceCode(
-					"TEST001", group.getCompanyId());
+					"TESTPROD001", group.getCompanyId());
 
 		CPInstance cpInstance1 = _cpInstanceLocalService.getCPInstance(
 			cpDefinition.getCPDefinitionId(), "Test Value 1");
@@ -542,18 +570,20 @@ public class BundleSiteInitializerTest {
 			group.getCompanyId(), "test-option-1");
 
 		Assert.assertNotNull(cpOption1);
-		Assert.assertEquals("test-option-1", cpOption1.getKey());
+		Assert.assertEquals(
+			"Test Option 1", cpOption1.getName(LocaleUtil.getSiteDefault()));
 
 		CPOption cpOption2 = _cpOptionLocalService.fetchCPOption(
 			group.getCompanyId(), "test-option-2");
 
 		Assert.assertNotNull(cpOption2);
-		Assert.assertEquals("test-option-2", cpOption2.getKey());
+		Assert.assertEquals(
+			"Test Option 2", cpOption2.getName(LocaleUtil.getSiteDefault()));
 
 		CPDefinition cpDefinition =
 			_cpDefinitionLocalService.
 				fetchCPDefinitionByCProductExternalReferenceCode(
-					"TEST001", group.getCompanyId());
+					"TESTPROD001", group.getCompanyId());
 
 		Assert.assertNotNull(cpDefinition);
 
@@ -563,20 +593,6 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(
 			cpDefinitionOptionRels.toString(), 2,
 			cpDefinitionOptionRels.size());
-
-		CPDefinitionOptionRel cpDefinitionOptionRel1 =
-			cpDefinitionOptionRels.get(0);
-
-		cpOption1 = cpDefinitionOptionRel1.getCPOption();
-
-		Assert.assertEquals("test-option-1", cpOption1.getKey());
-
-		CPDefinitionOptionRel cpDefinitionOptionRel2 =
-			cpDefinitionOptionRels.get(1);
-
-		cpOption2 = cpDefinitionOptionRel2.getCPOption();
-
-		Assert.assertEquals("test-option-2", cpOption2.getKey());
 	}
 
 	private void _assertDDMStructure(Group group) {
@@ -597,6 +613,31 @@ public class BundleSiteInitializerTest {
 
 		Assert.assertNotNull(ddmTemplate);
 		Assert.assertEquals("${aField.getData()}", ddmTemplate.getScript());
+	}
+
+	private void _assertDefaultCPDisplayLayout(
+			CommerceChannel commerceChannel, Group group)
+		throws Exception {
+
+		Settings settings = _settingsFactory.getSettings(
+			new GroupServiceSettingsLocator(
+				commerceChannel.getGroupId(),
+				CPConstants.RESOURCE_NAME_CP_DISPLAY_LAYOUT));
+
+		ModifiableSettings modifiableSettings =
+			settings.getModifiableSettings();
+
+		String productLayoutUuid = modifiableSettings.getValue(
+			"productLayoutUuid", null);
+
+		Assert.assertNotNull(productLayoutUuid);
+
+		List<Layout> publicLayouts = _layoutLocalService.getLayouts(
+			group.getGroupId(), false);
+
+		Layout publicLayout = publicLayouts.get(0);
+
+		Assert.assertEquals(productLayoutUuid, publicLayout.getUuid());
 	}
 
 	private void _assertDLFileEntry(Group group) throws Exception {
@@ -788,6 +829,17 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals("testlisttypeentry2", listTypeEntry2.getKey());
 	}
 
+	private void _assertObjectActions(
+		int objectActionsCount, ObjectDefinition objectDefinition) {
+
+		List<ObjectAction> objectActions =
+			_objectActionLocalService.getObjectActions(
+				objectDefinition.getObjectDefinitionId());
+
+		Assert.assertEquals(
+			objectActions.toString(), objectActionsCount, objectActions.size());
+	}
+
 	private void _assertObjectDefinitions(
 			Group group, ServiceContext serviceContext)
 		throws Exception {
@@ -800,6 +852,7 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(
 			objectDefinition1.getStatus(), WorkflowConstants.STATUS_APPROVED);
 
+		_assertObjectActions(1, objectDefinition1);
 		_assertObjectEntries(group.getGroupId(), objectDefinition1, 0);
 		_assertObjectRelationships(objectDefinition1, serviceContext);
 
@@ -811,6 +864,7 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(
 			objectDefinition2.getStatus(), WorkflowConstants.STATUS_APPROVED);
 
+		_assertObjectActions(2, objectDefinition2);
 		_assertObjectEntries(group.getGroupId(), objectDefinition2, 0);
 
 		ObjectDefinition objectDefinition3 =
@@ -824,6 +878,7 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(
 			objectDefinition3.getStatus(), WorkflowConstants.STATUS_APPROVED);
 
+		_assertObjectActions(0, objectDefinition3);
 		_assertObjectEntries(0, objectDefinition3, 5);
 	}
 
@@ -891,10 +946,65 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals("manyToMany", objectRelationshipType2.toString());
 	}
 
+	private void _assertOrganizations(ServiceContext serviceContext)
+		throws Exception {
+
+		OrganizationResource.Builder organizationResourceBuilder =
+			_organizationResourceFactory.create();
+
+		OrganizationResource organizationResource =
+			organizationResourceBuilder.user(
+				serviceContext.fetchUser()
+			).build();
+
+		Page<Organization> organizationsPage1 =
+			organizationResource.getOrganizationsPage(
+				null, null,
+				organizationResource.toFilter("name eq 'Test Organization 1'"),
+				null, null);
+
+		Organization organization1 = organizationsPage1.fetchFirstItem();
+
+		Assert.assertNotNull(organization1);
+
+		Page<Organization> organizationsPage2 =
+			organizationResource.getOrganizationsPage(
+				null, null,
+				organizationResource.toFilter("name eq 'Test Organization 2'"),
+				null, null);
+
+		Organization organization2 = organizationsPage2.fetchFirstItem();
+
+		Assert.assertNotNull(organization2);
+		Assert.assertTrue(organization2.getNumberOfOrganizations() == 1);
+
+		Page<Organization> organizationsPage3 =
+			organizationResource.getOrganizationChildOrganizationsPage(
+				organization2.getId(), null, null, null, null, null);
+
+		Organization organization3 = organizationsPage3.fetchFirstItem();
+
+		Assert.assertNotNull(organization3);
+		Assert.assertEquals("Test Organization 3", organization3.getName());
+	}
+
 	private void _assertPermissions(Group group) throws Exception {
 		_assertRoles(group);
 
 		_assertResourcePermission(group);
+	}
+
+	private void _assertPortletSettings(Group group) {
+		DDMTemplate ddmTemplate = _ddmTemplateLocalService.fetchTemplate(
+			group.getGroupId(),
+			_portal.getClassNameId("com.liferay.portal.kernel.theme.NavItem"),
+			"TEST-PORTLET-SETTINGS-1");
+
+		Assert.assertNotNull(ddmTemplate);
+		Assert.assertEquals(
+			"TEST PORTLET SETTINGS 1",
+			ddmTemplate.getName(LocaleUtil.getSiteDefault()));
+		Assert.assertEquals("${aField.getData()}", ddmTemplate.getScript());
 	}
 
 	private void _assertRemoteApp(Group group) throws Exception {
@@ -1124,6 +1234,65 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals("Test Role 3", role.getName());
 	}
 
+	private void _assertWorkflowDefinitions(
+			Group group, ServiceContext serviceContext)
+		throws Exception {
+
+		WorkflowDefinitionResource.Builder workflowDefinitionResourceBuilder =
+			_workflowDefinitionResourceFactory.create();
+
+		WorkflowDefinitionResource workflowDefinitionResource =
+			workflowDefinitionResourceBuilder.user(
+				serviceContext.fetchUser()
+			).build();
+
+		WorkflowDefinition workflowDefinitionTest1 =
+			workflowDefinitionResource.getWorkflowDefinitionByName(
+				"Test Workflow Definition 1", 1);
+
+		Assert.assertNotNull(workflowDefinitionTest1);
+		Assert.assertEquals(
+			"Test Workflow Definition 1", workflowDefinitionTest1.getName());
+		Assert.assertEquals(
+			"Test Workflow Definition 1", workflowDefinitionTest1.getTitle());
+		Assert.assertEquals(
+			"This is a description for Test Workflow Definition 1.",
+			workflowDefinitionTest1.getDescription());
+
+		WorkflowDefinitionLink workflowDefinitionLink1 =
+			_workflowDefinitionLinkLocalService.getWorkflowDefinitionLink(
+				group.getCompanyId(), 0, "com.liferay.blogs.model.BlogsEntry",
+				0, 0);
+
+		Assert.assertNotNull(workflowDefinitionLink1);
+		Assert.assertEquals(
+			"Test Workflow Definition 1",
+			workflowDefinitionLink1.getWorkflowDefinitionName());
+
+		WorkflowDefinition workflowDefinitionTest2 =
+			workflowDefinitionResource.getWorkflowDefinitionByName(
+				"Test Workflow Definition 2", 1);
+
+		Assert.assertNotNull(workflowDefinitionTest2);
+		Assert.assertEquals(
+			"Test Workflow Definition 2", workflowDefinitionTest2.getName());
+		Assert.assertEquals(
+			"Test Workflow Definition 2", workflowDefinitionTest2.getTitle());
+		Assert.assertEquals(
+			"This is a description for Test Workflow Definition 2.",
+			workflowDefinitionTest2.getDescription());
+
+		WorkflowDefinitionLink workflowDefinitionLink2 =
+			_workflowDefinitionLinkLocalService.getWorkflowDefinitionLink(
+				group.getCompanyId(), group.getGroupId(),
+				"com.liferay.search.experiences.model.SXPBlueprint", 0, 0);
+
+		Assert.assertNotNull(workflowDefinitionLink2);
+		Assert.assertEquals(
+			"Test Workflow Definition 2",
+			workflowDefinitionLink2.getWorkflowDefinitionName());
+	}
+
 	private Bundle _installBundle(BundleContext bundleContext, String location)
 		throws Exception {
 
@@ -1209,6 +1378,9 @@ public class BundleSiteInitializerTest {
 		_listTypeDefinitionResourceFactory;
 
 	@Inject
+	private ObjectActionLocalService _objectActionLocalService;
+
+	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
 
 	@Inject
@@ -1217,6 +1389,9 @@ public class BundleSiteInitializerTest {
 	@Inject
 	private ObjectRelationshipResource.Factory
 		_objectRelationshipResourceFactory;
+
+	@Inject
+	private OrganizationResource.Factory _organizationResourceFactory;
 
 	@Inject
 	private Portal _portal;
@@ -1241,6 +1416,9 @@ public class BundleSiteInitializerTest {
 	private ServletContext _servletContext;
 
 	@Inject
+	private SettingsFactory _settingsFactory;
+
+	@Inject
 	private SiteInitializerRegistry _siteInitializerRegistry;
 
 	@Inject
@@ -1258,5 +1436,13 @@ public class BundleSiteInitializerTest {
 
 	@Inject
 	private UserLocalService _userLocalService;
+
+	@Inject
+	private WorkflowDefinitionLinkLocalService
+		_workflowDefinitionLinkLocalService;
+
+	@Inject
+	private WorkflowDefinitionResource.Factory
+		_workflowDefinitionResourceFactory;
 
 }

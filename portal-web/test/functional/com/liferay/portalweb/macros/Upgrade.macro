@@ -213,7 +213,7 @@ definition {
 		task ("Add a content page in Test Site Name site") {
 			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
-			ContentPages.addPage(pageName = "Test Content Page Name");
+			ContentPages.addPublicPage(pageName = "Test Content Page Name");
 		}
 
 		task ("Add a Title fragment to the content page") {
@@ -1668,8 +1668,9 @@ definition {
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
 
 		Translations.importTranslation(
+			archive = "true",
 			dependencyfile = "true",
-			fileName = "WebContentTitle-en_US-de_DE.xlf",
+			fileName = "WebContentTitle-en_US.zip",
 			webContentTitle = "WebContentTitle");
 
 		WebContentNavigator.gotoEditCP(webContentTitle = "WebContentTitle");

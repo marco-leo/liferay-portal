@@ -261,6 +261,31 @@ public abstract class BaseDiscountResourceTestCase {
 	}
 
 	@Test
+	public void testGetDiscountsPageWithFilterDoubleEquals() throws Exception {
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Discount discount1 = testGetDiscountsPage_addDiscount(randomDiscount());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Discount discount2 = testGetDiscountsPage_addDiscount(randomDiscount());
+
+		for (EntityField entityField : entityFields) {
+			Page<Discount> page = discountResource.getDiscountsPage(
+				null, getFilterString(entityField, "eq", discount1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(discount1),
+				(List<Discount>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetDiscountsPageWithFilterStringEquals() throws Exception {
 		List<EntityField> entityFields = getEntityFields(
 			EntityField.Type.STRING);
@@ -331,6 +356,16 @@ public abstract class BaseDiscountResourceTestCase {
 				BeanUtils.setProperty(
 					discount1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetDiscountsPageWithSortDouble() throws Exception {
+		testGetDiscountsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, discount1, discount2) -> {
+				BeanUtils.setProperty(discount1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(discount2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -463,8 +498,8 @@ public abstract class BaseDiscountResourceTestCase {
 
 		long totalCount = discountsJSONObject.getLong("totalCount");
 
-		Discount discount1 = testGraphQLDiscount_addDiscount();
-		Discount discount2 = testGraphQLDiscount_addDiscount();
+		Discount discount1 = testGraphQLGetDiscountsPage_addDiscount();
+		Discount discount2 = testGraphQLGetDiscountsPage_addDiscount();
 
 		discountsJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -481,6 +516,12 @@ public abstract class BaseDiscountResourceTestCase {
 			discount2,
 			Arrays.asList(
 				DiscountSerDes.toDTOs(discountsJSONObject.getString("items"))));
+	}
+
+	protected Discount testGraphQLGetDiscountsPage_addDiscount()
+		throws Exception {
+
+		return testGraphQLDiscount_addDiscount();
 	}
 
 	@Test
@@ -553,7 +594,8 @@ public abstract class BaseDiscountResourceTestCase {
 	public void testGraphQLGetDiscountByExternalReferenceCode()
 		throws Exception {
 
-		Discount discount = testGraphQLDiscount_addDiscount();
+		Discount discount =
+			testGraphQLGetDiscountByExternalReferenceCode_addDiscount();
 
 		Assert.assertTrue(
 			equals(
@@ -601,6 +643,13 @@ public abstract class BaseDiscountResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Discount
+			testGraphQLGetDiscountByExternalReferenceCode_addDiscount()
+		throws Exception {
+
+		return testGraphQLDiscount_addDiscount();
 	}
 
 	@Test
@@ -657,7 +706,7 @@ public abstract class BaseDiscountResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteDiscount() throws Exception {
-		Discount discount = testGraphQLDiscount_addDiscount();
+		Discount discount = testGraphQLDeleteDiscount_addDiscount();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -670,7 +719,6 @@ public abstract class BaseDiscountResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteDiscount"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -684,6 +732,12 @@ public abstract class BaseDiscountResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected Discount testGraphQLDeleteDiscount_addDiscount()
+		throws Exception {
+
+		return testGraphQLDiscount_addDiscount();
 	}
 
 	@Test
@@ -704,7 +758,7 @@ public abstract class BaseDiscountResourceTestCase {
 
 	@Test
 	public void testGraphQLGetDiscount() throws Exception {
-		Discount discount = testGraphQLDiscount_addDiscount();
+		Discount discount = testGraphQLGetDiscount_addDiscount();
 
 		Assert.assertTrue(
 			equals(
@@ -741,6 +795,10 @@ public abstract class BaseDiscountResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Discount testGraphQLGetDiscount_addDiscount() throws Exception {
+		return testGraphQLDiscount_addDiscount();
 	}
 
 	@Test
@@ -1834,13 +1892,15 @@ public abstract class BaseDiscountResourceTestCase {
 		}
 
 		if (entityFieldName.equals("limitationTimes")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(discount.getLimitationTimes()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("limitationTimesPerAccount")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(discount.getLimitationTimesPerAccount()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("limitationType")) {
@@ -1862,8 +1922,9 @@ public abstract class BaseDiscountResourceTestCase {
 		}
 
 		if (entityFieldName.equals("numberOfUse")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(discount.getNumberOfUse()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("percentageLevel1")) {

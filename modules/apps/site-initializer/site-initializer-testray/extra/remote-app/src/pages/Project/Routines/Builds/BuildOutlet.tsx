@@ -13,8 +13,7 @@
  */
 
 import {useQuery} from '@apollo/client';
-import ClayChart from '@clayui/charts';
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
 import {
 	Outlet,
 	useLocation,
@@ -22,195 +21,16 @@ import {
 	useParams,
 } from 'react-router-dom';
 
-import Container from '../../../../components/Layout/Container';
-import QATable from '../../../../components/Table/QATable';
 import {
-	CType,
 	TestrayBuild,
-	getTestrayBuild,
+	TypePagination,
+	getBuild,
 } from '../../../../graphql/queries';
+import {TestrayTask, getTasks} from '../../../../graphql/queries/testrayTask';
 import useHeader from '../../../../hooks/useHeader';
-import {DATA_COLORS} from '../../../../util/constants';
-import {getDonutLegend} from '../../../../util/graph';
-import {TotalTestCases, getRandomMaximumValue} from '../../../../util/mock';
-
-type BuildOverviewProps = {
-	testrayBuild: TestrayBuild;
-};
-
-const BuildOverview: React.FC<BuildOverviewProps> = ({testrayBuild}) => {
-	const ref = useRef<any>();
-
-	const total = TotalTestCases.map(([, totalCase]) => totalCase).reduce(
-		(prevValue, currentValue) => Number(prevValue) + Number(currentValue)
-	);
-
-	return (
-		<>
-			<Container title="Details">
-				<QATable
-					items={[
-						{title: 'product version', value: '7.0.x'},
-						{
-							title: 'description',
-							value: testrayBuild.description,
-						},
-						{
-							title: 'git hash',
-							value:
-								testrayBuild.gitHash ||
-								'c33e85e8b067d805a45956c76ad053ca98ffcc8a',
-						},
-						{title: 'create date', value: testrayBuild.dateCreated},
-						{title: 'created by', value: 'John Doe'},
-						{title: 'all issues found', value: '-'},
-					]}
-				/>
-
-				<div className="d-flex mt-4">
-					<dl>
-						<dd>0 minutes</dd>
-
-						<dd className="small-heading">TOTAL ESTIMATED TIME</dd>
-					</dl>
-
-					<dl className="ml-3">
-						<dd>0 minutes</dd>
-
-						<dd className="small-heading">REMAINING ESTIMATED</dd>
-					</dl>
-
-					<dl className="ml-3">
-						<dd>0 minutes</dd>
-
-						<dd className="small-heading">TIME 0 TOTAL ISSUES</dd>
-					</dl>
-				</div>
-			</Container>
-
-			<Container className="mt-4" title="Total Test Cases">
-				<div className="row">
-					<div className="col-2">
-						<ClayChart
-							data={{
-								colors: {
-									'BLOCKED': DATA_COLORS['metrics.blocked'],
-									'FAILED': DATA_COLORS['metrics.failed'],
-									'INCOMPLETE':
-										DATA_COLORS['metrics.incomplete'],
-									'PASSED': DATA_COLORS['metrics.passed'],
-									'TEST FIX': DATA_COLORS['metrics.test-fix'],
-								},
-								columns: TotalTestCases,
-								type: 'donut',
-							}}
-							donut={{
-								expand: false,
-								label: {
-									show: false,
-								},
-								legend: {
-									show: false,
-								},
-								title: total.toString(),
-								width: 15,
-							}}
-							legend={{show: false}}
-							onafterinit={() => {
-								getDonutLegend(ref.current, {
-									data: TotalTestCases.map(([name]) => name),
-									elementId: 'testrayTotalMetricsGraphLegend',
-									total: total as number,
-								});
-							}}
-							ref={ref}
-							size={{
-								height: 200,
-							}}
-						/>
-					</div>
-
-					<div className="col-2">
-						<div id="testrayTotalMetricsGraphLegend" />
-					</div>
-
-					<div className="col-8">
-						<ClayChart
-							axis={{
-								y: {
-									label: {
-										position: 'outer-middle',
-										text: 'TESTS',
-									},
-								},
-							}}
-							bar={{
-								width: {
-									max: 30,
-								},
-							}}
-							data={{
-								colors: {
-									'BLOCKED': DATA_COLORS['metrics.blocked'],
-									'FAILED': DATA_COLORS['metrics.failed'],
-									'INCOMPLETE':
-										DATA_COLORS['metrics.incomplete'],
-									'PASSED': DATA_COLORS['metrics.passed'],
-									'TEST FIX': DATA_COLORS['metrics.test-fix'],
-								},
-								columns: [
-									[
-										'PASSED',
-										...getRandomMaximumValue(20, 1000),
-									],
-									[
-										'FAILED',
-										...getRandomMaximumValue(20, 500),
-									],
-									[
-										'BLOCKED',
-										...getRandomMaximumValue(20, 100),
-									],
-									[
-										'TEST FIX',
-										...getRandomMaximumValue(20, 100),
-									],
-									[
-										'INCOMPLETE',
-										...getRandomMaximumValue(20, 100),
-									],
-								],
-								groups: [
-									[
-										'PASSED',
-										'FAILED',
-										'BLOCKED',
-										'TEST FIX',
-										'INCOMPLETE',
-									],
-								],
-								type: 'bar',
-							}}
-							legend={{
-								inset: {
-									anchor: 'top-right',
-									step: 1,
-									x: 10,
-									y: -20,
-								},
-								position: 'inset',
-							}}
-							padding={{
-								bottom: 5,
-								top: 20,
-							}}
-						/>
-					</div>
-				</div>
-			</Container>
-		</>
-	);
-};
+import i18n from '../../../../i18n';
+import BuildAlertBar from './BuildAlertBar';
+import BuildOverview from './BuildOverview';
 
 type BuildOutletProps = {
 	ignorePath: string;
@@ -218,41 +38,53 @@ type BuildOutletProps = {
 
 const BuildOutlet: React.FC<BuildOutletProps> = ({ignorePath}) => {
 	const {pathname} = useLocation();
-	const {projectId, routineId, testrayBuildId} = useParams();
+	const {buildId, projectId, routineId} = useParams();
 	const {testrayProject, testrayRoutine}: any = useOutletContext();
-	const {data} = useQuery<CType<'testrayBuild', TestrayBuild>>(
-		getTestrayBuild,
-		{
-			variables: {
-				testrayBuildId,
-			},
-		}
+	const {data} = useQuery<{build: TestrayBuild}>(getBuild, {
+		variables: {
+			buildId,
+		},
+	});
+
+	const {data: testrayTasksData} = useQuery<
+		TypePagination<'tasks', TestrayTask>
+	>(getTasks);
+
+	const testrayBuild = data?.build;
+	const testrayTasks = testrayTasksData?.tasks.items || [];
+	const testrayTask = testrayTasks.find(
+		(testrayTask) => testrayTask?.build?.id === Number(buildId)
 	);
 
 	const isCurrentPathIgnored = pathname.includes(ignorePath);
 
-	const testrayBuild = data?.c?.testrayBuild;
-
-	const basePath = `/project/${projectId}/routines/${routineId}/build/${testrayBuildId}`;
+	const basePath = `/project/${projectId}/routines/${routineId}/build/${buildId}`;
 
 	const {setHeading, setTabs} = useHeader({shouldUpdate: false});
 
 	useEffect(() => {
 		if (testrayBuild) {
 			setTimeout(() => {
-				setHeading(
-					[
-						{
-							category: 'BUILD',
-							path: basePath,
-							title: testrayBuild.name,
-						},
-					],
-					true
-				);
-			}, 0);
+				setHeading([
+					{
+						category: i18n.translate('project').toUpperCase(),
+						path: `/project/${testrayProject.id}/routines`,
+						title: testrayProject.name,
+					},
+					{
+						category: i18n.translate('routine').toUpperCase(),
+						path: `/project/${testrayProject.id}/routines/${testrayRoutine.id}`,
+						title: testrayRoutine.name,
+					},
+					{
+						category: i18n.translate('build').toUpperCase(),
+						path: basePath,
+						title: testrayBuild.name,
+					},
+				]);
+			});
 		}
-	}, [basePath, setHeading, testrayBuild]);
+	}, [basePath, setHeading, testrayBuild, testrayProject, testrayRoutine]);
 
 	useEffect(() => {
 		if (!isCurrentPathIgnored) {
@@ -261,38 +93,44 @@ const BuildOutlet: React.FC<BuildOutletProps> = ({ignorePath}) => {
 					{
 						active: pathname === basePath,
 						path: basePath,
-						title: 'Results',
+						title: i18n.translate('results'),
 					},
 					{
 						active: pathname === `${basePath}/runs`,
 						path: `${basePath}/runs`,
-						title: 'Runs',
+						title: i18n.translate('runs'),
 					},
 					{
 						active: pathname === `${basePath}/teams`,
 						path: `${basePath}/teams`,
-						title: 'Teams',
+						title: i18n.translate('teams'),
 					},
 					{
 						active: pathname === `${basePath}/components`,
 						path: `${basePath}/components`,
-						title: 'Components',
+						title: i18n.translate('components'),
 					},
 					{
 						active: pathname === `${basePath}/case-types`,
 						path: `${basePath}/case-types`,
-						title: 'Case Types',
+						title: i18n.translate('case-types'),
 					},
 				]);
 			}, 5);
 		}
 	}, [basePath, isCurrentPathIgnored, pathname, setTabs]);
 
-	if (testrayProject && testrayRoutine && testrayBuild) {
+	if (testrayBuild) {
 		return (
 			<>
 				{!isCurrentPathIgnored && (
-					<BuildOverview testrayBuild={testrayBuild} />
+					<>
+						{testrayTask && (
+							<BuildAlertBar testrayTask={testrayTask} />
+						)}
+
+						<BuildOverview testrayBuild={testrayBuild} />
+					</>
 				)}
 
 				<Outlet />

@@ -306,6 +306,42 @@ public abstract class BaseContentTemplateResourceTestCase {
 	}
 
 	@Test
+	public void testGetAssetLibraryContentTemplatesPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long assetLibraryId =
+			testGetAssetLibraryContentTemplatesPage_getAssetLibraryId();
+
+		ContentTemplate contentTemplate1 =
+			testGetAssetLibraryContentTemplatesPage_addContentTemplate(
+				assetLibraryId, randomContentTemplate());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		ContentTemplate contentTemplate2 =
+			testGetAssetLibraryContentTemplatesPage_addContentTemplate(
+				assetLibraryId, randomContentTemplate());
+
+		for (EntityField entityField : entityFields) {
+			Page<ContentTemplate> page =
+				contentTemplateResource.getAssetLibraryContentTemplatesPage(
+					assetLibraryId, null, null,
+					getFilterString(entityField, "eq", contentTemplate1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(contentTemplate1),
+				(List<ContentTemplate>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetAssetLibraryContentTemplatesPageWithFilterStringEquals()
 		throws Exception {
 
@@ -401,6 +437,20 @@ public abstract class BaseContentTemplateResourceTestCase {
 				BeanUtils.setProperty(
 					contentTemplate1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetAssetLibraryContentTemplatesPageWithSortDouble()
+		throws Exception {
+
+		testGetAssetLibraryContentTemplatesPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, contentTemplate1, contentTemplate2) -> {
+				BeanUtils.setProperty(
+					contentTemplate1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					contentTemplate2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -625,6 +675,41 @@ public abstract class BaseContentTemplateResourceTestCase {
 	}
 
 	@Test
+	public void testGetSiteContentTemplatesPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long siteId = testGetSiteContentTemplatesPage_getSiteId();
+
+		ContentTemplate contentTemplate1 =
+			testGetSiteContentTemplatesPage_addContentTemplate(
+				siteId, randomContentTemplate());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		ContentTemplate contentTemplate2 =
+			testGetSiteContentTemplatesPage_addContentTemplate(
+				siteId, randomContentTemplate());
+
+		for (EntityField entityField : entityFields) {
+			Page<ContentTemplate> page =
+				contentTemplateResource.getSiteContentTemplatesPage(
+					siteId, null, null,
+					getFilterString(entityField, "eq", contentTemplate1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(contentTemplate1),
+				(List<ContentTemplate>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetSiteContentTemplatesPageWithFilterStringEquals()
 		throws Exception {
 
@@ -718,6 +803,20 @@ public abstract class BaseContentTemplateResourceTestCase {
 				BeanUtils.setProperty(
 					contentTemplate1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetSiteContentTemplatesPageWithSortDouble()
+		throws Exception {
+
+		testGetSiteContentTemplatesPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, contentTemplate1, contentTemplate2) -> {
+				BeanUtils.setProperty(
+					contentTemplate1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					contentTemplate2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -883,9 +982,9 @@ public abstract class BaseContentTemplateResourceTestCase {
 		Assert.assertEquals(0, contentTemplatesJSONObject.get("totalCount"));
 
 		ContentTemplate contentTemplate1 =
-			testGraphQLContentTemplate_addContentTemplate();
+			testGraphQLGetSiteContentTemplatesPage_addContentTemplate();
 		ContentTemplate contentTemplate2 =
-			testGraphQLContentTemplate_addContentTemplate();
+			testGraphQLGetSiteContentTemplatesPage_addContentTemplate();
 
 		contentTemplatesJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -899,6 +998,13 @@ public abstract class BaseContentTemplateResourceTestCase {
 			Arrays.asList(
 				ContentTemplateSerDes.toDTOs(
 					contentTemplatesJSONObject.getString("items"))));
+	}
+
+	protected ContentTemplate
+			testGraphQLGetSiteContentTemplatesPage_addContentTemplate()
+		throws Exception {
+
+		return testGraphQLContentTemplate_addContentTemplate();
 	}
 
 	@Test
@@ -924,7 +1030,7 @@ public abstract class BaseContentTemplateResourceTestCase {
 	@Test
 	public void testGraphQLGetSiteContentTemplate() throws Exception {
 		ContentTemplate contentTemplate =
-			testGraphQLContentTemplate_addContentTemplate();
+			testGraphQLGetSiteContentTemplate_addContentTemplate();
 
 		Assert.assertTrue(
 			equals(
@@ -974,6 +1080,13 @@ public abstract class BaseContentTemplateResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected ContentTemplate
+			testGraphQLGetSiteContentTemplate_addContentTemplate()
+		throws Exception {
+
+		return testGraphQLContentTemplate_addContentTemplate();
 	}
 
 	@Rule

@@ -14,72 +14,93 @@
 
 import {gql} from '@apollo/client';
 
+import {TestrayCaseType} from './testrayCaseType';
+import {TestrayComponent} from './testrayComponent';
+
 export type TestrayCase = {
 	caseNumber: number;
+	caseType?: TestrayCaseType;
+	component?: TestrayComponent;
+	dateCreated: string;
+	dateModified: string;
 	description: string;
 	descriptionType: string;
 	estimatedDuration: number;
+	id: number;
 	name: string;
 	originationKey: string;
 	priority: number;
 	steps: string;
 	stepsType: string;
-	testrayCaseId: number;
-	testrayCaseResult: number;
-	testrayCaseTypeId: number;
-	testrayComponentId: number;
-	testrayProjectId: number;
 };
 
-const testrayCaseFragment = gql`
-	fragment TestrayCaseFragment on C_TestrayCase {
-		caseNumber
-		description
-		descriptionType
-		estimatedDuration
-		name
-		originationKey
-		priority
-		steps
-		stepsType
-		testrayCaseResult
-		testrayCaseId
-		testrayCaseTypeId
-		testrayComponentId
-		testrayProjectId
-	}
-`;
-
-export const getTestrayCases = gql`
-	${testrayCaseFragment}
-
-	query getTestrayCases(
-		$filter: String
-		$page: Int = 1
-		$pageSize: Int = 20
-	) {
-		c {
-			testrayCases(filter: $filter, page: $page, pageSize: $pageSize) {
-				items {
-					...TestrayCaseFragment
+export const getCases = gql`
+	query getCases($filter: String = "", $page: Int = 1, $pageSize: Int = 20) {
+		cases(filter: $filter, page: $page, pageSize: $pageSize)
+			@rest(
+				type: "C_Case"
+				path: "cases?filter={args.filter}&page={args.page}&pageSize={args.pageSize}&nestedFields=component.team,caseType&nestedFieldsDepth=2"
+			) {
+			items {
+				caseNumber
+				caseType: r_caseTypeToCases_c_caseType {
+					id
+					name
 				}
-				lastPage
-				page
-				pageSize
-				totalCount
+				component: r_componentToCases_c_component {
+					id
+					name
+					team: r_teamToComponents_c_team {
+						name
+					}
+				}
+				dateCreated
+				dateModified
+				description
+				descriptionType
+				estimatedDuration
+				id
+				name
+				priority
+				steps
+				stepsType
 			}
+			lastPage
+			page
+			pageSize
+			totalCount
 		}
 	}
 `;
 
-export const getTestrayCase = gql`
-	${testrayCaseFragment}
-
-	query getTestrayCase($testrayCaseId: Long!) {
-		c {
-			testrayCase(testrayCaseId: $testrayCaseId) {
-				...TestrayCaseFragment
+export const getCase = gql`
+	query getCase($caseId: Long!) {
+		case(caseId: $caseId)
+			@rest(
+				type: "C_Case"
+				path: "cases/{args.caseId}?nestedFields=Component.Team,CaseType&nestedFieldsDepth=2"
+			) {
+			caseNumber
+			caseResult
+			caseType: r_caseCaseType_c_CaseType {
+				name
 			}
+			component: r_casesComponents_c_Component {
+				name
+				team: r_componentTeam_c_Team {
+					name
+				}
+			}
+			dateCreated
+			dateModified
+			description
+			descriptionType
+			estimatedDuration
+			id
+			name
+			priority
+			steps
+			stepsType
 		}
 	}
 `;

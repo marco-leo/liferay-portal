@@ -17,15 +17,16 @@
 <%@ include file="/init.jsp" %>
 
 <%
-String backURL = ParamUtil.getString(request, "backURL", String.valueOf(renderResponse.createRenderURL()));
-
 long batchPlannerPlanId = ParamUtil.getLong(renderRequest, "batchPlannerPlanId");
 
 boolean editable = ParamUtil.getBoolean(renderRequest, "editable");
 
-renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : LanguageUtil.get(request, "import"));
-
 EditBatchPlannerPlanDisplayContext editBatchPlannerPlanDisplayContext = (EditBatchPlannerPlanDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
+
+portletDisplay.setShowBackIcon(true);
+portletDisplay.setURLBack(ParamUtil.getString(request, "backURL", String.valueOf(renderResponse.createRenderURL())));
+
+renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : LanguageUtil.get(request, "import"));
 %>
 
 <clay:container
@@ -62,9 +63,22 @@ EditBatchPlannerPlanDisplayContext editBatchPlannerPlanDisplayContext = (EditBat
 								/>
 							</div>
 
+							<clay:alert
+								displayType="info"
+								title="download-a-sample-file-for-this-entity"
+							>
+								<clay:link
+									cssClass="link-primary single-link"
+									disabled="<%= true %>"
+									href="#"
+									label="download"
+								/>
+							</clay:alert>
+
 							<div class="mt-2">
 								<clay:checkbox
-									checked="<%= true %>"
+									checked="<%= false %>"
+									disabled="<%= true %>"
 									label='<%= LanguageUtil.get(request, "detect-category-names-from-CSV-file") %>'
 									name="headerCheckbox"
 								/>
@@ -72,7 +86,8 @@ EditBatchPlannerPlanDisplayContext editBatchPlannerPlanDisplayContext = (EditBat
 
 							<div class="mt-2">
 								<clay:checkbox
-									checked="<%= true %>"
+									checked="<%= false %>"
+									disabled="<%= true %>"
 									label='<%= LanguageUtil.get(request, "override-existing-records") %>'
 									name="headerCheckbox"
 								/>
@@ -81,8 +96,18 @@ EditBatchPlannerPlanDisplayContext editBatchPlannerPlanDisplayContext = (EditBat
 							<div class="mt-2">
 								<clay:checkbox
 									checked="<%= true %>"
+									disabled="<%= true %>"
 									label='<%= LanguageUtil.get(request, "ignore-blank-field-values-during-import") %>'
 									name="headerCheckbox"
+								/>
+							</div>
+
+							<div class="mt-2">
+								<clay:checkbox
+									checked="<%= true %>"
+									id='<%= liferayPortletResponse.getNamespace() + "onErrorFail" %>'
+									label='<%= LanguageUtil.get(request, "stop-the-import-on-error") %>'
+									name='<%= liferayPortletResponse.getNamespace() + "onErrorFail" %>'
 								/>
 							</div>
 						</liferay-frontend:edit-form-body>
@@ -130,8 +155,6 @@ EditBatchPlannerPlanDisplayContext editBatchPlannerPlanDisplayContext = (EditBat
 				module="js/import/ImportForm"
 				props='<%=
 					HashMapBuilder.<String, Object>put(
-						"backUrl", backURL
-					).put(
 						"formDataQuerySelector", "#" + liferayPortletResponse.getNamespace() + "fm"
 					).put(
 						"formImportURL",
@@ -147,7 +170,7 @@ EditBatchPlannerPlanDisplayContext editBatchPlannerPlanDisplayContext = (EditBat
 						ActionURLBuilder.createActionURL(
 							renderResponse
 						).setActionName(
-							"/batch_planner/edit_import_batch_planner_plan"
+							"/batch_planner/edit_import_batch_planner_plan_template"
 						).setCMD(
 							Constants.ADD
 						).setParameter(

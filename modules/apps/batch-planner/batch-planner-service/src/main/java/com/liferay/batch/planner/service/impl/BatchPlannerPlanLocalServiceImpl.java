@@ -20,7 +20,6 @@ import com.liferay.batch.planner.exception.BatchPlannerPlanInternalClassNameExce
 import com.liferay.batch.planner.exception.BatchPlannerPlanNameException;
 import com.liferay.batch.planner.exception.DuplicateBatchPlannerPlanException;
 import com.liferay.batch.planner.exception.RequiredBatchPlannerPlanException;
-import com.liferay.batch.planner.model.BatchPlannerLog;
 import com.liferay.batch.planner.model.BatchPlannerPlan;
 import com.liferay.batch.planner.service.base.BatchPlannerPlanLocalServiceBaseImpl;
 import com.liferay.petra.string.StringBundler;
@@ -28,6 +27,8 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -97,16 +98,7 @@ public class BatchPlannerPlanLocalServiceImpl
 			batchPlannerPlanId);
 
 		resourceLocalService.deleteResource(
-			batchPlannerPlan, ResourceConstants.SCOPE_COMPANY);
-
-		BatchPlannerLog batchPlannerLog =
-			batchPlannerLogPersistence.fetchByBatchPlannerPlanId(
-				batchPlannerPlanId);
-
-		if (batchPlannerLog != null) {
-			batchPlannerLogPersistence.removeByBatchPlannerPlanId(
-				batchPlannerPlanId);
-		}
+			batchPlannerPlan, ResourceConstants.SCOPE_INDIVIDUAL);
 
 		batchPlannerMappingPersistence.removeByBatchPlannerPlanId(
 			batchPlannerPlanId);
@@ -115,6 +107,30 @@ public class BatchPlannerPlanLocalServiceImpl
 			batchPlannerPlanId);
 
 		return batchPlannerPlan;
+	}
+
+	@Override
+	public BatchPlannerPlan updateActive(
+			boolean active, String batchEngineTaskERC)
+		throws PortalException {
+
+		BatchPlannerPlan batchPlannerPlan =
+			batchPlannerPlanPersistence.fetchByPrimaryKey(
+				Long.getLong(batchEngineTaskERC));
+
+		if (batchPlannerPlan == null) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					StringBundler.concat(
+						"Unable to update batch planner plan for batch engine ",
+						"task ERC ", batchEngineTaskERC));
+			}
+
+			return null;
+		}
+
+		return batchPlannerPlanLocalService.updateActive(
+			batchPlannerPlan.getBatchPlannerPlanId(), active);
 	}
 
 	@Override
@@ -216,5 +232,8 @@ public class BatchPlannerPlanLocalServiceImpl
 				"Batch planner plan name \"", name,
 				"\" already exists for company ", companyId));
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		BatchPlannerPlanLocalServiceImpl.class);
 
 }

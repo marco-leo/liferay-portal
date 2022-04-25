@@ -39,6 +39,7 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.template.TemplateResource;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -377,15 +378,12 @@ public class DDMFormFieldTemplateContextFactoryTest extends PowerMockito {
 				ddmForm.getDDMFormFieldsMap(true), ddmFormFieldsPropertyChanges,
 				ddmFormFieldValues, ddmFormRenderingContext,
 				_ddmStructureLayoutLocalService, _ddmStructureLocalService,
-				_groupLocalService, new JSONFactoryImpl(), true,
+				_groupLocalService, _htmlParser, new JSONFactoryImpl(), true,
 				new DDMFormLayout());
 
-		DDMFormFieldTypeServicesTracker ddmFormFieldTypeServicesTracker =
-			mockDDMFormFieldTypeServicesTracker(
-				ddmFormFieldRenderer, ddmFormFieldTemplateContextContributor);
-
 		ddmFormFieldTemplateContextFactory.setDDMFormFieldTypeServicesTracker(
-			ddmFormFieldTypeServicesTracker);
+			mockDDMFormFieldTypeServicesTracker(
+				ddmFormFieldRenderer, ddmFormFieldTemplateContextContributor));
 
 		return ddmFormFieldTemplateContextFactory;
 	}
@@ -461,6 +459,9 @@ public class DDMFormFieldTemplateContextFactoryTest extends PowerMockito {
 
 	@Mock
 	private GroupLocalService _groupLocalService;
+
+	@Mock
+	private HtmlParser _htmlParser;
 
 	private HttpServletRequest _httpServletRequest;
 

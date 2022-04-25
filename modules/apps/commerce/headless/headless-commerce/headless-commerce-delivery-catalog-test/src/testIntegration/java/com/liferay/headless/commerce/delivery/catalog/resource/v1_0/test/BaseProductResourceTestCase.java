@@ -283,6 +283,37 @@ public abstract class BaseProductResourceTestCase {
 	}
 
 	@Test
+	public void testGetChannelProductsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long channelId = testGetChannelProductsPage_getChannelId();
+
+		Product product1 = testGetChannelProductsPage_addProduct(
+			channelId, randomProduct());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Product product2 = testGetChannelProductsPage_addProduct(
+			channelId, randomProduct());
+
+		for (EntityField entityField : entityFields) {
+			Page<Product> page = productResource.getChannelProductsPage(
+				channelId, null, getFilterString(entityField, "eq", product1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(product1),
+				(List<Product>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetChannelProductsPageWithFilterStringEquals()
 		throws Exception {
 
@@ -358,6 +389,16 @@ public abstract class BaseProductResourceTestCase {
 				BeanUtils.setProperty(
 					product1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetChannelProductsPageWithSortDouble() throws Exception {
+		testGetChannelProductsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, product1, product2) -> {
+				BeanUtils.setProperty(product1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(product2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -490,10 +531,15 @@ public abstract class BaseProductResourceTestCase {
 		Product postProduct = testGetChannelProduct_addProduct();
 
 		Product getProduct = productResource.getChannelProduct(
-			null, postProduct.getId(), null);
+			testGetChannelProduct_getChannelId(), postProduct.getId(), null);
 
 		assertEquals(postProduct, getProduct);
 		assertValid(getProduct);
+	}
+
+	protected Long testGetChannelProduct_getChannelId() throws Exception {
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected Product testGetChannelProduct_addProduct() throws Exception {
@@ -503,7 +549,7 @@ public abstract class BaseProductResourceTestCase {
 
 	@Test
 	public void testGraphQLGetChannelProduct() throws Exception {
-		Product product = testGraphQLProduct_addProduct();
+		Product product = testGraphQLGetChannelProduct_addProduct();
 
 		Assert.assertTrue(
 			equals(
@@ -515,12 +561,21 @@ public abstract class BaseProductResourceTestCase {
 								"channelProduct",
 								new HashMap<String, Object>() {
 									{
-										put("channelId", null);
+										put(
+											"channelId",
+											testGraphQLGetChannelProduct_getChannelId());
 										put("productId", product.getId());
 									}
 								},
 								getGraphQLFields())),
 						"JSONObject/data", "Object/channelProduct"))));
+	}
+
+	protected Long testGraphQLGetChannelProduct_getChannelId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -543,6 +598,12 @@ public abstract class BaseProductResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Product testGraphQLGetChannelProduct_addProduct()
+		throws Exception {
+
+		return testGraphQLProduct_addProduct();
 	}
 
 	@Rule
@@ -1392,8 +1453,9 @@ public abstract class BaseProductResourceTestCase {
 		}
 
 		if (entityFieldName.equals("multipleOrderQuantity")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(product.getMultipleOrderQuantity()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("name")) {

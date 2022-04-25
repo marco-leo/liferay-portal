@@ -48,7 +48,7 @@ import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
-import com.liferay.segments.constants.SegmentsEntryConstants;
+import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.model.SegmentsExperience;
 import com.liferay.segments.service.SegmentsExperienceService;
 
@@ -163,8 +163,8 @@ public class SitePageDTOConverter implements DTOConverter<Layout, SitePage> {
 							return null;
 						}
 
-						long segmentsExperienceId =
-							SegmentsEntryConstants.ID_DEFAULT;
+						String segmentsExperienceKey =
+							SegmentsExperienceConstants.KEY_DEFAULT;
 
 						SegmentsExperience segmentsExperience =
 							(SegmentsExperience)
@@ -172,13 +172,13 @@ public class SitePageDTOConverter implements DTOConverter<Layout, SitePage> {
 									"segmentsExperience");
 
 						if (segmentsExperience != null) {
-							segmentsExperienceId =
-								segmentsExperience.getSegmentsExperienceId();
+							segmentsExperienceKey =
+								segmentsExperience.getSegmentsExperienceKey();
 						}
 
 						LayoutStructure layoutStructure = LayoutStructure.of(
 							layoutPageTemplateStructure.getData(
-								segmentsExperienceId));
+								segmentsExperienceKey));
 
 						return _pageDefinitionDTOConverter.toDTO(
 							dtoConverterContext, layoutStructure);

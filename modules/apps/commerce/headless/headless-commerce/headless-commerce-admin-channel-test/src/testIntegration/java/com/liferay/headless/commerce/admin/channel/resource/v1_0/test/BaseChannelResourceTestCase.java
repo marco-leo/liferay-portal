@@ -253,6 +253,31 @@ public abstract class BaseChannelResourceTestCase {
 	}
 
 	@Test
+	public void testGetChannelsPageWithFilterDoubleEquals() throws Exception {
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Channel channel1 = testGetChannelsPage_addChannel(randomChannel());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Channel channel2 = testGetChannelsPage_addChannel(randomChannel());
+
+		for (EntityField entityField : entityFields) {
+			Page<Channel> page = channelResource.getChannelsPage(
+				null, getFilterString(entityField, "eq", channel1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(channel1),
+				(List<Channel>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetChannelsPageWithFilterStringEquals() throws Exception {
 		List<EntityField> entityFields = getEntityFields(
 			EntityField.Type.STRING);
@@ -323,6 +348,16 @@ public abstract class BaseChannelResourceTestCase {
 				BeanUtils.setProperty(
 					channel1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetChannelsPageWithSortDouble() throws Exception {
+		testGetChannelsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, channel1, channel2) -> {
+				BeanUtils.setProperty(channel1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(channel2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -455,8 +490,8 @@ public abstract class BaseChannelResourceTestCase {
 
 		long totalCount = channelsJSONObject.getLong("totalCount");
 
-		Channel channel1 = testGraphQLChannel_addChannel();
-		Channel channel2 = testGraphQLChannel_addChannel();
+		Channel channel1 = testGraphQLGetChannelsPage_addChannel();
+		Channel channel2 = testGraphQLGetChannelsPage_addChannel();
 
 		channelsJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -473,6 +508,10 @@ public abstract class BaseChannelResourceTestCase {
 			channel2,
 			Arrays.asList(
 				ChannelSerDes.toDTOs(channelsJSONObject.getString("items"))));
+	}
+
+	protected Channel testGraphQLGetChannelsPage_addChannel() throws Exception {
+		return testGraphQLChannel_addChannel();
 	}
 
 	@Test
@@ -543,7 +582,8 @@ public abstract class BaseChannelResourceTestCase {
 	public void testGraphQLGetChannelByExternalReferenceCode()
 		throws Exception {
 
-		Channel channel = testGraphQLChannel_addChannel();
+		Channel channel =
+			testGraphQLGetChannelByExternalReferenceCode_addChannel();
 
 		Assert.assertTrue(
 			equals(
@@ -591,6 +631,12 @@ public abstract class BaseChannelResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Channel testGraphQLGetChannelByExternalReferenceCode_addChannel()
+		throws Exception {
+
+		return testGraphQLChannel_addChannel();
 	}
 
 	@Test
@@ -696,7 +742,7 @@ public abstract class BaseChannelResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteChannel() throws Exception {
-		Channel channel = testGraphQLChannel_addChannel();
+		Channel channel = testGraphQLDeleteChannel_addChannel();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -709,7 +755,6 @@ public abstract class BaseChannelResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteChannel"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -723,6 +768,10 @@ public abstract class BaseChannelResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected Channel testGraphQLDeleteChannel_addChannel() throws Exception {
+		return testGraphQLChannel_addChannel();
 	}
 
 	@Test
@@ -742,7 +791,7 @@ public abstract class BaseChannelResourceTestCase {
 
 	@Test
 	public void testGraphQLGetChannel() throws Exception {
-		Channel channel = testGraphQLChannel_addChannel();
+		Channel channel = testGraphQLGetChannel_addChannel();
 
 		Assert.assertTrue(
 			equals(
@@ -779,6 +828,10 @@ public abstract class BaseChannelResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Channel testGraphQLGetChannel_addChannel() throws Exception {
+		return testGraphQLChannel_addChannel();
 	}
 
 	@Test

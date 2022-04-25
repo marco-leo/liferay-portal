@@ -225,7 +225,7 @@ public abstract class BasePriceListAccountGroupResourceTestCase {
 	@Test
 	public void testGraphQLDeletePriceListAccountGroup() throws Exception {
 		PriceListAccountGroup priceListAccountGroup =
-			testGraphQLPriceListAccountGroup_addPriceListAccountGroup();
+			testGraphQLDeletePriceListAccountGroup_addPriceListAccountGroup();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -238,6 +238,13 @@ public abstract class BasePriceListAccountGroupResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deletePriceListAccountGroup"));
+	}
+
+	protected PriceListAccountGroup
+			testGraphQLDeletePriceListAccountGroup_addPriceListAccountGroup()
+		throws Exception {
+
+		return testGraphQLPriceListAccountGroup_addPriceListAccountGroup();
 	}
 
 	@Test
@@ -1014,8 +1021,9 @@ public abstract class BasePriceListAccountGroupResourceTestCase {
 		}
 
 		if (entityFieldName.equals("order")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(priceListAccountGroup.getOrder()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("priceListExternalReferenceCode")) {

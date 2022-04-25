@@ -77,40 +77,6 @@ public class StructuredContentResourceTest
 
 	@Override
 	@Test
-	public void testDeleteStructuredContentByVersion() throws Exception {
-		StructuredContent structuredContent = _postSiteStructuredContent(
-			testGroup.getGroupId(), randomStructuredContent());
-
-		Page<StructuredContent> structuredContentsVersionsPage =
-			structuredContentResource.getStructuredContentsVersionsPage(
-				structuredContent.getId());
-
-		Assert.assertEquals(1L, structuredContentsVersionsPage.getTotalCount());
-
-		structuredContentResource.deleteStructuredContentByVersion(
-			structuredContent.getId(), 1.0D);
-
-		assertHttpResponseStatusCode(
-			404,
-			structuredContentResource.getStructuredContentByVersionHttpResponse(
-				structuredContent.getId(), 1.0D));
-	}
-
-	@Override
-	@Test
-	public void testGetStructuredContentByVersion() throws Exception {
-		StructuredContent structuredContent = _postSiteStructuredContent(
-			testGroup.getGroupId(), randomStructuredContent());
-
-		StructuredContent structuredContentVersion =
-			structuredContentResource.getStructuredContentByVersion(
-				structuredContent.getId(), 1.0D);
-
-		assertEquals(structuredContent, structuredContentVersion);
-	}
-
-	@Override
-	@Test
 	public void testGetStructuredContentsVersionsPage() throws Exception {
 		StructuredContent structuredContent = _postSiteStructuredContent(
 			testGroup.getGroupId(), randomStructuredContent());
@@ -184,7 +150,7 @@ public class StructuredContentResourceTest
 
 	@Override
 	protected String[] getAdditionalAssertFieldNames() {
-		return new String[] {"title"};
+		return new String[] {"priority", "title"};
 	}
 
 	@Override
@@ -219,11 +185,43 @@ public class StructuredContentResourceTest
 
 	@Override
 	protected StructuredContent
+			testDeleteStructuredContentByVersion_addStructuredContent()
+		throws Exception {
+
+		return _postSiteStructuredContent(
+			testGroup.getGroupId(), randomStructuredContent());
+	}
+
+	@Override
+	protected Double testDeleteStructuredContentByVersion_getVersion()
+		throws Exception {
+
+		return 1.0D;
+	}
+
+	@Override
+	protected StructuredContent
 			testGetSiteStructuredContentsPage_addStructuredContent(
 				Long siteId, StructuredContent structuredContent)
 		throws Exception {
 
 		return _postSiteStructuredContent(siteId, structuredContent);
+	}
+
+	@Override
+	protected StructuredContent
+			testGetStructuredContentByVersion_addStructuredContent()
+		throws Exception {
+
+		return _postSiteStructuredContent(
+			testGroup.getGroupId(), randomStructuredContent());
+	}
+
+	@Override
+	protected Double testGetStructuredContentByVersion_getVersion()
+		throws Exception {
+
+		return 1.0D;
 	}
 
 	@Override
@@ -241,7 +239,7 @@ public class StructuredContentResourceTest
 				StructuredContent structuredContent)
 		throws Exception {
 
-		return _postSiteStructuredContent(
+		return structuredContentResource.postSiteStructuredContentDraft(
 			testGroup.getGroupId(), structuredContent);
 	}
 
@@ -293,6 +291,7 @@ public class StructuredContentResourceTest
 					{
 						setContentStructureId(
 							structuredContent.getContentStructureId());
+						setPriority(structuredContent.getPriority());
 						setSiteId(structuredContent.getSiteId());
 						setTitle(structuredContent.getTitle());
 					}
@@ -334,6 +333,7 @@ public class StructuredContentResourceTest
 				setDateCreated(structuredContent.getDateCreated());
 				setDateModified(structuredContent.getDateModified());
 				setId(structuredContent.getId());
+				setPriority(structuredContent.getPriority());
 				setSiteId(structuredContent.getSiteId());
 				setTitle(structuredContent.getTitle());
 			}

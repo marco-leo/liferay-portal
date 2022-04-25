@@ -83,7 +83,7 @@ public interface CommerceShipmentService extends BaseService {
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public CommerceShipment fetchCommerceShipment(
+	public CommerceShipment fetchCommerceShipmentByExternalReferenceCode(
 			long companyId, String externalReferenceCode)
 		throws PortalException;
 
@@ -196,6 +196,10 @@ public interface CommerceShipmentService extends BaseService {
 	public CommerceShipment updateExpectedDate(
 			long commerceShipmentId, int expectedDateMonth, int expectedDateDay,
 			int expectedDateYear, int expectedDateHour, int expectedDateMinute)
+		throws PortalException;
+
+	public CommerceShipment updateExternalReferenceCode(
+			long commerceShipmentId, String externalReferenceCode)
 		throws PortalException;
 
 	public CommerceShipment updateShippingDate(

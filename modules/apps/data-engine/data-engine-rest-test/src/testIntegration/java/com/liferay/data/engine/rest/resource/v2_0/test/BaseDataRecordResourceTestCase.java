@@ -305,6 +305,18 @@ public abstract class BaseDataRecordResourceTestCase {
 	}
 
 	@Test
+	public void testGetDataDefinitionDataRecordsPageWithSortDouble()
+		throws Exception {
+
+		testGetDataDefinitionDataRecordsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, dataRecord1, dataRecord2) -> {
+				BeanUtils.setProperty(dataRecord1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(dataRecord2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetDataDefinitionDataRecordsPageWithSortInteger()
 		throws Exception {
 
@@ -575,6 +587,18 @@ public abstract class BaseDataRecordResourceTestCase {
 	}
 
 	@Test
+	public void testGetDataRecordCollectionDataRecordsPageWithSortDouble()
+		throws Exception {
+
+		testGetDataRecordCollectionDataRecordsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, dataRecord1, dataRecord2) -> {
+				BeanUtils.setProperty(dataRecord1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(dataRecord2, entityField.getName(), 0.5);
+			});
+	}
+
+	@Test
 	public void testGetDataRecordCollectionDataRecordsPageWithSortInteger()
 		throws Exception {
 
@@ -763,7 +787,7 @@ public abstract class BaseDataRecordResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteDataRecord() throws Exception {
-		DataRecord dataRecord = testGraphQLDataRecord_addDataRecord();
+		DataRecord dataRecord = testGraphQLDeleteDataRecord_addDataRecord();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -776,7 +800,6 @@ public abstract class BaseDataRecordResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteDataRecord"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -790,6 +813,12 @@ public abstract class BaseDataRecordResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected DataRecord testGraphQLDeleteDataRecord_addDataRecord()
+		throws Exception {
+
+		return testGraphQLDataRecord_addDataRecord();
 	}
 
 	@Test
@@ -810,7 +839,7 @@ public abstract class BaseDataRecordResourceTestCase {
 
 	@Test
 	public void testGraphQLGetDataRecord() throws Exception {
-		DataRecord dataRecord = testGraphQLDataRecord_addDataRecord();
+		DataRecord dataRecord = testGraphQLGetDataRecord_addDataRecord();
 
 		Assert.assertTrue(
 			equals(
@@ -847,6 +876,12 @@ public abstract class BaseDataRecordResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected DataRecord testGraphQLGetDataRecord_addDataRecord()
+		throws Exception {
+
+		return testGraphQLDataRecord_addDataRecord();
 	}
 
 	@Test
@@ -1257,8 +1292,9 @@ public abstract class BaseDataRecordResourceTestCase {
 		}
 
 		if (entityFieldName.equals("status")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(dataRecord.getStatus()));
+
+			return sb.toString();
 		}
 
 		throw new IllegalArgumentException(

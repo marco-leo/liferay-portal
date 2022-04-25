@@ -79,11 +79,11 @@ public class CommerceShipmentServiceUtil {
 			commerceShipmentId, restoreStockQuantity);
 	}
 
-	public static CommerceShipment fetchCommerceShipment(
+	public static CommerceShipment fetchCommerceShipmentByExternalReferenceCode(
 			long companyId, String externalReferenceCode)
 		throws PortalException {
 
-		return getService().fetchCommerceShipment(
+		return getService().fetchCommerceShipmentByExternalReferenceCode(
 			companyId, externalReferenceCode);
 	}
 
@@ -270,6 +270,14 @@ public class CommerceShipmentServiceUtil {
 		return getService().updateExpectedDate(
 			commerceShipmentId, expectedDateMonth, expectedDateDay,
 			expectedDateYear, expectedDateHour, expectedDateMinute);
+	}
+
+	public static CommerceShipment updateExternalReferenceCode(
+			long commerceShipmentId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().updateExternalReferenceCode(
+			commerceShipmentId, externalReferenceCode);
 	}
 
 	public static CommerceShipment updateShippingDate(

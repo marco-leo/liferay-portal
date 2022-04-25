@@ -238,7 +238,7 @@ public abstract class BaseShippingAddressResourceTestCase {
 		throws Exception {
 
 		ShippingAddress shippingAddress =
-			testGraphQLShippingAddress_addShippingAddress();
+			testGraphQLGetShipmentByExternalReferenceCodeShippingAddress_addShippingAddress();
 
 		Assert.assertTrue(
 			equals(
@@ -288,6 +288,13 @@ public abstract class BaseShippingAddressResourceTestCase {
 				"Object/code"));
 	}
 
+	protected ShippingAddress
+			testGraphQLGetShipmentByExternalReferenceCodeShippingAddress_addShippingAddress()
+		throws Exception {
+
+		return testGraphQLShippingAddress_addShippingAddress();
+	}
+
 	@Test
 	public void testPatchShipmentByExternalReferenceCodeShippingAddress()
 		throws Exception {
@@ -334,10 +341,18 @@ public abstract class BaseShippingAddressResourceTestCase {
 			testGetShipmentShippingAddress_addShippingAddress();
 
 		ShippingAddress getShippingAddress =
-			shippingAddressResource.getShipmentShippingAddress(null);
+			shippingAddressResource.getShipmentShippingAddress(
+				testGetShipmentShippingAddress_getShipmentId());
 
 		assertEquals(postShippingAddress, getShippingAddress);
 		assertValid(getShippingAddress);
+	}
+
+	protected Long testGetShipmentShippingAddress_getShipmentId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected ShippingAddress
@@ -351,7 +366,7 @@ public abstract class BaseShippingAddressResourceTestCase {
 	@Test
 	public void testGraphQLGetShipmentShippingAddress() throws Exception {
 		ShippingAddress shippingAddress =
-			testGraphQLShippingAddress_addShippingAddress();
+			testGraphQLGetShipmentShippingAddress_addShippingAddress();
 
 		Assert.assertTrue(
 			equals(
@@ -363,11 +378,20 @@ public abstract class BaseShippingAddressResourceTestCase {
 								"shipmentShippingAddress",
 								new HashMap<String, Object>() {
 									{
-										put("shipmentId", null);
+										put(
+											"shipmentId",
+											testGraphQLGetShipmentShippingAddress_getShipmentId());
 									}
 								},
 								getGraphQLFields())),
 						"JSONObject/data", "Object/shipmentShippingAddress"))));
+	}
+
+	protected Long testGraphQLGetShipmentShippingAddress_getShipmentId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -390,6 +414,13 @@ public abstract class BaseShippingAddressResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected ShippingAddress
+			testGraphQLGetShipmentShippingAddress_addShippingAddress()
+		throws Exception {
+
+		return testGraphQLShippingAddress_addShippingAddress();
 	}
 
 	@Test
@@ -1010,13 +1041,15 @@ public abstract class BaseShippingAddressResourceTestCase {
 		}
 
 		if (entityFieldName.equals("latitude")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(shippingAddress.getLatitude()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("longitude")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(shippingAddress.getLongitude()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("name")) {

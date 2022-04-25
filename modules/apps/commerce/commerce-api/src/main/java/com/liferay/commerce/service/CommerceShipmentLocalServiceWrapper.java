@@ -675,6 +675,16 @@ public class CommerceShipmentLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.commerce.model.CommerceShipment
+			updateExternalReferenceCode(
+				long commerceShipmentId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _commerceShipmentLocalService.updateExternalReferenceCode(
+			commerceShipmentId, externalReferenceCode);
+	}
+
+	@Override
 	public com.liferay.commerce.model.CommerceShipment updateShippingDate(
 			long commerceShipmentId, int shippingDateMonth, int shippingDateDay,
 			int shippingDateYear, int shippingDateHour, int shippingDateMinute)

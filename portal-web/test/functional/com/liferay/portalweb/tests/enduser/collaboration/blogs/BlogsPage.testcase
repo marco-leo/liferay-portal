@@ -420,8 +420,8 @@ definition {
 	@priority = "3"
 	@refactordone
 	test CanSubscribeToComment {
-		property testray.component.names = "Comment";
 		property test.name.skip.portal.instance = "BlogsPage#CanSubscribeToComment";
+		property testray.component.names = "Comment";
 
 		JSONBlog.addEntry(
 			entryContent = "Blogs Entry Content",
@@ -607,6 +607,15 @@ definition {
 		BlogsEntry.viewPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
+	}
+
+	@description = "This is a test for LPS-94990. It checks that a blog entry can be viewed when using a display page template."
+	@ignore = "Test Stub"
+	@priority = "5"
+	test CanViewEntryUsingDisplayPageTemplate {
+
+		// TODO LPS-148504 CanViewEntryUsingDisplayPageTemplate pending implementation
+
 	}
 
 	@description = "This test checks that blog entry can be added with special charaters."

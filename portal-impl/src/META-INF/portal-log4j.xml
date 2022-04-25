@@ -245,7 +245,6 @@
 		<Logger level="ERROR" name="com.liferay.util.JNDIUtil" />
 		<Logger level="ERROR" name="com.liferay.util.dao" />
 		<Logger level="INFO" name="com.liferay.util.dao.orm.CustomSQLUtil" />
-		<Logger level="WARN" name="com.mchange" />
 		<Logger level="ERROR" name="com.opensymphony.oscache" />
 		<Logger level="ERROR" name="com.opensymphony.oscache.plugins.clustersupport.JavaGroupsBroadcastingListener" />
 		<Logger level="INFO" name="com.sample" />
@@ -264,9 +263,7 @@
 		<Logger level="WARN" name="org.apache.aries.jax.rs.whiteboard.activator.CxfJaxrsBundleActivator" />
 		<Logger level="ERROR" name="org.apache.chemistry.opencmis.client.bindings.spi.atompub.HttpUtils" />
 		<Logger level="ERROR" name="org.apache.commons.beanutils" />
-		<Logger level="ERROR" name="org.apache.commons.digester" />
 		<Logger level="ERROR" name="org.apache.commons.fileupload" />
-		<Logger level="ERROR" name="org.apache.commons.validator" />
 		<Logger level="ERROR" name="org.apache.pdfbox" />
 		<Logger level="ERROR" name="org.apache.velocity" />
 		<Logger level="ERROR" name="org.apache.xbean" />

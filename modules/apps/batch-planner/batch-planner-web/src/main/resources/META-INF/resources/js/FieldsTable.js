@@ -34,10 +34,15 @@ function FieldsTable({portletNamespace}) {
 			if (event.schema) {
 				const newFields = getFieldsFromSchema(event.schema);
 
-				setFields(newFields);
+				const formattedFields = [
+					...newFields.required,
+					...newFields.optional,
+				];
+
+				setFields(formattedFields);
 
 				if (!useTemplateMappingRef.current) {
-					setSelectedFields(newFields);
+					setSelectedFields(formattedFields);
 				}
 			}
 			else {
@@ -102,7 +107,7 @@ function FieldsTable({portletNamespace}) {
 			</ClayAlert>
 
 			<div className="card-body p-0">
-				<ClayTable borderless hover={false} responsive={false}>
+				<ClayTable hover={false} responsive={true}>
 					<ClayTable.Head>
 						<ClayTable.Row>
 							<ClayTable.Cell headingCell>

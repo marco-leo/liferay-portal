@@ -268,6 +268,39 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 	}
 
 	@Test
+	public void testGetObjectDefinitionsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		ObjectDefinition objectDefinition1 =
+			testGetObjectDefinitionsPage_addObjectDefinition(
+				randomObjectDefinition());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		ObjectDefinition objectDefinition2 =
+			testGetObjectDefinitionsPage_addObjectDefinition(
+				randomObjectDefinition());
+
+		for (EntityField entityField : entityFields) {
+			Page<ObjectDefinition> page =
+				objectDefinitionResource.getObjectDefinitionsPage(
+					null, null,
+					getFilterString(entityField, "eq", objectDefinition1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(objectDefinition1),
+				(List<ObjectDefinition>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetObjectDefinitionsPageWithFilterStringEquals()
 		throws Exception {
 
@@ -365,6 +398,18 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 				BeanUtils.setProperty(
 					objectDefinition1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetObjectDefinitionsPageWithSortDouble() throws Exception {
+		testGetObjectDefinitionsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, objectDefinition1, objectDefinition2) -> {
+				BeanUtils.setProperty(
+					objectDefinition1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					objectDefinition2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -507,9 +552,9 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 		long totalCount = objectDefinitionsJSONObject.getLong("totalCount");
 
 		ObjectDefinition objectDefinition1 =
-			testGraphQLObjectDefinition_addObjectDefinition();
+			testGraphQLGetObjectDefinitionsPage_addObjectDefinition();
 		ObjectDefinition objectDefinition2 =
-			testGraphQLObjectDefinition_addObjectDefinition();
+			testGraphQLGetObjectDefinitionsPage_addObjectDefinition();
 
 		objectDefinitionsJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -528,6 +573,13 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 			Arrays.asList(
 				ObjectDefinitionSerDes.toDTOs(
 					objectDefinitionsJSONObject.getString("items"))));
+	}
+
+	protected ObjectDefinition
+			testGraphQLGetObjectDefinitionsPage_addObjectDefinition()
+		throws Exception {
+
+		return testGraphQLObjectDefinition_addObjectDefinition();
 	}
 
 	@Test
@@ -580,7 +632,7 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 	@Test
 	public void testGraphQLDeleteObjectDefinition() throws Exception {
 		ObjectDefinition objectDefinition =
-			testGraphQLObjectDefinition_addObjectDefinition();
+			testGraphQLDeleteObjectDefinition_addObjectDefinition();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -595,7 +647,6 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteObjectDefinition"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -609,6 +660,13 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected ObjectDefinition
+			testGraphQLDeleteObjectDefinition_addObjectDefinition()
+		throws Exception {
+
+		return testGraphQLObjectDefinition_addObjectDefinition();
 	}
 
 	@Test
@@ -634,7 +692,7 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 	@Test
 	public void testGraphQLGetObjectDefinition() throws Exception {
 		ObjectDefinition objectDefinition =
-			testGraphQLObjectDefinition_addObjectDefinition();
+			testGraphQLGetObjectDefinition_addObjectDefinition();
 
 		Assert.assertTrue(
 			equals(
@@ -675,6 +733,13 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected ObjectDefinition
+			testGraphQLGetObjectDefinition_addObjectDefinition()
+		throws Exception {
+
+		return testGraphQLObjectDefinition_addObjectDefinition();
 	}
 
 	@Test

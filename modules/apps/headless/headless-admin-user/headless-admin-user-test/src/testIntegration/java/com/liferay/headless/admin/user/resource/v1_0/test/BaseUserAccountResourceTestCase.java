@@ -235,7 +235,24 @@ public abstract class BaseUserAccountResourceTestCase {
 			204,
 			userAccountResource.
 				deleteAccountByExternalReferenceCodeUserAccountByExternalReferenceCodeHttpResponse(
-					null, null));
+					testDeleteAccountByExternalReferenceCodeUserAccountByExternalReferenceCode_getAccountExternalReferenceCode(),
+					testDeleteAccountByExternalReferenceCodeUserAccountByExternalReferenceCode_getUserAccountExternalReferenceCode()));
+	}
+
+	protected String
+			testDeleteAccountByExternalReferenceCodeUserAccountByExternalReferenceCode_getAccountExternalReferenceCode()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected String
+			testDeleteAccountByExternalReferenceCodeUserAccountByExternalReferenceCode_getUserAccountExternalReferenceCode()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected UserAccount
@@ -373,6 +390,43 @@ public abstract class BaseUserAccountResourceTestCase {
 	}
 
 	@Test
+	public void testGetAccountUserAccountsByExternalReferenceCodePageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		String externalReferenceCode =
+			testGetAccountUserAccountsByExternalReferenceCodePage_getExternalReferenceCode();
+
+		UserAccount userAccount1 =
+			testGetAccountUserAccountsByExternalReferenceCodePage_addUserAccount(
+				externalReferenceCode, randomUserAccount());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		UserAccount userAccount2 =
+			testGetAccountUserAccountsByExternalReferenceCodePage_addUserAccount(
+				externalReferenceCode, randomUserAccount());
+
+		for (EntityField entityField : entityFields) {
+			Page<UserAccount> page =
+				userAccountResource.
+					getAccountUserAccountsByExternalReferenceCodePage(
+						externalReferenceCode, null,
+						getFilterString(entityField, "eq", userAccount1),
+						Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(userAccount1),
+				(List<UserAccount>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetAccountUserAccountsByExternalReferenceCodePageWithFilterStringEquals()
 		throws Exception {
 
@@ -471,6 +525,18 @@ public abstract class BaseUserAccountResourceTestCase {
 				BeanUtils.setProperty(
 					userAccount1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetAccountUserAccountsByExternalReferenceCodePageWithSortDouble()
+		throws Exception {
+
+		testGetAccountUserAccountsByExternalReferenceCodePageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, userAccount1, userAccount2) -> {
+				BeanUtils.setProperty(userAccount1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(userAccount2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -830,6 +896,41 @@ public abstract class BaseUserAccountResourceTestCase {
 	}
 
 	@Test
+	public void testGetAccountUserAccountsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long accountId = testGetAccountUserAccountsPage_getAccountId();
+
+		UserAccount userAccount1 =
+			testGetAccountUserAccountsPage_addUserAccount(
+				accountId, randomUserAccount());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		UserAccount userAccount2 =
+			testGetAccountUserAccountsPage_addUserAccount(
+				accountId, randomUserAccount());
+
+		for (EntityField entityField : entityFields) {
+			Page<UserAccount> page =
+				userAccountResource.getAccountUserAccountsPage(
+					accountId, null,
+					getFilterString(entityField, "eq", userAccount1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(userAccount1),
+				(List<UserAccount>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetAccountUserAccountsPageWithFilterStringEquals()
 		throws Exception {
 
@@ -919,6 +1020,18 @@ public abstract class BaseUserAccountResourceTestCase {
 				BeanUtils.setProperty(
 					userAccount1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetAccountUserAccountsPageWithSortDouble()
+		throws Exception {
+
+		testGetAccountUserAccountsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, userAccount1, userAccount2) -> {
+				BeanUtils.setProperty(userAccount1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(userAccount2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -1085,7 +1198,15 @@ public abstract class BaseUserAccountResourceTestCase {
 			204,
 			userAccountResource.
 				deleteAccountUserAccountsByEmailAddressHttpResponse(
-					null, null));
+					testDeleteAccountUserAccountsByEmailAddress_getAccountId(),
+					null));
+	}
+
+	protected Long testDeleteAccountUserAccountsByEmailAddress_getAccountId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected UserAccount
@@ -1111,7 +1232,15 @@ public abstract class BaseUserAccountResourceTestCase {
 			204,
 			userAccountResource.
 				deleteAccountUserAccountByEmailAddressHttpResponse(
-					null, userAccount.getEmailAddress()));
+					testDeleteAccountUserAccountByEmailAddress_getAccountId(),
+					userAccount.getEmailAddress()));
+	}
+
+	protected Long testDeleteAccountUserAccountByEmailAddress_getAccountId()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected UserAccount
@@ -1162,7 +1291,7 @@ public abstract class BaseUserAccountResourceTestCase {
 
 	@Test
 	public void testGraphQLGetMyUserAccount() throws Exception {
-		UserAccount userAccount = testGraphQLUserAccount_addUserAccount();
+		UserAccount userAccount = testGraphQLGetMyUserAccount_addUserAccount();
 
 		Assert.assertTrue(
 			equals(
@@ -1183,6 +1312,12 @@ public abstract class BaseUserAccountResourceTestCase {
 	@Test
 	public void testGraphQLGetMyUserAccountNotFound() throws Exception {
 		Assert.assertTrue(true);
+	}
+
+	protected UserAccount testGraphQLGetMyUserAccount_addUserAccount()
+		throws Exception {
+
+		return testGraphQLUserAccount_addUserAccount();
 	}
 
 	@Test
@@ -1262,6 +1397,42 @@ public abstract class BaseUserAccountResourceTestCase {
 				userAccountResource.getOrganizationUserAccountsPage(
 					organizationId, null,
 					getFilterString(entityField, "between", userAccount1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(userAccount1),
+				(List<UserAccount>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetOrganizationUserAccountsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		String organizationId =
+			testGetOrganizationUserAccountsPage_getOrganizationId();
+
+		UserAccount userAccount1 =
+			testGetOrganizationUserAccountsPage_addUserAccount(
+				organizationId, randomUserAccount());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		UserAccount userAccount2 =
+			testGetOrganizationUserAccountsPage_addUserAccount(
+				organizationId, randomUserAccount());
+
+		for (EntityField entityField : entityFields) {
+			Page<UserAccount> page =
+				userAccountResource.getOrganizationUserAccountsPage(
+					organizationId, null,
+					getFilterString(entityField, "eq", userAccount1),
 					Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -1362,6 +1533,18 @@ public abstract class BaseUserAccountResourceTestCase {
 				BeanUtils.setProperty(
 					userAccount1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetOrganizationUserAccountsPageWithSortDouble()
+		throws Exception {
+
+		testGetOrganizationUserAccountsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, userAccount1, userAccount2) -> {
+				BeanUtils.setProperty(userAccount1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(userAccount2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -1581,6 +1764,39 @@ public abstract class BaseUserAccountResourceTestCase {
 	}
 
 	@Test
+	public void testGetSiteUserAccountsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Long siteId = testGetSiteUserAccountsPage_getSiteId();
+
+		UserAccount userAccount1 = testGetSiteUserAccountsPage_addUserAccount(
+			siteId, randomUserAccount());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		UserAccount userAccount2 = testGetSiteUserAccountsPage_addUserAccount(
+			siteId, randomUserAccount());
+
+		for (EntityField entityField : entityFields) {
+			Page<UserAccount> page =
+				userAccountResource.getSiteUserAccountsPage(
+					siteId, null,
+					getFilterString(entityField, "eq", userAccount1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(userAccount1),
+				(List<UserAccount>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetSiteUserAccountsPageWithFilterStringEquals()
 		throws Exception {
 
@@ -1658,6 +1874,16 @@ public abstract class BaseUserAccountResourceTestCase {
 				BeanUtils.setProperty(
 					userAccount1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetSiteUserAccountsPageWithSortDouble() throws Exception {
+		testGetSiteUserAccountsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, userAccount1, userAccount2) -> {
+				BeanUtils.setProperty(userAccount1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(userAccount2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -1842,6 +2068,35 @@ public abstract class BaseUserAccountResourceTestCase {
 	}
 
 	@Test
+	public void testGetUserAccountsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		UserAccount userAccount1 = testGetUserAccountsPage_addUserAccount(
+			randomUserAccount());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		UserAccount userAccount2 = testGetUserAccountsPage_addUserAccount(
+			randomUserAccount());
+
+		for (EntityField entityField : entityFields) {
+			Page<UserAccount> page = userAccountResource.getUserAccountsPage(
+				null, getFilterString(entityField, "eq", userAccount1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(userAccount1),
+				(List<UserAccount>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetUserAccountsPageWithFilterStringEquals()
 		throws Exception {
 
@@ -1919,6 +2174,16 @@ public abstract class BaseUserAccountResourceTestCase {
 				BeanUtils.setProperty(
 					userAccount1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetUserAccountsPageWithSortDouble() throws Exception {
+		testGetUserAccountsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, userAccount1, userAccount2) -> {
+				BeanUtils.setProperty(userAccount1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(userAccount2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -2053,8 +2318,10 @@ public abstract class BaseUserAccountResourceTestCase {
 
 		long totalCount = userAccountsJSONObject.getLong("totalCount");
 
-		UserAccount userAccount1 = testGraphQLUserAccount_addUserAccount();
-		UserAccount userAccount2 = testGraphQLUserAccount_addUserAccount();
+		UserAccount userAccount1 =
+			testGraphQLGetUserAccountsPage_addUserAccount();
+		UserAccount userAccount2 =
+			testGraphQLGetUserAccountsPage_addUserAccount();
 
 		userAccountsJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -2073,6 +2340,12 @@ public abstract class BaseUserAccountResourceTestCase {
 			Arrays.asList(
 				UserAccountSerDes.toDTOs(
 					userAccountsJSONObject.getString("items"))));
+	}
+
+	protected UserAccount testGraphQLGetUserAccountsPage_addUserAccount()
+		throws Exception {
+
+		return testGraphQLUserAccount_addUserAccount();
 	}
 
 	@Test
@@ -2154,7 +2427,8 @@ public abstract class BaseUserAccountResourceTestCase {
 	public void testGraphQLGetUserAccountByExternalReferenceCode()
 		throws Exception {
 
-		UserAccount userAccount = testGraphQLUserAccount_addUserAccount();
+		UserAccount userAccount =
+			testGraphQLGetUserAccountByExternalReferenceCode_addUserAccount();
 
 		Assert.assertTrue(
 			equals(
@@ -2202,6 +2476,13 @@ public abstract class BaseUserAccountResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected UserAccount
+			testGraphQLGetUserAccountByExternalReferenceCode_addUserAccount()
+		throws Exception {
+
+		return testGraphQLUserAccount_addUserAccount();
 	}
 
 	@Test
@@ -2289,7 +2570,7 @@ public abstract class BaseUserAccountResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteUserAccount() throws Exception {
-		UserAccount userAccount = testGraphQLUserAccount_addUserAccount();
+		UserAccount userAccount = testGraphQLDeleteUserAccount_addUserAccount();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -2302,7 +2583,6 @@ public abstract class BaseUserAccountResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteUserAccount"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -2316,6 +2596,12 @@ public abstract class BaseUserAccountResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected UserAccount testGraphQLDeleteUserAccount_addUserAccount()
+		throws Exception {
+
+		return testGraphQLUserAccount_addUserAccount();
 	}
 
 	@Test
@@ -2336,7 +2622,7 @@ public abstract class BaseUserAccountResourceTestCase {
 
 	@Test
 	public void testGraphQLGetUserAccount() throws Exception {
-		UserAccount userAccount = testGraphQLUserAccount_addUserAccount();
+		UserAccount userAccount = testGraphQLGetUserAccount_addUserAccount();
 
 		Assert.assertTrue(
 			equals(
@@ -2375,6 +2661,12 @@ public abstract class BaseUserAccountResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected UserAccount testGraphQLGetUserAccount_addUserAccount()
+		throws Exception {
+
+		return testGraphQLUserAccount_addUserAccount();
 	}
 
 	@Test

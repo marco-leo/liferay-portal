@@ -77,7 +77,7 @@
 </tr>
 <tr>
 	<td>PUBLICATIONS_CHANGE_DROPDOWN</td>
-	<td>//li[contains(.,'${key_changeTitle}') and contains(.,'Edit in')]//button[contains(@class,'dropdown-toggle')]</td>
+	<td>//li[contains(.,'${key_changeTitle}') and contains(.,'${key_changeCategory}')]//button[contains(@class,'dropdown-toggle')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -98,6 +98,11 @@
 <tr>
 	<td>PUBLICATIONS_CHANGE_USER</td>
 	<td>//tr[contains(@class,'table-divider') and contains(.,'${key_changeCategory}')]//following-sibling::tr[${changeOrder}]/td[1]/span[contains(@title,'${key_changeUser}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RELATIONSHIPS_CHANGE_TITLE</td>
+	<td>//td[contains(.,'${key_changeTitle}')]</td>
 	<td></td>
 </tr>
 <tr>

@@ -4,7 +4,7 @@ import com.liferay.gradle.util.StringUtil
 task cleanSidecar
 task deploySidecar(type: Copy)
 
-String elasticsearchClientVersion = "7.17.0"
+String elasticsearchClientVersion = "7.17.1"
 String luceneVersion = "8.11.1"
 String sidecarElasticsearchServerVersion = file('src/main/resources/META-INF/sidecar.version').text
 
@@ -70,7 +70,7 @@ dependencies {
 	compileInclude group: "org.ow2.asm", name: "asm-debug-all", version: "5.1"
 	compileInclude group: "org.yaml", name: "snakeyaml", version: "1.26"
 
-	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-core", version: "2.12.4"
+	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-core", version: "2.13.2"
 	compileOnly group: "com.fasterxml.woodstox", name: "woodstox-core", version: "6.2.3"
 	compileOnly group: "com.ibm.icu", name: "icu4j", version: "62.1"
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "default"
@@ -102,7 +102,7 @@ dependencies {
 	compileOnly project(":core:petra:petra-reflect")
 	compileOnly project(":core:petra:petra-string")
 
-	testCompile group: "biz.aQute.bnd", name: "biz.aQute.bnd.annotation", version: "4.2.0"
+	testCompile group: "com.liferay", name: "biz.aQute.bnd.annotation", version: "4.2.0.LIFERAY-PATCHED-2"
 	testCompile group: "com.liferay.portal", name: "com.liferay.util.java", version: "default"
 	testCompile project(":apps:portal-search:portal-search")
 	testCompile project(":apps:portal-search:portal-search-test-util")
@@ -147,9 +147,7 @@ deploySidecar {
 
 		project.copy {
 			fileMode = 0777
-
 			include "elasticsearch-${sidecarElasticsearchServerVersion}/**"
-
 			into buildDir
 			from tarTree(elasticsearchDistributionFile)
 		}

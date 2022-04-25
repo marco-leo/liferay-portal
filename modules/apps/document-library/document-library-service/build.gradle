@@ -3,7 +3,7 @@ buildService {
 }
 
 dependencies {
-	compileOnly group: "biz.aQute.bnd", name: "biz.aQute.bnd.annotation", version: "4.2.0"
+	compileOnly group: "com.liferay", name: "biz.aQute.bnd.annotation", version: "4.2.0.LIFERAY-PATCHED-2"
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "default"
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "default"
 	compileOnly group: "commons-lang", name: "commons-lang", version: "2.6"
@@ -13,7 +13,7 @@ dependencies {
 	compileOnly group: "org.osgi", name: "org.osgi.service.cm", version: "1.6.0"
 	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations", version: "1.4.0"
 	compileOnly group: "org.osgi", name: "osgi.core", version: "6.0.0"
-	compileOnly group: "org.springframework", name: "spring-context", version: "5.2.2.RELEASE"
+	compileOnly group: "org.springframework", name: "spring-context", version: "5.2.20.RELEASE"
 	compileOnly project(":apps:asset:asset-api")
 	compileOnly project(":apps:asset:asset-auto-tagger-api")
 	compileOnly project(":apps:asset:asset-display-page-api")

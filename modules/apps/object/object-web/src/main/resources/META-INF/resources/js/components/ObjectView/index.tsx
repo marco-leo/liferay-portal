@@ -14,11 +14,14 @@
 
 import ClayButton from '@clayui/button';
 import ClayTabs from '@clayui/tabs';
+import {fetch} from 'frontend-js-web';
 import React, {useContext, useEffect, useState} from 'react';
 
+import {invalidateRequired} from '../../hooks/useForm';
 import SidePanelContent from '../SidePanelContent';
-import BasicInfoScreen from './BasicInfoScreen';
-import ViewBuilderScreen from './ViewBuilderScreen';
+import BasicInfoScreen from './BasicInfoScreen/BasicInfoScreen';
+import {DefaultSortScreen} from './DefaultSortScreen/DefaultSortScreen';
+import ViewBuilderScreen from './ViewBuilderScreen/ViewBuilderScreen';
 import ViewContext, {TYPES, ViewContextProvider} from './context';
 import {TObjectField, TObjectView} from './types';
 
@@ -31,12 +34,18 @@ const TABS = [
 		Component: ViewBuilderScreen,
 		label: Liferay.Language.get('view-builder'),
 	},
+	{
+		Component: DefaultSortScreen,
+		label: Liferay.Language.get('default-sort'),
+	},
 ];
 
 const HEADERS = new Headers({
 	'Accept': 'application/json',
 	'Content-Type': 'application/json',
 });
+
+const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
 
 const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 	const [{isViewOnly, objectView, objectViewId}, dispatch] = useContext(
@@ -48,16 +57,15 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 
 	const onCloseSidePanel = () => {
 		const parentWindow = Liferay.Util.getOpener();
-
 		parentWindow.Liferay.fire('close-side-panel');
 	};
 
 	useEffect(() => {
 		const makeFetch = async () => {
-			const objectViewResponse = await Liferay.Util.fetch(
+			const objectViewResponse = await fetch(
 				`/o/object-admin/v1.0/object-views/${objectViewId}`,
 				{
-					header: HEADERS,
+					headers: HEADERS,
 					method: 'GET',
 				}
 			);
@@ -67,9 +75,10 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 				name,
 				objectDefinitionId,
 				objectViewColumns,
-			} = await objectViewResponse.json();
+				objectViewSortColumns,
+			} = (await objectViewResponse.json()) as any;
 
-			const objectFieldsResponse = await Liferay.Util.fetch(
+			const objectFieldsResponse = await fetch(
 				`/o/object-admin/v1.0/object-definitions/${objectDefinitionId}/object-fields`,
 				{
 					headers: HEADERS,
@@ -82,6 +91,7 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 				name,
 				objectDefinitionId,
 				objectViewColumns,
+				objectViewSortColumns,
 			};
 
 			dispatch({
@@ -93,7 +103,9 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 
 			const {
 				items: objectFields,
-			}: {items: TObjectField[]} = await objectFieldsResponse.json();
+			}: {
+				items: TObjectField[];
+			} = (await objectFieldsResponse.json()) as any;
 
 			dispatch({
 				payload: {
@@ -109,30 +121,58 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 		makeFetch();
 	}, [objectViewId, dispatch]);
 
-	const removeLabelFromObjectView = (objectView: TObjectView) => {
-		const {objectViewColumns} = objectView;
+	const removeUnnecessaryPropertiesFromObjectView = (
+		objectView: TObjectView
+	) => {
+		const {objectViewColumns, objectViewSortColumns} = objectView;
 
 		const newObjectViewColumns = objectViewColumns.map((viewColumn) => {
 			return {
+				label: viewColumn.label,
 				objectFieldName: viewColumn.objectFieldName,
 				priority: viewColumn.priority,
 			};
 		});
 
+		const newObjectViewSortColumns = objectViewSortColumns.map(
+			(sortColumn) => {
+				return {
+					objectFieldName: sortColumn.objectFieldName,
+					priority: sortColumn.priority,
+					sortOrder: sortColumn.sortOrder,
+				};
+			}
+		);
+
 		const newObjectView = {
 			...objectView,
 			objectViewColumns: newObjectViewColumns,
+			objectViewSortColumns: newObjectViewSortColumns,
 		};
 
 		return newObjectView;
 	};
 
 	const handleSaveObjectView = async () => {
-		const newObjectView = removeLabelFromObjectView(objectView);
+		const newObjectView = removeUnnecessaryPropertiesFromObjectView(
+			objectView
+		);
+
 		const {objectViewColumns} = newObjectView;
 
+		const parentWindow = Liferay.Util.getOpener();
+
+		if (invalidateRequired(objectView.name[defaultLanguageId])) {
+			parentWindow.Liferay.Util.openToast({
+				message: Liferay.Language.get('a-name-is-required'),
+				type: 'danger',
+			});
+
+			return;
+		}
+
 		if (!objectView.defaultObjectView || objectViewColumns.length !== 0) {
-			const response = await Liferay.Util.fetch(
+			const response = await fetch(
 				`/o/object-admin/v1.0/object-views/${objectViewId}`,
 				{
 					body: JSON.stringify(newObjectView),
@@ -145,31 +185,28 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 				window.location.reload();
 			}
 			else if (response.ok) {
-				Liferay.Util.openToast({
+				onCloseSidePanel();
+
+				parentWindow.Liferay.Util.openToast({
 					message: Liferay.Language.get(
 						'modifications-saved-successfully'
 					),
 					type: 'success',
 				});
-
-				setTimeout(() => {
-					const parentWindow = Liferay.Util.getOpener();
-					parentWindow.Liferay.fire('close-side-panel');
-				}, 1500);
 			}
 			else {
 				const {
 					title = Liferay.Language.get('an-error-occurred'),
-				} = await response.json();
+				} = (await response.json()) as any;
 
-				Liferay.Util.openToast({
+				parentWindow.Liferay.Util.openToast({
 					message: title,
 					type: 'danger',
 				});
 			}
 		}
 		else {
-			Liferay.Util.openToast({
+			parentWindow.Liferay.Util.openToast({
 				message: Liferay.Language.get(
 					'default-view-must-have-at-least-one-column'
 				),
@@ -226,17 +263,22 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 		</>
 	);
 };
-interface ICustonViewWrapperProps extends React.HTMLAttributes<HTMLElement> {
+interface ICustomViewWrapperProps extends React.HTMLAttributes<HTMLElement> {
 	isViewOnly: boolean;
 	objectViewId: string;
 }
 
-const CustomViewWrapper: React.FC<ICustonViewWrapperProps> = ({
+const CustomViewWrapper: React.FC<ICustomViewWrapperProps> = ({
 	isViewOnly,
 	objectViewId,
 }) => {
 	return (
-		<ViewContextProvider value={{isViewOnly, objectViewId}}>
+		<ViewContextProvider
+			value={{
+				isViewOnly,
+				objectViewId,
+			}}
+		>
 			<CustomView />
 		</ViewContextProvider>
 	);

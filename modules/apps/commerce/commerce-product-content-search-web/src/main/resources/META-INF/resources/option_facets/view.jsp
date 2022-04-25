@@ -24,8 +24,6 @@
 
 <%
 CPOptionsSearchFacetDisplayContext cpOptionsSearchFacetDisplayContext = (CPOptionsSearchFacetDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
-
-CPOptionFacetsPortletInstanceConfiguration cpOptionFacetsPortletInstanceConfiguration = cpOptionsSearchFacetDisplayContext.getCPOptionFacetsPortletInstanceConfiguration();
 %>
 
 <c:choose>
@@ -71,12 +69,12 @@ CPOptionFacetsPortletInstanceConfiguration cpOptionFacetsPortletInstanceConfigur
 									).put(
 										"namespace", liferayPortletResponse.getNamespace()
 									).put(
-										"showFrequencies", GetterUtil.getBoolean(portletPreferences.getValue("frequenciesVisible", null), cpOptionFacetsPortletInstanceConfiguration.showFrequencies())
+										"showFrequencies", GetterUtil.getBoolean(portletPreferences.getValue("frequenciesVisible", null), true)
 									).put(
 										"title", HtmlUtil.escape(cpOptionsSearchFacetDisplayContext.getCPOptionName(companyId, facet.getFieldId()))
 									).build()
 								%>'
-								displayStyle="<%= cpOptionFacetsPortletInstanceConfiguration.displayStyle() %>"
+								displayStyle='<%= portletPreferences.getValue("displayStyle", "") %>'
 								displayStyleGroupId="<%= cpOptionsSearchFacetDisplayContext.getDisplayStyleGroupId() %>"
 								entries="<%= cpOptionsSearchFacetDisplayContext.getTermDisplayContexts() %>"
 							>
@@ -97,7 +95,7 @@ CPOptionFacetsPortletInstanceConfiguration cpOptionFacetsPortletInstanceConfigur
 							>
 
 							<aui:fieldset>
-								<ul class="list-unstyled">
+								<ul class="list-unstyled" data-qa-id="<%= HtmlUtil.escape(cpOptionsSearchFacetDisplayContext.getCPOptionName(companyId, facet.getFieldId())) %>">
 
 								<%
 								int i = 0;
@@ -123,7 +121,7 @@ CPOptionFacetsPortletInstanceConfiguration cpOptionFacetsPortletInstanceConfigur
 												<span class="custom-control-label-text"><%= HtmlUtil.escape(termCollector.getTerm()) %></span>
 											</span>
 
-											<c:if test='<%= GetterUtil.getBoolean(portletPreferences.getValue("frequenciesVisible", null), cpOptionFacetsPortletInstanceConfiguration.showFrequencies()) %>'>
+											<c:if test='<%= GetterUtil.getBoolean(portletPreferences.getValue("frequenciesVisible", null), true) %>'>
 												<small class="term-count">
 													(<%= termCollector.getFrequency() %>)
 												</small>

@@ -1,0 +1,66 @@
+<%--
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+--%>
+
+<c:if test="<%= commerceDefaultSettingsDisplayContext.hasPermission(ActionKeys.UPDATE) %>">
+	<div id="<%= commerceDefaultSettingsDisplayContext.getItemFinderRootName(sourceClassName) %>"></div>
+
+	<liferay-frontend:component
+		context='<%=
+			HashMapBuilder.<String, Object>put(
+				"datasetId", commerceDefaultSettingsDisplayContext.getDatasetId(sourceClassName)
+			).put(
+				"inputPlaceHolderLabel", LanguageUtil.get(request, commerceDefaultSettingsDisplayContext.getInputPlaceHolderLabel(sourceClassName))
+			).put(
+				"itemFinderRootName", commerceDefaultSettingsDisplayContext.getItemFinderRootName(sourceClassName)
+			).put(
+				"itemSelectedPlaceHolderLabel", LanguageUtil.get(request, commerceDefaultSettingsDisplayContext.getItemSelectedPlaceHolderLabel(sourceClassName))
+			).put(
+				"panelHeaderLabelLabel", LanguageUtil.get(request, commerceDefaultSettingsDisplayContext.getPanelHeaderLabelLabel(sourceClassName))
+			).put(
+				"rootPortletId", portletDisplay.getRootPortletId()
+			).put(
+				"sourceName", commerceDefaultSettingsDisplayContext.getRESTModelName2(sourceClassName)
+			).put(
+				"sourceRESTContextPath", commerceDefaultSettingsDisplayContext.getRESTContextPath(sourceClassName)
+			).put(
+				"sourceRESTSchema", commerceDefaultSettingsDisplayContext.getRESTSchema(sourceClassName)
+			).put(
+				"targetId", commerceDefaultSettingsDisplayContext.getClassPK()
+			).put(
+				"targetName", commerceDefaultSettingsDisplayContext.getRESTModelName1()
+			).put(
+				"titleLabelLabel", LanguageUtil.get(request, commerceDefaultSettingsDisplayContext.getTitleLabelLabel(sourceClassName))
+			).build()
+		%>'
+		module="js/default_settings"
+	/>
+
+	<commerce-ui:panel
+		bodyClasses="p-0"
+		title="<%= LanguageUtil.get(request, commerceDefaultSettingsDisplayContext.getPluralLabel(sourceClassName)) %>"
+	>
+		<frontend-data-set:headless-display
+			apiURL="<%= commerceDefaultSettingsDisplayContext.getQualifierAPIURL(sourceClassName) %>"
+			fdsActionDropdownItems="<%= commerceDefaultSettingsDisplayContext.getFDSActionDropdownItems(sourceClassName) %>"
+			formName="fm"
+			id="<%= commerceDefaultSettingsDisplayContext.getDatasetId(sourceClassName) %>"
+			itemsPerPage="<%= 10 %>"
+			namespace="<%= liferayPortletResponse.getNamespace() %>"
+			pageNumber="<%= 1 %>"
+			portletURL="<%= currentURLObj %>"
+		/>
+	</commerce-ui:panel>
+</c:if>

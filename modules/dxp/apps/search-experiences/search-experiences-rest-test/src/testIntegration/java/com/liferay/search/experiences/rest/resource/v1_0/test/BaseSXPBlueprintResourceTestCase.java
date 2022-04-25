@@ -258,6 +258,35 @@ public abstract class BaseSXPBlueprintResourceTestCase {
 	}
 
 	@Test
+	public void testGetSXPBlueprintsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		SXPBlueprint sxpBlueprint1 = testGetSXPBlueprintsPage_addSXPBlueprint(
+			randomSXPBlueprint());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		SXPBlueprint sxpBlueprint2 = testGetSXPBlueprintsPage_addSXPBlueprint(
+			randomSXPBlueprint());
+
+		for (EntityField entityField : entityFields) {
+			Page<SXPBlueprint> page = sxpBlueprintResource.getSXPBlueprintsPage(
+				null, getFilterString(entityField, "eq", sxpBlueprint1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(sxpBlueprint1),
+				(List<SXPBlueprint>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetSXPBlueprintsPageWithFilterStringEquals()
 		throws Exception {
 
@@ -338,6 +367,18 @@ public abstract class BaseSXPBlueprintResourceTestCase {
 				BeanUtils.setProperty(
 					sxpBlueprint1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetSXPBlueprintsPageWithSortDouble() throws Exception {
+		testGetSXPBlueprintsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, sxpBlueprint1, sxpBlueprint2) -> {
+				BeanUtils.setProperty(
+					sxpBlueprint1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					sxpBlueprint2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -521,7 +562,8 @@ public abstract class BaseSXPBlueprintResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteSXPBlueprint() throws Exception {
-		SXPBlueprint sxpBlueprint = testGraphQLSXPBlueprint_addSXPBlueprint();
+		SXPBlueprint sxpBlueprint =
+			testGraphQLDeleteSXPBlueprint_addSXPBlueprint();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -534,7 +576,6 @@ public abstract class BaseSXPBlueprintResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteSXPBlueprint"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -548,6 +589,12 @@ public abstract class BaseSXPBlueprintResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected SXPBlueprint testGraphQLDeleteSXPBlueprint_addSXPBlueprint()
+		throws Exception {
+
+		return testGraphQLSXPBlueprint_addSXPBlueprint();
 	}
 
 	@Test
@@ -570,7 +617,8 @@ public abstract class BaseSXPBlueprintResourceTestCase {
 
 	@Test
 	public void testGraphQLGetSXPBlueprint() throws Exception {
-		SXPBlueprint sxpBlueprint = testGraphQLSXPBlueprint_addSXPBlueprint();
+		SXPBlueprint sxpBlueprint =
+			testGraphQLGetSXPBlueprint_addSXPBlueprint();
 
 		Assert.assertTrue(
 			equals(
@@ -609,6 +657,12 @@ public abstract class BaseSXPBlueprintResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected SXPBlueprint testGraphQLGetSXPBlueprint_addSXPBlueprint()
+		throws Exception {
+
+		return testGraphQLSXPBlueprint_addSXPBlueprint();
 	}
 
 	@Test

@@ -27,7 +27,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -252,7 +252,7 @@ public class ManagementToolbarTag extends BaseContainerTag {
 	public String getSearchInputName() {
 		if (_searchInputName == null) {
 			if (_managementToolbarDisplayContext != null) {
-				_managementToolbarDisplayContext.getSearchInputName();
+				return _managementToolbarDisplayContext.getSearchInputName();
 			}
 
 			return ManagementToolbarDefaults.getSearchInputName();
@@ -332,7 +332,8 @@ public class ManagementToolbarTag extends BaseContainerTag {
 	public Boolean isSearchInputAutoFocus() {
 		if (_searchInputAutoFocus == null) {
 			if (_managementToolbarDisplayContext != null) {
-				_managementToolbarDisplayContext.isSearchInputAutoFocus();
+				return _managementToolbarDisplayContext.
+					isSearchInputAutoFocus();
 			}
 
 			return ManagementToolbarDefaults.isSearchInputAutoFocus();
@@ -1247,15 +1248,16 @@ public class ManagementToolbarTag extends BaseContainerTag {
 			jspWriter.write("\"><div class=\"tbar-section\"><span class=\"");
 			jspWriter.write("component-text text-truncate-inline\"><span");
 			jspWriter.write(" class=\"text-truncate\">");
-
 			jspWriter.write(
 				LanguageUtil.format(
-					resourceBundle, "x-results-for-x",
-					new Object[] {
-						getItemsTotal(),
-						(searchValue == null) ? StringPool.BLANK :
-							HtmlUtil.escape(searchValue)
-					}));
+					resourceBundle, "x-results-for",
+					new Object[] {getItemsTotal()}));
+
+			if (searchValue != null) {
+				jspWriter.write("<strong> \"");
+				jspWriter.write(HtmlUtil.escape(searchValue));
+				jspWriter.write("\"</strong>");
+			}
 
 			jspWriter.write("</span></span></div></li>");
 
@@ -1288,7 +1290,7 @@ public class ManagementToolbarTag extends BaseContainerTag {
 		Map<String, List<String>> searchData = new HashMap<>();
 
 		String[] parameters = StringUtil.split(
-			HttpUtil.getQueryString(url), CharPool.AMPERSAND);
+			HttpComponentsUtil.getQueryString(url), CharPool.AMPERSAND);
 
 		for (String parameter : parameters) {
 			if (parameter.length() == 0) {
@@ -1310,7 +1312,7 @@ public class ManagementToolbarTag extends BaseContainerTag {
 				parameterValue = parameterParts[1];
 			}
 
-			parameterValue = HttpUtil.decodeURL(parameterValue);
+			parameterValue = HttpComponentsUtil.decodeURL(parameterValue);
 
 			List<String> parameterValues = searchData.get(parameterName);
 

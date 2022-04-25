@@ -52,7 +52,7 @@ import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -194,13 +194,12 @@ public class AssetEntryUsagesDisplayContext {
 			(assetEntryUsage.getContainerType() != PortalUtil.getClassNameId(
 				LayoutPageTemplateStructure.class))) {
 
-			String portletTitle = PortalUtil.getPortletTitle(
-				PortletIdCodec.decodePortletName(
-					assetEntryUsage.getContainerKey()),
-				_themeDisplay.getLocale());
-
 			return LanguageUtil.format(
-				_resourceBundle, "x-widget", portletTitle);
+				_resourceBundle, "x-widget",
+				PortalUtil.getPortletTitle(
+					PortletIdCodec.decodePortletName(
+						assetEntryUsage.getContainerKey()),
+					_themeDisplay.getLocale()));
 		}
 
 		if (assetEntryUsage.getContainerType() == PortalUtil.getClassNameId(
@@ -280,15 +279,13 @@ public class AssetEntryUsagesDisplayContext {
 				(ThemeDisplay)_renderRequest.getAttribute(
 					WebKeys.THEME_DISPLAY);
 
-			Layout layout = LayoutLocalServiceUtil.fetchLayout(
-				assetEntryUsage.getPlid());
-
-			layoutURL = PortalUtil.getLayoutFriendlyURL(layout, themeDisplay);
-
-			layoutURL = HttpUtil.setParameter(
+			layoutURL = PortalUtil.getLayoutFriendlyURL(
+				LayoutLocalServiceUtil.fetchLayout(assetEntryUsage.getPlid()),
+				themeDisplay);
+			layoutURL = HttpComponentsUtil.setParameter(
 				layoutURL, "previewAssetEntryId",
 				String.valueOf(assetEntryUsage.getAssetEntryId()));
-			layoutURL = HttpUtil.setParameter(
+			layoutURL = HttpComponentsUtil.setParameter(
 				layoutURL, "previewAssetEntryType",
 				String.valueOf(AssetRendererFactory.TYPE_LATEST));
 		}
@@ -304,7 +301,7 @@ public class AssetEntryUsagesDisplayContext {
 			).buildString();
 		}
 
-		String portletURLString = HttpUtil.addParameter(
+		String portletURLString = HttpComponentsUtil.addParameter(
 			layoutURL, "p_l_mode", Constants.PREVIEW);
 
 		return portletURLString + "#portlet_" +

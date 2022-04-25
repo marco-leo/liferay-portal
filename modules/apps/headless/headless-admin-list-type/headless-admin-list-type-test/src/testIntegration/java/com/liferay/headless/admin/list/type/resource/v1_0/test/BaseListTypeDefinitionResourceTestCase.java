@@ -265,6 +265,39 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 	}
 
 	@Test
+	public void testGetListTypeDefinitionsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		ListTypeDefinition listTypeDefinition1 =
+			testGetListTypeDefinitionsPage_addListTypeDefinition(
+				randomListTypeDefinition());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		ListTypeDefinition listTypeDefinition2 =
+			testGetListTypeDefinitionsPage_addListTypeDefinition(
+				randomListTypeDefinition());
+
+		for (EntityField entityField : entityFields) {
+			Page<ListTypeDefinition> page =
+				listTypeDefinitionResource.getListTypeDefinitionsPage(
+					null, null,
+					getFilterString(entityField, "eq", listTypeDefinition1),
+					Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(listTypeDefinition1),
+				(List<ListTypeDefinition>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetListTypeDefinitionsPageWithFilterStringEquals()
 		throws Exception {
 
@@ -364,6 +397,20 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 				BeanUtils.setProperty(
 					listTypeDefinition1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetListTypeDefinitionsPageWithSortDouble()
+		throws Exception {
+
+		testGetListTypeDefinitionsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, listTypeDefinition1, listTypeDefinition2) -> {
+				BeanUtils.setProperty(
+					listTypeDefinition1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					listTypeDefinition2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -514,9 +561,9 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 		long totalCount = listTypeDefinitionsJSONObject.getLong("totalCount");
 
 		ListTypeDefinition listTypeDefinition1 =
-			testGraphQLListTypeDefinition_addListTypeDefinition();
+			testGraphQLGetListTypeDefinitionsPage_addListTypeDefinition();
 		ListTypeDefinition listTypeDefinition2 =
-			testGraphQLListTypeDefinition_addListTypeDefinition();
+			testGraphQLGetListTypeDefinitionsPage_addListTypeDefinition();
 
 		listTypeDefinitionsJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -536,6 +583,13 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 			Arrays.asList(
 				ListTypeDefinitionSerDes.toDTOs(
 					listTypeDefinitionsJSONObject.getString("items"))));
+	}
+
+	protected ListTypeDefinition
+			testGraphQLGetListTypeDefinitionsPage_addListTypeDefinition()
+		throws Exception {
+
+		return testGraphQLListTypeDefinition_addListTypeDefinition();
 	}
 
 	@Test
@@ -592,7 +646,7 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 	@Test
 	public void testGraphQLDeleteListTypeDefinition() throws Exception {
 		ListTypeDefinition listTypeDefinition =
-			testGraphQLListTypeDefinition_addListTypeDefinition();
+			testGraphQLDeleteListTypeDefinition_addListTypeDefinition();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -607,7 +661,6 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteListTypeDefinition"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -623,6 +676,13 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected ListTypeDefinition
+			testGraphQLDeleteListTypeDefinition_addListTypeDefinition()
+		throws Exception {
+
+		return testGraphQLListTypeDefinition_addListTypeDefinition();
 	}
 
 	@Test
@@ -649,7 +709,7 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 	@Test
 	public void testGraphQLGetListTypeDefinition() throws Exception {
 		ListTypeDefinition listTypeDefinition =
-			testGraphQLListTypeDefinition_addListTypeDefinition();
+			testGraphQLGetListTypeDefinition_addListTypeDefinition();
 
 		Assert.assertTrue(
 			equals(
@@ -690,6 +750,13 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected ListTypeDefinition
+			testGraphQLGetListTypeDefinition_addListTypeDefinition()
+		throws Exception {
+
+		return testGraphQLListTypeDefinition_addListTypeDefinition();
 	}
 
 	@Test

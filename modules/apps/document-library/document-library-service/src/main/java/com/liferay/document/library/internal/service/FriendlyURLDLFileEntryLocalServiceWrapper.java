@@ -29,7 +29,9 @@ import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.ServiceWrapper;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.File;
 import java.io.InputStream;
@@ -71,17 +73,17 @@ public class FriendlyURLDLFileEntryLocalServiceWrapper
 			expirationDate, reviewDate, serviceContext);
 
 		if (_ffFriendlyURLEntryFileEntryConfiguration.enabled()) {
-			_addFriendlyURLEntry(dlFileEntry, urlTitle);
+			_addFriendlyURLEntry(dlFileEntry, _getUrlTitle(title, urlTitle));
 		}
 
 		return dlFileEntry;
 	}
 
 	@Override
-	public DLFileEntry deleteFileEntry(long fileEntryId)
+	public DLFileEntry deleteFileEntry(DLFileEntry dlFileEntry)
 		throws PortalException {
 
-		DLFileEntry dlFileEntry = super.deleteFileEntry(fileEntryId);
+		dlFileEntry = super.deleteFileEntry(dlFileEntry);
 
 		if (_ffFriendlyURLEntryFileEntryConfiguration.enabled()) {
 			_friendlyURLEntryLocalService.deleteFriendlyURLEntry(
@@ -110,7 +112,7 @@ public class FriendlyURLDLFileEntryLocalServiceWrapper
 			reviewDate, serviceContext);
 
 		if (_ffFriendlyURLEntryFileEntryConfiguration.enabled()) {
-			_updateFriendlyURL(dlFileEntry, urlTitle);
+			_updateFriendlyURL(dlFileEntry, title, urlTitle);
 		}
 
 		return dlFileEntry;
@@ -130,7 +132,8 @@ public class FriendlyURLDLFileEntryLocalServiceWrapper
 		String uniqueUrlTitle = _friendlyURLEntryLocalService.getUniqueUrlTitle(
 			dlFileEntry.getGroupId(),
 			_classNameLocalService.getClassNameId(FileEntry.class),
-			dlFileEntry.getFileEntryId(), urlTitle,
+			dlFileEntry.getFileEntryId(),
+			_friendlyURLNormalizer.normalizeWithPeriodsAndSlashes(urlTitle),
 			LanguageUtil.getLanguageId(LocaleUtil.getSiteDefault()));
 
 		_friendlyURLEntryLocalService.addFriendlyURLEntry(
@@ -140,7 +143,16 @@ public class FriendlyURLDLFileEntryLocalServiceWrapper
 			ServiceContextThreadLocal.getServiceContext());
 	}
 
-	private void _updateFriendlyURL(DLFileEntry dlFileEntry, String urlTitle)
+	private String _getUrlTitle(String title, String urlTitle) {
+		if (!Validator.isBlank(urlTitle)) {
+			return urlTitle;
+		}
+
+		return title;
+	}
+
+	private void _updateFriendlyURL(
+			DLFileEntry dlFileEntry, String title, String urlTitle)
 		throws PortalException {
 
 		FriendlyURLEntry friendlyURLEntry =
@@ -149,23 +161,19 @@ public class FriendlyURLDLFileEntryLocalServiceWrapper
 				dlFileEntry.getFileEntryId());
 
 		if (friendlyURLEntry == null) {
-			_addFriendlyURLEntry(dlFileEntry, urlTitle);
+			_addFriendlyURLEntry(dlFileEntry, _getUrlTitle(title, urlTitle));
 
 			return;
 		}
 
-		if (!Objects.equals(friendlyURLEntry.getUrlTitle(), urlTitle)) {
-			String uniqueUrlTitle =
-				_friendlyURLEntryLocalService.getUniqueUrlTitle(
-					dlFileEntry.getGroupId(),
-					_classNameLocalService.getClassNameId(FileEntry.class),
-					dlFileEntry.getFileEntryId(), urlTitle,
-					LanguageUtil.getLanguageId(LocaleUtil.getSiteDefault()));
+		String normalizedUrlTitle =
+			_friendlyURLNormalizer.normalizeWithPeriodsAndSlashes(urlTitle);
 
-			_friendlyURLEntryLocalService.updateFriendlyURLEntryLocalization(
-				friendlyURLEntry,
-				LanguageUtil.getLanguageId(LocaleUtil.getSiteDefault()),
-				uniqueUrlTitle);
+		if (Validator.isNotNull(urlTitle) &&
+			!Objects.equals(
+				friendlyURLEntry.getUrlTitle(), normalizedUrlTitle)) {
+
+			_addFriendlyURLEntry(dlFileEntry, normalizedUrlTitle);
 		}
 	}
 
@@ -177,5 +185,8 @@ public class FriendlyURLDLFileEntryLocalServiceWrapper
 
 	@Reference
 	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
+
+	@Reference
+	private FriendlyURLNormalizer _friendlyURLNormalizer;
 
 }

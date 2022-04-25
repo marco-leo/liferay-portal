@@ -15,70 +15,110 @@
 
 import {AvatarGroup} from '../../components/Avatar';
 import Container from '../../components/Layout/Container';
+import ListView from '../../components/ListView/ListView';
 import ProgressBar from '../../components/ProgressBar/';
 import StatusBadge from '../../components/StatusBadge';
-import Table from '../../components/Table';
+import {getTasks} from '../../graphql/queries';
+import useFormModal from '../../hooks/useFormModal';
+import i18n from '../../i18n';
+import {SUBTASK_STATUS} from '../../util/constants';
+import {getTimeFromNow} from '../../util/date';
 import {routines} from '../../util/mock';
+import TestflowModal from './TestflowModal';
 
-const TestFlow = () => (
-	<Container title="Tasks">
-		<Table
-			columns={[
-				{
-					clickable: true,
-					key: 'status',
-					render: (status: string) => (
-						<StatusBadge type="failed">{status}</StatusBadge>
-					),
-					value: 'Status',
-				},
-				{
-					clickable: true,
-					key: 'startDate',
-					value: 'Start Date',
-				},
-				{clickable: true, key: 'task', value: 'Task'},
-				{
-					clickable: true,
-					key: 'projectName',
-					value: 'Project Name',
-				},
-				{
-					clickable: true,
-					key: 'routineName',
-					value: 'Routine Name',
-				},
-				{clickable: true, key: 'buildName', value: 'Build Name'},
-				{
-					key: 'score',
-					render: ({incomplete, other, self}: any) => {
-						const total = self + other + incomplete;
-						const passed = self + other;
+const TestFlow = () => {
+	const {modal} = useFormModal();
 
-						return `${passed} / ${total}, ${Math.ceil(
-							(passed * 100) / total
-						)}%`;
-					},
-					value: 'Score',
-				},
-				{
-					key: 'score',
-					render: (score: any) => <ProgressBar items={score} />,
-					size: 'sm',
-					value: 'Progress',
-				},
-				{
-					key: 'assigned',
-					render: (assigned: any) => (
-						<AvatarGroup assignedUsers={assigned} groupSize={3} />
-					),
-					value: 'Assigned',
-				},
-			]}
-			items={routines}
-			navigateTo={(item) => `/testflow/${item.id}`}
-		/>
-	</Container>
-);
+	return (
+		<Container title={i18n.translate('tasks')}>
+			<ListView
+				managementToolbarProps={{addButton: modal.open}}
+				query={getTasks}
+				tableProps={{
+					columns: [
+						{
+							clickable: true,
+							key: 'dueStatus',
+							render: (status: number) => (
+								<StatusBadge
+									type={
+										(SUBTASK_STATUS as any)[status]?.color
+									}
+								>
+									{(SUBTASK_STATUS as any)[status]?.label}
+								</StatusBadge>
+							),
+							value: i18n.translate('status'),
+						},
+						{
+							clickable: true,
+							key: 'dueDate',
+							render: (_, task) =>
+								task?.build?.dueDate &&
+								getTimeFromNow(task?.build?.dueDate),
+							value: i18n.translate('start-date'),
+						},
+						{
+							clickable: true,
+							key: 'name',
+							size: 'sm',
+							value: i18n.translate('task'),
+						},
+						{
+							clickable: true,
+							key: 'projectName',
+							render: (_, task) => task?.build?.project?.name,
+							value: i18n.translate('project-name'),
+						},
+						{
+							clickable: true,
+							key: 'routineName',
+							render: (_, task) => task?.build?.routine?.name,
+							value: i18n.translate('routine-name'),
+						},
+						{
+							clickable: true,
+							key: 'buildName',
+							render: (_, task) => task?.build?.name,
+							value: i18n.translate('build-name'),
+						},
+						{
+							key: 'score',
+							render: () => '59 / 2172 (3%)',
+							value: i18n.translate('score'),
+						},
+						{
+							key: 'progress',
+							render: () => (
+								<ProgressBar
+									items={{
+										incomplete: 100,
+										passed: 10,
+									}}
+								/>
+							),
+							size: 'sm',
+							value: i18n.translate('progress'),
+						},
+						{
+							key: 'assigned',
+							render: () => (
+								<AvatarGroup
+									assignedUsers={routines[0].assigned}
+									groupSize={3}
+								/>
+							),
+							value: i18n.translate('assigned'),
+						},
+					],
+					navigateTo: (item) => `/testflow/${item.id}`,
+				}}
+				transformData={(data) => data?.tasks}
+			/>
+
+			<TestflowModal modal={modal} />
+		</Container>
+	);
+};
 
 export default TestFlow;

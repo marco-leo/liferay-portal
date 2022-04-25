@@ -44,6 +44,9 @@ import com.liferay.commerce.service.CommerceOrderNoteService;
 import com.liferay.commerce.service.CommerceOrderService;
 import com.liferay.commerce.service.CommerceOrderTypeService;
 import com.liferay.commerce.service.CommerceShipmentService;
+import com.liferay.commerce.term.constants.CommerceTermEntryConstants;
+import com.liferay.commerce.term.model.CommerceTermEntry;
+import com.liferay.commerce.term.service.CommerceTermEntryLocalService;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
@@ -103,6 +106,7 @@ public class CommerceOrderEditDisplayContext {
 			CommercePaymentMethodGroupRelLocalService
 				commercePaymentMethodGroupRelLocalService,
 			CommerceShipmentService commerceShipmentService,
+			CommerceTermEntryLocalService commerceTermEntryLocalService,
 			CPMeasurementUnitService cpMeasurementUnitService,
 			RenderRequest renderRequest)
 		throws PortalException {
@@ -123,6 +127,7 @@ public class CommerceOrderEditDisplayContext {
 		_commercePaymentMethodGroupRelLocalService =
 			commercePaymentMethodGroupRelLocalService;
 		_commerceShipmentService = commerceShipmentService;
+		_commerceTermEntryLocalService = commerceTermEntryLocalService;
 		_cpMeasurementUnitService = cpMeasurementUnitService;
 
 		long commerceOrderId = ParamUtil.getLong(
@@ -470,6 +475,12 @@ public class CommerceOrderEditDisplayContext {
 			_commerceOrderItemDecimalQuantityConfiguration.roundingMode());
 	}
 
+	public List<CommerceTermEntry> getDeliveryTermsEntries() {
+		return _commerceTermEntryLocalService.getCommerceTermEntries(
+			_commerceOrder.getCompanyId(),
+			CommerceTermEntryConstants.TYPE_DELIVERY_TERMS);
+	}
+
 	public String getDescriptiveAddress(CommerceAddress commerceAddress) {
 		StringBundler sb = new StringBundler(5);
 
@@ -684,6 +695,12 @@ public class CommerceOrderEditDisplayContext {
 		return steps;
 	}
 
+	public List<CommerceTermEntry> getPaymentTermsEntries() {
+		return _commerceTermEntryLocalService.getCommerceTermEntries(
+			_commerceOrder.getCompanyId(),
+			CommerceTermEntryConstants.TYPE_PAYMENT_TERMS);
+	}
+
 	public PortletURL getTransitionOrderPortletURL() {
 		return PortletURLBuilder.createActionURL(
 			_commerceOrderRequestHelper.getLiferayPortletResponse()
@@ -698,6 +715,15 @@ public class CommerceOrderEditDisplayContext {
 		).buildPortletURL();
 	}
 
+	public boolean hasManageCommerceOrderDeliveryTermsPermission() {
+		ThemeDisplay themeDisplay =
+			_commerceOrderRequestHelper.getThemeDisplay();
+
+		return _commerceOrderPortletResourcePermission.contains(
+			themeDisplay.getPermissionChecker(), null,
+			CommerceOrderActionKeys.MANAGE_COMMERCE_ORDER_DELIVERY_TERMS);
+	}
+
 	public boolean hasManageCommerceOrderPaymentMethodsPermission() {
 		ThemeDisplay themeDisplay =
 			_commerceOrderRequestHelper.getThemeDisplay();
@@ -705,6 +731,15 @@ public class CommerceOrderEditDisplayContext {
 		return _commerceOrderPortletResourcePermission.contains(
 			themeDisplay.getPermissionChecker(), null,
 			CommerceOrderActionKeys.MANAGE_COMMERCE_ORDER_PAYMENT_METHODS);
+	}
+
+	public boolean hasManageCommerceOrderPaymentTermsPermission() {
+		ThemeDisplay themeDisplay =
+			_commerceOrderRequestHelper.getThemeDisplay();
+
+		return _commerceOrderPortletResourcePermission.contains(
+			themeDisplay.getPermissionChecker(), null,
+			CommerceOrderActionKeys.MANAGE_COMMERCE_ORDER_PAYMENT_TERMS);
 	}
 
 	private List<StepModel> _getWorkflowSteps() {
@@ -767,6 +802,7 @@ public class CommerceOrderEditDisplayContext {
 		_commercePaymentMethodGroupRelLocalService;
 	private CommerceShipment _commerceShipment;
 	private final CommerceShipmentService _commerceShipmentService;
+	private final CommerceTermEntryLocalService _commerceTermEntryLocalService;
 	private final CPMeasurementUnitService _cpMeasurementUnitService;
 
 }

@@ -14,6 +14,7 @@
 
 package com.liferay.object.rest.internal.odata.entity.v1_0;
 
+import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.model.ObjectField;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.search.Field;
@@ -41,6 +42,11 @@ public class ObjectEntryEntityModel implements EntityModel {
 
 	public ObjectEntryEntityModel(List<ObjectField> objectFields) {
 		_entityFieldsMap = HashMapBuilder.<String, EntityField>put(
+			"creator",
+			new StringEntityField(
+				"creator",
+				locale -> Field.getSortableFieldName(Field.USER_NAME))
+		).put(
 			"creatorId",
 			new IntegerEntityField("creatorId", locale -> Field.USER_ID)
 		).put(
@@ -58,7 +64,9 @@ public class ObjectEntryEntityModel implements EntityModel {
 		).put(
 			"id",
 			new IdEntityField(
-				"id", locale -> Field.ENTRY_CLASS_PK, String::valueOf)
+				"id",
+				locale -> Field.getSortableFieldName(Field.ENTRY_CLASS_PK),
+				String::valueOf)
 		).put(
 			"objectDefinitionId",
 			new IntegerEntityField(
@@ -114,26 +122,15 @@ public class ObjectEntryEntityModel implements EntityModel {
 						"nestedFieldArray.value_keyword#" +
 							objectField.getName()));
 		}
-		else if (Objects.equals(objectField.getDBType(), "BigDecimal") ||
-				 Objects.equals(objectField.getDBType(), "Double")) {
-
-			return Optional.of(
-				new DoubleEntityField(
-					objectField.getName(),
-					locale ->
-						"nestedFieldArray.value_double#" +
-							objectField.getName()));
-		}
-		else if (Objects.equals(objectField.getDBType(), "Boolean")) {
-			return Optional.of(
-				new BooleanEntityField(
-					objectField.getName(),
-					locale ->
-						"nestedFieldArray.value_boolean#" +
-							objectField.getName()));
-		}
-		else if (Objects.equals(objectField.getDBType(), "Clob") ||
-				 Objects.equals(objectField.getDBType(), "String")) {
+		else if (Objects.equals(
+					objectField.getBusinessType(),
+					ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT) ||
+				 Objects.equals(
+					 objectField.getDBType(),
+					 ObjectFieldConstants.DB_TYPE_CLOB) ||
+				 Objects.equals(
+					 objectField.getDBType(),
+					 ObjectFieldConstants.DB_TYPE_STRING)) {
 
 			return Optional.of(
 				new StringEntityField(
@@ -142,7 +139,35 @@ public class ObjectEntryEntityModel implements EntityModel {
 						"nestedFieldArray.value_keyword_lowercase#" +
 							objectField.getName()));
 		}
-		else if (Objects.equals(objectField.getDBType(), "Date")) {
+		else if (Objects.equals(
+					objectField.getDBType(),
+					ObjectFieldConstants.DB_TYPE_BIG_DECIMAL) ||
+				 Objects.equals(
+					 objectField.getDBType(),
+					 ObjectFieldConstants.DB_TYPE_DOUBLE)) {
+
+			return Optional.of(
+				new DoubleEntityField(
+					objectField.getName(),
+					locale ->
+						"nestedFieldArray.value_double#" +
+							objectField.getName()));
+		}
+		else if (Objects.equals(
+					objectField.getDBType(),
+					ObjectFieldConstants.DB_TYPE_BOOLEAN)) {
+
+			return Optional.of(
+				new BooleanEntityField(
+					objectField.getName(),
+					locale ->
+						"nestedFieldArray.value_boolean#" +
+							objectField.getName()));
+		}
+		else if (Objects.equals(
+					objectField.getDBType(),
+					ObjectFieldConstants.DB_TYPE_DATE)) {
+
 			return Optional.of(
 				new DateEntityField(
 					objectField.getName(),
@@ -152,7 +177,10 @@ public class ObjectEntryEntityModel implements EntityModel {
 						"nestedFieldArray.value_date#" +
 							objectField.getName()));
 		}
-		else if (Objects.equals(objectField.getDBType(), "Integer")) {
+		else if (Objects.equals(
+					objectField.getDBType(),
+					ObjectFieldConstants.DB_TYPE_INTEGER)) {
+
 			return Optional.of(
 				new IntegerEntityField(
 					objectField.getName(),
@@ -160,7 +188,10 @@ public class ObjectEntryEntityModel implements EntityModel {
 						"nestedFieldArray.value_integer#" +
 							objectField.getName()));
 		}
-		else if (Objects.equals(objectField.getDBType(), "Long")) {
+		else if (Objects.equals(
+					objectField.getDBType(),
+					ObjectFieldConstants.DB_TYPE_LONG)) {
+
 			return Optional.of(
 				new IntegerEntityField(
 					objectField.getName(),

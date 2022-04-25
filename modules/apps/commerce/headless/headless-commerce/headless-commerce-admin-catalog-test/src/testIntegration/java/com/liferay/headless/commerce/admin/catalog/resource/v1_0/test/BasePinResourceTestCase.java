@@ -210,7 +210,7 @@ public abstract class BasePinResourceTestCase {
 
 	@Test
 	public void testGraphQLDeletePin() throws Exception {
-		Pin pin = testGraphQLPin_addPin();
+		Pin pin = testGraphQLDeletePin_addPin();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -223,6 +223,10 @@ public abstract class BasePinResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deletePin"));
+	}
+
+	protected Pin testGraphQLDeletePin_addPin() throws Exception {
+		return testGraphQLPin_addPin();
 	}
 
 	@Test
@@ -329,6 +333,18 @@ public abstract class BasePinResourceTestCase {
 				BeanUtils.setProperty(
 					pin1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetProductByExternalReferenceCodePinsPageWithSortDouble()
+		throws Exception {
+
+		testGetProductByExternalReferenceCodePinsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, pin1, pin2) -> {
+				BeanUtils.setProperty(pin1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(pin2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -569,6 +585,16 @@ public abstract class BasePinResourceTestCase {
 				BeanUtils.setProperty(
 					pin1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetProductIdPinsPageWithSortDouble() throws Exception {
+		testGetProductIdPinsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, pin1, pin2) -> {
+				BeanUtils.setProperty(pin1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(pin2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -1057,13 +1083,15 @@ public abstract class BasePinResourceTestCase {
 		}
 
 		if (entityFieldName.equals("positionX")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(pin.getPositionX()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("positionY")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(pin.getPositionY()));
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("sequence")) {

@@ -15,6 +15,7 @@
 import {useCallback, useContext, useEffect} from 'react';
 
 import {
+	Dropdown,
 	HeaderContext,
 	HeaderTabs,
 	HeaderTitle,
@@ -25,6 +26,8 @@ import {
 type UseHeader = {
 	shouldUpdate?: boolean;
 	timeout?: number;
+	useAction?: Dropdown;
+	useDropdown?: Dropdown;
 	useHeading?: HeaderTitle[];
 	useTabs?: HeaderTabs[];
 };
@@ -35,12 +38,30 @@ const useHeader = ({
 	shouldUpdate = true,
 	timeout = DEFAULT_TIMEOUT,
 	useHeading = initialState.heading,
+	useAction,
+	useDropdown,
 	useTabs = initialState.tabs,
 }: UseHeader = {}) => {
 	const [, dispatch] = useContext(HeaderContext);
 
+	const useActionString = JSON.stringify(useAction);
+	const useDropdownString = JSON.stringify(useDropdown);
 	const useHeadingString = JSON.stringify(useHeading);
 	const useTabsString = JSON.stringify(useTabs);
+
+	const setActions = useCallback(
+		(newActions: Dropdown) => {
+			dispatch({payload: newActions, type: HeaderTypes.SET_ACTIONS});
+		},
+		[dispatch]
+	);
+
+	const setDropdown = useCallback(
+		(newDropdown: Dropdown) => {
+			dispatch({payload: newDropdown, type: HeaderTypes.SET_DROPDOWN});
+		},
+		[dispatch]
+	);
 
 	const setHeading = useCallback(
 		(newHeading: HeaderTitle[] = [], append?: boolean) => {
@@ -74,7 +95,22 @@ const useHeader = ({
 		}
 	}, [setTabs, shouldUpdate, timeout, useTabsString]);
 
+	useEffect(() => {
+		if (useActionString) {
+			setActions(JSON.parse(useActionString));
+		}
+	}, [setActions, useActionString]);
+
+	useEffect(() => {
+		if (useDropdownString) {
+			setDropdown(JSON.parse(useDropdownString));
+		}
+	}, [setDropdown, useDropdownString]);
+
 	return {
+		dispatch,
+		setActions,
+		setDropdown,
 		setHeading,
 		setTabs,
 	};

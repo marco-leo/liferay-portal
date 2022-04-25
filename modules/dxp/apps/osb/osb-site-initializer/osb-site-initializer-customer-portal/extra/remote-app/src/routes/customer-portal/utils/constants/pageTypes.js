@@ -19,8 +19,10 @@ const productsFormatted = Object.entries(
 ]);
 
 export const PAGE_TYPES = {
+	dxpNew: 'dxp_new',
 	home: 'home',
 	overview: 'overview',
+	portalNew: 'portal_new',
 	teamMembers: 'team_members',
 	...Object.fromEntries(productsFormatted),
 };

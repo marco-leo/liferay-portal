@@ -222,7 +222,16 @@ public abstract class BaseAccountResourceTestCase {
 			204,
 			accountResource.
 				deleteAccountGroupByExternalReferenceCodeAccountHttpResponse(
-					null, account.getExternalReferenceCode()));
+					testDeleteAccountGroupByExternalReferenceCodeAccount_getAccountExternalReferenceCode(),
+					account.getExternalReferenceCode()));
+	}
+
+	protected String
+			testDeleteAccountGroupByExternalReferenceCodeAccount_getAccountExternalReferenceCode()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected Account
@@ -274,6 +283,31 @@ public abstract class BaseAccountResourceTestCase {
 		for (EntityField entityField : entityFields) {
 			Page<Account> page = accountResource.getAccountsPage(
 				null, getFilterString(entityField, "between", account1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(account1),
+				(List<Account>)page.getItems());
+		}
+	}
+
+	@Test
+	public void testGetAccountsPageWithFilterDoubleEquals() throws Exception {
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Account account1 = testGetAccountsPage_addAccount(randomAccount());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Account account2 = testGetAccountsPage_addAccount(randomAccount());
+
+		for (EntityField entityField : entityFields) {
+			Page<Account> page = accountResource.getAccountsPage(
+				null, getFilterString(entityField, "eq", account1),
 				Pagination.of(1, 2), null);
 
 			assertEquals(
@@ -353,6 +387,16 @@ public abstract class BaseAccountResourceTestCase {
 				BeanUtils.setProperty(
 					account1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetAccountsPageWithSortDouble() throws Exception {
+		testGetAccountsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, account1, account2) -> {
+				BeanUtils.setProperty(account1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(account2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -485,8 +529,8 @@ public abstract class BaseAccountResourceTestCase {
 
 		long totalCount = accountsJSONObject.getLong("totalCount");
 
-		Account account1 = testGraphQLAccount_addAccount();
-		Account account2 = testGraphQLAccount_addAccount();
+		Account account1 = testGraphQLGetAccountsPage_addAccount();
+		Account account2 = testGraphQLGetAccountsPage_addAccount();
 
 		accountsJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -503,6 +547,10 @@ public abstract class BaseAccountResourceTestCase {
 			account2,
 			Arrays.asList(
 				AccountSerDes.toDTOs(accountsJSONObject.getString("items"))));
+	}
+
+	protected Account testGraphQLGetAccountsPage_addAccount() throws Exception {
+		return testGraphQLAccount_addAccount();
 	}
 
 	@Test
@@ -573,7 +621,8 @@ public abstract class BaseAccountResourceTestCase {
 	public void testGraphQLGetAccountByExternalReferenceCode()
 		throws Exception {
 
-		Account account = testGraphQLAccount_addAccount();
+		Account account =
+			testGraphQLGetAccountByExternalReferenceCode_addAccount();
 
 		Assert.assertTrue(
 			equals(
@@ -623,6 +672,12 @@ public abstract class BaseAccountResourceTestCase {
 				"Object/code"));
 	}
 
+	protected Account testGraphQLGetAccountByExternalReferenceCode_addAccount()
+		throws Exception {
+
+		return testGraphQLAccount_addAccount();
+	}
+
 	@Test
 	public void testPatchAccountByExternalReferenceCode() throws Exception {
 		Assert.assertTrue(false);
@@ -655,7 +710,7 @@ public abstract class BaseAccountResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteAccount() throws Exception {
-		Account account = testGraphQLAccount_addAccount();
+		Account account = testGraphQLDeleteAccount_addAccount();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -668,7 +723,6 @@ public abstract class BaseAccountResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteAccount"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -682,6 +736,10 @@ public abstract class BaseAccountResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected Account testGraphQLDeleteAccount_addAccount() throws Exception {
+		return testGraphQLAccount_addAccount();
 	}
 
 	@Test
@@ -701,7 +759,7 @@ public abstract class BaseAccountResourceTestCase {
 
 	@Test
 	public void testGraphQLGetAccount() throws Exception {
-		Account account = testGraphQLAccount_addAccount();
+		Account account = testGraphQLGetAccount_addAccount();
 
 		Assert.assertTrue(
 			equals(
@@ -738,6 +796,10 @@ public abstract class BaseAccountResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Account testGraphQLGetAccount_addAccount() throws Exception {
+		return testGraphQLAccount_addAccount();
 	}
 
 	@Test
@@ -1503,8 +1565,9 @@ public abstract class BaseAccountResourceTestCase {
 		}
 
 		if (entityFieldName.equals("type")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
+			sb.append(String.valueOf(account.getType()));
+
+			return sb.toString();
 		}
 
 		throw new IllegalArgumentException(

@@ -22,26 +22,25 @@ import {LoadingWrapper} from '../../../components/Loading';
 import QATable from '../../../components/Table/QATable';
 import {
 	CType,
+	TestrayComponent,
 	TestraySuite,
-	getTestrayCases,
-	getTestraySuite,
+	getCases,
+	getSuite,
 } from '../../../graphql/queries';
 import useHeader from '../../../hooks/useHeader';
+import i18n from '../../../i18n';
 
 const Suite = () => {
-	const {testraySuiteId} = useParams();
+	const {projectId, testraySuiteId} = useParams();
 	const {testrayProject}: any = useOutletContext();
 
-	const {data, loading} = useQuery<CType<'testraySuite', TestraySuite>>(
-		getTestraySuite,
-		{
-			variables: {
-				testraySuiteId,
-			},
-		}
-	);
+	const {data, loading} = useQuery<CType<'suite', TestraySuite>>(getSuite, {
+		variables: {
+			suiteId: testraySuiteId,
+		},
+	});
 
-	const testraySuite = data?.c.testraySuite;
+	const testraySuite = data?.c.suite;
 
 	const {setHeading} = useHeader({shouldUpdate: false});
 
@@ -49,70 +48,95 @@ const Suite = () => {
 		if (testraySuite && testrayProject) {
 			setHeading([
 				{
-					category: 'PROJECT',
-					path: `/project/${testrayProject.testrayProjectId}/suites`,
+					category: i18n.translate('project').toUpperCase(),
+					path: `/project/${testrayProject.id}/suites`,
 					title: testrayProject.name,
 				},
-				{category: 'CASE', title: testraySuite.name},
+				{
+					category: i18n.translate('suite').toUpperCase(),
+					title: testraySuite.name,
+				},
 			]);
 		}
 	}, [testraySuite, testrayProject, setHeading]);
 
 	return (
 		<LoadingWrapper isLoading={loading}>
-			<Container title="Details">
+			<Container title={i18n.translate('details')}>
 				<QATable
 					items={[
 						{
-							title: 'Description',
+							title: i18n.translate('description'),
 							value: testraySuite?.description,
 						},
 						{
-							title: 'Create Date',
+							title: i18n.translate('create-date'),
 							value: testraySuite?.dateCreated,
 						},
 						{
-							title: 'Date Last Modified',
+							title: i18n.translate('date-last-modified'),
 							value: testraySuite?.dateModified,
 						},
-						{title: 'Created By', value: 'John Doe'},
+						{
+							title: i18n.translate('created-by'),
+							value: 'John Doe',
+						},
 					]}
 				/>
 			</Container>
 
-			<Container className="mt-4" title="Case Parameters">
+			<Container
+				className="mt-4"
+				title={i18n.translate('case-parameters')}
+			>
 				<QATable
 					items={[
-						{title: 'Case Types', value: 'Manual Test'},
-						{title: 'Components', value: 'Deployment'},
 						{
-							title: 'SubComponents',
+							title: i18n.translate('case-types'),
+							value: 'Manual Test',
+						},
+						{
+							title: i18n.translate('components'),
+							value: 'Deployment',
+						},
+						{
+							title: i18n.translate('subcomponents'),
 							value: '',
 						},
-						{title: 'Priority', value: '5'},
-						{title: 'Requirements', value: ''},
+						{title: i18n.translate('priority'), value: '5'},
+						{title: i18n.translate('requirements'), value: ''},
 					]}
 				/>
 			</Container>
 
 			<Container className="mt-4">
 				<ListView
-					query={getTestrayCases}
+					query={getCases}
 					tableProps={{
 						columns: [
-							{key: 'priority', value: 'Priority'},
-							{key: 'component', value: 'Component'},
+							{
+								key: 'priority',
+								value: i18n.translate('priority'),
+							},
+							{
+								key: 'component',
+								render: (component: TestrayComponent) =>
+									component?.name,
+								value: i18n.translate('component'),
+							},
 							{
 								clickable: true,
 								key: 'name',
-								value: 'Case Name',
+								value: i18n.translate('case-name'),
 							},
 						],
-						navigateTo: ({testrayCaseId}) =>
-							testrayCaseId?.toString(),
+						navigateTo: ({id}) =>
+							`/project/${projectId}/cases/${id}`,
 					}}
-					transformData={(data) => data?.c?.testrayCases}
-					variables={{}}
+					transformData={(data) => data?.cases}
+					variables={{
+						filter: `suiteId eq ${testraySuiteId}`,
+					}}
 				/>
 			</Container>
 		</LoadingWrapper>

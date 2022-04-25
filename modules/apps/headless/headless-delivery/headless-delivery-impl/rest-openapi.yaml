@@ -159,12 +159,6 @@ components:
                         The number of comments this blog post has received.
                     readOnly: true
                     type: integer
-                priority:
-                    # @review
-                    description:
-                        The blog post's priority.
-                    format: double
-                    type: number
                 relatedContents:
                     # @review
                     description:
@@ -313,6 +307,31 @@ components:
             required:
                 - className
                 - classPK
+            type: object
+        CollectionViewport:
+            # @review
+            description:
+                Represents a collection viewport.
+            properties:
+                collectionViewportDefinition:
+                    # @review
+                    description:
+                        The definition of the collection viewport.
+                    properties:
+                        numberOfColumns:
+                            # @review
+                            description:
+                                The number of columns of the collection viewport.
+                            type: integer
+                    type: object
+                id:
+                    # @review
+                    description:
+                        The collection viewport's ID.
+                    type: string
+            required:
+                - id
+                - collectionViewportDefinition
             type: object
         ColumnViewport:
             properties:
@@ -3094,6 +3113,13 @@ components:
                         - collectionReference
                         - collectionType
                     type: object
+                collectionViewports:
+                    # @review
+                    description:
+                        A list of viewports of the page collection.
+                    items:
+                        $ref: "#/components/schemas/CollectionViewport"
+                    type: array
                 displayAllItems:
                     # @review
                     description:
@@ -3135,7 +3161,7 @@ components:
                 numberOfItems:
                     # @review
                     description:
-                        The number of items in the page collection.
+                        The maximum number of items to display in the page collection when pagination is disabled.
                     type: integer
                 numberOfItemsPerPage:
                     # @review
@@ -3159,9 +3185,11 @@ components:
                         Simple]
                     type: string
                 showAllItems:
+                    deprecated: true
                     # @review
                     description:
-                        Whether to show all items when pagination is enabled.
+                        Whether to show all items when pagination is enabled. Deprecated as of Cavanaugh (7.4.x),
+                        replaced by displayAllPages
                     type: boolean
                 templateKey:
                     # @review
@@ -3336,6 +3364,11 @@ components:
                     items:
                         $ref: "#/components/schemas/FragmentViewport"
                     type: array
+                indexed:
+                    # @review
+                    description:
+                        A flag that indicates whether the page fragment instance is indexed or not.
+                    type: boolean
                 widgetInstances:
                     # @review
                     description:
@@ -3371,6 +3404,11 @@ components:
                     # @review
                     description:
                         A flag that indicates whether the page row has gutters.
+                    type: boolean
+                indexed:
+                    # @review
+                    description:
+                        A flag that indicates whether the page row is indexed or not.
                     type: boolean
                 modulesPerRow:
                     # @review
@@ -3482,6 +3520,20 @@ components:
                     items:
                         $ref: "#/components/schemas/FragmentViewport"
                     type: array
+                htmlProperties:
+                    # @review
+                    description:
+                        The page section's html properties
+                    properties:
+                        htmlTag:
+                            enum: [Article, Aside, Div, Footer, Header, Main, Nav, Section]
+                            type: string
+                    type: object
+                indexed:
+                    # @review
+                    description:
+                        A flag that indicates whether the page section is indexed or not.
+                    type: boolean
                 layout:
                     # @review
                     description:
@@ -3510,6 +3562,9 @@ components:
                         contentDisplay:
                             deprecated: true
                             enum: [Block, FlexColumn, FlexRow]
+                            type: string
+                        flexWrap:
+                            enum: [NoWrap, Wrap, WrapReverse]
                             type: string
                         justify:
                             deprecated: true
@@ -3902,12 +3957,12 @@ components:
                 id:
                     # @review
                     description:
-                        The row vieport's ID.
+                        The row viewport's ID.
                     type: string
                 rowViewportDefinition:
                     # @review
                     description:
-                        The definition of the row vieport.
+                        The definition of the row viewport.
                     properties:
                         modulesPerRow:
                             # @review
@@ -4848,7 +4903,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.headless.delivery.client', and version '4.0.21'."
+        'com.liferay.headless.delivery.client', and version '4.0.25'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"

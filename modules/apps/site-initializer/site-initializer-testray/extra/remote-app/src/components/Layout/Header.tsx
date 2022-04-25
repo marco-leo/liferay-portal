@@ -12,6 +12,7 @@
  * details.
  */
 
+import {ClayButtonWithIcon} from '@clayui/button';
 import {Align} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
 import ClayTabs from '@clayui/tabs';
@@ -24,39 +25,56 @@ import DropDown from '../DropDown';
 
 const Divider = () => <p className="mx-2 text-paragraph-lg">/</p>;
 
+type BreadCrumbTriggerProps = {
+	displayCarret?: boolean;
+};
+
 const Header = () => {
-	const [{dropdown, heading, tabs}] = useContext(HeaderContext);
+	const [{actions, dropdown, heading, tabs}] = useContext(HeaderContext);
 	const navigate = useNavigate();
+
+	const BreadCrumbTrigger: React.FC<BreadCrumbTriggerProps> = ({
+		displayCarret,
+	}) => (
+		<div className="align-items-end d-flex" title={heading[0]?.title}>
+			<ClayIcon
+				className="dropdown-poll-icon mr-2"
+				color="darkblue"
+				fontSize={22}
+				symbol="polls"
+			/>
+
+			{displayCarret && (
+				<ClayIcon
+					className={classNames('dropdown-arrow-icon')}
+					color="darkblue"
+					symbol="caret-bottom"
+				/>
+			)}
+		</div>
+	);
 
 	return (
 		<div className="d-flex flex-column header-container pt-4">
 			<div className="d-flex">
 				<div className="align-items-center d-flex justify-content-center mx-3">
-					<DropDown
-						items={dropdown}
-						position={Align.BottomLeft}
-						trigger={
-							<div className="align-items-end d-flex">
-								<a>
-									<ClayIcon
-										className="dropdown-poll-icon mr-2"
-										symbol="polls"
-									/>
-
-									<ClayIcon
-										className={classNames(
-											'dropdown-arrow-icon'
-										)}
-										symbol="caret-bottom"
-									/>
-								</a>
-							</div>
-						}
-					/>
+					{dropdown.length ? (
+						<DropDown
+							items={dropdown}
+							position={Align.BottomLeft}
+							trigger={
+								<div>
+									<BreadCrumbTrigger displayCarret />
+								</div>
+							}
+						/>
+					) : (
+						<BreadCrumbTrigger />
+					)}
 				</div>
 
-				<div className="d-flex flex-column">
-					<div className="d-flex flex-wrap">
+				<div className="d-flex flex-row justify-content-between w-100">
+					<div className="d-flex flex-1 flex-wrap">
 						{heading.map((header, index) => {
 							const isClickable =
 								header.path && index !== heading.length - 1;
@@ -77,7 +95,11 @@ const Header = () => {
 									}}
 								>
 									<small className="text-paragraph-xs text-secondary">
-										{header.category}
+										{header.category ? (
+											header.category.toUpperCase()
+										) : (
+											<>&ensp;</>
+										)}
 									</small>
 
 									<div className="d-flex flex-row">
@@ -97,10 +119,23 @@ const Header = () => {
 							);
 						})}
 					</div>
+
+					{!!actions.length && (
+						<DropDown
+							items={actions}
+							position={Align.BottomLeft}
+							trigger={
+								<ClayButtonWithIcon
+									displayType="unstyled"
+									symbol="ellipsis-v"
+								/>
+							}
+						/>
+					)}
 				</div>
 			</div>
 
-			<ClayTabs className="header-container-tabs ml-3" modern>
+			<ClayTabs className="header-container-tabs ml-3">
 				{tabs.map((tab, index) => (
 					<ClayTabs.Item
 						active={tab.active}

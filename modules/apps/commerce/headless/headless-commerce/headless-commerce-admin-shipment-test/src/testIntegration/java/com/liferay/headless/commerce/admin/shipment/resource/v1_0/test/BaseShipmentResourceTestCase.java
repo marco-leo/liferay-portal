@@ -257,6 +257,31 @@ public abstract class BaseShipmentResourceTestCase {
 	}
 
 	@Test
+	public void testGetShipmentsPageWithFilterDoubleEquals() throws Exception {
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		Shipment shipment1 = testGetShipmentsPage_addShipment(randomShipment());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		Shipment shipment2 = testGetShipmentsPage_addShipment(randomShipment());
+
+		for (EntityField entityField : entityFields) {
+			Page<Shipment> page = shipmentResource.getShipmentsPage(
+				null, getFilterString(entityField, "eq", shipment1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(shipment1),
+				(List<Shipment>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetShipmentsPageWithFilterStringEquals() throws Exception {
 		List<EntityField> entityFields = getEntityFields(
 			EntityField.Type.STRING);
@@ -327,6 +352,16 @@ public abstract class BaseShipmentResourceTestCase {
 				BeanUtils.setProperty(
 					shipment1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetShipmentsPageWithSortDouble() throws Exception {
+		testGetShipmentsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, shipment1, shipment2) -> {
+				BeanUtils.setProperty(shipment1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(shipment2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -459,8 +494,8 @@ public abstract class BaseShipmentResourceTestCase {
 
 		long totalCount = shipmentsJSONObject.getLong("totalCount");
 
-		Shipment shipment1 = testGraphQLShipment_addShipment();
-		Shipment shipment2 = testGraphQLShipment_addShipment();
+		Shipment shipment1 = testGraphQLGetShipmentsPage_addShipment();
+		Shipment shipment2 = testGraphQLGetShipmentsPage_addShipment();
 
 		shipmentsJSONObject = JSONUtil.getValueAsJSONObject(
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
@@ -477,6 +512,12 @@ public abstract class BaseShipmentResourceTestCase {
 			shipment2,
 			Arrays.asList(
 				ShipmentSerDes.toDTOs(shipmentsJSONObject.getString("items"))));
+	}
+
+	protected Shipment testGraphQLGetShipmentsPage_addShipment()
+		throws Exception {
+
+		return testGraphQLShipment_addShipment();
 	}
 
 	@Test
@@ -549,7 +590,8 @@ public abstract class BaseShipmentResourceTestCase {
 	public void testGraphQLGetShipmentByExternalReferenceCode()
 		throws Exception {
 
-		Shipment shipment = testGraphQLShipment_addShipment();
+		Shipment shipment =
+			testGraphQLGetShipmentByExternalReferenceCode_addShipment();
 
 		Assert.assertTrue(
 			equals(
@@ -597,6 +639,13 @@ public abstract class BaseShipmentResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Shipment
+			testGraphQLGetShipmentByExternalReferenceCode_addShipment()
+		throws Exception {
+
+		return testGraphQLShipment_addShipment();
 	}
 
 	@Test
@@ -775,7 +824,7 @@ public abstract class BaseShipmentResourceTestCase {
 
 	@Test
 	public void testGraphQLDeleteShipment() throws Exception {
-		Shipment shipment = testGraphQLShipment_addShipment();
+		Shipment shipment = testGraphQLDeleteShipment_addShipment();
 
 		Assert.assertTrue(
 			JSONUtil.getValueAsBoolean(
@@ -788,7 +837,6 @@ public abstract class BaseShipmentResourceTestCase {
 							}
 						})),
 				"JSONObject/data", "Object/deleteShipment"));
-
 		JSONArray errorsJSONArray = JSONUtil.getValueAsJSONArray(
 			invokeGraphQLQuery(
 				new GraphQLField(
@@ -802,6 +850,12 @@ public abstract class BaseShipmentResourceTestCase {
 			"JSONArray/errors");
 
 		Assert.assertTrue(errorsJSONArray.length() > 0);
+	}
+
+	protected Shipment testGraphQLDeleteShipment_addShipment()
+		throws Exception {
+
+		return testGraphQLShipment_addShipment();
 	}
 
 	@Test
@@ -822,7 +876,7 @@ public abstract class BaseShipmentResourceTestCase {
 
 	@Test
 	public void testGraphQLGetShipment() throws Exception {
-		Shipment shipment = testGraphQLShipment_addShipment();
+		Shipment shipment = testGraphQLGetShipment_addShipment();
 
 		Assert.assertTrue(
 			equals(
@@ -859,6 +913,10 @@ public abstract class BaseShipmentResourceTestCase {
 						getGraphQLFields())),
 				"JSONArray/errors", "Object/0", "JSONObject/extensions",
 				"Object/code"));
+	}
+
+	protected Shipment testGraphQLGetShipment_addShipment() throws Exception {
+		return testGraphQLShipment_addShipment();
 	}
 
 	@Test

@@ -213,15 +213,16 @@ public class CommerceShipmentServiceHttp {
 	}
 
 	public static com.liferay.commerce.model.CommerceShipment
-			fetchCommerceShipment(
+			fetchCommerceShipmentByExternalReferenceCode(
 				HttpPrincipal httpPrincipal, long companyId,
 				String externalReferenceCode)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
 			MethodKey methodKey = new MethodKey(
-				CommerceShipmentServiceUtil.class, "fetchCommerceShipment",
-				_fetchCommerceShipmentParameterTypes4);
+				CommerceShipmentServiceUtil.class,
+				"fetchCommerceShipmentByExternalReferenceCode",
+				_fetchCommerceShipmentByExternalReferenceCodeParameterTypes4);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, companyId, externalReferenceCode);
@@ -1036,6 +1037,49 @@ public class CommerceShipmentServiceHttp {
 	}
 
 	public static com.liferay.commerce.model.CommerceShipment
+			updateExternalReferenceCode(
+				HttpPrincipal httpPrincipal, long commerceShipmentId,
+				String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				CommerceShipmentServiceUtil.class,
+				"updateExternalReferenceCode",
+				_updateExternalReferenceCodeParameterTypes23);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, commerceShipmentId, externalReferenceCode);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (com.liferay.commerce.model.CommerceShipment)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
+	public static com.liferay.commerce.model.CommerceShipment
 			updateShippingDate(
 				HttpPrincipal httpPrincipal, long commerceShipmentId,
 				int shippingDateMonth, int shippingDateDay,
@@ -1046,7 +1090,7 @@ public class CommerceShipmentServiceHttp {
 		try {
 			MethodKey methodKey = new MethodKey(
 				CommerceShipmentServiceUtil.class, "updateShippingDate",
-				_updateShippingDateParameterTypes23);
+				_updateShippingDateParameterTypes24);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, commerceShipmentId, shippingDateMonth,
@@ -1088,7 +1132,7 @@ public class CommerceShipmentServiceHttp {
 		try {
 			MethodKey methodKey = new MethodKey(
 				CommerceShipmentServiceUtil.class, "updateStatus",
-				_updateStatusParameterTypes24);
+				_updateStatusParameterTypes25);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, commerceShipmentId, status);
@@ -1137,8 +1181,9 @@ public class CommerceShipmentServiceHttp {
 		new Class[] {long.class};
 	private static final Class<?>[] _deleteCommerceShipmentParameterTypes3 =
 		new Class[] {long.class, boolean.class};
-	private static final Class<?>[] _fetchCommerceShipmentParameterTypes4 =
-		new Class[] {long.class, String.class};
+	private static final Class<?>[]
+		_fetchCommerceShipmentByExternalReferenceCodeParameterTypes4 =
+			new Class[] {long.class, String.class};
 	private static final Class<?>[] _getCommerceShipmentParameterTypes5 =
 		new Class[] {long.class};
 	private static final Class<?>[] _getCommerceShipmentsParameterTypes6 =
@@ -1214,11 +1259,15 @@ public class CommerceShipmentServiceHttp {
 		new Class[] {
 			long.class, int.class, int.class, int.class, int.class, int.class
 		};
-	private static final Class<?>[] _updateShippingDateParameterTypes23 =
+	private static final Class<?>[]
+		_updateExternalReferenceCodeParameterTypes23 = new Class[] {
+			long.class, String.class
+		};
+	private static final Class<?>[] _updateShippingDateParameterTypes24 =
 		new Class[] {
 			long.class, int.class, int.class, int.class, int.class, int.class
 		};
-	private static final Class<?>[] _updateStatusParameterTypes24 =
+	private static final Class<?>[] _updateStatusParameterTypes25 =
 		new Class[] {long.class, int.class};
 
 }
