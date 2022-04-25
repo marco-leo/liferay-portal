@@ -14,10 +14,16 @@
 
 package com.liferay.commerce.qualifier.metadata;
 
+import com.liferay.commerce.qualifier.configuration.CommerceQualifierConfiguration;
 import com.liferay.commerce.qualifier.deployer.CommerceQualifierDeployer;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.module.configuration.ConfigurationException;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
+import com.liferay.portal.kernel.settings.definition.ConfigurationBeanDeclaration;
 
 import java.util.Collections;
 import java.util.Map;
@@ -31,7 +37,39 @@ import org.osgi.service.component.annotations.Reference;
  * @author Riccardo Alberti
  */
 public abstract class BaseCommerceQualifierMetadata<T>
-	implements CommerceQualifierMetadata {
+	implements CommerceQualifierMetadata, ConfigurationBeanDeclaration {
+
+	@Override
+	public String[][] getAllowedTargetClassNameGroups(long companyId) {
+		try {
+			CommerceQualifierConfiguration commerceQualifierConfiguration =
+				(CommerceQualifierConfiguration)
+					_configurationProvider.getCompanyConfiguration(
+						getConfigurationBeanClass(), companyId);
+
+			String[] allowedTargetClassNameGroupsArray =
+				commerceQualifierConfiguration.
+					allowedTargetClassNameGroupsArray();
+
+			String[][] allowedTargetClassNameGroups =
+				new String[allowedTargetClassNameGroupsArray.length][];
+
+			for (int i = 0; i < allowedTargetClassNameGroupsArray.length; i++) {
+				allowedTargetClassNameGroups[i] =
+					allowedTargetClassNameGroupsArray[i].split(
+						StringPool.COMMA);
+			}
+
+			return allowedTargetClassNameGroups;
+		}
+		catch (ConfigurationException configurationException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(configurationException);
+			}
+		}
+
+		return new String[0][0];
+	}
 
 	@Override
 	public String getDisplayCategory() {
@@ -73,7 +111,19 @@ public abstract class BaseCommerceQualifierMetadata<T>
 		commerceQualifierDeployer.undeploy(this);
 	}
 
+	@Reference(unbind = "-")
+	protected void setConfigurationProvider(
+		ConfigurationProvider configurationProvider) {
+
+		_configurationProvider = configurationProvider;
+	}
+
 	@Reference
 	protected CommerceQualifierDeployer commerceQualifierDeployer;
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		BaseCommerceQualifierMetadata.class);
+
+	private ConfigurationProvider _configurationProvider;
 
 }

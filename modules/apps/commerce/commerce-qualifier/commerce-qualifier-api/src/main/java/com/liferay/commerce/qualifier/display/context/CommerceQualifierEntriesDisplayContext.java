@@ -75,7 +75,8 @@ public class CommerceQualifierEntriesDisplayContext
 	}
 
 	public String[][] getAllowedTargetClassNameGroups() {
-		return commerceQualifierMetadata.getAllowedTargetClassNameGroups();
+		return commerceQualifierMetadata.getAllowedTargetClassNameGroups(
+			commerceQualifierEntryRequestHelper.getCompanyId());
 	}
 
 	public List<FDSActionDropdownItem> getFDSActionDropdownItems(

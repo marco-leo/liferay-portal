@@ -12,25 +12,13 @@
  * details.
  */
 
-package com.liferay.commerce.qualifier.metadata;
-
-import java.util.Map;
-import java.util.Set;
+package com.liferay.commerce.qualifier.configuration;
 
 /**
  * @author Riccardo Alberti
  */
-public interface CommerceQualifierMetadataRegistry {
+public interface CommerceQualifierConfiguration {
 
-	public CommerceQualifierMetadata getCommerceQualifierMetadata(
-		String className);
-
-	public Set<String> getCommerceQualifierModelClassNames();
-
-	public Map<String, CommerceQualifierMetadata>
-		getCommerceQualifiersMetadataRESTModelName();
-
-	public Map<String, Set<String>> getSourceClassNameMapByTargetClassName(
-		long companyId, String targetClassName);
+	public String[] allowedTargetClassNameGroupsArray();
 
 }

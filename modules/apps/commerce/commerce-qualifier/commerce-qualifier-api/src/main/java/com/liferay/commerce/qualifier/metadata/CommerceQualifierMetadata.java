@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public interface CommerceQualifierMetadata<T extends ClassedModel> {
 
-	public String[][] getAllowedTargetClassNameGroups();
+	public String[][] getAllowedTargetClassNameGroups(long companyId);
 
 	public String getDisplayCategory();
 

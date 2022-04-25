@@ -510,7 +510,8 @@ public class CommerceQualifierEntryLocalServiceImpl
 			sourceTable.getColumns());
 
 		String[] allowedTargetClassNames = Stream.of(
-			sourceCommerceQualifierMetadata.getAllowedTargetClassNameGroups()
+			sourceCommerceQualifierMetadata.getAllowedTargetClassNameGroups(
+				companyId)
 		).flatMap(
 			Stream::of
 		).toArray(

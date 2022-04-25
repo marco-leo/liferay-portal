@@ -57,7 +57,8 @@ public class CommerceDefaultSettingsDisplayContext
 		throws PortalException {
 
 		return commerceQualifierMetadataRegistry.
-			getSourceClassNameMapByTargetClassName(className);
+			getSourceClassNameMapByTargetClassName(
+				commerceQualifierEntryRequestHelper.getCompanyId(), className);
 	}
 
 }

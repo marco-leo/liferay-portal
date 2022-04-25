@@ -14,13 +14,11 @@
 
 package com.liferay.commerce.qualifier.internal.metadata;
 
-import com.liferay.account.model.AccountEntry;
-import com.liferay.account.model.AccountGroup;
 import com.liferay.commerce.discount.model.CommerceDiscount;
 import com.liferay.commerce.discount.model.CommerceDiscountTable;
 import com.liferay.commerce.discount.service.CommerceDiscountLocalService;
-import com.liferay.commerce.model.CommerceOrderType;
 import com.liferay.commerce.product.model.CommerceChannel;
+import com.liferay.commerce.qualifier.configuration.CommerceDiscountQualifierConfiguration;
 import com.liferay.commerce.qualifier.metadata.BaseCommerceQualifierMetadata;
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadata;
 import com.liferay.petra.sql.dsl.Column;
@@ -29,6 +27,7 @@ import com.liferay.petra.sql.dsl.query.sort.OrderByExpression;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.settings.definition.ConfigurationBeanDeclaration;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 
@@ -42,18 +41,18 @@ import org.osgi.service.component.annotations.Reference;
  * @author Riccardo Alberti
  */
 @Component(
-	enabled = false, immediate = true, service = CommerceQualifierMetadata.class
+	configurationPid = "com.liferay.commerce.qualifier.configuration.CommerceDiscountQualifierConfiguration",
+	enabled = false, immediate = true,
+	service = {
+		CommerceQualifierMetadata.class, ConfigurationBeanDeclaration.class
+	}
 )
 public class CommerceDiscountQualifierMetadata
 	extends BaseCommerceQualifierMetadata<CommerceDiscount> {
 
 	@Override
-	public String[][] getAllowedTargetClassNameGroups() {
-		return new String[][] {
-			{AccountEntry.class.getName(), AccountGroup.class.getName()},
-			{CommerceChannel.class.getName()},
-			{CommerceOrderType.class.getName()}
-		};
+	public Class<?> getConfigurationBeanClass() {
+		return CommerceDiscountQualifierConfiguration.class;
 	}
 
 	@Override

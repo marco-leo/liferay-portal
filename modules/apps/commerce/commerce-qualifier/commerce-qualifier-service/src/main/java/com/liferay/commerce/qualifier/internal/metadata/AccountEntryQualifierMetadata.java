@@ -18,6 +18,7 @@ import com.liferay.account.constants.AccountPortletKeys;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.model.AccountEntryTable;
 import com.liferay.account.service.AccountEntryLocalService;
+import com.liferay.commerce.qualifier.configuration.AccountEntryQualifierConfiguration;
 import com.liferay.commerce.qualifier.metadata.BaseCommerceQualifierMetadata;
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadata;
 import com.liferay.petra.sql.dsl.Column;
@@ -26,6 +27,7 @@ import com.liferay.petra.sql.dsl.query.sort.OrderByExpression;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.settings.definition.ConfigurationBeanDeclaration;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 
 import java.util.Map;
@@ -37,14 +39,18 @@ import org.osgi.service.component.annotations.Reference;
  * @author Riccardo Alberti
  */
 @Component(
-	enabled = false, immediate = true, service = CommerceQualifierMetadata.class
+	configurationPid = "com.liferay.commerce.qualifier.configuration.AccountEntryQualifierConfiguration",
+	enabled = false, immediate = true,
+	service = {
+		CommerceQualifierMetadata.class, ConfigurationBeanDeclaration.class
+	}
 )
 public class AccountEntryQualifierMetadata
 	extends BaseCommerceQualifierMetadata<AccountEntry> {
 
 	@Override
-	public String[][] getAllowedTargetClassNameGroups() {
-		return new String[0][0];
+	public Class<?> getConfigurationBeanClass() {
+		return AccountEntryQualifierConfiguration.class;
 	}
 
 	@Override

@@ -18,6 +18,7 @@ import com.liferay.account.constants.AccountPortletKeys;
 import com.liferay.account.model.AccountGroup;
 import com.liferay.account.model.AccountGroupTable;
 import com.liferay.account.service.AccountGroupLocalService;
+import com.liferay.commerce.qualifier.configuration.AccountGroupQualifierConfiguration;
 import com.liferay.commerce.qualifier.metadata.BaseCommerceQualifierMetadata;
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadata;
 import com.liferay.petra.sql.dsl.Column;
@@ -26,6 +27,7 @@ import com.liferay.petra.sql.dsl.query.sort.OrderByExpression;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.settings.definition.ConfigurationBeanDeclaration;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 
 import java.util.Map;
@@ -37,14 +39,18 @@ import org.osgi.service.component.annotations.Reference;
  * @author Riccardo Alberti
  */
 @Component(
-	enabled = false, immediate = true, service = CommerceQualifierMetadata.class
+	configurationPid = "com.liferay.commerce.qualifier.configuration.AccountGroupQualifierConfiguration",
+	enabled = false, immediate = true,
+	service = {
+		CommerceQualifierMetadata.class, ConfigurationBeanDeclaration.class
+	}
 )
 public class AccountGroupQualifierMetadata
 	extends BaseCommerceQualifierMetadata<AccountGroup> {
 
 	@Override
-	public String[][] getAllowedTargetClassNameGroups() {
-		return new String[0][0];
+	public Class<?> getConfigurationBeanClass() {
+		return AccountGroupQualifierConfiguration.class;
 	}
 
 	@Override

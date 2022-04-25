@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 
 import java.util.Objects;
 
@@ -73,7 +74,8 @@ public class EditCommerceQualifierEntryMVCActionCommand
 				sourceClassName);
 
 		String[][] allowedTargetClassNameGroups =
-			commerceQualifierMetadata.getAllowedTargetClassNameGroups();
+			commerceQualifierMetadata.getAllowedTargetClassNameGroups(
+				PortalUtil.getCompanyId(actionRequest));
 
 		for (String[] allowedTargetClassNameGroup :
 				allowedTargetClassNameGroups) {

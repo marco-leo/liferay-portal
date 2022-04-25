@@ -16,7 +16,7 @@ package com.liferay.commerce.qualifier.internal.metadata;
 
 import com.liferay.commerce.model.CommerceOrderType;
 import com.liferay.commerce.model.CommerceOrderTypeTable;
-import com.liferay.commerce.product.model.CommerceChannel;
+import com.liferay.commerce.qualifier.configuration.CommerceOrderTypeQualifierConfiguration;
 import com.liferay.commerce.qualifier.metadata.BaseCommerceQualifierMetadata;
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadata;
 import com.liferay.commerce.service.CommerceOrderTypeLocalService;
@@ -26,6 +26,7 @@ import com.liferay.petra.sql.dsl.query.sort.OrderByExpression;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.settings.definition.ConfigurationBeanDeclaration;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 
@@ -38,14 +39,18 @@ import org.osgi.service.component.annotations.Reference;
  * @author Riccardo Alberti
  */
 @Component(
-	enabled = false, immediate = true, service = CommerceQualifierMetadata.class
+	configurationPid = "com.liferay.commerce.qualifier.configuration.CommerceOrderTypeQualifierConfiguration",
+	enabled = false, immediate = true,
+	service = {
+		CommerceQualifierMetadata.class, ConfigurationBeanDeclaration.class
+	}
 )
 public class CommerceOrderTypeQualifierMetadata
 	extends BaseCommerceQualifierMetadata<CommerceOrderType> {
 
 	@Override
-	public String[][] getAllowedTargetClassNameGroups() {
-		return new String[][] {{CommerceChannel.class.getName()}};
+	public Class<?> getConfigurationBeanClass() {
+		return CommerceOrderTypeQualifierConfiguration.class;
 	}
 
 	@Override

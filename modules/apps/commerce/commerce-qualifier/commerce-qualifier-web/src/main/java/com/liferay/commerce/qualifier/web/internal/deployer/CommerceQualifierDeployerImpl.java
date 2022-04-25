@@ -23,6 +23,7 @@ import com.liferay.commerce.qualifier.web.internal.portlet.action.EditCommerceQu
 import com.liferay.frontend.data.set.view.FDSView;
 import com.liferay.frontend.data.set.view.table.FDSTableSchemaBuilderFactory;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,8 +32,9 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Stream;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -51,19 +53,19 @@ public class CommerceQualifierDeployerImpl
 
 	@Override
 	public void deploy(CommerceQualifierMetadata commerceQualifierMetadata) {
-		String[] allowedTargetClassNames = Stream.of(
-			commerceQualifierMetadata.getAllowedTargetClassNameGroups()
-		).distinct(
-		).flatMap(
-			Stream::of
-		).toArray(
-			String[]::new
-		);
+		String[] allowedTargetClassNames = _getAllowedTargetClassNames();
 
 		List<ServiceRegistration<?>> serviceRegistrations =
 			new CopyOnWriteArrayList<>();
 
 		for (String allowedTargetClassName : allowedTargetClassNames) {
+			if (Objects.equals(
+					allowedTargetClassName,
+					commerceQualifierMetadata.getModelClassName())) {
+
+				continue;
+			}
+
 			serviceRegistrations.add(
 				_bundleContext.registerService(
 					FDSView.class,
@@ -135,6 +137,14 @@ public class CommerceQualifierDeployerImpl
 		_bundleContext = bundleContext;
 	}
 
+	private String[] _getAllowedTargetClassNames() {
+		Set<String> commerceQualifierModelClassNames =
+			_commerceQualifierMetadataRegistry.
+				getCommerceQualifierModelClassNames();
+
+		return commerceQualifierModelClassNames.toArray(new String[0]);
+	}
+
 	private String _getCommerceQualifierFDSName(
 		String modelClassName, String allowedTarget) {
 
@@ -149,6 +159,9 @@ public class CommerceQualifierDeployerImpl
 	@Reference
 	private CommerceQualifierMetadataRegistry
 		_commerceQualifierMetadataRegistry;
+
+	@Reference
+	private CompanyLocalService _companyLocalService;
 
 	@Reference
 	private FDSTableSchemaBuilderFactory _fdsTableSchemaBuilderFactory;

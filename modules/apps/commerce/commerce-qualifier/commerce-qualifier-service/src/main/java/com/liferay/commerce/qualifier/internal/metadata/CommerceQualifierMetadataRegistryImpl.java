@@ -52,6 +52,11 @@ public class CommerceQualifierMetadataRegistryImpl
 	}
 
 	@Override
+	public Set<String> getCommerceQualifierModelClassNames() {
+		return _serviceTrackerMap.keySet();
+	}
+
+	@Override
 	public Map<String, CommerceQualifierMetadata>
 		getCommerceQualifiersMetadataRESTModelName() {
 
@@ -72,7 +77,7 @@ public class CommerceQualifierMetadataRegistryImpl
 
 	@Override
 	public Map<String, Set<String>> getSourceClassNameMapByTargetClassName(
-		String targetClassName) {
+		long companyId, String targetClassName) {
 
 		Map<String, Set<String>> sourceClassNameMap = new HashMap<>();
 
@@ -81,7 +86,8 @@ public class CommerceQualifierMetadataRegistryImpl
 				_serviceTrackerMap.getService(key);
 
 			String[][] allowedTargetClassNameGroups =
-				commerceQualifierMetadata.getAllowedTargetClassNameGroups();
+				commerceQualifierMetadata.getAllowedTargetClassNameGroups(
+					companyId);
 
 			for (String[] allowedTargetClassNameGroup :
 					allowedTargetClassNameGroups) {
