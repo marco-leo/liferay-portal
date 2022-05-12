@@ -91,13 +91,13 @@ public class CommerceDefaultSettingLocalServiceImpl
 		_commerceDefaultSettingRelLocalService.deleteCommerceDefaultSettingRels(
 			commerceDefaultSetting.getCommerceDefaultSettingId());
 
+		_expandoRowLocalService.deleteRows(
+			commerceDefaultSetting.getCommerceDefaultSettingId());
+
 		resourceLocalService.deleteResource(
 			commerceDefaultSetting.getCompanyId(),
 			CommerceDefaultSetting.class.getName(),
 			ResourceConstants.SCOPE_INDIVIDUAL,
-			commerceDefaultSetting.getCommerceDefaultSettingId());
-
-		_expandoRowLocalService.deleteRows(
 			commerceDefaultSetting.getCommerceDefaultSettingId());
 
 		return commerceDefaultSettingPersistence.remove(commerceDefaultSetting);
