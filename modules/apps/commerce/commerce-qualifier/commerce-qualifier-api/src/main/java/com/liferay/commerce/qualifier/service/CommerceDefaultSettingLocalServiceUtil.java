@@ -62,12 +62,12 @@ public class CommerceDefaultSettingLocalServiceUtil {
 	}
 
 	public static CommerceDefaultSetting addCommerceDefaultSetting(
-			long userId, String name,
+			long userId, String name, String parameterSettings,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws PortalException {
 
 		return getService().addCommerceDefaultSetting(
-			userId, name, serviceContext);
+			userId, name, parameterSettings, serviceContext);
 	}
 
 	/**
@@ -337,11 +337,12 @@ public class CommerceDefaultSettingLocalServiceUtil {
 
 	public static CommerceDefaultSetting updateCommerceDefaultSetting(
 			long commerceDefaultSettingId, String name,
+			String parameterSettings,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws PortalException {
 
 		return getService().updateCommerceDefaultSetting(
-			commerceDefaultSettingId, name, serviceContext);
+			commerceDefaultSettingId, name, parameterSettings, serviceContext);
 	}
 
 	public static CommerceDefaultSettingLocalService getService() {

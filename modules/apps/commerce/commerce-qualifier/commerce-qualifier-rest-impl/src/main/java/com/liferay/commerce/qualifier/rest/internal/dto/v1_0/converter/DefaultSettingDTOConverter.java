@@ -57,6 +57,8 @@ public class DefaultSettingDTOConverter
 				customFields = expandoBridge.getAttributes();
 				id = commerceDefaultSetting.getCommerceDefaultSettingId();
 				name = commerceDefaultSetting.getName();
+				parameterSettings =
+					commerceDefaultSetting.getParameterSettings();
 			}
 		};
 	}

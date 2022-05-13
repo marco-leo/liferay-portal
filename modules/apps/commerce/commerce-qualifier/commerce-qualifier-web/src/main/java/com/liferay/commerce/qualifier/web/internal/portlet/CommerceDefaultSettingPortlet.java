@@ -16,9 +16,9 @@ package com.liferay.commerce.qualifier.web.internal.portlet;
 
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadataRegistry;
 import com.liferay.commerce.qualifier.model.CommerceDefaultSetting;
+import com.liferay.commerce.qualifier.parameters.CommerceDefaultSettingParametersJSPContributorRegistry;
 import com.liferay.commerce.qualifier.service.CommerceDefaultSettingRelService;
 import com.liferay.commerce.qualifier.service.CommerceDefaultSettingService;
-import com.liferay.commerce.qualifier.service.CommerceQualifierEntryService;
 import com.liferay.commerce.qualifier.web.internal.constants.CommerceDefaultSettingPortletKeys;
 import com.liferay.commerce.qualifier.web.internal.display.context.CommerceDefaultSettingDisplayContext;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
@@ -78,7 +78,7 @@ public class CommerceDefaultSettingPortlet extends MVCPortlet {
 				new CommerceDefaultSettingDisplayContext(
 					_commerceDefaultSettingService,
 					_commerceDefaultSettingRelService,
-					_commerceQualifierEntryService,
+					_commerceDefaultSettingParametersJSPContributorRegistry,
 					_commerceQualifierMetadataRegistry,
 					_commerceDefaultSettingModelResourcePermission,
 					httpServletRequest, _portal);
@@ -97,13 +97,14 @@ public class CommerceDefaultSettingPortlet extends MVCPortlet {
 		_commerceDefaultSettingModelResourcePermission;
 
 	@Reference
+	private CommerceDefaultSettingParametersJSPContributorRegistry
+		_commerceDefaultSettingParametersJSPContributorRegistry;
+
+	@Reference
 	private CommerceDefaultSettingRelService _commerceDefaultSettingRelService;
 
 	@Reference
 	private CommerceDefaultSettingService _commerceDefaultSettingService;
-
-	@Reference
-	private CommerceQualifierEntryService _commerceQualifierEntryService;
 
 	@Reference
 	private CommerceQualifierMetadataRegistry

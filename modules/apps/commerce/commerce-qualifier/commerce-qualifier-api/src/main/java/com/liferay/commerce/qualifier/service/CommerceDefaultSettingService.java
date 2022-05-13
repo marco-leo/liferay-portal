@@ -53,7 +53,8 @@ public interface CommerceDefaultSettingService extends BaseService {
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.commerce.qualifier.service.impl.CommerceDefaultSettingServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the commerce default setting remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link CommerceDefaultSettingServiceUtil} if injection and service tracking are not available.
 	 */
 	public CommerceDefaultSetting addCommerceDefaultSetting(
-			String name, ServiceContext serviceContext)
+			String name, String parameterSettings,
+			ServiceContext serviceContext)
 		throws PortalException;
 
 	public CommerceDefaultSetting deleteCommerceDefaultSetting(
@@ -88,7 +89,7 @@ public interface CommerceDefaultSettingService extends BaseService {
 
 	public CommerceDefaultSetting updateCommerceDefaultSetting(
 			long commerceDefaultSettingId, String name,
-			ServiceContext serviceContext)
+			String parameterSettings, ServiceContext serviceContext)
 		throws PortalException;
 
 }

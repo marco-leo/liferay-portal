@@ -54,6 +54,7 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -287,8 +288,20 @@ public abstract class BaseQualifierResourceImpl
 			Map<String, Serializable> parameters)
 		throws Exception {
 
-		UnsafeConsumer<Qualifier, Exception> qualifierUnsafeConsumer =
-			qualifier -> postQualifier(qualifier);
+		UnsafeConsumer<Qualifier, Exception> qualifierUnsafeConsumer = null;
+
+		String createStrategy = (String)parameters.getOrDefault(
+			"createStrategy", "INSERT");
+
+		if ("INSERT".equalsIgnoreCase(createStrategy)) {
+			qualifierUnsafeConsumer = qualifier -> postQualifier(qualifier);
+		}
+
+		if (qualifierUnsafeConsumer == null) {
+			throw new NotSupportedException(
+				"Create strategy \"" + createStrategy +
+					"\" is not supported for Qualifier");
+		}
 
 		if (contextBatchUnsafeConsumer != null) {
 			contextBatchUnsafeConsumer.accept(

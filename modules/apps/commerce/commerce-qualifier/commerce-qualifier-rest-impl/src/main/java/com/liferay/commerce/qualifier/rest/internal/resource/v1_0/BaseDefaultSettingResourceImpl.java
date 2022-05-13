@@ -54,6 +54,7 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -122,7 +123,7 @@ public abstract class BaseDefaultSettingResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/headless-commerce-qualifier/v1.0/default-settings' -d $'{"customFields": ___, "defaultSettingEntities": ___, "name": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'POST' 'http://localhost:8080/o/headless-commerce-qualifier/v1.0/default-settings' -d $'{"customFields": ___, "defaultSettingEntities": ___, "name": ___, "parameterSettings": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
 	@io.swagger.v3.oas.annotations.tags.Tags(
 		value = {
@@ -302,7 +303,7 @@ public abstract class BaseDefaultSettingResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'PATCH' 'http://localhost:8080/o/headless-commerce-qualifier/v1.0/default-settings/{id}' -d $'{"customFields": ___, "defaultSettingEntities": ___, "name": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'PATCH' 'http://localhost:8080/o/headless-commerce-qualifier/v1.0/default-settings/{id}' -d $'{"customFields": ___, "defaultSettingEntities": ___, "name": ___, "parameterSettings": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
 	@io.swagger.v3.oas.annotations.Parameters(
 		value = {
@@ -340,7 +341,21 @@ public abstract class BaseDefaultSettingResourceImpl
 		throws Exception {
 
 		UnsafeConsumer<DefaultSetting, Exception> defaultSettingUnsafeConsumer =
-			defaultSetting -> postDefaultSetting(defaultSetting);
+			null;
+
+		String createStrategy = (String)parameters.getOrDefault(
+			"createStrategy", "INSERT");
+
+		if ("INSERT".equalsIgnoreCase(createStrategy)) {
+			defaultSettingUnsafeConsumer = defaultSetting -> postDefaultSetting(
+				defaultSetting);
+		}
+
+		if (defaultSettingUnsafeConsumer == null) {
+			throw new NotSupportedException(
+				"Create strategy \"" + createStrategy +
+					"\" is not supported for DefaultSetting");
+		}
 
 		if (contextBatchUnsafeConsumer != null) {
 			contextBatchUnsafeConsumer.accept(
@@ -419,6 +434,37 @@ public abstract class BaseDefaultSettingResourceImpl
 			java.util.Collection<DefaultSetting> defaultSettings,
 			Map<String, Serializable> parameters)
 		throws Exception {
+
+		UnsafeConsumer<DefaultSetting, Exception> defaultSettingUnsafeConsumer =
+			null;
+
+		String updateStrategy = (String)parameters.getOrDefault(
+			"updateStrategy", "UPDATE");
+
+		if ("PARTIAL_UPDATE".equalsIgnoreCase(updateStrategy)) {
+			defaultSettingUnsafeConsumer =
+				defaultSetting -> patchDefaultSetting(
+					defaultSetting.getId() != null ? defaultSetting.getId() :
+						Long.parseLong(
+							(String)parameters.get("defaultSettingId")),
+					defaultSetting);
+		}
+
+		if (defaultSettingUnsafeConsumer == null) {
+			throw new NotSupportedException(
+				"Update strategy \"" + updateStrategy +
+					"\" is not supported for DefaultSetting");
+		}
+
+		if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				defaultSettings, defaultSettingUnsafeConsumer);
+		}
+		else {
+			for (DefaultSetting defaultSetting : defaultSettings) {
+				defaultSettingUnsafeConsumer.accept(defaultSetting);
+			}
+		}
 	}
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {

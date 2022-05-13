@@ -141,6 +141,9 @@ public class CommerceDefaultSettingPersistenceTest {
 
 		newCommerceDefaultSetting.setName(RandomTestUtil.randomString());
 
+		newCommerceDefaultSetting.setParameterSettings(
+			RandomTestUtil.randomString());
+
 		_commerceDefaultSettings.add(
 			_persistence.update(newCommerceDefaultSetting));
 
@@ -175,6 +178,9 @@ public class CommerceDefaultSettingPersistenceTest {
 		Assert.assertEquals(
 			existingCommerceDefaultSetting.getName(),
 			newCommerceDefaultSetting.getName());
+		Assert.assertEquals(
+			existingCommerceDefaultSetting.getParameterSettings(),
+			newCommerceDefaultSetting.getParameterSettings());
 	}
 
 	@Test
@@ -467,6 +473,9 @@ public class CommerceDefaultSettingPersistenceTest {
 		commerceDefaultSetting.setModifiedDate(RandomTestUtil.nextDate());
 
 		commerceDefaultSetting.setName(RandomTestUtil.randomString());
+
+		commerceDefaultSetting.setParameterSettings(
+			RandomTestUtil.randomString());
 
 		_commerceDefaultSettings.add(
 			_persistence.update(commerceDefaultSetting));

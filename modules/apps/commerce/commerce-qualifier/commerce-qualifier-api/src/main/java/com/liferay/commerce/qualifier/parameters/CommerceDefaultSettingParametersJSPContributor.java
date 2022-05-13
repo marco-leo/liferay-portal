@@ -12,21 +12,20 @@
  * details.
  */
 
-package com.liferay.commerce.qualifier.model.impl;
+package com.liferay.commerce.qualifier.parameters;
 
-import com.liferay.portal.kernel.util.UnicodeProperties;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Riccardo Alberti
  */
-public class CommerceDefaultSettingImpl extends CommerceDefaultSettingBaseImpl {
+public interface CommerceDefaultSettingParametersJSPContributor {
 
-	@Override
-	public void setParameterSettingsUnicodeProperties(
-		UnicodeProperties parameterSettingsUnicodeProperties) {
-
-		super.setParameterSettings(
-			parameterSettingsUnicodeProperties.toString());
-	}
+	public void render(
+			long commerceDefaultSettingId,
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse)
+		throws Exception;
 
 }

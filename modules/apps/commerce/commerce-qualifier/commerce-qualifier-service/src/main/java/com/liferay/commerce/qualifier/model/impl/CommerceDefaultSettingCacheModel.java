@@ -78,7 +78,7 @@ public class CommerceDefaultSettingCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(17);
+		StringBundler sb = new StringBundler(19);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -96,6 +96,8 @@ public class CommerceDefaultSettingCacheModel
 		sb.append(modifiedDate);
 		sb.append(", name=");
 		sb.append(name);
+		sb.append(", parameterSettings=");
+		sb.append(parameterSettings);
 		sb.append("}");
 
 		return sb.toString();
@@ -140,13 +142,22 @@ public class CommerceDefaultSettingCacheModel
 			commerceDefaultSettingImpl.setName(name);
 		}
 
+		if (parameterSettings == null) {
+			commerceDefaultSettingImpl.setParameterSettings("");
+		}
+		else {
+			commerceDefaultSettingImpl.setParameterSettings(parameterSettings);
+		}
+
 		commerceDefaultSettingImpl.resetOriginalValues();
 
 		return commerceDefaultSettingImpl;
 	}
 
 	@Override
-	public void readExternal(ObjectInput objectInput) throws IOException {
+	public void readExternal(ObjectInput objectInput)
+		throws ClassNotFoundException, IOException {
+
 		mvccVersion = objectInput.readLong();
 
 		commerceDefaultSettingId = objectInput.readLong();
@@ -158,6 +169,7 @@ public class CommerceDefaultSettingCacheModel
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
 		name = objectInput.readUTF();
+		parameterSettings = (String)objectInput.readObject();
 	}
 
 	@Override
@@ -186,6 +198,13 @@ public class CommerceDefaultSettingCacheModel
 		else {
 			objectOutput.writeUTF(name);
 		}
+
+		if (parameterSettings == null) {
+			objectOutput.writeObject("");
+		}
+		else {
+			objectOutput.writeObject(parameterSettings);
+		}
 	}
 
 	public long mvccVersion;
@@ -196,5 +215,6 @@ public class CommerceDefaultSettingCacheModel
 	public long createDate;
 	public long modifiedDate;
 	public String name;
+	public String parameterSettings;
 
 }

@@ -6,7 +6,8 @@ create table CommerceDefaultSetting (
 	userName VARCHAR(75) null,
 	createDate DATE null,
 	modifiedDate DATE null,
-	name VARCHAR(75) null
+	name VARCHAR(75) null,
+	parameterSettings TEXT null
 );
 
 create table CommerceDefaultSettingRel (

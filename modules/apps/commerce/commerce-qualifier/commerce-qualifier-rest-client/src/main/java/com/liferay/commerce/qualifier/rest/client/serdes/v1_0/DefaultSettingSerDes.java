@@ -127,6 +127,20 @@ public class DefaultSettingSerDes {
 			sb.append("\"");
 		}
 
+		if (defaultSetting.getParameterSettings() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"parameterSettings\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(defaultSetting.getParameterSettings()));
+
+			sb.append("\"");
+		}
+
 		sb.append("}");
 
 		return sb.toString();
@@ -183,6 +197,15 @@ public class DefaultSettingSerDes {
 		}
 		else {
 			map.put("name", String.valueOf(defaultSetting.getName()));
+		}
+
+		if (defaultSetting.getParameterSettings() == null) {
+			map.put("parameterSettings", null);
+		}
+		else {
+			map.put(
+				"parameterSettings",
+				String.valueOf(defaultSetting.getParameterSettings()));
 		}
 
 		return map;
@@ -244,6 +267,12 @@ public class DefaultSettingSerDes {
 			else if (Objects.equals(jsonParserFieldName, "name")) {
 				if (jsonParserFieldValue != null) {
 					defaultSetting.setName((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "parameterSettings")) {
+				if (jsonParserFieldValue != null) {
+					defaultSetting.setParameterSettings(
+						(String)jsonParserFieldValue);
 				}
 			}
 		}

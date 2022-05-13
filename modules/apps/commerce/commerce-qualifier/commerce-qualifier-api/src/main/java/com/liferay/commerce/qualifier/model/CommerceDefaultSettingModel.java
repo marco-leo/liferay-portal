@@ -202,6 +202,21 @@ public interface CommerceDefaultSettingModel
 	 */
 	public void setName(String name);
 
+	/**
+	 * Returns the parameter settings of this commerce default setting.
+	 *
+	 * @return the parameter settings of this commerce default setting
+	 */
+	@AutoEscape
+	public String getParameterSettings();
+
+	/**
+	 * Sets the parameter settings of this commerce default setting.
+	 *
+	 * @param parameterSettings the parameter settings of this commerce default setting
+	 */
+	public void setParameterSettings(String parameterSettings);
+
 	@Override
 	public CommerceDefaultSetting cloneWithOriginalValues();
 

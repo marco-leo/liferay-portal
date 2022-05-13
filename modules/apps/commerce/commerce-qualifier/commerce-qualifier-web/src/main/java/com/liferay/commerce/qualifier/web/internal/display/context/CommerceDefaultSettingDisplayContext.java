@@ -19,9 +19,11 @@ import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadata;
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadataRegistry;
 import com.liferay.commerce.qualifier.model.CommerceDefaultSetting;
 import com.liferay.commerce.qualifier.model.CommerceDefaultSettingRel;
+import com.liferay.commerce.qualifier.model.CommerceDefaultSettingRelModel;
+import com.liferay.commerce.qualifier.parameters.CommerceDefaultSettingParametersJSPContributor;
+import com.liferay.commerce.qualifier.parameters.CommerceDefaultSettingParametersJSPContributorRegistry;
 import com.liferay.commerce.qualifier.service.CommerceDefaultSettingRelService;
 import com.liferay.commerce.qualifier.service.CommerceDefaultSettingService;
-import com.liferay.commerce.qualifier.service.CommerceQualifierEntryService;
 import com.liferay.commerce.qualifier.web.internal.constants.CommerceDefaultSettingPortletKeys;
 import com.liferay.commerce.qualifier.web.internal.display.context.helper.CommerceDefaultSettingRequestHelper;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
@@ -38,10 +40,14 @@ import com.liferay.portal.kernel.security.permission.resource.PortletResourcePer
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.PortletRequest;
@@ -57,7 +63,8 @@ public class CommerceDefaultSettingDisplayContext {
 	public CommerceDefaultSettingDisplayContext(
 		CommerceDefaultSettingService commerceDefaultSettingService,
 		CommerceDefaultSettingRelService commerceDefaultSettingRelService,
-		CommerceQualifierEntryService commerceQualifierEntryService,
+		CommerceDefaultSettingParametersJSPContributorRegistry
+			commerceDefaultSettingParametersJSPContributorRegistry,
 		CommerceQualifierMetadataRegistry commerceQualifierMetadataRegistry,
 		ModelResourcePermission<CommerceDefaultSetting>
 			commerceDefaultSettingModelResourcePermission,
@@ -65,6 +72,8 @@ public class CommerceDefaultSettingDisplayContext {
 
 		_commerceDefaultSettingService = commerceDefaultSettingService;
 		_commerceDefaultSettingRelService = commerceDefaultSettingRelService;
+		_commerceDefaultSettingParametersJSPContributorRegistry =
+			commerceDefaultSettingParametersJSPContributorRegistry;
 		_commerceQualifierMetadataRegistry = commerceQualifierMetadataRegistry;
 		_commerceDefaultSettingModelResourcePermission =
 			commerceDefaultSettingModelResourcePermission;
@@ -97,6 +106,29 @@ public class CommerceDefaultSettingDisplayContext {
 
 		return _commerceDefaultSettingService.fetchCommerceDefaultSetting(
 			commerceDefaultSettingId);
+	}
+
+	public CommerceDefaultSettingParametersJSPContributor
+			getCommerceDefaultSettingParametersJSPContributor()
+		throws PortalException {
+
+		return _commerceDefaultSettingParametersJSPContributorRegistry.
+			getCommerceDefaultSettingParametersJSPContributor(
+				_getCommerceDefaultSettingParametersJSPContributorKey());
+	}
+
+	public String getCommerceDefaultSettingParameterValue(String key)
+		throws PortalException {
+
+		CommerceDefaultSetting commerceDefaultSetting =
+			getCommerceDefaultSetting();
+
+		UnicodeProperties parameterSettingsUnicodeProperties =
+			UnicodePropertiesBuilder.fastLoad(
+				commerceDefaultSetting.getParameterSettings()
+			).build();
+
+		return parameterSettingsUnicodeProperties.getProperty(key);
 	}
 
 	public List<CommerceDefaultSettingRel> getCommerceDefaultSettingRels(
@@ -226,6 +258,24 @@ public class CommerceDefaultSettingDisplayContext {
 			"ADD_COMMERCE_DEFAULT_SETTING");
 	}
 
+	private String _getCommerceDefaultSettingParametersJSPContributorKey()
+		throws PortalException {
+
+		List<CommerceDefaultSettingRel> commerceDefaultSettingRels =
+			getCommerceDefaultSettingRels("target");
+
+		Stream<CommerceDefaultSettingRel> stream =
+			commerceDefaultSettingRels.stream();
+
+		return stream.map(
+			CommerceDefaultSettingRelModel::getClassName
+		).sorted(
+		).distinct(
+		).collect(
+			Collectors.joining("-")
+		);
+	}
+
 	private String _getManagePermissionsURL() throws PortalException {
 		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
@@ -250,6 +300,8 @@ public class CommerceDefaultSettingDisplayContext {
 
 	private final ModelResourcePermission<CommerceDefaultSetting>
 		_commerceDefaultSettingModelResourcePermission;
+	private final CommerceDefaultSettingParametersJSPContributorRegistry
+		_commerceDefaultSettingParametersJSPContributorRegistry;
 	private final CommerceDefaultSettingRelService
 		_commerceDefaultSettingRelService;
 	private final CommerceDefaultSettingRequestHelper

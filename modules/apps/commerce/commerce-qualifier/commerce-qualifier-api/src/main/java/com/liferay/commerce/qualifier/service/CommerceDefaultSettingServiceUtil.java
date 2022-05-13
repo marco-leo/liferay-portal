@@ -39,11 +39,12 @@ public class CommerceDefaultSettingServiceUtil {
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.commerce.qualifier.service.impl.CommerceDefaultSettingServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
 	public static CommerceDefaultSetting addCommerceDefaultSetting(
-			String name,
+			String name, String parameterSettings,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws PortalException {
 
-		return getService().addCommerceDefaultSetting(name, serviceContext);
+		return getService().addCommerceDefaultSetting(
+			name, parameterSettings, serviceContext);
 	}
 
 	public static CommerceDefaultSetting deleteCommerceDefaultSetting(
@@ -96,11 +97,12 @@ public class CommerceDefaultSettingServiceUtil {
 
 	public static CommerceDefaultSetting updateCommerceDefaultSetting(
 			long commerceDefaultSettingId, String name,
+			String parameterSettings,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws PortalException {
 
 		return getService().updateCommerceDefaultSetting(
-			commerceDefaultSettingId, name, serviceContext);
+			commerceDefaultSettingId, name, parameterSettings, serviceContext);
 	}
 
 	public static CommerceDefaultSettingService getService() {

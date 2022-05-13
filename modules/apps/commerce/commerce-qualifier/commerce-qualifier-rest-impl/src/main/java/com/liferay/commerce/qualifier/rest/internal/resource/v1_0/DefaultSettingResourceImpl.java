@@ -117,7 +117,9 @@ public class DefaultSettingResourceImpl extends BaseDefaultSettingResourceImpl {
 
 		CommerceDefaultSetting commerceDefaultSetting =
 			_commerceDefaultSettingService.addCommerceDefaultSetting(
-				defaultSetting.getName(), serviceContext);
+				defaultSetting.getName(),
+				GetterUtil.getString(defaultSetting.getParameterSettings()),
+				serviceContext);
 
 		return _updateNestedResources(commerceDefaultSetting, defaultSetting);
 	}
@@ -198,6 +200,9 @@ public class DefaultSettingResourceImpl extends BaseDefaultSettingResourceImpl {
 				commerceDefaultSetting.getCommerceDefaultSettingId(),
 				GetterUtil.getString(
 					defaultSetting.getName(), commerceDefaultSetting.getName()),
+				GetterUtil.getString(
+					defaultSetting.getParameterSettings(),
+					commerceDefaultSetting.getParameterSettings()),
 				serviceContext);
 
 		return _updateNestedResources(commerceDefaultSetting, defaultSetting);

@@ -30,7 +30,7 @@ CommerceDefaultSetting commerceDefaultSetting = commerceDefaultSettingDisplayCon
 	<aui:input name="commerceDefaultSettingId" type="hidden" value="<%= (commerceDefaultSetting == null) ? 0 : commerceDefaultSetting.getCommerceDefaultSettingId() %>" />
 
 	<div class="row">
-		<div class="col-12">
+		<div class="col-12 col-xl-8">
 			<commerce-ui:panel
 				bodyClasses="flex-fill"
 				collapsed="<%= false %>"
@@ -56,6 +56,36 @@ CommerceDefaultSetting commerceDefaultSetting = commerceDefaultSettingDisplayCon
 			</commerce-ui:panel>
 		</div>
 
+		<div class="col-12 col-xl-4">
+			<commerce-ui:panel
+				bodyClasses="flex-fill"
+				title='<%= LanguageUtil.get(request, "additional-parameters") %>'
+			>
+
+				<%
+				CommerceDefaultSettingParametersJSPContributor commerceDefaultSettingParametersJSPContributor = commerceDefaultSettingDisplayContext.getCommerceDefaultSettingParametersJSPContributor();
+
+				if (commerceDefaultSettingParametersJSPContributor != null) {
+					commerceDefaultSettingParametersJSPContributor.render(commerceDefaultSetting.getCommerceDefaultSettingId(), request, PipingServletResponseFactory.createPipingServletResponse(pageContext));
+				}
+				else {
+				%>
+
+					<div class="row">
+						<div class="col">
+							<%= LanguageUtil.get(request, "no-additional-parameters-defined") %>
+						</div>
+					</div>
+
+				<%
+				}
+				%>
+
+			</commerce-ui:panel>
+		</div>
+	</div>
+
+	<div class="row">
 		<div class="col-12">
 			<%@ include file="/default_settings/custom_fields.jspf" %>
 		</div>

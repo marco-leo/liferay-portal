@@ -60,4 +60,8 @@ public interface CommerceDefaultSetting
 
 			};
 
+	public void setParameterSettingsUnicodeProperties(
+		com.liferay.portal.kernel.util.UnicodeProperties
+			parameterSettingsUnicodeProperties);
+
 }

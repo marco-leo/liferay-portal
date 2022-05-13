@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.List;
@@ -55,7 +56,8 @@ public class CommerceDefaultSettingLocalServiceImpl
 
 	@Override
 	public CommerceDefaultSetting addCommerceDefaultSetting(
-			long userId, String name, ServiceContext serviceContext)
+			long userId, String name, String parameterSettings,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		CommerceDefaultSetting commerceDefaultSetting =
@@ -69,6 +71,11 @@ public class CommerceDefaultSettingLocalServiceImpl
 		commerceDefaultSetting.setUserName(user.getFullName());
 
 		commerceDefaultSetting.setName(name);
+
+		commerceDefaultSetting.setParameterSettingsUnicodeProperties(
+			UnicodePropertiesBuilder.fastLoad(
+				parameterSettings
+			).build());
 
 		commerceDefaultSetting.setExpandoBridgeAttributes(serviceContext);
 
@@ -147,7 +154,7 @@ public class CommerceDefaultSettingLocalServiceImpl
 	@Override
 	public CommerceDefaultSetting updateCommerceDefaultSetting(
 			long commerceDefaultSettingId, String name,
-			ServiceContext serviceContext)
+			String parameterSettings, ServiceContext serviceContext)
 		throws PortalException {
 
 		CommerceDefaultSetting commerceDefaultSetting =
@@ -155,6 +162,11 @@ public class CommerceDefaultSettingLocalServiceImpl
 				commerceDefaultSettingId);
 
 		commerceDefaultSetting.setName(name);
+
+		commerceDefaultSetting.setParameterSettingsUnicodeProperties(
+			UnicodePropertiesBuilder.fastLoad(
+				parameterSettings
+			).build());
 
 		commerceDefaultSetting.setExpandoBridgeAttributes(serviceContext);
 

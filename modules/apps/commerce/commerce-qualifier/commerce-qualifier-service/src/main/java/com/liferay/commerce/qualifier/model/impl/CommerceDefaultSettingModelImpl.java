@@ -76,7 +76,7 @@ public class CommerceDefaultSettingModelImpl
 		{"commerceDefaultSettingId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
 		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
-		{"name", Types.VARCHAR}
+		{"name", Types.VARCHAR}, {"parameterSettings", Types.CLOB}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -91,10 +91,11 @@ public class CommerceDefaultSettingModelImpl
 		TABLE_COLUMNS_MAP.put("createDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("parameterSettings", Types.CLOB);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table CommerceDefaultSetting (mvccVersion LONG default 0 not null,commerceDefaultSettingId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name VARCHAR(75) null)";
+		"create table CommerceDefaultSetting (mvccVersion LONG default 0 not null,commerceDefaultSettingId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name VARCHAR(75) null,parameterSettings TEXT null)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table CommerceDefaultSetting";
@@ -281,6 +282,12 @@ public class CommerceDefaultSettingModelImpl
 			"name",
 			(BiConsumer<CommerceDefaultSetting, String>)
 				CommerceDefaultSetting::setName);
+		attributeGetterFunctions.put(
+			"parameterSettings", CommerceDefaultSetting::getParameterSettings);
+		attributeSetterBiConsumers.put(
+			"parameterSettings",
+			(BiConsumer<CommerceDefaultSetting, String>)
+				CommerceDefaultSetting::setParameterSettings);
 
 		_attributeGetterFunctions = Collections.unmodifiableMap(
 			attributeGetterFunctions);
@@ -440,6 +447,26 @@ public class CommerceDefaultSettingModelImpl
 		_name = name;
 	}
 
+	@JSON
+	@Override
+	public String getParameterSettings() {
+		if (_parameterSettings == null) {
+			return "";
+		}
+		else {
+			return _parameterSettings;
+		}
+	}
+
+	@Override
+	public void setParameterSettings(String parameterSettings) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_parameterSettings = parameterSettings;
+	}
+
 	public long getColumnBitmask() {
 		if (_columnBitmask > 0) {
 			return _columnBitmask;
@@ -507,6 +534,7 @@ public class CommerceDefaultSettingModelImpl
 		commerceDefaultSettingImpl.setCreateDate(getCreateDate());
 		commerceDefaultSettingImpl.setModifiedDate(getModifiedDate());
 		commerceDefaultSettingImpl.setName(getName());
+		commerceDefaultSettingImpl.setParameterSettings(getParameterSettings());
 
 		commerceDefaultSettingImpl.resetOriginalValues();
 
@@ -534,6 +562,8 @@ public class CommerceDefaultSettingModelImpl
 			this.<Date>getColumnOriginalValue("modifiedDate"));
 		commerceDefaultSettingImpl.setName(
 			this.<String>getColumnOriginalValue("name"));
+		commerceDefaultSettingImpl.setParameterSettings(
+			this.<String>getColumnOriginalValue("parameterSettings"));
 
 		return commerceDefaultSettingImpl;
 	}
@@ -658,6 +688,16 @@ public class CommerceDefaultSettingModelImpl
 			commerceDefaultSettingCacheModel.name = null;
 		}
 
+		commerceDefaultSettingCacheModel.parameterSettings =
+			getParameterSettings();
+
+		String parameterSettings =
+			commerceDefaultSettingCacheModel.parameterSettings;
+
+		if ((parameterSettings != null) && (parameterSettings.length() == 0)) {
+			commerceDefaultSettingCacheModel.parameterSettings = null;
+		}
+
 		return commerceDefaultSettingCacheModel;
 	}
 
@@ -761,6 +801,7 @@ public class CommerceDefaultSettingModelImpl
 	private Date _modifiedDate;
 	private boolean _setModifiedDate;
 	private String _name;
+	private String _parameterSettings;
 
 	public <T> T getColumnValue(String columnName) {
 		Function<CommerceDefaultSetting, Object> function =
@@ -798,6 +839,7 @@ public class CommerceDefaultSettingModelImpl
 		_columnOriginalValues.put("createDate", _createDate);
 		_columnOriginalValues.put("modifiedDate", _modifiedDate);
 		_columnOriginalValues.put("name", _name);
+		_columnOriginalValues.put("parameterSettings", _parameterSettings);
 	}
 
 	private transient Map<String, Object> _columnOriginalValues;
@@ -826,6 +868,8 @@ public class CommerceDefaultSettingModelImpl
 		columnBitmasks.put("modifiedDate", 64L);
 
 		columnBitmasks.put("name", 128L);
+
+		columnBitmasks.put("parameterSettings", 256L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

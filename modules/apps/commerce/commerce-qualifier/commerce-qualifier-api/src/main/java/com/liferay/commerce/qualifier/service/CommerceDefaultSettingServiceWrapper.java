@@ -40,12 +40,12 @@ public class CommerceDefaultSettingServiceWrapper
 	@Override
 	public com.liferay.commerce.qualifier.model.CommerceDefaultSetting
 			addCommerceDefaultSetting(
-				String name,
+				String name, String parameterSettings,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceDefaultSettingService.addCommerceDefaultSetting(
-			name, serviceContext);
+			name, parameterSettings, serviceContext);
 	}
 
 	@Override
@@ -108,11 +108,12 @@ public class CommerceDefaultSettingServiceWrapper
 	public com.liferay.commerce.qualifier.model.CommerceDefaultSetting
 			updateCommerceDefaultSetting(
 				long commerceDefaultSettingId, String name,
+				String parameterSettings,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceDefaultSettingService.updateCommerceDefaultSetting(
-			commerceDefaultSettingId, name, serviceContext);
+			commerceDefaultSettingId, name, parameterSettings, serviceContext);
 	}
 
 	@Override

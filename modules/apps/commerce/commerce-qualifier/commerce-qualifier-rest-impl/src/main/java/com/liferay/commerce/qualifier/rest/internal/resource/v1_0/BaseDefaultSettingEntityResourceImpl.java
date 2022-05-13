@@ -54,6 +54,7 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -401,6 +402,41 @@ public abstract class BaseDefaultSettingEntityResourceImpl
 			java.util.Collection<DefaultSettingEntity> defaultSettingEntities,
 			Map<String, Serializable> parameters)
 		throws Exception {
+
+		UnsafeConsumer<DefaultSettingEntity, Exception>
+			defaultSettingEntityUnsafeConsumer = null;
+
+		String updateStrategy = (String)parameters.getOrDefault(
+			"updateStrategy", "UPDATE");
+
+		if ("PARTIAL_UPDATE".equalsIgnoreCase(updateStrategy)) {
+			defaultSettingEntityUnsafeConsumer =
+				defaultSettingEntity -> patchDefaultSettingEntity(
+					defaultSettingEntity.getId() != null ?
+						defaultSettingEntity.getId() :
+							Long.parseLong(
+								(String)parameters.get(
+									"defaultSettingEntityId")),
+					defaultSettingEntity);
+		}
+
+		if (defaultSettingEntityUnsafeConsumer == null) {
+			throw new NotSupportedException(
+				"Update strategy \"" + updateStrategy +
+					"\" is not supported for DefaultSettingEntity");
+		}
+
+		if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				defaultSettingEntities, defaultSettingEntityUnsafeConsumer);
+		}
+		else {
+			for (DefaultSettingEntity defaultSettingEntity :
+					defaultSettingEntities) {
+
+				defaultSettingEntityUnsafeConsumer.accept(defaultSettingEntity);
+			}
+		}
 	}
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {

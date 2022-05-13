@@ -80,7 +80,8 @@ public interface CommerceDefaultSettingLocalService
 		CommerceDefaultSetting commerceDefaultSetting);
 
 	public CommerceDefaultSetting addCommerceDefaultSetting(
-			long userId, String name, ServiceContext serviceContext)
+			long userId, String name, String parameterSettings,
+			ServiceContext serviceContext)
 		throws PortalException;
 
 	/**
@@ -294,7 +295,7 @@ public interface CommerceDefaultSettingLocalService
 
 	public CommerceDefaultSetting updateCommerceDefaultSetting(
 			long commerceDefaultSettingId, String name,
-			ServiceContext serviceContext)
+			String parameterSettings, ServiceContext serviceContext)
 		throws PortalException;
 
 }

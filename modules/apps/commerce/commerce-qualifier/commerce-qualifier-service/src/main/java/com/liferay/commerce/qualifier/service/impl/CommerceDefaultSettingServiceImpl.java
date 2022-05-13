@@ -44,7 +44,8 @@ public class CommerceDefaultSettingServiceImpl
 
 	@Override
 	public CommerceDefaultSetting addCommerceDefaultSetting(
-			String name, ServiceContext serviceContext)
+			String name, String parameterSettings,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		PortletResourcePermission portletResourcePermission =
@@ -55,7 +56,7 @@ public class CommerceDefaultSettingServiceImpl
 			getPermissionChecker(), null, "ADD_COMMERCE_DEFAULT_SETTING");
 
 		return commerceDefaultSettingLocalService.addCommerceDefaultSetting(
-			getUserId(), name, serviceContext);
+			getUserId(), name, parameterSettings, serviceContext);
 	}
 
 	@Override
@@ -135,7 +136,7 @@ public class CommerceDefaultSettingServiceImpl
 	@Override
 	public CommerceDefaultSetting updateCommerceDefaultSetting(
 			long commerceDefaultSettingId, String name,
-			ServiceContext serviceContext)
+			String parameterSettings, ServiceContext serviceContext)
 		throws PortalException {
 
 		_commerceDefaultSettingModelResourcePermission.check(
@@ -143,7 +144,7 @@ public class CommerceDefaultSettingServiceImpl
 			ActionKeys.UPDATE);
 
 		return commerceDefaultSettingLocalService.updateCommerceDefaultSetting(
-			commerceDefaultSettingId, name, serviceContext);
+			commerceDefaultSettingId, name, parameterSettings, serviceContext);
 	}
 
 	private static volatile ModelResourcePermission<CommerceDefaultSetting>

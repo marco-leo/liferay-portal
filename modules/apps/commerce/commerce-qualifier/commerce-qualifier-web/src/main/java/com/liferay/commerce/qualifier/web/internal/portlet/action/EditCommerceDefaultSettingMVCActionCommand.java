@@ -18,6 +18,7 @@ import com.liferay.commerce.qualifier.model.CommerceDefaultSetting;
 import com.liferay.commerce.qualifier.service.CommerceDefaultSettingRelService;
 import com.liferay.commerce.qualifier.service.CommerceDefaultSettingService;
 import com.liferay.commerce.qualifier.web.internal.constants.CommerceDefaultSettingPortletKeys;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
@@ -28,7 +29,7 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropertiesParamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 
 import java.util.Map;
 
@@ -93,6 +94,14 @@ public class EditCommerceDefaultSettingMVCActionCommand
 		}
 	}
 
+	private String _getParameterSettings(ActionRequest actionRequest) {
+		UnicodeProperties parameterSettingsUnicodeProperties =
+			PropertiesParamUtil.getProperties(
+				actionRequest, "parameter--settings--");
+
+		return parameterSettingsUnicodeProperties.toString();
+	}
+
 	private void _updateCommerceDefaultSetting(
 			long commerceDefaultSettingId, ActionRequest actionRequest)
 		throws PortalException {
@@ -104,15 +113,14 @@ public class EditCommerceDefaultSettingMVCActionCommand
 
 		if (commerceDefaultSettingId <= 0) {
 			_commerceDefaultSettingService.addCommerceDefaultSetting(
-				name, serviceContext);
+				name, StringPool.BLANK, serviceContext);
 
 			return;
 		}
 
-		if (!Validator.isBlank(name)) {
-			_commerceDefaultSettingService.updateCommerceDefaultSetting(
-				commerceDefaultSettingId, name, serviceContext);
-		}
+		_commerceDefaultSettingService.updateCommerceDefaultSetting(
+			commerceDefaultSettingId, name,
+			_getParameterSettings(actionRequest), serviceContext);
 	}
 
 	private void _updateCommerceDefaultSettingSources(

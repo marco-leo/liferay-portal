@@ -17,6 +17,7 @@ package com.liferay.commerce.qualifier.model;
 import com.liferay.petra.sql.dsl.Column;
 import com.liferay.petra.sql.dsl.base.BaseTable;
 
+import java.sql.Clob;
 import java.sql.Types;
 
 import java.util.Date;
@@ -57,6 +58,9 @@ public class CommerceDefaultSettingTable
 			"modifiedDate", Date.class, Types.TIMESTAMP, Column.FLAG_DEFAULT);
 	public final Column<CommerceDefaultSettingTable, String> name =
 		createColumn("name", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+	public final Column<CommerceDefaultSettingTable, Clob> parameterSettings =
+		createColumn(
+			"parameterSettings", Clob.class, Types.CLOB, Column.FLAG_DEFAULT);
 
 	private CommerceDefaultSettingTable() {
 		super("CommerceDefaultSetting", CommerceDefaultSettingTable::new);

@@ -61,12 +61,12 @@ public class CommerceDefaultSettingLocalServiceWrapper
 	@Override
 	public com.liferay.commerce.qualifier.model.CommerceDefaultSetting
 			addCommerceDefaultSetting(
-				long userId, String name,
+				long userId, String name, String parameterSettings,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceDefaultSettingLocalService.addCommerceDefaultSetting(
-			userId, name, serviceContext);
+			userId, name, parameterSettings, serviceContext);
 	}
 
 	/**
@@ -387,11 +387,12 @@ public class CommerceDefaultSettingLocalServiceWrapper
 	public com.liferay.commerce.qualifier.model.CommerceDefaultSetting
 			updateCommerceDefaultSetting(
 				long commerceDefaultSettingId, String name,
+				String parameterSettings,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _commerceDefaultSettingLocalService.updateCommerceDefaultSetting(
-			commerceDefaultSettingId, name, serviceContext);
+			commerceDefaultSettingId, name, parameterSettings, serviceContext);
 	}
 
 	@Override

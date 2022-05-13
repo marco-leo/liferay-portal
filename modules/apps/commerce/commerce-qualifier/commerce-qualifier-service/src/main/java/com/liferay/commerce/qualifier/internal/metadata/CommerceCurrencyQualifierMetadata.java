@@ -84,7 +84,7 @@ public class CommerceCurrencyQualifierMetadata
 	public ModelResourcePermission<CommerceCurrency>
 		getModelResourcePermission() {
 
-		return _commercePriceListModelResourcePermission;
+		return null;
 	}
 
 	@Override

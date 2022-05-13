@@ -53,6 +53,7 @@ public class CommerceDefaultSettingWrapper
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("name", getName());
+		attributes.put("parameterSettings", getParameterSettings());
 
 		return attributes;
 	}
@@ -106,6 +107,12 @@ public class CommerceDefaultSettingWrapper
 
 		if (name != null) {
 			setName(name);
+		}
+
+		String parameterSettings = (String)attributes.get("parameterSettings");
+
+		if (parameterSettings != null) {
+			setParameterSettings(parameterSettings);
 		}
 	}
 
@@ -172,6 +179,16 @@ public class CommerceDefaultSettingWrapper
 	@Override
 	public String getName() {
 		return model.getName();
+	}
+
+	/**
+	 * Returns the parameter settings of this commerce default setting.
+	 *
+	 * @return the parameter settings of this commerce default setting
+	 */
+	@Override
+	public String getParameterSettings() {
+		return model.getParameterSettings();
 	}
 
 	/**
@@ -277,6 +294,25 @@ public class CommerceDefaultSettingWrapper
 	@Override
 	public void setName(String name) {
 		model.setName(name);
+	}
+
+	/**
+	 * Sets the parameter settings of this commerce default setting.
+	 *
+	 * @param parameterSettings the parameter settings of this commerce default setting
+	 */
+	@Override
+	public void setParameterSettings(String parameterSettings) {
+		model.setParameterSettings(parameterSettings);
+	}
+
+	@Override
+	public void setParameterSettingsUnicodeProperties(
+		com.liferay.portal.kernel.util.UnicodeProperties
+			parameterSettingsUnicodeProperties) {
+
+		model.setParameterSettingsUnicodeProperties(
+			parameterSettingsUnicodeProperties);
 	}
 
 	/**

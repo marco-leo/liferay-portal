@@ -140,6 +140,27 @@ public class DefaultSetting implements Cloneable, Serializable {
 
 	protected String name;
 
+	public String getParameterSettings() {
+		return parameterSettings;
+	}
+
+	public void setParameterSettings(String parameterSettings) {
+		this.parameterSettings = parameterSettings;
+	}
+
+	public void setParameterSettings(
+		UnsafeSupplier<String, Exception> parameterSettingsUnsafeSupplier) {
+
+		try {
+			parameterSettings = parameterSettingsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String parameterSettings;
+
 	@Override
 	public DefaultSetting clone() throws CloneNotSupportedException {
 		return (DefaultSetting)super.clone();

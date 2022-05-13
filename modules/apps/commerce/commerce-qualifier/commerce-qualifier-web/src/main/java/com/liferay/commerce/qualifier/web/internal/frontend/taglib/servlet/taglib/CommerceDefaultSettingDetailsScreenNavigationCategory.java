@@ -16,6 +16,7 @@ package com.liferay.commerce.qualifier.web.internal.frontend.taglib.servlet.tagl
 
 import com.liferay.commerce.qualifier.metadata.CommerceQualifierMetadataRegistry;
 import com.liferay.commerce.qualifier.model.CommerceDefaultSetting;
+import com.liferay.commerce.qualifier.parameters.CommerceDefaultSettingParametersJSPContributorRegistry;
 import com.liferay.commerce.qualifier.service.CommerceDefaultSettingRelService;
 import com.liferay.commerce.qualifier.service.CommerceDefaultSettingService;
 import com.liferay.commerce.qualifier.service.CommerceQualifierEntryService;
@@ -120,7 +121,7 @@ public class CommerceDefaultSettingDetailsScreenNavigationCategory
 				new CommerceDefaultSettingDisplayContext(
 					_commerceDefaultSettingService,
 					_commerceDefaultSettingRelService,
-					_commerceQualifierEntryService,
+					_commerceDefaultSettingParametersJSPContributorRegistry,
 					_commerceQualifierMetadataRegistry,
 					_commerceDefaultSettingModelResourcePermission,
 					httpServletRequest, _portal);
@@ -142,6 +143,10 @@ public class CommerceDefaultSettingDetailsScreenNavigationCategory
 	)
 	private ModelResourcePermission<CommerceDefaultSetting>
 		_commerceDefaultSettingModelResourcePermission;
+
+	@Reference
+	private CommerceDefaultSettingParametersJSPContributorRegistry
+		_commerceDefaultSettingParametersJSPContributorRegistry;
 
 	@Reference
 	private CommerceDefaultSettingRelService _commerceDefaultSettingRelService;

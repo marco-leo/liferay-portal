@@ -53,6 +53,7 @@ public class CommerceDefaultSettingServiceHttp {
 	public static com.liferay.commerce.qualifier.model.CommerceDefaultSetting
 			addCommerceDefaultSetting(
 				HttpPrincipal httpPrincipal, String name,
+				String parameterSettings,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -63,7 +64,7 @@ public class CommerceDefaultSettingServiceHttp {
 				_addCommerceDefaultSettingParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, name, serviceContext);
+				methodKey, name, parameterSettings, serviceContext);
 
 			Object returnObj = null;
 
@@ -313,7 +314,7 @@ public class CommerceDefaultSettingServiceHttp {
 	public static com.liferay.commerce.qualifier.model.CommerceDefaultSetting
 			updateCommerceDefaultSetting(
 				HttpPrincipal httpPrincipal, long commerceDefaultSettingId,
-				String name,
+				String name, String parameterSettings,
 				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -324,7 +325,8 @@ public class CommerceDefaultSettingServiceHttp {
 				_updateCommerceDefaultSettingParameterTypes6);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, commerceDefaultSettingId, name, serviceContext);
+				methodKey, commerceDefaultSettingId, name, parameterSettings,
+				serviceContext);
 
 			Object returnObj = null;
 
@@ -360,7 +362,8 @@ public class CommerceDefaultSettingServiceHttp {
 
 	private static final Class<?>[] _addCommerceDefaultSettingParameterTypes0 =
 		new Class[] {
-			String.class, com.liferay.portal.kernel.service.ServiceContext.class
+			String.class, String.class,
+			com.liferay.portal.kernel.service.ServiceContext.class
 		};
 	private static final Class<?>[]
 		_deleteCommerceDefaultSettingParameterTypes1 = new Class[] {long.class};
@@ -376,7 +379,7 @@ public class CommerceDefaultSettingServiceHttp {
 		};
 	private static final Class<?>[]
 		_updateCommerceDefaultSettingParameterTypes6 = new Class[] {
-			long.class, String.class,
+			long.class, String.class, String.class,
 			com.liferay.portal.kernel.service.ServiceContext.class
 		};
 

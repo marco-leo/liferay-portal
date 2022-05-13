@@ -716,7 +716,7 @@ public class CommercePriceListQualifiersTest {
 
 		CommerceDefaultSetting commerceDefaultSetting =
 			_commerceDefaultSettingLocalService.addCommerceDefaultSetting(
-				_user.getUserId(), RandomTestUtil.randomString(),
+				_user.getUserId(), RandomTestUtil.randomString(), null,
 				_serviceContext);
 
 		_commerceDefaultSettingRelLocalService.addCommerceDefaultSettingRel(

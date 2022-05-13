@@ -25,6 +25,9 @@ components:
                 name:
                     example: "PAB-34098-789-N"
                     type: string
+                parameterSettings:
+                    example: "22.50"
+                    type: string
             required:
                 - name
             type: object

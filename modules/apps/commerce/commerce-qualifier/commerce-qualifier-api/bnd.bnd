@@ -9,6 +9,7 @@ Export-Package:\
 	com.liferay.commerce.qualifier.exception,\
 	com.liferay.commerce.qualifier.metadata,\
 	com.liferay.commerce.qualifier.model,\
+	com.liferay.commerce.qualifier.parameters,\
 	com.liferay.commerce.qualifier.permission,\
 	com.liferay.commerce.qualifier.screen.navigator,\
 	com.liferay.commerce.qualifier.search.context,\
