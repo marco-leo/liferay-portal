@@ -13,7 +13,6 @@ import com.liferay.object.constants.ObjectActionConstants;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -46,44 +45,48 @@ public class ObjectActionUtil {
 
 		ObjectAction objectAction = new ObjectAction() {
 			{
-				active = serviceBuilderObjectAction.isActive();
-				conditionExpression =
-					serviceBuilderObjectAction.getConditionExpression();
-				dateCreated = serviceBuilderObjectAction.getCreateDate();
-				dateModified = serviceBuilderObjectAction.getModifiedDate();
-				description = serviceBuilderObjectAction.getDescription();
-				errorMessage = LocalizedMapUtil.getLanguageIdMap(
-					serviceBuilderObjectAction.getErrorMessageMap());
-				externalReferenceCode =
-					serviceBuilderObjectAction.getExternalReferenceCode();
-				id = serviceBuilderObjectAction.getObjectActionId();
-				label = LocalizedMapUtil.getLanguageIdMap(
-					serviceBuilderObjectAction.getLabelMap());
-				name = serviceBuilderObjectAction.getName();
-				objectActionExecutorKey =
-					serviceBuilderObjectAction.getObjectActionExecutorKey();
-				objectActionTriggerKey =
-					serviceBuilderObjectAction.getObjectActionTriggerKey();
-				parameters = toParameters(
-					notificationTemplateLocalService,
-					objectDefinitionLocalService,
-					serviceBuilderObjectAction.
-						getParametersUnicodeProperties());
-				status = new Status() {
-					{
-						code = serviceBuilderObjectAction.getStatus();
-						label = ObjectActionConstants.getStatusLabel(
-							serviceBuilderObjectAction.getStatus());
-						label_i18n = LanguageUtil.get(
-							locale,
-							ObjectActionConstants.getStatusLabel(
-								serviceBuilderObjectAction.getStatus()));
-					}
-				};
-
-				if (FeatureFlagManagerUtil.isEnabled("LPS-193355")) {
-					system = serviceBuilderObjectAction.isSystem();
-				}
+				setActive(serviceBuilderObjectAction::isActive);
+				setConditionExpression(
+					serviceBuilderObjectAction::getConditionExpression);
+				setDateCreated(serviceBuilderObjectAction::getCreateDate);
+				setDateModified(serviceBuilderObjectAction::getModifiedDate);
+				setDescription(serviceBuilderObjectAction::getDescription);
+				setErrorMessage(
+					() -> LocalizedMapUtil.getLanguageIdMap(
+						serviceBuilderObjectAction.getErrorMessageMap()));
+				setExternalReferenceCode(
+					serviceBuilderObjectAction::getExternalReferenceCode);
+				setId(serviceBuilderObjectAction::getObjectActionId);
+				setLabel(
+					() -> LocalizedMapUtil.getLanguageIdMap(
+						serviceBuilderObjectAction.getLabelMap()));
+				setName(serviceBuilderObjectAction::getName);
+				setObjectActionExecutorKey(
+					serviceBuilderObjectAction::getObjectActionExecutorKey);
+				setObjectActionTriggerKey(
+					serviceBuilderObjectAction::getObjectActionTriggerKey);
+				setParameters(
+					() -> toParameters(
+						notificationTemplateLocalService,
+						objectDefinitionLocalService,
+						serviceBuilderObjectAction.
+							getParametersUnicodeProperties()));
+				setStatus(
+					() -> new Status() {
+						{
+							setCode(serviceBuilderObjectAction::getStatus);
+							setLabel(
+								() -> ObjectActionConstants.getStatusLabel(
+									serviceBuilderObjectAction.getStatus()));
+							setLabel_i18n(
+								() -> LanguageUtil.get(
+									locale,
+									ObjectActionConstants.getStatusLabel(
+										serviceBuilderObjectAction.
+											getStatus())));
+						}
+					});
+				setSystem(serviceBuilderObjectAction::isSystem);
 			}
 		};
 

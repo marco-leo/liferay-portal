@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayForm from '@clayui/form';
 import {
 	FormError,
 	SingleSelect,
@@ -19,6 +20,7 @@ interface AccountRestrictionContainerProps {
 	isLinkedObjectDefinition?: boolean;
 	isRootDescendantNode: boolean;
 	objectFields: ObjectField[];
+	onSubmit?: (editedObjectDefinition?: Partial<ObjectDefinition>) => void;
 	setValues: (values: Partial<ObjectDefinition>) => void;
 	values: Partial<ObjectDefinition>;
 }
@@ -29,6 +31,7 @@ export function AccountRestrictionContainer({
 	isLinkedObjectDefinition,
 	isRootDescendantNode,
 	objectFields,
+	onSubmit,
 	setValues,
 	values,
 }: AccountRestrictionContainerProps) {
@@ -36,7 +39,6 @@ export function AccountRestrictionContainer({
 		LabelValueObject[]
 	>([]);
 
-	const [selectedAccount, setSelectedAccount] = useState<string>();
 	const [disableAccountToggle, setDisableAccountToggle] = useState<boolean>(
 		false
 	);
@@ -78,16 +80,6 @@ export function AccountRestrictionContainer({
 				)
 			);
 
-			const currentAccountRelationship = accountRelationshipFieldsResponse.find(
-				(relationshipField) =>
-					relationshipField.name ===
-					values.accountEntryRestrictedObjectFieldName
-			);
-
-			setSelectedAccount(
-				currentAccountRelationship?.label[defaultLanguageId] ?? ''
-			);
-
 			if (isApproved && values.accountEntryRestricted) {
 				setDisableAccountToggle(true);
 			}
@@ -99,44 +91,40 @@ export function AccountRestrictionContainer({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [objectFields]);
 
-	useEffect(() => {
-		const selectedAccountLabel = accountRelationshipFields.find(
-			(relationshipField) =>
-				relationshipField.value ===
-				values.accountEntryRestrictedObjectFieldName
-		)?.label;
-
-		setSelectedAccount(selectedAccountLabel ?? '');
-	}, [
-		values.accountEntryRestrictedObjectFieldName,
-		accountRelationshipFields,
-	]);
-
 	return (
 		<>
-			<Toggle
-				disabled={
-					!accountRelationshipFields.length ||
-					disableAccountToggle ||
-					isLinkedObjectDefinition ||
-					isRootDescendantNode
-				}
-				label={sub(
-					Liferay.Language.get('enable-x'),
-					Liferay.Language.get('account-restriction')
-				)}
-				name="accountEntryRestricted"
-				onToggle={() =>
-					setValues({
-						accountEntryRestricted: !values.accountEntryRestricted,
-						accountEntryRestrictedObjectFieldName:
-							!values.accountEntryRestricted === false
-								? ''
-								: values.accountEntryRestrictedObjectFieldName,
-					})
-				}
-				toggled={values.accountEntryRestricted}
-			/>
+			<ClayForm.Group>
+				<Toggle
+					disabled={
+						!accountRelationshipFields.length ||
+						disableAccountToggle ||
+						isLinkedObjectDefinition ||
+						isRootDescendantNode
+					}
+					label={sub(
+						Liferay.Language.get('enable-x'),
+						Liferay.Language.get('account-restriction')
+					)}
+					name="accountEntryRestricted"
+					onBlur={(event) => {
+						event.stopPropagation();
+
+						if (onSubmit) {
+							onSubmit();
+						}
+					}}
+					onToggle={() =>
+						setValues({
+							accountEntryRestricted: !values.accountEntryRestricted,
+							accountEntryRestrictedObjectFieldName:
+								!values.accountEntryRestricted === false
+									? ''
+									: values.accountEntryRestrictedObjectFieldName,
+						})
+					}
+					toggled={values.accountEntryRestricted}
+				/>
+			</ClayForm.Group>
 
 			<SingleSelect<LabelValueObject>
 				disabled={
@@ -147,21 +135,28 @@ export function AccountRestrictionContainer({
 					isRootDescendantNode
 				}
 				error={errors.accountEntryRestrictedObjectFieldName}
+				items={accountRelationshipFields}
 				label={Liferay.Language.get(
 					'account-entry-restricted-object-field-id'
 				)}
-				onChange={({value}) => {
+				onSelectionChange={(value) => {
 					setValues({
-						accountEntryRestrictedObjectFieldName: value,
+						accountEntryRestrictedObjectFieldName: value as string,
 					});
+
+					if (onSubmit) {
+						onSubmit({
+							...values,
+							accountEntryRestrictedObjectFieldName: value as string,
+						});
+					}
 				}}
-				options={accountRelationshipFields}
 				required={
 					!!accountRelationshipFields.length &&
 					values.accountEntryRestricted &&
 					!disableAccountSelect
 				}
-				value={selectedAccount}
+				selectedKey={values.accountEntryRestrictedObjectFieldName}
 			/>
 		</>
 	);

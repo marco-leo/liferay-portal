@@ -3,13 +3,15 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {useState} from 'react';
+
 import {Header} from '../../components/Header/Header';
 import {Input} from '../../components/Input/Input';
 import {NewAppPageFooterButtons} from '../../components/NewAppPageFooterButtons/NewAppPageFooterButtons';
 import {Section} from '../../components/Section/Section';
 import {useAppContext} from '../../manage-app-state/AppManageState';
 import {TYPES} from '../../manage-app-state/actionTypes';
-import {saveSpecification} from '../../utils/util';
+import {submitSpecification} from '../../utils/util';
 
 import './ProvideAppSupportAndHelpPage.scss';
 
@@ -22,10 +24,10 @@ export function ProvideAppSupportAndHelpPage({
 	onClickBack,
 	onClickContinue,
 }: ProvideAppSupportAndHelpPageProps) {
+	const [processing, setProcessing] = useState(false);
 	const [
 		{
 			appDocumentationURL,
-			appId,
 			appInstallationGuideURL,
 			appProductId,
 			appUsageTermsURL,
@@ -61,7 +63,6 @@ export function ProvideAppSupportAndHelpPage({
 						})
 					}
 					placeholder="http:// Enter app name"
-					required
 					value={supportURL?.value}
 				/>
 
@@ -122,21 +123,21 @@ export function ProvideAppSupportAndHelpPage({
 								TYPES.UPDATE_APP_INSTALLATION_AND_UNINSTALLATION_GUIDE_URL,
 						})
 					}
-					placeholder="http:// Enter app name"
+					placeholder="http://Enter app name"
 					value={appInstallationGuideURL?.value}
 				/>
 			</Section>
 
 			<NewAppPageFooterButtons
-				disableContinueButton={!supportURL?.value}
+				disableContinueButton={processing}
+				isLoading={processing}
 				onClickBack={() => onClickBack()}
 				onClickContinue={async () => {
-					const supportURLSpecificationId = await saveSpecification(
-						appId,
+					setProcessing(true);
+					const supportURLSpecificationId = await submitSpecification(
 						appProductId,
 						supportURL?.id,
 						'supportURL',
-						'Support URL',
 						supportURL?.value
 					);
 
@@ -160,12 +161,10 @@ export function ProvideAppSupportAndHelpPage({
 					}
 
 					if (publisherWebsiteURL?.value) {
-						const publisherWebsiteURLSpecificationId = await saveSpecification(
-							appId,
+						const publisherWebsiteURLSpecificationId = await submitSpecification(
 							appProductId,
 							publisherWebsiteURL?.id,
 							'publisherWebsiteURL',
-							'Publisher Web site URL',
 							publisherWebsiteURL?.value
 						);
 
@@ -189,12 +188,10 @@ export function ProvideAppSupportAndHelpPage({
 						}
 					}
 					if (appUsageTermsURL?.value) {
-						const appUsageTermsURLSpecificationId = await saveSpecification(
-							appId,
+						const appUsageTermsURLSpecificationId = await submitSpecification(
 							appProductId,
 							appUsageTermsURL?.id,
 							'appUsageTermsURL',
-							'App Usage Terms URL',
 							appUsageTermsURL?.value
 						);
 
@@ -218,12 +215,10 @@ export function ProvideAppSupportAndHelpPage({
 						}
 					}
 					if (appDocumentationURL?.value) {
-						const appDocumentationURLSpecificationId = await saveSpecification(
-							appId,
+						const appDocumentationURLSpecificationId = await submitSpecification(
 							appProductId,
 							appDocumentationURL?.id,
 							'appDocumentationURL',
-							'App Documentation URL',
 							appDocumentationURL?.value
 						);
 
@@ -247,12 +242,10 @@ export function ProvideAppSupportAndHelpPage({
 						}
 					}
 					if (appInstallationGuideURL?.value) {
-						const appInstallationGuideURLSpecificationId = await saveSpecification(
-							appId,
+						const appInstallationGuideURLSpecificationId = await submitSpecification(
 							appProductId,
 							appInstallationGuideURL?.id,
 							'appInstallationGuideURL',
-							'App Installation Guide URL',
 							appInstallationGuideURL?.value
 						);
 
@@ -277,6 +270,8 @@ export function ProvideAppSupportAndHelpPage({
 							});
 						}
 					}
+					setProcessing(false);
+
 					onClickContinue();
 				}}
 				showBackButton={true}

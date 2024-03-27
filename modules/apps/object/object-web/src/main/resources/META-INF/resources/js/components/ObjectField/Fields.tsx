@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {Text} from '@clayui/core';
+import ClayLoadingIndicator from '@clayui/loading-indicator';
 import {FrontendDataSet} from '@liferay/frontend-data-set-web';
-import {API} from '@liferay/object-js-components-web';
-import {createResourceURL} from 'frontend-js-web';
+import {API, stringUtils} from '@liferay/object-js-components-web';
+import {createResourceURL, fetch, sub} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
-import {defaultLanguageId} from '../../utils/constants';
 import {
 	IFDSTableProps,
 	defaultDataSetProps,
@@ -16,14 +17,14 @@ import {
 	formatActionURL,
 } from '../../utils/fds';
 import FDSSourceDataRenderer from '../FDSPropsTransformer/FDSSourceDataRenderer';
+import LabelRenderer from '../LabelRenderer';
+import ModalObjectFieldDeletionNotAllowed from '../ModalObjectFieldDeletionNotAllowed';
 import {ModalAddObjectField} from './ModalAddObjectField';
 import {ModalDeleteObjectField} from './ModalDeleteObjectField';
-import {deleteObjectField} from './deleteObjectFieldUtil';
+import {handleTriggerDeleteObjectField} from './deleteObjectFieldUtil';
 
-interface ItemData {
-	id: number;
-	required: boolean;
-	system?: boolean;
+interface ObjectFieldItemData {
+	itemData: ObjectField;
 }
 
 interface FieldsProps extends IFDSTableProps {
@@ -50,14 +51,22 @@ export default function Fields({
 		setDeletedObjectField,
 	] = useState<ObjectField | null>(null);
 
+	const [loadingFDS, setLoadingFDS] = useState<boolean>(false);
+
+	const [objectFieldBusinessTypes, setObjectFieldBusinessTypes] = useState<
+		Map<string, ObjectFieldBusinessType>
+	>();
+
+	const [objectFieldDeleteInfo, setObjectFieldDeleteInfo] = useState<
+		ObjectFieldDeleteInfoProps
+	>({
+		deleteLastPublishedObjectDefinitionObjectField: false,
+		deleteObjectFieldObjectValidationRuleSetting: false,
+		showObjectFieldDeletionConfirmationModal: false,
+		showObjectFieldDeletionNotAllowedModal: false,
+	});
+
 	const [showAddFieldModal, setShowAddFieldModal] = useState(false);
-
-	const [showDeletionModal, setShowDeletionModal] = useState<boolean>(false);
-
-	const [
-		showDeletionNotAllowedModal,
-		setShowDeletionNotAllowedModal,
-	] = useState<boolean>(false);
 
 	useEffect(() => {
 		Liferay.on('addObjectField', () => setShowAddFieldModal(true));
@@ -67,41 +76,79 @@ export default function Fields({
 
 	useEffect(() => {
 		const makeFetch = async () => {
-			const objectDefinition = await API.getObjectDefinitionByExternalReferenceCode(
+			setLoadingFDS(true);
+
+			const objectDefinitionResponse = await API.getObjectDefinitionByExternalReferenceCode(
 				objectDefinitionExternalReferenceCode
 			);
 
-			setCreationLanguageId(objectDefinition.defaultLanguageId);
+			const url = createResourceURL(baseResourceURL, {
+				objectDefinitionId: objectDefinitionResponse.id,
+				p_p_resource_id:
+					'/object_definitions/get_object_field_business_types',
+			}).href;
+
+			const objectFieldBusinessTypesResponse = await fetch(url, {
+				method: 'GET',
+			});
+
+			const {
+				objectFieldBusinessTypes: newObjectFieldBusinessTypes,
+			} = (await objectFieldBusinessTypesResponse.json()) as {
+				objectFieldBusinessTypes: ObjectFieldBusinessType[];
+			};
+
+			const objectFieldBusinessTypesMap = new Map<
+				string,
+				ObjectFieldBusinessType
+			>(
+				newObjectFieldBusinessTypes.map((objectFieldBusinessType) => [
+					objectFieldBusinessType.businessType,
+					objectFieldBusinessType,
+				])
+			);
+
+			setCreationLanguageId(objectDefinitionResponse.defaultLanguageId);
+			setObjectFieldBusinessTypes(objectFieldBusinessTypesMap);
+
+			setTimeout(() => {
+				setLoadingFDS(false);
+			}, 200);
 		};
 
 		makeFetch();
-	}, [objectDefinitionExternalReferenceCode]);
+	}, [baseResourceURL, objectDefinitionExternalReferenceCode]);
+
+	function objectFieldBusinessTypeDataRenderer({
+		itemData,
+	}: ObjectFieldItemData) {
+		return objectFieldBusinessTypes?.get(itemData.businessType)?.label;
+	}
 
 	function objectFieldLabelDataRenderer({
 		itemData,
 		openSidePanel,
 		value,
-	}: fdsItem<ItemData>) {
-		const handleEditField = () => {
-			openSidePanel({
-				url: formatActionURL(url, itemData.id),
-			});
-		};
-
+	}: fdsItem<ObjectField>) {
 		return (
-			<div className="table-list-title">
-				<a href="#" onClick={handleEditField}>
-					{value}
-				</a>
-			</div>
+			<LabelRenderer
+				onClick={() => {
+					openSidePanel({
+						url: formatActionURL(url, itemData.id),
+					});
+				}}
+				value={value}
+			/>
 		);
 	}
 
-	function objectFieldMandatoryDataRenderer({
-		itemData,
-	}: {
-		itemData: ItemData;
-	}) {
+	function objectFieldLocalizedDataRenderer({itemData}: ObjectFieldItemData) {
+		return itemData.localized
+			? Liferay.Language.get('yes')
+			: Liferay.Language.get('no');
+	}
+
+	function objectFieldMandatoryDataRenderer({itemData}: ObjectFieldItemData) {
 		return itemData.required
 			? Liferay.Language.get('yes')
 			: Liferay.Language.get('no');
@@ -113,7 +160,9 @@ export default function Fields({
 		creationMenu,
 		customDataRenderers: {
 			FDSSourceDataRenderer,
+			objectFieldBusinessTypeDataRenderer,
 			objectFieldLabelDataRenderer,
+			objectFieldLocalizedDataRenderer,
 			objectFieldMandatoryDataRenderer,
 		},
 		formName,
@@ -130,40 +179,21 @@ export default function Fields({
 		}) {
 			if (action.data.id === 'deleteObjectField') {
 				const makeFetch = async () => {
-					const url = createResourceURL(baseResourceURL, {
-						objectFieldId: itemData.id,
-						p_p_resource_id:
-							'/object_definitions/get_object_field_delete_info',
-					}).href;
+					handleTriggerDeleteObjectField({
+						baseResourceURL,
+						objectFieldId: itemData?.id,
+						objectFieldLabel: stringUtils.getLocalizableLabel(
+							creationLanguageId!,
+							itemData.label,
+							itemData.name
+						),
+						onAfterDelete: () => {
+							setTimeout(() => window.location.reload(), 1500);
+						},
+						setObjectFieldDeleteInfo,
+					});
 
-					const showModalResponse = await API.fetchJSON<{
-						showDeletionModal: boolean;
-						showDeletionNotAllowedModal: boolean;
-					}>(url);
-
-					if (showModalResponse.showDeletionModal) {
-						setDeletedObjectField(itemData);
-
-						setShowDeletionModal(
-							showModalResponse.showDeletionModal
-						);
-
-						setShowDeletionNotAllowedModal(
-							showModalResponse.showDeletionNotAllowedModal
-						);
-
-						return;
-					}
-
-					await deleteObjectField(
-						defaultLanguageId,
-						itemData.id,
-						itemData
-					);
-
-					setTimeout(() => window.location.reload(), 1500);
-
-					return;
+					setDeletedObjectField(itemData);
 				};
 
 				makeFetch();
@@ -188,6 +218,8 @@ export default function Fields({
 							sortable: true,
 						},
 						{
+							contentRenderer:
+								'objectFieldBusinessTypeDataRenderer',
 							expand: false,
 							fieldName: 'businessType',
 							label: Liferay.Language.get('type'),
@@ -210,6 +242,14 @@ export default function Fields({
 							localizeLabel: true,
 							sortable: false,
 						},
+						{
+							contentRenderer: 'objectFieldLocalizedDataRenderer',
+							expand: false,
+							fieldName: 'localized',
+							label: Liferay.Language.get('translatable'),
+							localizeLabel: true,
+							sortable: false,
+						},
 					],
 				},
 				thumbnail: 'table',
@@ -219,7 +259,11 @@ export default function Fields({
 
 	return (
 		<>
-			<FrontendDataSet {...dataSetProps} />
+			{loadingFDS ? (
+				<ClayLoadingIndicator />
+			) : (
+				<FrontendDataSet {...dataSetProps} />
+			)}
 
 			{showAddFieldModal && (
 				<ModalAddObjectField
@@ -238,19 +282,64 @@ export default function Fields({
 				/>
 			)}
 
-			{showDeletionModal && (
+			{objectFieldDeleteInfo.showObjectFieldDeletionConfirmationModal && (
 				<ModalDeleteObjectField
+					handleOnClose={() =>
+						setObjectFieldDeleteInfo(
+							(prevState: ObjectFieldDeleteInfoProps) => ({
+								...prevState,
+								showObjectFieldDeletionConfirmationModal: false,
+							})
+						)
+					}
 					objectField={deletedObjectField as ObjectField}
 					onAfterSubmit={() => {
 						setTimeout(() => window.location.reload(), 1500);
 					}}
-					setModalVisibility={setShowDeletionModal}
 					setObjectField={setDeletedObjectField}
-					showObjectFieldDeletionNotAllowedModal={
-						showDeletionNotAllowedModal
-					}
 				/>
 			)}
+
+			{!!deletedObjectField &&
+				objectFieldDeleteInfo.showObjectFieldDeletionNotAllowedModal && (
+					<ModalObjectFieldDeletionNotAllowed
+						content={
+							objectFieldDeleteInfo.deleteObjectFieldObjectValidationRuleSetting ? (
+								<Text>
+									{sub(
+										Liferay.Language.get(
+											'the-object-field-x-cannot-be-deleted-because-it-is-the-only-custom-object-field-of-the-published-object-definition'
+										),
+										`${stringUtils.getLocalizableLabel(
+											creationLanguageId as Liferay.Language.Locale,
+											deletedObjectField.label,
+											deletedObjectField.name
+										)}`
+									)}
+								</Text>
+							) : (
+								<Text>
+									{sub(
+										Liferay.Language.get(
+											'the-object-field-x-cannot-be-deleted-because-it-is-used-in-a-unique-composite-key-validation'
+										),
+										`${stringUtils.getLocalizableLabel(
+											creationLanguageId as Liferay.Language.Locale,
+											deletedObjectField.label,
+											deletedObjectField.name
+										)}`
+									)}
+								</Text>
+							)
+						}
+						onVisibilityChange={() =>
+							setObjectFieldDeleteInfo({
+								...objectFieldDeleteInfo,
+								showObjectFieldDeletionNotAllowedModal: false,
+							})
+						}
+					/>
+				)}
 		</>
 	);
 }

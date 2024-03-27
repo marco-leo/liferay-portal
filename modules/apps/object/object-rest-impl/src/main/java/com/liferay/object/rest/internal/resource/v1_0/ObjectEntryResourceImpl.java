@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.vulcan.aggregation.Aggregation;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
@@ -41,7 +40,6 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
@@ -55,6 +53,7 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 	public ObjectEntryResourceImpl(
 		DTOConverterRegistry dtoConverterRegistry,
 		EntityModelProvider entityModelProvider,
+		ObjectDefinition objectDefinition,
 		ObjectDefinitionLocalService objectDefinitionLocalService,
 		ObjectEntryLocalService objectEntryLocalService,
 		ObjectEntryManagerRegistry objectEntryManagerRegistry,
@@ -66,6 +65,7 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 
 		_dtoConverterRegistry = dtoConverterRegistry;
 		_entityModelProvider = entityModelProvider;
+		_objectDefinition = objectDefinition;
 		_objectDefinitionLocalService = objectDefinitionLocalService;
 		_objectEntryLocalService = objectEntryLocalService;
 		_objectEntryManagerRegistry = objectEntryManagerRegistry;
@@ -82,8 +82,6 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 			Map<String, Serializable> parameters)
 		throws Exception {
 
-		_loadObjectDefinition(parameters);
-
 		ObjectScopeProvider objectScopeProvider =
 			_objectScopeProviderRegistry.getObjectScopeProvider(
 				_objectDefinition.getScope());
@@ -97,13 +95,13 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 
 			if (StringUtil.equalsIgnoreCase(createStrategy, "INSERT")) {
 				objectEntryUnsafeFunction = objectEntry -> postScopeScopeKey(
-					(String)parameters.get("scopeKey"), objectEntry);
+					_getScopeKey(parameters), objectEntry);
 			}
 
 			if (StringUtil.equalsIgnoreCase(createStrategy, "UPSERT")) {
 				objectEntryUnsafeFunction =
 					objectEntry -> putScopeScopeKeyByExternalReferenceCode(
-						(String)parameters.get("scopeKey"),
+						_getScopeKey(parameters),
 						objectEntry.getExternalReferenceCode(), objectEntry);
 			}
 
@@ -119,17 +117,6 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 		else {
 			super.create(objectEntries, parameters);
 		}
-	}
-
-	@Override
-	public void delete(
-			Collection<ObjectEntry> objectEntries,
-			Map<String, Serializable> parameters)
-		throws Exception {
-
-		_loadObjectDefinition(parameters);
-
-		super.delete(objectEntries, parameters);
 	}
 
 	@Override
@@ -161,7 +148,7 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 		throws Exception {
 
 		vulcanBatchEngineImportTaskResource.setTaskItemDelegateName(
-			_objectDefinition.getOSGiJaxRsName());
+			_objectDefinition.getName());
 
 		return super.deleteObjectEntryBatch(callbackURL, object);
 	}
@@ -210,17 +197,10 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 			_objectEntryManagerRegistry.getObjectEntryManager(
 				_objectDefinition.getStorageType());
 
-		String filterString = null;
-
-		if (contextHttpServletRequest != null) {
-			filterString = ParamUtil.getString(
-				contextHttpServletRequest, "filter");
-		}
-
 		return objectEntryManager.getObjectEntries(
 			contextCompany.getCompanyId(), _objectDefinition, null, aggregation,
-			_getDTOConverterContext(null), filterString, pagination, search,
-			sorts);
+			_getDTOConverterContext(null), _getFilterString(), pagination,
+			search, sorts);
 	}
 
 	@Override
@@ -262,8 +242,7 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 
 		return objectEntryManager.getObjectEntries(
 			contextCompany.getCompanyId(), _objectDefinition, scopeKey,
-			aggregation, _getDTOConverterContext(null),
-			ParamUtil.getString(contextHttpServletRequest, "filter"),
+			aggregation, _getDTOConverterContext(null), _getFilterString(),
 			pagination, search, sorts);
 	}
 
@@ -318,7 +297,7 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 		throws Exception {
 
 		vulcanBatchEngineExportTaskResource.setTaskItemDelegateName(
-			_objectDefinition.getOSGiJaxRsName());
+			_objectDefinition.getName());
 
 		return super.postObjectEntriesPageExportBatch(
 			search, filter, sorts, callbackURL, contentType, fieldNames);
@@ -342,7 +321,7 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 		throws Exception {
 
 		vulcanBatchEngineImportTaskResource.setTaskItemDelegateName(
-			_objectDefinition.getOSGiJaxRsName());
+			_objectDefinition.getName());
 
 		return super.postObjectEntryBatch(callbackURL, object);
 	}
@@ -444,7 +423,7 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 		throws Exception {
 
 		vulcanBatchEngineImportTaskResource.setTaskItemDelegateName(
-			_objectDefinition.getOSGiJaxRsName());
+			_objectDefinition.getName());
 
 		return super.putObjectEntryBatch(callbackURL, object);
 	}
@@ -503,15 +482,13 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 			Map<String, Serializable> parameters, String search)
 		throws Exception {
 
-		_loadObjectDefinition(parameters);
-
 		ObjectScopeProvider objectScopeProvider =
 			_objectScopeProviderRegistry.getObjectScopeProvider(
 				_objectDefinition.getScope());
 
 		if (objectScopeProvider.isGroupAware()) {
 			return getScopeScopeKeyPage(
-				(String)parameters.get("scopeKey"),
+				_getScopeKey(parameters),
 				Boolean.parseBoolean((String)parameters.get("flatten")), search,
 				null, filter, pagination, sorts);
 		}
@@ -523,17 +500,6 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 
 	public void setObjectDefinition(ObjectDefinition objectDefinition) {
 		_objectDefinition = objectDefinition;
-	}
-
-	@Override
-	public void update(
-			Collection<ObjectEntry> objectEntries,
-			Map<String, Serializable> parameters)
-		throws Exception {
-
-		_loadObjectDefinition(parameters);
-
-		super.update(objectEntries, parameters);
 	}
 
 	@Override
@@ -569,6 +535,14 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 			_dtoConverterRegistry, contextHttpServletRequest, objectEntryId,
 			contextAcceptLanguage.getPreferredLocale(), contextUriInfo,
 			contextUser);
+	}
+
+	private String _getFilterString() {
+		if (contextHttpServletRequest == null) {
+			return null;
+		}
+
+		return ParamUtil.getString(contextHttpServletRequest, "filter");
 	}
 
 	private long _getPrimaryKey(
@@ -632,38 +606,16 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 		return objectEntry;
 	}
 
-	private void _loadObjectDefinition(Map<String, Serializable> parameters)
-		throws Exception {
-
-		String taskItemDelegateName = (String)parameters.get(
-			"taskItemDelegateName");
-
-		if (Validator.isNotNull(taskItemDelegateName)) {
-			_objectDefinition =
-				_objectDefinitionLocalService.fetchObjectDefinition(
-					contextCompany.getCompanyId(), taskItemDelegateName);
-
-			if (_objectDefinition != null) {
-				return;
-			}
+	private String _getScopeKey(Map<String, Serializable> parameters) {
+		if (parameters.containsKey("scopeKey")) {
+			return String.valueOf(parameters.get("scopeKey"));
 		}
 
-		String parameterValue = (String)parameters.get("objectDefinitionId");
-
-		if ((parameterValue != null) && (parameterValue.length() > 2)) {
-			String[] objectDefinitionIds = StringUtil.split(
-				parameterValue.substring(1, parameterValue.length() - 1), ",");
-
-			if (objectDefinitionIds.length > 0) {
-				_objectDefinition =
-					_objectDefinitionLocalService.getObjectDefinition(
-						GetterUtil.getLong(objectDefinitionIds[0]));
-
-				return;
-			}
+		if (parameters.containsKey("siteId")) {
+			return String.valueOf(parameters.get("siteId"));
 		}
 
-		throw new NotFoundException("Missing parameter \"objectDefinitionId\"");
+		return null;
 	}
 
 	private final DTOConverterRegistry _dtoConverterRegistry;

@@ -42,11 +42,18 @@ jarManifest {
 }
 
 jarPatched {
-	archiveName = jar.archiveName
-	destinationDir = jar.destinationDir
+	mustRunAfter compileJava
+	mustRunAfter processResources
+
+	archiveFileName = jar.archiveFileName
+	destinationDirectory = jar.destinationDirectory
 	duplicatesStrategy = "exclude"
 
 	from copyPatchOriginalLibClasses
+}
+
+jarSources {
+	mustRunAfter patch
 }
 
 javadoc {
@@ -58,6 +65,7 @@ patch {
 		autoClean = false
 	}
 
+	fileNames "org/springframework/orm/hibernate5/SessionFactoryUtils.java"
 	fileNames "org/springframework/orm/hibernate5/SpringSessionSynchronization.java"
 
 	originalLibModuleName = "spring-orm"

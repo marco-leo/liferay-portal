@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.model.UserPersonalSite;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -54,7 +55,6 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
@@ -70,6 +70,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents either a site or a generic resource container.
@@ -1005,7 +1006,10 @@ public class GroupImpl extends GroupBaseImpl {
 
 	@Override
 	public boolean isPrivateLayoutsEnabled() {
-		return _layoutVisibilityManager.isPrivateLayoutsEnabled(getGroupId());
+		LayoutVisibilityManager layoutVisibilityManager =
+			_layoutVisibilityManagerSnapshot.get();
+
+		return layoutVisibilityManager.isPrivateLayoutsEnabled(getGroupId());
 	}
 
 	@Override
@@ -1232,6 +1236,20 @@ public class GroupImpl extends GroupBaseImpl {
 	}
 
 	@Override
+	public void setNameMap(Map<Locale, String> nameMap, Locale defaultLocale) {
+		if (!Objects.equals(
+				LocaleUtil.toLanguageId(defaultLocale),
+				getDefaultLanguageId()) &&
+			(nameMap != null) && Validator.isNull(nameMap.get(defaultLocale)) &&
+			Validator.isNotNull(getName(getDefaultLanguageId()))) {
+
+			nameMap.put(defaultLocale, getName(getDefaultLanguageId()));
+		}
+
+		super.setNameMap(nameMap, defaultLocale);
+	}
+
+	@Override
 	public void setTypeSettings(String typeSettings) {
 		_typeSettingsUnicodeProperties = null;
 
@@ -1270,10 +1288,9 @@ public class GroupImpl extends GroupBaseImpl {
 
 	private static final Log _log = LogFactoryUtil.getLog(GroupImpl.class);
 
-	private static volatile LayoutVisibilityManager _layoutVisibilityManager =
-		ServiceProxyFactory.newServiceTrackedInstance(
-			LayoutVisibilityManager.class, GroupImpl.class,
-			"_layoutVisibilityManager", false, true);
+	private static final Snapshot<LayoutVisibilityManager>
+		_layoutVisibilityManagerSnapshot = new Snapshot<>(
+			GroupImpl.class, LayoutVisibilityManager.class);
 
 	private Group _liveGroup;
 	private Group _stagingGroup;

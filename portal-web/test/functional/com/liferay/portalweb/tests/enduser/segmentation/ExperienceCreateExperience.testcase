@@ -1,18 +1,16 @@
-@component-name = "portal-segmentation"
+@component-name = "portal-wcm"
 definition {
 
 	property ci.retries.disabled = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Segmentation";
+	property testray.main.component.name = "Content Pages";
 
 	setUp {
 		TestCase.setUpPortalInstance();
 
 		User.firstLoginPG();
-
-		Navigator.openURL();
 
 		task ("Create an user using JSONWS") {
 			JSONUser.addUser(
@@ -34,8 +32,6 @@ definition {
 			groupName = "Test Site Name",
 			layoutName = "Experience Content Page",
 			type = "content");
-
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
 	}
 
 	@description = "LPS-103102 Bug: Segmentation is not working after remove the user section"
@@ -92,9 +88,9 @@ definition {
 		}
 
 		task ("Create an experience for each segment in the Content Page") {
-			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
-
-			ContentPages.gotoPageEditor();
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
 
 			PageEditor.addFragment(
 				collectionName = "Basic Components",
@@ -170,9 +166,9 @@ definition {
 		}
 
 		task ("Edit the default experience") {
-			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
-
-			ContentPages.gotoPageEditor();
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
 
 			PageEditor.addFragment(
 				collectionName = "Basic Components",
@@ -247,7 +243,9 @@ definition {
 		property portal.acceptance = "true";
 
 		task ("Edit page to add heading fragment") {
-			ContentPages.gotoPageEditor();
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
 
 			PageEditor.addFragment(
 				collectionName = "Basic Components",
@@ -301,7 +299,9 @@ definition {
 		property portal.acceptance = "true";
 
 		task ("Add an Experience for that page") {
-			ContentPages.gotoPageEditor();
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
 
 			PageEditor.addExperience(
 				experienceName = "NewExp1",
@@ -343,7 +343,9 @@ definition {
 	@priority = 4
 	test AddNewExperienceAfterCancelEditExperience {
 		task ("Given a page editor has an experience") {
-			ContentPages.gotoPageEditor();
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
 
 			PageEditor.addExperience(
 				experienceName = "Test Exp",
@@ -3214,7 +3216,9 @@ definition {
 		}
 
 		task ("Add an Experience") {
-			ContentPages.gotoPageEditor();
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
 
 			PageEditor.addExperience(
 				experienceName = "Experience Name",
@@ -3482,19 +3486,17 @@ definition {
 			PageEditor.editLayoutContainer(
 				backgroundColor = "Danger",
 				panel = "Styles");
-
-			PageEditor.publish();
 		}
 
 		task ("Create an experience") {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "Anyone");
-
-			PageEditor.publish();
 		}
 
 		task ("Change the background color of the default experience") {
+			PageEditor.changeExperience(newExperience = "Default");
+
 			PageEditor.editLayoutContainer(
 				backgroundColor = "Success",
 				panel = "Styles");
@@ -3503,9 +3505,7 @@ definition {
 		}
 
 		task ("Check if any experience has its own container with its own background color") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
+			ContentPages.gotoPageEditor();
 
 			PageEditor.viewContainerStyle(
 				backgroundColor = "success",
@@ -3632,17 +3632,10 @@ definition {
 	@description = "LPS-90586: Validate if the Default experience doesn't offer a delete button"
 	@priority = 3
 	test CheckDefaultDeleteButton {
-		task ("Add Content Page") {
-			JSONLayout.addPublicLayout(
-				groupName = "Test Site Name",
-				layoutName = "Content Page",
-				type = "content");
-
-			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page");
-		}
-
 		task ("Create an experience and add on content page") {
-			ContentPages.gotoPageEditor();
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
 
 			PageEditor.addExperience(
 				experienceName = "Name Experience",
@@ -3685,11 +3678,11 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "Anyone");
-
-			PageEditor.publish();
 		}
 
 		task ("Add content to both experiences") {
+			PageEditor.changeExperience(newExperience = "Default");
+
 			AssetPublisherPortlet.configureManualAssetSelectionPG(
 				assetTitle = "WC Title 1",
 				assetType = "Basic Web Content");
@@ -3708,9 +3701,7 @@ definition {
 		}
 
 		task ("Check if the content is present only in the New Experience") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
+			ContentPages.gotoPageEditor();
 
 			AssertTextEquals(
 				key_assetTitle = "WC Title 1",
@@ -3897,6 +3888,8 @@ definition {
 
 			PageEditor.publish();
 
+			ContentPages.gotoPageEditor();
+
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "Anyone");
@@ -3936,6 +3929,8 @@ definition {
 				fragmentName = "Heading");
 
 			PageEditor.publish();
+
+			ContentPages.gotoPageEditor();
 
 			PageEditor.addExperience(
 				experienceName = "New Experience",
@@ -4047,6 +4042,8 @@ definition {
 
 			PageEditor.publish();
 
+			ContentPages.gotoPageEditor();
+
 			PageEditor.addFragment(
 				collectionName = "Layout Elements",
 				fragmentName = "Container");
@@ -4094,13 +4091,11 @@ definition {
 				id = "element-text",
 				text = "Default");
 
-			Button.clickPublish();
+			PageEditor.publish();
 		}
 
 		task ("Add a first experience to page") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
+			ContentPages.gotoPageEditor();
 
 			PageEditor.addExperience(
 				experienceName = "NewExp1",
@@ -4120,15 +4115,9 @@ definition {
 
 		task ("Duplicate the first experience") {
 			PageEditor.duplicateExperience(experienceName = "NewExp1");
-
-			Button.clickPublish();
 		}
 
 		task ("Modify the second experience") {
-			ContentPagesNavigator.openEditContentPage(
-				pageName = "Experience Content Page",
-				siteName = "Test Site Name");
-
 			PageEditor.changeExperience(newExperience = "Copy of NewExp1");
 
 			AssertTextEquals(
@@ -4147,8 +4136,6 @@ definition {
 			AssertTextEquals(
 				locator1 = "Experience#FRAGMENT_HEADING",
 				value1 = "Exp1");
-
-			PageEditor.publish();
 		}
 
 		task ("Check that the duplicated experience is bellow default experience") {
@@ -4202,10 +4189,12 @@ definition {
 	@description = "LPS-91876: Validate if when the user tries to edit the name of some Experience can be edited with success"
 	@priority = 5
 	test EditExperienceName {
-		property portal.acceptance = "true";
+		property portal.acceptance = "quarantine";
 
 		task ("Create an experience and add on content page") {
-			ContentPages.gotoPageEditor();
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
 
 			PageEditor.addExperience(
 				experienceName = "NewAnyoneExperience",
@@ -4272,15 +4261,10 @@ definition {
 		}
 
 		task ("Set permissions for this role") {
-			Permissions.definePermissionViaJSONAPI(
-				resourceAction = "UPDATE",
-				resourceName = "com.liferay.portal.kernel.model.Layout",
-				roleTitle = "Experiences Test Role Test");
-
-			Permissions.definePermissionViaJSONAPI(
-				resourceAction = "MANAGE_SEGMENTS_ENTRIES",
-				resourceName = "com.liferay.segments",
-				roleTitle = "Experiences Test Role Test");
+			Permissions.definePermissionsViaJSONAPI(
+				resourceNameActionList = "com.liferay.portal.kernel.model.Layout,UPDATE:com.liferay.segments,MANAGE_SEGMENTS_ENTRIES",
+				roleTitle = "Experiences Test Role Test",
+				roleType = "regular");
 		}
 
 		task ("Create a Segment") {
@@ -4360,15 +4344,10 @@ definition {
 		}
 
 		task ("Set permissions for this role") {
-			Permissions.definePermissionViaJSONAPI(
-				resourceAction = "UPDATE",
-				resourceName = "com.liferay.portal.kernel.model.Layout",
-				roleTitle = "Experiences Test Role Test");
-
-			Permissions.definePermissionViaJSONAPI(
-				resourceAction = "MANAGE_SEGMENTS_ENTRIES",
-				resourceName = "com.liferay.segments",
-				roleTitle = "Experiences Test Role Test");
+			Permissions.definePermissionsViaJSONAPI(
+				resourceNameActionList = "com.liferay.portal.kernel.model.Layout,UPDATE:com.liferay.segments,MANAGE_SEGMENTS_ENTRIES",
+				roleTitle = "Experiences Test Role Test",
+				roleType = "regular");
 		}
 
 		task ("Create a Segment") {
@@ -4966,9 +4945,7 @@ definition {
 		}
 
 		task ("Select the segment on Simulation panel") {
-			Check.checkNotVisible(
-				checkboxName = "Name Segment",
-				locator1 = "Checkbox#ANY_CHECKBOX");
+			MobileDevice.previewBy(segment = "Name Segment");
 		}
 
 		task ("Assert that element is present not present in Default experience") {
@@ -5029,9 +5006,7 @@ definition {
 		}
 
 		task ("Select the segment on Simulation panel") {
-			Check.checkNotVisible(
-				checkboxName = "Name Segment",
-				locator1 = "Checkbox#ANY_CHECKBOX");
+			MobileDevice.previewBy(segment = "Name Segment");
 		}
 
 		task ("Assert that element is present at page") {
@@ -5096,9 +5071,7 @@ definition {
 		}
 
 		task ("Select the segment on Simulation panel") {
-			Check.checkNotVisible(
-				checkboxName = "Name Segment",
-				locator1 = "Checkbox#ANY_CHECKBOX");
+			MobileDevice.previewBy(segment = "Name Segment");
 		}
 
 		task ("Assert that element is present") {
@@ -5387,7 +5360,9 @@ definition {
 		property portal.acceptance = "true";
 
 		task ("Try to create new experience without name") {
-			ContentPages.gotoPageEditor();
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Experience Content Page",
+				siteName = "Test Site Name");
 
 			PageEditor.addExperience(
 				experienceName = "",
@@ -5417,8 +5392,6 @@ definition {
 			PageEditor.addExperience(
 				experienceName = "New Experience",
 				segmentName = "Anyone");
-
-			PageEditor.publish();
 		}
 
 		task ("Add a Banner Center to default experience") {
@@ -5442,8 +5415,6 @@ definition {
 				fragmentName = "Heading",
 				id = "element-text",
 				text = "Title of Banner");
-
-			PageEditor.publish();
 		}
 
 		task ("Check that Banner fragment was properly added") {

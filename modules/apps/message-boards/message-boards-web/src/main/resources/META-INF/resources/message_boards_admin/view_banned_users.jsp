@@ -30,7 +30,7 @@ int totalBannedUsers = MBBanLocalServiceUtil.getBansCount(scopeGroupId);
 	additionalProps="<%= mbBannedUsersManagementToolbarDisplayContext.getAdditionalProps() %>"
 	disabled="<%= totalBannedUsers == 0 %>"
 	itemsTotal="<%= totalBannedUsers %>"
-	propsTransformer="message_boards_admin/js/BanUsersManagementToolbarPropsTransformer"
+	propsTransformer="{BanUsersManagementToolbarPropsTransformer} from message-boards-web"
 	searchContainerId="mbBanUsers"
 	showCreationMenu="<%= false %>"
 	showInfoButton="<%= false %>"
@@ -107,7 +107,7 @@ int totalBannedUsers = MBBanLocalServiceUtil.getBansCount(scopeGroupId);
 					<span class="text-default">
 						<liferay-ui:message key="unban-date" />
 
-						<%= dateFormatDateTime.format(com.liferay.message.boards.util.MBUtil.getUnbanDate(ban, PropsValues.MESSAGE_BOARDS_EXPIRE_BAN_INTERVAL)) %>
+						<%= dateTimeFormat.format(com.liferay.message.boards.util.MBUtil.getUnbanDate(ban, PropsValues.MESSAGE_BOARDS_EXPIRE_BAN_INTERVAL)) %>
 					</span>
 				</liferay-ui:search-container-column-text>
 

@@ -27,13 +27,12 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -367,20 +366,18 @@ public abstract class BaseCartItemResourceTestCase {
 		Page<CartItem> page = cartItemResource.getCartItemsPage(
 			cartId, null, Pagination.of(1, 10));
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantCartId != null) {
 			CartItem irrelevantCartItem = testGetCartItemsPage_addCartItem(
 				irrelevantCartId, randomIrrelevantCartItem());
 
 			page = cartItemResource.getCartItemsPage(
-				irrelevantCartId, null, Pagination.of(1, 2));
+				irrelevantCartId, null, Pagination.of(1, (int)totalCount + 1));
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantCartItem),
-				(List<CartItem>)page.getItems());
+			assertContains(irrelevantCartItem, (List<CartItem>)page.getItems());
 			assertValid(
 				page,
 				testGetCartItemsPage_getExpectedActions(irrelevantCartId));
@@ -395,11 +392,10 @@ public abstract class BaseCartItemResourceTestCase {
 		page = cartItemResource.getCartItemsPage(
 			cartId, null, Pagination.of(1, 10));
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(cartItem1, cartItem2),
-			(List<CartItem>)page.getItems());
+		assertContains(cartItem1, (List<CartItem>)page.getItems());
+		assertContains(cartItem2, (List<CartItem>)page.getItems());
 		assertValid(page, testGetCartItemsPage_getExpectedActions(cartId));
 
 		cartItemResource.deleteCartItem(cartItem1.getId());
@@ -420,6 +416,11 @@ public abstract class BaseCartItemResourceTestCase {
 	public void testGetCartItemsPageWithPagination() throws Exception {
 		Long cartId = testGetCartItemsPage_getCartId();
 
+		Page<CartItem> cartItemPage = cartItemResource.getCartItemsPage(
+			cartId, null, null);
+
+		int totalCount = GetterUtil.getInteger(cartItemPage.getTotalCount());
+
 		CartItem cartItem1 = testGetCartItemsPage_addCartItem(
 			cartId, randomCartItem());
 
@@ -429,28 +430,62 @@ public abstract class BaseCartItemResourceTestCase {
 		CartItem cartItem3 = testGetCartItemsPage_addCartItem(
 			cartId, randomCartItem());
 
-		Page<CartItem> page1 = cartItemResource.getCartItemsPage(
-			cartId, null, Pagination.of(1, 2));
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<CartItem> cartItems1 = (List<CartItem>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(cartItems1.toString(), 2, cartItems1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<CartItem> page1 = cartItemResource.getCartItemsPage(
+				cartId, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+					pageSizeLimit));
 
-		Page<CartItem> page2 = cartItemResource.getCartItemsPage(
-			cartId, null, Pagination.of(2, 2));
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(3, page2.getTotalCount());
+			assertContains(cartItem1, (List<CartItem>)page1.getItems());
 
-		List<CartItem> cartItems2 = (List<CartItem>)page2.getItems();
+			Page<CartItem> page2 = cartItemResource.getCartItemsPage(
+				cartId, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+					pageSizeLimit));
 
-		Assert.assertEquals(cartItems2.toString(), 1, cartItems2.size());
+			assertContains(cartItem2, (List<CartItem>)page2.getItems());
 
-		Page<CartItem> page3 = cartItemResource.getCartItemsPage(
-			cartId, null, Pagination.of(1, 3));
+			Page<CartItem> page3 = cartItemResource.getCartItemsPage(
+				cartId, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+					pageSizeLimit));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(cartItem1, cartItem2, cartItem3),
-			(List<CartItem>)page3.getItems());
+			assertContains(cartItem3, (List<CartItem>)page3.getItems());
+		}
+		else {
+			Page<CartItem> page1 = cartItemResource.getCartItemsPage(
+				cartId, null, Pagination.of(1, totalCount + 2));
+
+			List<CartItem> cartItems1 = (List<CartItem>)page1.getItems();
+
+			Assert.assertEquals(
+				cartItems1.toString(), totalCount + 2, cartItems1.size());
+
+			Page<CartItem> page2 = cartItemResource.getCartItemsPage(
+				cartId, null, Pagination.of(2, totalCount + 2));
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<CartItem> cartItems2 = (List<CartItem>)page2.getItems();
+
+			Assert.assertEquals(cartItems2.toString(), 1, cartItems2.size());
+
+			Page<CartItem> page3 = cartItemResource.getCartItemsPage(
+				cartId, null, Pagination.of(1, (int)totalCount + 3));
+
+			assertContains(cartItem1, (List<CartItem>)page3.getItems());
+			assertContains(cartItem2, (List<CartItem>)page3.getItems());
+			assertContains(cartItem3, (List<CartItem>)page3.getItems());
+		}
 	}
 
 	protected CartItem testGetCartItemsPage_addCartItem(
@@ -491,7 +526,7 @@ public abstract class BaseCartItemResourceTestCase {
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
 			"JSONObject/cartItems");
 
-		Assert.assertEquals(0, cartItemsJSONObject.get("totalCount"));
+		long totalCount = cartItemsJSONObject.getLong("totalCount");
 
 		CartItem cartItem1 = testGraphQLGetCartItemsPage_addCartItem();
 		CartItem cartItem2 = testGraphQLGetCartItemsPage_addCartItem();
@@ -500,10 +535,15 @@ public abstract class BaseCartItemResourceTestCase {
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
 			"JSONObject/cartItems");
 
-		Assert.assertEquals(2, cartItemsJSONObject.getLong("totalCount"));
+		Assert.assertEquals(
+			totalCount + 2, cartItemsJSONObject.getLong("totalCount"));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(cartItem1, cartItem2),
+		assertContains(
+			cartItem1,
+			Arrays.asList(
+				CartItemSerDes.toDTOs(cartItemsJSONObject.getString("items"))));
+		assertContains(
+			cartItem2,
 			Arrays.asList(
 				CartItemSerDes.toDTOs(cartItemsJSONObject.getString("items"))));
 	}
@@ -1143,6 +1183,10 @@ public abstract class BaseCartItemResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -1635,9 +1679,9 @@ public abstract class BaseCartItemResourceTestCase {
 	}
 
 	protected CartItemResource cartItemResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

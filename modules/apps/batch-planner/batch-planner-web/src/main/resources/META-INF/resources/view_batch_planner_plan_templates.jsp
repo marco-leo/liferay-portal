@@ -21,7 +21,7 @@ BatchPlannerPlanTemplateManagementToolbarDisplayContext batchPlannerPlanTemplate
 
 <clay:management-toolbar
 	managementToolbarDisplayContext="<%= batchPlannerPlanTemplateManagementToolbarDisplayContext %>"
-	propsTransformer="js/BatchPlannerPlanTemplateManagementToolbarPropsTransformer"
+	propsTransformer="{BatchPlannerPlanTemplateManagementToolbarPropsTransformer} from batch-planner-web"
 />
 
 <clay:container-fluid>
@@ -61,7 +61,7 @@ BatchPlannerPlanTemplateManagementToolbarDisplayContext batchPlannerPlanTemplate
 
 				<liferay-ui:search-container-column-text
 					name="create-date"
-					value="<%= dateFormatDateTime.format(batchPlannerPlanTemplateDisplay.getCreateDate()) %>"
+					value="<%= dateTimeFormat.format(batchPlannerPlanTemplateDisplay.getCreateDate()) %>"
 				/>
 
 				<liferay-ui:search-container-column-text

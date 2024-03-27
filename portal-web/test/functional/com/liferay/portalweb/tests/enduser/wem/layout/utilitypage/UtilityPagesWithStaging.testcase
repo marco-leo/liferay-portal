@@ -24,9 +24,7 @@ definition {
 		}
 
 		task ("Enable local live") {
-			Staging.openStagingAdmin(siteURLKey = ${randomSiteURLKey});
-
-			Staging.activateStagingCP(siteName = ${randomSiteName});
+			JSONStaging.enableLocalStaging(groupName = ${randomSiteName});
 		}
 	}
 
@@ -55,7 +53,7 @@ definition {
 				menuItem = "Mark as Default",
 				pageName = "404 Error Utility Page");
 
-			Confirm();
+			Confirm(value1 = "null");
 
 			Alert.viewSuccessMessage();
 
@@ -157,7 +155,7 @@ definition {
 				menuItem = "Mark as Default",
 				pageName = "500 Error Utility Page");
 
-			Confirm();
+			Confirm(value1 = "null");
 
 			Alert.viewSuccessMessage();
 		}

@@ -7,8 +7,9 @@ import {useModal} from '@clayui/modal';
 import {
 	API,
 	BuilderScreen,
-	getLocalizableLabel,
+	constantsUtils,
 	invalidateRequired,
+	stringUtils,
 } from '@liferay/object-js-components-web';
 import classNames from 'classnames';
 import React, {ElementType, useCallback, useEffect, useState} from 'react';
@@ -47,18 +48,17 @@ interface AggregationFilterProps {
 	filterOperators: TFilterOperators;
 	modelBuilder: boolean;
 	objectDefinitionExternalReferenceCode2?: string;
+	onSubmit?: (editedObjectField?: Partial<ObjectField>) => void;
 	setAggregationFilters: (values: AggregationFilters[]) => void;
 	setCreationLanguageId2: (values: Liferay.Language.Locale) => void;
 	setValues: (values: Partial<ObjectField>) => void;
 	values: Partial<ObjectField>;
-	workflowStatusJSONArray: LabelValueObject[];
+	workflowStatuses: LabelValueObject[];
 }
 
 interface CustomWindow extends Window {
 	__isReactDndBackendSetUp?: boolean;
 }
-
-const REQUIRED_MSG = Liferay.Language.get('required');
 
 export function AggregationFilterContainer({
 	aggregationFilters,
@@ -67,11 +67,12 @@ export function AggregationFilterContainer({
 	filterOperators,
 	modelBuilder,
 	objectDefinitionExternalReferenceCode2,
+	onSubmit,
 	setAggregationFilters,
 	setCreationLanguageId2,
 	setValues,
 	values,
-	workflowStatusJSONArray,
+	workflowStatuses,
 }: AggregationFilterProps) {
 	const [editingFilter, setEditingFilter] = useState(false);
 	const [editingObjectFieldName, setEditingObjectFieldName] = useState<
@@ -153,7 +154,7 @@ export function AggregationFilterContainer({
 
 				if (objectField && filterType) {
 					const aggregationFilter: AggregationFilters = {
-						fieldLabel: getLocalizableLabel(
+						fieldLabel: stringUtils.getLocalizableLabel(
 							creationLanguageId2 as Liferay.Language.Locale,
 							objectField.label,
 							objectField.name
@@ -229,7 +230,7 @@ export function AggregationFilterContainer({
 
 						const workflowStatusValueList = statusFilterValues.map(
 							(statusValue) => {
-								const currentStatus = workflowStatusJSONArray.find(
+								const currentStatus = workflowStatuses.find(
 									(workflowStatus) =>
 										Number(workflowStatus.value) ===
 										statusValue
@@ -267,7 +268,7 @@ export function AggregationFilterContainer({
 			checkedItems,
 			items,
 			selectedFilterBy,
-			selectedFilterType,
+			selectedFilterTypeValue,
 			setErrors,
 			value,
 		}: FilterValidation) => {
@@ -275,11 +276,11 @@ export function AggregationFilterContainer({
 			const currentErrors: FilterErrors = {};
 
 			if (!selectedFilterBy) {
-				currentErrors.selectedFilterBy = REQUIRED_MSG;
+				currentErrors.selectedFilterBy = constantsUtils.REQUIRED_MSG;
 			}
 
-			if (!selectedFilterType) {
-				currentErrors.selectedFilterType = REQUIRED_MSG;
+			if (!selectedFilterTypeValue) {
+				currentErrors.selectedFilterType = constantsUtils.REQUIRED_MSG;
 			}
 
 			if (
@@ -287,22 +288,22 @@ export function AggregationFilterContainer({
 					selectedFilterBy?.businessType === 'Picklist') &&
 				!checkedItems.length
 			) {
-				currentErrors.items = REQUIRED_MSG;
+				currentErrors.items = constantsUtils.REQUIRED_MSG;
 			}
 
 			if (
 				selectedFilterBy?.businessType === 'Date' &&
-				selectedFilterType?.value === 'range'
+				selectedFilterTypeValue === 'range'
 			) {
 				const startDate = items.find((date) => date.value === 'ge');
 				const endDate = items.find((date) => date.value === 'le');
 
 				if (!startDate) {
-					currentErrors.startDate = REQUIRED_MSG;
+					currentErrors.startDate = constantsUtils.REQUIRED_MSG;
 				}
 
 				if (!endDate) {
-					currentErrors.endDate = REQUIRED_MSG;
+					currentErrors.endDate = constantsUtils.REQUIRED_MSG;
 				}
 			}
 
@@ -311,7 +312,7 @@ export function AggregationFilterContainer({
 					selectedFilterBy?.businessType === 'LongInteger') &&
 				invalidateRequired(value)
 			) {
-				currentErrors.value = REQUIRED_MSG;
+				currentErrors.value = constantsUtils.REQUIRED_MSG;
 			}
 
 			setErrors(currentErrors);
@@ -334,7 +335,7 @@ export function AggregationFilterContainer({
 			const newAggregationFilters = [
 				...aggregationFilters,
 				{
-					fieldLabel: getLocalizableLabel(
+					fieldLabel: stringUtils.getLocalizableLabel(
 						creationLanguageId2 as Liferay.Language.Locale,
 						fieldLabel,
 						objectFieldName
@@ -453,15 +454,17 @@ export function AggregationFilterContainer({
 				setValues({
 					objectFieldSettings: newObjectFieldSettings,
 				});
+
+				if (onSubmit) {
+					onSubmit({
+						...values,
+						objectFieldSettings: newObjectFieldSettings,
+					});
+				}
 			}
 		},
-		[
-			aggregationFilters,
-			creationLanguageId2,
-			setAggregationFilters,
-			setValues,
-			values,
-		]
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[aggregationFilters, creationLanguageId2, values]
 	);
 
 	const handleDeleteFilterColumn = useCallback(
@@ -502,7 +505,15 @@ export function AggregationFilterContainer({
 			setValues({
 				objectFieldSettings: newObjectFieldSettings,
 			});
+
+			if (onSubmit) {
+				onSubmit({
+					...values,
+					objectFieldSettings: newObjectFieldSettings,
+				});
+			}
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[aggregationFilters, setAggregationFilters, setValues, values]
 	);
 
@@ -546,6 +557,7 @@ export function AggregationFilterContainer({
 					})}
 				>
 					<BuilderScreen
+						builderScreenItems={aggregationFilters}
 						creationLanguageId={
 							creationLanguageId2 as Liferay.Language.Locale
 						}
@@ -561,7 +573,6 @@ export function AggregationFilterContainer({
 						}}
 						filter
 						firstColumnHeader={Liferay.Language.get('filter-by')}
-						objectColumns={aggregationFilters}
 						onDeleteColumn={handleDeleteFilterColumn}
 						onEditingObjectFieldName={setEditingObjectFieldName}
 						onVisibleEditModal={setVisibleModal}
@@ -593,7 +604,7 @@ export function AggregationFilterContainer({
 					onClose={onClose}
 					onSave={handleSaveFilterColumn}
 					validate={validateFilters}
-					workflowStatusJSONArray={workflowStatusJSONArray}
+					workflowStatuses={workflowStatuses}
 				/>
 			)}
 		</>

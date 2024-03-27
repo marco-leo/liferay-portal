@@ -128,7 +128,7 @@ public class QuestionsConfigurationModelListener
 	private void _enableServiceAccessPolicy(boolean enableAnonymousRead)
 		throws Exception {
 
-		String name = "QUESTIONS_SERVICE_ACCESS_POLICY";
+		String name = "QUESTIONS";
 
 		SAPEntry sapEntry = _sapEntryService.fetchSAPEntry(
 			CompanyThreadLocal.getCompanyId(), name);
@@ -162,22 +162,24 @@ public class QuestionsConfigurationModelListener
 					headlessDeliveryPackage, "MessageBoardSectionResourceImpl#",
 					"getMessageBoardSection\n", headlessDeliveryPackage,
 					"MessageBoardSectionResourceImpl#",
-					"getSiteMessageBoardSectionsPage\n",
-					headlessDeliveryPackage, "MessageBoardSectionResourceImpl#",
 					"getMessageBoardSectionMessageBoardSectionsPage\n",
+					headlessDeliveryPackage, "MessageBoardSectionResourceImpl#",
+					"getSiteMessageBoardSectionByFriendlyUrlPath\n",
+					headlessDeliveryPackage, "MessageBoardSectionResourceImpl#",
+					"getSiteMessageBoardSectionsPage\n",
 					headlessDeliveryPackage, "MessageBoardThreadResourceImpl#",
 					"getMessageBoardSectionMessageBoardThreadsPage\n",
 					headlessDeliveryPackage, "MessageBoardThreadResourceImpl#",
-					"getMessageBoardThreadsRankedPage\n",
-					headlessDeliveryPackage, "MessageBoardThreadResourceImpl#",
 					"getMessageBoardThreadMyRating\n", headlessDeliveryPackage,
 					"MessageBoardThreadResourceImpl#",
+					"getMessageBoardThreadsRankedPage\n",
+					headlessDeliveryPackage, "MessageBoardThreadResourceImpl#",
 					"getSiteMessageBoardThreadByFriendlyUrlPath\n",
 					headlessDeliveryPackage, "MessageBoardThreadResourceImpl#",
 					"getSiteMessageBoardThreadsPage\n"),
 				true, true, name,
 				Collections.singletonMap(
-					LocaleThreadLocal.getDefaultLocale(), name),
+					LocaleThreadLocal.getDefaultLocale(), "Questions"),
 				new ServiceContext());
 		}
 	}

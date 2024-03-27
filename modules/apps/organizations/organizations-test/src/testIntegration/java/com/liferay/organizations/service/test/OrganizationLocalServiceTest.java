@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.SortFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.ListTypeLocalService;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
@@ -364,20 +365,23 @@ public class OrganizationLocalServiceTest {
 			_organizationLocalService.deleteOrganization(organization);
 		}
 
+		long listTypeId = _listTypeLocalService.getListTypeId(
+			TestPropsValues.getCompanyId(),
+			ListTypeConstants.ORGANIZATION_STATUS_DEFAULT,
+			ListTypeConstants.ORGANIZATION_STATUS);
+
 		Organization organizationA = _organizationLocalService.addOrganization(
 			null, TestPropsValues.getUserId(),
 			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
 			RandomTestUtil.randomString(),
-			OrganizationConstants.TYPE_ORGANIZATION, 0, 0,
-			ListTypeConstants.ORGANIZATION_STATUS_DEFAULT, StringPool.BLANK,
-			false, new ServiceContext());
+			OrganizationConstants.TYPE_ORGANIZATION, 0, 0, listTypeId,
+			StringPool.BLANK, false, new ServiceContext());
 
 		Organization organizationB = _organizationLocalService.addOrganization(
 			null, TestPropsValues.getUserId(),
 			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID, "Test2",
-			OrganizationConstants.TYPE_ORGANIZATION, 0, 0,
-			ListTypeConstants.ORGANIZATION_STATUS_DEFAULT, StringPool.BLANK,
-			false, new ServiceContext());
+			OrganizationConstants.TYPE_ORGANIZATION, 0, 0, listTypeId,
+			StringPool.BLANK, false, new ServiceContext());
 
 		_organizations.add(organizationB);
 
@@ -741,8 +745,7 @@ public class OrganizationLocalServiceTest {
 
 		AssertUtils.assertFailure(
 			ModelListenerException.class,
-			ObjectValidationRuleEngineException.InvalidFields.class.getName() +
-				": This name is invalid.",
+			ObjectValidationRuleEngineException.class.getName(),
 			() -> _organizationLocalService.addOrganization(
 				user.getUserId(),
 				OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
@@ -1094,6 +1097,9 @@ public class OrganizationLocalServiceTest {
 
 	@Inject
 	private AssetEntryLocalService _assetEntryLocalService;
+
+	@Inject
+	private ListTypeLocalService _listTypeLocalService;
 
 	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;

@@ -1,4 +1,4 @@
-@component-name = "OSB Site Initializer Partner Portal"
+@component-name = "portal-solutions"
 definition {
 
 	property custom.properties = "feature.flag.LPS-135430=true";
@@ -6,6 +6,7 @@ definition {
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+	property test.liferay.virtual.instance = "true";
 	property testray.main.component.name = "OSB Site Initializer Partner Portal";
 
 	setUp {
@@ -62,6 +63,8 @@ definition {
 	@description = "This is a test for LPS-195724. Verify that it's possible to delete the MDF Request while in draft status."
 	@priority = 5
 	test CanDeleteInDraftStatus {
+		property portal.acceptance = "true";
+
 		task ("Given the PMU Fill MDF Request and save as draft") {
 			PRMMarketing.gotoAddNewMDF();
 
@@ -324,6 +327,7 @@ definition {
 	@description = "This is a test for LPS-173731. Verify that is possible to export filtered MDFs"
 	@priority = 4
 	test CanExportSearchedMDFs {
+		property portal.acceptance = "true";
 		property solutions.acceptance = "true";
 
 		task ("Given that a new account is created") {
@@ -554,6 +558,10 @@ definition {
 				targetOfLeads = 03,
 				targetRolesOptions = "Administrator",
 				typeOfActivity = "Miscellaneous Marketing");
+
+			Button.click(button = "See MDF Home");
+
+			PRMNavigator.openSitePage(pageName = "MDF Requests");
 		}
 
 		task ("Then the MDF status appears on list") {
@@ -566,6 +574,7 @@ definition {
 	@description = "This is a test for LPS-173507. Verify that the detail page displays all the information the partner entered on MDF Request Form"
 	@priority = 5
 	test DetailPageDisplaysAllMDFInformation {
+		property portal.acceptance = "true";
 		property solutions.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -1061,7 +1070,7 @@ definition {
 				buttonLink = "mdf-requests",
 				buttonText = "MDFs");
 
-			PRMMDFRequest.goToMDF(campaignName = "Campaign Name");
+			PRMMDFRequest.goToMDF(campaignName = "Campaign Name 1");
 
 			PRMMDFRequest.changeMDFStatus(key_statusButton = "Approve");
 		}
@@ -1077,7 +1086,7 @@ definition {
 				buttonLink = "mdf-requests",
 				buttonText = "MDFs");
 
-			PRMMDFRequest.goToMDF(campaignName = "Campaign Name");
+			PRMMDFRequest.goToMDF(campaignName = "Campaign Name 1");
 
 			PRMMDFClaim.createNewClaim(
 				listLeads = "Document_1.xlsx",
@@ -1115,7 +1124,7 @@ definition {
 				buttonLink = "mdf-requests",
 				buttonText = "MDFs");
 
-			PRMMDFRequest.goToMDF(campaignName = "Campaign Name");
+			PRMMDFRequest.goToMDF(campaignName = "Campaign Name 1");
 
 			PRMMDFRequest.changeMDFStatus(key_statusButton = "Approve");
 		}
@@ -1131,7 +1140,7 @@ definition {
 				buttonLink = "mdf-requests",
 				buttonText = "MDFs");
 
-			PRMMDFRequest.goToMDF(campaignName = "Campaign Name");
+			PRMMDFRequest.goToMDF(campaignName = "Campaign Name 1");
 
 			PRMMDFClaim.createNewClaim(
 				listLeads = "Document_1.xlsx",

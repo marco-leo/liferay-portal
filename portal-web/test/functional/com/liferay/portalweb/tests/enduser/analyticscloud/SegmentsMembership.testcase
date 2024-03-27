@@ -30,10 +30,6 @@ definition {
 			ACUtils.createBlogsAndAddToPage();
 		}
 
-		task ("Connect the DXP to AC") {
-			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
-		}
-
 		task ("Add 3 more new users") {
 			for (var name : list ${usernameList}) {
 				JSONUser.addUser(
@@ -49,17 +45,13 @@ definition {
 			}
 		}
 
-		task ("Sync the Contact Data") {
-			ACDXPSettings.syncNewContactData();
+		task ("Connect the DXP to AC") {
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
 	}
 
 	tearDown {
 		var testLiferayVirtualInstance = PropsUtil.get("test.liferay.virtual.instance");
-
-		// It is not possible to delete properties and data source after LRAC-13389. This functionality should return after LRAC-8040
-
-		//ACUtils.tearDownAC();
 
 		ACUtils.tearDownDXP();
 
@@ -69,6 +61,8 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
+
+		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8523 | Test Summary: Assert segment membership list shows all known individuals"
@@ -467,7 +461,7 @@ definition {
 
 			ACSegments.addSegmentField(segmentField = "givenName");
 
-			ACSegments.selectOperator(operator = "is unknown");
+			ACSegments.selectOperator(operator = "is known");
 		}
 
 		task ("View members of preview segment") {

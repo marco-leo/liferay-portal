@@ -39,13 +39,6 @@ AccountEntry accountEntry = commerceOrderContentDisplayContext.getAccountEntry()
 if (commerceOrder != null) {
 	accountEntry = commerceOrder.getAccountEntry();
 }
-
-String backURL = ParamUtil.getString(request, "backURL", null);
-
-if (backURL != null) {
-	portletDisplay.setShowBackIcon(true);
-	portletDisplay.setURLBack(backURL);
-}
 %>
 
 <liferay-ui:error exception="<%= CommerceOrderValidatorException.class %>">
@@ -73,7 +66,7 @@ if (backURL != null) {
 	<div class="commerce-panel__content">
 		<div class="align-items-center row">
 			<div class="col-md-3">
-				<div class="commerce-order-title">
+				<div class="autofit-col-expand commerce-order-title">
 					<%= HtmlUtil.escape(accountEntry.getName()) %>
 				</div>
 			</div>

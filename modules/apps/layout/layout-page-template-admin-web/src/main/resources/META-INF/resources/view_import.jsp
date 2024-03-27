@@ -12,11 +12,12 @@ ImportDisplayContext importDisplayContext = new ImportDisplayContext(request, re
 
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(ParamUtil.getString(request, "backURL", String.valueOf(renderResponse.createRenderURL())));
+portletDisplay.setURLBackTitle(portletDisplay.getPortletDisplayName());
 
 renderResponse.setTitle(LanguageUtil.get(request, "import"));
 %>
 
 <react:component
-	module="js/ImportPageTemplates"
+	module="{ImportPageTemplates} from layout-page-template-admin-web"
 	props="<%= importDisplayContext.getProps() %>"
 />

@@ -122,8 +122,15 @@
 		<finder name="ObjectFolderId" return-type="Collection">
 			<finder-column name="objectFolderId" />
 		</finder>
+		<finder name="AccountEntryRestricted" return-type="Collection">
+			<finder-column name="accountEntryRestricted" />
+		</finder>
 		<finder name="System" return-type="Collection">
 			<finder-column name="system" />
+		</finder>
+		<finder name="C_RODI" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="rootObjectDefinitionId" />
 		</finder>
 		<finder name="C_C" return-type="ObjectDefinition">
 			<finder-column name="companyId" />
@@ -183,6 +190,7 @@
 		<!-- Other fields -->
 
 		<column name="objectDefinitionId" type="long" />
+		<column name="rootObjectEntryId" type="long" />
 		<column name="lastPublishDate" type="Date" />
 		<column name="status" type="int" />
 		<column name="statusByUserId" type="long" />
@@ -226,6 +234,11 @@
 			<finder-column name="groupId" />
 			<finder-column name="objectDefinitionId" />
 			<finder-column name="status" />
+		</finder>
+		<finder name="U_GtCD_ODI" return-type="Collection">
+			<finder-column name="userId" />
+			<finder-column comparator="&gt;" name="createDate" />
+			<finder-column name="objectDefinitionId" />
 		</finder>
 	</entity>
 	<entity local-service="true" name="ObjectField" remote-service="true" uuid="true">
@@ -581,6 +594,10 @@
 	</entity>
 	<entity local-service="true" name="ObjectRelationship" remote-service="true" uuid="true">
 
+		<!-- External reference code -->
+
+		<column name="externalReferenceCode" type="String" />
+
 		<!-- PK fields -->
 
 		<column name="objectRelationshipId" primary="true" type="long" />
@@ -619,6 +636,9 @@
 		<finder name="ObjectFieldId2" return-type="ObjectRelationship">
 			<finder-column name="objectFieldId2" />
 		</finder>
+		<finder name="ParameterObjectFieldId" return-type="Collection">
+			<finder-column name="parameterObjectFieldId" />
+		</finder>
 		<finder name="ODI1_E" return-type="Collection">
 			<finder-column name="objectDefinitionId1" />
 			<finder-column name="edge" />
@@ -634,6 +654,15 @@
 		<finder name="ODI2_R" return-type="Collection">
 			<finder-column name="objectDefinitionId2" />
 			<finder-column name="reverse" />
+		</finder>
+		<finder name="DTN_R" return-type="ObjectRelationship">
+			<finder-column name="dbTableName" />
+			<finder-column name="reverse" />
+		</finder>
+		<finder name="ERC_C_ODI1" return-type="ObjectRelationship">
+			<finder-column name="externalReferenceCode" />
+			<finder-column name="companyId" />
+			<finder-column name="objectDefinitionId1" />
 		</finder>
 		<finder name="ODI1_ODI2_T" return-type="Collection">
 			<finder-column name="objectDefinitionId1" />
@@ -795,6 +824,10 @@
 			<finder-column name="objectDefinitionId" />
 			<finder-column name="active" />
 		</finder>
+		<finder name="ODI_E" return-type="Collection">
+			<finder-column name="objectDefinitionId" />
+			<finder-column name="engine" />
+		</finder>
 		<finder name="ODI_O" return-type="Collection">
 			<finder-column name="objectDefinitionId" />
 			<finder-column name="outputType" />
@@ -833,6 +866,10 @@
 		<finder name="OVRI_N" return-type="Collection">
 			<finder-column name="objectValidationRuleId" />
 			<finder-column name="name" />
+		</finder>
+		<finder name="N_V" return-type="ObjectValidationRuleSetting">
+			<finder-column name="name" />
+			<finder-column name="value" />
 		</finder>
 		<finder name="OVRI_N_V" return-type="ObjectValidationRuleSetting" unique="true">
 			<finder-column name="objectValidationRuleId" />
@@ -968,6 +1005,7 @@
 		<exception>DefaultObjectView</exception>
 		<exception>DuplicateObjectFieldExternalReferenceCode</exception>
 		<exception>DuplicateObjectRelationship</exception>
+		<exception>DuplicateObjectRelationshipExternalReferenceCode</exception>
 		<exception>ObjectActionConditionExpression</exception>
 		<exception>ObjectActionErrorMessage</exception>
 		<exception>ObjectActionExecutorKey</exception>
@@ -1012,6 +1050,7 @@
 		<exception>ObjectFieldState</exception>
 		<exception>ObjectFieldSystem</exception>
 		<exception>ObjectFilter</exception>
+		<exception>ObjectFolderItemObjectDefinitionId</exception>
 		<exception>ObjectFolderLabel</exception>
 		<exception>ObjectFolderName</exception>
 		<exception>ObjectLayoutBoxCategorizationType</exception>
@@ -1037,5 +1076,6 @@
 		<exception>RequiredObjectDefinition</exception>
 		<exception>RequiredObjectField</exception>
 		<exception>RequiredObjectRelationship</exception>
+		<exception>RequiredObjectValidationRuleSetting</exception>
 	</exceptions>
 </service-builder>

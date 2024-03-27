@@ -8,13 +8,16 @@ package com.liferay.jenkins.results.parser;
 import java.io.UnsupportedEncodingException;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeoutException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.dom4j.Element;
 
@@ -23,7 +26,12 @@ import org.dom4j.Element;
  */
 public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 
+	@Override
 	public void addDownstreamBuilds(Map<String, String> urlAxisNames) {
+		if (urlAxisNames.isEmpty()) {
+			return;
+		}
+
 		final Build thisBuild = this;
 
 		List<Callable<Build>> callables = new ArrayList<>(urlAxisNames.size());
@@ -42,41 +50,55 @@ public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 
 			if (!hasBuildURL(url)) {
 				final String axisName = urlEntry.getValue();
+
 				final String buildURL = url;
 
-				Callable<Build> callable = new Callable<Build>() {
+				Matcher matcher = _buildURLPattern.matcher(buildURL);
 
-					@Override
-					public Build call() {
-						try {
-							return BuildFactory.newBuild(
-								buildURL, thisBuild, axisName);
-						}
-						catch (RuntimeException runtimeException) {
-							if (!isFromArchive()) {
-								NotificationUtil.sendSlackNotification(
-									runtimeException.getMessage() +
-										"\nBuild URL: " + buildURL,
-									"ci-notifications", "Build Object Failure");
+				String hostname = null;
+
+				if (matcher.matches()) {
+					hostname = matcher.group("hostname");
+				}
+
+				ParallelExecutor.SequentialCallable<Build> callable =
+					new ParallelExecutor.SequentialCallable<Build>(hostname) {
+
+						@Override
+						public Build call() {
+							try {
+								return BuildFactory.newBuild(
+									buildURL, thisBuild, axisName);
 							}
+							catch (RuntimeException runtimeException) {
+								if (!isFromArchive()) {
+									NotificationUtil.sendSlackNotification(
+										runtimeException.getMessage() +
+											"\nBuild URL: " +
+												thisBuild.getBuildURL(),
+										"ci-notifications",
+										"Build Object Failure");
+								}
 
-							return null;
+								return null;
+							}
 						}
-					}
 
-				};
+					};
 
 				callables.add(callable);
 			}
 		}
 
 		ParallelExecutor<Build> parallelExecutor = new ParallelExecutor<>(
-			callables, true, getExecutorService());
+			callables, true, getExecutorService(), "addDownstreamBuilds");
 
-		List<Build> downstreamBuilds = getDownstreamBuilds();
-
-		downstreamBuilds.addAll(
-			parallelExecutor.execute(1000L * 60L * 60L * 3L));
+		try {
+			addDownstreamBuilds(parallelExecutor.execute(60L * 30L));
+		}
+		catch (TimeoutException timeoutException) {
+			throw new RuntimeException(timeoutException);
+		}
 	}
 
 	@Override
@@ -103,14 +125,14 @@ public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 	}
 
 	@Override
-	public synchronized List<Build> getDownstreamBuilds() {
+	public List<Build> getDownstreamBuilds() {
 		if (_downstreamBuilds != null) {
-			return _downstreamBuilds;
+			return new ArrayList<>(_downstreamBuilds);
 		}
 
 		_downstreamBuilds = new ArrayList<>();
 
-		return _downstreamBuilds;
+		return new ArrayList<>(_downstreamBuilds);
 	}
 
 	@Override
@@ -238,9 +260,7 @@ public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 	public List<Build> getModifiedDownstreamBuildsByStatus(String status) {
 		List<Build> modifiedDownstreamBuilds = new ArrayList<>();
 
-		List<Build> downstreamBuilds = getDownstreamBuilds();
-
-		for (Build downstreamBuild : downstreamBuilds) {
+		for (Build downstreamBuild : getDownstreamBuilds()) {
 			if (downstreamBuild.isBuildModified()) {
 				modifiedDownstreamBuilds.add(downstreamBuild);
 
@@ -313,7 +333,7 @@ public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 		int totalSlavesUsedCount = 1;
 
 		if (ignoreCurrentBuild || (modifiedBuildsOnly && !isBuildModified()) ||
-			((status != null) && !this.status.equals(status))) {
+			((status != null) && !status.equals(getStatus()))) {
 
 			totalSlavesUsedCount = 0;
 		}
@@ -371,9 +391,7 @@ public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 			return true;
 		}
 
-		List<Build> downstreamBuilds = getDownstreamBuilds();
-
-		for (Build downstreamBuild : downstreamBuilds) {
+		for (Build downstreamBuild : getDownstreamBuilds()) {
 			if (downstreamBuild.hasBuildURL(buildURL)) {
 				return true;
 			}
@@ -393,18 +411,16 @@ public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 
 	@Override
 	public boolean hasModifiedDownstreamBuilds() {
-		List<Build> downstreamBuilds = getDownstreamBuilds();
-
-		for (Build build : downstreamBuilds) {
-			if (build.isBuildModified()) {
+		for (Build downstreamBuild : getDownstreamBuilds()) {
+			if (downstreamBuild.isBuildModified()) {
 				return true;
 			}
 
-			if (!(build instanceof ParentBuild)) {
+			if (!(downstreamBuild instanceof ParentBuild)) {
 				continue;
 			}
 
-			ParentBuild parentBuild = (ParentBuild)build;
+			ParentBuild parentBuild = (ParentBuild)downstreamBuild;
 
 			if (parentBuild.hasModifiedDownstreamBuilds()) {
 				return true;
@@ -416,9 +432,11 @@ public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 
 	@Override
 	public void removeDownstreamBuild(Build build) {
-		List<Build> downstreamBuilds = getDownstreamBuilds();
+		if (_downstreamBuilds == null) {
+			getDownstreamBuilds();
+		}
 
-		downstreamBuilds.remove(build);
+		_downstreamBuilds.remove(build);
 	}
 
 	@Override
@@ -439,46 +457,67 @@ public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 	}
 
 	@Override
+	public void reset() {
+		super.reset();
+
+		if (_downstreamBuilds != null) {
+			_downstreamBuilds.clear();
+		}
+	}
+
+	@Override
 	public void update() {
 		if (skipUpdate()) {
 			return;
 		}
-
-		super.update();
 
 		List<Build> downstreamBuilds = getDownstreamBuilds(null);
 
 		List<Callable<Object>> callables = new ArrayList<>();
 
 		for (final Build downstreamBuild : downstreamBuilds) {
-			Callable<Object> callable = new Callable<Object>() {
+			String status = downstreamBuild.getStatus();
 
-				@Override
-				public Object call() {
-					downstreamBuild.update();
+			if (status.equals("completed")) {
+				continue;
+			}
 
-					return null;
-				}
+			JenkinsMaster jenkinsMaster = downstreamBuild.getJenkinsMaster();
 
-			};
+			ParallelExecutor.SequentialCallable<Object> callable =
+				new ParallelExecutor.SequentialCallable<Object>(
+					jenkinsMaster.getName()) {
+
+					@Override
+					public Object call() {
+						downstreamBuild.update();
+
+						return null;
+					}
+
+				};
 
 			callables.add(callable);
 		}
 
 		ParallelExecutor<Object> parallelExecutor = new ParallelExecutor<>(
-			callables, getExecutorService());
+			callables, getExecutorService(), "update");
 
-		parallelExecutor.execute();
-
-		String result = getResult();
-
-		if ((result != null) &&
-			(downstreamBuilds.size() == getDownstreamBuildCount("completed"))) {
-
-			setResult(result);
+		try {
+			if (Objects.equals(getJobName(), "test-portal-release")) {
+				parallelExecutor.execute(60L * 240L);
+			}
+			else {
+				parallelExecutor.execute();
+			}
+		}
+		catch (TimeoutException timeoutException) {
+			throw new RuntimeException(timeoutException);
 		}
 
 		findDownstreamBuilds();
+
+		super.update();
 	}
 
 	protected BaseParentBuild(String url) {
@@ -489,11 +528,27 @@ public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 		super(url, parentBuild);
 	}
 
+	protected void addDownstreamBuilds(Collection<Build> builds) {
+		if (builds == null) {
+			return;
+		}
+
+		builds.removeAll(Collections.singleton(null));
+
+		if (_downstreamBuilds == null) {
+			getDownstreamBuilds();
+		}
+
+		_downstreamBuilds.addAll(builds);
+	}
+
 	protected void addDownstreamBuildsTimelineData(TimelineData timelineData) {
 		for (Build downstreamBuild : getDownstreamBuilds(null)) {
 			downstreamBuild.addTimelineData(timelineData);
 		}
 	}
+
+	protected abstract void findDownstreamBuilds();
 
 	@Override
 	protected List<Callable<Object>> getArchiveCallables() {
@@ -535,47 +590,50 @@ public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 		return count;
 	}
 
-	protected Map<Build, Element> getDownstreamBuildMessages(
+	protected List<Element> getDownstreamBuildMessageElements(
 		List<Build> downstreamBuilds) {
 
 		List<Callable<Element>> callables = new ArrayList<>();
 
 		for (final Build downstreamBuild : downstreamBuilds) {
-			Callable<Element> callable = new Callable<Element>() {
+			JenkinsMaster jenkinsMaster = downstreamBuild.getJenkinsMaster();
 
-				public Element call() {
-					return downstreamBuild.getGitHubMessageElement();
-				}
+			ParallelExecutor.SequentialCallable<Element> callable =
+				new ParallelExecutor.SequentialCallable<Element>(
+					jenkinsMaster.getName()) {
 
-			};
+					public Element call() {
+						return downstreamBuild.getGitHubMessageElement();
+					}
+
+				};
 
 			callables.add(callable);
 		}
 
 		ParallelExecutor<Element> parallelExecutor = new ParallelExecutor<>(
-			callables, getExecutorService());
+			callables, getExecutorService(), "getDownstreamBuildMessages");
 
-		List<Element> elements = parallelExecutor.execute();
-
-		Map<Build, Element> elementsMap = new LinkedHashMap<>();
-
-		for (int i = 0; i < elements.size(); i++) {
-			elementsMap.put(downstreamBuilds.get(i), elements.get(i));
+		try {
+			return parallelExecutor.execute();
 		}
-
-		return elementsMap;
+		catch (TimeoutException timeoutException) {
+			throw new RuntimeException(timeoutException);
+		}
 	}
 
 	protected List<Build> getFailedDownstreamBuilds() {
 		List<Build> failedDownstreamBuilds = new ArrayList<>();
 
 		failedDownstreamBuilds.addAll(getDownstreamBuilds("ABORTED", null));
+		failedDownstreamBuilds.addAll(getDownstreamBuilds("MISSING", null));
 		failedDownstreamBuilds.addAll(getDownstreamBuilds("FAILURE", null));
 		failedDownstreamBuilds.addAll(getDownstreamBuilds("UNSTABLE", null));
 
 		return failedDownstreamBuilds;
 	}
 
+	@Override
 	protected List<Element> getJenkinsReportTableRowElements(
 		String result, String status) {
 
@@ -617,43 +675,23 @@ public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 	}
 
 	@Override
-	protected void reset() {
-		super.reset();
-
-		List<Build> downstreamBuilds = getDownstreamBuilds();
-
-		downstreamBuilds.clear();
-	}
-
-	@Override
-	protected void setResult(String result) {
-		this.result = result;
-
-		if ((result == null) ||
-			(getDownstreamBuildCount("completed") < getDownstreamBuildCount(
-				null))) {
-
-			setStatus("running");
-		}
-		else {
-			setStatus("completed");
-		}
-	}
-
-	@Override
 	protected boolean skipUpdate() {
-		if (isBuildModified() || hasModifiedDownstreamBuilds()) {
-			return false;
-		}
+		boolean skipUpdate = super.skipUpdate();
 
-		String status = getStatus();
-
-		if (!status.equals("completed")) {
+		if (!skipUpdate || hasModifiedDownstreamBuilds()) {
 			return false;
 		}
 
 		return true;
 	}
+
+	protected void sortDownstreamBuilds() {
+		Collections.sort(
+			_downstreamBuilds, new BaseBuild.BuildDisplayNameComparator());
+	}
+
+	private static final Pattern _buildURLPattern = Pattern.compile(
+		"http[s]?\\:\\/\\/(?<hostname>[^\\/]+)\\/.*");
 
 	private List<Build> _downstreamBuilds;
 

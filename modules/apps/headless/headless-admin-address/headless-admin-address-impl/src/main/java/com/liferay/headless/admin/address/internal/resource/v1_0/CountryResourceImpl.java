@@ -7,6 +7,7 @@ package com.liferay.headless.admin.address.internal.resource.v1_0;
 
 import com.liferay.headless.admin.address.dto.v1_0.Country;
 import com.liferay.headless.admin.address.resource.v1_0.CountryResource;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.CountryTable;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Sort;
@@ -25,7 +26,10 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -118,6 +122,16 @@ public class CountryResourceImpl extends BaseCountryResourceImpl {
 				ServiceContextFactory.getInstance(
 					Country.class.getName(), contextHttpServletRequest));
 
+		if (country.getTitle_i18n() == null) {
+			Map<String, String> titleMap = new HashMap<>();
+
+			for (Locale locale : _language.getAvailableLocales()) {
+				titleMap.put(_language.getLanguageId(locale), null);
+			}
+
+			country.setTitle_i18n(titleMap);
+		}
+
 		_countryLocalService.updateCountryLocalizations(
 			serviceBuilderCountry, country.getTitle_i18n());
 
@@ -127,6 +141,7 @@ public class CountryResourceImpl extends BaseCountryResourceImpl {
 				GetterUtil.getBoolean(country.getGroupFilterEnabled())));
 	}
 
+	@Override
 	public Country putCountry(Long countryId, Country country)
 		throws Exception {
 
@@ -140,6 +155,16 @@ public class CountryResourceImpl extends BaseCountryResourceImpl {
 				GetterUtil.getDouble(country.getPosition()),
 				GetterUtil.getBoolean(country.getShippingAllowed(), true),
 				GetterUtil.getBoolean(country.getSubjectToVAT()));
+
+		if (country.getTitle_i18n() == null) {
+			Map<String, String> titleMap = new HashMap<>();
+
+			for (Locale locale : _language.getAvailableLocales()) {
+				titleMap.put(_language.getLanguageId(locale), null);
+			}
+
+			country.setTitle_i18n(titleMap);
+		}
 
 		_countryLocalService.updateCountryLocalizations(
 			serviceBuilderCountry, country.getTitle_i18n());
@@ -192,5 +217,8 @@ public class CountryResourceImpl extends BaseCountryResourceImpl {
 
 	@Reference
 	private CountryService _countryService;
+
+	@Reference
+	private Language _language;
 
 }

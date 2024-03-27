@@ -5,7 +5,6 @@
 
 package com.liferay.jenkins.plugin.events;
 
-import com.liferay.jenkins.plugin.events.jms.JMSConnection;
 import com.liferay.jenkins.plugin.events.jms.JMSFactory;
 import com.liferay.jenkins.plugin.events.jms.JMSQueue;
 import com.liferay.jenkins.plugin.events.listener.JMSMessageListener;
@@ -37,31 +36,30 @@ public class JenkinsEventsDescriptor
 		JenkinsEventsUtil.setJenkinsEventsDescriptor(this);
 	}
 
-	public void addEventTrigger(EventTrigger eventTrigger) {
-		_eventTriggers.add(eventTrigger);
+	public void addEventType(EventType eventType) {
+		_eventTypes.add(eventType);
 	}
 
-	public void clearEventTriggers() {
-		_eventTriggers.clear();
+	public void clearEventTypes() {
+		_eventTypes.clear();
 	}
 
-	public boolean containsEventTrigger(EventTrigger eventTrigger) {
-		if (eventTrigger == null) {
+	public boolean containsEventType(EventType eventType) {
+		if (eventType == null) {
 			return false;
 		}
 
-		if (_eventTriggers.contains(eventTrigger)) {
+		if (_eventTypes.contains(eventType)) {
 			return true;
 		}
 
 		return false;
 	}
 
-	public boolean containsEventTrigger(String eventTriggerString) {
-		for (EventTrigger eventTrigger : EventTrigger.values()) {
-			if (Objects.equals(eventTriggerString, eventTrigger.toString())) {
-				return containsEventTrigger(
-					EventTrigger.valueOf(eventTriggerString));
+	public boolean containsEventType(String eventTypeString) {
+		for (EventType eventType : EventType.values()) {
+			if (Objects.equals(eventTypeString, eventType.toString())) {
+				return containsEventType(EventType.valueOf(eventTypeString));
 			}
 		}
 
@@ -73,8 +71,8 @@ public class JenkinsEventsDescriptor
 		return this;
 	}
 
-	public List<EventTrigger> getEventTriggers() {
-		return _eventTriggers;
+	public List<EventType> getEventTypes() {
+		return _eventTypes;
 	}
 
 	public String getInboundQueueName() {
@@ -97,21 +95,23 @@ public class JenkinsEventsDescriptor
 		return _userPassword;
 	}
 
-	public void publish(String payload, EventTrigger eventTrigger) {
+	public void publish(String payload, EventType eventType) {
 		String outboundQueueName = getOutboundQueueName();
 
-		if (!containsEventTrigger(eventTrigger) ||
-			(outboundQueueName == null) || outboundQueueName.isEmpty()) {
+		if (!containsEventType(eventType) || (outboundQueueName == null) ||
+			outboundQueueName.isEmpty()) {
 
 			return;
 		}
 
-		JMSConnection jmsConnection = JMSFactory.newJMSConnection(getUrl());
+		if (_outboundJMSQueue == null) {
+			_outboundJMSQueue = JMSFactory.newJMSQueue(
+				getUrl(), outboundQueueName, _userName, _userPassword);
 
-		JMSQueue jmsQueue = JMSFactory.newJMSQueue(
-			jmsConnection, outboundQueueName);
+			_outboundJMSQueue.connect();
+		}
 
-		jmsQueue.publish(payload);
+		_outboundJMSQueue.publish(payload);
 	}
 
 	public void setInboundQueueName(String inboundQueueName) {
@@ -139,25 +139,54 @@ public class JenkinsEventsDescriptor
 	}
 
 	public void subscribe() {
-		if (((_inboundQueueName == null) || _inboundQueueName.isEmpty()) &&
-			((_url == null) || _url.isEmpty())) {
-
-			return;
-		}
-
 		if ((_url == null) || _url.isEmpty()) {
 			return;
 		}
 
-		JMSConnection jmsConnection = JMSFactory.newJMSConnection(_url);
+		if ((_inboundQueueName != null) && !_inboundQueueName.isEmpty()) {
+			if (_inboundJMSQueue == null) {
+				_inboundJMSQueue = JMSFactory.newJMSQueue(
+					_url, _inboundQueueName, _userName, _userPassword);
+			}
+			else {
+				_inboundJMSQueue.unsubscribe();
 
-		JMSQueue jmsQueue = JMSFactory.newJMSQueue(
-			jmsConnection, _inboundQueueName);
+				_inboundJMSQueue.disconnect();
 
-		jmsQueue.subscribe(new JMSMessageListener());
+				_inboundJMSQueue.setBrokerURL(_url);
+				_inboundJMSQueue.setQueueName(_inboundQueueName);
+			}
+
+			_inboundJMSQueue.connect();
+
+			_inboundJMSQueue.subscribe(new JMSMessageListener());
+		}
+		else {
+			_inboundJMSQueue = null;
+		}
+
+		if ((_outboundQueueName != null) && !_outboundQueueName.isEmpty()) {
+			if (_outboundJMSQueue == null) {
+				_outboundJMSQueue = JMSFactory.newJMSQueue(
+					_url, _outboundQueueName, _userName, _userPassword);
+
+				_outboundJMSQueue.connect();
+			}
+			else {
+				_outboundJMSQueue.disconnect();
+
+				_outboundJMSQueue.setBrokerURL(_url);
+				_outboundJMSQueue.setQueueName(_outboundQueueName);
+
+				_outboundJMSQueue.connect();
+			}
+		}
+		else {
+			_outboundJMSQueue = null;
+		}
 	}
 
-	public enum EventTrigger {
+	public enum EventType {
 
 		BUILD_COMPLETED, BUILD_STARTED, COMPUTER_BUSY, COMPUTER_IDLE,
 		COMPUTER_OFFLINE, COMPUTER_ONLINE, COMPUTER_TEMPORARILY_OFFLINE,
@@ -168,8 +197,10 @@ public class JenkinsEventsDescriptor
 
 	}
 
-	private final List<EventTrigger> _eventTriggers = new ArrayList<>();
+	private final List<EventType> _eventTypes = new ArrayList<>();
+	private transient JMSQueue _inboundJMSQueue;
 	private String _inboundQueueName;
+	private transient JMSQueue _outboundJMSQueue;
 	private String _outboundQueueName;
 	private String _url;
 	private String _userName;

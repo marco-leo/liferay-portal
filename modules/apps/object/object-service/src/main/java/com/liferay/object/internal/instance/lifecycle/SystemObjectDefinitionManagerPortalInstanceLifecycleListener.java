@@ -46,13 +46,10 @@ import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ListTypeLocalService;
-import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
-
-import java.util.function.Supplier;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -76,29 +73,10 @@ public class SystemObjectDefinitionManagerPortalInstanceLifecycleListener
 			_log.debug("Registered portal instance " + company);
 		}
 
-		Supplier<ObjectFolder> objectFolderSupplier =
-			new Supplier<ObjectFolder>() {
-
-				@Override
-				public ObjectFolder get() {
-					if (_objectFolder == null) {
-						_objectFolder = _getUncategorizedObjectFolder(
-							company.getCompanyId());
-					}
-
-					return _objectFolder;
-				}
-
-				private ObjectFolder _objectFolder;
-
-			};
-
 		for (SystemObjectDefinitionManager systemObjectDefinitionManager :
 				_serviceTrackerList) {
 
-			_apply(
-				company.getCompanyId(), objectFolderSupplier,
-				systemObjectDefinitionManager);
+			_apply(company.getCompanyId(), systemObjectDefinitionManager);
 		}
 	}
 
@@ -135,9 +113,7 @@ public class SystemObjectDefinitionManagerPortalInstanceLifecycleListener
 					if (!_openingThreadLocal.get()) {
 						_companyLocalService.forEachCompanyId(
 							companyId -> _apply(
-								companyId,
-								() -> _getUncategorizedObjectFolder(companyId),
-								systemObjectDefinitionManager));
+								companyId, systemObjectDefinitionManager));
 					}
 
 					return systemObjectDefinitionManager;
@@ -172,7 +148,7 @@ public class SystemObjectDefinitionManagerPortalInstanceLifecycleListener
 	}
 
 	private void _apply(
-		long companyId, Supplier<ObjectFolder> objectFolderSupplier,
+		long companyId,
 		SystemObjectDefinitionManager systemObjectDefinitionManager) {
 
 		if (_log.isDebugEnabled()) {
@@ -191,7 +167,9 @@ public class SystemObjectDefinitionManagerPortalInstanceLifecycleListener
 				(objectDefinition.getVersion() !=
 					systemObjectDefinitionManager.getVersion())) {
 
-				ObjectFolder objectFolder = objectFolderSupplier.get();
+				ObjectFolder objectFolder =
+					_objectFolderLocalService.getOrAddDefaultObjectFolder(
+						companyId);
 
 				objectDefinition =
 					_objectDefinitionLocalService.
@@ -205,7 +183,7 @@ public class SystemObjectDefinitionManagerPortalInstanceLifecycleListener
 				new SystemObjectEntryItemSelectorView(
 					_dtoConverterRegistry, _itemSelector,
 					_itemSelectorViewDescriptorRenderer, objectDefinition,
-					_objectFieldLocalService,
+					_objectDefinitionLocalService, _objectFieldLocalService,
 					_objectRelatedModelsProviderRegistry, _portal,
 					_systemObjectDefinitionManagerRegistry, _userLocalService),
 				HashMapDictionaryBuilder.<String, Object>put(
@@ -247,7 +225,6 @@ public class SystemObjectDefinitionManagerPortalInstanceLifecycleListener
 				new SystemObjectMtoMObjectRelatedModelsProviderImpl(
 					objectDefinition, _objectDefinitionLocalService,
 					_objectFieldLocalService, _objectRelationshipLocalService,
-					_persistedModelLocalServiceRegistry,
 					systemObjectDefinitionManager,
 					_systemObjectDefinitionManagerRegistry));
 			_objectRelatedModelsProviderRegistrarHelper.register(
@@ -256,29 +233,11 @@ public class SystemObjectDefinitionManagerPortalInstanceLifecycleListener
 					objectDefinition, _objectDefinitionLocalService,
 					_objectEntryLocalService, _objectFieldLocalService,
 					_objectRelationshipLocalService,
-					_persistedModelLocalServiceRegistry,
 					systemObjectDefinitionManager,
 					_systemObjectDefinitionManagerRegistry));
 		}
 		catch (PortalException portalException) {
 			_log.error(portalException);
-		}
-	}
-
-	private ObjectFolder _getUncategorizedObjectFolder(long companyId) {
-		ObjectFolder objectFolder =
-			_objectFolderLocalService.fetchUncategorizedObjectFolder(companyId);
-
-		if (objectFolder != null) {
-			return objectFolder;
-		}
-
-		try {
-			return _objectFolderLocalService.addUncategorizedObjectFolder(
-				companyId);
-		}
-		catch (Exception exception) {
-			throw new RuntimeException(exception);
 		}
 	}
 
@@ -334,10 +293,6 @@ public class SystemObjectDefinitionManagerPortalInstanceLifecycleListener
 
 	@Reference
 	private ObjectScopeProviderRegistry _objectScopeProviderRegistry;
-
-	@Reference
-	private PersistedModelLocalServiceRegistry
-		_persistedModelLocalServiceRegistry;
 
 	@Reference
 	private Portal _portal;

@@ -1,6 +1,7 @@
 definition {
 
-	macro _curlAPIApplication {
+	@summary = "Default summary"
+	macro _curlAPIApplication(aPIApplicationId = null, virtualHost = null) {
 		if (isSet(virtualHost)) {
 			if (!(isSet(port))) {
 				var port = 8080;
@@ -30,20 +31,25 @@ definition {
 		return ${curl};
 	}
 
-	macro createAPIApplication {
-		Variables.assertDefined(parameterList = "${baseURL},${status},${title}");
+	@summary = "Default summary"
+	macro createAPIApplication(objectFieldErc = null, mainObjectDefinitionErc = null, endpointName = null, virtualHost = null, retrieveType = null, schemaName = null, pathParameter = null, endpointPath = null, baseURL = null, status = null) {
+		Variables.assertDefined(parameterList = "${baseURL},${title}");
 
 		var curl = ApplicationAPI._curlAPIApplication(virtualHost = ${virtualHost});
+		var titleWithoutSpace = StringUtil.removeSpaces(${title});
 
-		if (!(isSet(externalReferenceCodeApp))) {
-			var title = StringUtil.removeSpaces(${title});
+		if (!(isSet(externalReferenceCode))) {
+			var externalReferenceCode = ${titleWithoutSpace};
+		}
 
-			var externalReferenceCodeApp = ${title};
+		if (!(isSet(status))) {
+			var status = "unpublished";
 		}
 
 		var body = '''
 			"applicationStatus": {"key": "${status}","name": "${status}"},
 			"baseURL": "${baseURL}",
+			"externalReferenceCode": "${externalReferenceCode}",
 			"title": "${title}"
 		''';
 
@@ -52,53 +58,66 @@ definition {
 				var scopeKey = "company";
 			}
 
-			if (!(isSet(externalReferenceCodeEndpoint))) {
-				var externalReferenceCodeEndpoint = ${endpointName};
+			if (!(isSet(endpointERC))) {
+				var endpointERC = "${titleWithoutSpace}_${endpointName}";
 			}
 
-			var relatedEndpoint = '''
-				"apiApplicationToAPIEndpoints": [{
-					"externalReferenceCode": "${externalReferenceCodeEndpoint}",
-					"httpMethod": "get",
-					"name": "${endpointName}",
-					"path": "${endpointPath}",
-					"scope": {"key": "${scopeKey}"}
-				}]
-			''';
+			if (isSet(retrieveType)) {
+				var relatedEndpoint = '''
+					"apiApplicationToAPIEndpoints": [{
+						"externalReferenceCode": "${endpointERC}",
+						"httpMethod": "get",
+						"name": "${endpointName}",
+						"path": "${endpointPath}",
+						"pathParameter": "${pathParameter}",
+						"retrieveType": "${retrieveType}",
+						"scope": {"key": "${scopeKey}"}
+					}]
+				''';
+			}
+			else {
+				var relatedEndpoint = '''
+					"apiApplicationToAPIEndpoints": [{
+						"externalReferenceCode": "${endpointERC}",
+						"httpMethod": "get",
+						"name": "${endpointName}",
+						"path": "${endpointPath}",
+						"scope": {"key": "${scopeKey}"}
+					}]
+				''';
+			}
 
 			var body = StringUtil.add(${body}, ", ${relatedEndpoint}", "");
 		}
 
+		if (!(isSet(schemaERC))) {
+			var schemaERC = "${titleWithoutSpace}_${schemaName}";
+		}
+
 		if (isSet(relatedSchema)) {
 			if (isSet(objectFieldErc) && isSet(mainObjectDefinitionErc)) {
-				if (!(isSet(externalReferenceCodeSchema))) {
-					var externalReferenceCodeSchema = ${schemaName};
-				}
-
 				var relatedSchema = '''
-				"apiApplicationToAPISchemas": [
-    				{
-    				  "apiSchemaToAPIProperties": [
-    				    {
-    				      "objectFieldERC": "${objectFieldErc}",
-    				      "name": "${objectFieldErc}",
-    				      "description": "description"
-    				    }
-    				  ],
-					  "externalReferenceCode": "${externalReferenceCodeSchema}",
-    				  "mainObjectDefinitionERC": "${mainObjectDefinitionErc}",
-    				  "name": "${schemaName}",
-    				  "description": "description"
-    				}
-  				]
+					"apiApplicationToAPISchemas": [{
+						"apiSchemaToAPIProperties": [{
+							"objectFieldERC": "${objectFieldErc}",
+							"name": "${objectFieldErc}",
+							"description": "description"
+						}],
+						"externalReferenceCode": "${schemaERC}",
+						"mainObjectDefinitionERC": "${mainObjectDefinitionErc}",
+						"name": "${schemaName}",
+						"description": "description"
+					}]
 				''';
 			}
 			else {
 				var relatedSchema = '''
-				"apiApplicationToAPISchemas": [{
-					"mainObjectDefinitionERC": "${mainObjectDefinitionErc}",
-					"name": "${schemaName}"
-				}]
+					"apiApplicationToAPISchemas": [{
+						"description": "description",
+						"externalReferenceCode": "${schemaERC}",
+						"mainObjectDefinitionERC": "${mainObjectDefinitionErc}",
+						"name": "${schemaName}"
+					}]
 				''';
 			}
 
@@ -112,7 +131,8 @@ definition {
 		return ${response};
 	}
 
-	macro deleteAllAPIApplication {
+	@summary = "Default summary"
+	macro deleteAllAPIApplication() {
 		var getAPIApplicationList = ApplicationAPI.getAPIApplications();
 
 		var aPIApplicationIdList = JSONPathUtil.getProperty(
@@ -124,7 +144,8 @@ definition {
 		}
 	}
 
-	macro deleteAPIApplicationById {
+	@summary = "Default summary"
+	macro deleteAPIApplicationById(aPIApplicationId = null) {
 		Variables.assertDefined(parameterList = ${aPIApplicationId});
 
 		var curl = ApplicationAPI._curlAPIApplication(aPIApplicationId = ${aPIApplicationId});
@@ -132,7 +153,8 @@ definition {
 		JSONCurlUtil.delete(${curl});
 	}
 
-	macro getAPIApplications {
+	@summary = "Default summary"
+	macro getAPIApplications() {
 		var curl = ApplicationAPI._curlAPIApplication();
 
 		var response = JSONCurlUtil.get(${curl});
@@ -140,7 +162,8 @@ definition {
 		return ${response};
 	}
 
-	macro setUpGlobalAPIApplicationId {
+	@summary = "Default summary"
+	macro setUpGlobalAPIApplicationId() {
 		var response = ApplicationAPI.getAPIApplications();
 
 		var applicationId = JSONUtil.getWithJSONPath(${response}, "$.items[0].id");
@@ -150,7 +173,8 @@ definition {
 		return ${staticApplicationId};
 	}
 
-	macro updateAPIApplication {
+	@summary = "Default summary"
+	macro updateAPIApplication(parameter = null, aPIApplicationId = null, parameterValue = null) {
 		Variables.assertDefined(parameterList = "${aPIApplicationId},${parameter},${parameterValue}");
 
 		var curl = ApplicationAPI._curlAPIApplication(aPIApplicationId = ${aPIApplicationId});

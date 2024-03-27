@@ -5,6 +5,7 @@
 
 package com.liferay.layout.page.template.admin.web.internal.servlet.taglib.util;
 
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownContextItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
 import com.liferay.item.selector.ItemSelector;
@@ -76,7 +77,7 @@ public class MasterLayoutActionDropdownItemsProvider {
 			LayoutPageTemplateEntryServiceUtil.
 				fetchDefaultLayoutPageTemplateEntry(
 					_themeDisplay.getScopeGroupId(),
-					LayoutPageTemplateEntryTypeConstants.TYPE_MASTER_LAYOUT,
+					LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT,
 					WorkflowConstants.STATUS_APPROVED);
 		boolean hasUpdatePermission =
 			LayoutPageTemplateEntryPermission.contains(
@@ -157,11 +158,11 @@ public class MasterLayoutActionDropdownItemsProvider {
 		).addGroup(
 			dropdownGroupItem -> {
 				dropdownGroupItem.setDropdownItems(
-					DropdownItemListBuilder.add(
+					DropdownItemListBuilder.addContext(
 						() ->
 							(layoutPageTemplateEntryId > 0) &&
 							hasUpdatePermission,
-						_getCopyMasterLayoutActionUnsafeConsumer()
+						_getCopyMasterLayoutWithPermissionsActionUnsafeConsumer()
 					).build());
 				dropdownGroupItem.setSeparator(true);
 			}
@@ -195,31 +196,59 @@ public class MasterLayoutActionDropdownItemsProvider {
 		).build();
 	}
 
-	private UnsafeConsumer<DropdownItem, Exception>
-		_getCopyMasterLayoutActionUnsafeConsumer() {
+	private UnsafeConsumer<DropdownContextItem, Exception>
+		_getCopyMasterLayoutWithPermissionsActionUnsafeConsumer() {
 
-		return dropdownItem -> {
-			dropdownItem.putData("action", "copyMasterLayout");
-			dropdownItem.putData(
-				"copyMasterLayoutURL",
-				PortletURLBuilder.createActionURL(
-					_renderResponse
-				).setActionName(
-					"/layout_page_template_admin" +
-						"/copy_layout_page_template_entry"
-				).setRedirect(
-					_themeDisplay.getURLCurrent()
-				).setParameter(
-					"layoutPageTemplateCollectionId",
-					_layoutPageTemplateEntry.getLayoutPageTemplateCollectionId()
-				).setParameter(
-					"layoutPageTemplateEntryId",
-					_layoutPageTemplateEntry.getLayoutPageTemplateEntryId()
-				).buildString());
-			dropdownItem.setIcon("copy");
-			dropdownItem.setLabel(
+		return dropdownContextItem -> {
+			if (_layoutPageTemplateEntry.isDraft()) {
+				dropdownContextItem.setDisabled(true);
+			}
+			else {
+				dropdownContextItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						dropdownItem -> {
+							dropdownItem.putData("action", "copyMasterLayout");
+							dropdownItem.putData(
+								"copyMasterLayoutURL", _getCopyURL(false));
+							dropdownItem.setLabel(
+								LanguageUtil.get(
+									_httpServletRequest, "master-page"));
+						}
+					).add(
+						dropdownItem -> {
+							dropdownItem.putData("action", "copyMasterLayout");
+							dropdownItem.putData(
+								"copyMasterLayoutURL", _getCopyURL(true));
+							dropdownItem.setLabel(
+								LanguageUtil.get(
+									_httpServletRequest,
+									"master-page-with-permissions"));
+						}
+					).build());
+			}
+
+			dropdownContextItem.setIcon("copy");
+			dropdownContextItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "make-a-copy"));
 		};
+	}
+
+	private String _getCopyURL(boolean copyPermissions) {
+		return PortletURLBuilder.createActionURL(
+			_renderResponse
+		).setActionName(
+			"/layout_page_template_admin/copy_layout_page_template_entry"
+		).setRedirect(
+			_themeDisplay.getURLCurrent()
+		).setParameter(
+			"copyPermissions", copyPermissions
+		).setParameter(
+			"layoutPageTemplateCollectionId",
+			_layoutPageTemplateEntry.getLayoutPageTemplateCollectionId()
+		).setParameter(
+			"layoutPageTemplateEntryId",
+			_layoutPageTemplateEntry.getLayoutPageTemplateEntryId()
+		).buildString();
 	}
 
 	private UnsafeConsumer<DropdownItem, Exception>
@@ -441,7 +470,7 @@ public class MasterLayoutActionDropdownItemsProvider {
 				LayoutPageTemplateEntryServiceUtil.
 					fetchDefaultLayoutPageTemplateEntry(
 						_layoutPageTemplateEntry.getGroupId(),
-						LayoutPageTemplateEntryTypeConstants.TYPE_MASTER_LAYOUT,
+						LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT,
 						WorkflowConstants.STATUS_APPROVED);
 
 			if (defaultLayoutPageTemplateEntry != null) {

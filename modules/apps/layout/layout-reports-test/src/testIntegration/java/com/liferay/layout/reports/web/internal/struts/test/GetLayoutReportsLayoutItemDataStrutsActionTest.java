@@ -169,7 +169,7 @@ public class GetLayoutReportsLayoutItemDataStrutsActionTest {
 			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
 				TestPropsValues.getUserId(), _group.getGroupId(), 0,
 				RandomTestUtil.randomString(),
-				LayoutPageTemplateEntryTypeConstants.TYPE_MASTER_LAYOUT, 0,
+				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT, 0,
 				WorkflowConstants.STATUS_APPROVED,
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
@@ -389,7 +389,7 @@ public class GetLayoutReportsLayoutItemDataStrutsActionTest {
 			fragmentCollection.getFragmentCollectionId(), null,
 			RandomTestUtil.randomString(), StringPool.BLANK,
 			"Fragment Entry HTML", StringPool.BLANK, cacheable, null, null, 0,
-			FragmentConstants.TYPE_COMPONENT, null,
+			false, FragmentConstants.TYPE_COMPONENT, null,
 			WorkflowConstants.STATUS_APPROVED, _serviceContext);
 	}
 

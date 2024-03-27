@@ -21,6 +21,7 @@ userTracker = userTracker.toEscapedModel();
 
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(redirect);
+portletDisplay.setURLBackTitle(portletDisplay.getPortletDisplayName());
 
 renderResponse.setTitle(LanguageUtil.format(request, "session-id-x", sessionId, false));
 %>
@@ -89,7 +90,7 @@ renderResponse.setTitle(LanguageUtil.format(request, "session-id-x", sessionId, 
 									<liferay-ui:message key="last-request" />
 								</dt>
 								<dd>
-									<%= dateFormatDateTime.format(userTracker.getModifiedDate()) %>
+									<%= dateTimeFormat.format(userTracker.getModifiedDate()) %>
 								</dd>
 								<dt class="h4">
 									<liferay-ui:message key="num-of-hits" />
@@ -128,7 +129,7 @@ renderResponse.setTitle(LanguageUtil.format(request, "session-id-x", sessionId, 
 										<%= StringUtil.replace(userTrackerPath.getPath(), '&', "& ") %>
 									</dt>
 									<dd>
-										<%= dateFormatDateTime.format(userTrackerPath.getPathDate()) %>
+										<%= dateTimeFormat.format(userTrackerPath.getPathDate()) %>
 									</dd>
 
 								<%

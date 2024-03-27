@@ -22,7 +22,6 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.NoSuchModelException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.model.Resource;
 import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -38,6 +37,7 @@ import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalServiceUtil;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.GroupThreadLocal;
@@ -46,6 +46,7 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.odata.filter.ExpressionConvert;
 import com.liferay.portal.odata.filter.FilterParser;
@@ -84,6 +85,7 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -122,6 +124,7 @@ public abstract class Base${schemaName}ResourceImpl
 		generatePatchMethods = false
 		getParentBatchJavaMethodSignatures = []
 		postParentBatchJavaMethodSignatures = []
+		postParentByERCBatchJavaMethodSignatures = []
 	/>
 
 	<#list javaMethodSignatures as javaMethodSignature>
@@ -163,6 +166,8 @@ public abstract class Base${schemaName}ResourceImpl
 					<#assign postBatchJavaMethodSignature = javaMethodSignature />
 				</#if>
 			</#if>
+		<#elseif stringUtil.equals(javaMethodSignature.methodName, "post" + parentSchemaName + "ByExternalReferenceCode" + schemaName)>
+			<#assign postParentByERCBatchJavaMethodSignatures = postParentByERCBatchJavaMethodSignatures + [javaMethodSignature] />
 		<#elseif stringUtil.equals(javaMethodSignature.methodName, "put" + schemaName)>
 			<#assign putBatchJavaMethodSignature = javaMethodSignature />
 		<#elseif stringUtil.equals(javaMethodSignature.methodName, "putByExternalReferenceCode") || stringUtil.equals(javaMethodSignature.methodName, "put" + schemaName + "ByExternalReferenceCode") || stringUtil.equals(javaMethodSignature.methodName, "put" + parentSchemaName + schemaName + "ByExternalReferenceCode")>
@@ -176,7 +181,7 @@ public abstract class Base${schemaName}ResourceImpl
 		</#if>
 		@Override
 		${freeMarkerTool.getResourceMethodAnnotations(javaMethodSignature)}
-		public ${javaMethodSignature.returnType} ${javaMethodSignature.methodName}(${freeMarkerTool.getResourceParameters(javaMethodSignature.javaMethodParameters, openAPIYAML, javaMethodSignature.operation, true)}) throws Exception {
+		public ${javaMethodSignature.returnType} ${javaMethodSignature.methodName}(${freeMarkerTool.getResourceParameters(configYAML, javaMethodSignature.javaMethodParameters, javaMethodSignature.operation, allSchemas, true)}) throws Exception {
 			<#if stringUtil.equals(javaMethodSignature.returnType, "boolean")>
 				return false;
 			<#elseif generateBatch && stringUtil.equals(javaMethodSignature.methodName, "delete" + schemaName + "Batch")>
@@ -376,12 +381,12 @@ public abstract class Base${schemaName}ResourceImpl
 					</#list>
 				);
 
-				<#assign properties = freeMarkerTool.getWritableDTOProperties(configYAML, openAPIYAML, schema) />
+				<#assign properties = freeMarkerTool.getWritableDTOProperties(configYAML, openAPIYAML, schema, allSchemas) />
 
 				<#list properties?keys as propertyName>
-					<#if !freeMarkerTool.isDTOSchemaProperty(openAPIYAML, propertyName, schema) && !stringUtil.equals(propertyName, "id")>
+					<#if !freeMarkerTool.isDTOSchemaProperty(configYAML, propertyName, schema, allSchemas) && !stringUtil.equals(propertyName, "id")>
 						if (${schemaVarName}.get${propertyName?cap_first}() != null) {
-							<#assign dtoPropertySchema = freeMarkerTool.getDTOPropertySchema(propertyName, schema) />
+							<#assign dtoPropertySchema = freeMarkerTool.getDTOPropertySchema(configYAML, propertyName, schema, allSchemas) />
 
 							<#if dtoPropertySchema.isJsonMap()>
 								${properties[propertyName]} ${propertyName} = existing${schemaName}.get${propertyName?cap_first}();
@@ -423,7 +428,7 @@ public abstract class Base${schemaName}ResourceImpl
 
 	<#if generateBatch>
 		<#assign
-			properties = freeMarkerTool.getDTOProperties(configYAML, openAPIYAML, schema)
+			properties = freeMarkerTool.getDTOProperties(configYAML, openAPIYAML, schema, allSchemas)
 
 			createStrategies = freeMarkerTool.getVulcanBatchImplementationCreateStrategies(javaMethodSignatures, properties)
 			updateStrategies = freeMarkerTool.getVulcanBatchImplementationUpdateStrategies(javaMethodSignatures)
@@ -465,30 +470,66 @@ public abstract class Base${schemaName}ResourceImpl
 					</#if>
 
 					<#if postParentBatchJavaMethodSignatures?has_content>
-						<#list postParentBatchJavaMethodSignatures as parentBatchJavaMethodSignature>
-							<#assign parentParameterNames = parentParameterNames + [parentBatchJavaMethodSignature.parentSchemaName!?uncap_first + "Id"] />
+						<#list postParentBatchJavaMethodSignatures as postParentBatchJavaMethodSignature>
+							<#assign parentParameterNames = parentParameterNames + [postParentBatchJavaMethodSignature.parentSchemaName!?uncap_first + "Id"] />
 
-							if (parameters.containsKey("${parentBatchJavaMethodSignature.parentSchemaName?uncap_first}Id")) {
-								<#if stringUtil.equals(javaDataType, parentBatchJavaMethodSignature.returnType)>
-									${schemaVarName}UnsafeFunction = ${schemaVarName} -> ${parentBatchJavaMethodSignature.methodName}(
+							if (parameters.containsKey("${postParentBatchJavaMethodSignature.parentSchemaName?uncap_first}Id")) {
+								<#if stringUtil.equals(javaDataType, postParentBatchJavaMethodSignature.returnType)>
+									${schemaVarName}UnsafeFunction = ${schemaVarName} -> ${postParentBatchJavaMethodSignature.methodName}(
 								<#else>
-									${schemaVarName}UnsafeFunction = ${schemaVarName} -> { ${parentBatchJavaMethodSignature.methodName}(
+									${schemaVarName}UnsafeFunction = ${schemaVarName} -> {
+										${postParentBatchJavaMethodSignature.methodName}(
 								</#if>
 
 								<@getPOSTBatchJavaMethodParameters
-									javaMethodParameters=parentBatchJavaMethodSignature.javaMethodParameters
+									javaMethodParameters=postParentBatchJavaMethodSignature.javaMethodParameters
 									schemaVarName=schemaVarName
 								/>
 
 								);
 
-								<#if !stringUtil.equals(javaDataType, parentBatchJavaMethodSignature.returnType)>
+								<#if !stringUtil.equals(javaDataType, postParentBatchJavaMethodSignature.returnType)>
 										return null;
 									};
 								</#if>
 							}
 
-							<#if parentBatchJavaMethodSignature?has_next>
+							<#if postParentBatchJavaMethodSignature?has_next>
+								else
+							</#if>
+						</#list>
+					</#if>
+
+					<#if postParentByERCBatchJavaMethodSignatures?has_content>
+						<#list postParentByERCBatchJavaMethodSignatures as postParentByERCBatchJavaMethodSignature>
+							<#assign parentParameterNames = parentParameterNames + [postParentByERCBatchJavaMethodSignature.javaMethodParameters[0].parameterName] />
+
+							<#if postParentBatchJavaMethodSignatures?has_content>
+								else
+							</#if>
+
+							if (parameters.containsKey("${postParentByERCBatchJavaMethodSignature.javaMethodParameters[0].parameterName}")) {
+								<#if stringUtil.equals(javaDataType, postParentByERCBatchJavaMethodSignature.returnType)>
+									${schemaVarName}UnsafeFunction = ${schemaVarName} -> ${postParentByERCBatchJavaMethodSignature.methodName}(
+								<#else>
+									${schemaVarName}UnsafeFunction = ${schemaVarName} -> {
+										${postParentByERCBatchJavaMethodSignature.methodName}(
+								</#if>
+
+								<@getPOSTBatchJavaMethodParameters
+									javaMethodParameters=postParentByERCBatchJavaMethodSignature.javaMethodParameters
+									schemaVarName=schemaVarName
+								/>
+
+								);
+
+								<#if !stringUtil.equals(javaDataType, postParentByERCBatchJavaMethodSignature.returnType)>
+										return null;
+									};
+								</#if>
+							}
+
+							<#if postParentByERCBatchJavaMethodSignature?has_next>
 								else
 							</#if>
 						</#list>
@@ -497,7 +538,7 @@ public abstract class Base${schemaName}ResourceImpl
 					<#if postAssetLibraryBatchJavaMethodSignature??>
 						<#assign parentParameterNames = parentParameterNames + ["assetLibraryId"] />
 
-						<#if postParentBatchJavaMethodSignatures?has_content>
+						<#if postParentBatchJavaMethodSignatures?has_content || postParentByERCBatchJavaMethodSignatures?has_content>
 							else
 						</#if>
 
@@ -525,7 +566,7 @@ public abstract class Base${schemaName}ResourceImpl
 					<#if postSiteBatchJavaMethodSignature??>
 						<#assign parentParameterNames = parentParameterNames + ["siteId"] />
 
-						<#if postParentBatchJavaMethodSignatures?has_content || postAssetLibraryBatchJavaMethodSignature??>
+						<#if postParentBatchJavaMethodSignatures?has_content || postParentByERCBatchJavaMethodSignatures?has_content || postAssetLibraryBatchJavaMethodSignature??>
 							else
 						</#if>
 
@@ -562,7 +603,7 @@ public abstract class Base${schemaName}ResourceImpl
 				if (StringUtil.equalsIgnoreCase(createStrategy, "UPSERT")) {
 					String updateStrategy = (String)parameters.getOrDefault("updateStrategy", "UPDATE");
 
-					<#if updateStrategies?seq_contains("UPDATE") && putByERCBatchJavaMethodSignature??>
+					<#if putByERCBatchJavaMethodSignature??>
 						if(StringUtil.equalsIgnoreCase(updateStrategy, "UPDATE")) {
 							<#if stringUtil.equals(javaDataType, putByERCBatchJavaMethodSignature.returnType)>
 								${schemaVarName}UnsafeFunction = ${schemaVarName} -> ${putByERCBatchJavaMethodSignature.methodName}(
@@ -600,7 +641,7 @@ public abstract class Base${schemaName}ResourceImpl
 						}
 					</#if>
 
-					<#if updateStrategies?seq_contains("PARTIAL_UPDATE") && getByERCBatchJavaMethodSignature?? && createStrategies?seq_contains("INSERT")>
+					<#if getByERCBatchJavaMethodSignature?? && patchBatchJavaMethodSignature?? && (postAssetLibraryBatchJavaMethodSignature?? || postBatchJavaMethodSignature?? || postParentBatchJavaMethodSignatures?has_content || postParentByERCBatchJavaMethodSignatures?has_content || postSiteBatchJavaMethodSignature??)>
 						if(StringUtil.equalsIgnoreCase(updateStrategy, "PARTIAL_UPDATE")) {
 							${schemaVarName}UnsafeFunction = ${schemaVarName} -> {
 								${schemaName} persisted${schemaName} = null;
@@ -631,7 +672,11 @@ public abstract class Base${schemaName}ResourceImpl
 									</#list>
 									);
 
-									persisted${schemaName} = patch${schemaName}(
+									<#if stringUtil.equals(javaDataType, patchBatchJavaMethodSignature.returnType)>
+										persisted${schemaName} = patch${schemaName}(
+									<#else>
+										patch${schemaName}(
+									</#if>
 
 									<#list patchBatchJavaMethodSignature.javaMethodParameters as javaMethodParameter>
 										<#if stringUtil.equals(javaMethodParameter.parameterName, schemaVarName)>
@@ -659,7 +704,9 @@ public abstract class Base${schemaName}ResourceImpl
 									);
 								}
 								catch (NoSuchModelException noSuchModelException) {
-									<#if postBatchJavaMethodSignature?? && !postParentBatchJavaMethodSignatures?has_content>
+									<#assign parentParameterNames = [] />
+
+									<#if postBatchJavaMethodSignature?? && !postParentBatchJavaMethodSignatures?has_content && !postParentByERCBatchJavaMethodSignatures?has_content>
 										persisted${schemaName} = ${postBatchJavaMethodSignature.methodName}(
 
 										<@getPOSTBatchJavaMethodParameters
@@ -670,21 +717,44 @@ public abstract class Base${schemaName}ResourceImpl
 										);
 									</#if>
 
-									<#if postParentBatchJavaMethodSignatures?has_content>
-										<#list postParentBatchJavaMethodSignatures as parentBatchJavaMethodSignature>
-											<#assign parentParameterNames = parentParameterNames + [parentBatchJavaMethodSignature.parentSchemaName!?uncap_first + "Id"] />
+									<#if postParentBatchJavaMethodSignatures?has_content || postParentByERCBatchJavaMethodSignatures?has_content>
+										<#list postParentBatchJavaMethodSignatures as postParentBatchJavaMethodSignature>
+											<#assign parentParameterNames = parentParameterNames + [postParentBatchJavaMethodSignature.parentSchemaName!?uncap_first + "Id"] />
 
-											if (parameters.containsKey("${parentBatchJavaMethodSignature.parentSchemaName?uncap_first}Id")) {
-												persisted${schemaName} = ${parentBatchJavaMethodSignature.methodName}(
+											if (parameters.containsKey("${postParentBatchJavaMethodSignature.parentSchemaName?uncap_first}Id")) {
+												persisted${schemaName} = ${postParentBatchJavaMethodSignature.methodName}(
 
 												<@getPOSTBatchJavaMethodParameters
-													javaMethodParameters=parentBatchJavaMethodSignature.javaMethodParameters
+													javaMethodParameters=postParentBatchJavaMethodSignature.javaMethodParameters
 													schemaVarName=schemaVarName
 												/>
+
 												);
 
 											}
-											<#if parentBatchJavaMethodSignature?has_next>
+											<#if postParentBatchJavaMethodSignature?has_next>
+												else
+											</#if>
+										</#list>
+
+										<#list postParentByERCBatchJavaMethodSignatures as postParentByERCBatchJavaMethodSignature>
+											<#assign parentParameterNames = parentParameterNames + [postParentByERCBatchJavaMethodSignature.javaMethodParameters[0].parameterName] />
+
+											<#if postParentBatchJavaMethodSignatures?has_content>
+												else
+											</#if>
+
+											if (parameters.containsKey("${postParentByERCBatchJavaMethodSignature.javaMethodParameters[0].parameterName}")) {
+												persisted${schemaName} = ${postParentByERCBatchJavaMethodSignature.methodName}(
+
+												<@getPOSTBatchJavaMethodParameters
+													javaMethodParameters=postParentByERCBatchJavaMethodSignature.javaMethodParameters
+													schemaVarName=schemaVarName
+												/>
+
+												);
+											}
+											<#if postParentByERCBatchJavaMethodSignature?has_next>
 												else
 											</#if>
 										</#list>
@@ -706,7 +776,7 @@ public abstract class Base${schemaName}ResourceImpl
 									<#if postAssetLibraryBatchJavaMethodSignature??>
 										<#assign parentParameterNames = parentParameterNames + ["assetLibraryId"] />
 
-										<#if postParentBatchJavaMethodSignatures?has_content>
+										<#if postParentBatchJavaMethodSignatures?has_content || postParentByERCBatchJavaMethodSignatures?has_content>
 											else
 										</#if>
 
@@ -723,7 +793,7 @@ public abstract class Base${schemaName}ResourceImpl
 									</#if>
 
 									<#if postSiteBatchJavaMethodSignature??>
-										<#if postParentBatchJavaMethodSignatures?has_content || postAssetLibraryBatchJavaMethodSignature??>
+										<#if postParentBatchJavaMethodSignatures?has_content || postParentByERCBatchJavaMethodSignatures?has_content || postAssetLibraryBatchJavaMethodSignature??>
 											else
 										</#if>
 
@@ -1150,6 +1220,10 @@ public abstract class Base${schemaName}ResourceImpl
 	}
 
 	public void setContextHttpServletRequest(HttpServletRequest contextHttpServletRequest) {
+		if ((contextHttpServletRequest != null) && (contextHttpServletRequest.getAttribute(WebKeys.CTX) == null)) {
+			contextHttpServletRequest.setAttribute(WebKeys.CTX, ServletContextPool.get(StringPool.BLANK));
+		}
+
 		this.contextHttpServletRequest = contextHttpServletRequest;
 	}
 
@@ -1257,7 +1331,7 @@ public abstract class Base${schemaName}ResourceImpl
 		}
 	</#if>
 
-	protected Map<String, String> addAction(String actionName, GroupedModel groupedModel, String methodName) {
+	protected Map<String, String> addAction(String actionName, com.liferay.portal.kernel.model.GroupedModel groupedModel, String methodName) {
 		return ActionUtil.addAction(actionName, getClass(), groupedModel, methodName, contextScopeChecker, contextUriInfo);
 	}
 
@@ -1282,11 +1356,11 @@ public abstract class Base${schemaName}ResourceImpl
 		return TransformUtil.transform(collection, unsafeFunction);
 	}
 
-	protected <T, R, E extends Throwable> R[] transform(T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz) {
+	protected <T, R, E extends Throwable> R[] transform(T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<? extends R> clazz) {
 		return TransformUtil.transform(array, unsafeFunction, clazz);
 	}
 
-	protected <T, R, E extends Throwable> R[] transformToArray(Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz) {
+	protected <T, R, E extends Throwable> R[] transformToArray(Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction, Class<? extends R> clazz) {
 		return TransformUtil.transformToArray(collection, unsafeFunction, clazz);
 	}
 
@@ -1311,11 +1385,11 @@ public abstract class Base${schemaName}ResourceImpl
 		return TransformUtil.unsafeTransform(collection, unsafeFunction);
 	}
 
-	protected <T, R, E extends Throwable> R[] unsafeTransform(T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz) throws E {
+	protected <T, R, E extends Throwable> R[] unsafeTransform(T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<? extends R> clazz) throws E {
 		return TransformUtil.unsafeTransform(array, unsafeFunction, clazz);
 	}
 
-	protected <T, R, E extends Throwable> R[] unsafeTransformToArray(Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz) throws E {
+	protected <T, R, E extends Throwable> R[] unsafeTransformToArray(Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction, Class<? extends R> clazz) throws E {
 		return TransformUtil.unsafeTransformToArray(collection, unsafeFunction, clazz);
 	}
 

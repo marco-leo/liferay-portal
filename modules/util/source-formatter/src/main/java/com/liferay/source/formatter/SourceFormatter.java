@@ -27,6 +27,7 @@ import com.liferay.source.formatter.check.configuration.SourceFormatterConfigura
 import com.liferay.source.formatter.check.configuration.SourceFormatterSuppressions;
 import com.liferay.source.formatter.check.configuration.SuppressionsLoader;
 import com.liferay.source.formatter.check.util.SourceUtil;
+import com.liferay.source.formatter.exception.SourceMismatchException;
 import com.liferay.source.formatter.processor.BNDRunSourceProcessor;
 import com.liferay.source.formatter.processor.BNDSourceProcessor;
 import com.liferay.source.formatter.processor.CETSourceProcessor;
@@ -1016,11 +1017,6 @@ public class SourceFormatter {
 				new ExcludeSyntaxPattern(
 					ExcludeSyntax.GLOB, "**/node_modules_cache/**"),
 				new ExcludeSyntaxPattern(
-					ExcludeSyntax.GLOB,
-					"**/test*/**/dependencies/*.[jlw]ar/**"),
-				new ExcludeSyntaxPattern(
-					ExcludeSyntax.GLOB, "**/test*/**/dependencies/*.zip/**"),
-				new ExcludeSyntaxPattern(
 					ExcludeSyntax.REGEX,
 					".*/frontend-theme-unstyled/.*/_unstyled/css/clay/.+"),
 				new ExcludeSyntaxPattern(
@@ -1029,10 +1025,12 @@ public class SourceFormatter {
 						"clay|lexicon)/.+"),
 				new ExcludeSyntaxPattern(
 					ExcludeSyntax.REGEX,
-					"^((?!/frontend-js-node-shims/src/).)*/node_modules/.*"),
+					".*/tests?/.*/?dependencies/.+\\.(jar|lar|war|zip)/.+"),
 				new ExcludeSyntaxPattern(
 					ExcludeSyntax.REGEX,
-					".*(?<!/gradle-plugins-source-formatter)/build/.*")));
+					"^((?!/frontend-js-node-shims/src/).)*/node_modules/.*"),
+				new ExcludeSyntaxPattern(
+					ExcludeSyntax.REGEX, "^((?!/src/).)*/build/.*")));
 
 		_portalSource = _containsDir("portal-impl");
 
@@ -1153,9 +1151,6 @@ public class SourceFormatter {
 
 	private boolean _isFrontendPackageChanges(String recentChangesFileName) {
 		if (recentChangesFileName.endsWith(
-				"/modules/apps/frontend-js/frontend-js-metal-web" +
-					"/package.json") ||
-			recentChangesFileName.endsWith(
 				"/modules/apps/frontend-js/frontend-js-react-web" +
 					"/package.json") ||
 			recentChangesFileName.endsWith(
@@ -1299,19 +1294,21 @@ public class SourceFormatter {
 			commitMessages, _getPropertyValues("jira.project.keys"));
 
 		for (String commitMessage : commitMessages) {
+			String[] parts = commitMessage.split(":", 2);
+
 			for (String keyword :
 					_getPropertyValues("git.commit.vulnerability.keywords")) {
 
 				Pattern pattern = Pattern.compile(
 					"\\b_*(" + keyword + ")_*\\b", Pattern.CASE_INSENSITIVE);
 
-				Matcher matcher = pattern.matcher(commitMessage);
+				Matcher matcher = pattern.matcher(parts[1]);
 
 				if (matcher.find()) {
 					throw new Exception(
 						StringBundler.concat(
-							"Found formatting issues:\n", "The commit '",
-							commitMessage, "' contains the word '", keyword,
+							"Found formatting issue in SHA ", parts[0], ":\n",
+							"The commit message contains the word '", keyword,
 							"', which could reveal potential security ",
 							"vulnerablities. Please see the vulnerability ",
 							"keywords that are specified in source-formatter.",

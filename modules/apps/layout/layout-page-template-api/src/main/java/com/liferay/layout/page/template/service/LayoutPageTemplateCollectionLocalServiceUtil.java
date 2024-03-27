@@ -356,6 +356,14 @@ public class LayoutPageTemplateCollectionLocalServiceUtil {
 
 	public static List<LayoutPageTemplateCollection>
 		getLayoutPageTemplateCollections(
+			long groupId, long layoutPageTemplateCollectionId) {
+
+		return getService().getLayoutPageTemplateCollections(
+			groupId, layoutPageTemplateCollectionId);
+	}
+
+	public static List<LayoutPageTemplateCollection>
+		getLayoutPageTemplateCollections(
 			long groupId, String name, int type, int start, int end,
 			OrderByComparator<LayoutPageTemplateCollection> orderByComparator) {
 
@@ -445,6 +453,16 @@ public class LayoutPageTemplateCollectionLocalServiceUtil {
 			groupId, name, type);
 	}
 
+	public static LayoutPageTemplateCollection moveLayoutPageTemplateCollection(
+			long layoutPageTemplateCollectionId,
+			long parentLayoutPageTemplateCollectionId)
+		throws PortalException {
+
+		return getService().moveLayoutPageTemplateCollection(
+			layoutPageTemplateCollectionId,
+			parentLayoutPageTemplateCollectionId);
+	}
+
 	/**
 	 * Updates the layout page template collection in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
@@ -461,6 +479,15 @@ public class LayoutPageTemplateCollectionLocalServiceUtil {
 
 		return getService().updateLayoutPageTemplateCollection(
 			layoutPageTemplateCollection);
+	}
+
+	public static LayoutPageTemplateCollection
+			updateLayoutPageTemplateCollection(
+				long layoutPageTemplateCollectionId, String name)
+		throws PortalException {
+
+		return getService().updateLayoutPageTemplateCollection(
+			layoutPageTemplateCollectionId, name);
 	}
 
 	public static LayoutPageTemplateCollection

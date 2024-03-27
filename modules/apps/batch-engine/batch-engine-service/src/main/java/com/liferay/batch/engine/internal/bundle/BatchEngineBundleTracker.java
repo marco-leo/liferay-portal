@@ -7,13 +7,14 @@ package com.liferay.batch.engine.internal.bundle;
 
 import com.liferay.batch.engine.internal.unit.MultiCompanyBatchEngineUnitProcessor;
 import com.liferay.batch.engine.unit.BatchEngineUnit;
-import com.liferay.batch.engine.unit.BatchEngineUnitConfiguration;
+import com.liferay.batch.engine.unit.BatchEngineUnitMetaInfo;
 import com.liferay.batch.engine.unit.BatchEngineUnitProcessor;
 import com.liferay.batch.engine.unit.BatchEngineUnitReader;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
@@ -77,24 +78,24 @@ public class BatchEngineBundleTracker {
 				return null;
 			}
 
+			Collection<BatchEngineUnit> batchEngineUnits =
+				_batchEngineUnitReader.getBatchEngineUnits(bundle);
+
+			if (batchEngineUnits.isEmpty()) {
+				return null;
+			}
+
 			List<BatchEngineUnit> multiCompanyBatchEngineUnits =
 				new ArrayList<>();
 			List<BatchEngineUnit> singleCompanyBatchEngineUnits =
 				new ArrayList<>();
 
-			Iterable<BatchEngineUnit> batchEngineUnits =
-				_batchEngineUnitReader.getBatchEngineUnits(bundle);
-
 			for (BatchEngineUnit batchEngineUnit : batchEngineUnits) {
-				if (!batchEngineUnit.isValid()) {
-					continue;
-				}
-
 				try {
-					BatchEngineUnitConfiguration batchEngineUnitConfiguration =
-						batchEngineUnit.getBatchEngineUnitConfiguration();
+					BatchEngineUnitMetaInfo batchEngineUnitMetaInfo =
+						batchEngineUnit.getBatchEngineUnitMetaInfo();
 
-					if (batchEngineUnitConfiguration.isMultiCompany()) {
+					if (batchEngineUnitMetaInfo.isMultiCompany()) {
 						multiCompanyBatchEngineUnits.add(batchEngineUnit);
 					}
 					else {

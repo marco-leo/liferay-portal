@@ -8,7 +8,7 @@ import {CURRENT_ORDER_UPDATED} from '../../utilities/eventsDefinitions';
 
 const CartResource = ServiceProvider.DeliveryCartAPI('v1');
 
-function formatCartItem(
+export function formatCartItem(
 	cpInstance,
 	namespace,
 	skuOptions,
@@ -16,12 +16,16 @@ function formatCartItem(
 ) {
 	let optionsJSON = cpInstance.skuOptions || [];
 
-	if (namespace && skuOptionsNamespace && namespace === skuOptionsNamespace) {
-		optionsJSON = skuOptions;
+	if (namespace === skuOptionsNamespace) {
+		optionsJSON = skuOptions.map((skuOption) => ({
+			...skuOption,
+			skuId: skuOption.skuId ? String(skuOption.skuId) : null,
+		}));
 	}
 	else if (optionsJSON.length) {
 		optionsJSON = optionsJSON.map((optionJSON) => ({
 			...optionJSON,
+			key: optionJSON.skuOptionKey || optionJSON.key,
 			value: optionJSON.skuOptionValueKey || optionJSON.value,
 		}));
 	}
@@ -92,21 +96,23 @@ export async function addToCart(
 					cpInstance.skuUnitOfMeasure?.key;
 
 			if (includedCartItem) {
-				optionsJSON.forEach((optionJSON) => {
+				optionsJSON.forEach((option) => {
 					if (!includedCartItem) {
 						return;
 					}
 
 					const currentSkuOption = cpInstance.skuOptions?.find(
 						(skuOption) =>
-							optionJSON.skuOptionKey === skuOption.skuOptionKey
+							option.skuOptionKey === skuOption.skuOptionKey
 					);
 
 					// eslint-disable-next-line no-unused-expressions
 					currentSkuOption
-						? (includedCartItem =
-								optionJSON.skuOptionValueKey ===
-								currentSkuOption.skuOptionValueKey)
+						? (includedCartItem = Array.isArray(option.value)
+								? option.value === []
+								: option.value === currentSkuOption.value ||
+								  option.skuOptionValueKey ===
+										currentSkuOption.skuOptionValueKey)
 						: (includedCartItem = false);
 				});
 			}

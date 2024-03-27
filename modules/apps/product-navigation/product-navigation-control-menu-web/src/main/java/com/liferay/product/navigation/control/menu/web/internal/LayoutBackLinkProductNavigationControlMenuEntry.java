@@ -7,7 +7,6 @@ package com.liferay.product.navigation.control.menu.web.internal;
 
 import com.liferay.layout.content.page.editor.constants.ContentPageEditorPortletKeys;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
@@ -17,7 +16,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.Html;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
@@ -74,7 +73,8 @@ public class LayoutBackLinkProductNavigationControlMenuEntry
 
 		if (Validator.isNotNull(backURLTitle)) {
 			return _language.format(
-				locale, "go-to-x", new String[] {_html.escape(backURLTitle)});
+				locale, "go-to-x",
+				new String[] {HtmlUtil.escape(backURLTitle)});
 		}
 
 		return _language.get(locale, "back");
@@ -82,7 +82,7 @@ public class LayoutBackLinkProductNavigationControlMenuEntry
 
 	@Override
 	public String getLinkCssClass(HttpServletRequest httpServletRequest) {
-		return "lfr-back-link";
+		return "control-menu-nav-link lfr-back-link";
 	}
 
 	@Override
@@ -93,8 +93,7 @@ public class LayoutBackLinkProductNavigationControlMenuEntry
 
 		Layout layout = _layoutLocalService.fetchLayout(themeDisplay.getPlid());
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPS-180328") ||
-			!Objects.equals(
+		if (!Objects.equals(
 				ParamUtil.getString(
 					httpServletRequest, "p_l_mode", Constants.VIEW),
 				Constants.EDIT) ||
@@ -140,9 +139,6 @@ public class LayoutBackLinkProductNavigationControlMenuEntry
 
 		return super.isShow(httpServletRequest);
 	}
-
-	@Reference
-	private Html _html;
 
 	@Reference
 	private Language _language;

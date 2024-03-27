@@ -225,6 +225,8 @@ definition {
 	@description = "When Edit the Audience or Stage, default values are For internal use only ON , Allow user to select multiple categories ON, will be associated with web content, won't be required"
 	@priority = 5
 	test CheckAudienceStageDefaultSettings {
+		property portal.acceptance = "true";
+
 		task ("Go to Global Vocabularies") {
 			Category.openCategoriesAdmin(siteURLKey = "global");
 		}
@@ -971,9 +973,9 @@ definition {
 		task ("Search for Web Content and Assert") {
 			Navigator.openURL();
 
-			SearchPortlets.searchEmbedded(searchTerm = "Internal Category");
+			SearchPage.searchEmbedded(searchTerm = "Internal Category");
 
-			SearchResultPortlet.viewNoSearchResults(searchTerm = "Internal Category");
+			SearchResults.viewNoSearchResults(searchTerm = "Internal Category");
 		}
 	}
 
@@ -1040,9 +1042,9 @@ definition {
 		task ("Search for Web Content and Assert") {
 			Navigator.openURL();
 
-			SearchPortlets.searchEmbedded(searchTerm = "Internal Category");
+			SearchPage.searchEmbedded(searchTerm = "Internal Category");
 
-			SearchResultPortlet.viewSearchResults(
+			SearchResults.viewSearchResults(
 				searchAssetTitle = "Web Content Title",
 				searchAssetType = "Web Content Article");
 		}
@@ -1104,7 +1106,7 @@ definition {
 		}
 
 		task ("Assert user is taken to the the Liferay Learn page") {
-			SelectWindow.selectPopUp(locator1 = "null");
+			SelectWindow.selectPopUp(value1 = "null");
 
 			AssertLocation.assertPartialLocation(value1 = "tags-and-categories/defining-categories-and-vocabularies-for-content");
 		}

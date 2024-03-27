@@ -17,7 +17,6 @@ import com.liferay.list.type.service.ListTypeEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
@@ -131,18 +130,12 @@ public class ListTypeDefinitionResourceImpl
 			ListTypeDefinition listTypeDefinition)
 		throws Exception {
 
-		boolean system = false;
-
-		if (FeatureFlagManagerUtil.isEnabled("LPS-193355")) {
-			system = GetterUtil.getBoolean(listTypeDefinition.getSystem());
-		}
-
 		return _toListTypeDefinition(
 			_listTypeDefinitionService.addListTypeDefinition(
 				listTypeDefinition.getExternalReferenceCode(),
 				LocalizedMapUtil.getLocalizedMap(
 					listTypeDefinition.getName_i18n()),
-				system,
+				GetterUtil.getBoolean(listTypeDefinition.getSystem()),
 				transformToList(
 					listTypeDefinition.getListTypeEntries(),
 					listTypeEntry -> ListTypeEntryUtil.toListTypeEntry(
@@ -208,79 +201,75 @@ public class ListTypeDefinitionResourceImpl
 
 		return new ListTypeDefinition() {
 			{
-				actions = HashMapBuilder.put(
-					"delete",
-					() -> {
-						int count =
-							_objectFieldLocalService.
-								getObjectFieldsCountByListTypeDefinitionId(
-									serviceBuilderListTypeDefinition.
-										getListTypeDefinitionId());
+				setActions(
+					() -> HashMapBuilder.put(
+						"delete",
+						() -> {
+							int count =
+								_objectFieldLocalService.
+									getObjectFieldsCountByListTypeDefinitionId(
+										serviceBuilderListTypeDefinition.
+											getListTypeDefinitionId());
 
-						if ((count > 0) ||
-							serviceBuilderListTypeDefinition.isSystem()) {
+							if ((count > 0) ||
+								serviceBuilderListTypeDefinition.isSystem()) {
 
-							return null;
+								return null;
+							}
+
+							return addAction(
+								ActionKeys.DELETE, "deleteListTypeDefinition",
+								com.liferay.list.type.model.ListTypeDefinition.
+									class.getName(),
+								serviceBuilderListTypeDefinition.
+									getListTypeDefinitionId());
 						}
-
-						return addAction(
-							ActionKeys.DELETE, "deleteListTypeDefinition",
+					).put(
+						"get",
+						addAction(
+							ActionKeys.VIEW, "getListTypeDefinition",
 							com.liferay.list.type.model.ListTypeDefinition.
 								class.getName(),
 							serviceBuilderListTypeDefinition.
-								getListTypeDefinitionId());
-					}
-				).put(
-					"get",
-					addAction(
-						ActionKeys.VIEW, "getListTypeDefinition",
-						com.liferay.list.type.model.ListTypeDefinition.class.
-							getName(),
-						serviceBuilderListTypeDefinition.
-							getListTypeDefinitionId())
-				).put(
-					"permissions",
-					addAction(
-						ActionKeys.PERMISSIONS, "patchListTypeDefinition",
-						com.liferay.list.type.model.ListTypeDefinition.class.
-							getName(),
-						serviceBuilderListTypeDefinition.
-							getListTypeDefinitionId())
-				).put(
-					"update",
-					addAction(
-						ActionKeys.UPDATE, "putListTypeDefinition",
-						com.liferay.list.type.model.ListTypeDefinition.class.
-							getName(),
-						serviceBuilderListTypeDefinition.
-							getListTypeDefinitionId())
-				).build();
-				dateCreated = serviceBuilderListTypeDefinition.getCreateDate();
-				dateModified =
-					serviceBuilderListTypeDefinition.getModifiedDate();
-				externalReferenceCode =
-					serviceBuilderListTypeDefinition.getExternalReferenceCode();
-				id = serviceBuilderListTypeDefinition.getListTypeDefinitionId();
-				listTypeEntries = transformToArray(
-					_listTypeEntryLocalService.getListTypeEntries(
-						serviceBuilderListTypeDefinition.
-							getListTypeDefinitionId(),
-						QueryUtil.ALL_POS, QueryUtil.ALL_POS),
-					listTypeEntry -> ListTypeEntryUtil.toListTypeEntry(
-						null, locale, listTypeEntry),
-					ListTypeEntry.class);
-				name = serviceBuilderListTypeDefinition.getName(locale);
-				name_i18n = LocalizedMapUtil.getI18nMap(
-					serviceBuilderListTypeDefinition.getNameMap());
-
-				setSystem(
-					() -> {
-						if (!FeatureFlagManagerUtil.isEnabled("LPS-193355")) {
-							return null;
-						}
-
-						return serviceBuilderListTypeDefinition.getSystem();
-					});
+								getListTypeDefinitionId())
+					).put(
+						"permissions",
+						addAction(
+							ActionKeys.PERMISSIONS, "patchListTypeDefinition",
+							com.liferay.list.type.model.ListTypeDefinition.
+								class.getName(),
+							serviceBuilderListTypeDefinition.
+								getListTypeDefinitionId())
+					).put(
+						"update",
+						addAction(
+							ActionKeys.UPDATE, "putListTypeDefinition",
+							com.liferay.list.type.model.ListTypeDefinition.
+								class.getName(),
+							serviceBuilderListTypeDefinition.
+								getListTypeDefinitionId())
+					).build());
+				setDateCreated(serviceBuilderListTypeDefinition::getCreateDate);
+				setDateModified(
+					serviceBuilderListTypeDefinition::getModifiedDate);
+				setExternalReferenceCode(
+					serviceBuilderListTypeDefinition::getExternalReferenceCode);
+				setId(
+					serviceBuilderListTypeDefinition::getListTypeDefinitionId);
+				setListTypeEntries(
+					() -> transformToArray(
+						_listTypeEntryLocalService.getListTypeEntries(
+							serviceBuilderListTypeDefinition.
+								getListTypeDefinitionId(),
+							QueryUtil.ALL_POS, QueryUtil.ALL_POS),
+						listTypeEntry -> ListTypeEntryUtil.toListTypeEntry(
+							null, locale, listTypeEntry),
+						ListTypeEntry.class));
+				setName(() -> serviceBuilderListTypeDefinition.getName(locale));
+				setName_i18n(
+					() -> LocalizedMapUtil.getI18nMap(
+						serviceBuilderListTypeDefinition.getNameMap()));
+				setSystem(serviceBuilderListTypeDefinition::isSystem);
 			}
 		};
 	}

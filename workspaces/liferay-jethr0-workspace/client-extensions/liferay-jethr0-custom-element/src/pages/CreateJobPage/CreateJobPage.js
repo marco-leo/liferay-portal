@@ -16,12 +16,11 @@ import postSpringBootData from '../../services/postSpringBootData';
 import useSpringBootData from '../../services/useSpringBootData';
 
 function CreateJobPage() {
-	const [jenkinsGitHubURL, setJenkinsGitHubURL] = useState(null);
 	const [jobName, setJobName] = useState(null);
+	const [jobParameters, setJobParameters] = useState(null);
 	const [jobPriority, setJobPriority] = useState(4);
 	const [jobTypeKey, setJobTypeKey] = useState('portalPullRequestSF');
-	const [jobTypes, setJobTypes] = useState(null);
-	const [pullRequestURL, setPullRequestURL] = useState(null);
+	const [jobDefinitions, setJobDefinitions] = useState(null);
 
 	function redirectToJobPage(data) {
 		const json = JSON.parse(data);
@@ -32,9 +31,28 @@ function CreateJobPage() {
 	}
 
 	function setJobNameFromJobTypeKey(jobTypeKey) {
-		for (const jobType of jobTypes) {
-			if (jobType.key === jobTypeKey) {
-				setJobName(jobType.name);
+		for (const jobDefinition of jobDefinitions) {
+			if (jobDefinition.key === jobTypeKey) {
+				setJobName(jobDefinition.label);
+
+				break;
+			}
+		}
+	}
+
+	function setJobParametersFromJobTypeKey(jobTypeKey) {
+		for (const jobDefinition of jobDefinitions) {
+			if (jobDefinition.key === jobTypeKey) {
+				const jobParameters = {};
+
+				jobDefinition.parameterDefinitions.forEach(
+					(parameterDefinition) => {
+						jobParameters[parameterDefinition.key] =
+							parameterDefinition.valueDefault;
+					}
+				);
+
+				setJobParameters(jobParameters);
 
 				break;
 			}
@@ -48,31 +66,41 @@ function CreateJobPage() {
 	];
 
 	useSpringBootData({
-		setData: setJobTypes,
-		urlPath: '/jobs/types',
+		setData: setJobDefinitions,
+		urlPath: '/jobs/definitions',
 	});
 
-	let jobTypesOptions = [];
+	let jobParameterDefinitions = null;
+	let jobTypeOptions = [];
 
-	if (jobTypes !== null) {
-		jobTypesOptions = jobTypes.map((jobType) => {
+	if (jobDefinitions !== null) {
+		jobTypeOptions = jobDefinitions.map((jobDefinition) => {
 			return {
-				label: jobType.name,
-				value: jobType.key,
+				label: jobDefinition.label,
+				value: jobDefinition.key,
 			};
 		});
 
 		if (jobName === null && jobTypeKey !== null) {
 			setJobNameFromJobTypeKey(jobTypeKey);
 		}
+
+		if (jobParameters === null && jobTypeKey !== null) {
+			setJobParametersFromJobTypeKey(jobTypeKey);
+		}
+
+		const jobDefinition = jobDefinitions.find((jobDefinition) => {
+			return jobDefinition.key === jobTypeKey;
+		});
+
+		jobParameterDefinitions = jobDefinition.parameterDefinitions;
 	}
 
 	const jobData = {
-		jenkinsGitHubURL,
 		name: jobName,
+		parameters: jobParameters,
 		priority: jobPriority,
-		pullRequestURL,
-		state: 'opened',
+		state: 'queued',
 		type: jobTypeKey,
 	};
 
@@ -109,9 +137,10 @@ function CreateJobPage() {
 						id="jobType"
 						onChange={(event) => {
 							setJobNameFromJobTypeKey(event.target.value);
+							setJobParametersFromJobTypeKey(event.target.value);
 							setJobTypeKey(event.target.value);
 						}}
-						options={jobTypesOptions}
+						options={jobTypeOptions}
 						value={jobTypeKey}
 					/>
 				</ClayForm.Group>
@@ -130,31 +159,37 @@ function CreateJobPage() {
 					/>
 				</ClayForm.Group>
 
-				<ClayForm.Group>
-					<label htmlFor="jenkinsGitHubURL">Jenkins GitHub URL</label>
+				{jobParameters &&
+					jobParameterDefinitions &&
+					jobParameterDefinitions.map((jobParameterDefinition) => {
+						return (
+							<ClayForm.Group key={jobParameterDefinition.key}>
+								<label htmlFor={jobParameterDefinition.key}>
+									{jobParameterDefinition.label}
+								</label>
 
-					<ClayInput
-						id="jenkinsGitHubURL"
-						onChange={(event) => {
-							setJenkinsGitHubURL(event.target.value);
-						}}
-						placeholder="Insert your Jenkins GitHub URL here"
-						type="text"
-					/>
-				</ClayForm.Group>
-
-				<ClayForm.Group>
-					<label htmlFor="pullRequestURL">Pull Request URL</label>
-
-					<ClayInput
-						id="pullRequestURL"
-						onChange={(event) => {
-							setPullRequestURL(event.target.value);
-						}}
-						placeholder="Insert your Pull Request URL here"
-						type="text"
-					/>
-				</ClayForm.Group>
+								<ClayInput
+									id={jobParameterDefinition.key}
+									onChange={(event) => {
+										setJobParameters({
+											...jobParameters,
+											[jobParameterDefinition.key]:
+												event.target.value,
+										});
+									}}
+									placeholder={
+										jobParameterDefinition.valueDescription
+									}
+									type="text"
+									value={
+										jobParameters[
+											jobParameterDefinition.key
+										] || ''
+									}
+								/>
+							</ClayForm.Group>
+						);
+					})}
 
 				<Jethr0ButtonsRow
 					buttons={[
@@ -172,18 +207,6 @@ function CreateJobPage() {
 								});
 							},
 							title: 'Save',
-						},
-						{
-							onClick: () => {
-								jobData.state = 'queued';
-
-								postSpringBootData({
-									data: jobData,
-									redirect: redirectToJobPage,
-									urlPath: '/jobs/create',
-								});
-							},
-							title: 'Save & Start',
 						},
 					]}
 				/>

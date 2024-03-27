@@ -26,13 +26,7 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 request.setAttribute("view.jsp-showSearch", false);
 
 portletDisplay.setShowBackIcon(true);
-
-if (Validator.isNull(redirect)) {
-	portletDisplay.setURLBack(String.valueOf(renderResponse.createRenderURL()));
-}
-else {
-	portletDisplay.setURLBack(redirect);
-}
+portletDisplay.setURLBack(String.valueOf(renderResponse.createRenderURL()));
 %>
 
 <liferay-portlet:renderURL var="editCProductExternalReferenceCodeURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
@@ -44,6 +38,7 @@ else {
 	actions="<%= cpDefinitionsDisplayContext.getHeaderActionModels() %>"
 	bean="<%= cpDefinition %>"
 	beanIdLabel="id"
+	displayBeanId="<%= cpDefinition.getCProductId() %>"
 	dropdownItems="<%= cpDefinitionsDisplayContext.getDropdownItems() %>"
 	externalReferenceCode="<%= (cProduct == null) ? StringPool.BLANK : cProduct.getExternalReferenceCode() %>"
 	externalReferenceCodeEditUrl="<%= (cProduct == null) ? StringPool.BLANK : editCProductExternalReferenceCodeURL %>"

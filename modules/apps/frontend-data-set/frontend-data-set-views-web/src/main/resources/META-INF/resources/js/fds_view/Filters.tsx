@@ -5,17 +5,16 @@
 
 import ClayButton from '@clayui/button';
 import ClayDropDown from '@clayui/drop-down';
-import ClayForm, {ClayInput} from '@clayui/form';
-import ClayIcon from '@clayui/icon';
+import ClayForm from '@clayui/form';
 import ClayLabel from '@clayui/label';
 import ClayLayout from '@clayui/layout';
 import ClayModal from '@clayui/modal';
+import {IClientExtensionRenderer} from '@liferay/frontend-data-set-web';
 import classNames from 'classnames';
 import {InputLocalized} from 'frontend-js-components-web';
-import {IClientExtensionRenderer, fetch, openModal, sub} from 'frontend-js-web';
+import {fetch, openModal, sub} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
-import {API_URL, OBJECT_RELATIONSHIP} from '../Constants';
 import {FDSViewType} from '../FDSViews';
 import {getAllPicklists, getFields} from '../api';
 import OrderableTable from '../components/OrderableTable';
@@ -23,8 +22,12 @@ import ValidationFeedback from '../components/ValidationFeedback';
 import ClientExtensionFilterModalContent from '../components/modal_content/ClientExtensionFilter';
 import DateRangeFilterModalContent from '../components/modal_content/DateRangeFilter';
 import SelectionFilterModalContent from '../components/modal_content/SelectionFilter';
+import {API_URL, OBJECT_RELATIONSHIP} from '../utils/constants';
+import openDefaultFailureToast from '../utils/openDefaultFailureToast';
+import openDefaultSuccessToast from '../utils/openDefaultSuccessToast';
 import {
 	EFieldFormat,
+	EFieldType,
 	EFilterType,
 	IClientExtensionFilter,
 	IDateFilter,
@@ -32,9 +35,7 @@ import {
 	IFilter,
 	IPickList,
 	ISelectionFilter,
-} from '../types';
-import openDefaultFailureToast from '../utils/openDefaultFailureToast';
-import openDefaultSuccessToast from '../utils/openDefaultSuccessToast';
+} from '../utils/types';
 
 import '../../css/Filters.scss';
 
@@ -70,8 +71,8 @@ function AddFDSFilterModalContent({
 	>(
 		filter && filterType === EFilterType.CLIENT_EXTENSION
 			? fdsFilterClientExtensions.find(
-					(cx: IClientExtensionRenderer) =>
-						cx.externalReferenceCode ===
+					(clientExtensionRenderer: IClientExtensionRenderer) =>
+						clientExtensionRenderer.externalReferenceCode ===
 						(filter as IClientExtensionFilter)
 							.fdsFilterClientExtensionERC
 			  )
@@ -87,18 +88,11 @@ function AddFDSFilterModalContent({
 	const [i18nFilterLabels, setI18nFilterLabels] = useState(
 		fdsFilterLabelTranslations
 	);
-	const [includeMode, setIncludeMode] = useState<string>(
-		filter
-			? (filter as ISelectionFilter)?.include
-				? 'include'
-				: 'exclude'
-			: 'include'
-	);
+	const [includeMode, setIncludeMode] = useState<string>('include');
 	const [isValidDateRange, setIsValidDateRange] = useState<boolean>(true);
 	const [multiple, setMultiple] = useState<boolean>(
 		(filter as ISelectionFilter)?.multiple ?? true
 	);
-	const [label, setLabel] = useState(filter?.label || '');
 	const [picklists, setPicklists] = useState<IPickList[]>([]);
 	const [preselectedValues, setPreselectedValues] = useState<any[]>([]);
 	const [saveButtonDisabled, setSaveButtonDisabled] = useState<boolean>();
@@ -112,22 +106,31 @@ function AddFDSFilterModalContent({
 		getAllPicklists().then((items) => {
 			setPicklists(items);
 
-			const newVal = items.find(
+			const picklist = items.find(
 				(item) =>
 					String(item.externalReferenceCode) ===
 					(filter as any)?.listTypeDefinitionERC
 			);
 
-			if (newVal) {
-				setSelectedPicklist(newVal);
+			if (picklist) {
+				setSelectedPicklist(picklist);
 
-				setPreselectedValues(
-					newVal.listTypeEntries.filter((item) =>
+				const validSavedPreselectedValues = picklist.listTypeEntries.filter(
+					(item) =>
 						JSON.parse(
 							(filter as ISelectionFilter).preselectedValues ||
 								'[]'
 						).includes(item.externalReferenceCode)
-					)
+				);
+
+				setPreselectedValues(validSavedPreselectedValues);
+
+				setIncludeMode(
+					validSavedPreselectedValues?.length
+						? filter && (filter as ISelectionFilter).include
+							? 'include'
+							: 'exclude'
+						: 'include'
 				);
 			}
 		});
@@ -144,14 +147,8 @@ function AddFDSFilterModalContent({
 
 		let body: any = {
 			fieldName: selectedField.name,
+			label_i18n: i18nFilterLabels,
 		};
-
-		if (Liferay.FeatureFlags['LPS-172017']) {
-			body = {...body, label_i18n: i18nFilterLabels};
-		}
-		else {
-			body = {...body, label};
-		}
 
 		let displayType: string = '';
 		let url: string = '';
@@ -324,43 +321,15 @@ function AddFDSFilterModalContent({
 			</ClayModal.Header>
 
 			<ClayModal.Body>
-				{Liferay.FeatureFlags['LPS-172017'] ? (
-					<ClayForm.Group>
-						<InputLocalized
-							id={nameFormElementId}
-							label={Liferay.Language.get('name')}
-							name="label"
-							onChange={setI18nFilterLabels}
-							translations={i18nFilterLabels}
-						/>
-					</ClayForm.Group>
-				) : (
-					<ClayForm.Group>
-						<label htmlFor={nameFormElementId}>
-							{Liferay.Language.get('name')}
-
-							<span
-								className="label-icon lfr-portal-tooltip ml-2"
-								title={Liferay.Language.get(
-									'if-this-value-is-not-provided,-the-name-will-default-to-the-field-name'
-								)}
-							>
-								<ClayIcon symbol="question-circle-full" />
-							</span>
-						</label>
-
-						<ClayInput
-							aria-label={Liferay.Language.get('name')}
-							name={nameFormElementId}
-							onChange={(event) => setLabel(event.target.value)}
-							placeholder={
-								selectedField?.label ||
-								Liferay.Language.get('name')
-							}
-							value={label}
-						/>
-					</ClayForm.Group>
-				)}
+				<ClayForm.Group>
+					<InputLocalized
+						id={nameFormElementId}
+						label={Liferay.Language.get('name')}
+						name="label"
+						onChange={setI18nFilterLabels}
+						translations={i18nFilterLabels}
+					/>
+				</ClayForm.Group>
 
 				<ClayForm.Group
 					className={classNames({
@@ -436,7 +405,19 @@ function AddFDSFilterModalContent({
 								namespace={namespace}
 								onIncludeModeChange={setIncludeMode}
 								onMultipleChange={setMultiple}
-								onPreselectedValuesChange={setPreselectedValues}
+								onPreselectedValuesChange={(values) => {
+									setPreselectedValues(values);
+
+									setIncludeMode(
+										values.length
+											? filter &&
+											  (filter as ISelectionFilter)
+													.include
+												? 'include'
+												: 'exclude'
+											: 'include'
+									);
+								}}
 								onSelectedPicklistChange={setSelectedPicklist}
 								picklists={picklists}
 								preselectedValues={preselectedValues}
@@ -613,7 +594,8 @@ function Filters({fdsFilterClientExtensions, fdsView, namespace}: IProps) {
 			(item) =>
 				filterType === EFilterType.CLIENT_EXTENSION ||
 				(filterType === EFilterType.SELECTION &&
-					item.format === EFieldFormat.STRING) ||
+					item.type === EFieldType.STRING &&
+					!item.format) ||
 				(filterType === EFilterType.DATE_RANGE &&
 					item.format === EFieldFormat.DATE)
 		);

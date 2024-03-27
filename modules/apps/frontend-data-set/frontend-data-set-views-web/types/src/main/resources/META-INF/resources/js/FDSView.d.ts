@@ -5,7 +5,7 @@
 
 /// <reference types="react" />
 
-import {IClientExtensionRenderer} from 'frontend-js-web';
+import {IClientExtensionRenderer} from '@liferay/frontend-data-set-web';
 import {FDSViewType} from './FDSViews';
 interface IFDSViewSectionProps {
 	fdsClientExtensionCellRenderers: IClientExtensionRenderer[];
@@ -13,6 +13,7 @@ interface IFDSViewSectionProps {
 	fdsView: FDSViewType;
 	fdsViewsURL: string;
 	namespace: string;
+	onActiveSectionChange: (section: number) => void;
 	onFDSViewUpdate: (data: FDSViewType) => void;
 	saveFDSFieldsURL: string;
 	spritemap: string;

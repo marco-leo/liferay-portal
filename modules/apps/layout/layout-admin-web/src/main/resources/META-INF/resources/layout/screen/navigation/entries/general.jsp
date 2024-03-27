@@ -25,6 +25,8 @@ Group group = layoutsAdminDisplayContext.getGroup();
 Layout selLayout = layoutsAdminDisplayContext.getSelLayout();
 
 LayoutType selLayoutType = selLayout.getLayoutType();
+
+portletDisplay.setURLBackTitle(ParamUtil.getString(request, "backURLTitle"));
 %>
 
 <portlet:actionURL name="/layout_admin/edit_layout" var="editLayoutURL">
@@ -38,6 +40,7 @@ LayoutType selLayoutType = selLayout.getLayoutType();
 	method="post"
 	name="editLayoutFm"
 	onSubmit="event.preventDefault();"
+	title='<%= LanguageUtil.get(request, "general") %>'
 	wrappedFormContent="<%= false %>"
 >
 	<aui:input name="redirect" type="hidden" value="<%= String.valueOf(layoutsAdminDisplayContext.getLayoutScreenNavigationPortletURL(selLayout.getPlid())) %>" />
@@ -49,7 +52,7 @@ LayoutType selLayoutType = selLayout.getLayoutType();
 	<aui:input name="selPlid" type="hidden" value="<%= layoutsAdminDisplayContext.getSelPlid() %>" />
 	<aui:input name="type" type="hidden" value="<%= selLayout.getType() %>" />
 
-	<c:if test='<%= group.isLayoutPrototype() || !(selLayoutType.isURLFriendliable() && !layoutsAdminDisplayContext.isDraft() && (!selLayout.isSystem() || (selLayout.isTypeAssetDisplay() && FeatureFlagManagerUtil.isEnabled("LPS-195205")))) %>'>
+	<c:if test="<%= group.isLayoutPrototype() || !(selLayoutType.isURLFriendliable() && !layoutsAdminDisplayContext.isDraft() && (!selLayout.isSystem() || selLayout.isTypeAssetDisplay())) %>">
 		<aui:input name="friendlyURL" type="hidden" value="<%= HttpComponentsUtil.decodeURL(selLayout.getFriendlyURL()) %>" />
 	</c:if>
 
@@ -190,5 +193,5 @@ LayoutType selLayoutType = selLayout.getLayoutType();
 <liferay-frontend:component
 	componentId='<%= liferayPortletResponse.getNamespace() + "editLayout" %>'
 	context="<%= layoutsAdminDisplayContext.getProps() %>"
-	module="js/EditLayout"
+	module="{EditLayout} from layout-admin-web"
 />

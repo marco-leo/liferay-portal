@@ -19,15 +19,13 @@ definition {
 	tearDown {
 		var testLiferayVirtualInstance = PropsUtil.get("test.liferay.virtual.instance");
 
-		// It is not possible to delete properties and data source after LRAC-13389. This functionality should return after LRAC-8040
-
-		//ACUtils.tearDownAC();
-
 		ACUtils.tearDownDXP();
 
 		if (${testLiferayVirtualInstance} == "true") {
 			PortalInstances.tearDownCP();
 		}
+
+		ACUtils.tearDownAC();
 	}
 
 	@description = "Automation ID: LRAC-9093 | Test Summary: Admin can add data sources"
@@ -36,14 +34,10 @@ definition {
 		task ("Logout AC and login as an admin user") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "michelle.hoshi@faro.io",
-				password = "test");
+			ACUtils.launchAC(emailAddress = "michelle.hoshi@faro.io");
 		}
 
 		task ("Go to settings, data source, take token and launch dxp") {
-			ACWorkspace.openWorkspace();
-
 			ACNavigation.goToSettings();
 
 			ACSettings.goToDataSources();
@@ -84,14 +78,10 @@ definition {
 		task ("SingOut and Login as administrator") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "michelle.hoshi@faro.io",
-				password = "test");
+			ACUtils.launchAC(emailAddress = "michelle.hoshi@faro.io");
 		}
 
 		task ("Go to Data Sources") {
-			ACWorkspace.openWorkspace();
-
 			ACNavigation.goToSettings();
 
 			ACSettings.goToUserManagement();
@@ -126,19 +116,15 @@ definition {
 	test AdminCanRemoveDataSources {
 
 		// AC Bug ticket: LRAC-10534
-		// It is not possible to delete properties and data source after LRAC-13389. This functionality should return after LRAC-8040
+		// It is not possible to delete data source after LRAC-13389. This functionality must be returned by a story that has not yet been created
 
 		task ("Logout AC and login as an admin user") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "michelle.hoshi@faro.io",
-				password = "test");
+			ACUtils.launchAC(emailAddress = "michelle.hoshi@faro.io");
 		}
 
 		task ("Go to settings, data source, take token and launch dxp") {
-			ACWorkspace.openWorkspace();
-
 			ACNavigation.goToSettings();
 
 			ACSettings.goToDataSources();
@@ -358,7 +344,7 @@ definition {
 		}
 
 		task ("Open an inexistent workspace in a new tab") {
-			Open.openNoError(locator1 = ${workspaceURL});
+			Open.openNoError(value1 = ${workspaceURL});
 		}
 
 		task ("Assert the error message") {
@@ -383,14 +369,10 @@ definition {
 		task ("Login as user with member role") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "corbin.murakami@faro.io",
-				password = "test");
+			ACUtils.launchAC(emailAddress = "corbin.murakami@faro.io");
 		}
 
 		task ("Go to Data Sources") {
-			ACWorkspace.openWorkspace();
-
 			ACNavigation.goToSettings();
 
 			ACSettings.goToDataSources();
@@ -407,14 +389,10 @@ definition {
 		task ("Go to AC and Login as user with member role") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "corbin.murakami@faro.io",
-				password = "test");
+			ACUtils.launchAC(emailAddress = "corbin.murakami@faro.io");
 		}
 
 		task ("Go to User Management") {
-			ACWorkspace.openWorkspace();
-
 			ACNavigation.goToSettings();
 
 			ACSettings.goToUserManagement();
@@ -447,14 +425,10 @@ definition {
 
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "corbin.murakami@faro.io",
-				password = "test");
+			ACUtils.launchAC(emailAddress = "corbin.murakami@faro.io");
 		}
 
 		task ("Go to Data Sources") {
-			ACWorkspace.openWorkspace();
-
 			ACNavigation.goToSettings();
 
 			ACSettings.goToDataSources();
@@ -476,27 +450,23 @@ definition {
 			task ("Logout AC and login as an admin/owner user") {
 				ACWorkspace.signOut();
 
-				ACLogin.loginAs(
-					emailAddress = ${userEmail},
-					password = "test");
+				ACUtils.launchAC(emailAddress = ${userEmail});
 			}
 
 			task ("Go To Settings then Go To Properties") {
-				ACWorkspace.openWorkspace();
-
 				ACNavigation.goToSettings();
 
 				ACSettings.goToProperties();
 			}
 
 			task ("Add a New Property and Assert The New Property was Created") {
-				ACProperties.addNewProperty(propertyName = "Name of property");
+				ACProperties.addNewProperty(propertyName = "OnlyAdminOrOwnerUsersCanAddPropertiesOnAC Property");
 
 				if (${userEmail} == "michelle.hoshi@faro.io") {
-					ACProperties.assertNewCreatedProperty(propertyName = "Name of property");
+					ACProperties.assertNewCreatedProperty(propertyName = "OnlyAdminOrOwnerUsersCanAddPropertiesOnAC Property");
 				}
 				else {
-					ACProperties.assertNewCreatedProperty(propertyName = "Name of property (1)");
+					ACProperties.assertNewCreatedProperty(propertyName = "OnlyAdminOrOwnerUsersCanAddPropertiesOnAC Property (1)");
 				}
 			}
 		}
@@ -504,14 +474,10 @@ definition {
 		task ("Logout and Login as Member") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "corbin.murakami@faro.io",
-				password = "test");
+			ACUtils.launchAC(emailAddress = "corbin.murakami@faro.io");
 		}
 
 		task ("Go To Settings then Go To Properties") {
-			ACWorkspace.openWorkspace();
-
 			ACNavigation.goToSettings();
 
 			ACSettings.goToProperties();
@@ -528,14 +494,10 @@ definition {
 		task ("Logout AC and login as an owner user") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "bryan.cheung@faro.io",
-				password = "test");
+			ACUtils.launchAC(emailAddress = "bryan.cheung@faro.io");
 		}
 
 		task ("Go to settings, data source, take token and launch dxp") {
-			ACWorkspace.openWorkspace();
-
 			ACNavigation.goToSettings();
 
 			ACSettings.goToDataSources();
@@ -578,11 +540,7 @@ definition {
 		task ("Login with another Owner User") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "bryan.cheung@faro.io",
-				password = "test");
-
-			ACWorkspace.openWorkspace();
+			ACUtils.launchAC(emailAddress = "bryan.cheung@faro.io");
 		}
 
 		task ("Go to User Management") {
@@ -619,7 +577,7 @@ definition {
 	test OwnerCanRemoveDataSources {
 
 		// AC Bug ticket: LRAC-10534
-		// It is not possible to delete properties and data source after LRAC-13389. This functionality should return after LRAC-8040
+		// It is not possible to delete data source after LRAC-13389. This functionality must be returned by a story that has not yet been created
 
 		task ("Connect DXP to AC") {
 			ACSettings.takeTokenFromAnalyticsCloud();
@@ -777,11 +735,7 @@ definition {
 		task ("Log in as member and go to the properties menu") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "corbin.murakami@faro.io",
-				password = "test");
-
-			ACWorkspace.openWorkspace();
+			ACUtils.launchAC(emailAddress = "corbin.murakami@faro.io");
 
 			ACNavigation.goToSettings();
 
@@ -797,11 +751,7 @@ definition {
 		task ("Login as owner user, go to properties then select one") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "test@liferay.com",
-				password = "test");
-
-			ACWorkspace.openWorkspace();
+			ACUtils.launchAC(emailAddress = "test@liferay.com");
 
 			ACNavigation.goToSettings();
 
@@ -825,11 +775,7 @@ definition {
 		task ("Login as member, go to properties then assert if the property is no longer present") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "corbin.murakami@faro.io",
-				password = "test");
-
-			ACWorkspace.openWorkspace();
+			ACUtils.launchAC(emailAddress = "corbin.murakami@faro.io");
 
 			ACNavigation.goToSettings();
 
@@ -849,11 +795,13 @@ definition {
 		}
 
 		task ("Open URL and LogIn") {
-			Open.openNoError(locator1 = ${workspaceURL});
+			Open.openNoError(value1 = ${workspaceURL});
 
-			ACLogin.loginAs(
-				emailAddress = "test@liferay.com",
-				password = "test");
+			ACUtils.launchAC(emailAddress = "test@liferay.com");
+		}
+
+		task ("Open the URL again") {
+			Open.openNoError(value1 = ${workspaceURL});
 		}
 
 		task ("Assert Page Title") {
@@ -875,15 +823,15 @@ definition {
 		}
 
 		task ("Assert that the first item on the list was changed") {
-			AssertElementPresent(
+			AssertTextEquals(
 				key_index = 1,
-				key_keywordName = "test test",
-				locator1 = "ACSettings#KEYWORD_NAME_BY_INDEX");
+				locator1 = "ACSettings#KEYWORD_NAME_BY_INDEX",
+				value1 = "test test");
 
-			AssertElementPresent(
+			AssertTextEquals(
 				key_index = 5,
-				key_keywordName = "bryan cheung",
-				locator1 = "ACSettings#KEYWORD_NAME_BY_INDEX");
+				locator1 = "ACSettings#KEYWORD_NAME_BY_INDEX",
+				value1 = "bryan cheung");
 		}
 
 		task ("Change the order do asc") {
@@ -891,15 +839,15 @@ definition {
 		}
 
 		task ("Assert that the first item on the list was changed") {
-			AssertElementPresent(
+			AssertTextEquals(
 				key_index = 1,
-				key_keywordName = "bryan cheung",
-				locator1 = "ACSettings#KEYWORD_NAME_BY_INDEX");
+				locator1 = "ACSettings#KEYWORD_NAME_BY_INDEX",
+				value1 = "bryan cheung");
 
-			AssertElementPresent(
+			AssertTextEquals(
 				key_index = 5,
-				key_keywordName = "Test Test",
-				locator1 = "ACSettings#KEYWORD_NAME_BY_INDEX");
+				locator1 = "ACSettings#KEYWORD_NAME_BY_INDEX",
+				value1 = "Test Test");
 		}
 	}
 
@@ -960,11 +908,7 @@ definition {
 	test ViewOwnerCanDeleteUser {
 		ACWorkspace.signOut();
 
-		ACLogin.loginAs(
-			emailAddress = "bryan.cheung@faro.io",
-			password = "test");
-
-		ACWorkspace.openWorkspace();
+		ACUtils.launchAC(emailAddress = "bryan.cheung@faro.io");
 
 		ACNavigation.goToSettings();
 
@@ -986,11 +930,7 @@ definition {
 
 		ACWorkspace.signOut();
 
-		ACLogin.loginAs(
-			emailAddress = "corbin.murakami@faro.io",
-			password = "test");
-
-		ACWorkspace.openWorkspace();
+		ACUtils.launchAC(emailAddress = "corbin.murakami@faro.io");
 
 		ACNavigation.goToSettings();
 
@@ -1000,11 +940,7 @@ definition {
 
 		ACWorkspace.signOut();
 
-		ACLogin.loginAs(
-			emailAddress = "michelle.hoshi@faro.io",
-			password = "test");
-
-		ACWorkspace.openWorkspace();
+		ACUtils.launchAC(emailAddress = "michelle.hoshi@faro.io");
 
 		ACNavigation.goToSettings();
 

@@ -12,27 +12,6 @@ definition {
 		User.firstLoginPG();
 	}
 
-	tearDown {
-		var testLiferayVirtualInstance = PropsUtil.get("test.liferay.virtual.instance");
-
-		if (${testLiferayVirtualInstance} == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			JSONUser.tearDownNonAdminUsers();
-
-			Site.tearDownCP();
-
-			Organization.tearDownCP();
-
-			Team.tearDownCP();
-
-			PagesAdmin.tearDownCP();
-
-			UserGroup.tearDownCP();
-		}
-	}
-
 	@description = "Export and import work in organization and add child site from imported site template."
 	@priority = 5
 	test AddChildSiteFromImportedSiteTemplate {
@@ -392,6 +371,10 @@ definition {
 		}
 
 		task ("Log in as the user") {
+			Site.openSiteSettingsAdmin(siteURLKey = "guest");
+
+			Site.manageMembershipOptions(allowManualMembershipManagement = "true");
+
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
 				userLoginFullName = "userfn userln");
@@ -477,6 +460,10 @@ definition {
 		}
 
 		task ("Assign the created user to default site") {
+			Site.openSiteSettingsAdmin(siteURLKey = "guest");
+
+			Site.manageMembershipOptions(allowManualMembershipManagement = "true");
+
 			User.openUsersAdmin();
 
 			User.editUserSiteCP(
@@ -551,10 +538,7 @@ definition {
 		}
 
 		task ("Add a user and set require password reset") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Users",
-				panel = "Control Panel",
-				portlet = "Users and Organizations");
+			User.openUsersAdmin(baseURL = "http://www.baker.com:8080");
 
 			User.addCP(
 				userEmailAddress = "user1@liferay.com",
@@ -621,10 +605,7 @@ definition {
 		}
 
 		task ("Edit Email Verification Notification in instance settings") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "Instance Settings");
+			PortalSettings.openInstanceSettingsAdmin(baseURL = "http://www.able.com:8080");
 
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "Email",
@@ -959,7 +940,7 @@ definition {
 		}
 
 		task ("View alert in Arenas page") {
-			Open.openNoError(locator1 = "${portalURL}/web/russia2018/Arenas");
+			Open.openNoError(value1 = "${portalURL}/web/russia2018/Arenas");
 
 			AssertConfirm(value1 = "Welcome to Russia.");
 		}
@@ -969,7 +950,7 @@ definition {
 		}
 
 		task ("View alert in Arenas page") {
-			Open.openNoError(locator1 = "${portalURL}/web/russia2018/Arenas");
+			Open.openNoError(value1 = "${portalURL}/web/russia2018/Arenas");
 
 			AssertConfirm(value1 = "Welcome to Russia.");
 		}
@@ -981,7 +962,7 @@ definition {
 		}
 
 		task ("View logo is changed") {
-			Open.openNoError(locator1 = "${portalURL}/web/russia2018");
+			Open.openNoError(value1 = "${portalURL}/web/russia2018");
 
 			Page.viewCustomLogoPG();
 		}
@@ -997,7 +978,7 @@ definition {
 		}
 
 		task ("Add blank js to Arenaspage") {
-			Open.openNoError(locator1 = "${portalURL}/web/russia2018");
+			Open.openNoError(value1 = "${portalURL}/web/russia2018");
 
 			ProductMenu.gotoPortlet(
 				category = "Site Builder",

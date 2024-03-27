@@ -9,6 +9,7 @@ import com.liferay.commerce.model.CPDefinitionInventory;
 import com.liferay.commerce.product.exception.NoSuchCPDefinitionException;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.service.CPDefinitionService;
+import com.liferay.commerce.service.CPDAvailabilityEstimateService;
 import com.liferay.commerce.service.CPDefinitionInventoryService;
 import com.liferay.headless.commerce.admin.catalog.dto.v1_0.Product;
 import com.liferay.headless.commerce.admin.catalog.dto.v1_0.ProductConfiguration;
@@ -69,7 +70,7 @@ public class ProductConfigurationResourceImpl
 
 		if (cpDefinition == null) {
 			throw new NoSuchCPDefinitionException(
-				"Unable to find Product with ID: " + id);
+				"Unable to find product with ID " + id);
 		}
 
 		return _toProductConfiguration(cpDefinition.getCPDefinitionId());
@@ -96,6 +97,10 @@ public class ProductConfigurationResourceImpl
 			_cpDefinitionInventoryService, productConfiguration,
 			cpDefinition.getCPDefinitionId());
 
+		ProductConfigurationUtil.updateCPDAvailabilityEstimate(
+			_cpdAvailabilityEstimateService, productConfiguration,
+			cpDefinition.getCPDefinitionId());
+
 		Response.ResponseBuilder responseBuilder = Response.ok();
 
 		return responseBuilder.build();
@@ -111,11 +116,15 @@ public class ProductConfigurationResourceImpl
 
 		if (cpDefinition == null) {
 			throw new NoSuchCPDefinitionException(
-				"Unable to find Product with ID: " + id);
+				"Unable to find product with ID " + id);
 		}
 
 		ProductConfigurationUtil.updateCPDefinitionInventory(
 			_cpDefinitionInventoryService, productConfiguration,
+			cpDefinition.getCPDefinitionId());
+
+		ProductConfigurationUtil.updateCPDAvailabilityEstimate(
+			_cpdAvailabilityEstimateService, productConfiguration,
 			cpDefinition.getCPDefinitionId());
 
 		Response.ResponseBuilder responseBuilder = Response.ok();
@@ -131,6 +140,9 @@ public class ProductConfigurationResourceImpl
 				_dtoConverterRegistry, cpDefinitionId,
 				contextAcceptLanguage.getPreferredLocale(), null, null));
 	}
+
+	@Reference
+	private CPDAvailabilityEstimateService _cpdAvailabilityEstimateService;
 
 	@Reference
 	private CPDefinitionInventoryService _cpDefinitionInventoryService;

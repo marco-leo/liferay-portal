@@ -32,6 +32,9 @@ import com.liferay.commerce.order.importer.type.CommerceOrderImporterType;
 import com.liferay.commerce.order.importer.type.CommerceOrderImporterTypeRegistry;
 import com.liferay.commerce.order.status.CommerceOrderStatus;
 import com.liferay.commerce.order.status.CommerceOrderStatusRegistry;
+import com.liferay.commerce.payment.constants.CommercePaymentIntegrationConstants;
+import com.liferay.commerce.payment.integration.CommercePaymentIntegration;
+import com.liferay.commerce.payment.integration.CommercePaymentIntegrationRegistry;
 import com.liferay.commerce.payment.method.CommercePaymentMethod;
 import com.liferay.commerce.payment.method.CommercePaymentMethodRegistry;
 import com.liferay.commerce.payment.model.CommercePaymentMethodGroupRel;
@@ -63,7 +66,6 @@ import com.liferay.portal.configuration.module.configuration.ConfigurationProvid
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -130,6 +132,8 @@ public class CommerceOrderContentDisplayContext {
 			CommerceOrderService commerceOrderService,
 			CommerceOrderStatusRegistry commerceOrderStatusRegistry,
 			CommerceOrderTypeService commerceOrderTypeService,
+			CommercePaymentIntegrationRegistry
+				commercePaymentIntegrationRegistry,
 			CommercePaymentMethodGroupRelLocalService
 				commercePaymentMethodGroupRelLocalService,
 			CommercePaymentMethodRegistry commercePaymentMethodRegistry,
@@ -152,6 +156,8 @@ public class CommerceOrderContentDisplayContext {
 		_commerceOrderService = commerceOrderService;
 		_commerceOrderStatusRegistry = commerceOrderStatusRegistry;
 		_commerceOrderTypeService = commerceOrderTypeService;
+		_commercePaymentIntegrationRegistry =
+			commercePaymentIntegrationRegistry;
 		_commercePaymentMethodGroupRelLocalService =
 			commercePaymentMethodGroupRelLocalService;
 		_commercePaymentMethodRegistry = commercePaymentMethodRegistry;
@@ -170,10 +176,10 @@ public class CommerceOrderContentDisplayContext {
 
 		_themeDisplay = _cpRequestHelper.getThemeDisplay();
 
-		_commerceOrderDateFormatDate = FastDateFormatFactoryUtil.getDate(
+		_commerceOrderDateFormat = FastDateFormatFactoryUtil.getDate(
 			DateFormat.MEDIUM, _themeDisplay.getLocale(),
 			_themeDisplay.getTimeZone());
-		_commerceOrderDateFormatTime = FastDateFormatFactoryUtil.getTime(
+		_commerceOrderTimeFormat = FastDateFormatFactoryUtil.getTime(
 			DateFormat.MEDIUM, _themeDisplay.getLocale(),
 			_themeDisplay.getTimeZone());
 
@@ -196,7 +202,7 @@ public class CommerceOrderContentDisplayContext {
 			return StringPool.BLANK;
 		}
 
-		return _commerceOrderDateFormatDate.format(date);
+		return _commerceOrderDateFormat.format(date);
 	}
 
 	public AccountEntry getAccountEntry() {
@@ -302,7 +308,7 @@ public class CommerceOrderContentDisplayContext {
 			orderDate = commerceOrder.getOrderDate();
 		}
 
-		return _commerceOrderDateFormatDate.format(orderDate);
+		return _commerceOrderDateFormat.format(orderDate);
 	}
 
 	public long getCommerceOrderId() {
@@ -383,7 +389,7 @@ public class CommerceOrderContentDisplayContext {
 			orderDate = commerceOrder.getOrderDate();
 		}
 
-		return _commerceOrderDateFormatTime.format(orderDate);
+		return _commerceOrderTimeFormat.format(orderDate);
 	}
 
 	public String getCommerceOrderTypeName(String languageId)
@@ -462,7 +468,7 @@ public class CommerceOrderContentDisplayContext {
 				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, "csv_template.csv",
 				MimeTypesUtil.getContentType(file), "csv_template",
 				StringPool.BLANK, StringPool.BLANK, StringPool.BLANK, file,
-				null, null,
+				null, null, null,
 				ServiceContextFactory.getInstance(
 					_cpRequestHelper.getRequest()));
 
@@ -979,16 +985,30 @@ public class CommerceOrderContentDisplayContext {
 
 		try {
 			if (isOpenOrderContentPortlet()) {
-				_searchContainer.setResultsAndTotal(
-					() -> _commerceOrderService.getUserPendingCommerceOrders(
-						_cpRequestHelper.getCompanyId(),
-						_cpRequestHelper.getCommerceChannelGroupId(), keywords,
-						_searchContainer.getStart(), _searchContainer.getEnd()),
-					(int)
-						_commerceOrderService.getUserPendingCommerceOrdersCount(
-							_cpRequestHelper.getCompanyId(),
-							_cpRequestHelper.getCommerceChannelGroupId(),
-							keywords));
+				CommerceOrder commerceOrder =
+					_commerceOrderHttpHelper.getCurrentCommerceOrder(
+						_httpServletRequest);
+
+				if ((commerceOrder != null) && commerceOrder.isGuestOrder()) {
+					_searchContainer.setResultsAndTotal(
+						Collections.singletonList(commerceOrder));
+				}
+				else {
+					_searchContainer.setResultsAndTotal(
+						() ->
+							_commerceOrderService.getUserPendingCommerceOrders(
+								_cpRequestHelper.getCompanyId(),
+								_cpRequestHelper.getCommerceChannelGroupId(),
+								keywords, _searchContainer.getStart(),
+								_searchContainer.getEnd()),
+						(int)
+							_commerceOrderService.
+								getUserPendingCommerceOrdersCount(
+									_cpRequestHelper.getCompanyId(),
+									_cpRequestHelper.
+										getCommerceChannelGroupId(),
+									keywords));
+				}
 			}
 			else {
 				_searchContainer.setResultsAndTotal(
@@ -1146,10 +1166,6 @@ public class CommerceOrderContentDisplayContext {
 	}
 
 	public boolean isRequestQuoteEnabled() throws PortalException {
-		if (!FeatureFlagManagerUtil.isEnabled("COMMERCE-11028")) {
-			return false;
-		}
-
 		CommerceOrderFieldsConfiguration commerceOrderFieldsConfiguration =
 			_getCommerceOrderFieldsConfiguration();
 
@@ -1337,9 +1353,23 @@ public class CommerceOrderContentDisplayContext {
 			_commercePaymentMethodRegistry.getCommercePaymentMethod(
 				commercePaymentMethodKey);
 
-		return ArrayUtil.contains(
-			CommercePaymentMethodConstants.TYPES_ONLINE,
-			commercePaymentMethod.getPaymentType());
+		if (commercePaymentMethod != null) {
+			return ArrayUtil.contains(
+				CommercePaymentMethodConstants.TYPES_ONLINE,
+				commercePaymentMethod.getPaymentType());
+		}
+
+		CommercePaymentIntegration commercePaymentIntegration =
+			_commercePaymentIntegrationRegistry.getCommercePaymentIntegration(
+				commercePaymentMethodKey);
+
+		if (commercePaymentIntegration != null) {
+			return ArrayUtil.contains(
+				CommercePaymentIntegrationConstants.TYPES_ONLINE,
+				commercePaymentIntegration.getPaymentIntegrationType());
+		}
+
+		return false;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -1349,8 +1379,7 @@ public class CommerceOrderContentDisplayContext {
 	private final CommerceAddressService _commerceAddressService;
 	private final CommerceChannelLocalService _commerceChannelLocalService;
 	private final CommerceContext _commerceContext;
-	private final Format _commerceOrderDateFormatDate;
-	private final Format _commerceOrderDateFormatTime;
+	private final Format _commerceOrderDateFormat;
 	private final CommerceOrderEngine _commerceOrderEngine;
 	private CommerceOrderFieldsConfiguration _commerceOrderFieldsConfiguration;
 	private final CommerceOrderHttpHelper _commerceOrderHttpHelper;
@@ -1362,7 +1391,10 @@ public class CommerceOrderContentDisplayContext {
 	private final CommerceOrderPriceCalculation _commerceOrderPriceCalculation;
 	private final CommerceOrderService _commerceOrderService;
 	private final CommerceOrderStatusRegistry _commerceOrderStatusRegistry;
+	private final Format _commerceOrderTimeFormat;
 	private final CommerceOrderTypeService _commerceOrderTypeService;
+	private final CommercePaymentIntegrationRegistry
+		_commercePaymentIntegrationRegistry;
 	private final CommercePaymentMethodGroupRelLocalService
 		_commercePaymentMethodGroupRelLocalService;
 	private final CommercePaymentMethodRegistry _commercePaymentMethodRegistry;

@@ -60,12 +60,6 @@ public class ObjectFolderLocalServiceUtil {
 			externalReferenceCode, userId, labelMap, name);
 	}
 
-	public static ObjectFolder addUncategorizedObjectFolder(long companyId)
-		throws PortalException {
-
-		return getService().addUncategorizedObjectFolder(companyId);
-	}
-
 	/**
 	 * Creates a new object folder with the primary key. Does not add the object folder to the database.
 	 *
@@ -221,6 +215,10 @@ public class ObjectFolderLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery, projection);
 	}
 
+	public static ObjectFolder fetchDefaultObjectFolder(long companyId) {
+		return getService().fetchDefaultObjectFolder(companyId);
+	}
+
 	public static ObjectFolder fetchObjectFolder(long objectFolderId) {
 		return getService().fetchObjectFolder(objectFolderId);
 	}
@@ -250,14 +248,16 @@ public class ObjectFolderLocalServiceUtil {
 			uuid, companyId);
 	}
 
-	public static ObjectFolder fetchUncategorizedObjectFolder(long companyId) {
-		return getService().fetchUncategorizedObjectFolder(companyId);
-	}
-
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
 		getActionableDynamicQuery() {
 
 		return getService().getActionableDynamicQuery();
+	}
+
+	public static ObjectFolder getDefaultObjectFolder(long companyId)
+		throws PortalException {
+
+		return getService().getDefaultObjectFolder(companyId);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery
@@ -341,6 +341,16 @@ public class ObjectFolderLocalServiceUtil {
 		return getService().getObjectFoldersCount();
 	}
 
+	public static int getObjectFoldersCount(long companyId) {
+		return getService().getObjectFoldersCount(companyId);
+	}
+
+	public static ObjectFolder getOrAddDefaultObjectFolder(long companyId)
+		throws PortalException {
+
+		return getService().getOrAddDefaultObjectFolder(companyId);
+	}
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -359,12 +369,6 @@ public class ObjectFolderLocalServiceUtil {
 		return getService().getPersistedModel(primaryKeyObj);
 	}
 
-	public static ObjectFolder getUncategorizedObjectFolder(long companyId)
-		throws PortalException {
-
-		return getService().getUncategorizedObjectFolder(companyId);
-	}
-
 	/**
 	 * Updates the object folder in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
@@ -381,12 +385,11 @@ public class ObjectFolderLocalServiceUtil {
 
 	public static ObjectFolder updateObjectFolder(
 			String externalReferenceCode, long objectFolderId,
-			Map<java.util.Locale, String> labelMap,
-			List<com.liferay.object.model.ObjectFolderItem> objectFolderItems)
+			Map<java.util.Locale, String> labelMap)
 		throws PortalException {
 
 		return getService().updateObjectFolder(
-			externalReferenceCode, objectFolderId, labelMap, objectFolderItems);
+			externalReferenceCode, objectFolderId, labelMap);
 	}
 
 	public static ObjectFolderLocalService getService() {

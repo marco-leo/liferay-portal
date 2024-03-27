@@ -12,7 +12,7 @@ CommerceOrderEditDisplayContext commerceOrderEditDisplayContext = (CommerceOrder
 
 long commerceOrderId = commerceOrderEditDisplayContext.getCommerceOrderId();
 
-Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
+Format dateTimeFormat = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
 %>
 
 <portlet:actionURL name="/commerce_order/edit_commerce_order_note" var="editCommerceOrderNoteURL">
@@ -63,7 +63,10 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 									</aui:a>
 
 									<c:if test="<%= commerceOrderNote.isRestricted() %>">
-										<aui:icon image="lock" markupView="lexicon" message="private" />
+										<clay:icon
+											cssClass="d-block"
+											symbol="lock"
+										/>
 									</c:if>
 								</header>
 
@@ -82,7 +85,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 									<liferay-ui:message arguments="<%= LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - commerceOrderNoteCreateDate.getTime(), true) %>" key="x-ago" translateArguments="<%= false %>" />
 
 									<c:if test="<%= commerceOrderNoteCreateDate.before(commerceOrderNote.getModifiedDate()) %>">
-										<strong onmouseover="Liferay.Portal.ToolTip.show(this, '<%= HtmlUtil.escapeJS(dateFormatDateTime.format(commerceOrderNote.getModifiedDate())) %>');">
+										<strong onmouseover="Liferay.Portal.ToolTip.show(this, '<%= HtmlUtil.escapeJS(dateTimeFormat.format(commerceOrderNote.getModifiedDate())) %>');">
 											- <liferay-ui:message key="edited" />
 										</strong>
 									</c:if>
@@ -101,6 +104,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 									<portlet:renderURL var="editURL">
 										<portlet:param name="mvcRenderCommandName" value="/commerce_order/edit_commerce_order_note" />
 										<portlet:param name="redirect" value="<%= currentURL %>" />
+										<portlet:param name="commerceOrderId" value="<%= String.valueOf(commerceOrderNote.getCommerceOrderId()) %>" />
 										<portlet:param name="commerceOrderNoteId" value="<%= String.valueOf(commerceOrderNote.getCommerceOrderNoteId()) %>" />
 									</portlet:renderURL>
 

@@ -1,10 +1,11 @@
+assemble:
+    - fromTask: bootJar
 liferay-jethr0-etc-spring-boot-oauth-application-headless-server:
     .serviceAddress: localhost:58081
     .serviceScheme: http
     name: Liferay Jethr0 Etc Spring Boot OAuth Application Headless Server
     scopes:
         - C_Build.everything
-        - C_BuildParameter.everything
         - C_BuildRun.everything
         - C_Environment.everything
         - C_GitBranch.everything
@@ -18,7 +19,6 @@ liferay-jethr0-etc-spring-boot-oauth-application-headless-server:
         - C_TaskRun.everything
         - C_TestSuite.everything
     type: oAuthApplicationHeadlessServer
-    userAccountEmailAddress: test@liferay.com
 liferay-jethr0-etc-spring-boot-oauth-application-user-agent:
     .serviceAddress: localhost:58081
     .serviceScheme: http

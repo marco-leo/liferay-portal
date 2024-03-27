@@ -350,6 +350,13 @@ public class ObjectDefinitionLocalServiceUtil {
 		return getService().getActionableDynamicQuery();
 	}
 
+	public static List<ObjectDefinition> getBoundObjectDefinitions(
+		long companyId, long rootObjectDefinitionId) {
+
+		return getService().getBoundObjectDefinitions(
+			companyId, rootObjectDefinitionId);
+	}
+
 	public static List<ObjectDefinition> getCustomObjectDefinitions(
 		int status) {
 
@@ -384,6 +391,13 @@ public class ObjectDefinitionLocalServiceUtil {
 		return getService().getObjectDefinition(objectDefinitionId);
 	}
 
+	public static ObjectDefinition getObjectDefinition(
+			long companyId, String name)
+		throws PortalException {
+
+		return getService().getObjectDefinition(companyId, name);
+	}
+
 	public static ObjectDefinition getObjectDefinitionByExternalReferenceCode(
 			String externalReferenceCode, long companyId)
 		throws PortalException {
@@ -406,6 +420,12 @@ public class ObjectDefinitionLocalServiceUtil {
 
 		return getService().getObjectDefinitionByUuidAndCompanyId(
 			uuid, companyId);
+	}
+
+	public static List<ObjectDefinition> getObjectDefinitions(
+		boolean accountEntryRestricted) {
+
+		return getService().getObjectDefinitions(accountEntryRestricted);
 	}
 
 	/**
@@ -542,7 +562,8 @@ public class ObjectDefinitionLocalServiceUtil {
 			boolean enableObjectEntryDraft, boolean enableObjectEntryHistory,
 			Map<java.util.Locale, String> labelMap, String name,
 			String panelAppOrder, String panelCategoryKey, boolean portlet,
-			Map<java.util.Locale, String> pluralLabelMap, String scope)
+			Map<java.util.Locale, String> pluralLabelMap, String scope,
+			int status)
 		throws PortalException {
 
 		return getService().updateCustomObjectDefinition(
@@ -551,7 +572,8 @@ public class ObjectDefinitionLocalServiceUtil {
 			objectFolderId, titleObjectFieldId, accountEntryRestricted, active,
 			enableCategorization, enableComments, enableLocalization,
 			enableObjectEntryDraft, enableObjectEntryHistory, labelMap, name,
-			panelAppOrder, panelCategoryKey, portlet, pluralLabelMap, scope);
+			panelAppOrder, panelCategoryKey, portlet, pluralLabelMap, scope,
+			status);
 	}
 
 	public static ObjectDefinition updateExternalReferenceCode(

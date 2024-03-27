@@ -16,7 +16,6 @@ import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.NoSuchModelException;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.model.Resource;
 import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -30,6 +29,7 @@ import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalServiceUtil;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.GroupThreadLocal;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.odata.filter.ExpressionConvert;
 import com.liferay.portal.odata.filter.FilterParser;
@@ -110,6 +111,10 @@ public abstract class BaseDocumentResourceImpl
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "filter"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
 				name = "flatten"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
@@ -118,19 +123,15 @@ public abstract class BaseDocumentResourceImpl
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
-				name = "restrictFields"
-			),
-			@io.swagger.v3.oas.annotations.Parameter(
-				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
-				name = "filter"
-			),
-			@io.swagger.v3.oas.annotations.Parameter(
-				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
 				name = "page"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
 				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "restrictFields"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
@@ -572,6 +573,7 @@ public abstract class BaseDocumentResourceImpl
 	@io.swagger.v3.oas.annotations.tags.Tags(
 		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "Document")}
 	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
 	@javax.ws.rs.Path("/asset-libraries/{assetLibraryId}/documents/permissions")
 	@javax.ws.rs.Produces({"application/json", "application/xml"})
 	@javax.ws.rs.PUT
@@ -681,6 +683,10 @@ public abstract class BaseDocumentResourceImpl
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "filter"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
 				name = "flatten"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
@@ -689,19 +695,15 @@ public abstract class BaseDocumentResourceImpl
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
-				name = "restrictFields"
-			),
-			@io.swagger.v3.oas.annotations.Parameter(
-				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
-				name = "filter"
-			),
-			@io.swagger.v3.oas.annotations.Parameter(
-				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
 				name = "page"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
 				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "restrictFields"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
@@ -1380,6 +1382,7 @@ public abstract class BaseDocumentResourceImpl
 	@io.swagger.v3.oas.annotations.tags.Tags(
 		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "Document")}
 	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
 	@javax.ws.rs.Path("/documents/{documentId}/permissions")
 	@javax.ws.rs.Produces({"application/json", "application/xml"})
 	@javax.ws.rs.PUT
@@ -1502,6 +1505,10 @@ public abstract class BaseDocumentResourceImpl
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "filter"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
 				name = "flatten"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
@@ -1510,19 +1517,15 @@ public abstract class BaseDocumentResourceImpl
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
-				name = "restrictFields"
-			),
-			@io.swagger.v3.oas.annotations.Parameter(
-				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
-				name = "filter"
-			),
-			@io.swagger.v3.oas.annotations.Parameter(
-				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
 				name = "page"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
 				name = "pageSize"
+			),
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
+				name = "restrictFields"
 			),
 			@io.swagger.v3.oas.annotations.Parameter(
 				in = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY,
@@ -1961,6 +1964,7 @@ public abstract class BaseDocumentResourceImpl
 	@io.swagger.v3.oas.annotations.tags.Tags(
 		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "Document")}
 	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
 	@javax.ws.rs.Path("/sites/{siteId}/documents/permissions")
 	@javax.ws.rs.Produces({"application/json", "application/xml"})
 	@javax.ws.rs.PUT
@@ -2128,7 +2132,7 @@ public abstract class BaseDocumentResourceImpl
 						}
 						else {
 							throw new NotSupportedException(
-								"One of the following parameters must be specified: [documentFolderId, assetLibraryId, siteId, documentFolderId, assetLibraryId]");
+								"One of the following parameters must be specified: [documentFolderId, assetLibraryId]");
 						}
 					}
 
@@ -2170,7 +2174,7 @@ public abstract class BaseDocumentResourceImpl
 	}
 
 	public Set<String> getAvailableCreateStrategies() {
-		return SetUtil.fromArray("UPSERT", "INSERT");
+		return SetUtil.fromArray("INSERT", "UPSERT");
 	}
 
 	public Set<String> getAvailableUpdateStrategies() {
@@ -2504,6 +2508,13 @@ public abstract class BaseDocumentResourceImpl
 	public void setContextHttpServletRequest(
 		HttpServletRequest contextHttpServletRequest) {
 
+		if ((contextHttpServletRequest != null) &&
+			(contextHttpServletRequest.getAttribute(WebKeys.CTX) == null)) {
+
+			contextHttpServletRequest.setAttribute(
+				WebKeys.CTX, ServletContextPool.get(StringPool.BLANK));
+		}
+
 		this.contextHttpServletRequest = contextHttpServletRequest;
 	}
 
@@ -2641,7 +2652,9 @@ public abstract class BaseDocumentResourceImpl
 	}
 
 	protected Map<String, String> addAction(
-		String actionName, GroupedModel groupedModel, String methodName) {
+		String actionName,
+		com.liferay.portal.kernel.model.GroupedModel groupedModel,
+		String methodName) {
 
 		return ActionUtil.addAction(
 			actionName, getClass(), groupedModel, methodName,
@@ -2681,14 +2694,15 @@ public abstract class BaseDocumentResourceImpl
 	}
 
 	protected <T, R, E extends Throwable> R[] transform(
-		T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz) {
+		T[] array, UnsafeFunction<T, R, E> unsafeFunction,
+		Class<? extends R> clazz) {
 
 		return TransformUtil.transform(array, unsafeFunction, clazz);
 	}
 
 	protected <T, R, E extends Throwable> R[] transformToArray(
 		Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction,
-		Class<?> clazz) {
+		Class<? extends R> clazz) {
 
 		return TransformUtil.transformToArray(
 			collection, unsafeFunction, clazz);
@@ -2714,7 +2728,8 @@ public abstract class BaseDocumentResourceImpl
 	}
 
 	protected <T, R, E extends Throwable> R[] unsafeTransform(
-			T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz)
+			T[] array, UnsafeFunction<T, R, E> unsafeFunction,
+			Class<? extends R> clazz)
 		throws E {
 
 		return TransformUtil.unsafeTransform(array, unsafeFunction, clazz);
@@ -2722,7 +2737,7 @@ public abstract class BaseDocumentResourceImpl
 
 	protected <T, R, E extends Throwable> R[] unsafeTransformToArray(
 			Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction,
-			Class<?> clazz)
+			Class<? extends R> clazz)
 		throws E {
 
 		return TransformUtil.unsafeTransformToArray(

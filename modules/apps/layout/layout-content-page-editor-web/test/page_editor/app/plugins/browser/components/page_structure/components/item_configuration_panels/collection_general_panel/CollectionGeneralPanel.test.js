@@ -103,6 +103,7 @@ const renderComponent = ({
 				languageId: 'en_US',
 				layoutData,
 				permissions: {UPDATE: true},
+				restrictedItemIds: new Set(),
 				segmentsExperienceId: '0',
 				selectedViewportSize,
 			})}
@@ -511,6 +512,7 @@ describe('CollectionGeneralPanel', () => {
 
 					itemId: 'collection-display-a',
 					layoutData: {
+						deletedItems: [],
 						items: {
 							'collection-display-a': {
 								itemId: 'collection-display-a',

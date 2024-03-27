@@ -55,13 +55,28 @@ public class GitUtil {
 		List<String> commitMessages = new ArrayList<>();
 
 		UnsyncBufferedReader unsyncBufferedReader = getGitCommandReader(
-			"git log --pretty=format:%s " + gitWorkingBranchLatestCommitId +
-				"..HEAD");
+			"git log --pretty=format:%H:%B--END_OF_COMMIT_MESSAGE-- " +
+				gitWorkingBranchLatestCommitId + "..HEAD");
 
 		String line = null;
 
+		StringBundler sb = new StringBundler();
+
 		while ((line = unsyncBufferedReader.readLine()) != null) {
-			commitMessages.add(StringUtil.trim(line));
+			if (!line.equals("--END_OF_COMMIT_MESSAGE--")) {
+				sb.append(line);
+				sb.append(StringPool.NEW_LINE);
+
+				continue;
+			}
+
+			if (sb.index() > 1) {
+				sb.setIndex(sb.index() - 1);
+
+				commitMessages.add(sb.toString());
+
+				sb.setIndex(0);
+			}
 		}
 
 		return commitMessages;
@@ -478,7 +493,7 @@ public class GitUtil {
 
 		dir = dir.getAbsoluteFile();
 
-		for (int i = 0; i < ToolsUtil.PORTAL_MAX_DIR_LEVEL; i++) {
+		for (int i = 0; i <= ToolsUtil.PORTAL_MAX_DIR_LEVEL; i++) {
 			if ((dir == null) || !dir.exists()) {
 				continue;
 			}

@@ -59,7 +59,7 @@
 									<clay:dropdown-actions
 										aria-label='<%= LanguageUtil.get(request, "show-actions") %>'
 										dropdownItems="<%= assetCategoriesDisplayContext.getVocabulariesDropdownItems() %>"
-										propsTransformer="js/ActionsComponentPropsTransformer"
+										propsTransformer="{ActionsComponentPropsTransformer} from asset-categories-admin-web"
 									/>
 								</li>
 							</ul>
@@ -69,12 +69,13 @@
 					<c:if test="<%= MapUtil.isNotEmpty(assetCategoriesDisplayContext.getInheritedVocabularies()) %>">
 
 						<%
-						Map<String, List<AssetVocabulary>> inheritedVocabularies = assetCategoriesDisplayContext.getInheritedVocabularies();
+						Map<Long, List<AssetVocabulary>> inheritedVocabularies = assetCategoriesDisplayContext.getInheritedVocabularies();
 
-						for (Map.Entry<String, List<AssetVocabulary>> entry : inheritedVocabularies.entrySet()) {
+						for (Map.Entry<Long, List<AssetVocabulary>> entry : inheritedVocabularies.entrySet()) {
+							Group group = GroupLocalServiceUtil.getGroup(entry.getKey());
 						%>
 
-							<span class="text-truncate"><%= entry.getKey() %></span>
+							<span class="text-truncate"><%= group.getDescriptiveName(locale) %></span>
 
 							<clay:vertical-nav
 								verticalNavItems="<%= assetCategoriesDisplayContext.getVerticalNavItemList(entry.getValue()) %>"
@@ -142,7 +143,7 @@
 									aria-label='<%= LanguageUtil.get(request, "show-actions") %>'
 									cssClass="component-action"
 									dropdownItems="<%= assetVocabularyActionDropdownItemsProvider.getActionDropdownItems(vocabulary) %>"
-									propsTransformer="js/VocabularyActionDropdownPropsTransformer"
+									propsTransformer="{VocabularyActionDropdownPropsTransformer} from asset-categories-admin-web"
 								/>
 							</clay:content-col>
 						</clay:content-row>

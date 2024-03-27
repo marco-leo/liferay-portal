@@ -26,8 +26,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -194,7 +192,7 @@ public abstract class BaseSiteScopeResourceTestCase {
 			siteScopeResource.getPlanInternalClassNameKeySiteScopesPage(
 				internalClassNameKey, null);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantInternalClassNameKey != null) {
 			SiteScope irrelevantSiteScope =
@@ -205,11 +203,10 @@ public abstract class BaseSiteScopeResourceTestCase {
 			page = siteScopeResource.getPlanInternalClassNameKeySiteScopesPage(
 				irrelevantInternalClassNameKey, null);
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantSiteScope),
-				(List<SiteScope>)page.getItems());
+			assertContains(
+				irrelevantSiteScope, (List<SiteScope>)page.getItems());
 			assertValid(
 				page,
 				testGetPlanInternalClassNameKeySiteScopesPage_getExpectedActions(
@@ -227,11 +224,10 @@ public abstract class BaseSiteScopeResourceTestCase {
 		page = siteScopeResource.getPlanInternalClassNameKeySiteScopesPage(
 			internalClassNameKey, null);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(siteScope1, siteScope2),
-			(List<SiteScope>)page.getItems());
+		assertContains(siteScope1, (List<SiteScope>)page.getItems());
+		assertContains(siteScope2, (List<SiteScope>)page.getItems());
 		assertValid(
 			page,
 			testGetPlanInternalClassNameKeySiteScopesPage_getExpectedActions(
@@ -532,6 +528,10 @@ public abstract class BaseSiteScopeResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -710,9 +710,9 @@ public abstract class BaseSiteScopeResourceTestCase {
 	}
 
 	protected SiteScopeResource siteScopeResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

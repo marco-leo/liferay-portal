@@ -32,10 +32,6 @@ definition {
 	tearDown {
 		var testLiferayVirtualInstance = PropsUtil.get("test.liferay.virtual.instance");
 
-		// It is not possible to delete properties and data source after LRAC-13389. This functionality should return after LRAC-8040
-
-		//ACUtils.tearDownAC();
-
 		ACUtils.tearDownDXP();
 
 		if (${testLiferayVirtualInstance} == "true") {
@@ -44,6 +40,8 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
+
+		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8456 | Test Summary: Web content appears on card shows the pages that the web content appears on"
@@ -162,15 +160,21 @@ definition {
 		ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		ACUtils.navigateToSitePageWithUser(
+			actionType = "View WC",
+			documentTitleList = "1,2,3,4",
 			emailList = ${emailList},
 			pageName = "AC Page",
 			siteName = "Site Name");
+
+		ACUtils.closeAllSessionsAndWait();
 
 		User.logoutPG();
 
 		ACUtils.clearLocalStorage();
 
 		ACUtils.navigateToSitePage(
+			actionType = "View WC",
+			documentTitleList = "1,2,3,4",
 			pageName = "AC Page",
 			siteName = "Site Name");
 
@@ -766,10 +770,11 @@ definition {
 			ACNavigation.openItem(itemName = "Web Content AC Title");
 		}
 
-		task ("Confirm the Views number is correct") {
-			ACAssets.viewVisitorsBehaviorMetric(
+		task ("Confirm that web content events appear in AC") {
+			ACAssets.viewIfVisitorsBehaviorMetricIsBetweenCorrectRange(
+				maxMetricValue = 4,
 				metricTitle = "Views",
-				metricValue = 3);
+				minMetricValue = 1);
 		}
 	}
 

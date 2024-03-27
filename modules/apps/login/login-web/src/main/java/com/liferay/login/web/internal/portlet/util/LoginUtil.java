@@ -108,17 +108,18 @@ public class LoginUtil {
 	}
 
 	public static String getEmailFromAddress(
-		PortletPreferences preferences, long companyId) {
+		PortletPreferences portletPreferences, long companyId) {
 
 		return PortalUtil.getEmailFromAddress(
-			preferences, companyId, PropsValues.LOGIN_EMAIL_FROM_ADDRESS);
+			portletPreferences, companyId,
+			PropsValues.LOGIN_EMAIL_FROM_ADDRESS);
 	}
 
 	public static String getEmailFromName(
-		PortletPreferences preferences, long companyId) {
+		PortletPreferences portletPreferences, long companyId) {
 
 		return PortalUtil.getEmailFromName(
-			preferences, companyId, PropsValues.LOGIN_EMAIL_FROM_NAME);
+			portletPreferences, companyId, PropsValues.LOGIN_EMAIL_FROM_NAME);
 	}
 
 	public static String getEmailTemplateXML(
@@ -198,6 +199,28 @@ public class LoginUtil {
 		).setWindowState(
 			WindowState.MAXIMIZED
 		).buildPortletURL();
+	}
+
+	public static void sendEmailUserCreationAttempt(
+			ActionRequest actionRequest, String fromName, String fromAddress,
+			String toAddress, String subject, String body)
+		throws Exception {
+
+		HttpServletRequest httpServletRequest =
+			PortalUtil.getHttpServletRequest(actionRequest);
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		Company company = themeDisplay.getCompany();
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			User.class.getName(), actionRequest);
+
+		UserLocalServiceUtil.sendEmailUserCreationAttempt(
+			company.getCompanyId(), toAddress, fromName, fromAddress, subject,
+			body, serviceContext);
 	}
 
 	public static void sendPassword(

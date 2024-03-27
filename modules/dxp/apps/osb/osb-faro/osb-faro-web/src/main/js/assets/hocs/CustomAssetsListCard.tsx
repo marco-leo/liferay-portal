@@ -1,4 +1,5 @@
 import Card from 'shared/components/Card';
+import ClayLink from '@clayui/link';
 import CustomAssetsListQuery from 'shared/queries/CustomAssetsListQuery';
 import ListComponent from 'shared/hoc/ListComponent';
 import NoResultsDisplay from 'shared/components/NoResultsDisplay';
@@ -16,7 +17,7 @@ import {Routes} from 'shared/util/router';
 import {Sizes} from 'shared/util/constants';
 import {useParams} from 'react-router-dom';
 import {useQuery} from '@apollo/react-hooks';
-import {useQueryPagination} from 'shared/hooks';
+import {useQueryPagination} from 'shared/hooks/useQueryPagination';
 
 const CustomAssetsListCard: React.FC<{timeZoneId: string}> = ({timeZoneId}) => {
 	const {delta, orderIOMap, page, query} = useQueryPagination({
@@ -70,7 +71,7 @@ const CustomAssetsListCard: React.FC<{timeZoneId: string}> = ({timeZoneId}) => {
 									)}
 								</span>
 
-								<a
+								<ClayLink
 									href={
 										URLConstants.AssetsCustomAssetsListDocumentation
 									}
@@ -80,7 +81,7 @@ const CustomAssetsListCard: React.FC<{timeZoneId: string}> = ({timeZoneId}) => {
 									{Liferay.Language.get(
 										'learn-more-about-custom-assets'
 									)}
-								</a>
+								</ClayLink>
 							</>
 						}
 						icon={{

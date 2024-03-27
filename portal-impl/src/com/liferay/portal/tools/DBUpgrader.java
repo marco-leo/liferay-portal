@@ -10,7 +10,7 @@ import com.liferay.document.library.kernel.store.Store;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.dao.orm.common.SQLTransformer;
 import com.liferay.portal.db.index.IndexUpdaterUtil;
-import com.liferay.portal.db.partition.DBPartitionUtil;
+import com.liferay.portal.db.partition.util.DBPartitionUtil;
 import com.liferay.portal.events.StartupHelperUtil;
 import com.liferay.portal.kernel.cache.CacheRegistryUtil;
 import com.liferay.portal.kernel.cache.PortalCacheHelperUtil;
@@ -135,9 +135,7 @@ public class DBUpgrader {
 			return _upgradeDatabaseAutoRun;
 		}
 
-		DB db = DBManagerUtil.getDB();
-
-		if (db.getDBType() == DBType.HYPERSONIC) {
+		if (DBManagerUtil.getDBType() == DBType.HYPERSONIC) {
 			_upgradeDatabaseAutoRun = false;
 		}
 		else {
@@ -243,6 +241,8 @@ public class DBUpgrader {
 			PortalCacheManagerNames.MULTI_VM);
 
 		_registerModuleServiceLifecycle("portlets.initialized");
+
+		IndexUpdaterUtil.updateAllIndexes();
 	}
 
 	public static void upgradePortal() throws Exception {

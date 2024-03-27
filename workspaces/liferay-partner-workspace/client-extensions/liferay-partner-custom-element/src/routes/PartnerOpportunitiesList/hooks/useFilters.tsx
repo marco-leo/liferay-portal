@@ -5,13 +5,29 @@
 
 import {useCallback, useEffect, useState} from 'react';
 
+import {Filters} from '../../../common/utils/constants/filters';
 import getSearchFilterTerm from '../../../common/utils/getSearchFilterTerm';
 import {INITIAL_FILTER} from '../utils/constants/initialFilter';
 
-export default function useFilters() {
-	const [filters, setFilters] = useState(INITIAL_FILTER);
+export default function useFilters(
+	openOpportunitiesFilter?: boolean,
+	isRenewalListing?: boolean
+) {
+	const [filters, setFilters] = useState(
+		(JSON.parse(
+			sessionStorage.getItem('opportunitiesFilters')!
+		) as typeof INITIAL_FILTER) || INITIAL_FILTER
+	);
 
 	const [filtersTerm, setFilterTerm] = useState('');
+
+	const opportunitiesInitialFilter = isRenewalListing
+		? openOpportunitiesFilter
+			? Filters.RENEWAL_LISTING.open
+			: Filters.RENEWAL_LISTING.closed
+		: openOpportunitiesFilter
+		? Filters.OPPORTUNITY_LISTING.open
+		: Filters.OPPORTUNITY_LISTING.closed;
 
 	const onFilter = useCallback(
 		(newFilters: Partial<typeof INITIAL_FILTER>) =>
@@ -22,15 +38,29 @@ export default function useFilters() {
 		[]
 	);
 
-	useEffect(
-		() =>
-			setFilterTerm(
-				filters.searchTerm
-					? getSearchFilterTerm(filters.searchTerm)
-					: ''
-			),
-		[filters.searchTerm, setFilters]
+	sessionStorage.setItem('opportunitiesFilters', JSON.stringify(filters));
+	sessionStorage.setItem(
+		'openOpportunitiesFilter',
+		JSON.stringify(openOpportunitiesFilter)
 	);
+
+	useEffect(() => {
+		let initialFilter = ``;
+
+		if (opportunitiesInitialFilter) {
+			initialFilter = initialFilter
+				? initialFilter.concat(opportunitiesInitialFilter)
+				: `${opportunitiesInitialFilter}`;
+		}
+
+		if (filters.searchTerm) {
+			initialFilter = initialFilter
+				? initialFilter.concat(getSearchFilterTerm(filters.searchTerm))
+				: getSearchFilterTerm(filters.searchTerm);
+		}
+
+		setFilterTerm(initialFilter);
+	}, [filters.searchTerm, opportunitiesInitialFilter, setFilters]);
 
 	return {filters, filtersTerm, onFilter};
 }

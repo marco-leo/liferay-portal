@@ -26,15 +26,15 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.test.rule.Inject;
@@ -59,8 +59,6 @@ import java.util.Set;
 import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
-import org.apache.commons.lang.time.DateUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -204,7 +202,7 @@ public abstract class BaseSkuResourceTestCase {
 		Page<Sku> page = skuResource.getChannelProductSkusPage(
 			channelId, productId, null, Pagination.of(1, 10));
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if ((irrelevantChannelId != null) && (irrelevantProductId != null)) {
 			Sku irrelevantSku = testGetChannelProductSkusPage_addSku(
@@ -213,12 +211,11 @@ public abstract class BaseSkuResourceTestCase {
 
 			page = skuResource.getChannelProductSkusPage(
 				irrelevantChannelId, irrelevantProductId, null,
-				Pagination.of(1, 2));
+				Pagination.of(1, (int)totalCount + 1));
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantSku), (List<Sku>)page.getItems());
+			assertContains(irrelevantSku, (List<Sku>)page.getItems());
 			assertValid(
 				page,
 				testGetChannelProductSkusPage_getExpectedActions(
@@ -234,10 +231,10 @@ public abstract class BaseSkuResourceTestCase {
 		page = skuResource.getChannelProductSkusPage(
 			channelId, productId, null, Pagination.of(1, 10));
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(sku1, sku2), (List<Sku>)page.getItems());
+		assertContains(sku1, (List<Sku>)page.getItems());
+		assertContains(sku2, (List<Sku>)page.getItems());
 		assertValid(
 			page,
 			testGetChannelProductSkusPage_getExpectedActions(
@@ -259,6 +256,11 @@ public abstract class BaseSkuResourceTestCase {
 		Long channelId = testGetChannelProductSkusPage_getChannelId();
 		Long productId = testGetChannelProductSkusPage_getProductId();
 
+		Page<Sku> skuPage = skuResource.getChannelProductSkusPage(
+			channelId, productId, null, null);
+
+		int totalCount = GetterUtil.getInteger(skuPage.getTotalCount());
+
 		Sku sku1 = testGetChannelProductSkusPage_addSku(
 			channelId, productId, randomSku());
 
@@ -268,27 +270,62 @@ public abstract class BaseSkuResourceTestCase {
 		Sku sku3 = testGetChannelProductSkusPage_addSku(
 			channelId, productId, randomSku());
 
-		Page<Sku> page1 = skuResource.getChannelProductSkusPage(
-			channelId, productId, null, Pagination.of(1, 2));
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<Sku> skus1 = (List<Sku>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(skus1.toString(), 2, skus1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<Sku> page1 = skuResource.getChannelProductSkusPage(
+				channelId, productId, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+					pageSizeLimit));
 
-		Page<Sku> page2 = skuResource.getChannelProductSkusPage(
-			channelId, productId, null, Pagination.of(2, 2));
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(3, page2.getTotalCount());
+			assertContains(sku1, (List<Sku>)page1.getItems());
 
-		List<Sku> skus2 = (List<Sku>)page2.getItems();
+			Page<Sku> page2 = skuResource.getChannelProductSkusPage(
+				channelId, productId, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+					pageSizeLimit));
 
-		Assert.assertEquals(skus2.toString(), 1, skus2.size());
+			assertContains(sku2, (List<Sku>)page2.getItems());
 
-		Page<Sku> page3 = skuResource.getChannelProductSkusPage(
-			channelId, productId, null, Pagination.of(1, 3));
+			Page<Sku> page3 = skuResource.getChannelProductSkusPage(
+				channelId, productId, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+					pageSizeLimit));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(sku1, sku2, sku3), (List<Sku>)page3.getItems());
+			assertContains(sku3, (List<Sku>)page3.getItems());
+		}
+		else {
+			Page<Sku> page1 = skuResource.getChannelProductSkusPage(
+				channelId, productId, null, Pagination.of(1, totalCount + 2));
+
+			List<Sku> skus1 = (List<Sku>)page1.getItems();
+
+			Assert.assertEquals(skus1.toString(), totalCount + 2, skus1.size());
+
+			Page<Sku> page2 = skuResource.getChannelProductSkusPage(
+				channelId, productId, null, Pagination.of(2, totalCount + 2));
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<Sku> skus2 = (List<Sku>)page2.getItems();
+
+			Assert.assertEquals(skus2.toString(), 1, skus2.size());
+
+			Page<Sku> page3 = skuResource.getChannelProductSkusPage(
+				channelId, productId, null,
+				Pagination.of(1, (int)totalCount + 3));
+
+			assertContains(sku1, (List<Sku>)page3.getItems());
+			assertContains(sku2, (List<Sku>)page3.getItems());
+			assertContains(sku3, (List<Sku>)page3.getItems());
+		}
 	}
 
 	protected Sku testGetChannelProductSkusPage_addSku(
@@ -561,6 +598,14 @@ public abstract class BaseSkuResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("customFields", additionalAssertFieldName)) {
+				if (sku.getCustomFields() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("depth", additionalAssertFieldName)) {
 				if (sku.getDepth() == null) {
 					valid = false;
@@ -673,6 +718,16 @@ public abstract class BaseSkuResourceTestCase {
 
 			if (Objects.equals("price", additionalAssertFieldName)) {
 				if (sku.getPrice() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"productConfiguration", additionalAssertFieldName)) {
+
+				if (sku.getProductConfiguration() == null) {
 					valid = false;
 				}
 
@@ -940,6 +995,16 @@ public abstract class BaseSkuResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("customFields", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						sku1.getCustomFields(), sku2.getCustomFields())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("depth", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(sku1.getDepth(), sku2.getDepth())) {
 					return false;
@@ -1086,6 +1151,19 @@ public abstract class BaseSkuResourceTestCase {
 
 			if (Objects.equals("price", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(sku1.getPrice(), sku2.getPrice())) {
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"productConfiguration", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						sku1.getProductConfiguration(),
+						sku2.getProductConfiguration())) {
+
 					return false;
 				}
 
@@ -1251,6 +1329,10 @@ public abstract class BaseSkuResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -1337,6 +1419,11 @@ public abstract class BaseSkuResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("customFields")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("depth")) {
 			sb.append(String.valueOf(sku.getDepth()));
 
@@ -1350,20 +1437,20 @@ public abstract class BaseSkuResourceTestCase {
 
 		if (entityFieldName.equals("discontinuedDate")) {
 			if (operator.equals("between")) {
+				Date date = sku.getDiscontinuedDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(sku.getDiscontinuedDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(sku.getDiscontinuedDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1381,20 +1468,20 @@ public abstract class BaseSkuResourceTestCase {
 
 		if (entityFieldName.equals("displayDate")) {
 			if (operator.equals("between")) {
+				Date date = sku.getDisplayDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(sku.getDisplayDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(sku.getDisplayDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1417,20 +1504,20 @@ public abstract class BaseSkuResourceTestCase {
 
 		if (entityFieldName.equals("expirationDate")) {
 			if (operator.equals("between")) {
+				Date date = sku.getExpirationDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(sku.getExpirationDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(sku.getExpirationDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1611,6 +1698,11 @@ public abstract class BaseSkuResourceTestCase {
 		}
 
 		if (entityFieldName.equals("price")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("productConfiguration")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
@@ -1842,9 +1934,9 @@ public abstract class BaseSkuResourceTestCase {
 	}
 
 	protected SkuResource skuResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

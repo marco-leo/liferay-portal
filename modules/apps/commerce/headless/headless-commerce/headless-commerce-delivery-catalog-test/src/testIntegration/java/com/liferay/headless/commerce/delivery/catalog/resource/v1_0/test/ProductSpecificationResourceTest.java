@@ -66,7 +66,8 @@ public class ProductSpecificationResourceTest
 				_user.getUserId(), _cpOptionCategory.getCPOptionCategoryId(),
 				RandomTestUtil.randomLocaleStringMap(),
 				RandomTestUtil.randomLocaleStringMap(), true,
-				RandomTestUtil.randomString(), _serviceContext);
+				RandomTestUtil.randomString(), RandomTestUtil.randomDouble(),
+				_serviceContext);
 	}
 
 	@Override
@@ -132,8 +133,9 @@ public class ProductSpecificationResourceTest
 						_cpDefinition.getCPDefinitionId(),
 						productSpecification.getSpecificationId(),
 						productSpecification.getOptionCategoryId(),
+						productSpecification.getPriority(),
 						RandomTestUtil.randomLocaleStringMap(),
-						productSpecification.getPriority(), _serviceContext);
+						_serviceContext);
 
 		_cpDefinitionSpecificationOptionValues.add(
 			cpDefinitionSpecificationOptionValue);

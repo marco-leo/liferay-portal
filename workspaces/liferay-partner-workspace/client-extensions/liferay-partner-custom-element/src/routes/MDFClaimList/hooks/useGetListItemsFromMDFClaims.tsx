@@ -6,7 +6,10 @@
 import {useMemo} from 'react';
 
 import {MDFClaimColumnKey} from '../../../common/enums/mdfClaimColumnKey';
-import useGetMDFClaim from '../../../common/services/liferay/object/mdf-claim/useGetMDFClaim';
+import MDFClaimDTO from '../../../common/interfaces/dto/mdfClaimDTO';
+import {LiferayAPIs} from '../../../common/services/liferay/common/enums/apis';
+import LiferayItems from '../../../common/services/liferay/common/interfaces/liferayItems';
+import useGet from '../../../common/services/liferay/object/useGet';
 import {customFormatDateOptions} from '../../../common/utils/constants/customFormatDateOptions';
 import getDateCustomFormat from '../../../common/utils/getDateCustomFormat';
 import getIntlNumberFormat from '../../../common/utils/getIntlNumberFormat';
@@ -17,7 +20,10 @@ export default function useGetListItemsFromMDFClaims(
 	pageSize: number,
 	filtersTerm: string
 ) {
-	const swrResponse = useGetMDFClaim(page, pageSize, filtersTerm);
+	const swrResponse = useGet<LiferayItems<MDFClaimDTO[]>>(
+		filtersTerm &&
+			`/o/${LiferayAPIs.OBJECT}/mdfclaims?&filter=${filtersTerm}&page=${page}&pageSize=${pageSize}&sort=dateCreated:desc`
+	);
 
 	const listItems = useMemo(
 		() =>
@@ -33,13 +39,21 @@ export default function useGetListItemsFromMDFClaims(
 					item.totalClaimAmount,
 					item.currency
 				),
-				[MDFClaimColumnKey.DATE_SUBMITTED]: getDateCustomFormat(
-					item.dateCreated as string,
-					customFormatDateOptions.SHORT_MONTH
-				),
-				[MDFClaimColumnKey.PAID]: !item.claimPaid
+				[MDFClaimColumnKey.DATE_SUBMITTED]: item.submitDate
+					? getDateCustomFormat(
+							item.submitDate,
+							customFormatDateOptions.SHORT_MONTH
+					  )
+					: '-',
+				[MDFClaimColumnKey.AMOUNT_PAID]: !item.claimPaid
 					? '-'
 					: getIntlNumberFormat(item.currency).format(item.claimPaid),
+				[MDFClaimColumnKey.PAYMENT_DATE]: item.paymentDate
+					? getDateCustomFormat(
+							item.paymentDate,
+							customFormatDateOptions.SHORT_MONTH
+					  )
+					: '-',
 			})),
 		[swrResponse.data?.items]
 	);

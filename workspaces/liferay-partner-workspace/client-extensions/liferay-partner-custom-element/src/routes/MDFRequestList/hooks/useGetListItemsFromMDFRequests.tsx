@@ -18,6 +18,12 @@ export default function useGetListItemsFromMDFRequests(
 	return useMemo(
 		() =>
 			items?.map((item) => ({
+				[MDFColumnKey.BALANCE]: Number(item.totalPaidAmount)
+					? getIntlNumberFormat(item.currency).format(
+							Number(item.totalClaimedRequest) -
+								Number(item.totalPaidAmount)
+					  )
+					: '-',
 				[MDFColumnKey.ID]: String(item.id),
 				[MDFColumnKey.NAME]: item.overallCampaignName,
 				...getMDFActivityPeriod(
@@ -26,7 +32,7 @@ export default function useGetListItemsFromMDFRequests(
 				),
 				[MDFColumnKey.STATUS]: item.mdfRequestStatus?.name,
 				[MDFColumnKey.PARTNER]: item.companyName,
-				[MDFColumnKey.PAID]: !Number(item.totalPaidAmount)
+				[MDFColumnKey.AMOUNT_PAID]: !Number(item.totalPaidAmount)
 					? '-'
 					: getIntlNumberFormat(item.currency).format(
 							Number(item.totalPaidAmount)
@@ -36,7 +42,7 @@ export default function useGetListItemsFromMDFRequests(
 					: getIntlNumberFormat(item.currency).format(
 							Number(item.totalClaimedRequest)
 					  ),
-				...getMDFDates(item.dateCreated, item.dateModified),
+				...getMDFDates(item.submitDate, item.dateModified),
 				...getMDFBudgetInfos(
 					item.totalCostOfExpense,
 					item.totalMDFRequestAmount,

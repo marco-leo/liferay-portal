@@ -13,12 +13,16 @@ interface EditObjectFieldContentProps
 		| 'forbiddenChars'
 		| 'forbiddenLastChars'
 		| 'forbiddenNames'
+		| 'objectDefinitionExternalReferenceCode'
 		| 'objectFieldId'
 	> {
 	containerWrapper: ElementType;
 	errors: ObjectFieldErrors;
 	handleChange: React.ChangeEventHandler<HTMLInputElement>;
 	modelBuilder?: boolean;
+	objectDefinitionExternalReferenceCode: string;
+	objectFieldId: number;
+	onSubmit?: (editedObjectField?: Partial<ObjectField>) => void;
 	setValues: (values: Partial<ObjectField>) => void;
 	values: Partial<ObjectField>;
 }
@@ -29,14 +33,16 @@ export declare function EditObjectFieldContent({
 	errors,
 	filterOperators,
 	handleChange,
-	isApproved,
 	isDefaultStorageType,
+	isRootDescendantNode,
 	learnResources,
 	modelBuilder,
 	objectDefinitionExternalReferenceCode,
+	objectFieldId,
+	onSubmit,
 	readOnly,
 	setValues,
 	values,
-	workflowStatusJSONArray,
+	workflowStatuses,
 }: EditObjectFieldContentProps): JSX.Element;
 export {};

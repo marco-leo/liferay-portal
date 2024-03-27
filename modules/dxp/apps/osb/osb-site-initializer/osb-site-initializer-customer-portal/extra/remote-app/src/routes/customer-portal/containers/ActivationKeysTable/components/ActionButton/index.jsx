@@ -17,8 +17,11 @@ import {getActivationKeysDownloadItems} from '../../utils/getActivationKeysDownl
 const ActionButton = ({
 	activationKeysByStatusPaginatedChecked,
 	filterCheckedActivationKeys,
+	hasRenewalSubscription,
+	identifier,
 	isAbleToDownloadAggregateKeys,
 	isAdminOrPartnerManager,
+	isAdminUserAccount,
 	productName,
 	project,
 	sessionId,
@@ -94,8 +97,24 @@ const ActionButton = ({
 		);
 	}
 
-	const handleRedirectPage = () => navigate('new');
+	const handleRedirectPage = () => {
+		navigate('new', {
+			state: {
+				activationKeys: [],
+				id: identifier,
+			},
+		});
+	};
 	const handleDeactivatePage = () => navigate('deactivate');
+
+	const handleRedirectRenewPage = () => {
+		navigate(`${productName.toLowerCase()}-renew`, {
+			state: {
+				activationKeys: [],
+				id: identifier,
+			},
+		});
+	};
 
 	const activationKeysActionsItems = getActivationKeysActionsItems(
 		project?.accountKey,
@@ -105,7 +124,9 @@ const ActionButton = ({
 		handleRedirectPage,
 		handleDeactivatePage,
 		productName,
-		allowSelfProvisioning
+		allowSelfProvisioning,
+		hasRenewalSubscription,
+		handleRedirectRenewPage
 	);
 
 	const filteredKeysActionsItems = getFilteredKeysActionsItems(
@@ -116,7 +137,7 @@ const ActionButton = ({
 		productName
 	);
 
-	if (isAdminOrPartnerManager) {
+	if (isAdminUserAccount || isAdminOrPartnerManager) {
 		return (
 			<ButtonDropDown
 				items={activationKeysActionsItems}

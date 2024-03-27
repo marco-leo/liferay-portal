@@ -13,14 +13,13 @@ import PRMForm from '../../common/components/PRMForm/PRMForm';
 import PRMFormik from '../../common/components/PRMFormik';
 import {ObjectActionName} from '../../common/enums/objectActionName';
 import {PermissionActionType} from '../../common/enums/permissionActionType';
-import {PRMPageRoute} from '../../common/enums/prmPageRoute';
 import useLiferayNavigate from '../../common/hooks/useLiferayNavigate';
 import usePermissionActions from '../../common/hooks/usePermissionActions';
 import MDFRequestDTO from '../../common/interfaces/dto/mdfRequestDTO';
 import MDFRequest from '../../common/interfaces/mdfRequest';
-import {Liferay} from '../../common/services/liferay';
-import useGetMDFRequestById from '../../common/services/liferay/object/mdf-requests/useGetMDFRequestById';
-import useGetMyUserAccount from '../../common/services/liferay/user-account/useGetMyUserAccount';
+import UserAccount from '../../common/interfaces/userAccount';
+import {LiferayAPIs} from '../../common/services/liferay/common/enums/apis';
+import useGet from '../../common/services/liferay/object/useGet';
 import {Status} from '../../common/utils/constants/status';
 import {getMDFRequestFromDTO} from '../../common/utils/dto/mdf-request/getMDFRequestFromDTO';
 import isObjectEmpty from '../../common/utils/isObjectEmpty';
@@ -63,12 +62,14 @@ const MDFRequestForm = () => {
 	const [step, setStep] = useState<StepType>(StepType.GOALS);
 	const siteURL = useLiferayNavigate();
 
-	const mdfRequestId = Number(
-		useGetMDFRequestIdByHash(FIRST_POSITION_AFTER_HASH)
+	const mdfRequestId = useGetMDFRequestIdByHash(FIRST_POSITION_AFTER_HASH);
+	const {data, isValidating} = useGet<MDFRequestDTO>(
+		mdfRequestId &&
+			`/o/${LiferayAPIs.OBJECT}/mdfrequests/${mdfRequestId}?nestedFields=accountEntry,mdfReqToActs,actToBgts,actToMDFClmActs,r_mdfClmToMDFClmActs_c_mdfClaimId,mdfReqToMDFClms&nestedFieldsDepth=5`
 	);
-
-	const {data, isValidating} = useGetMDFRequestById(mdfRequestId);
-	const {data: myUserAccountData} = useGetMyUserAccount();
+	const {data: userAccount} = useGet<UserAccount>(
+		`/o/${LiferayAPIs.HEADERLESS_ADMIN_USER}/my-user-account`
+	);
 	const actions = usePermissionActions(ObjectActionName.MDF_REQUEST);
 
 	const hasPermissionToAccess = useMemo(
@@ -99,10 +100,7 @@ const MDFRequestForm = () => {
 		  hasPermissionToByPass
 		: hasPermissionToAccess;
 
-	const onCancel = () =>
-		Liferay.Util.navigate(
-			`${siteURL}/${PRMPageRoute.MDF_REQUESTS_LISTING}`
-		);
+	const onCancel = () => history.back();
 
 	const onContinue = async (
 		formikHelpers: Omit<FormikHelpers<MDFRequest>, 'setFieldValue'>,
@@ -214,17 +212,13 @@ const MDFRequestForm = () => {
 		),
 	};
 
-	if (
-		((isValidating || !data) && mdfRequestId) ||
-		!myUserAccountData ||
-		!actions
-	) {
+	if (((isValidating || !data) && mdfRequestId) || !userAccount || !actions) {
 		return <ClayLoadingIndicator />;
 	}
 
 	if (!hasPermissionShowForm) {
 		return (
-			<PRMForm name="" title="MDF Claim">
+			<PRMForm name="" title="MDF Request">
 				<div className="d-flex justify-content-center mt-4">
 					<ClayAlert
 						className="m-0 w-100"

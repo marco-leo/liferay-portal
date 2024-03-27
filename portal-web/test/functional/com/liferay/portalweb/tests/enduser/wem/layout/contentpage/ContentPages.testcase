@@ -52,7 +52,7 @@ definition {
 
 				Type(
 					ariaLabel = "Spacer 1",
-					locator1 = "TextInput#ANY_WITH_AIRA_LABEL",
+					locator1 = "TextInput#ANY_WITH_ARIA_LABEL",
 					value1 = "-32");
 
 				StyleBooks.clickManagementBar();
@@ -74,8 +74,6 @@ definition {
 
 			task ("Apply the new style book to content page") {
 				PageEditor.gotoTab(tabName = "Page Design Options");
-
-				Navigator.gotoNavTab(navTab = "Style Book");
 
 				StyleBooks.selectStyleBookViaPageDesignOptions(styleBookName = "Test Style Book Name");
 			}
@@ -319,13 +317,11 @@ definition {
 
 			LexiconEntry.gotoHeaderMenuItem(menuItem = "Configure");
 
-			SelectWindow.selectPopUp(locator1 = "null");
-
 			PortletEntry.inputName(name = "Test Page Name Edited");
 
 			PortletEntry.save();
 
-			Close.closeWindow();
+			Navigator.gotoBack();
 		}
 
 		task ("Then the page designer can see new page name in pages admin") {
@@ -472,103 +468,6 @@ definition {
 
 			MenuItem.viewNotPresent(menuItem = "Discard Draft");
 		}
-
-		task ("When the page designer makes some changes on a published content page") {
-			MenuItem.click(menuItem = "Edit");
-
-			PageEditor.addFragment(
-				collectionName = "Basic Components",
-				fragmentName = "Heading");
-
-			PageEditor.publish();
-
-			PagesAdmin.gotoPageEllipsisMenuItem(
-				menuItem = "Edit",
-				pageName = "Test Content Page Name");
-
-			PageEditor.editFragmentText(
-				fragmentName = "Heading",
-				id = "element-text",
-				text = "New editable fragment text");
-
-			PageEditor.addFragment(
-				collectionName = "Basic Components",
-				fragmentName = "Paragraph",
-				targetFragmentName = "Heading");
-		}
-
-		task ("Then the page designer could discard draft in page editor") {
-			PageEditor.discardDraft();
-
-			PagesAdmin.gotoPageEllipsisMenuItem(
-				menuItem = "Edit",
-				pageName = "Test Content Page Name");
-
-			PageEditor.viewFragmentEditableText(
-				editableText = "Heading Example",
-				fragmentName = "Heading",
-				id = "element-text");
-
-			PageEditor.viewFragmentNotPresent(fragmentName = "Paragraph");
-
-			AssertVisible(
-				key_text = "Publish",
-				locator1 = "Button#ANY_ENABLED");
-
-			AssertVisible(
-				key_text = "Discard Draft",
-				locator1 = "Button#ANY_DISABLED");
-		}
-
-		task ("When the page designer makes some changes in page editor") {
-			PageEditor.editFragmentText(
-				fragmentName = "Heading",
-				id = "element-text",
-				text = "New editable fragment text");
-
-			PageEditor.addFragment(
-				collectionName = "Basic Components",
-				fragmentName = "Paragraph",
-				targetFragmentName = "Heading");
-		}
-
-		task ("Then the page designer could discard draft in the Pages admin") {
-			PagesAdmin.openPagesAdmin(siteURLKey = ${siteURLKey});
-
-			PagesAdmin.discardDraft(pageName = "Test Content Page Name");
-
-			AssertElementNotPresent(
-				index = 1,
-				key_itemName = "Test Content Page Name",
-				locator1 = "PagesAdmin#LIST_GROUP_ITEM_PAGE_STATUS");
-
-			PagesAdmin.gotoPageEllipsisMenuItem(
-				menuItem = "Edit",
-				pageName = "Test Content Page Name");
-
-			PageEditor.viewFragmentEditableText(
-				editableText = "Heading Example",
-				fragmentName = "Heading",
-				id = "element-text");
-
-			PageEditor.viewFragmentNotPresent(fragmentName = "Paragraph");
-
-			AssertVisible(
-				key_text = "Publish",
-				locator1 = "Button#ANY_ENABLED");
-
-			AssertVisible(
-				key_text = "Discard Draft",
-				locator1 = "Button#ANY_DISABLED");
-
-			PagesAdmin.openPagesAdmin(siteURLKey = ${siteURLKey});
-
-			WaitForPageLoad();
-
-			PagesAdmin.openPageEllipsisMenu(pageName = "Test Content Page Name");
-
-			MenuItem.viewNotPresent(menuItem = "Discard Draft");
-		}
 	}
 
 	@description = "This is a test for LPS-159751. The page editor should be rendered after reset changes from site template."
@@ -624,8 +523,6 @@ definition {
 
 				PageEditor.gotoTab(tabName = "Page Design Options");
 
-				Navigator.gotoNavTab(navTab = "Master");
-
 				MastersPageTemplates.selectMasterViaPageDesignOptions(masterLayoutName = "Custom Masters Page Template");
 
 				PageEditor.publish();
@@ -648,7 +545,7 @@ definition {
 					item = "Go to Pages",
 					tableEntry = ${siteName});
 
-				SelectWindow.selectPopUp(locator1 = "null");
+				SelectWindow.selectPopUp(value1 = "null");
 
 				ContentPages.gotoPageEditor();
 
@@ -902,7 +799,7 @@ definition {
 		}
 
 		task ("Hide the container") {
-			PageEditor.hideFragmentViaHeader(fragmentName = "Container");
+			PageEditor.hideFragmentViaPageStructure(fragmentName = "Container");
 		}
 
 		task ("View elements are not shown") {
@@ -932,7 +829,7 @@ definition {
 		}
 
 		task ("Hide the container") {
-			PageEditor.hideFragmentViaHeader(fragmentName = "Container");
+			PageEditor.hideFragmentViaPageStructure(fragmentName = "Container");
 		}
 
 		task ("View elements are not shown") {
@@ -1265,7 +1162,7 @@ definition {
 		}
 
 		task ("When the page creator selects the element-text of Heading fragment") {
-			PageEditor.gotoEditableFieldEdit(
+			PageEditor.clickEditableField(
 				fragmentName = "Heading",
 				id = "element-text");
 		}
@@ -1365,10 +1262,7 @@ definition {
 		}
 
 		task ("Execute Clean Up Orphaned Theme Portlet Preferences in Server Administration") {
-			ApplicationsMenu.gotoPortlet(
-				category = "System",
-				panel = "Control Panel",
-				portlet = "Server Administration");
+			ServerAdministration.openServerAdmin();
 
 			ServerAdministration.executeServerResourcesActions(actionsDescription = "Clean up orphaned theme portlet preferences.");
 		}
@@ -2046,8 +1940,6 @@ definition {
 
 			PageEditor.gotoTab(tabName = "Page Design Options");
 
-			Navigator.gotoNavTab(navTab = "Master");
-
 			MastersPageTemplates.selectMasterViaPageDesignOptions(masterLayoutName = "Custom Masters Page Template");
 
 			AssertVisible(
@@ -2189,7 +2081,7 @@ definition {
 
 					Type(
 						ariaLabel = "Spacer ${i}",
-						locator1 = "TextInput#ANY_WITH_AIRA_LABEL",
+						locator1 = "TextInput#ANY_WITH_ARIA_LABEL",
 						value1 = ${tokenValue});
 
 					StyleBooks.clickManagementBar();
@@ -2205,7 +2097,7 @@ definition {
 
 				Type(
 					ariaLabel = "Spacer 3",
-					locator1 = "TextInput#ANY_WITH_AIRA_LABEL",
+					locator1 = "TextInput#ANY_WITH_ARIA_LABEL",
 					value1 = "Auto");
 
 				StyleBooks.clickManagementBar();
@@ -2249,8 +2141,6 @@ definition {
 
 		task ("When the page designer applies the new style book to content page") {
 			PageEditor.gotoTab(tabName = "Page Design Options");
-
-			Navigator.gotoNavTab(navTab = "Style Book");
 
 			StyleBooks.selectStyleBookViaPageDesignOptions(styleBookName = "Test Style Book Name");
 		}

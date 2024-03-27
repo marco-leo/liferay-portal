@@ -38,6 +38,7 @@ import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -73,7 +74,6 @@ import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.LongWrapper;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -768,7 +768,7 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 		PortletDataContext portletDataContext, Portlet portlet) {
 
 		try {
-			if (!ExportImportThreadLocal.isLayoutStagingInProcess()) {
+			if (!ExportImportThreadLocal.isStagingInProcess()) {
 				return true;
 			}
 
@@ -787,8 +787,12 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 						getExportImportPortletPreferencesProcessor(
 							portlet.getRootPortletId());
 
-			return exportImportPortletPreferencesProcessor.
-				isPublishDisplayedContent();
+			if (exportImportPortletPreferencesProcessor != null) {
+				return exportImportPortletPreferencesProcessor.
+					isPublishDisplayedContent();
+			}
+
+			return true;
 		}
 		catch (Exception exception) {
 			_log.error(exception);
@@ -835,29 +839,21 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 			Map<String, Serializable> taskContextMap =
 				backgroundTask.getTaskContextMap();
 
-			HashMap<String, LongWrapper> modelAdditionCounters = new HashMap<>(
-				manifestSummary.getModelAdditionCounters());
-
+			taskContextMap.put(
+				ExportImportBackgroundTaskContextMapConstants.ASSET_TITLES,
+				new HashMap<>(manifestSummary.getStagedModelAssetTitles()));
 			taskContextMap.put(
 				ExportImportBackgroundTaskContextMapConstants.
 					MODEL_ADDITION_COUNTERS,
-				modelAdditionCounters);
-
-			HashMap<String, LongWrapper> modelDeletionCounters = new HashMap<>(
-				manifestSummary.getModelDeletionCounters());
-
+				new HashMap<>(manifestSummary.getModelAdditionCounters()));
 			taskContextMap.put(
 				ExportImportBackgroundTaskContextMapConstants.
 					MODEL_DELETION_COUNTERS,
-				modelDeletionCounters);
-
-			HashSet<String> manifestSummaryKeys = new HashSet<>(
-				manifestSummary.getManifestSummaryKeys());
-
+				new HashMap<>(manifestSummary.getModelDeletionCounters()));
 			taskContextMap.put(
 				ExportImportBackgroundTaskContextMapConstants.
 					MANIFEST_SUMMARY_KEYS,
-				manifestSummaryKeys);
+				new HashSet<>(manifestSummary.getManifestSummaryKeys()));
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
@@ -1060,6 +1056,13 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 			if (modelAdditionCount > 0) {
 				element.addAttribute(
 					"addition-count", String.valueOf(modelAdditionCount));
+			}
+
+			String stagedModelAssetTitle =
+				manifestSummary.getStagedModelAssetTitle(manifestSummaryKey);
+
+			if (Validator.isNotNull(stagedModelAssetTitle)) {
+				element.addAttribute("asset-title", stagedModelAssetTitle);
 			}
 
 			long modelDeletionCount = manifestSummary.getModelDeletionCount(
@@ -1622,6 +1625,14 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 
 				_manifestSummary.addModelAdditionCount(
 					manifestSummaryKey, modelAdditionCount);
+
+				if (FeatureFlagManagerUtil.isEnabled("LPS-165481")) {
+					String assetTitle = GetterUtil.getString(
+						element.attributeValue("asset-title"));
+
+					_manifestSummary.addAssetTitle(
+						manifestSummaryKey, assetTitle);
+				}
 
 				long modelDeletionCount = GetterUtil.getLong(
 					element.attributeValue("deletion-count"));

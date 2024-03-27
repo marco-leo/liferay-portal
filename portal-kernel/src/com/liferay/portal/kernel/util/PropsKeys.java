@@ -58,6 +58,12 @@ public interface PropsKeys {
 	public static final String ADMIN_EMAIL_PASSWORD_SENT_SUBJECT =
 		"admin.email.password.sent.subject";
 
+	public static final String ADMIN_EMAIL_PASSWORD_UNCHANGEABLE_BODY =
+		"admin.email.password.unchangeable.body";
+
+	public static final String ADMIN_EMAIL_PASSWORD_UNCHANGEABLE_SUBJECT =
+		"admin.email.password.unchangeable.subject";
+
 	/**
 	 * @deprecated As of Mueller (7.2.x), with no direct replacement
 	 */
@@ -76,6 +82,12 @@ public interface PropsKeys {
 
 	public static final String ADMIN_EMAIL_USER_ADDED_SUBJECT =
 		"admin.email.user.added.subject";
+
+	public static final String ADMIN_EMAIL_USER_CREATION_ATTEMPT_BODY =
+		"admin.email.user.creation.attempt.body";
+
+	public static final String ADMIN_EMAIL_USER_CREATION_ATTEMPT_SUBJECT =
+		"admin.email.user.creation.attempt.subject";
 
 	public static final String ADMIN_EMAIL_VERIFICATION_BODY =
 		"admin.email.verification.body";
@@ -370,6 +382,12 @@ public interface PropsKeys {
 
 	public static final String CDN_HOST_HTTPS = "cdn.host.https";
 
+	public static final String CHANGE_TRACKING_DELETION_PROTECTION_ENABLED =
+		"change.tracking.deletion.protection.enabled";
+
+	public static final String CLUSTER_LINK_AUTH_VALUE =
+		"cluster.link.auth.value";
+
 	public static final String CLUSTER_LINK_AUTODETECT_ADDRESS =
 		"cluster.link.autodetect.address";
 
@@ -407,6 +425,8 @@ public interface PropsKeys {
 	public static final String COMBO_CHECK_TIMESTAMP_INTERVAL =
 		"combo.check.timestamp.interval";
 
+	public static final String COMBO_MAX_FILES = "combo.max.files";
+
 	public static final String COMMUNITIES_CONTROL_PANEL_MEMBERS_VISIBLE =
 		"communities.control.panel.members.visible";
 
@@ -427,6 +447,9 @@ public interface PropsKeys {
 	public static final String COMPANY_DEFAULT_VIRTUAL_HOST_NAME =
 		"company.default.virtual.host.name";
 
+	public static final String COMPANY_DEFAULT_VIRTUAL_HOST_SYNC_ON_STARTUP =
+		"company.default.virtual.host.sync.on.startup";
+
 	public static final String COMPANY_DEFAULT_WEB_ID =
 		"company.default.web.id";
 
@@ -440,9 +463,6 @@ public interface PropsKeys {
 
 	public static final String COMPANY_LOGIN_PREPOPULATE_DOMAIN =
 		"company.login.prepopulate.domain";
-
-	public static final String COMPANY_SECURITY_AUTH_REQUIRES_HTTPS =
-		"company.security.auth.requires.https";
 
 	public static final String COMPANY_SECURITY_AUTH_TYPE =
 		"company.security.auth.type";
@@ -547,6 +567,9 @@ public interface PropsKeys {
 
 	public static final String DATABASE_INDEXES_UPDATE_ON_STARTUP =
 		"database.indexes.update.on.startup";
+
+	public static final String DATABASE_MAX_PARAMETERS =
+		"database.max.parameters";
 
 	public static final String DATABASE_MYSQL_ENGINE = "database.mysql.engine";
 
@@ -834,9 +857,6 @@ public interface PropsKeys {
 	public static final String DL_FILE_ENTRY_PREVIEW_VIDEO_WIDTH =
 		"dl.file.entry.preview.video.width";
 
-	public static final String DL_FILE_ENTRY_PROCESSORS =
-		"dl.file.entry.processors";
-
 	public static final String
 		DL_FILE_ENTRY_RAW_METADATA_PROCESSOR_EXCLUDED_MIME_TYPES =
 			"dl.file.entry.raw.metadata.processor.excluded.mime.types";
@@ -933,6 +953,9 @@ public interface PropsKeys {
 
 	public static final String DNS_SECURITY_THREAD_LIMIT =
 		"dns.security.thread.limit";
+
+	public static final String DNS_SECURITY_THREAD_QUEUE_LIMIT =
+		"dns.security.thread.queue.limit";
 
 	public static final String EDITOR_WYSIWYG_DEFAULT =
 		"editor.wysiwyg.default";
@@ -1099,10 +1122,6 @@ public interface PropsKeys {
 
 	public static final String INDEX_ON_STARTUP_DELAY =
 		"index.on.startup.delay";
-
-	public static final String
-		INDEX_PERMISSION_FILTER_SEARCH_AMPLIFICATION_FACTOR =
-			"index.permission.filter.search.amplification.factor";
 
 	public static final String
 		INDEX_SEARCH_COLLATED_SPELL_CHECK_RESULT_ENABLED =
@@ -1393,15 +1412,6 @@ public interface PropsKeys {
 	public static final String LDAP_ATTRS_TRANSFORMER_IMPL =
 		"ldap.attrs.transformer.impl";
 
-	public static final String LEARN_RESOURCES_CDN_ENABLED =
-		"learn.resources.cdn.enabled";
-
-	public static final String LEARN_RESOURCES_ENABLED =
-		"learn.resources.enabled";
-
-	public static final String LEARN_RESOURCES_REFRESH_TIME =
-		"learn.resources.refresh.time";
-
 	public static final String LIFERAY_HOME = "liferay.home";
 
 	public static final String LIFERAY_SHIELDED_CONTAINER_LIB_PORTAL_DIR =
@@ -1579,9 +1589,6 @@ public interface PropsKeys {
 
 	public static final String MESSAGE_BOARDS_EXPIRE_BAN_INTERVAL =
 		"message.boards.expire.ban.interval";
-
-	public static final String MESSAGE_BOARDS_EXPIRE_BAN_JOB_INTERVAL =
-		"message.boards.expire.ban.job.interval";
 
 	public static final String MESSAGE_BOARDS_FLAGS_ENABLED =
 		"message.boards.flags.enabled";
@@ -2344,12 +2351,6 @@ public interface PropsKeys {
 
 	public static final String SESSION_TIMEOUT = "session.timeout";
 
-	public static final String SESSION_TIMEOUT_AUTO_EXTEND =
-		"session.timeout.auto.extend";
-
-	public static final String SESSION_TIMEOUT_AUTO_EXTEND_OFFSET =
-		"session.timeout.auto.extend.offset";
-
 	public static final String SESSION_TIMEOUT_REDIRECT_ON_EXPIRE =
 		"session.timeout.redirect.on.expire";
 
@@ -2539,36 +2540,6 @@ public interface PropsKeys {
 	public static final String SPRING_HIBERNATE_SESSION_FACTORY_VERIFY =
 		"spring.hibernate.session.factory.verify";
 
-	public static final String SPRING_INFRASTRUCTURE_CONFIGS =
-		"spring.infrastructure.configs";
-
-	public static final String
-		SQL_DATA_COM_LIFERAY_PORTAL_MODEL_COUNTRY_COUNTRY_ID =
-			"sql.data.com.liferay.portal.kernel.model.Country.country.id";
-
-	public static final String
-		SQL_DATA_COM_LIFERAY_PORTAL_MODEL_LISTTYPE_COMPANY_ADDRESS =
-			"sql.data.com.liferay.portal.kernel.model.ListType.company.address";
-
-	public static final String
-		SQL_DATA_COM_LIFERAY_PORTAL_MODEL_LISTTYPE_COMPANY_EMAIL_ADDRESS =
-			"sql.data.com.liferay.portal.kernel.model.ListType.company.email.address";
-
-	public static final String
-		SQL_DATA_COM_LIFERAY_PORTAL_MODEL_LISTTYPE_CONTACT_EMAIL_ADDRESS =
-			"sql.data.com.liferay.portal.kernel.model.ListType.contact.email.address";
-
-	public static final String
-		SQL_DATA_COM_LIFERAY_PORTAL_MODEL_LISTTYPE_ORGANIZATION_STATUS =
-			"sql.data.com.liferay.portal.kernel.model.ListType.organization.status";
-
-	public static final String
-		SQL_DATA_COM_LIFERAY_PORTAL_MODEL_REGION_REGION_ID =
-			"sql.data.com.liferay.portal.kernel.model.Region.region.id";
-
-	public static final String SQL_DATA_MAX_PARAMETERS =
-		"sql.data.max.parameters";
-
 	public static final String
 		STAGING_DRAFT_EXPORT_IMPORT_CONFIGURATION_CHECK_INTERVAL =
 			"staging.draft.export.import.configuration.check.interval";
@@ -2715,6 +2686,8 @@ public interface PropsKeys {
 
 	public static final String UPGRADE_LOG_CONTEXT_ENABLED =
 		"upgrade.log.context.enabled";
+
+	public static final String UPGRADE_REPORT_DIR = "upgrade.report.dir";
 
 	public static final String UPGRADE_REPORT_DL_STORAGE_SIZE_TIMEOUT =
 		"upgrade.report.dl.storage.size.timeout";
@@ -2944,6 +2917,9 @@ public interface PropsKeys {
 
 	public static final String WORKFLOW_EMAIL_FROM_NAME =
 		"workflow.email.from.name";
+
+	public static final String XML_RPC_MAX_PARAMETERS =
+		"xml.rpc.max.parameters";
 
 	public static final String XML_SECURITY_ENABLED = "xml.security.enabled";
 

@@ -121,21 +121,21 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 						if (assetPublisherDisplayContext.isShowCreateDate() && (assetEntry.getCreateDate() != null)) {
 							sb.append(LanguageUtil.get(request, "created"));
 							sb.append(StringPool.SPACE);
-							sb.append(dateFormatDate.format(assetEntry.getCreateDate()));
+							sb.append(dateFormat.format(assetEntry.getCreateDate()));
 							sb.append(" - ");
 						}
 
 						if (assetPublisherDisplayContext.isShowPublishDate() && (assetEntry.getPublishDate() != null)) {
 							sb.append(LanguageUtil.get(request, "published"));
 							sb.append(StringPool.SPACE);
-							sb.append(dateFormatDate.format(assetEntry.getPublishDate()));
+							sb.append(dateFormat.format(assetEntry.getPublishDate()));
 							sb.append(" - ");
 						}
 
 						if (assetPublisherDisplayContext.isShowExpirationDate() && (assetEntry.getExpirationDate() != null)) {
 							sb.append(LanguageUtil.get(request, "expired"));
 							sb.append(StringPool.SPACE);
-							sb.append(dateFormatDate.format(assetEntry.getExpirationDate()));
+							sb.append(dateFormat.format(assetEntry.getExpirationDate()));
 							sb.append(" - ");
 						}
 
@@ -295,7 +295,7 @@ for (AssetEntry assetEntry : assetEntryResult.getAssetEntries()) {
 								borderless="<%= true %>"
 								displayType="secondary"
 								icon="print"
-								propsTransformer="js/printPageButtonPropsTransformer"
+								propsTransformer="{printPageButtonPropsTransformer} from asset-publisher-web"
 								small="<%= true %>"
 								title="<%= label %>"
 								type="button"

@@ -5,6 +5,61 @@ components:
             description:
                 An account represents an external account, for example a customer business.
             properties:
+                accountContactInformation:
+                    description:
+                        The account's contact information.
+                    properties:
+                        emailAddresses:
+                            description:
+                                A list of the account's email addresses, with one optionally marked as primary.
+                            items:
+                                $ref: "#/components/schemas/EmailAddress"
+                            type: array
+                        facebook:
+                            description:
+                                The account's Facebook account.
+                            type: string
+                        id:
+                            description:
+                                The ID of the `contactInformation`.
+                            format: int64
+                            readOnly: true
+                            type: integer
+                        jabber:
+                            description:
+                                The account's Jabber handle.
+                            type: string
+                        postalAddresses:
+                            description:
+                                A list of account's postal addresses, with one optionally marked as primary.
+                            items:
+                                $ref: "#/components/schemas/PostalAddress"
+                            type: array
+                        skype:
+                            description:
+                                The account's Skype handle.
+                            type: string
+                        sms:
+                            description:
+                                The account's SMS number.
+                            type: string
+                        telephones:
+                            description:
+                                A list of the account's phone numbers, with one optionally marked as primary.
+                            items:
+                                $ref: "#/components/schemas/Phone"
+                            type: array
+                        twitter:
+                            description:
+                                The account's Twitter handle.
+                            type: string
+                        webUrls:
+                            description:
+                                A list of the account's web URLs, with one optionally marked as primary.
+                            items:
+                                $ref: "#/components/schemas/WebUrl"
+                            type: array
+                    type: object
                 accountUserAccounts:
                     description:
                         The users linked to the account
@@ -362,6 +417,11 @@ components:
                     format: uri
                     readOnly: true
                     type: string
+                imageId:
+                    description:
+                        The organization's image id.
+                    format: int64
+                    type: integer
                 keywords:
                     description:
                         A list of keywords describing the organization.
@@ -378,6 +438,11 @@ components:
                                 The organization's country. This follows the
                                 [`addressCountry`](https://schema.org/addressCountry) specification.
                             type: string
+                        addressCountryCode:
+                            description:
+                                The organization's country isocode.
+                            readOnly: true
+                            type: string
                         addressCountry_i18n:
                             additionalProperties:
                                 type: string
@@ -386,6 +451,11 @@ components:
                             description:
                                 The organization's region. This follows the
                                 [`addressRegion`](https://schema.org/addressRegion) specification.
+                            type: string
+                        addressRegionCode:
+                            description:
+                                The organization's region code.
+                            readOnly: true
                             type: string
                         id:
                             description:
@@ -448,8 +518,7 @@ components:
                             type: array
                     type: object
                 parentOrganization:
-                    allOf:
-                        - $ref: "#/components/schemas/Organization"
+                    $ref: "#/components/schemas/Organization"
                     description:
                         The organization's parent organization.
                 services:
@@ -573,10 +642,15 @@ components:
                     description:
                         The address's ID.
                     format: int64
+                    readOnly: true
                     type: integer
                 name:
                     description:
                         The address's name.
+                    type: string
+                phoneNumber:
+                    description:
+                        The phone number.
                     type: string
                 postalCode:
                     description:
@@ -622,8 +696,7 @@ components:
                     readOnly: true
                     type: array
                 creator:
-                    allOf:
-                        - $ref: "#/components/schemas/Creator"
+                    $ref: "#/components/schemas/Creator"
                     description:
                         The role's creator.
                     readOnly: true
@@ -642,17 +715,15 @@ components:
                 description:
                     description:
                         The role's description.
-                    readOnly: true
                     type: string
                 description_i18n:
                     additionalProperties:
                         type: string
-                    readOnly: true
                     type: object
                 externalReferenceCode:
                     # @review
                     description:
-                        The portable ID of this role.
+                        The optional external key of this role.
                     type: string
                 id:
                     description:
@@ -663,17 +734,18 @@ components:
                 name:
                     description:
                         The role's name.
-                    readOnly: true
                     type: string
                 name_i18n:
                     additionalProperties:
                         type: string
-                    readOnly: true
                     type: object
+                rolePermissions:
+                    items:
+                        $ref: "#/components/schemas/RolePermission"
+                    type: array
                 roleType:
                     description:
                         The role's type.
-                    readOnly: true
                     type: string
             type: object
         RoleBrief:
@@ -697,6 +769,28 @@ components:
                         type: string
                     readOnly: true
                     type: object
+            type: object
+        RolePermission:
+            properties:
+                actionIds:
+                    items:
+                        type: string
+                    type: array
+                id:
+                    format: int64
+                    type: integer
+                label:
+                    type: string
+                primaryKey:
+                    type: string
+                resourceName:
+                    type: string
+                roleId:
+                    format: int64
+                    type: integer
+                scope:
+                    format: int64
+                    type: integer
             type: object
         Segment:
             description:
@@ -970,7 +1064,6 @@ components:
                     # @review
                     description:
                         The optional external key of this user account.
-                    readOnly: true
                     type: string
                 familyName:
                     description:
@@ -999,6 +1092,11 @@ components:
                     format: uri
                     readOnly: true
                     type: string
+                imageId:
+                    description:
+                        The user's profile image id.
+                    format: int64
+                    type: integer
                 jobTitle:
                     description:
                         The user's job title.
@@ -1010,6 +1108,15 @@ components:
                         type: string
                     readOnly: true
                     type: array
+                languageDisplayName:
+                    description:
+                        The user's preferred language.
+                    readOnly: true
+                    type: string
+                languageId:
+                    description:
+                        The user's preferred language id.
+                    type: string
                 lastLoginDate:
                     description:
                         The last time the user logged in.
@@ -1120,6 +1227,34 @@ components:
                     readOnly: true
                     type: array
             type: object
+        UserAccountFullNameDefinition:
+            description:
+                Represents the definition of the user full name.
+            properties:
+                userAccountFullNameDefinitionFields:
+                    description:
+                        A list of the user's account.
+                    items:
+                        $ref: "#/components/schemas/UserAccountFullNameDefinitionField"
+                    readOnly: true
+                    type: array
+            type: object
+        UserAccountFullNameDefinitionField:
+            description:
+                Represents the definition of a single part of the user full name.
+            properties:
+                key:
+                    readOnly: true
+                    type: string
+                required:
+                    readOnly: true
+                    type: boolean
+                values:
+                    items:
+                        type: string
+                    readOnly: true
+                    type: array
+            type: object
         UserGroup:
             properties:
                 actions:
@@ -1184,7 +1319,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.headless.admin.user.client', and version '4.0.48'."
+        'com.liferay.headless.admin.user.client', and version '4.0.58'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -1881,11 +2016,11 @@ paths:
                   schema:
                       type: string
                 - in: query
-                  name: keywords
+                  name: filter
                   schema:
                       type: string
                 - in: query
-                  name: filter
+                  name: keywords
                   schema:
                       type: string
                 - in: query
@@ -2479,11 +2614,11 @@ paths:
                       format: int64
                       type: integer
                 - in: query
-                  name: keywords
+                  name: filter
                   schema:
                       type: string
                 - in: query
-                  name: filter
+                  name: keywords
                   schema:
                       type: string
                 - in: query
@@ -2737,6 +2872,33 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/PostalAddress"
                                 type: array
+            tags: ["PostalAddress"]
+        post:
+            operationId: postAccountPostalAddress
+            parameters:
+                - in: path
+                  name: accountId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/PostalAddress"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/PostalAddress"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PostalAddress"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/PostalAddress"
             tags: ["PostalAddress"]
     "/accounts/{accountId}/user-accounts":
         get:
@@ -3140,13 +3302,13 @@ paths:
             operationId: getOrganizationsPage
             parameters:
                 - in: query
-                  name: flatten
-                  schema:
-                      type: boolean
-                - in: query
                   name: filter
                   schema:
                       type: string
+                - in: query
+                  name: flatten
+                  schema:
+                      type: boolean
                 - in: query
                   name: page
                   schema:
@@ -3663,13 +3825,13 @@ paths:
                   schema:
                       type: string
                 - in: query
-                  name: flatten
-                  schema:
-                      type: boolean
-                - in: query
                   name: filter
                   schema:
                       type: string
+                - in: query
+                  name: flatten
+                  schema:
+                      type: boolean
                 - in: query
                   name: page
                   schema:
@@ -3991,13 +4153,13 @@ paths:
                   schema:
                       type: string
                 - in: query
-                  name: flatten
-                  schema:
-                      type: boolean
-                - in: query
                   name: filter
                   schema:
                       type: string
+                - in: query
+                  name: flatten
+                  schema:
+                      type: boolean
                 - in: query
                   name: page
                   schema:
@@ -4051,6 +4213,23 @@ paths:
                                 $ref: "#/components/schemas/Phone"
             tags: ["Phone"]
     "/postal-addresses/{postalAddressId}":
+        delete:
+            description:
+                Deletes the postal address
+            operationId: deletePostalAddress
+            parameters:
+                - in: path
+                  name: postalAddressId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["PostalAddress"]
         get:
             description:
                 Retrieves the postal address.
@@ -4072,6 +4251,60 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/PostalAddress"
             tags: ["PostalAddress"]
+        patch:
+            operationId: patchPostalAddress
+            parameters:
+                - in: path
+                  name: postalAddressId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/PostalAddress"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/PostalAddress"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PostalAddress"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/PostalAddress"
+            tags: ["PostalAddress"]
+        put:
+            operationId: putPostalAddress
+            parameters:
+                - in: path
+                  name: postalAddressId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/PostalAddress"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/PostalAddress"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PostalAddress"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/PostalAddress"
+            tags: ["PostalAddress"]
     "/roles":
         get:
             description:
@@ -4079,11 +4312,9 @@ paths:
             operationId: getRolesPage
             parameters:
                 - in: query
-                  name: types
+                  name: fields
                   schema:
-                      items:
-                          type: integer
-                      type: array
+                      type: string
                 - in: query
                   name: page
                   schema:
@@ -4093,9 +4324,19 @@ paths:
                   schema:
                       type: integer
                 - in: query
+                  name: restrictFields
+                  schema:
+                      type: string
+                - in: query
                   name: search
                   schema:
                       type: string
+                - in: query
+                  name: types
+                  schema:
+                      items:
+                          type: integer
+                      type: array
             responses:
                 200:
                     content:
@@ -4109,6 +4350,59 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/Role"
                                 type: array
+            tags: ["Role"]
+        post:
+            description:
+                Creates a new role
+            operationId: postRole
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Role"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/Role"
+            responses:
+                201:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Role"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Role"
+                    description:
+                        "Roles successfully created"
+            tags: ["Role"]
+    "/roles/by-external-reference-code/{externalReferenceCode}":
+        put:
+            description:
+                update the given Role
+            operationId: putRoleByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Role"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/Role"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Role"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Role"
             tags: ["Role"]
     "/roles/{roleId}":
         get:
@@ -4493,6 +4787,26 @@ paths:
                                     $ref: "#/components/schemas/Segment"
                                 type: array
             tags: ["Segment"]
+    "/user-account-full-name-definition":
+        get:
+            description:
+                Retrieves the user account full name definition.
+            parameters:
+                - in: query
+                  name: languageId
+                  required: false
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/UserAccountFullNameDefinition"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/UserAccountFullNameDefinition"
+            tags: ["UserAccountFullNameDefinition"]
     "/user-accounts":
         get:
             description:

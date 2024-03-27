@@ -9,8 +9,9 @@ import {
 	// @ts-ignore
 
 } from '@liferay/frontend-data-set-web';
-import {API, getLocalizableLabel} from '@liferay/object-js-components-web';
+import {API, stringUtils} from '@liferay/object-js-components-web';
 import classNames from 'classnames';
+import {sub} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
 import {
@@ -19,7 +20,8 @@ import {
 	fdsItem,
 	formatActionURL,
 } from '../../utils/fds';
-import {ModalDeletionNotAllowed} from '../ModalDeletionNotAllowed';
+import LabelRenderer from '../LabelRenderer';
+import ModalObjectFieldDeletionNotAllowed from '../ModalObjectFieldDeletionNotAllowed';
 import {deleteRelationship} from '../ViewObjectDefinitions/objectDefinitionUtil';
 import {ModalAddObjectRelationship} from './ModalAddObjectRelationship';
 import {ModalDeleteObjectRelationship} from './ModalDeleteObjectRelationship';
@@ -102,8 +104,8 @@ export default function Relationships({
 	] = useState<ObjectRelationship>();
 
 	const [
-		showDelitionNotAllowedModal,
-		setShowDelitionNotAllowedModal,
+		showDeletionNotAllowedModal,
+		setShowDeletionNotAllowedModal,
 	] = useState(false);
 
 	useEffect(() => {
@@ -123,63 +125,16 @@ export default function Relationships({
 		openSidePanel,
 		value,
 	}: fdsItem<ItemData>) {
-		const handleEditField = () => {
-			openSidePanel({
-				url: formatActionURL(url, itemData.id),
-			});
-		};
-
 		return (
-			<div className="table-list-title">
-				<a href="#" onClick={handleEditField}>
-					{value}
-				</a>
-			</div>
+			<LabelRenderer
+				onClick={() => {
+					openSidePanel({
+						url: formatActionURL(url, itemData.id),
+					});
+				}}
+				value={value}
+			/>
 		);
-	}
-
-	const fdsFields = [
-		{
-			contentRenderer: 'ObjectFieldLabelDataRenderer',
-			expand: false,
-			fieldName: 'label',
-			label: Liferay.Language.get('label'),
-			localizeLabel: true,
-			sortable: true,
-		},
-		{
-			expand: false,
-			fieldName: 'objectDefinitionName2',
-			label: Liferay.Language.get('related-object'),
-			localizeLabel: true,
-			sortable: false,
-		},
-		{
-			expand: false,
-			fieldName: 'type',
-			label: Liferay.Language.get('type'),
-			localizeLabel: true,
-			sortable: false,
-		},
-		{
-			contentRenderer: 'ObjectFieldHierarchyDataRenderer',
-			expand: false,
-			fieldName: 'hierarchy',
-			label: Liferay.Language.get('hierarchy'),
-			localizeLabel: true,
-			sortable: false,
-		},
-	];
-
-	if (Liferay.FeatureFlags['LPS-193355']) {
-		fdsFields.push({
-			contentRenderer: 'ObjectRelationshipSourceDataRenderer',
-			expand: false,
-			fieldName: 'source',
-			label: Liferay.Language.get('source'),
-			localizeLabel: true,
-			sortable: false,
-		});
 	}
 
 	const dataSetProps = {
@@ -206,7 +161,7 @@ export default function Relationships({
 			if (action.data.id === 'deleteObjectRelationship') {
 				if (itemData.edge && Liferay.FeatureFlags['LPS-187142']) {
 					setSelectedObjectRelationship(itemData);
-					setShowDelitionNotAllowedModal(true);
+					setShowDeletionNotAllowedModal(true);
 
 					return;
 				}
@@ -216,8 +171,7 @@ export default function Relationships({
 					setShowDeleteModal(true);
 				}
 				else {
-					deleteRelationship(itemData.id);
-					setTimeout(() => window.location.reload(), 1500);
+					deleteRelationship(itemData.id, true);
 				}
 			}
 		},
@@ -230,7 +184,47 @@ export default function Relationships({
 				label: 'Table',
 				name: 'table',
 				schema: {
-					fields: fdsFields,
+					fields: [
+						{
+							contentRenderer: 'ObjectFieldLabelDataRenderer',
+							expand: false,
+							fieldName: 'label',
+							label: Liferay.Language.get('label'),
+							localizeLabel: true,
+							sortable: true,
+						},
+						{
+							expand: false,
+							fieldName: 'objectDefinitionName2',
+							label: Liferay.Language.get('related-object'),
+							localizeLabel: true,
+							sortable: false,
+						},
+						{
+							expand: false,
+							fieldName: 'type',
+							label: Liferay.Language.get('type'),
+							localizeLabel: true,
+							sortable: false,
+						},
+						{
+							contentRenderer: 'ObjectFieldHierarchyDataRenderer',
+							expand: false,
+							fieldName: 'hierarchy',
+							label: Liferay.Language.get('hierarchy'),
+							localizeLabel: true,
+							sortable: false,
+						},
+						{
+							contentRenderer:
+								'ObjectRelationshipSourceDataRenderer',
+							expand: false,
+							fieldName: 'source',
+							label: Liferay.Language.get('source'),
+							localizeLabel: true,
+							sortable: false,
+						},
+					],
 				},
 				thumbnail: 'table',
 			},
@@ -270,19 +264,29 @@ export default function Relationships({
 				/>
 			)}
 
-			{showDelitionNotAllowedModal &&
-				Liferay.FeatureFlags['LPS-187142'] && (
-					<ModalDeletionNotAllowed
-						onVisibilityChange={() =>
-							setShowDelitionNotAllowedModal(false)
-						}
-						selectedItemLabel={getLocalizableLabel(
-							creationLanguageId as Liferay.Language.Locale,
-							selectedObjectRelationship?.label,
-							selectedObjectRelationship?.name
-						)}
-					/>
-				)}
+			{showDeletionNotAllowedModal && Liferay.FeatureFlags['LPS-187142'] && (
+				<ModalObjectFieldDeletionNotAllowed
+					content={
+						<span
+							dangerouslySetInnerHTML={{
+								__html: sub(
+									Liferay.Language.get(
+										'x-is-being-used-by-a-root-object-and-cannot-be-deleted'
+									),
+									`<strong>"${stringUtils.getLocalizableLabel(
+										creationLanguageId as Liferay.Language.Locale,
+										selectedObjectRelationship?.label,
+										selectedObjectRelationship?.name
+									)}"</strong>`
+								),
+							}}
+						/>
+					}
+					onVisibilityChange={() =>
+						setShowDeletionNotAllowedModal(false)
+					}
+				/>
+			)}
 		</>
 	);
 }

@@ -6,11 +6,12 @@
 import {
 	FormError,
 	SingleSelect,
-	getLocalizableLabel,
+	stringUtils,
 } from '@liferay/object-js-components-web';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo} from 'react';
 
 interface EntryDisplayContainerProps {
+	className?: string;
 	errors: FormError<ObjectDefinition>;
 	isLinkedObjectDefinition?: boolean;
 	nonRelationshipObjectFieldsInfo: {
@@ -18,76 +19,69 @@ interface EntryDisplayContainerProps {
 		name: string;
 	}[];
 	objectFields: ObjectField[];
+	onSubmit?: (editedObjectDefinition?: Partial<ObjectDefinition>) => void;
 	setValues: (values: Partial<ObjectDefinition>) => void;
 	values: Partial<ObjectDefinition>;
 }
 
 export function EntryDisplayContainer({
+	className,
 	errors,
 	isLinkedObjectDefinition,
 	nonRelationshipObjectFieldsInfo,
 	objectFields,
+	onSubmit,
 	setValues,
 	values,
 }: EntryDisplayContainerProps) {
-	const [selectedObjectField, setSelectedObjectField] = useState<
-		ObjectField
-	>();
-
 	const titleFieldOptions = useMemo(() => {
 		return nonRelationshipObjectFieldsInfo?.map(({label, name}) => {
 			return {
-				label: getLocalizableLabel(
+				label: stringUtils.getLocalizableLabel(
 					values.defaultLanguageId as Liferay.Language.Locale,
 					label,
 					name
 				),
-				name,
+				value: name,
 			};
 		});
 	}, [nonRelationshipObjectFieldsInfo, values.defaultLanguageId]);
 
 	useEffect(() => {
-		if (values.titleObjectFieldName) {
-			const titleObjectField = objectFields.find(
-				(objectField) =>
-					objectField.name === values.titleObjectFieldName
-			);
+		const titleObjectField = objectFields.find(
+			(objectField) => objectField.name === values.titleObjectFieldName
+		);
 
-			setSelectedObjectField(titleObjectField);
+		if (!titleObjectField) {
+			const idField = objectFields.find((field) => field.name === 'id');
 
-			return;
+			setValues({titleObjectFieldName: idField?.name});
 		}
-
-		const idField = objectFields.find((field) => field.name === 'id');
-
-		setValues({titleObjectFieldName: idField?.name});
-		setSelectedObjectField(idField);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [values.titleObjectFieldName, objectFields]);
+	}, []);
 
 	return (
-		<SingleSelect<{label: string; name: string}>
+		<SingleSelect<LabelValueObject>
+			className={className}
 			disabled={isLinkedObjectDefinition}
 			error={errors.titleObjectFieldId}
+			items={titleFieldOptions}
 			label={Liferay.Language.get('entry-title-field')}
-			onChange={(target: {label: string; name: string}) => {
-				const field = objectFields.find(
-					({name}) => name === target.name
-				);
-
-				setSelectedObjectField(field);
+			onSelectionChange={(itemKey) => {
+				const field = objectFields.find(({name}) => name === itemKey);
 
 				setValues({
 					titleObjectFieldName: field?.name,
 				});
+
+				if (onSubmit) {
+					onSubmit({
+						...values,
+						titleObjectFieldName: field?.name,
+					});
+				}
 			}}
-			options={titleFieldOptions}
-			value={getLocalizableLabel(
-				values.defaultLanguageId as Liferay.Language.Locale,
-				selectedObjectField?.label,
-				selectedObjectField?.name
-			)}
+			selectedKey={values.titleObjectFieldName}
 		/>
 	);
 }

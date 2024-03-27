@@ -22,7 +22,7 @@ renderResponse.setTitle(objectDefinition.getLabel(locale, true));
 
 <div>
 	<react:component
-		module="js/components/ObjectValidation/Validations"
+		module="{Validations} from object-web"
 		props='<%=
 			HashMapBuilder.<String, Object>put(
 				"apiURL", objectDefinitionsValidationsDisplayContext.getAPIURL()
@@ -37,6 +37,8 @@ renderResponse.setTitle(objectDefinition.getLabel(locale, true));
 			).put(
 				"objectDefinitionExternalReferenceCode", objectDefinition.getExternalReferenceCode()
 			).put(
+				"objectValidationRuleEngines", objectDefinitionsValidationsDisplayContext.getObjectValidationRuleEngines()
+			).put(
 				"style", "fluid"
 			).put(
 				"url", objectDefinitionsValidationsDisplayContext.getEditObjectValidationURL()
@@ -45,15 +47,14 @@ renderResponse.setTitle(objectDefinition.getLabel(locale, true));
 	/>
 </div>
 
-<div id="<portlet:namespace />AddObjectValidation">
+<div>
 	<react:component
-		module="js/components/ObjectValidation/AddObjectValidation"
-		props='<%=
-			HashMapBuilder.<String, Object>put(
-				"apiURL", objectDefinitionsValidationsDisplayContext.getAPIURL()
-			).put(
-				"objectValidationRuleEngines", objectDefinitionsValidationsDisplayContext.getObjectValidationRuleEngines()
-			).build()
-		%>'
+		module="{ModalSelectObjectFields} from object-web"
+	/>
+</div>
+
+<div>
+	<react:component
+		module="{ModalObjectFieldDeletionNotAllowed} from object-web"
 	/>
 </div>

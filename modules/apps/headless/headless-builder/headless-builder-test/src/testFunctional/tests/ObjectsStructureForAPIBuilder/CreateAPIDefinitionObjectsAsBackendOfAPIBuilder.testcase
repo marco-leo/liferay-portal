@@ -1,7 +1,7 @@
 @component-name = "portal-headless"
 definition {
 
-	property custom.properties = "${line.separator}feature.flag.LPS-167253=true${line.separator}feature.flag.LPS-178642=true";
+	property custom.properties = "feature.flag.LPS-178642=true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.component.names = "Object";
@@ -10,9 +10,7 @@ definition {
 	setUp {
 		TestCase.setUpPortalInstance();
 
-		User.firstLoginUI();
-
-		SearchAdministration.executeReindex();
+		User.firstLoginPG();
 	}
 
 	tearDown {
@@ -26,7 +24,7 @@ definition {
 	}
 
 	@priority = 4
-	test CanChangeApiApplicationStatus {
+	test CanChangeAPIApplicationStatus {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -34,7 +32,6 @@ definition {
 		task ("Given API application with applicationStatus 'unpublished', baseURL 'my-app', and title 'My App' created") {
 			var response = ApplicationAPI.createAPIApplication(
 				baseURL = "my-app",
-				status = "unpublished",
 				title = "My APP");
 		}
 
@@ -65,7 +62,7 @@ definition {
 	}
 
 	@priority = 5
-	test CanCreateApiApplicationWithValidBaseUrl {
+	test CanCreateAPIApplicationWithValidBaseUrl {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -95,7 +92,7 @@ definition {
 	}
 
 	@priority = 5
-	test CanCreateUnpublishedApiApplication {
+	test CanCreateUnpublishedAPIApplication {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -123,7 +120,7 @@ definition {
 	}
 
 	@priority = 5
-	test CanDeleteApiApplication {
+	test CanDeleteAPIApplication {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -166,7 +163,7 @@ definition {
 	}
 
 	@priority = 5
-	test CannotCreateApiApplicationWithInvalidBaseUrl {
+	test CannotCreateAPIApplicationWithInvalidBaseUrl {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -206,7 +203,7 @@ definition {
 	}
 
 	@priority = 4
-	test CannotModifyApiApplicationWithInvalidStatusValue {
+	test CannotModifyAPIApplicationWithInvalidStatusValue {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -214,7 +211,6 @@ definition {
 		task ("Given API application with applicationStatus 'unpublished', baseURL 'my-app', and title 'My App' created") {
 			var response = ApplicationAPI.createAPIApplication(
 				baseURL = "my-app",
-				status = "unpublished",
 				title = "My APP");
 		}
 
@@ -247,7 +243,7 @@ definition {
 	}
 
 	@priority = 5
-	test CanSeeApiApplicationSchema {
+	test CanSeeAPIApplicationSchema {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -266,7 +262,7 @@ definition {
 	}
 
 	@priority = 5
-	test CanSeeApiApplicationSchemaFields {
+	test CanSeeAPIApplicationSchemaFields {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -285,7 +281,7 @@ definition {
 	}
 
 	@priority = 5
-	test CanSeeApiApplicationSchemaNestedFields {
+	test CanSeeAPIApplicationSchemaNestedFields {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -304,7 +300,7 @@ definition {
 	}
 
 	@priority = 5
-	test CanSeeApiEndpointSchema {
+	test CanSeeAPIEndpointSchema {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -323,7 +319,7 @@ definition {
 	}
 
 	@priority = 5
-	test CanSeeApiEndpointSchemaFields {
+	test CanSeeAPIEndpointSchemaFields {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -342,7 +338,7 @@ definition {
 	}
 
 	@priority = 5
-	test CanSeeApiEndpointSchemaNestedFields {
+	test CanSeeAPIEndpointSchemaNestedFields {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -361,7 +357,7 @@ definition {
 	}
 
 	@priority = 5
-	test CanSeeApiPropertySchema {
+	test CanSeeAPIPropertySchema {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -380,7 +376,7 @@ definition {
 	}
 
 	@priority = 5
-	test CanSeeApiPropertySchemaFields {
+	test CanSeeAPIPropertySchemaFields {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -391,15 +387,15 @@ definition {
 				version = "properties");
 		}
 
-		task ("Then the fields description, name*, objectFieldERC*, objectRelationshipNames, parentAPIPropertyERC are present in the APIProperty schema") {
+		task ("Then the fields description, name*, objectFieldERC*, objectRelationshipNames are present in the APIProperty schema") {
 			APIExplorer.assertSchemaFieldsPresent(
 				schemaEntity = "APIProperty",
-				schemaFields = "description,name*,objectFieldERC*,objectRelationshipNames,parentAPIPropertyERC");
+				schemaFields = "description,name*,objectFieldERC,objectRelationshipNames");
 		}
 	}
 
 	@priority = 5
-	test CanSeeApiPropertySchemaNestedFields {
+	test CanSeeAPIPropertySchemaNestedFields {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -410,15 +406,15 @@ definition {
 				version = "properties");
 		}
 
-		task ("Then the nestedFields of many-to-many self relationship apiPropertiesToAPIProperties is present in the schema") {
+		task ("Then the nestedFields of many-to-many self relationship apiPropertyToAPIProperties is present in the schema") {
 			APIExplorer.assertSchemaFieldsPresent(
 				schemaEntity = "APIProperty",
-				schemaFields = "apiPropertiesToAPIProperties");
+				schemaFields = "apiPropertyToAPIProperties");
 		}
 	}
 
 	@priority = 5
-	test CanSeeApiSchemaSchema {
+	test CanSeeAPISchemaSchema {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -437,7 +433,7 @@ definition {
 	}
 
 	@priority = 5
-	test CanSeeApiSchemaSchemaFields {
+	test CanSeeAPISchemaSchemaFields {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -456,7 +452,7 @@ definition {
 	}
 
 	@priority = 5
-	test CanSeeApiSchemaSchemaNestedFields {
+	test CanSeeAPISchemaSchemaNestedFields {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";

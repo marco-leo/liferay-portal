@@ -12,13 +12,13 @@ import com.liferay.depot.util.SiteConnectedGroupGroupProviderUtil;
 import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.document.library.kernel.model.DLFileEntryConstants;
 import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
+import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.web.internal.display.context.helper.DLPortletInstanceSettingsHelper;
 import com.liferay.document.library.web.internal.display.context.helper.DLRequestHelper;
 import com.liferay.document.library.web.internal.security.permission.resource.DLFolderPermission;
+import com.liferay.document.library.web.internal.util.FolderItemSelectorURLProvider;
 import com.liferay.item.selector.ItemSelector;
-import com.liferay.item.selector.criteria.FolderItemSelectorReturnType;
 import com.liferay.item.selector.criteria.InfoItemItemSelectorReturnType;
-import com.liferay.item.selector.criteria.folder.criterion.FolderItemSelectorCriterion;
 import com.liferay.item.selector.criteria.info.item.criterion.InfoItemItemSelectorCriterion;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -29,11 +29,11 @@ import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
-import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.servlet.BrowserSnifferUtil;
 import com.liferay.portlet.asset.util.comparator.AssetVocabularyGroupLocalizedTitleComparator;
 import com.liferay.taglib.security.PermissionsURLTag;
 
@@ -77,7 +77,7 @@ public class DLViewDisplayContext {
 		).setCMD(
 			Constants.ADD
 		).setRedirect(
-			_getRedirect()
+			getRedirect()
 		).setParameter(
 			"folderId", _dlAdminDisplayContext.getFolderId()
 		).setParameter(
@@ -98,9 +98,9 @@ public class DLViewDisplayContext {
 		return PortletURLBuilder.createRenderURL(
 			_renderResponse
 		).setMVCRenderCommandName(
-			"/document_library/copy_folder"
+			"/document_library/copy_dl_objects"
 		).setRedirect(
-			_getRedirect()
+			getRedirect()
 		).setParameter(
 			"sourceFolderId", getFolderId()
 		).setParameter(
@@ -132,7 +132,7 @@ public class DLViewDisplayContext {
 		).setActionName(
 			"/document_library/edit_entry"
 		).setRedirect(
-			_getRedirect()
+			getRedirect()
 		).buildString();
 	}
 
@@ -168,6 +168,12 @@ public class DLViewDisplayContext {
 		return PermissionsURLTag.doTag(
 			null, className, themeDisplay.getScopeGroupId(),
 			LiferayWindowState.POP_UP.toString(), _httpServletRequest);
+	}
+
+	public String getRedirect() {
+		PortletURL portletURL = _getCurrentPortletURL();
+
+		return portletURL.toString();
 	}
 
 	public long getRepositoryId() {
@@ -245,28 +251,18 @@ public class DLViewDisplayContext {
 		).buildString();
 	}
 
-	public String getSelectFolderURL() throws WindowStateException {
+	public String getSelectFolderURL() throws PortalException {
 		ItemSelector itemSelector =
 			(ItemSelector)_httpServletRequest.getAttribute(
 				ItemSelector.class.getName());
 
-		FolderItemSelectorCriterion folderItemSelectorCriterion =
-			new FolderItemSelectorCriterion();
+		FolderItemSelectorURLProvider folderItemSelectorURLProvider =
+			new FolderItemSelectorURLProvider(
+				_httpServletRequest, itemSelector);
 
-		folderItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
-			new FolderItemSelectorReturnType());
-		folderItemSelectorCriterion.setFolderId(getFolderId());
-		folderItemSelectorCriterion.setRepositoryId(
-			_dlAdminDisplayContext.getSelectedRepositoryId());
-		folderItemSelectorCriterion.setSelectedFolderId(getFolderId());
-		folderItemSelectorCriterion.setSelectedRepositoryId(
-			_dlAdminDisplayContext.getSelectedRepositoryId());
-
-		PortletURL portletURL = itemSelector.getItemSelectorURL(
-			RequestBackedPortletURLFactoryUtil.create(_renderRequest),
-			"itemSelected", folderItemSelectorCriterion);
-
-		return portletURL.toString();
+		return folderItemSelectorURLProvider.getSelectMoveToFolderURL(
+			_dlAdminDisplayContext.getSelectedRepositoryId(), getFolderId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 	}
 
 	public String getSidebarPanelURL() {
@@ -316,7 +312,7 @@ public class DLViewDisplayContext {
 		).setMVCRenderCommandName(
 			"/document_library/view_file_entry"
 		).setRedirect(
-			_getRedirect()
+			getRedirect()
 		).buildString();
 	}
 
@@ -429,8 +425,8 @@ public class DLViewDisplayContext {
 		for (AssetVocabulary assetVocabulary : assetVocabularies) {
 			if (assetVocabulary.isRequired(
 					classNameId,
-					DLFileEntryTypeConstants.
-						FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT)) {
+					DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT,
+					themeDisplay.getScopeGroupId())) {
 
 				return false;
 			}
@@ -449,12 +445,6 @@ public class DLViewDisplayContext {
 
 	private String _getNavigation() {
 		return _dlAdminDisplayContext.getNavigation();
-	}
-
-	private String _getRedirect() {
-		PortletURL portletURL = _getCurrentPortletURL();
-
-		return portletURL.toString();
 	}
 
 	private final DLAdminDisplayContext _dlAdminDisplayContext;

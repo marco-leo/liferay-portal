@@ -5,12 +5,15 @@
 
 package com.liferay.portal.vulcan.internal.template.servlet;
 
+import com.liferay.portal.kernel.servlet.DynamicServletRequest;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.HttpMethods;
+import com.liferay.portal.kernel.servlet.PortalSessionThreadLocal;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -35,6 +37,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpUpgradeHandler;
@@ -45,7 +48,20 @@ import javax.servlet.http.Part;
  */
 public class RESTClientHttpRequest implements HttpServletRequest {
 
-	public RESTClientHttpRequest(HttpServletRequest httpServletRequest) {
+	public RESTClientHttpRequest(
+		Map<String, Object> contextObjects,
+		HttpServletRequest httpServletRequest) {
+
+		_attributes = HashMapBuilder.<String, Object>put(
+			WebKeys.USER,
+			() -> {
+				if (contextObjects.containsKey("user")) {
+					return contextObjects.get("user");
+				}
+
+				return null;
+			}
+		).build();
 		_headers = HashMapBuilder.put(
 			HttpHeaders.ACCEPT, ContentTypes.APPLICATION_JSON
 		).put(
@@ -54,6 +70,19 @@ public class RESTClientHttpRequest implements HttpServletRequest {
 				Locale locale = PortalUtil.getLocale(httpServletRequest);
 
 				return locale.toLanguageTag();
+			}
+		).put(
+			"X-CSRF-Token",
+			() -> {
+				HttpSession httpSession =
+					PortalSessionThreadLocal.getHttpSession();
+
+				if (httpSession != null) {
+					return (String)httpSession.getAttribute(
+						WebKeys.AUTHENTICATION_TOKEN + "#CSRF");
+				}
+
+				return null;
 			}
 		).build();
 		_httpServletRequest = httpServletRequest;
@@ -318,11 +347,23 @@ public class RESTClientHttpRequest implements HttpServletRequest {
 
 	@Override
 	public HttpSession getSession() {
-		return _httpServletRequest.getSession();
+		return getSession(false);
 	}
 
 	@Override
 	public HttpSession getSession(boolean create) {
+		HttpServletRequestWrapper httpServletRequestWrapper =
+			(HttpServletRequestWrapper)_httpServletRequest;
+
+		ServletRequest servletRequest = httpServletRequestWrapper.getRequest();
+
+		if (servletRequest instanceof DynamicServletRequest) {
+			DynamicServletRequest dynamicServletRequest =
+				(DynamicServletRequest)servletRequest;
+
+			return dynamicServletRequest.getSession(create);
+		}
+
 		return _httpServletRequest.getSession(create);
 	}
 
@@ -417,7 +458,7 @@ public class RESTClientHttpRequest implements HttpServletRequest {
 		return _httpServletRequest.upgrade(handlerClass);
 	}
 
-	private final Map<String, Object> _attributes = new HashMap<>();
+	private final Map<String, Object> _attributes;
 	private final Map<String, String> _headers;
 	private final HttpServletRequest _httpServletRequest;
 

@@ -52,6 +52,12 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		axisTestClassGroups.add(axisTestClassGroup);
 	}
 
+	public void addSegmentTestClassGroup(
+		SegmentTestClassGroup segmentTestClassGroup) {
+
+		_segmentTestClassGroups.add(segmentTestClassGroup);
+	}
+
 	public long getAverageTestDuration(String testName) {
 		if (_averageTestDurations.containsKey(testName)) {
 			return _averageTestDurations.get(testName);
@@ -99,6 +105,10 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 	}
 
 	public int getAxisCount() {
+		if (ignore()) {
+			return 0;
+		}
+
 		JobProperty jobProperty = getJobProperty("test.batch.axis.count");
 
 		String jobPropertyValue = jobProperty.getValue();
@@ -141,6 +151,10 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		Job job = getJob();
 
 		JobHistory jobHistory = job.getJobHistory();
+
+		if (jobHistory == null) {
+			return null;
+		}
 
 		_batchHistory = jobHistory.getBatchHistory(getBatchName());
 
@@ -252,8 +266,12 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		).put(
 			"test_relevant_changes", testRelevantChanges
 		).put(
-			"test_relevant_integration_unit_only",
-			testRelevantIntegrationUnitOnly
+			"test_relevant_changes_in_stable", testRelevantChangesInStable
+		).put(
+			"test_relevant_junit_tests_only", testRelevantJUnitTestsOnly
+		).put(
+			"test_relevant_junit_tests_only_in_stable",
+			testRelevantJUnitTestsOnlyInStable
 		);
 
 		return jsonObject;
@@ -336,6 +354,26 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		return sb.toString();
 	}
 
+	public boolean testAnalyticsCloud() {
+		if (_testAnalyticsCloud != null) {
+			return _testAnalyticsCloud;
+		}
+
+		for (SegmentTestClassGroup segmentTestClassGroup :
+				getSegmentTestClassGroups()) {
+
+			if (segmentTestClassGroup.testAnalyticsCloud()) {
+				_testAnalyticsCloud = true;
+
+				return _testAnalyticsCloud;
+			}
+		}
+
+		_testAnalyticsCloud = false;
+
+		return _testAnalyticsCloud;
+	}
+
 	protected BatchTestClassGroup(
 		JSONObject jsonObject, PortalTestClassJob portalTestClassJob) {
 
@@ -366,8 +404,10 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		testHotfixChanges = jsonObject.optBoolean("test_hotfix_changes");
 		testRelevantChanges = jsonObject.optBoolean("test_relevant_changes");
 		testReleaseBundle = jsonObject.optBoolean("test_release_bundle");
-		testRelevantIntegrationUnitOnly = jsonObject.optBoolean(
-			"test_relevant_integration_unit_only");
+		testRelevantJUnitTestsOnly = jsonObject.optBoolean(
+			"test_relevant_junit_tests_only");
+		testRelevantJUnitTestsOnlyInStable = jsonObject.optBoolean(
+			"test_relevant_junit_tests_only_in_stable");
 
 		if (portalTestClassJob instanceof TestSuiteJob) {
 			TestSuiteJob testSuiteJob = (TestSuiteJob)portalTestClassJob;
@@ -400,8 +440,10 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		_setTestHotfixChanges();
 		_setTestReleaseBundle();
 		_setTestRelevantChanges();
+		_setTestRelevantChangesInStable();
 
-		_setTestRelevantIntegrationUnitOnly();
+		_setTestRelevantJUnitTestsOnly();
+		_setTestRelevantJUnitTestsOnlyInStable();
 
 		_setIncludeStableTestSuite();
 	}
@@ -576,39 +618,6 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		return relevantIntegrationUnitBatchNames;
 	}
 
-	protected List<PathMatcher>
-		getRelevantIntegrationUnitIncludePathMatchers() {
-
-		List<PathMatcher> relevantIntegrationUnitIncludePathMatchers =
-			new ArrayList<>();
-
-		for (String relevantIntegrationUnitBatchName :
-				getRelevantIntegrationUnitBatchNames()) {
-
-			JobProperty jobProperty = getJobProperty(
-				"test.batch.class.names.includes", getTestSuiteName(),
-				relevantIntegrationUnitBatchName,
-				JobProperty.Type.INCLUDE_GLOB);
-
-			if (!(jobProperty instanceof GlobJobProperty)) {
-				continue;
-			}
-
-			String jobPropertyValue = jobProperty.getValue();
-
-			if (jobPropertyValue == null) {
-				continue;
-			}
-
-			GlobJobProperty globJobProperty = (GlobJobProperty)jobProperty;
-
-			relevantIntegrationUnitIncludePathMatchers.addAll(
-				globJobProperty.getPathMatchers());
-		}
-
-		return relevantIntegrationUnitIncludePathMatchers;
-	}
-
 	protected List<File> getRequiredModuleDirs(List<File> moduleDirs) {
 		return _getRequiredModuleDirs(moduleDirs, new ArrayList<>(moduleDirs));
 	}
@@ -647,29 +656,16 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		return testSuiteName;
 	}
 
-	protected boolean isIntegrationUnitTestFileModifiedOnly() {
-		List<PathMatcher> relevantIntegrationUnitIncludePathMatchers =
-			getRelevantIntegrationUnitIncludePathMatchers();
-
-		List<File> modifiedFilesList =
-			portalGitWorkingDirectory.getModifiedFilesList();
-
-		if (relevantIntegrationUnitIncludePathMatchers.isEmpty() ||
-			modifiedFilesList.isEmpty()) {
-
-			return false;
+	protected boolean ignore() {
+		if (!isStableTestSuiteBatch() && testRelevantJUnitTestsOnly) {
+			return true;
 		}
 
-		for (File modifiedFile : modifiedFilesList) {
-			if (!JenkinsResultsParserUtil.isFileIncluded(
-					null, relevantIntegrationUnitIncludePathMatchers,
-					modifiedFile)) {
-
-				return false;
-			}
+		if (isStableTestSuiteBatch() && testRelevantJUnitTestsOnlyInStable) {
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
 	protected boolean isRootCauseAnalysis() {
@@ -791,7 +787,9 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 	protected boolean testHotfixChanges;
 	protected boolean testReleaseBundle;
 	protected boolean testRelevantChanges;
-	protected boolean testRelevantIntegrationUnitOnly;
+	protected boolean testRelevantChangesInStable;
+	protected boolean testRelevantJUnitTestsOnly;
+	protected boolean testRelevantJUnitTestsOnlyInStable;
 	protected final String testSuiteName;
 
 	protected static final class CSVReport {
@@ -1157,14 +1155,34 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		testRelevantChanges = job.testRelevantChanges();
 	}
 
-	private void _setTestRelevantIntegrationUnitOnly() {
-		if (testRelevantChanges && isIntegrationUnitTestFileModifiedOnly()) {
-			testRelevantIntegrationUnitOnly = true;
+	private void _setTestRelevantChangesInStable() {
+		Job job = getJob();
+
+		testRelevantChangesInStable = job.testRelevantChangesInStable();
+	}
+
+	private void _setTestRelevantJUnitTestsOnly() {
+		Job job = getJob();
+
+		if (testRelevantChanges && job.isJUnitTestsModifiedOnly()) {
+			testRelevantJUnitTestsOnly = true;
 
 			return;
 		}
 
-		testRelevantIntegrationUnitOnly = false;
+		testRelevantJUnitTestsOnly = false;
+	}
+
+	private void _setTestRelevantJUnitTestsOnlyInStable() {
+		Job job = getJob();
+
+		if (testRelevantChangesInStable && job.isJUnitTestsModifiedOnly()) {
+			testRelevantJUnitTestsOnlyInStable = true;
+
+			return;
+		}
+
+		testRelevantJUnitTestsOnlyInStable = false;
 	}
 
 	private static final int _SEGMENT_MAX_CHILDREN_DEFAULT = 25;
@@ -1179,5 +1197,6 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 	private final List<JobProperty> _jobProperties = new ArrayList<>();
 	private final List<SegmentTestClassGroup> _segmentTestClassGroups =
 		new ArrayList<>();
+	private Boolean _testAnalyticsCloud;
 
 }

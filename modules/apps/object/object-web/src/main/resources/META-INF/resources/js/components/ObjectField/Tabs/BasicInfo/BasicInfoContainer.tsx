@@ -18,42 +18,44 @@ import {MaxLengthProperties} from './MaxLengthProperties';
 import '../../EditObjectFieldContent.scss';
 
 interface BasicInfoContainerProps {
+	baseResourceURL: string;
 	creationLanguageId2?: Liferay.Language.Locale;
+	dbObjectFieldRequired?: boolean;
 	errors: ObjectFieldErrors;
 	handleChange: React.ChangeEventHandler<HTMLInputElement>;
-	isApproved: boolean;
 	modelBuilder?: boolean;
-	objectDefinition: Partial<ObjectDefinition>;
-	objectDefinitionExternalReferenceCode: string;
-	objectDefinitionName: string;
-	objectFieldTypes: ObjectFieldType[];
+	objectDefinition?: ObjectDefinition;
+	objectFieldBusinessTypes: ObjectFieldBusinessType[];
 	objectRelationshipId: number;
+	onSubmit?: () => void;
 	readOnly: boolean;
 	setAggregationFilters: (values: AggregationFilters[]) => void;
+	setDbObjectFieldRequired?: (value: boolean) => void;
 	setObjectDefinitionExternalReferenceCode2: (value: string) => void;
 	setValues: (values: Partial<ObjectField>) => void;
 	values: Partial<ObjectField>;
 }
 
 export function BasicInfoContainer({
+	baseResourceURL,
 	creationLanguageId2,
+	dbObjectFieldRequired,
 	errors,
 	handleChange,
-	isApproved,
 	modelBuilder = false,
 	objectDefinition,
-	objectDefinitionExternalReferenceCode,
-	objectDefinitionName,
-	objectFieldTypes,
+	objectFieldBusinessTypes,
 	objectRelationshipId,
+	onSubmit,
 	readOnly,
 	setAggregationFilters,
+	setDbObjectFieldRequired,
 	setObjectDefinitionExternalReferenceCode2,
 	setValues,
 	values,
 }: BasicInfoContainerProps) {
 	const disableFieldFormBase = !!(
-		isApproved ||
+		objectDefinition?.status?.label === 'approved' ||
 		values.system ||
 		values.relationshipType
 	);
@@ -78,31 +80,39 @@ export function BasicInfoContainer({
 				disabled={readOnly}
 				error={errors.label}
 				label={Liferay.Language.get('label')}
+				onBlur={(event) => {
+					event.stopPropagation();
+
+					if (onSubmit) {
+						onSubmit();
+					}
+				}}
 				onChange={(label) => setValues({label})}
 				required
 				translations={values.label as LocalizedValue<string>}
 			/>
 
 			<ObjectFieldFormBase
+				baseResourceURL={baseResourceURL}
 				creationLanguageId2={
 					creationLanguageId2 as Liferay.Language.Locale
 				}
+				dbObjectFieldRequired={dbObjectFieldRequired}
 				disabled={disableFieldFormBase}
 				editingObjectField
 				errors={errors}
 				handleChange={handleChange}
+				modelBuilder={modelBuilder}
 				objectDefinition={objectDefinition}
-				objectDefinitionExternalReferenceCode={
-					objectDefinitionExternalReferenceCode
-				}
-				objectDefinitionName={objectDefinitionName}
 				objectField={values}
-				objectFieldTypes={objectFieldTypes}
+				objectFieldBusinessTypesInfo={objectFieldBusinessTypes}
 				objectRelationshipId={objectRelationshipId}
 				onAggregationFilterChange={setAggregationFilters}
 				onObjectRelationshipChange={
 					setObjectDefinitionExternalReferenceCode2
 				}
+				onSubmit={onSubmit}
+				setDbObjectFieldRequired={setDbObjectFieldRequired}
 				setValues={setValues}
 			>
 				{values.businessType === 'Attachment' && (
@@ -112,6 +122,7 @@ export function BasicInfoContainer({
 							values.objectFieldSettings as ObjectFieldSetting[]
 						}
 						onSettingsChange={handleSettingsChange}
+						onSubmit={onSubmit}
 					/>
 				)}
 
@@ -126,6 +137,7 @@ export function BasicInfoContainer({
 							values.objectFieldSettings as ObjectFieldSetting[]
 						}
 						onSettingsChange={handleSettingsChange}
+						onSubmit={onSubmit}
 						setValues={setValues}
 					/>
 				)}

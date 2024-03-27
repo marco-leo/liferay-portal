@@ -29,11 +29,13 @@ import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.portlet.FriendlyURLResolver;
+import com.liferay.portal.kernel.portlet.FriendlyURLResolverRegistryUtil;
+import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -75,13 +77,11 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 	@Override
 	public List<InfoFieldValue<Object>> getInfoFieldValues(
 			InfoItemReference infoItemReference,
-			String infoItemFormVariationKey, String namespace,
+			String infoItemFormVariationKey, String namespace, Object object,
 			ThemeDisplay themeDisplay)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPS-195205") ||
-			(themeDisplay == null)) {
-
+		if (themeDisplay == null) {
 			return Collections.emptyList();
 		}
 
@@ -98,21 +98,20 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 				).labelInfoLocalizedValue(
 					InfoLocalizedValue.localize(getClass(), "default")
 				).build(),
-				_getDefaultDisplayPageURL(infoItemReference, themeDisplay)));
+				_getDefaultDisplayPageURL(
+					infoItemReference, object, themeDisplay)));
 
 		Group group = themeDisplay.getScopeGroup();
 
 		String groupFriendlyURL = _portal.getGroupFriendlyURL(
 			group.getPublicLayoutSet(), themeDisplay, false, false);
 
-		String url = groupFriendlyURL + "/e";
-
 		List<LayoutPageTemplateEntry> layoutPageTemplateEntries =
 			_layoutPageTemplateEntryService.getLayoutPageTemplateEntries(
 				themeDisplay.getScopeGroupId(),
 				_portal.getClassNameId(infoItemReference.getClassName()),
 				GetterUtil.getLong(infoItemFormVariationKey),
-				LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE);
+				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE);
 
 		for (LayoutPageTemplateEntry layoutPageTemplateEntry :
 				layoutPageTemplateEntries) {
@@ -128,7 +127,7 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 					).uniqueId(
 						_getUniqueId(
 							layoutPageTemplateEntry.
-								getLayoutPageTemplateEntryKey())
+								getLayoutPageTemplateEntryId())
 					).name(
 						layoutPageTemplateEntry.getName()
 					).attribute(
@@ -141,7 +140,8 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 						locale -> {
 							WebURL webURL = new WebURL(
 								StringBundler.concat(
-									url, layout.getFriendlyURL(locale),
+									groupFriendlyURL + _getURLSeparator(),
+									layout.getFriendlyURL(locale),
 									StringPool.SLASH,
 									_portal.getClassNameId(
 										infoItemReference.getClassName()),
@@ -158,7 +158,8 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 	}
 
 	private String _getDefaultDisplayPageURL(
-			InfoItemReference infoItemReference, ThemeDisplay themeDisplay)
+			InfoItemReference infoItemReference, Object object,
+			ThemeDisplay themeDisplay)
 		throws Exception {
 
 		AssetRendererFactory<?> assetRendererFactory =
@@ -167,7 +168,7 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 
 		if (assetRendererFactory == null) {
 			return _assetDisplayPageFriendlyURLProvider.getFriendlyURL(
-				infoItemReference, themeDisplay);
+				infoItemReference, object, themeDisplay);
 		}
 
 		try {
@@ -186,7 +187,7 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 
 			if (assetRenderer == null) {
 				return _assetDisplayPageFriendlyURLProvider.getFriendlyURL(
-					infoItemReference, themeDisplay);
+					infoItemReference, object, themeDisplay);
 			}
 
 			String viewInContextURL = assetRenderer.getURLViewInContext(
@@ -203,7 +204,7 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 		}
 
 		return _assetDisplayPageFriendlyURLProvider.getFriendlyURL(
-			infoItemReference, themeDisplay);
+			infoItemReference, object, themeDisplay);
 	}
 
 	private InfoField<InfoFieldType> _getDefaultDisplayPageURLInfoField(
@@ -236,7 +237,7 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 			_layoutPageTemplateEntryService.getLayoutPageTemplateEntries(
 				scopeGroupId, _portal.getClassNameId(itemClassName),
 				GetterUtil.getLong(infoItemFormVariationKey),
-				LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE,
+				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE,
 				WorkflowConstants.STATUS_APPROVED);
 
 		for (LayoutPageTemplateEntry layoutPageTemplateEntry :
@@ -248,7 +249,7 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 					_getDisplayPageInfoFieldType()
 				).uniqueId(
 					_getUniqueId(
-						layoutPageTemplateEntry.getLayoutPageTemplateEntryKey())
+						layoutPageTemplateEntry.getLayoutPageTemplateEntryId())
 				).name(
 					layoutPageTemplateEntry.getName()
 				).labelInfoLocalizedValue(
@@ -281,9 +282,24 @@ public class DisplayPageInfoItemFieldSetProviderImpl
 		return StringPool.BLANK;
 	}
 
-	private String _getUniqueId(String layoutPageTemplateEntryKey) {
+	private String _getUniqueId(long layoutPageTemplateEntryId) {
 		return LayoutPageTemplateEntry.class.getSimpleName() +
-			StringPool.UNDERLINE + layoutPageTemplateEntryKey;
+			StringPool.UNDERLINE + layoutPageTemplateEntryId;
+	}
+
+	private String _getURLSeparator() {
+		FriendlyURLResolver friendlyURLResolver =
+			FriendlyURLResolverRegistryUtil.
+				getFriendlyURLResolverByDefaultURLSeparator(
+					FriendlyURLResolverConstants.URL_SEPARATOR_CUSTOM_ASSET);
+
+		if (friendlyURLResolver != null) {
+			String urlSeparator = friendlyURLResolver.getURLSeparator();
+
+			return urlSeparator.substring(0, urlSeparator.length() - 1);
+		}
+
+		return FriendlyURLResolverConstants.URL_SEPARATOR_X_CUSTOM_ASSET;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

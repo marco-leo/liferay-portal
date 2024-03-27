@@ -27,15 +27,15 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.search.test.util.SearchTestRule;
@@ -61,8 +61,6 @@ import java.util.Set;
 import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
-import org.apache.commons.lang.time.DateUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -203,7 +201,7 @@ public abstract class BaseCTEntryResourceTestCase {
 		Page<CTEntry> page = ctEntryResource.getCtCollectionCTEntriesPage(
 			ctCollectionId, null, null, null, Pagination.of(1, 10), null);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantCtCollectionId != null) {
 			CTEntry irrelevantCTEntry =
@@ -211,14 +209,12 @@ public abstract class BaseCTEntryResourceTestCase {
 					irrelevantCtCollectionId, randomIrrelevantCTEntry());
 
 			page = ctEntryResource.getCtCollectionCTEntriesPage(
-				irrelevantCtCollectionId, null, null, null, Pagination.of(1, 2),
-				null);
+				irrelevantCtCollectionId, null, null, null,
+				Pagination.of(1, (int)totalCount + 1), null);
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantCTEntry),
-				(List<CTEntry>)page.getItems());
+			assertContains(irrelevantCTEntry, (List<CTEntry>)page.getItems());
 			assertValid(
 				page,
 				testGetCtCollectionCTEntriesPage_getExpectedActions(
@@ -234,10 +230,10 @@ public abstract class BaseCTEntryResourceTestCase {
 		page = ctEntryResource.getCtCollectionCTEntriesPage(
 			ctCollectionId, null, null, null, Pagination.of(1, 10), null);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(ctEntry1, ctEntry2), (List<CTEntry>)page.getItems());
+		assertContains(ctEntry1, (List<CTEntry>)page.getItems());
+		assertContains(ctEntry2, (List<CTEntry>)page.getItems());
 		assertValid(
 			page,
 			testGetCtCollectionCTEntriesPage_getExpectedActions(
@@ -356,6 +352,12 @@ public abstract class BaseCTEntryResourceTestCase {
 		Long ctCollectionId =
 			testGetCtCollectionCTEntriesPage_getCtCollectionId();
 
+		Page<CTEntry> ctEntryPage =
+			ctEntryResource.getCtCollectionCTEntriesPage(
+				ctCollectionId, null, null, null, null, null);
+
+		int totalCount = GetterUtil.getInteger(ctEntryPage.getTotalCount());
+
 		CTEntry ctEntry1 = testGetCtCollectionCTEntriesPage_addCTEntry(
 			ctCollectionId, randomCTEntry());
 
@@ -365,28 +367,68 @@ public abstract class BaseCTEntryResourceTestCase {
 		CTEntry ctEntry3 = testGetCtCollectionCTEntriesPage_addCTEntry(
 			ctCollectionId, randomCTEntry());
 
-		Page<CTEntry> page1 = ctEntryResource.getCtCollectionCTEntriesPage(
-			ctCollectionId, null, null, null, Pagination.of(1, 2), null);
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<CTEntry> ctEntries1 = (List<CTEntry>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(ctEntries1.toString(), 2, ctEntries1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<CTEntry> page1 = ctEntryResource.getCtCollectionCTEntriesPage(
+				ctCollectionId, null, null, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+					pageSizeLimit),
+				null);
 
-		Page<CTEntry> page2 = ctEntryResource.getCtCollectionCTEntriesPage(
-			ctCollectionId, null, null, null, Pagination.of(2, 2), null);
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(3, page2.getTotalCount());
+			assertContains(ctEntry1, (List<CTEntry>)page1.getItems());
 
-		List<CTEntry> ctEntries2 = (List<CTEntry>)page2.getItems();
+			Page<CTEntry> page2 = ctEntryResource.getCtCollectionCTEntriesPage(
+				ctCollectionId, null, null, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+					pageSizeLimit),
+				null);
 
-		Assert.assertEquals(ctEntries2.toString(), 1, ctEntries2.size());
+			assertContains(ctEntry2, (List<CTEntry>)page2.getItems());
 
-		Page<CTEntry> page3 = ctEntryResource.getCtCollectionCTEntriesPage(
-			ctCollectionId, null, null, null, Pagination.of(1, 3), null);
+			Page<CTEntry> page3 = ctEntryResource.getCtCollectionCTEntriesPage(
+				ctCollectionId, null, null, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+					pageSizeLimit),
+				null);
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(ctEntry1, ctEntry2, ctEntry3),
-			(List<CTEntry>)page3.getItems());
+			assertContains(ctEntry3, (List<CTEntry>)page3.getItems());
+		}
+		else {
+			Page<CTEntry> page1 = ctEntryResource.getCtCollectionCTEntriesPage(
+				ctCollectionId, null, null, null,
+				Pagination.of(1, totalCount + 2), null);
+
+			List<CTEntry> ctEntries1 = (List<CTEntry>)page1.getItems();
+
+			Assert.assertEquals(
+				ctEntries1.toString(), totalCount + 2, ctEntries1.size());
+
+			Page<CTEntry> page2 = ctEntryResource.getCtCollectionCTEntriesPage(
+				ctCollectionId, null, null, null,
+				Pagination.of(2, totalCount + 2), null);
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<CTEntry> ctEntries2 = (List<CTEntry>)page2.getItems();
+
+			Assert.assertEquals(ctEntries2.toString(), 1, ctEntries2.size());
+
+			Page<CTEntry> page3 = ctEntryResource.getCtCollectionCTEntriesPage(
+				ctCollectionId, null, null, null,
+				Pagination.of(1, (int)totalCount + 3), null);
+
+			assertContains(ctEntry1, (List<CTEntry>)page3.getItems());
+			assertContains(ctEntry2, (List<CTEntry>)page3.getItems());
+			assertContains(ctEntry3, (List<CTEntry>)page3.getItems());
+		}
 	}
 
 	@Test
@@ -398,7 +440,7 @@ public abstract class BaseCTEntryResourceTestCase {
 			(entityField, ctEntry1, ctEntry2) -> {
 				BeanTestUtil.setProperty(
 					ctEntry1, entityField.getName(),
-					DateUtils.addMinutes(new Date(), -2));
+					new Date(System.currentTimeMillis() - (2 * Time.MINUTE)));
 			});
 	}
 
@@ -507,24 +549,27 @@ public abstract class BaseCTEntryResourceTestCase {
 		ctEntry2 = testGetCtCollectionCTEntriesPage_addCTEntry(
 			ctCollectionId, ctEntry2);
 
+		Page<CTEntry> page = ctEntryResource.getCtCollectionCTEntriesPage(
+			ctCollectionId, null, null, null, null, null);
+
 		for (EntityField entityField : entityFields) {
 			Page<CTEntry> ascPage =
 				ctEntryResource.getCtCollectionCTEntriesPage(
-					ctCollectionId, null, null, null, Pagination.of(1, 2),
+					ctCollectionId, null, null, null,
+					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":asc");
 
-			assertEquals(
-				Arrays.asList(ctEntry1, ctEntry2),
-				(List<CTEntry>)ascPage.getItems());
+			assertContains(ctEntry1, (List<CTEntry>)ascPage.getItems());
+			assertContains(ctEntry2, (List<CTEntry>)ascPage.getItems());
 
 			Page<CTEntry> descPage =
 				ctEntryResource.getCtCollectionCTEntriesPage(
-					ctCollectionId, null, null, null, Pagination.of(1, 2),
+					ctCollectionId, null, null, null,
+					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":desc");
 
-			assertEquals(
-				Arrays.asList(ctEntry2, ctEntry1),
-				(List<CTEntry>)descPage.getItems());
+			assertContains(ctEntry2, (List<CTEntry>)descPage.getItems());
+			assertContains(ctEntry1, (List<CTEntry>)descPage.getItems());
 		}
 	}
 
@@ -1109,6 +1154,10 @@ public abstract class BaseCTEntryResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -1233,20 +1282,20 @@ public abstract class BaseCTEntryResourceTestCase {
 
 		if (entityFieldName.equals("dateCreated")) {
 			if (operator.equals("between")) {
+				Date date = ctEntry.getDateCreated();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(ctEntry.getDateCreated(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(ctEntry.getDateCreated(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1264,20 +1313,20 @@ public abstract class BaseCTEntryResourceTestCase {
 
 		if (entityFieldName.equals("dateModified")) {
 			if (operator.equals("between")) {
+				Date date = ctEntry.getDateModified();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(ctEntry.getDateModified(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(ctEntry.getDateModified(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1591,9 +1640,9 @@ public abstract class BaseCTEntryResourceTestCase {
 	}
 
 	protected CTEntryResource ctEntryResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

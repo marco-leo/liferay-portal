@@ -14,6 +14,7 @@ import LayoutService from '../services/LayoutService';
 import isMappedToInfoItem from '../utils/editable_value/isMappedToInfoItem';
 import isMappedToLayout from '../utils/editable_value/isMappedToLayout';
 import isMappedToStructure from '../utils/editable_value/isMappedToStructure';
+import getPortletId from '../utils/getPortletId';
 import {useDisplayPagePreviewItem} from './DisplayPagePreviewItemContext';
 import {useDispatch} from './StoreContext';
 
@@ -154,7 +155,6 @@ const useGetContent = (
 				itemClassPK,
 				itemExternalReferenceCode,
 				languageId,
-				onNetworkStatus: dispatch,
 				segmentsExperienceId,
 			}).then(({content}) => {
 				dispatch(
@@ -183,6 +183,45 @@ const useGetContent = (
 		previousLanguageId,
 		segmentsExperienceId,
 		withinCollection,
+	]);
+
+	useEffect(() => {
+		const onRefreshPortlet = ({portletId}) => {
+			if (getPortletId(editableValues) !== portletId) {
+				return;
+			}
+
+			FragmentService.renderFragmentEntryLinkContent({
+				fragmentEntryLinkId,
+				itemClassName,
+				itemClassPK,
+				itemExternalReferenceCode,
+				languageId,
+				segmentsExperienceId,
+			}).then(({content}) => {
+				dispatch(
+					updateFragmentEntryLinkContent({
+						collectionContentId,
+						content,
+						fragmentEntryLinkId,
+					})
+				);
+			});
+		};
+
+		Liferay.on('refreshPortlet', onRefreshPortlet);
+
+		return () => Liferay.detach('refreshPortlet', onRefreshPortlet);
+	}, [
+		collectionContentId,
+		dispatch,
+		editableValues,
+		fragmentEntryLinkId,
+		itemClassName,
+		itemClassPK,
+		itemExternalReferenceCode,
+		languageId,
+		segmentsExperienceId,
 	]);
 
 	return (
@@ -259,7 +298,6 @@ const useGetFieldValue = () => {
 			if (isMappedToInfoItem(editable)) {
 				return InfoItemService.getInfoItemFieldValue({
 					...editable,
-					onNetworkStatus: () => {},
 				}).then((response) => {
 					if (!response || !Object.keys(response).length) {
 						throw new Error('Field value does not exist');
@@ -283,7 +321,6 @@ const useGetFieldValue = () => {
 					...displayPagePreviewItem.data,
 					fieldId: editable.mappedField,
 					languageId: editable.languageId,
-					onNetworkStatus: () => {},
 				}).then((response) => {
 					if (!response || !Object.keys(response).length) {
 						throw new Error('Field value does not exist');

@@ -27,15 +27,15 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.test.rule.Inject;
@@ -60,8 +60,6 @@ import java.util.Set;
 import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
-import org.apache.commons.lang.time.DateUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -417,7 +415,7 @@ public abstract class BaseCartResourceTestCase {
 		Page<Cart> page = cartResource.getChannelCartsPage(
 			accountId, channelId, null, Pagination.of(1, 10));
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if ((irrelevantAccountId != null) && (irrelevantChannelId != null)) {
 			Cart irrelevantCart = testGetChannelCartsPage_addCart(
@@ -426,12 +424,11 @@ public abstract class BaseCartResourceTestCase {
 
 			page = cartResource.getChannelCartsPage(
 				irrelevantAccountId, irrelevantChannelId, null,
-				Pagination.of(1, 2));
+				Pagination.of(1, (int)totalCount + 1));
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantCart), (List<Cart>)page.getItems());
+			assertContains(irrelevantCart, (List<Cart>)page.getItems());
 			assertValid(
 				page,
 				testGetChannelCartsPage_getExpectedActions(
@@ -447,10 +444,10 @@ public abstract class BaseCartResourceTestCase {
 		page = cartResource.getChannelCartsPage(
 			accountId, channelId, null, Pagination.of(1, 10));
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(cart1, cart2), (List<Cart>)page.getItems());
+		assertContains(cart1, (List<Cart>)page.getItems());
+		assertContains(cart2, (List<Cart>)page.getItems());
 		assertValid(
 			page,
 			testGetChannelCartsPage_getExpectedActions(accountId, channelId));
@@ -475,6 +472,11 @@ public abstract class BaseCartResourceTestCase {
 		Long accountId = testGetChannelCartsPage_getAccountId();
 		Long channelId = testGetChannelCartsPage_getChannelId();
 
+		Page<Cart> cartPage = cartResource.getChannelCartsPage(
+			accountId, channelId, null, null);
+
+		int totalCount = GetterUtil.getInteger(cartPage.getTotalCount());
+
 		Cart cart1 = testGetChannelCartsPage_addCart(
 			accountId, channelId, randomCart());
 
@@ -484,27 +486,63 @@ public abstract class BaseCartResourceTestCase {
 		Cart cart3 = testGetChannelCartsPage_addCart(
 			accountId, channelId, randomCart());
 
-		Page<Cart> page1 = cartResource.getChannelCartsPage(
-			accountId, channelId, null, Pagination.of(1, 2));
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<Cart> carts1 = (List<Cart>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(carts1.toString(), 2, carts1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<Cart> page1 = cartResource.getChannelCartsPage(
+				accountId, channelId, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+					pageSizeLimit));
 
-		Page<Cart> page2 = cartResource.getChannelCartsPage(
-			accountId, channelId, null, Pagination.of(2, 2));
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(3, page2.getTotalCount());
+			assertContains(cart1, (List<Cart>)page1.getItems());
 
-		List<Cart> carts2 = (List<Cart>)page2.getItems();
+			Page<Cart> page2 = cartResource.getChannelCartsPage(
+				accountId, channelId, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+					pageSizeLimit));
 
-		Assert.assertEquals(carts2.toString(), 1, carts2.size());
+			assertContains(cart2, (List<Cart>)page2.getItems());
 
-		Page<Cart> page3 = cartResource.getChannelCartsPage(
-			accountId, channelId, null, Pagination.of(1, 3));
+			Page<Cart> page3 = cartResource.getChannelCartsPage(
+				accountId, channelId, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+					pageSizeLimit));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(cart1, cart2, cart3), (List<Cart>)page3.getItems());
+			assertContains(cart3, (List<Cart>)page3.getItems());
+		}
+		else {
+			Page<Cart> page1 = cartResource.getChannelCartsPage(
+				accountId, channelId, null, Pagination.of(1, totalCount + 2));
+
+			List<Cart> carts1 = (List<Cart>)page1.getItems();
+
+			Assert.assertEquals(
+				carts1.toString(), totalCount + 2, carts1.size());
+
+			Page<Cart> page2 = cartResource.getChannelCartsPage(
+				accountId, channelId, null, Pagination.of(2, totalCount + 2));
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<Cart> carts2 = (List<Cart>)page2.getItems();
+
+			Assert.assertEquals(carts2.toString(), 1, carts2.size());
+
+			Page<Cart> page3 = cartResource.getChannelCartsPage(
+				accountId, channelId, null,
+				Pagination.of(1, (int)totalCount + 3));
+
+			assertContains(cart1, (List<Cart>)page3.getItems());
+			assertContains(cart2, (List<Cart>)page3.getItems());
+			assertContains(cart3, (List<Cart>)page3.getItems());
+		}
 	}
 
 	protected Cart testGetChannelCartsPage_addCart(
@@ -1454,6 +1492,10 @@ public abstract class BaseCartResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -1685,20 +1727,20 @@ public abstract class BaseCartResourceTestCase {
 
 		if (entityFieldName.equals("createDate")) {
 			if (operator.equals("between")) {
+				Date date = cart.getCreateDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(cart.getCreateDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(cart.getCreateDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1777,22 +1819,20 @@ public abstract class BaseCartResourceTestCase {
 
 		if (entityFieldName.equals("lastPriceUpdateDate")) {
 			if (operator.equals("between")) {
+				Date date = cart.getLastPriceUpdateDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							cart.getLastPriceUpdateDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							cart.getLastPriceUpdateDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1810,20 +1850,20 @@ public abstract class BaseCartResourceTestCase {
 
 		if (entityFieldName.equals("modifiedDate")) {
 			if (operator.equals("between")) {
+				Date date = cart.getModifiedDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(cart.getModifiedDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(cart.getModifiedDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -2451,9 +2491,9 @@ public abstract class BaseCartResourceTestCase {
 	}
 
 	protected CartResource cartResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

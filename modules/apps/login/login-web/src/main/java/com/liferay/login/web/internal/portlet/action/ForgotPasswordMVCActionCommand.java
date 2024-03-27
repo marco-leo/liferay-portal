@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.CompanyConstants;
+import com.liferay.portal.kernel.model.PasswordPolicy;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
@@ -36,11 +37,12 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PrefsProps;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.SortedArrayList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PropsValues;
 
-import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.portlet.ActionRequest;
@@ -204,6 +206,14 @@ public class ForgotPasswordMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
+	private String _getReminderQueryQuestion(
+		String login, Set<String> reminderQueryQuestions) {
+
+		List<String> list = new SortedArrayList(reminderQueryQuestions);
+
+		return list.get(Math.abs(login.hashCode()) % list.size());
+	}
+
 	private User _getUser(ActionRequest actionRequest) throws Exception {
 		try {
 			User user = null;
@@ -278,9 +288,10 @@ public class ForgotPasswordMVCActionCommand extends BaseMVCActionCommand {
 			guestUser.getReminderQueryQuestions();
 
 		if (!reminderQueryQuestions.isEmpty()) {
-			Iterator<String> iterator = reminderQueryQuestions.iterator();
-
-			guestUser.setReminderQueryQuestion(iterator.next());
+			guestUser.setReminderQueryQuestion(
+				_getReminderQueryQuestion(
+					ParamUtil.getString(actionRequest, "login"),
+					reminderQueryQuestions));
 		}
 		else {
 			guestUser.setReminderQueryQuestion(
@@ -353,7 +364,12 @@ public class ForgotPasswordMVCActionCommand extends BaseMVCActionCommand {
 
 		String emailParam = "emailPasswordSent";
 
-		if (company.isSendPasswordResetLink()) {
+		PasswordPolicy passwordPolicy = user.getPasswordPolicy();
+
+		if (!passwordPolicy.isChangeable()) {
+			emailParam = "emailPasswordUnchangeable";
+		}
+		else if (company.isSendPasswordResetLink()) {
 			emailParam = "emailPasswordReset";
 		}
 

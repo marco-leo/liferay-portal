@@ -5,24 +5,26 @@
 
 import ProcessLock from 'browser-tabs-lock';
 
+import {ENV} from '../analytics';
+
 const getItem = (key) => {
-	const Liferay = window.Liferay;
+	const cookieManager = ENV.Analytics.getCookieManager();
+
 	let data;
 
 	try {
-		let item;
-
-		if (Liferay && Liferay.Util && Liferay.Util.LocalStorage) {
-			item = Liferay.Util.LocalStorage.getItem(
-				key,
-				Liferay.Util.LocalStorage.TYPES.PERSONALIZATION
-			);
+		if (cookieManager?.actions) {
+			data = cookieManager.actions.getItem(key);
 		}
 		else {
-			item = localStorage.getItem(key);
-		}
+			const match = document.cookie.match(
+				new RegExp('(^| )' + key + '=([^;]+)')
+			);
 
-		data = JSON.parse(item);
+			if (match) {
+				data = JSON.parse(decodeURIComponent(match[2]));
+			}
+		}
 	}
 	catch (error) {
 		return;
@@ -31,19 +33,46 @@ const getItem = (key) => {
 	return data;
 };
 
-const setItem = (key, value) => {
-	const Liferay = window.Liferay;
+const getItemFromLocalStorage = (key) => {
+	const cookieManager = ENV.Analytics.getCookieManager();
+
+	let data;
 
 	try {
-		if (Liferay && Liferay.Util && Liferay.Util.LocalStorage) {
-			Liferay.Util.LocalStorage.setItem(
-				key,
-				JSON.stringify(value),
-				Liferay.Util.LocalStorage.TYPES.PERSONALIZATION
-			);
+		let item;
+
+		if (cookieManager?.actions) {
+			data = cookieManager.actions.getItemFromLocalStorage(key);
 		}
 		else {
-			localStorage.setItem(key, JSON.stringify(value));
+			item = localStorage.getItem(key);
+
+			data = JSON.parse(item);
+		}
+	}
+	catch (error) {
+		return;
+	}
+
+	return data;
+};
+
+const setItem = (key, value, encode = true) => {
+	const cookieManager = ENV.Analytics.getCookieManager();
+
+	const expires = new Date();
+
+	expires.setDate(expires.getDate() + 365);
+
+	try {
+		const jsonStr = JSON.stringify(value);
+		const data = encode ? encodeURIComponent(jsonStr) : jsonStr;
+
+		if (cookieManager?.actions) {
+			cookieManager.actions.setItem(key, value, encode);
+		}
+		else {
+			document.cookie = `${key}=${data}; expires=${expires.toUTCString()}; path=/; Secure`;
 		}
 	}
 	catch (error) {
@@ -52,17 +81,18 @@ const setItem = (key, value) => {
 };
 
 const removeItem = (key) => {
-	const Liferay = window.Liferay;
+	const cookieManager = ENV.Analytics.getCookieManager();
 
 	try {
-		if (Liferay && Liferay.Util && Liferay.Util.LocalStorage) {
-			Liferay.Util.LocalStorage.removeItem(
-				key,
-				Liferay.Util.LocalStorage.TYPES.PERSONALIZATION
-			);
+		if (cookieManager?.actions) {
+			cookieManager.actions.removeItem(key);
 		}
 		else {
-			localStorage.removeItem(key);
+			const expirationDate = new Date();
+
+			expirationDate.setFullYear(expirationDate.getFullYear() - 1);
+
+			document.cookie = `${key}=; expires=${expirationDate.toUTCString()}; path=/;`;
 		}
 	}
 	catch (error) {
@@ -83,7 +113,7 @@ const getStorageSizeInKb = (val) => {
 /**
  * Verify storage size and dequeue 1 item when limit is reached.
  *
- * Note: Because we are using a ProcessLock, no other process should
+ * @description Because we are using a ProcessLock, no other process should
  * be able to acquire a lock for a particular key to run its callback
  * until the process with the active lock releases it.
  *
@@ -113,8 +143,38 @@ const verifyStorageLimitForKey = (storageKey, limit) => {
 	});
 };
 
+/**
+ * Get storaged item from cookies or localStorage
+ *
+ * @description Maintain compatibility between browsers that already have data saved
+ * in local storage but now need to save it in cookies and therefore, we obtain the data
+ * from localStorage, update the cookies with it to make the data consistent and avoid
+ * sending a new identity and return the value.
+ *
+ * @param {String} key
+ * @returns {String | undefined}
+ */
+const getItemFromCookiesOrLocalStorage = (key, encode = true) => {
+	let item = getItem(key);
+
+	if (!item) {
+		const itemFromLocalStorage = getItemFromLocalStorage(key);
+
+		if (itemFromLocalStorage) {
+			localStorage.removeItem(key);
+
+			setItem(key, itemFromLocalStorage, encode);
+
+			item = itemFromLocalStorage;
+		}
+	}
+
+	return item;
+};
+
 export {
 	getItem,
+	getItemFromCookiesOrLocalStorage,
 	getStorageSizeInKb,
 	removeItem,
 	setItem,

@@ -6,28 +6,36 @@
 import ClayButton from '@clayui/button';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import ClayNavigationBar from '@clayui/navigation-bar';
-import {IClientExtensionRenderer, fetch} from 'frontend-js-web';
+import {IClientExtensionRenderer} from '@liferay/frontend-data-set-web';
+import {fetch} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
-import {API_URL, OBJECT_RELATIONSHIP} from './Constants';
 import {FDSViewType} from './FDSViews';
 import Actions from './fds_view/Actions';
 import Details from './fds_view/Details';
-import Fields from './fds_view/Fields';
 import Filters from './fds_view/Filters';
 import Pagination from './fds_view/Pagination';
+import Settings from './fds_view/Settings';
 import Sorting from './fds_view/Sorting';
+import VisualizationModes from './fds_view/visualization_modes/VisualizationModes';
+import {Fields} from './fds_view/visualization_modes/table/Table';
+import {API_URL, OBJECT_RELATIONSHIP} from './utils/constants';
 import openDefaultFailureToast from './utils/openDefaultFailureToast';
 
-const NAVIGATION_BAR_ITEMS = [
+let NAVIGATION_BAR_ITEMS = [
 	{
 		Component: Details,
 		label: Liferay.Language.get('details'),
 	},
-	{
-		Component: Fields,
-		label: Liferay.Language.get('fields'),
-	},
+	Liferay.FeatureFlags['LPD-10735']
+		? {
+				Component: VisualizationModes,
+				label: Liferay.Language.get('visualization-modes'),
+		  }
+		: {
+				Component: Fields,
+				label: Liferay.Language.get('fields'),
+		  },
 	{
 		Component: Filters,
 		label: Liferay.Language.get('filters'),
@@ -46,12 +54,23 @@ const NAVIGATION_BAR_ITEMS = [
 	},
 ];
 
+if (Liferay.FeatureFlags['LPD-10735']) {
+	NAVIGATION_BAR_ITEMS = [
+		...NAVIGATION_BAR_ITEMS,
+		{
+			Component: Settings,
+			label: Liferay.Language.get('settings'),
+		},
+	];
+}
+
 interface IFDSViewSectionProps {
 	fdsClientExtensionCellRenderers: IClientExtensionRenderer[];
 	fdsFilterClientExtensions: IClientExtensionRenderer[];
 	fdsView: FDSViewType;
 	fdsViewsURL: string;
 	namespace: string;
+	onActiveSectionChange: (section: number) => void;
 	onFDSViewUpdate: (data: FDSViewType) => void;
 	saveFDSFieldsURL: string;
 	spritemap: string;
@@ -109,7 +128,7 @@ const FDSView = ({
 	const Content = NAVIGATION_BAR_ITEMS[activeIndex].Component;
 
 	return (
-		<>
+		<div className="cadmin fds-view">
 			<ClayNavigationBar
 				triggerLabel={NAVIGATION_BAR_ITEMS[activeIndex].label}
 			>
@@ -137,6 +156,7 @@ const FDSView = ({
 						fdsView={fdsView}
 						fdsViewsURL={fdsViewsURL}
 						namespace={namespace}
+						onActiveSectionChange={(tab) => setActiveIndex(tab)}
 						onFDSViewUpdate={(updatedFdsViewData) => {
 							setFDSView({...fdsView, ...updatedFdsViewData});
 						}}
@@ -145,7 +165,7 @@ const FDSView = ({
 					/>
 				)
 			)}
-		</>
+		</div>
 	);
 };
 

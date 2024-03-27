@@ -1,4 +1,4 @@
-@component-name = "OSB Site Initializer Partner Portal"
+@component-name = "portal-solutions"
 definition {
 
 	property custom.properties = "feature.flag.LPS-135430=true";
@@ -6,6 +6,7 @@ definition {
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+	property test.liferay.virtual.instance = "true";
 	property testray.main.component.name = "OSB Site Initializer Partner Portal";
 
 	setUp {
@@ -65,7 +66,7 @@ definition {
 
 			PRMNavigator.openSitePage(pageName = "MDF Requests");
 
-			PRMMDFRequest.goToMDF(campaignName = "Campaign Name");
+			PRMMDFRequest.goToMDF(campaignName = "Campaign Name 1");
 		}
 	}
 
@@ -89,7 +90,7 @@ definition {
 		task ("Given that the PMU creates a full claim with two activities") {
 			PRMNavigator.openSitePage(pageName = "MDF Requests");
 
-			PRMMDFRequest.goToMDF(campaignName = "Campaign Name");
+			PRMMDFRequest.goToMDF(campaignName = "Campaign Name 1");
 
 			PRMMDFClaim.createNewClaim(
 				activityIndex = "0,1",
@@ -135,13 +136,14 @@ definition {
 	@description = "This is a test for LPS-183234. Verify that the CFM can edit the claim in 'Claim Paid' status"
 	@priority = 5
 	test CFMCanEditClaimInClaimdPaidStatus {
+		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 
 		task ("Given that the PMU creates a new claim") {
 			PRMNavigator.openSitePage(pageName = "MDF Requests");
 
-			PRMMDFRequest.goToMDF(campaignName = "Campaign Name");
+			PRMMDFRequest.goToMDF(campaignName = "Campaign Name 1");
 
 			PRMMDFClaim.createNewClaim(
 				allContents = "Document_2.jpg",
@@ -200,13 +202,14 @@ definition {
 	@description = "This is a test for LPS-183235. Verify that the CFM can edit the claim in 'In Finance Review' status"
 	@priority = 5
 	test CFMCanEditClaimInFinanceReviewStatus {
+		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 
 		task ("Given that the partner creates a new claim") {
 			PRMNavigator.openSitePage(pageName = "MDF Requests");
 
-			PRMMDFRequest.goToMDF(campaignName = "Campaign Name");
+			PRMMDFRequest.goToMDF(campaignName = "Campaign Name 1");
 
 			PRMMDFClaim.createNewClaim(
 				listLeads = "Document_1.xlsx",
@@ -263,7 +266,7 @@ definition {
 		task ("Given that the partner creates a new claim") {
 			PRMNavigator.openSitePage(pageName = "MDF Requests");
 
-			PRMMDFRequest.goToMDF(campaignName = "Campaign Name");
+			PRMMDFRequest.goToMDF(campaignName = "Campaign Name 1");
 
 			PRMMDFClaim.createNewClaim(
 				listLeads = "Document_1.xlsx",
@@ -320,7 +323,7 @@ definition {
 		task ("Given that the partner creates a new claim") {
 			PRMNavigator.openSitePage(pageName = "MDF Requests");
 
-			PRMMDFRequest.goToMDF(campaignName = "Campaign Name");
+			PRMMDFRequest.goToMDF(campaignName = "Campaign Name 1");
 
 			PRMMDFClaim.createNewClaim(
 				listLeads = "Document_1.xlsx",
@@ -377,7 +380,7 @@ definition {
 		task ("Given that the partner creates a new claim") {
 			PRMNavigator.openSitePage(pageName = "MDF Requests");
 
-			PRMMDFRequest.goToMDF(campaignName = "Campaign Name");
+			PRMMDFRequest.goToMDF(campaignName = "Campaign Name 1");
 
 			PRMMDFClaim.createNewClaim(
 				listLeads = "Document_1.xlsx",
@@ -434,7 +437,7 @@ definition {
 		task ("Given that the partner creates a new claim") {
 			PRMNavigator.openSitePage(pageName = "MDF Requests");
 
-			PRMMDFRequest.goToMDF(campaignName = "Campaign Name");
+			PRMMDFRequest.goToMDF(campaignName = "Campaign Name 1");
 
 			PRMMDFClaim.createNewClaim(
 				listLeads = "Document_1.xlsx",

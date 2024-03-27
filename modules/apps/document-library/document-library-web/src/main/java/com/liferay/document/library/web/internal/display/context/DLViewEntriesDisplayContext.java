@@ -10,7 +10,9 @@ import com.liferay.asset.kernel.service.AssetCategoryServiceUtil;
 import com.liferay.asset.kernel.service.AssetVocabularyServiceUtil;
 import com.liferay.depot.util.SiteConnectedGroupGroupProviderUtil;
 import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.document.library.kernel.model.DLFileVersion;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLFileVersionLocalServiceUtil;
 import com.liferay.document.library.kernel.util.DLUtil;
 import com.liferay.document.library.util.DLURLHelperUtil;
 import com.liferay.document.library.web.internal.constants.DLWebKeys;
@@ -35,13 +37,15 @@ import com.liferay.portal.kernel.repository.model.RepositoryEntry;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
-import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.servlet.BrowserSnifferUtil;
 import com.liferay.portal.util.RepositoryUtil;
 
 import java.util.ArrayList;
@@ -128,7 +132,6 @@ public class DLViewEntriesDisplayContext {
 
 		if (DLFileEntryPermission.contains(
 				permissionChecker, fileEntry, ActionKeys.DOWNLOAD) &&
-			FeatureFlagManagerUtil.isEnabled("LPS-182512") &&
 			!RepositoryUtil.isExternalRepository(fileEntry.getRepositoryId())) {
 
 			availableActions.add("copy");
@@ -179,10 +182,7 @@ public class DLViewEntriesDisplayContext {
 				permissionChecker, folder, ActionKeys.VIEW) &&
 			!RepositoryUtil.isExternalRepository(folder.getRepositoryId())) {
 
-			if (FeatureFlagManagerUtil.isEnabled("LPS-182512")) {
-				availableActions.add("copy");
-			}
-
+			availableActions.add("copy");
 			availableActions.add("download");
 		}
 
@@ -271,8 +271,9 @@ public class DLViewEntriesDisplayContext {
 	}
 
 	public String getThumbnailSrc(FileVersion fileVersion) throws Exception {
-		return DLURLHelperUtil.getThumbnailSrc(
-			fileVersion.getFileEntry(), fileVersion, _themeDisplay);
+		return _addDoAsUserIdParameter(
+			DLURLHelperUtil.getThumbnailSrc(
+				fileVersion.getFileEntry(), fileVersion, _themeDisplay));
 	}
 
 	public String getViewFileEntryURL(FileEntry fileEntry) {
@@ -287,6 +288,24 @@ public class DLViewEntriesDisplayContext {
 		).setParameter(
 			"fileEntryId", fileEntry.getFileEntryId()
 		).buildString();
+	}
+
+	public boolean hasApprovedVersion(long fileEntryId) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				_themeDisplay.getCompanyId(), "LPD-10701")) {
+
+			return false;
+		}
+
+		DLFileVersion dlFileVersion =
+			DLFileVersionLocalServiceUtil.fetchLatestFileVersion(
+				fileEntryId, false, WorkflowConstants.STATUS_APPROVED);
+
+		if (dlFileVersion == null) {
+			return false;
+		}
+
+		return true;
 	}
 
 	public boolean isDescriptiveDisplayStyle() {
@@ -349,6 +368,17 @@ public class DLViewEntriesDisplayContext {
 
 	public boolean isVersioningStrategyOverridable() {
 		return _dlAdminDisplayContext.isVersioningStrategyOverridable();
+	}
+
+	private String _addDoAsUserIdParameter(String url) {
+		if (Validator.isNull(_themeDisplay.getDoAsUserId()) ||
+			Validator.isNull(url)) {
+
+			return url;
+		}
+
+		return HttpComponentsUtil.setParameter(
+			url, "doAsUserId", _themeDisplay.getDoAsUserId());
 	}
 
 	private long _getRepositoryId() {

@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -108,11 +109,7 @@ public class ValidatorTest {
 		);
 
 		for (Release release : releases) {
-			if (!release.getServletContextName(
-				).equals(
-					"module1"
-				)) {
-
+			if (!Objects.equals(release.getServletContextName(), "module1")) {
 				releasesMap.put(release.getServletContextName(), release);
 			}
 		}

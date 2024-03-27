@@ -117,6 +117,7 @@
 		</field>
 		<field name="purchaseOrderNumber" type="String" />
 		<field name="requestedDeliveryDate" type="Date" />
+		<field name="shippable" type="boolean" />
 		<field name="shippingAmount" type="BigDecimal" />
 		<field name="shippingDiscountAmount" type="BigDecimal" />
 		<field name="shippingDiscountPercentageLevel1" type="BigDecimal" />
@@ -373,6 +374,9 @@
 		</field>
 		<field name="trackingURL" type="String">
 			<hint-collection name="TEXTAREA" />
+		</field>
+		<field name="typeSettings" type="String">
+			<hint-collection name="CLOB" />
 		</field>
 	</model>
 	<model name="com.liferay.commerce.model.CommerceShippingOptionAccountEntryRel">

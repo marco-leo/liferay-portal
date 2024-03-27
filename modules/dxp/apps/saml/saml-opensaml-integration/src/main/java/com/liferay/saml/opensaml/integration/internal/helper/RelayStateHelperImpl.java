@@ -8,7 +8,8 @@ package com.liferay.saml.opensaml.integration.internal.helper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import com.liferay.portal.kernel.uuid.PortalUUID;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.saml.helper.RelayStateHelper;
 
 import java.util.Objects;
@@ -17,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Michael Bowerman
@@ -25,10 +25,18 @@ import org.osgi.service.component.annotations.Reference;
 @Component(service = RelayStateHelper.class)
 public class RelayStateHelperImpl implements RelayStateHelper {
 
+	@Override
 	public String getRedirectFromRelayStateToken(String relayStateToken) {
-		return _relayStateTokensToRedirects.get(relayStateToken);
+		if (Validator.isNotNull(relayStateToken) &&
+			relayStateToken.startsWith("RDR_")) {
+
+			return _relayStateTokensToRedirects.get(relayStateToken);
+		}
+
+		return relayStateToken;
 	}
 
+	@Override
 	public String getRelayStateTokenFromRedirect(String redirect) {
 		String relayStateToken = _redirectsToRelayStateTokens.get(redirect);
 
@@ -44,7 +52,7 @@ public class RelayStateHelperImpl implements RelayStateHelper {
 			_relayStateTokensToRedirects.remove(relayStateToken);
 		}
 
-		relayStateToken = _portalUUID.generate();
+		relayStateToken = "RDR_" + PortalUUIDUtil.generate();
 
 		_redirectsToRelayStateTokens.put(redirect, relayStateToken);
 
@@ -67,9 +75,6 @@ public class RelayStateHelperImpl implements RelayStateHelper {
 		_redirectsToRelayStateTokens = redirectsToRelayStateTokensCache.asMap();
 		_relayStateTokensToRedirects = relayStateTokensToRedirectsCache.asMap();
 	}
-
-	@Reference
-	private PortalUUID _portalUUID;
 
 	private ConcurrentMap<String, String> _redirectsToRelayStateTokens;
 	private ConcurrentMap<String, String> _relayStateTokensToRedirects;

@@ -30,6 +30,38 @@ definition {
 				objectName = "CustomObject187390",
 				pluralLabelName = "Custom Objects 187390");
 
+			Picklist.addPicklistViaAPI(picklistName = "Status");
+
+			for (var statusName : list "open,review,closed") {
+				Picklist.addPicklistItemViaAPI(
+					itemKey = ${statusName},
+					itemName = ${statusName},
+					picklistName = "Status");
+			}
+
+			ObjectAdmin.openObjectAdmin();
+
+			ObjectPortlet.selectCustomObject(label = "Custom Object 187390");
+
+			ObjectAdmin.goToFieldsTab();
+
+			ObjectAdmin.addObjectFieldViaUI(
+				fieldLabel = "Picklist",
+				fieldPicklist = "Status",
+				fieldType = "Picklist");
+
+			ObjectAdmin.addObjectFieldViaUI(
+				fieldLabel = "Picklist State Manager",
+				fieldPicklist = "Status",
+				fieldType = "Picklist",
+				itemName = "open",
+				markAsState = "true");
+
+			ObjectAdmin.addObjectFieldViaUI(
+				fieldLabel = "Multiselect Picklist",
+				fieldPicklist = "Status",
+				fieldType = "Multiselect Picklist");
+
 			for (var textIndex : list "Simple,A,B,C,D,E,F,G,H,I") {
 				ObjectAdmin.addObjectFieldViaAPI(
 					fieldBusinessType = "Text",
@@ -131,61 +163,25 @@ definition {
 					objectName = "CustomObject187390");
 			}
 
-			Picklist.addPicklistViaAPI(picklistName = "Status");
-
-			for (var statusName : list "open,review,closed") {
-				Picklist.addPicklistItemViaAPI(
-					itemKey = ${statusName},
-					itemName = ${statusName},
-					picklistName = "Status");
-			}
-
-			ObjectAdmin.openObjectAdmin();
-
-			ObjectPortlet.selectCustomObject(label = "Custom Object 187390");
-
-			ObjectAdmin.goToFieldsTab();
-
-			ObjectAdmin.addObjectFieldViaUI(
-				fieldLabel = "Picklist",
-				fieldPicklist = "Status",
-				fieldType = "Picklist");
-
-			ObjectAdmin.addObjectFieldViaUI(
-				fieldLabel = "Picklist State Manager",
-				fieldPicklist = "Status",
-				fieldType = "Picklist",
-				itemName = "open",
-				markAsState = "true");
-
-			ObjectAdmin.addObjectFieldViaUI(
-				fieldLabel = "Multiselect Picklist",
-				fieldPicklist = "Status",
-				fieldType = "Multiselect Picklist");
-
 			ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject187390");
 		}
 
-		task ("And given the object definition is exported") {
+		task ("and Given the object definition is imported after be exported and deleted") {
 			ObjectAdmin.openObjectAdmin();
 
 			ObjectExportImport.exportObject(
 				objectLabel = "Custom Object 187390",
 				objectName = "CustomObject187390");
-		}
 
-		task ("And given the object definition is deleted in portal") {
 			ObjectAdmin.deleteObjectViaAPI(objectName = "CustomObject187390");
-		}
 
-		task ("And given the object definition is imported") {
 			ObjectExportImport.importObject(
-				objectFileName = "ImportedObjectWith100Fields",
-				objectName = "CustomObject187390");
+				objectName = "CustomObject187390",
+				tempFile = "true");
 
-			ObjectPortlet.selectCustomObject(label = "Custom Object 187390");
-
-			ObjectAdmin.publishObjectViaUI();
+			WaitForVisible(
+				key_labelName = "Custom Object 187390",
+				locator1 = "CreateObject#VIEW_OBJECT");
 		}
 
 		task ("When the user creates an object entry with each field type filled") {
@@ -278,7 +274,7 @@ definition {
 	test CanCancelImport {
 		ObjectAdmin.openObjectAdmin();
 
-		Click(locator1 = "ObjectAdmin#KEBAB_MENU");
+		Click(locator1 = "ObjectModelBuilder#OBJECT_DEFINITONS_KEBAB");
 
 		MenuItem.click(menuItem = "Import Object Definition");
 
@@ -302,7 +298,7 @@ definition {
 	test CanClearJsonFile {
 		ObjectAdmin.openObjectAdmin();
 
-		Click(locator1 = "ObjectAdmin#KEBAB_MENU");
+		Click(locator1 = "ObjectModelBuilder#OBJECT_DEFINITONS_KEBAB");
 
 		MenuItem.click(menuItem = "Import Object Definition");
 
@@ -395,7 +391,7 @@ definition {
 				field = "ID",
 				fieldLabel = "Custom Aggregation",
 				fieldType = "Aggregation",
-				function = "Max",
+				functionType = "Max",
 				relationship = "Relationship");
 		}
 
@@ -496,6 +492,10 @@ definition {
 			objectName = "ImportedSimpleObject146358");
 
 		AssertElementPresent(
+			folderLabel = "Default",
+			locator1 = "ObjectAdmin#FOLDER_LABEL");
+
+		AssertElementPresent(
 			key_labelName = "Imported Simple Object",
 			locator1 = "CreateObject#OBJECT_NAME");
 	}
@@ -541,16 +541,26 @@ definition {
 	@description = "LPS-142175 - Verify it's possible to import object with Actions"
 	@priority = 4
 	test CanImportObjectWithAction {
-		task ("When import object with action") {
+		task ("When import an object definition with action") {
 			ObjectExportImport.importObject(
 				objectFileName = "ImportedObjectWithAction",
 				objectName = "ImportedObjectWithAction160652");
 		}
 
-		task ("Then assert the imported file is present") {
+		task ("and When assert that the imported file is present") {
 			AssertElementPresent(
 				key_labelName = "Imported Object With Action",
 				locator1 = "CreateObject#OBJECT_NAME");
+		}
+
+		task ("Then the action is present on the object") {
+			ObjectPortlet.selectCustomObject(label = "Imported Object With Action");
+
+			ObjectAdmin.goToActionsTab();
+
+			ObjectAdmin.assertObjectActions(
+				actionActive = "Yes",
+				actionLabel = "CanImportObjectWithAction");
 		}
 	}
 
@@ -589,33 +599,9 @@ definition {
 
 		ObjectPortlet.selectCustomObject(label = "Imported Object With Scope");
 
-		AssertTextEquals(
-			locator1 = "ObjectAdmin#SELECT_OBJECT_SCOPE",
-			value1 = "Company");
-
-		AssertTextEquals(
-			locator1 = "CreateObject#PANEL_LINK",
-			value1 = "Control Panel > Object");
-	}
-
-	@description = "LPS-142175 - Verify it is not possible to maintain Relationships after importing an Object"
-	@priority = 4
-	test CannotImportRelationships {
-		ObjectExportImport.importObject(
-			objectFileName = "ImportedObjectWithRelationship",
-			objectName = "ImportedObjectWithRelationship146359");
-
-		AssertElementPresent(
-			key_labelName = "Imported Object With Relationship",
-			locator1 = "CreateObject#OBJECT_NAME");
-
-		ObjectPortlet.selectCustomObject(label = "Imported Object With Relationship");
-
-		ObjectAdmin.gotoRelationshipsTab();
-
-		AssertTextEquals(
-			locator1 = "Message#EMPTY_STATE_INFO",
-			value1 = "No Results Found");
+		CreateObject.assertValuesOnScope(
+			valuePanelCategory = "Object",
+			valueScope = "Company");
 	}
 
 	@description = "LPS-142175 - Verify it is possible to publish an imported custom object"

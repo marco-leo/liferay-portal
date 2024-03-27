@@ -30,6 +30,7 @@
 	</hint-collection>
 	<model name="com.liferay.announcements.kernel.model.AnnouncementsDelivery">
 		<field name="mvccVersion" type="long" />
+		<field name="ctCollectionId" type="long" />
 		<field name="deliveryId" type="long" />
 		<field name="companyId" type="long" />
 		<field name="userId" type="long" />
@@ -240,6 +241,7 @@
 		<field name="custom1ImageId" type="long" />
 		<field name="custom2ImageId" type="long" />
 		<field name="manualCheckInRequired" type="boolean" />
+		<field name="displayDate" type="Date" />
 		<field name="expirationDate" type="Date">
 			<hint name="default-year-delta">1</hint>
 		</field>
@@ -346,6 +348,7 @@
 		<field name="storeUUID" type="String">
 			<hint name="max-length">255</hint>
 		</field>
+		<field name="displayDate" type="Date" />
 		<field name="expirationDate" type="Date">
 			<hint name="default-year-delta">1</hint>
 		</field>
@@ -609,6 +612,7 @@
 	</model>
 	<model name="com.liferay.portal.kernel.model.Country">
 		<field name="mvccVersion" type="long" />
+		<field name="ctCollectionId" type="long" />
 		<field name="uuid" type="String" />
 		<field name="defaultLanguageId" type="String" />
 		<field name="countryId" type="long" />
@@ -643,6 +647,7 @@
 	</model>
 	<model name="com.liferay.portal.kernel.model.CountryLocalization">
 		<field name="mvccVersion" type="long" />
+		<field name="ctCollectionId" type="long" />
 		<field name="countryLocalizationId" type="long" />
 		<field name="companyId" type="long" />
 		<field name="countryId" type="long" />
@@ -966,6 +971,7 @@
 	<model name="com.liferay.portal.kernel.model.ListType">
 		<field name="mvccVersion" type="long" />
 		<field name="listTypeId" type="long" />
+		<field name="companyId" type="long" />
 		<field name="name" type="String" />
 		<field name="type" type="String" />
 	</model>
@@ -1260,6 +1266,7 @@
 	</model>
 	<model name="com.liferay.portal.kernel.model.Region">
 		<field name="mvccVersion" type="long" />
+		<field name="ctCollectionId" type="long" />
 		<field name="uuid" type="String" />
 		<field name="defaultLanguageId" type="String" />
 		<field name="regionId" type="long" />
@@ -1283,6 +1290,7 @@
 	</model>
 	<model name="com.liferay.portal.kernel.model.RegionLocalization">
 		<field name="mvccVersion" type="long" />
+		<field name="ctCollectionId" type="long" />
 		<field name="regionLocalizationId" type="long" />
 		<field name="companyId" type="long" />
 		<field name="regionId" type="long" />

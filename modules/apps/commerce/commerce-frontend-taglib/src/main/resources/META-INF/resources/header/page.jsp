@@ -34,7 +34,7 @@ String myWorkflowTasksPortletNamespace = PortalUtil.getPortletNamespace(PortletK
 				</c:if>
 
 				<div class="border-right c-ml-sm-2 c-mr-3 c-pr-3 header-details">
-					<h3 class="c-mb-0 commerce-header-title text-truncate">
+					<h3 class="c-mb-0 commerce-header-title text-truncate" data-qa-id="header-details-title">
 						<%= HtmlUtil.escape(title) %>
 					</h3>
 
@@ -64,8 +64,8 @@ String myWorkflowTasksPortletNamespace = PortalUtil.getPortletNamespace(PortletK
 								<liferay-ui:message key="<%= HtmlUtil.escape(beanIdLabel) %>" />:
 							</span>
 
-							<strong class="c-ml-1 header-info-value">
-								<%= beanId %>
+							<strong class="c-ml-1 header-info-value" data-qa-id="<%= beanId %>">
+								<%= (displayBeanId > 0) ? String.valueOf(displayBeanId) : "" %>
 							</strong>
 
 							<span class="c-ml-1 lfr-portal-tooltip text-secondary" title="<%= LanguageUtil.get(request, "identification-number") %>">

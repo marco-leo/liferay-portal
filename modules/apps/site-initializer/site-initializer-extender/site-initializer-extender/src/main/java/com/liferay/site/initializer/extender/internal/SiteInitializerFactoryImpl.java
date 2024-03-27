@@ -13,6 +13,8 @@ import com.liferay.account.service.AccountRoleLocalService;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
 import com.liferay.client.extension.service.ClientExtensionEntryLocalService;
+import com.liferay.client.extension.type.manager.CETManager;
+import com.liferay.data.engine.rest.resource.v2_0.DataDefinitionResource;
 import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
@@ -76,8 +78,6 @@ import com.liferay.segments.service.SegmentsEntryLocalService;
 import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.site.initializer.SiteInitializer;
 import com.liferay.site.initializer.SiteInitializerFactory;
-import com.liferay.site.initializer.extender.CommerceSiteInitializer;
-import com.liferay.site.initializer.extender.OSBSiteInitializer;
 import com.liferay.site.initializer.extender.internal.file.backed.osgi.FileBackedBundleDelegate;
 import com.liferay.site.initializer.extender.internal.file.backed.servlet.FileBackedServletContextDelegate;
 import com.liferay.site.navigation.service.SiteNavigationMenuItemLocalService;
@@ -92,7 +92,6 @@ import javax.servlet.ServletContext;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -124,10 +123,10 @@ public class SiteInitializerFactoryImpl implements SiteInitializerFactory {
 			_accountGroupLocalService, _accountGroupRelService,
 			_accountResourceFactory, _accountRoleLocalService,
 			_accountRoleResourceFactory, _assetCategoryLocalService,
-			_assetListEntryLocalService, bundle,
+			_assetListEntryLocalService, bundle, _cetManager,
 			_clientExtensionEntryLocalService, _configurationProvider,
-			_ddmStructureLocalService, _ddmTemplateLocalService,
-			_defaultDDMStructureHelper, _dlURLHelper,
+			_dataDefinitionResourceFactory, _ddmStructureLocalService,
+			_ddmTemplateLocalService, _defaultDDMStructureHelper, _dlURLHelper,
 			_documentFolderResourceFactory, _documentResourceFactory,
 			_expandoValueLocalService, _fragmentsImporter, _groupLocalService,
 			_journalArticleLocalService, _jsonFactory,
@@ -159,26 +158,6 @@ public class SiteInitializerFactoryImpl implements SiteInitializerFactory {
 			_userGroupLocalService, _userLocalService,
 			_workflowDefinitionLinkLocalService,
 			_workflowDefinitionResourceFactory, _zipWriterFactory);
-
-		ServiceReference<CommerceSiteInitializer>
-			commerceSiteInitializerServiceReference =
-				_bundleContext.getServiceReference(
-					CommerceSiteInitializer.class);
-
-		if (commerceSiteInitializerServiceReference != null) {
-			bundleSiteInitializer.setCommerceSiteInitializer(
-				_bundleContext.getService(
-					commerceSiteInitializerServiceReference));
-		}
-
-		ServiceReference<OSBSiteInitializer>
-			osbSiteInitializerServiceReference =
-				_bundleContext.getServiceReference(OSBSiteInitializer.class);
-
-		if (osbSiteInitializerServiceReference != null) {
-			bundleSiteInitializer.setOSBSiteInitializer(
-				_bundleContext.getService(osbSiteInitializerServiceReference));
-		}
 
 		bundleSiteInitializer.setServletContext(
 			ProxyUtil.newDelegateProxyInstance(
@@ -229,10 +208,16 @@ public class SiteInitializerFactoryImpl implements SiteInitializerFactory {
 	private BundleContext _bundleContext;
 
 	@Reference
+	private CETManager _cetManager;
+
+	@Reference
 	private ClientExtensionEntryLocalService _clientExtensionEntryLocalService;
 
 	@Reference
 	private ConfigurationProvider _configurationProvider;
+
+	@Reference
+	private DataDefinitionResource.Factory _dataDefinitionResourceFactory;
 
 	@Reference
 	private DDMStructureLocalService _ddmStructureLocalService;

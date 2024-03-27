@@ -153,7 +153,7 @@ public class ObjectEntryRowInfoItemRenderer
 
 			Object value = ObjectEntryUtil.getValue(
 				themeDisplay.getLocale(), objectField,
-				themeDisplay.getTimeZone(), objectEntry.getProperties());
+				objectEntry.getProperties());
 
 			if (value == null) {
 				values.put(objectField.getName(), StringPool.BLANK);
@@ -207,9 +207,11 @@ public class ObjectEntryRowInfoItemRenderer
 			else if (objectField.compareBusinessType(
 						ObjectFieldConstants.BUSINESS_TYPE_PICKLIST)) {
 
+				ListTypeEntry listTypeEntry = (ListTypeEntry)value;
+
 				values.put(
 					objectField.getName(),
-					((ListTypeEntry)value).getName(themeDisplay.getLocale()));
+					listTypeEntry.getName(themeDisplay.getLocale()));
 			}
 			else {
 				values.put(objectField.getName(), (Serializable)value);

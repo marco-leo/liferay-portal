@@ -5,7 +5,7 @@
 
 import Button from '@clayui/button';
 import {useFormikContext} from 'formik';
-import {useCallback} from 'react';
+import {useCallback, useState} from 'react';
 
 import PRMForm from '../../../../common/components/PRMForm';
 import PRMFormik from '../../../../common/components/PRMFormik';
@@ -13,12 +13,24 @@ import PRMFormikPageProps from '../../../../common/components/PRMFormik/interfac
 import {LiferayPicklistName} from '../../../../common/enums/liferayPicklistName';
 import useCompanyOptions from '../../../../common/hooks/useCompanyOptions';
 import DealRegistration from '../../../../common/interfaces/dealRegistration';
-import useGetMDFActivity from '../../../../common/services/liferay/object/activity/useGetMDFActivity';
+import MDFRequestActivity from '../../../../common/interfaces/mdfRequestActivity';
+import {LiferayAPIs} from '../../../../common/services/liferay/common/enums/apis';
+import LiferayItems from '../../../../common/services/liferay/common/interfaces/liferayItems';
+import useGet from '../../../../common/services/liferay/object/useGet';
 import getPicklistOptions from '../../../../common/utils/getPicklistOptions';
 import {StepType} from '../../enums/stepType';
 import useDynamicFieldEntries from '../../hooks/useDynamicFieldEntries';
 import useMDFActivityOptions from '../../hooks/useMDFActivityOptions';
 import DealRegistrationStepProps from '../../interfaces/dealRegistrationStepProps';
+
+const sortByAsc = (
+	first: React.OptionHTMLAttributes<HTMLOptionElement>,
+	second: React.OptionHTMLAttributes<HTMLOptionElement>
+): number => {
+	return first.label && second.label
+		? first.label.localeCompare(second.label)
+		: 0;
+};
 
 const General = ({
 	onCancel,
@@ -32,6 +44,8 @@ const General = ({
 		...formikHelpers
 	} = useFormikContext<DealRegistration>();
 
+	const [isButtonClicked, setIsButtonClicked] = useState(false);
+
 	const {companiesEntries, fieldEntries} = useDynamicFieldEntries(
 		useCallback(
 			(firstName, lastName, emailAddress, telephone) => {
@@ -44,8 +58,8 @@ const General = ({
 		)
 	);
 
-	const {data: mdfActivities} = useGetMDFActivity(
-		values.partnerAccount.externalReferenceCode
+	const {data: mdfActivities} = useGet<LiferayItems<MDFRequestActivity[]>>(
+		`/o/${LiferayAPIs.OBJECT}/activities?filter=r_accToActs_accountEntryERC eq '${values.partnerAccount.externalReferenceCode}' and submitted eq true and externalReferenceCodeSF ne ''`
 	);
 
 	const {companyOptions, onCompanySelected} = useCompanyOptions(
@@ -79,24 +93,10 @@ const General = ({
 	);
 
 	const {
-		onSelected: onCurrencySelected,
-		options: currencyOptions,
-	} = getPicklistOptions(
-		fieldEntries[LiferayPicklistName.CURRENCIES],
-		(selected) => setFieldValue('currency', selected)
-	);
-
-	const companyCurrencies =
-		currencyOptions &&
-		currencyOptions.filter(
-			(currency) => currency.value === values.currency.key
-		);
-
-	const {
 		onSelected: onIndustrySelected,
 		options: industryOptions,
 	} = getPicklistOptions(
-		fieldEntries[LiferayPicklistName.INDUSTRIES],
+		fieldEntries[LiferayPicklistName.INDUSTRIES]?.sort(sortByAsc),
 		(selected) => setFieldValue('prospect.industry', selected)
 	);
 
@@ -143,15 +143,6 @@ const General = ({
 						name="mdfActivityAssociated"
 						onChange={onMDFActivitySelected}
 						options={mdfActivitiesOptions}
-					/>
-
-					<PRMFormik.Field
-						component={PRMForm.Select}
-						label="Currency"
-						name="currency"
-						onChange={onCurrencySelected}
-						options={companyCurrencies}
-						required
 					/>
 				</PRMForm.Group>
 			</PRMForm.Section>
@@ -352,10 +343,17 @@ const General = ({
 
 				<div className="d-flex justify-content-between px-2 px-md-0">
 					<Button
-						disabled={!isValid || !dirty}
-						onClick={() =>
-							onContinue?.(formikHelpers, StepType.REVIEW)
-						}
+						disabled={!dirty || (isButtonClicked && !isValid)}
+						onClick={() => {
+							setIsButtonClicked(true);
+							onContinue?.(formikHelpers, StepType.REVIEW);
+							window.scrollTo({
+								behavior: (isValid
+									? 'instant'
+									: 'smooth') as ScrollBehavior,
+								top: 0,
+							});
+						}}
 					>
 						Proceed
 					</Button>

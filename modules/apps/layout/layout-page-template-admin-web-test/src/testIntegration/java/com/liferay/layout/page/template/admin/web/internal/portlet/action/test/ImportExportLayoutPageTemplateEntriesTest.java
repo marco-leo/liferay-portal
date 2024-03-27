@@ -14,6 +14,9 @@ import com.liferay.asset.display.page.service.AssetDisplayPageEntryLocalService;
 import com.liferay.asset.list.constants.AssetListEntryTypeConstants;
 import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
+import com.liferay.client.extension.constants.ClientExtensionEntryConstants;
+import com.liferay.client.extension.model.ClientExtensionEntry;
+import com.liferay.client.extension.service.ClientExtensionEntryLocalService;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.model.FragmentCollection;
@@ -43,6 +46,7 @@ import com.liferay.object.model.ObjectField;
 import com.liferay.object.service.ObjectActionLocalService;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
+import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -72,8 +76,10 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.JavaConstants;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.URLUtil;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -86,10 +92,12 @@ import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 
 import java.net.URL;
 
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -547,6 +555,40 @@ public class ImportExportLayoutPageTemplateEntriesTest {
 			"form/success_message_url/expected", null, null);
 		File inputFile = _generateZipFile(
 			"form/success_message_url/input", null, null);
+
+		_validateImportExport(expectedFile, inputFile);
+	}
+
+	@Test
+	public void testImportExportLayoutPageTemplateEntryFragmentActionFieldDisplayPage()
+		throws Exception {
+
+		_addActionFragmentEntry();
+
+		ObjectEntry objectEntry = _addObjectEntry();
+
+		ObjectAction objectAction = _addObjectAction(objectEntry);
+
+		Map<String, String> numberValuesMap = HashMapBuilder.put(
+			"CLASS_PK", String.valueOf(objectEntry.getObjectEntryId())
+		).build();
+
+		Map<String, String> stringValuesMap = HashMapBuilder.put(
+			"ACTION_NAME",
+			ObjectAction.class.getSimpleName() + StringPool.DASH +
+				objectAction.getName()
+		).put(
+			"CLASS_NAME", objectEntry.getModelClassName()
+		).put(
+			"SITE_KEY", _group1.getGroupKey()
+		).build();
+
+		File expectedFile = _generateZipFile(
+			"fragment/action_field/display_page/expected", numberValuesMap,
+			stringValuesMap);
+		File inputFile = _generateZipFile(
+			"fragment/action_field/display_page/input", numberValuesMap,
+			stringValuesMap);
 
 		_validateImportExport(expectedFile, inputFile);
 	}
@@ -1170,6 +1212,57 @@ public class ImportExportLayoutPageTemplateEntriesTest {
 	}
 
 	@Test
+	public void testImportExportLayoutPageTemplateEntryRules()
+		throws Exception {
+
+		_addTextFragmentEntry();
+
+		File expectedFile = _generateZipFile(
+			"fragment/rules/expected", null,
+			HashMapBuilder.put(
+				"SITE_KEY", _group1.getGroupKey()
+			).build());
+
+		File inputFile = _generateZipFile("fragment/rules/input", null, null);
+
+		_validateImportExport(expectedFile, inputFile);
+	}
+
+	@Test
+	public void testImportExportLayoutPageTemplateEntryThemeSpritemapClientExtension()
+		throws Exception {
+
+		ClientExtensionEntry clientExtensionEntry =
+			_clientExtensionEntryLocalService.addClientExtensionEntry(
+				RandomTestUtil.randomString(), TestPropsValues.getUserId(),
+				StringPool.BLANK,
+				Collections.singletonMap(
+					LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+				StringPool.BLANK, StringPool.BLANK,
+				ClientExtensionEntryConstants.TYPE_THEME_SPRITEMAP,
+				UnicodePropertiesBuilder.create(
+					true
+				).put(
+					"url", "http://" + RandomTestUtil.randomString() + ".com"
+				).buildString());
+
+		Map<String, String> stringValuesMap = HashMapBuilder.put(
+			"EXTERNAL_REFERENCE_CODE",
+			clientExtensionEntry.getExternalReferenceCode()
+		).put(
+			"NAME", clientExtensionEntry.getName(LocaleUtil.getDefault())
+		).build();
+
+		File expectedFile = _generateZipFile(
+			"client_extensions/theme_spritemap/expected", null,
+			stringValuesMap);
+		File inputFile = _generateZipFile(
+			"client_extensions/theme_spritemap/input", null, stringValuesMap);
+
+		_validateImportExport(expectedFile, inputFile);
+	}
+
+	@Test
 	public void testImportExportLayoutPageTemplateEntryWidgetCssClasses()
 		throws Exception {
 
@@ -1244,8 +1337,8 @@ public class ImportExportLayoutPageTemplateEntriesTest {
 				_group1.getCreatorUserId(), _group1.getGroupId(), 0,
 				_portal.getClassNameId(JournalArticle.class.getName()),
 				ddmStructure.getStructureId(), RandomTestUtil.randomString(),
-				LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE, 0, true,
-				0, 0, 0, 0,
+				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE, 0, true, 0,
+				0, 0, 0,
 				ServiceContextTestUtil.getServiceContext(_group1.getGroupId()));
 
 		_assetDisplayPageEntryLocalService.addAssetDisplayPageEntry(
@@ -1276,7 +1369,7 @@ public class ImportExportLayoutPageTemplateEntriesTest {
 			TestPropsValues.getUserId(), groupId,
 			fragmentCollection.getFragmentCollectionId(), key, name,
 			StringPool.BLANK, html, StringPool.BLANK, false, StringPool.BLANK,
-			null, 0, FragmentConstants.TYPE_COMPONENT, null,
+			null, 0, false, FragmentConstants.TYPE_COMPONENT, null,
 			WorkflowConstants.STATUS_APPROVED, serviceContext);
 	}
 
@@ -1326,7 +1419,7 @@ public class ImportExportLayoutPageTemplateEntriesTest {
 			_objectDefinitionLocalService.addCustomObjectDefinition(
 				TestPropsValues.getUserId(), 0, false, false, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				"A" + RandomTestUtil.randomString(), null,
+				ObjectDefinitionTestUtil.getRandomName(), null,
 				"control_panel.sites",
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				false, ObjectDefinitionConstants.SCOPE_SITE,
@@ -1386,7 +1479,7 @@ public class ImportExportLayoutPageTemplateEntriesTest {
 		String zipPath = StringUtil.removeSubstring(
 			entryPath, _LAYOUT_PATE_TEMPLATES_PATH);
 
-		String content = StringUtil.read(url.openStream());
+		String content = URLUtil.toString(url);
 
 		content = StringUtil.replace(content, "\"${", "}\"", numberValuesMap);
 		content = StringUtil.replace(content, "£{", "}", stringValuesMap);
@@ -1438,7 +1531,7 @@ public class ImportExportLayoutPageTemplateEntriesTest {
 		try {
 			layoutsImporterResultEntries = _layoutsImporter.importFile(
 				TestPropsValues.getUserId(), groupId, 0, file,
-				layoutsImportStrategy);
+				layoutsImportStrategy, true);
 		}
 		finally {
 			ServiceContextThreadLocal.popServiceContext();
@@ -1538,7 +1631,9 @@ public class ImportExportLayoutPageTemplateEntriesTest {
 		String zipPath = StringUtil.removeSubstring(
 			url.getFile(), _LAYOUT_PATE_TEMPLATES_PATH);
 
-		zipWriter.addEntry(zipPath, url.openStream());
+		try (InputStream inputStream = url.openStream()) {
+			zipWriter.addEntry(zipPath, inputStream);
+		}
 
 		String path = FileUtil.getPath(url.getPath());
 
@@ -1678,6 +1773,10 @@ public class ImportExportLayoutPageTemplateEntriesTest {
 	private AssetListEntryLocalService _assetListEntryLocalService;
 
 	private Bundle _bundle;
+
+	@Inject
+	private ClientExtensionEntryLocalService _clientExtensionEntryLocalService;
+
 	private Company _company;
 
 	@Inject

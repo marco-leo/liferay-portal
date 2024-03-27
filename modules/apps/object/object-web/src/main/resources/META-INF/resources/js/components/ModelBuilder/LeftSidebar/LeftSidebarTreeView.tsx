@@ -8,19 +8,21 @@ import {Text, TreeView} from '@clayui/core';
 import {ClayDropDownWithItems} from '@clayui/drop-down';
 import Icon from '@clayui/icon';
 import {ClayTooltipProvider} from '@clayui/tooltip';
-import {API, getLocalizableLabel} from '@liferay/object-js-components-web';
+import {API, stringUtils} from '@liferay/object-js-components-web';
 import classNames from 'classnames';
 import {openToast, sub} from 'frontend-js-web';
 import React from 'react';
 import {Node, useStoreState, useZoomPanHelper} from 'react-flow-renderer';
 
-import './LeftSidebar.scss';
 import {getUpdatedModelBuilderStructurePayload} from '../../ViewObjectDefinitions/objectDefinitionUtil';
 import {useObjectFolderContext} from '../ModelBuilderContext/objectFolderContext';
 import {TYPES} from '../ModelBuilderContext/typesEnum';
 import {LeftSidebarItem, LeftSidebarObjectDefinitionItem} from '../types';
 
+import './LeftSidebar.scss';
+
 const TYPES_TO_SYMBOLS = {
+	dummyObjectDefinition: 'exclamation-circle',
 	linkedObjectDefinition: 'link',
 	objectDefinition: 'catalog',
 	objectFolder: 'folder',
@@ -39,29 +41,13 @@ export default function LeftSidebarTreeView({
 	setExpandedKeys: React.Dispatch<React.SetStateAction<Set<React.Key>>>;
 	showActions?: boolean;
 }) {
-	const [{selectedObjectFolder}, dispatch] = useObjectFolderContext();
+	const [
+		{baseResourceURL, selectedObjectFolder},
+		dispatch,
+	] = useObjectFolderContext();
 	const {setCenter} = useZoomPanHelper();
 
 	const {edges, nodes} = useStoreState((state) => state);
-
-	const changeObjectDefinitionNodeViewButton = (
-		hiddenObjectDefinitionNode: boolean,
-		dispatch: Function
-	) => (
-		<ClayButtonWithIcon
-			aria-label={
-				hiddenObjectDefinitionNode
-					? Liferay.Language.get('hidden')
-					: Liferay.Language.get('show')
-			}
-			displayType="unstyled"
-			onClick={(event) => {
-				event.stopPropagation();
-				dispatch();
-			}}
-			symbol={hiddenObjectDefinitionNode ? 'hidden' : 'view'}
-		/>
-	);
 
 	const handleMove = async ({
 		objectDefinitionId,
@@ -70,7 +56,7 @@ export default function LeftSidebarTreeView({
 		objectDefinitionId: number;
 		objectFolderName: string;
 	}) => {
-		const objectFolders = await API.getAllObjectFolders();
+		const {items: objectFolders} = await API.getAllObjectFolders();
 
 		const currentObjectFolder = objectFolders.find(
 			(objectFolder) => objectFolder.name === objectFolderName
@@ -102,11 +88,12 @@ export default function LeftSidebarTreeView({
 
 				setTimeout(async () => {
 					const payload = await getUpdatedModelBuilderStructurePayload(
+						baseResourceURL,
 						selectedObjectFolder.name
 					);
 
 					dispatch({
-						payload,
+						payload: {...payload, dispatch},
 						type: TYPES.UPDATE_MODEL_BUILDER_STRUCTURE,
 					});
 				}, 200);
@@ -115,7 +102,7 @@ export default function LeftSidebarTreeView({
 					message: sub(
 						Liferay.Language.get('x-was-moved-successfully'),
 						`<strong>${Liferay.Util.escapeHTML(
-							getLocalizableLabel(
+							stringUtils.getLocalizableLabel(
 								objectDefinitionToBeMoved.defaultLanguageId,
 								objectDefinitionToBeMoved.label
 							)
@@ -178,7 +165,7 @@ export default function LeftSidebarTreeView({
 					? newLeftSidebarOtherObjectFolderItems
 					: [leftSidebarSelectedObjectFolderItem]
 			}
-			nestedKey="objectDefinitions"
+			nestedKey="leftSidebarObjectDefinitionItems"
 			onExpandedChange={setExpandedKeys}
 			onSelect={(item) => {
 				if (
@@ -226,14 +213,18 @@ export default function LeftSidebarTreeView({
 					<TreeView.ItemStack>
 						<div className="lfr-objects__model-builder-left-sidebar-current-object-folder-container">
 							<div className="lfr-objects__model-builder-left-sidebar-current-object-folder-content">
-								<Icon
-									symbol={
-										TYPES_TO_SYMBOLS[leftSidebarItem.type]
-									}
-								/>
+								<div>
+									<Icon
+										symbol={
+											TYPES_TO_SYMBOLS[
+												leftSidebarItem.type
+											]
+										}
+									/>
+								</div>
 
 								<div className="lfr-objects__model-builder-left-sidebar-current-object-folder-content-title">
-									<Text weight="semi-bold">
+									<Text truncate weight="semi-bold">
 										{leftSidebarItem.name}
 									</Text>
 								</div>
@@ -243,6 +234,9 @@ export default function LeftSidebarTreeView({
 									<ClayTooltipProvider>
 										<div className="lfr-objects__model-builder-left-sidebar-go-to-folder-button">
 											<ClayButton
+												aria-label={Liferay.Language.get(
+													'go-to-folder'
+												)}
 												data-tooltip-align="bottom"
 												displayType={null}
 												onClick={() =>
@@ -250,6 +244,7 @@ export default function LeftSidebarTreeView({
 														leftSidebarItem.objectFolderName
 													)
 												}
+												size="sm"
 												title={Liferay.Language.get(
 													'go-to-folder'
 												)}
@@ -264,21 +259,37 @@ export default function LeftSidebarTreeView({
 								)}
 							</div>
 
-							{!showActions &&
-								changeObjectDefinitionNodeViewButton(
-									leftSidebarItem.hiddenObjectFolderObjectDefinitionNodes,
-									() =>
-										dispatch({
-											payload: {
-												hiddenObjectFolderObjectDefinitionNodes:
-													leftSidebarItem.hiddenObjectFolderObjectDefinitionNodes,
-												leftSidebarItem,
-												objectDefinitionNodes: nodes,
-												objectRelationshipEdges: edges,
-											},
-											type: TYPES.BULK_CHANGE_NODE_VIEW,
-										})
-								)}
+							{!showActions && (
+								<div className="lfr-objects__model-builder-left-sidebar-show-folders-button">
+									<ClayButtonWithIcon
+										aria-label={
+											leftSidebarItem.hiddenObjectFolderObjectDefinitionNodes
+												? Liferay.Language.get('hidden')
+												: Liferay.Language.get('show')
+										}
+										displayType="unstyled"
+										onClick={(event) => {
+											event.stopPropagation();
+											dispatch({
+												payload: {
+													hiddenObjectFolderObjectDefinitionNodes:
+														leftSidebarItem.hiddenObjectFolderObjectDefinitionNodes,
+													leftSidebarItem,
+													objectDefinitionNodes: nodes,
+													objectRelationshipEdges: edges,
+												},
+												type:
+													TYPES.BULK_CHANGE_NODE_VIEW,
+											});
+										}}
+										symbol={
+											leftSidebarItem.hiddenObjectFolderObjectDefinitionNodes
+												? 'hidden'
+												: 'view'
+										}
+									/>
+								</div>
+							)}
 						</div>
 					</TreeView.ItemStack>
 
@@ -288,75 +299,144 @@ export default function LeftSidebarTreeView({
 						{({
 							hiddenObjectDefinitionNode,
 							id,
+							kebabOptions,
 							label,
 							linked,
 							name,
 							selected,
 							type,
 						}) => (
-							<TreeView.Item
-								actions={
-									showActions ? (
-										type === 'linkedObjectDefinition' ? (
-											<></>
+							<div className="lfr-objects__model-builder-left-sidebar-current-object-folder-group">
+								<TreeView.Item
+									actions={
+										showActions ? (
+											type ===
+											'linkedObjectDefinition' ? (
+												<></>
+											) : (
+												<>
+													<ClayDropDownWithItems
+														items={[
+															{
+																label: Liferay.Language.get(
+																	'move-to-current-folder'
+																),
+																onClick: () =>
+																	handleMove({
+																		objectDefinitionId: id,
+																		objectFolderName:
+																			leftSidebarItem.objectFolderName,
+																	}),
+																symbolLeft:
+																	'move-folder',
+															},
+														]}
+														menuElementAttrs={{
+															style: {
+																zIndex: 1036,
+															},
+														}}
+														trigger={
+															<ClayButton
+																aria-label={Liferay.Language.get(
+																	'actions'
+																)}
+																displayType={
+																	null
+																}
+																monospaced
+																size="sm"
+															>
+																<Icon symbol="ellipsis-v" />
+															</ClayButton>
+														}
+													/>
+												</>
+											)
 										) : (
-											<>
+											<div
+												className={classNames(
+													'lfr-objects__model-builder-left-sidebar-show-folders-button',
+													{
+														'lfr-objects__model-builder-left-sidebar-show-folders-button-disabled': hiddenObjectDefinitionNode,
+													}
+												)}
+											>
+												<ClayButtonWithIcon
+													aria-label={
+														hiddenObjectDefinitionNode
+															? Liferay.Language.get(
+																	'hidden'
+															  )
+															: Liferay.Language.get(
+																	'show'
+															  )
+													}
+													displayType="unstyled"
+													onClick={(event) => {
+														event.stopPropagation();
+														dispatch({
+															payload: {
+																hiddenObjectDefinitionNode,
+																objectDefinitionId: id,
+																objectDefinitionName: name,
+																objectDefinitionNodes: nodes,
+																objectRelationshipEdges: edges,
+																selectedSidebarItem: leftSidebarItem,
+															},
+															type:
+																TYPES.CHANGE_NODE_VIEW,
+														});
+													}}
+													symbol={
+														hiddenObjectDefinitionNode
+															? 'hidden'
+															: 'view'
+													}
+												/>
+
 												<ClayDropDownWithItems
-													items={[
-														{
-															label: Liferay.Language.get(
-																'move-to-current-folder'
-															),
-															onClick: () =>
-																handleMove({
-																	objectDefinitionId: id,
-																	objectFolderName:
-																		leftSidebarItem.objectFolderName,
-																}),
-															symbolLeft:
-																'move-folder',
+													items={kebabOptions}
+													menuElementAttrs={{
+														style: {
+															zIndex: 1036,
 														},
-													]}
+													}}
 													trigger={
 														<ClayButton
+															aria-label={Liferay.Language.get(
+																'actions'
+															)}
 															displayType={null}
 															monospaced
+															size="sm"
 														>
 															<Icon symbol="ellipsis-v" />
 														</ClayButton>
 													}
 												/>
-											</>
+											</div>
 										)
-									) : (
-										changeObjectDefinitionNodeViewButton(
-											hiddenObjectDefinitionNode,
-											() =>
-												dispatch({
-													payload: {
-														hiddenObjectDefinitionNode,
-														objectDefinitionId: id,
-														objectDefinitionName: name,
-														objectDefinitionNodes: nodes,
-														objectRelationshipEdges: edges,
-														selectedSidebarItem: leftSidebarItem,
-													},
-													type:
-														TYPES.CHANGE_NODE_VIEW,
-												})
-										)
-									)
-								}
-								active={selected}
-								className={classNames({
-									'lfr-objects__model-builder-left-sidebar-item': selected,
-									'lfr-objects__model-builder-left-sidebar-item-linked': linked,
-								})}
-							>
-								<Icon symbol={TYPES_TO_SYMBOLS[type]} />
+									}
+									active={selected}
+									className={classNames({
+										'lfr-objects__model-builder-left-sidebar-item': selected,
+										'lfr-objects__model-builder-left-sidebar-item--danger':
+											type === 'dummyObjectDefinition',
+										'lfr-objects__model-builder-left-sidebar-item-linked': linked,
+									})}
+									disabled={hiddenObjectDefinitionNode}
+								>
+									<Icon symbol={TYPES_TO_SYMBOLS[type]} />
 
-								{label}
-							</TreeView.Item>
+									<span
+										className="text-truncate"
+										title={label}
+									>
+										{label}
+									</span>
+								</TreeView.Item>
+							</div>
 						)}
 					</TreeView.Group>
 				</TreeView.Item>

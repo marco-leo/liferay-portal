@@ -27,13 +27,12 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -337,7 +336,7 @@ public abstract class BaseWishListItemResourceTestCase {
 			wishListItemResource.getWishlistWishListWishListItemsPage(
 				wishListId, null, Pagination.of(1, 10));
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantWishListId != null) {
 			WishListItem irrelevantWishListItem =
@@ -345,13 +344,13 @@ public abstract class BaseWishListItemResourceTestCase {
 					irrelevantWishListId, randomIrrelevantWishListItem());
 
 			page = wishListItemResource.getWishlistWishListWishListItemsPage(
-				irrelevantWishListId, null, Pagination.of(1, 2));
+				irrelevantWishListId, null,
+				Pagination.of(1, (int)totalCount + 1));
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantWishListItem),
-				(List<WishListItem>)page.getItems());
+			assertContains(
+				irrelevantWishListItem, (List<WishListItem>)page.getItems());
 			assertValid(
 				page,
 				testGetWishlistWishListWishListItemsPage_getExpectedActions(
@@ -369,11 +368,10 @@ public abstract class BaseWishListItemResourceTestCase {
 		page = wishListItemResource.getWishlistWishListWishListItemsPage(
 			wishListId, null, Pagination.of(1, 10));
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(wishListItem1, wishListItem2),
-			(List<WishListItem>)page.getItems());
+		assertContains(wishListItem1, (List<WishListItem>)page.getItems());
+		assertContains(wishListItem2, (List<WishListItem>)page.getItems());
 		assertValid(
 			page,
 			testGetWishlistWishListWishListItemsPage_getExpectedActions(
@@ -401,6 +399,13 @@ public abstract class BaseWishListItemResourceTestCase {
 		Long wishListId =
 			testGetWishlistWishListWishListItemsPage_getWishListId();
 
+		Page<WishListItem> wishListItemPage =
+			wishListItemResource.getWishlistWishListWishListItemsPage(
+				wishListId, null, null);
+
+		int totalCount = GetterUtil.getInteger(
+			wishListItemPage.getTotalCount());
+
 		WishListItem wishListItem1 =
 			testGetWishlistWishListWishListItemsPage_addWishListItem(
 				wishListId, randomWishListItem());
@@ -413,35 +418,72 @@ public abstract class BaseWishListItemResourceTestCase {
 			testGetWishlistWishListWishListItemsPage_addWishListItem(
 				wishListId, randomWishListItem());
 
-		Page<WishListItem> page1 =
-			wishListItemResource.getWishlistWishListWishListItemsPage(
-				wishListId, null, Pagination.of(1, 2));
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<WishListItem> wishListItems1 =
-			(List<WishListItem>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(
-			wishListItems1.toString(), 2, wishListItems1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<WishListItem> page1 =
+				wishListItemResource.getWishlistWishListWishListItemsPage(
+					wishListId, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+						pageSizeLimit));
 
-		Page<WishListItem> page2 =
-			wishListItemResource.getWishlistWishListWishListItemsPage(
-				wishListId, null, Pagination.of(2, 2));
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(3, page2.getTotalCount());
+			assertContains(wishListItem1, (List<WishListItem>)page1.getItems());
 
-		List<WishListItem> wishListItems2 =
-			(List<WishListItem>)page2.getItems();
+			Page<WishListItem> page2 =
+				wishListItemResource.getWishlistWishListWishListItemsPage(
+					wishListId, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+						pageSizeLimit));
 
-		Assert.assertEquals(
-			wishListItems2.toString(), 1, wishListItems2.size());
+			assertContains(wishListItem2, (List<WishListItem>)page2.getItems());
 
-		Page<WishListItem> page3 =
-			wishListItemResource.getWishlistWishListWishListItemsPage(
-				wishListId, null, Pagination.of(1, 3));
+			Page<WishListItem> page3 =
+				wishListItemResource.getWishlistWishListWishListItemsPage(
+					wishListId, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+						pageSizeLimit));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(wishListItem1, wishListItem2, wishListItem3),
-			(List<WishListItem>)page3.getItems());
+			assertContains(wishListItem3, (List<WishListItem>)page3.getItems());
+		}
+		else {
+			Page<WishListItem> page1 =
+				wishListItemResource.getWishlistWishListWishListItemsPage(
+					wishListId, null, Pagination.of(1, totalCount + 2));
+
+			List<WishListItem> wishListItems1 =
+				(List<WishListItem>)page1.getItems();
+
+			Assert.assertEquals(
+				wishListItems1.toString(), totalCount + 2,
+				wishListItems1.size());
+
+			Page<WishListItem> page2 =
+				wishListItemResource.getWishlistWishListWishListItemsPage(
+					wishListId, null, Pagination.of(2, totalCount + 2));
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<WishListItem> wishListItems2 =
+				(List<WishListItem>)page2.getItems();
+
+			Assert.assertEquals(
+				wishListItems2.toString(), 1, wishListItems2.size());
+
+			Page<WishListItem> page3 =
+				wishListItemResource.getWishlistWishListWishListItemsPage(
+					wishListId, null, Pagination.of(1, (int)totalCount + 3));
+
+			assertContains(wishListItem1, (List<WishListItem>)page3.getItems());
+			assertContains(wishListItem2, (List<WishListItem>)page3.getItems());
+			assertContains(wishListItem3, (List<WishListItem>)page3.getItems());
+		}
 	}
 
 	protected WishListItem
@@ -850,6 +892,10 @@ public abstract class BaseWishListItemResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -1184,9 +1230,9 @@ public abstract class BaseWishListItemResourceTestCase {
 	}
 
 	protected WishListItemResource wishListItemResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

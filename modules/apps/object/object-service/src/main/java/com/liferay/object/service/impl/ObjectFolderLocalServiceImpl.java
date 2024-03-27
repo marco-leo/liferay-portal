@@ -9,7 +9,6 @@ import com.liferay.object.constants.ObjectFolderConstants;
 import com.liferay.object.exception.ObjectFolderLabelException;
 import com.liferay.object.exception.ObjectFolderNameException;
 import com.liferay.object.model.ObjectFolder;
-import com.liferay.object.model.ObjectFolderItem;
 import com.liferay.object.service.ObjectFolderItemLocalService;
 import com.liferay.object.service.base.ObjectFolderLocalServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
@@ -77,19 +76,6 @@ public class ObjectFolderLocalServiceImpl
 		return objectFolder;
 	}
 
-	@Indexable(type = IndexableType.REINDEX)
-	@Override
-	public ObjectFolder addUncategorizedObjectFolder(long companyId)
-		throws PortalException {
-
-		return objectFolderLocalService.addObjectFolder(
-			ObjectFolderConstants.EXTERNAL_REFERENCE_CODE_UNCATEGORIZED,
-			_userLocalService.getGuestUserId(companyId),
-			LocalizedMapUtil.getLocalizedMap(
-				ObjectFolderConstants.NAME_UNCATEGORIZED),
-			ObjectFolderConstants.NAME_UNCATEGORIZED);
-	}
-
 	@Override
 	public void deleteCompanyObjectFolders(long companyId)
 		throws PortalException {
@@ -120,10 +106,10 @@ public class ObjectFolderLocalServiceImpl
 		throws PortalException {
 
 		if (!PortalInstances.isCurrentCompanyInDeletionProcess() &&
-			objectFolder.isUncategorized()) {
+			objectFolder.isDefault()) {
 
 			throw new UnsupportedOperationException(
-				"Uncategorized cannot be deleted");
+				"Default cannot be deleted");
 		}
 
 		objectFolder = objectFolderPersistence.remove(objectFolder);
@@ -141,14 +127,20 @@ public class ObjectFolderLocalServiceImpl
 	}
 
 	@Override
+	public ObjectFolder fetchDefaultObjectFolder(long companyId) {
+		return fetchObjectFolder(companyId, ObjectFolderConstants.NAME_DEFAULT);
+	}
+
+	@Override
 	public ObjectFolder fetchObjectFolder(long companyId, String name) {
 		return objectFolderPersistence.fetchByC_N(companyId, name);
 	}
 
 	@Override
-	public ObjectFolder fetchUncategorizedObjectFolder(long companyId) {
-		return fetchObjectFolder(
-			companyId, ObjectFolderConstants.NAME_UNCATEGORIZED);
+	public ObjectFolder getDefaultObjectFolder(long companyId)
+		throws PortalException {
+
+		return getObjectFolder(companyId, ObjectFolderConstants.NAME_DEFAULT);
 	}
 
 	@Override
@@ -159,19 +151,34 @@ public class ObjectFolderLocalServiceImpl
 	}
 
 	@Override
-	public ObjectFolder getUncategorizedObjectFolder(long companyId)
+	public int getObjectFoldersCount(long companyId) {
+		return objectFolderPersistence.countByCompanyId(companyId);
+	}
+
+	@Override
+	public ObjectFolder getOrAddDefaultObjectFolder(long companyId)
 		throws PortalException {
 
-		return getObjectFolder(
-			companyId, ObjectFolderConstants.NAME_UNCATEGORIZED);
+		ObjectFolder objectFolder = fetchObjectFolder(
+			companyId, ObjectFolderConstants.NAME_DEFAULT);
+
+		if (objectFolder != null) {
+			return objectFolder;
+		}
+
+		return objectFolderLocalService.addObjectFolder(
+			ObjectFolderConstants.EXTERNAL_REFERENCE_CODE_DEFAULT,
+			_userLocalService.getGuestUserId(companyId),
+			LocalizedMapUtil.getLocalizedMap(
+				ObjectFolderConstants.NAME_DEFAULT),
+			ObjectFolderConstants.NAME_DEFAULT);
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public ObjectFolder updateObjectFolder(
 			String externalReferenceCode, long objectFolderId,
-			Map<Locale, String> labelMap,
-			List<ObjectFolderItem> objectFolderItems)
+			Map<Locale, String> labelMap)
 		throws PortalException {
 
 		_validateLabel(labelMap);
@@ -179,15 +186,7 @@ public class ObjectFolderLocalServiceImpl
 		ObjectFolder objectFolder = objectFolderPersistence.findByPrimaryKey(
 			objectFolderId);
 
-		for (ObjectFolderItem objectFolderItem : objectFolderItems) {
-			_objectFolderItemLocalService.updateObjectFolderItem(
-				objectFolderItem.getObjectDefinitionId(),
-				objectFolder.getObjectFolderId(),
-				objectFolderItem.getPositionX(),
-				objectFolderItem.getPositionY());
-		}
-
-		if (objectFolder.isUncategorized()) {
+		if (objectFolder.isDefault()) {
 			return objectFolder;
 		}
 

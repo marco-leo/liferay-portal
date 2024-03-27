@@ -46,7 +46,11 @@ public class ObjectValidationRuleEngineRegistryImpl
 				_getCompanyScopedKey(companyId, key));
 		}
 
-		if (objectValidationRuleEngine == null) {
+		if ((objectValidationRuleEngine == null) ||
+			((objectValidationRuleEngine instanceof
+				UniqueCompositeKeyObjectValidationRuleEngineImpl) &&
+			 !FeatureFlagManagerUtil.isEnabled("LPS-187854"))) {
+
 			throw new ObjectValidationRuleEngineException.NoSuchEngine(key);
 		}
 
@@ -112,12 +116,7 @@ public class ObjectValidationRuleEngineRegistryImpl
 						key);
 				}
 
-				if (!(objectValidationRuleEngine instanceof
-						FunctionObjectValidationRuleEngineImpl) ||
-					FeatureFlagManagerUtil.isEnabled("LPS-188898")) {
-
-					emitter.emit(key);
-				}
+				emitter.emit(key);
 			});
 	}
 

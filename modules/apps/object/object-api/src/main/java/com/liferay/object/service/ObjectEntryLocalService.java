@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.io.Serializable;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -347,7 +348,18 @@ public interface ObjectEntryLocalService
 	public int getObjectEntriesCount();
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public long getObjectEntriesCount(
+			long userId, Date createDate, long objectDefinitionId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getObjectEntriesCount(long groupId, long objectDefinitionId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public long getObjectEntriesCount(
+			long groupId, ObjectDefinition objectDefinition,
+			Predicate predicate)
+		throws PortalException;
 
 	/**
 	 * Returns the object entry with the primary key.

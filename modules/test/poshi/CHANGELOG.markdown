@@ -1,11 +1,78 @@
 # Poshi Runner Change Log
 
+## 1.0.481
+
+### Documentation
+
+* [POSHI-652](https://liferay.atlassian.net/browse/POSHI-652) - Update poshi-script.markdown to reflect new major syntax changes
+
+### Other
+
+* [LPS-194474](https://liferay.atlassian.net/browse/LPS-194474) - Refactor Echo case runs over 5 mins
+* [LPS-203216](https://liferay.atlassian.net/browse/LPS-203216) - Investigate failure in LocalFile.WebContentDisplay#ViewAllSettingsEnabled
+* [LPSA-61758](https://liferay.atlassian.net/browse/LPSA-61758) - Add option to override/set custom artifact version for the uploadPoshiRunnerResources task
+* [LRQA-81564](https://liferay.atlassian.net/browse/LRQA-81564) - Deprecated methods "waitForNotPartialText" and "assertNotPartialText" should be replaced
+* [LRQA-81565](https://liferay.atlassian.net/browse/LRQA-81565) - Deprecated methods "waitForTextCaseInsensitive" and "assertTextCaseInsensitive" should be replaced
+* [LRQA-81566](https://liferay.atlassian.net/browse/LRQA-81566) - Deprecated methods "waitForPartialTextCaseInsensitive" and "assertPartialTextCaseInsensitive" should be replaced
+
+### Script
+
+* [POSHI-674](https://liferay.atlassian.net/browse/POSHI-674) - Update poshi-runner-resources to use new signature syntax
+
+### Testing
+
+* [POSHI-660](https://liferay.atlassian.net/browse/POSHI-660) - Exception failure at PoshiElementFactoryTest
+* [POSHI-661](https://liferay.atlassian.net/browse/POSHI-661) - ComparisonFailure at PoshiSourceProcessorTest
+
+### WebDriver
+
+* [POSHI-630](https://liferay.atlassian.net/browse/POSHI-630) - As a test writer, I would like a property to configure browser resolution for a test
+* [POSHI-670](https://liferay.atlassian.net/browse/POSHI-670) - Add cookie setting support through ProxyUtil
+* [POSHI-675](https://liferay.atlassian.net/browse/POSHI-675) - Make JSONUtil.getWithJSONPath support expression with null
+* [POSHI-685](https://liferay.atlassian.net/browse/POSHI-685) - Modify RegexUtil.escapeRegexChars to support other types
+
+## 1.0.477
+
+### Core
+
+* [POSHI-557](https://liferay.atlassian.net/browse/POSHI-557) - Investigate failure in com.liferay.poshi.core.PoshiContextTest
+
+### Script
+
+* [POSHI-577](https://liferay.atlassian.net/browse/POSHI-577) - Begin migration to utilize macro and function signatures
+
+## 1.0.476
+
+### Core
+
+* [POSHI-561](https://liferay.atlassian.net/browse/POSHI-561) - Clean up usage of "value" and "locator" to specific methods for more clear usage.
+
+### Other
+
+* [LPS-181508](https://liferay.atlassian.net/browse/LPS-181508) - In order to use supported JDK versions, we need to upgrade to Gradle 7 to use newer JDK
+* [LPS-187460](https://liferay.atlassian.net/browse/LPS-187460) - Use of library with known vulnerability: JSON-java 20220320 (liferay-partner-workspace)
+* [LPS-199147](https://liferay.atlassian.net/browse/LPS-199147) - Adding a method to get headers from HTTP response
+* [LPS-199200](https://liferay.atlassian.net/browse/LPS-199200) - Use of library with known vulnerability: JSON-java 20230618
+
+### Reports
+
+* [POSHI-650](https://liferay.atlassian.net/browse/POSHI-650) - Add PoshiContext.readFiles into the CSV file generator
+
+### Script
+
+* [POSHI-577](https://liferay.atlassian.net/browse/POSHI-577) - Begin migration to utilize macro and function signatures
+
+### Utils
+
+* [POSHI-574](https://liferay.atlassian.net/browse/POSHI-574) - Simplify HttpRequestUtil method usages
+* [POSHI-618](https://liferay.atlassian.net/browse/POSHI-618) - Evaluate API testing for content, status code, and response time assertions
+
 ## 1.0.471
 
 ### Core
 
 * [POSHI-561](https://liferay.atlassian.net/browse/POSHI-561) - Clean up usage of "value" and "locator" to specific methods for more clear usage.
-* [POSHI-633](https://liferay.atlassian.net/browse/POSHI-633) - Add validation values of internal Poshi properties 
+* [POSHI-633](https://liferay.atlassian.net/browse/POSHI-633) - Add validation values of internal Poshi properties
 
 ### Gradle
 

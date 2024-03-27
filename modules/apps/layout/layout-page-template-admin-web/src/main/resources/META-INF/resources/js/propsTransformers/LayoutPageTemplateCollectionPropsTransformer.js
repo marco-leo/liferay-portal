@@ -3,13 +3,20 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {openModal} from 'frontend-js-web';
+import {openCreationModal} from '@liferay/layout-js-components-web';
+import {
+	openModal,
+	openSelectionModal,
+	setFormValues,
+	sub,
+} from 'frontend-js-web';
 
-import openDeletePageTemplateModal from '../modal/openDeletePageTemplateModal';
+import openDeletePageTemplateModal from '../commands/openDeletePageTemplateModal';
 
 const ACTIONS = {
 	deleteLayoutPageTemplateCollection({
 		deleteLayoutPageTemplateCollectionURL,
+		dialogTitle,
 	}) {
 		openDeletePageTemplateModal({
 			onDelete: () => {
@@ -18,7 +25,40 @@ const ACTIONS = {
 					deleteLayoutPageTemplateCollectionURL
 				);
 			},
-			title: Liferay.Language.get('page-template-set'),
+			title: dialogTitle,
+		});
+	},
+
+	moveLayoutPageTemplateCollection(
+		{
+			itemSelectorURL,
+			layoutPageTemplateCollectionId,
+			layoutPageTemplateCollectionName,
+		},
+		portletNamespace
+	) {
+		openSelectionModal({
+			height: '70vh',
+			onSelect: (selectedItem) => {
+				const form = document.getElementById(
+					`${portletNamespace}moveEntriesFm`
+				);
+
+				setFormValues(form, {
+					layoutPageTemplateCollectionsIds: layoutPageTemplateCollectionId,
+					targetLayoutPageTemplateCollectionId:
+						selectedItem.resourceid,
+				});
+
+				submitForm(form);
+			},
+			selectEventName: 'selectFolder',
+			size: 'md',
+			title: sub(
+				Liferay.Language.get('move-x-to'),
+				`"${layoutPageTemplateCollectionName}"`
+			),
+			url: itemSelectorURL,
 		});
 	},
 
@@ -28,6 +68,24 @@ const ACTIONS = {
 		openModal({
 			title: Liferay.Language.get('permissions'),
 			url: permissionsLayoutPageTemplateCollectionURL,
+		});
+	},
+
+	updateLayoutPageTemplateCollection(
+		{
+			dialogTitle,
+			layoutPageTemplateCollectionDescription,
+			layoutPageTemplateCollectionName,
+			updateLayoutPageTemplateCollectionURL,
+		},
+		portletNamespace
+	) {
+		openCreationModal({
+			descriptionInputValue: layoutPageTemplateCollectionDescription,
+			formSubmitURL: updateLayoutPageTemplateCollectionURL,
+			heading: dialogTitle,
+			nameInputValue: layoutPageTemplateCollectionName,
+			portletNamespace,
 		});
 	},
 };
@@ -47,7 +105,9 @@ const updateItem = (item, portletNamespace) => {
 	};
 
 	if (Array.isArray(item.items)) {
-		newItem.items = item.items.map(updateItem);
+		newItem.items = item.items.map((item) =>
+			updateItem(item, portletNamespace)
+		);
 	}
 
 	return newItem;

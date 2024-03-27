@@ -51,38 +51,46 @@ public class ObjectValidationRuleDTOConverter
 			return null;
 		}
 
-		ObjectDefinition objectDefinition =
-			_objectDefinitionLocalService.getObjectDefinition(
-				serviceBuilderObjectValidationRule.getObjectDefinitionId());
-
 		return new ObjectValidationRule() {
 			{
-				actions = dtoConverterContext.getActions();
-				active = serviceBuilderObjectValidationRule.isActive();
-				dateCreated =
-					serviceBuilderObjectValidationRule.getCreateDate();
-				dateModified =
-					serviceBuilderObjectValidationRule.getModifiedDate();
-				engine = serviceBuilderObjectValidationRule.getEngine();
-				engineLabel = _language.get(
-					dtoConverterContext.getLocale(),
-					serviceBuilderObjectValidationRule.getEngine());
-				errorLabel = LocalizedMapUtil.getLanguageIdMap(
-					serviceBuilderObjectValidationRule.getErrorLabelMap());
-				externalReferenceCode =
-					serviceBuilderObjectValidationRule.
-						getExternalReferenceCode();
-				id =
-					serviceBuilderObjectValidationRule.
-						getObjectValidationRuleId();
-				name = LocalizedMapUtil.getLanguageIdMap(
-					serviceBuilderObjectValidationRule.getNameMap());
-				objectDefinitionExternalReferenceCode =
-					objectDefinition.getExternalReferenceCode();
-				objectDefinitionId =
-					serviceBuilderObjectValidationRule.getObjectDefinitionId();
-				script = serviceBuilderObjectValidationRule.getScript();
+				setActions(dtoConverterContext::getActions);
+				setActive(serviceBuilderObjectValidationRule::isActive);
+				setDateCreated(
+					serviceBuilderObjectValidationRule::getCreateDate);
+				setDateModified(
+					serviceBuilderObjectValidationRule::getModifiedDate);
+				setEngine(serviceBuilderObjectValidationRule::getEngine);
+				setEngineLabel(
+					() -> _language.get(
+						dtoConverterContext.getLocale(),
+						serviceBuilderObjectValidationRule.getEngine()));
+				setErrorLabel(
+					() -> LocalizedMapUtil.getLanguageIdMap(
+						serviceBuilderObjectValidationRule.getErrorLabelMap()));
+				setExternalReferenceCode(
+					() ->
+						serviceBuilderObjectValidationRule.
+							getExternalReferenceCode());
+				setId(
+					() ->
+						serviceBuilderObjectValidationRule.
+							getObjectValidationRuleId());
+				setName(
+					() -> LocalizedMapUtil.getLanguageIdMap(
+						serviceBuilderObjectValidationRule.getNameMap()));
+				setObjectDefinitionExternalReferenceCode(
+					() -> {
+						ObjectDefinition objectDefinition =
+							_objectDefinitionLocalService.getObjectDefinition(
+								serviceBuilderObjectValidationRule.
+									getObjectDefinitionId());
 
+						return objectDefinition.getExternalReferenceCode();
+					});
+				setObjectDefinitionId(
+					() ->
+						serviceBuilderObjectValidationRule.
+							getObjectDefinitionId());
 				setObjectValidationRuleSettings(
 					() -> TransformUtil.transformToArray(
 						serviceBuilderObjectValidationRule.
@@ -94,14 +102,8 @@ public class ObjectValidationRuleDTOConverter
 				setOutputType(
 					() -> ObjectValidationRule.OutputType.create(
 						serviceBuilderObjectValidationRule.getOutputType()));
-				setSystem(
-					() -> {
-						if (!FeatureFlagManagerUtil.isEnabled("LPS-193355")) {
-							return null;
-						}
-
-						return serviceBuilderObjectValidationRule.getSystem();
-					});
+				setScript(serviceBuilderObjectValidationRule::getScript);
+				setSystem(serviceBuilderObjectValidationRule::isSystem);
 			}
 		};
 	}
@@ -121,10 +123,10 @@ public class ObjectValidationRuleDTOConverter
 						if (FeatureFlagManagerUtil.isEnabled("LPS-187854") &&
 							objectValidationRuleSetting.compareName(
 								ObjectValidationRuleSettingConstants.
-									NAME_KEY_OBJECT_FIELD_ID)) {
+									NAME_COMPOSITE_KEY_OBJECT_FIELD_ID)) {
 
 							return ObjectValidationRuleSettingConstants.
-								NAME_KEY_OBJECT_FIELD_EXTERNAL_REFERENCE_CODE;
+								NAME_COMPOSITE_KEY_OBJECT_FIELD_EXTERNAL_REFERENCE_CODE;
 						}
 
 						if (objectValidationRuleSetting.compareName(
@@ -142,7 +144,7 @@ public class ObjectValidationRuleDTOConverter
 						if (FeatureFlagManagerUtil.isEnabled("LPS-187854") &&
 							!(objectValidationRuleSetting.compareName(
 								ObjectValidationRuleSettingConstants.
-									NAME_KEY_OBJECT_FIELD_ID) ||
+									NAME_COMPOSITE_KEY_OBJECT_FIELD_ID) ||
 							  objectValidationRuleSetting.compareName(
 								  ObjectValidationRuleSettingConstants.
 									  NAME_OUTPUT_OBJECT_FIELD_ID))) {

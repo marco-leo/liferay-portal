@@ -15,7 +15,8 @@ import './TranslationOptionsContainer.scss';
 
 interface TranslationOptionsContainerProps {
 	modelBuilder?: boolean;
-	objectDefinition: Partial<ObjectDefinition>;
+	objectDefinition?: ObjectDefinition;
+	onSubmit?: () => void;
 	published: boolean;
 	setValues: (values: Partial<ObjectField>) => void;
 	values: Partial<ObjectField>;
@@ -24,6 +25,7 @@ interface TranslationOptionsContainerProps {
 export function TranslationOptionsContainer({
 	modelBuilder,
 	objectDefinition,
+	onSubmit,
 	published,
 	setValues,
 	values,
@@ -62,15 +64,20 @@ export function TranslationOptionsContainer({
 					disabled={
 						published ||
 						!translatableField ||
-						!objectDefinition.enableLocalization
+						!objectDefinition?.enableLocalization
 					}
 					label={Liferay.Language.get('enable-entry-translations')}
+					onBlur={(event) => {
+						event.stopPropagation();
+
+						if (onSubmit) {
+							onSubmit();
+						}
+					}}
 					onToggle={(localized) =>
 						setValues({
 							localized,
-							required: Liferay.FeatureFlags['LPS-172017']
-								? !localized && values.required
-								: values.required,
+							required: !localized && values.required,
 						})
 					}
 					toggled={values.localized}

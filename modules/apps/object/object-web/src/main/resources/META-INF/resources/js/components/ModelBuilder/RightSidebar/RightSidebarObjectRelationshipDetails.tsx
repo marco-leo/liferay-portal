@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
+import {ClayButtonWithIcon} from '@clayui/button';
 import {createResourceURL, sub} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 import {Edge, Elements, Node, isEdge, isNode} from 'react-flow-renderer';
@@ -16,13 +16,12 @@ import {
 	API,
 	Input,
 	SingleSelect,
-	getLocalizableLabel,
 	openToast,
+	stringUtils,
 } from '@liferay/object-js-components-web';
 import {InputLocalized} from 'frontend-js-components-web';
 
 import {defaultLanguageId} from '../../../utils/constants';
-import {firstLetterUppercase} from '../../../utils/string';
 import {ModalDeleteObjectRelationship} from '../../ObjectRelationship/ModalDeleteObjectRelationship';
 import {
 	OBJECT_RELATIONSHIP_TYPES,
@@ -41,7 +40,12 @@ export function RightSidebarObjectRelationshipDetails({
 	objectRelationshipDeletionTypes,
 }: RightSidebarObjectRelationshipDetailsProps) {
 	const [
-		{baseResourceURL, elements, selectedObjectFolder},
+		{
+			baseResourceURL,
+			elements,
+			selectedObjectFolder,
+			selectedObjectRelationship,
+		},
 		dispatch,
 	] = useObjectFolderContext();
 	const [objectDefinition1, setObjectDefinition1] = useState<
@@ -64,12 +68,6 @@ export function RightSidebarObjectRelationshipDetails({
 		deleteObjectRelationship: false,
 	});
 
-	const selectedObjectRelationshipEdge = elements.find((element) => {
-		if (isEdge(element)) {
-			return (element as Edge<ObjectRelationshipEdgeData>).data?.selected;
-		}
-	}) as Edge<ObjectRelationshipEdgeData>;
-
 	const {
 		errors,
 		handleValidate,
@@ -87,9 +85,9 @@ export function RightSidebarObjectRelationshipDetails({
 
 	useEffect(() => {
 		const makeFetch = async () => {
-			if (selectedObjectRelationshipEdge) {
+			if (selectedObjectRelationship) {
 				const selectedObjectRelationshipResponse = (await API.getObjectRelationship(
-					selectedObjectRelationshipEdge.data!.objectRelationshipId
+					selectedObjectRelationship.id
 				)) as ObjectRelationship;
 
 				setValues(selectedObjectRelationshipResponse);
@@ -144,21 +142,24 @@ export function RightSidebarObjectRelationshipDetails({
 
 		makeFetch();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedObjectRelationshipEdge]);
+	}, [selectedObjectRelationship?.id]);
 
-	const onSubmit = async () => {
+	const onSubmit = async (
+		editedObjectRelationship?: Partial<ObjectRelationship>
+	) => {
 		const validationErrors = handleValidate();
 
 		if (!Object.keys(validationErrors).length) {
-			const objectRelationship = {...values};
+			const objectRelationship = editedObjectRelationship ?? values;
 
 			try {
 				await API.putObjectRelationship(objectRelationship);
 
-				openToast({
-					message: Liferay.Language.get(
-						'the-object-relationship-was-updated-successfully'
-					),
+				dispatch({
+					payload: {
+						updatedShowChangesSaved: true,
+					},
+					type: TYPES.SET_SHOW_CHANGES_SAVED,
 				});
 			}
 			catch (error: unknown) {
@@ -167,32 +168,40 @@ export function RightSidebarObjectRelationshipDetails({
 				openToast({message, type: 'danger'});
 			}
 
-			let newObjectRelationship = {};
+			if (!objectRelationship || !objectRelationship?.id) {
+				return;
+			}
 
-			const updatedElements = elements.map((element) => {
-				if (
-					isEdge(element) &&
-					(element as Edge<ObjectRelationshipEdgeData>).data
-						?.objectRelationshipId === objectRelationship?.id
-				) {
-					newObjectRelationship = {
-						...element.data,
-						deletionType: objectRelationship.deletionType,
-						label: getLocalizableLabel(
-							defaultLanguageId,
-							objectRelationship.label,
-							objectRelationship.name
-						),
-					};
-
+			const updatedElements = elements.map((currentElement) => {
+				if (isEdge(currentElement)) {
 					return {
-						...element,
-						data: newObjectRelationship,
+						...currentElement,
+						data: (currentElement as Edge<
+							ObjectRelationshipEdgeData[]
+						>).data?.map((objectRelationshipEdgeData) => {
+							if (
+								objectRelationshipEdgeData.id ===
+								objectRelationship?.id
+							) {
+								return {
+									...objectRelationshipEdgeData,
+									label: stringUtils.getLocalizableLabel(
+										defaultLanguageId,
+										objectRelationship.label,
+										objectRelationship.name
+									),
+								};
+							}
+
+							return objectRelationshipEdgeData;
+						}),
 					};
 				}
 
-				return element;
-			}) as Elements<ObjectDefinitionNodeData>;
+				return currentElement;
+			}) as Elements<
+				ObjectDefinitionNodeData | ObjectRelationshipEdgeData[]
+			>;
 
 			dispatch({
 				payload: {
@@ -205,11 +214,12 @@ export function RightSidebarObjectRelationshipDetails({
 
 	const updateModelBuilderStructure = async () => {
 		const payload = await getUpdatedModelBuilderStructurePayload(
+			baseResourceURL,
 			selectedObjectFolder.name
 		);
 
 		dispatch({
-			payload: {...payload, rightSidebarType: 'empty'},
+			payload: {...payload, dispatch, rightSidebarType: 'empty'},
 			type: TYPES.UPDATE_MODEL_BUILDER_STRUCTURE,
 		});
 	};
@@ -227,17 +237,9 @@ export function RightSidebarObjectRelationshipDetails({
 				</div>
 
 				<div className="lfr-objects__model-builder-right-sidebar-object-relationship-title-buttons-container">
-					<ClayButton
-						aria-label={Liferay.Language.get('save-relationship')}
-						className="lfr-objects__model-builder-right-sidebar-object-relationship-title-save-button"
-						displayType="primary"
-						onClick={() => onSubmit()}
-					>
-						{Liferay.Language.get('save')}
-					</ClayButton>
-
 					<ClayButtonWithIcon
 						aria-label={Liferay.Language.get('delete-relationship')}
+						className="lfr-objects__model-builder-right-sidebar-object-relationship-title-delete-button"
 						displayType="secondary"
 						onClick={() =>
 							setShowModal({
@@ -256,6 +258,11 @@ export function RightSidebarObjectRelationshipDetails({
 					disabled={readOnly}
 					error={errors.label}
 					label={Liferay.Language.get('label')}
+					onBlur={(event) => {
+						event.stopPropagation();
+
+						onSubmit();
+					}}
 					onChange={(label) => setValues({label})}
 					required
 					translations={values.label as LocalizedValue<string>}
@@ -298,22 +305,27 @@ export function RightSidebarObjectRelationshipDetails({
 				/>
 
 				<SingleSelect
-					disabled={readOnly}
+					className="lfr-objects__model-builder-left-sidebar-object-relationship-single-select"
+					disabled={
+						readOnly ||
+						(Liferay.FeatureFlags['LPS-187142'] && values.edge)
+					}
+					items={objectRelationshipDeletionTypes}
 					label={Liferay.Language.get('deletion-type')}
-					onChange={(deletionType) =>
-						setValues({deletionType: deletionType.value})
-					}
-					options={objectRelationshipDeletionTypes}
+					onSelectionChange={(value) => {
+						setValues({deletionType: value as string});
+
+						onSubmit({
+							...values,
+							deletionType: value as string,
+						});
+					}}
 					required
-					value={
-						values.deletionType &&
-						firstLetterUppercase(values.deletionType)
-					}
+					selectedKey={values.deletionType}
 				/>
 
 				{objectRelationshipParameterRequired &&
-					selectedObjectRelationshipEdge.data?.type ===
-						'oneToMany' && (
+					selectedObjectRelationship?.type === 'oneToMany' && (
 						<>
 							<Input
 								label={Liferay.Language.get('api-endpoint')}
@@ -326,11 +338,16 @@ export function RightSidebarObjectRelationshipDetails({
 								objectDefinitionExternalReferenceCode1={
 									values.objectDefinitionExternalReferenceCode2 as string
 								}
-								onChange={(parameterObjectFieldName) =>
+								onChange={(parameterObjectFieldName) => {
 									setValues({
 										parameterObjectFieldName,
-									})
-								}
+									});
+
+									onSubmit({
+										...values,
+										parameterObjectFieldName,
+									});
+								}}
 								value={values.parameterObjectFieldName}
 							/>
 						</>

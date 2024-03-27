@@ -52,7 +52,7 @@ definition {
 	}
 
 	@description = "This ensures that a depot category can be used to search for assets stored in the connected site. Skip the instance for performance improvement."
-	@priority = 5
+	@priority = 4
 	test AssetsCanBeSearchedByCategory {
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -114,33 +114,33 @@ definition {
 
 		Search.searchCP(searchTerm = "depot");
 
-		SearchResultPortlet.viewSearchResults(
+		SearchResults.viewSearchResults(
 			searchAssetTitle = "DM Document Title",
 			searchAssetType = "Document");
 
-		SearchResultPortlet.viewSearchResults(
+		SearchResults.viewSearchResults(
 			searchAssetTitle = "WC WebContent Title",
 			searchAssetType = "Web Content Article");
 
-		SearchResultPortlet.viewSearchResults(
+		SearchResults.viewSearchResults(
 			searchAssetTitle = "Blogs Entry Title",
 			searchAssetType = "Blogs Entry");
 
-		SearchResultPortlet.viewSearchResults(
+		SearchResults.viewSearchResults(
 			searchAssetTitle = "MB Thread Message Subject",
 			searchAssetType = "Message Boards Message");
 
-		SearchResultPortlet.viewSearchResults(
+		SearchResults.viewSearchResults(
 			searchAssetTitle = "Knowledge Base Article Title",
 			searchAssetType = "Knowledge Base Article");
 
-		SearchResultPortlet.viewSearchResults(
+		SearchResults.viewSearchResults(
 			searchAssetTitle = "Wiki Page Name",
 			searchAssetType = "Wiki Page");
 	}
 
 	@description = "This ensures that assets stored in a site can be searched by a depot category after disconnecting the site."
-	@priority = 4
+	@priority = 3
 	test AssetsCanBeSearchedByCategoryFromDisconnectedSite {
 		var categoryId = JSONCategory.addCategory(
 			groupName = "Test Depot Name",
@@ -199,27 +199,27 @@ definition {
 
 		Search.searchCP(searchTerm = "depot");
 
-		SearchResultPortlet.viewSearchResults(
+		SearchResults.viewSearchResults(
 			searchAssetTitle = "DM Document Title",
 			searchAssetType = "Document");
 
-		SearchResultPortlet.viewSearchResults(
+		SearchResults.viewSearchResults(
 			searchAssetTitle = "WC WebContent Title",
 			searchAssetType = "Web Content Article");
 
-		SearchResultPortlet.viewSearchResults(
+		SearchResults.viewSearchResults(
 			searchAssetTitle = "Blogs Entry Title",
 			searchAssetType = "Blogs Entry");
 
-		SearchResultPortlet.viewSearchResults(
+		SearchResults.viewSearchResults(
 			searchAssetTitle = "MB Thread Message Subject",
 			searchAssetType = "Message Boards Message");
 
-		SearchResultPortlet.viewSearchResults(
+		SearchResults.viewSearchResults(
 			searchAssetTitle = "Knowledge Base Article Title",
 			searchAssetType = "Knowledge Base Article");
 
-		SearchResultPortlet.viewSearchResults(
+		SearchResults.viewSearchResults(
 			searchAssetTitle = "Wiki Page Name",
 			searchAssetType = "Wiki Page");
 	}
@@ -252,7 +252,7 @@ definition {
 	}
 
 	@description = "This ensures that a depot category can be selected in Category Navigation on a connected site."
-	@priority = 5
+	@priority = 4
 	test CanSelectCategoryInCategoriesNavigation {
 		for (var portletName : list "Asset Publisher,Category Filter") {
 			JSONLayout.addWidgetToPublicLayout(

@@ -78,7 +78,6 @@ import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -318,19 +317,30 @@ public class ObjectEntryDisplayContextImpl
 			_objectDefinitionLocalService.getObjectDefinition(
 				objectRelationship.getObjectDefinitionId2());
 
+		ObjectScopeProvider objectScopeProvider =
+			_objectScopeProviderRegistry.getObjectScopeProvider(
+				objectDefinition2.getScope());
+
 		if ((getObjectLayoutTab() == null) && objectRelationship.isEdge()) {
-			creationMenu.addDropdownItem(
-				_getCreateNewRelatedModelDropdownItem(
-					objectDefinition2, objectRelationship));
+			ObjectDefinition rootObjectDefinition =
+				_objectDefinitionLocalService.getObjectDefinition(
+					objectDefinition2.getRootObjectDefinitionId());
+
+			if (ObjectEntryServiceUtil.hasPortletResourcePermission(
+					objectScopeProvider.getGroupId(
+						_objectRequestHelper.getRequest()),
+					rootObjectDefinition.getObjectDefinitionId(),
+					ObjectActionKeys.ADD_OBJECT_ENTRY)) {
+
+				creationMenu.addDropdownItem(
+					_getCreateNewRelatedModelDropdownItem(
+						objectDefinition2, objectRelationship));
+			}
 
 			return creationMenu;
 		}
 
 		ObjectDefinition objectDefinition1 = getObjectDefinition1();
-
-		ObjectScopeProvider objectScopeProvider =
-			_objectScopeProviderRegistry.getObjectScopeProvider(
-				objectDefinition2.getScope());
 
 		if (!objectDefinition1.isUnmodifiableSystemObject() &&
 			!objectDefinition2.isUnmodifiableSystemObject() &&
@@ -1305,9 +1315,7 @@ public class ObjectEntryDisplayContextImpl
 					StringBundler.concat(
 						StringPool.OPEN_BRACKET,
 						StringUtil.merge(
-							ListUtil.toList(
-								(List<ListEntry>)value, ListEntry::getKey),
-							StringPool.COMMA_AND_SPACE),
+							(List<String>)value, StringPool.COMMA_AND_SPACE),
 						StringPool.CLOSE_BRACKET)));
 		}
 		else if (value instanceof FileEntry) {
@@ -1322,9 +1330,7 @@ public class ObjectEntryDisplayContextImpl
 			ddmFormFieldValue.setValue(
 				new UnlocalizedValue(listEntry.getKey()));
 		}
-		else if (FeatureFlagManagerUtil.isEnabled("LPS-172017") &&
-				 (value instanceof Map)) {
-
+		else if (value instanceof Map) {
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
 				(Map<String, String>)value);
 

@@ -5,21 +5,98 @@
 
 import ClayIcon from '@clayui/icon';
 import ClayLabel from '@clayui/label';
+import ClayPanel from '@clayui/panel';
 import {ClayTooltipProvider} from '@clayui/tooltip';
 import {sub} from 'frontend-js-web';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useState} from 'react';
+
+import {parseOptions, parseValue} from '../util/index';
 
 function ItemInfoViewOptions({options}) {
 	return (
 		<div className="item-info-extra mt-3">
-			<h6 className="options">{options}</h6>
+			<div className="h6 options">{options}</div>
 		</div>
 	);
 }
 
-function ItemInfoViewBundle({childItems}) {
-	return (
+function ItemInfoViewBundle({childItems, options}) {
+	const [expanded, setExpanded] = useState(false);
+
+	return Liferay.FeatureFlags['COMMERCE-9599'] && options.length >= 1 ? (
+		<ClayPanel
+			className="item-info-collapse mb-0"
+			collapsable
+			displayTitle={sub(
+				Liferay.Language.get('x-options'),
+				expanded
+					? Liferay.Language.get('hide')
+					: Liferay.Language.get('show')
+			)}
+			displayType="secondary"
+			expanded={expanded}
+			onExpandedChange={(expanded) => {
+				setExpanded(expanded);
+			}}
+			showCollapseIcon
+		>
+			<ClayPanel.Body>
+				<div className="child-items">
+					{options.map((option, index) => {
+						const {
+							skuId,
+							skuOptionName,
+							skuOptionValueNames,
+							value,
+						} = option;
+
+						const childItem = (childItems || []).find(
+							(childItem) =>
+								childItem.skuId === parseInt(skuId, 10)
+						);
+
+						const {name, quantity, skuUnitOfMeasure} =
+							childItem || {};
+
+						return name ? (
+							<div className="item-info-extra pt-2" key={index}>
+								<div className="h6 item-name">
+									{skuOptionName}
+								</div>
+
+								<p className="item-sku">
+									<span>
+										<span>
+											{parseValue(skuOptionValueNames) ||
+												parseValue(value)}
+										</span>
+
+										<span className="pl-2">
+											{`(${quantity} \u00D7 ${name} ${
+												skuUnitOfMeasure?.key || ''
+											})`}
+										</span>
+									</span>
+								</p>
+							</div>
+						) : (
+							<div className="item-info-extra pt-2" key={index}>
+								<div className="h6 item-name">
+									{skuOptionName}
+								</div>
+
+								<p className="item-sku">
+									{parseValue(skuOptionValueNames) ||
+										parseValue(value)}
+								</p>
+							</div>
+						);
+					})}
+				</div>
+			</ClayPanel.Body>
+		</ClayPanel>
+	) : (
 		<div className="child-items">
 			{childItems.map((item, index) => {
 				const {name, quantity, skuUnitOfMeasure} = item;
@@ -71,12 +148,12 @@ function ItemInfoViewBase({name, sku}) {
 	);
 }
 
-function ItemInfoView({childItems = [], name, options = '', replacedSku, sku}) {
+function ItemInfoView({childItems = [], name, options = [], replacedSku, sku}) {
 	const hasReplacement = !!replacedSku;
 	const isBundle = !!childItems.length;
-	const hasOptions = !!options;
+	const hasOptions = !!parseOptions(options);
 
-	return (
+	return Liferay.FeatureFlags['COMMERCE-9599'] ? (
 		<>
 			<ItemInfoViewBase name={name} sku={sku} />
 
@@ -84,9 +161,23 @@ function ItemInfoView({childItems = [], name, options = '', replacedSku, sku}) {
 				<ItemInfoViewReplacement replacedSku={replacedSku} />
 			)}
 
-			{isBundle && <ItemInfoViewBundle childItems={childItems} />}
+			<ItemInfoViewBundle childItems={childItems} options={options} />
+		</>
+	) : (
+		<>
+			<ItemInfoViewBase name={name} sku={sku} />
 
-			{hasOptions && <ItemInfoViewOptions options={options} />}
+			{hasReplacement && (
+				<ItemInfoViewReplacement replacedSku={replacedSku} />
+			)}
+
+			{isBundle && (
+				<ItemInfoViewBundle childItems={childItems} options={options} />
+			)}
+
+			{hasOptions && (
+				<ItemInfoViewOptions options={parseOptions(options)} />
+			)}
 		</>
 	);
 }
@@ -94,7 +185,7 @@ function ItemInfoView({childItems = [], name, options = '', replacedSku, sku}) {
 ItemInfoView.propTypes = {
 	childItems: PropTypes.array,
 	name: PropTypes.string.isRequired,
-	options: PropTypes.string,
+	options: PropTypes.array,
 	sku: PropTypes.string.isRequired,
 };
 

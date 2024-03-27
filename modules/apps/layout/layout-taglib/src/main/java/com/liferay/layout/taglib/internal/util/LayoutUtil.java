@@ -11,14 +11,18 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.LayoutConstants;
+import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.auth.AuthTokenUtil;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.LayoutServiceUtil;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
+import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
-import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PropsValues;
@@ -33,103 +37,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class LayoutUtil {
 
-	public static JSONArray getLayoutsJSONArray(
-			boolean checkDisplayPage, boolean enableCurrentPage, long groupId,
-			HttpServletRequest httpServletRequest,
-			String itemSelectorReturnType, boolean privateLayout,
-			long parentLayoutId, String[] selectedLayoutUuid, int start,
-			int end)
-		throws Exception {
-
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
-
-		List<Layout> layouts = LayoutServiceUtil.getLayouts(
-			groupId, privateLayout, parentLayoutId, false, start, end);
-
-		for (Layout layout : layouts) {
-			if (_isExcludedLayout(layout)) {
-				continue;
-			}
-
-			jsonArray.put(
-				JSONUtil.put(
-					"disabled",
-					() -> {
-						if ((checkDisplayPage &&
-							 !layout.isContentDisplayPage()) ||
-							(!enableCurrentPage &&
-							 (layout.getPlid() == _getSelPlid(
-								 httpServletRequest)))) {
-
-							return true;
-						}
-
-						return null;
-					}
-				).put(
-					"groupId", layout.getGroupId()
-				).put(
-					"hasChildren", layout.hasChildren()
-				).put(
-					"icon", layout.getIcon()
-				).put(
-					"id", layout.getUuid()
-				).put(
-					"layoutId", layout.getLayoutId()
-				).put(
-					"name", layout.getName(themeDisplay.getLocale())
-				).put(
-					"paginated",
-					() -> {
-						int layoutsCount = LayoutServiceUtil.getLayoutsCount(
-							groupId, layout.isPrivateLayout(),
-							layout.getLayoutId());
-
-						if (layoutsCount >
-								PropsValues.
-									LAYOUT_MANAGE_PAGES_INITIAL_CHILDREN) {
-
-							return true;
-						}
-
-						return false;
-					}
-				).put(
-					"payload",
-					_getPayload(
-						httpServletRequest, itemSelectorReturnType, layout,
-						themeDisplay)
-				).put(
-					"privateLayout", layout.isPrivateLayout()
-				).put(
-					"returnType", itemSelectorReturnType
-				).put(
-					"selected",
-					() -> {
-						if (ArrayUtil.contains(
-								selectedLayoutUuid, layout.getUuid())) {
-
-							return true;
-						}
-
-						return null;
-					}
-				).put(
-					"url",
-					PortalUtil.getLayoutRelativeURL(layout, themeDisplay, false)
-				).put(
-					"value", layout.getBreadcrumb(themeDisplay.getLocale())
-				));
-		}
-
-		return jsonArray;
-	}
-
-	private static String _getPayload(
+	public static String getLayoutPayload(
 			HttpServletRequest httpServletRequest,
 			String itemSelectorReturnType, Layout layout,
 			ThemeDisplay themeDisplay)
@@ -174,9 +82,112 @@ public class LayoutUtil {
 		return PortalUtil.getLayoutRelativeURL(layout, themeDisplay, false);
 	}
 
-	private static long _getSelPlid(HttpServletRequest httpServletRequest) {
-		return ParamUtil.getLong(
-			httpServletRequest, "selPlid", LayoutConstants.DEFAULT_PLID);
+	public static JSONArray getLayoutsJSONArray(
+			boolean checkDisplayPage, boolean enableCurrentPage, long groupId,
+			HttpServletRequest httpServletRequest,
+			String itemSelectorReturnType, boolean privateLayout,
+			long parentLayoutId, String[] selectedLayoutUuid, long selPlid,
+			int start, int end)
+		throws Exception {
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
+
+		List<Layout> layouts = LayoutServiceUtil.getLayouts(
+			groupId, privateLayout, parentLayoutId, false, start, end);
+
+		for (Layout layout : layouts) {
+			if (_isExcludedLayout(layout)) {
+				continue;
+			}
+
+			jsonArray.put(
+				JSONUtil.put(
+					"disabled",
+					() -> {
+						if ((checkDisplayPage &&
+							 !layout.isContentDisplayPage()) ||
+							(!enableCurrentPage &&
+							 (layout.getPlid() == selPlid))) {
+
+							return true;
+						}
+
+						return null;
+					}
+				).put(
+					"groupId", layout.getGroupId()
+				).put(
+					"hasChildren", layout.hasChildren()
+				).put(
+					"hasGuestViewPermission",
+					() -> {
+						Role role = RoleLocalServiceUtil.getRole(
+							layout.getCompanyId(), RoleConstants.GUEST);
+
+						return ResourcePermissionLocalServiceUtil.
+							hasResourcePermission(
+								layout.getCompanyId(), Layout.class.getName(),
+								ResourceConstants.SCOPE_INDIVIDUAL,
+								String.valueOf(layout.getPlid()),
+								role.getRoleId(), ActionKeys.VIEW);
+					}
+				).put(
+					"icon", layout.getIcon()
+				).put(
+					"id", layout.getUuid()
+				).put(
+					"layoutId", layout.getLayoutId()
+				).put(
+					"name", layout.getName(themeDisplay.getLocale())
+				).put(
+					"paginated",
+					() -> {
+						int layoutsCount = LayoutServiceUtil.getLayoutsCount(
+							groupId, layout.isPrivateLayout(),
+							layout.getLayoutId());
+
+						if (layoutsCount >
+								PropsValues.
+									LAYOUT_MANAGE_PAGES_INITIAL_CHILDREN) {
+
+							return true;
+						}
+
+						return false;
+					}
+				).put(
+					"payload",
+					getLayoutPayload(
+						httpServletRequest, itemSelectorReturnType, layout,
+						themeDisplay)
+				).put(
+					"privateLayout", layout.isPrivateLayout()
+				).put(
+					"returnType", itemSelectorReturnType
+				).put(
+					"selected",
+					() -> {
+						if (ArrayUtil.contains(
+								selectedLayoutUuid, layout.getUuid())) {
+
+							return true;
+						}
+
+						return null;
+					}
+				).put(
+					"url",
+					PortalUtil.getLayoutRelativeURL(layout, themeDisplay, false)
+				).put(
+					"value", layout.getBreadcrumb(themeDisplay.getLocale())
+				));
+		}
+
+		return jsonArray;
 	}
 
 	private static boolean _isExcludedLayout(Layout layout) {

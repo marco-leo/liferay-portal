@@ -8,6 +8,8 @@ import classNames from 'classnames';
 import {memo, useMemo} from 'react';
 import {useAppPropertiesContext} from '~/common/contexts/AppPropertiesContext';
 import PopoverIconButton from '~/routes/customer-portal/components/PopoverIconButton';
+import {getLicenseKeyPermanentStatus} from '~/routes/customer-portal/containers/GenerateNewKey/utils/licenseKeyPermanentStatus';
+import {getPerpetualValidStartDate} from '~/routes/customer-portal/containers/GenerateNewKey/utils/perpetualValidStartDate';
 import i18n from '../../../../../../../../../../../common/I18n';
 import {
 	Skeleton,
@@ -26,6 +28,7 @@ import {
 import getDateCustomFormat from '../../../../../../../../../../../common/utils/getDateCustomFormat';
 
 const AccountSubscriptionCard = ({
+	IsPortalOrDXP,
 	loading,
 	logoPath: IconSVG,
 	onClick,
@@ -36,7 +39,8 @@ const AccountSubscriptionCard = ({
 
 	const {data: accountSubscriptionUsageData} = useGetAccountSubscriptionUsage(
 		accountSubscription?.accountKey,
-		accountSubscription?.productKey
+		accountSubscription?.productKey,
+		IsPortalOrDXP
 	);
 
 	const currentConsumption = useMemo(
@@ -58,7 +62,7 @@ const AccountSubscriptionCard = ({
 			</>
 		),
 		PurchasedAndProvisioned: (
-			<p className="d-flex justify-content-start m-0">
+			<span className="d-flex justify-content-start m-0">
 				{currentConsumption !== undefined
 					? `${currentConsumption} ${i18n.translate('of')} ${
 							accountSubscription?.quantity
@@ -66,7 +70,7 @@ const AccountSubscriptionCard = ({
 					: `0 ${i18n.translate('of')} ${
 							accountSubscription?.quantity
 					  }`}
-			</p>
+			</span>
 		),
 	};
 
@@ -77,7 +81,12 @@ const AccountSubscriptionCard = ({
 		const isPurchased = SUBSCRIPTION_TYPES.Purchased.includes(
 			subscriptionType
 		);
+
 		if (isPurchasedAndProvisioned) {
+			if (PRODUCT_DISPLAY_EXCEPTION.blankProducts.includes(productName)) {
+				return DisplayOnCard.Blank;
+			}
+
 			return PRODUCT_DISPLAY_EXCEPTION.purchasedProduct.includes(
 				productName
 			)
@@ -144,6 +153,15 @@ const AccountSubscriptionCard = ({
 
 	const accountSubscriptionGroupName =
 		accountSubscription?.name === 'Designated Contact' || isPurchased;
+
+	const isPermanentLicenseKey = getLicenseKeyPermanentStatus(
+		accountSubscription?.startDate,
+		accountSubscription?.endDate
+	);
+
+	const isValidPerpetualStartDate = getPerpetualValidStartDate(
+		accountSubscription?.startDate
+	);
 
 	return (
 		<ClayCard
@@ -217,7 +235,7 @@ const AccountSubscriptionCard = ({
 						<Skeleton className="mb-1" height={13} width={80} />
 					) : (
 						keysProvisionedContentInstanceSize && (
-							<p className="cp-account-subscription-card-info-bottom mb-0">
+							<div className="cp-account-subscription-card-info-bottom mb-0">
 								<p className="title-info-bottom">{`${i18n.translate(
 									'instance-size'
 								)}`}</p>
@@ -225,7 +243,7 @@ const AccountSubscriptionCard = ({
 								<p className="description-info-bottom">
 									{keysProvisionedContentInstanceSize}
 								</p>
-							</p>
+							</div>
 						)
 					)}
 
@@ -247,18 +265,21 @@ const AccountSubscriptionCard = ({
 						<Skeleton className="mb-3" height={24} width={160} />
 					) : (
 						accountSubscription.startDate && (
-							<p className="cp-account-subscription-card-info-bottom mb-0">
+							<div className="cp-account-subscription-card-info-bottom mb-0">
 								<p className="title-info-bottom">{`${i18n.translate(
 									'start-date'
 								)}`}</p>
 
 								<p className="description-info-bottom">
-									{getDateCustomFormat(
-										accountSubscription.startDate,
-										FORMAT_DATE_TYPES.day2DMonthSYearN
-									)}
+									{isPermanentLicenseKey &&
+									isValidPerpetualStartDate
+										? i18n.translate('not-applicable')
+										: getDateCustomFormat(
+												accountSubscription.startDate,
+												FORMAT_DATE_TYPES.day2DMonthSYearN
+										  )}
 								</p>
-							</p>
+							</div>
 						)
 					)}
 
@@ -266,18 +287,21 @@ const AccountSubscriptionCard = ({
 						<Skeleton className="mb-3" height={24} width={160} />
 					) : (
 						accountSubscription.endDate && (
-							<p className="cp-account-subscription-card-info-bottom mb-0">
+							<div className="cp-account-subscription-card-info-bottom mb-0">
 								<p className="title-info-bottom">{`${i18n.translate(
 									'expiration-date'
 								)}`}</p>
 
 								<p className="description-info-bottom">
-									{getDateCustomFormat(
-										accountSubscription.endDate,
-										FORMAT_DATE_TYPES.day2DMonthSYearN
-									)}
+									{isPermanentLicenseKey &&
+									isValidPerpetualStartDate
+										? i18n.translate('not-applicable')
+										: getDateCustomFormat(
+												accountSubscription.endDate,
+												FORMAT_DATE_TYPES.day2DMonthSYearN
+										  )}
 								</p>
-							</p>
+							</div>
 						)
 					)}
 				</div>

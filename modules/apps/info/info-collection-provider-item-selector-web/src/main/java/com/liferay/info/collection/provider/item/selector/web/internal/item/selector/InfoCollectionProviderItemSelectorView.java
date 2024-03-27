@@ -27,7 +27,6 @@ import java.util.Locale;
 
 import javax.portlet.PortletURL;
 
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -109,7 +108,8 @@ public class InfoCollectionProviderItemSelectorView
 					Comparator.comparing(
 						infoCollectionProvider ->
 							infoCollectionProvider.getLabel(
-								themeDisplay.getLocale()))));
+								themeDisplay.getLocale()),
+						String.CASE_INSENSITIVE_ORDER)));
 		}
 
 		String itemType =
@@ -132,7 +132,8 @@ public class InfoCollectionProviderItemSelectorView
 					InfoCollectionProvider::isAvailable),
 				Comparator.comparing(
 					infoCollectionProvider -> infoCollectionProvider.getLabel(
-						themeDisplay.getLocale()))));
+						themeDisplay.getLocale()),
+					String.CASE_INSENSITIVE_ORDER)));
 	}
 
 	private static final List<ItemSelectorReturnType>
@@ -149,10 +150,5 @@ public class InfoCollectionProviderItemSelectorView
 
 	@Reference
 	private Language _language;
-
-	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.info.collection.provider.item.selector.web)"
-	)
-	private ServletContext _servletContext;
 
 }

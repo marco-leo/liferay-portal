@@ -7,97 +7,111 @@ import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayChart from '@clayui/charts';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 import Container from '../../../common/components/dashboard/components/Container';
 import {dealsChartColumnColors} from '../../../common/components/dashboard/utils/constants/chartColumnsColors';
 import getLeadsChartValues from '../../../common/components/dashboard/utils/getLeadsChartValues';
-import {getOpportunitiesChartValues} from '../../../common/components/dashboard/utils/getOpportunitiesChartValues';
 import {siteURL} from '../../../common/components/dashboard/utils/siteURL';
 import {Liferay} from '../../../common/services/liferay';
 
 import './index.css';
+import {ObjectActionName} from '../../../common/enums/objectActionName';
+import {PermissionActionType} from '../../../common/enums/permissionActionType';
+import {PRMPageRoute} from '../../../common/enums/prmPageRoute';
+import usePermissionActions from '../../../common/hooks/usePermissionActions';
+import {Filters} from '../../../common/utils/constants/filters';
+import {retry} from '../../../common/utils/retry';
 
 const DealsChart = () => {
-	const [opportunities, setOpportunities] = useState([]);
-	const [leads, setLeads] = useState([]);
+	const [rejectedLeads, setRejectedLeads] = useState([]);
+	const [submittedLeads, setSubmittedLeads] = useState([]);
+	const [approvedLeads, setApprovedLeads] = useState([]);
+
 	const [loading, setLoading] = useState(false);
-
-	const getOpportunities = async () => {
-		setLoading(true);
-
-		// eslint-disable-next-line @liferay/portal/no-global-fetch
-		const response = await fetch(
-			`/o/c/opportunitysfs?pageSize=200&filter=stage ne 'Closed Lost' and stage ne 'Disqualified' and stage ne 'Rolled into another opportunity'`,
-			{
-				headers: {
-					'accept': 'application/json',
-					'x-csrf-token': Liferay.authToken,
-				},
-			}
-		);
-
-		if (response.ok) {
-			const data = await response.json();
-			setOpportunities(data?.items);
-
-			return;
-		}
-
-		Liferay.Util.openToast({
-			message: 'An unexpected error occured.',
-			type: 'danger',
-		});
-
-		setLoading(false);
-	};
+	const actions = usePermissionActions(ObjectActionName.DEAL_REGISTRATION);
 
 	const getLeads = async () => {
 		setLoading(true);
 
 		// eslint-disable-next-line @liferay/portal/no-global-fetch
-		const response = await fetch('/o/c/leadsfs?pageSize=200', {
-			headers: {
-				'accept': 'application/json',
-				'x-csrf-token': Liferay.authToken,
-			},
-		});
+		const leads = await retry<any>(() =>
+			fetch(
+				`/o/c/leadsfs?pageSize=200&filter=${Filters.DEAL_DASHBOARD.deals}`,
+				{
+					headers: {
+						'accept': 'application/json',
+						'x-csrf-token': Liferay.authToken,
+					},
+				}
+			)
+		);
 
-		if (response.ok) {
-			const data = await response.json();
-			setLeads(data?.items);
+		if (leads) {
+			const currentYear = new Date().getFullYear();
+
+			const approvedData = leads.items.filter(
+				(lead: {
+					createdDate: string;
+					isConverted: boolean;
+					leadStatus: string;
+				}) => {
+					const createDateYear = new Date(
+						lead.createdDate
+					).getFullYear();
+
+					return lead.isConverted && createDateYear === currentYear;
+				}
+			);
+			const rejectedData = leads.items.filter(
+				(lead: {createdDate: string; leadStatus: string}) => {
+					const createDateYear = new Date(
+						lead.createdDate
+					).getFullYear();
+
+					return (
+						lead.leadStatus === 'CAM rejected' &&
+						createDateYear === currentYear
+					);
+				}
+			);
+			const sumbittedData = leads.items.filter(
+				(lead: {
+					createdDate: string;
+					isConverted: boolean;
+					leadStatus: string;
+				}) => {
+					const createDateYear = new Date(
+						lead.createdDate
+					).getFullYear();
+
+					return (
+						lead.leadStatus !== 'CAM rejected' &&
+						!lead.isConverted &&
+						createDateYear === currentYear
+					);
+				}
+			);
+
+			setApprovedLeads(approvedData);
+			setRejectedLeads(rejectedData);
+			setSubmittedLeads(sumbittedData);
+
+			setLoading(false);
 
 			return;
 		}
-
-		Liferay.Util.openToast({
-			message: 'An unexpected error occured.',
-			type: 'danger',
-		});
-
-		setLoading(false);
 	};
 
 	useEffect(() => {
-		getOpportunities();
 		getLeads();
 	}, []);
 
-	const opportunitiesChartValues = useMemo(
-		() => getOpportunitiesChartValues(opportunities),
-		[opportunities]
+	const leadsChartValues = getLeadsChartValues(
+		submittedLeads,
+		approvedLeads,
+		rejectedLeads
 	);
-
-	const leadsChartValues = getLeadsChartValues(leads);
-
-	const totalRejectedChartValues = useMemo(() => {
-		return (
-			opportunitiesChartValues?.rejected?.map(
-				(chartValue, index) =>
-					chartValue + leadsChartValues?.rejected[index]
-			) || []
-		);
-	}, [leadsChartValues?.rejected, opportunitiesChartValues?.rejected]);
 
 	const Chart = () => {
 		const chart = {
@@ -114,8 +128,8 @@ const DealsChart = () => {
 				columns: [
 					['x', 'Q1', 'Q2', 'Q3', 'Q4'],
 					['Submitted', ...leadsChartValues?.submitted],
-					['Approved', ...opportunitiesChartValues?.approved],
-					['Rejected', ...totalRejectedChartValues],
+					['Approved', ...leadsChartValues?.approved],
+					['Rejected', ...leadsChartValues?.rejected],
 				],
 				groups: [['submitted', 'approved']],
 				order: 'desc',
@@ -134,17 +148,19 @@ const DealsChart = () => {
 			},
 		};
 		if (loading) {
-			<ClayLoadingIndicator className="mb-10 mt-9" size="md" />;
+			return <ClayLoadingIndicator className="mb-10 mt-10" size="md" />;
 		}
 
-		if (!loading && !(opportunitiesChartValues || leadsChartValues)) {
-			<ClayAlert
-				className="mx-auto w-50"
-				displayType="info"
-				title="Info:"
-			>
-				No Data Available
-			</ClayAlert>;
+		if (!loading && !leadsChartValues) {
+			return (
+				<ClayAlert
+					className="mx-auto text-center w-75"
+					displayType="info"
+					title="Info:"
+				>
+					No Data Available
+				</ClayAlert>
+			);
 		}
 
 		return (
@@ -164,34 +180,39 @@ const DealsChart = () => {
 
 	return (
 		<Container
-			className="deals-chart-card-height"
+			className="deals-chart-card-height justify-content-between"
 			footer={
-				<>
+				<div className="pt-5">
 					<ClayButton
-						className="border-brand-primary-darken-1 mt-2 text-brand-primary-darken-1"
+						className="bg-neutral-0 border-brand-primary-darken-1 text-brand-primary-darken-1"
 						displayType="secondary"
 						onClick={() =>
 							Liferay.Util.navigate(
 								`${siteURL}/sales/deal-registrations`
 							)
 						}
+						size="sm"
 						type="button"
 					>
 						View All
 					</ClayButton>
-					<ClayButton
-						className="btn btn-primary ml-4 mt-2"
-						displayType="primary"
-						onClick={() =>
-							Liferay.Util.navigate(
-								`${siteURL}/sales/deal-registrations/new`
-							)
-						}
-						type="button"
-					>
-						Register New Deal
-					</ClayButton>
-				</>
+
+					{actions?.includes(PermissionActionType.CREATE) && (
+						<ClayButton
+							className="btn btn-primary ml-4"
+							displayType="primary"
+							onClick={() =>
+								Liferay.Util.navigate(
+									`${siteURL}/${PRMPageRoute.CREATE_DEAL_REGISTRATION}`
+								)
+							}
+							size="sm"
+							type="button"
+						>
+							Register New Deal
+						</ClayButton>
+					)}
+				</div>
 			}
 			title="Deal Registrations"
 		>

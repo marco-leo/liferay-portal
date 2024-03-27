@@ -18,9 +18,7 @@ definition {
 		}
 
 		task ("Activate local live staging") {
-			Staging.openStagingAdmin(siteURLKey = "test-site-name");
-
-			Staging.activateStagingCP(siteName = "Test Site Name");
+			JSONStaging.enableLocalStaging(groupName = "Test Site Name");
 		}
 
 		task ("Add a page template collection") {
@@ -63,17 +61,6 @@ definition {
 
 		task ("Publish the page template") {
 			PageEditor.publish();
-		}
-	}
-
-	tearDown {
-		var testLiferayVirtualInstance = PropsUtil.get("test.liferay.virtual.instance");
-
-		if (${testLiferayVirtualInstance} == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
 		}
 	}
 

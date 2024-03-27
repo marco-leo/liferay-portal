@@ -305,6 +305,10 @@ public class EditUserMVCActionCommand
 						return;
 					}
 				}
+
+				actionResponse.setRenderParameter("mvcPath", mvcPath);
+
+				throw exception;
 			}
 			else if (exception instanceof ModelListenerException) {
 				if (exception.getCause() instanceof PortalException) {
@@ -503,7 +507,7 @@ public class EditUserMVCActionCommand
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			User.class.getName(), actionRequest);
 
-		User user = _userService.addUser(
+		User user = _userService.addUserWithWorkflow(
 			themeDisplay.getCompanyId(), true, null, null, autoScreenName,
 			screenName, emailAddress, LocaleUtil.fromLanguageId(languageId),
 			firstName, middleName, lastName, prefixListTypeId, suffixListTypeId,
@@ -548,14 +552,19 @@ public class EditUserMVCActionCommand
 	}
 
 	private long _getListTypeId(
-			PortletRequest portletRequest, String parameterName, String type)
+			long companyId, PortletRequest portletRequest, String parameterName,
+			String type)
 		throws Exception {
 
 		String parameterValue = ParamUtil.getString(
 			portletRequest, parameterName);
 
+		if (Validator.isNull(parameterValue)) {
+			return 0;
+		}
+
 		ListType listType = _listTypeLocalService.addListType(
-			parameterValue, type);
+			companyId, parameterValue, type);
 
 		return listType.getListTypeId();
 	}
@@ -586,15 +595,17 @@ public class EditUserMVCActionCommand
 		DynamicActionRequest dynamicActionRequest = new DynamicActionRequest(
 			actionRequest);
 
+		long companyId = _portal.getCompanyId(actionRequest);
+
 		long prefixListTypeId = _getListTypeId(
-			actionRequest, "prefixListTypeValue",
+			companyId, actionRequest, "prefixListTypeValue",
 			ListTypeConstants.CONTACT_PREFIX);
 
 		dynamicActionRequest.setParameter(
 			"prefixListTypeId", String.valueOf(prefixListTypeId));
 
 		long suffixListTypeId = _getListTypeId(
-			actionRequest, "suffixListTypeValue",
+			companyId, actionRequest, "suffixListTypeValue",
 			ListTypeConstants.CONTACT_SUFFIX);
 
 		dynamicActionRequest.setParameter(

@@ -27,6 +27,7 @@ import com.liferay.exportimport.kernel.exception.ExportImportRuntimeException;
 import com.liferay.exportimport.kernel.lar.ExportImportClassedModelUtil;
 import com.liferay.exportimport.kernel.lar.ExportImportPathUtil;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
+import com.liferay.exportimport.kernel.lar.ManifestSummary;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.PortletDataException;
 import com.liferay.exportimport.kernel.lar.PortletDataHandlerControl;
@@ -41,7 +42,6 @@ import com.liferay.journal.configuration.JournalServiceConfiguration;
 import com.liferay.journal.constants.JournalArticleConstants;
 import com.liferay.journal.constants.JournalConstants;
 import com.liferay.journal.constants.JournalFolderConstants;
-import com.liferay.journal.internal.exportimport.creation.strategy.JournalCreationStrategy;
 import com.liferay.journal.internal.util.JournalUtil;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleResource;
@@ -56,6 +56,7 @@ import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
@@ -521,6 +522,15 @@ public class JournalArticleStagedModelDataHandler
 			articleElement.addAttribute("preloaded", "true");
 		}
 
+		if (FeatureFlagManagerUtil.isEnabled("LPS-165481")) {
+			ManifestSummary manifestSummary =
+				portletDataContext.getManifestSummary();
+
+			manifestSummary.addAssetTitle(
+				JournalArticle.class.getName(),
+				article.getTitle(article.getDefaultLanguageId()));
+		}
+
 		_exportAssetDisplayPage(portletDataContext, article);
 
 		_exportFriendlyURLEntries(portletDataContext, article);
@@ -610,13 +620,6 @@ public class JournalArticleStagedModelDataHandler
 		throws Exception {
 
 		long userId = portletDataContext.getUserId(article.getUserUuid());
-
-		long authorId = _journalCreationStrategy.getAuthorUserId(
-			portletDataContext, article);
-
-		if (authorId != JournalCreationStrategy.USE_DEFAULT_USER_ID_STRATEGY) {
-			userId = authorId;
-		}
 
 		User user = _userLocalService.getUser(userId);
 
@@ -1065,16 +1068,6 @@ public class JournalArticleStagedModelDataHandler
 					replaceImportContentReferences(
 						portletDataContext, article, content);
 
-			String newContent = _journalCreationStrategy.getTransformedContent(
-				portletDataContext, article);
-
-			if (!Objects.equals(
-					newContent,
-					JournalCreationStrategy.ARTICLE_CONTENT_UNCHANGED)) {
-
-				replacedContent = newContent;
-			}
-
 			if (!StringUtil.equals(replacedContent, content)) {
 				importedArticle = _journalArticleLocalService.updateArticle(
 					userId, importedArticle.getGroupId(), folderId,
@@ -1093,11 +1086,18 @@ public class JournalArticleStagedModelDataHandler
 					serviceContext);
 			}
 
-			_journalArticleLocalService.updateAsset(
-				userId, importedArticle, serviceContext.getAssetCategoryIds(),
-				serviceContext.getAssetTagNames(),
-				serviceContext.getAssetLinkEntryIds(),
-				serviceContext.getAssetPriority());
+			if (_isUpdateAsset(
+					importedArticle.getGroupId(),
+					importedArticle.getArticleId(),
+					importedArticle.getVersion())) {
+
+				_journalArticleLocalService.updateAsset(
+					userId, importedArticle,
+					serviceContext.getAssetCategoryIds(),
+					serviceContext.getAssetTagNames(),
+					serviceContext.getAssetLinkEntryIds(),
+					serviceContext.getAssetPriority());
+			}
 
 			if (article.isExpired() || importedArticle.isExpired()) {
 				_journalArticleLocalService.expireArticle(
@@ -1530,6 +1530,19 @@ public class JournalArticleStagedModelDataHandler
 		return false;
 	}
 
+	private boolean _isUpdateAsset(
+		long groupId, String articleId, double version) {
+
+		JournalArticle article = _journalArticleLocalService.fetchLatestArticle(
+			groupId, articleId, WorkflowConstants.STATUS_APPROVED);
+
+		if ((article == null) || (version >= article.getVersion())) {
+			return true;
+		}
+
+		return false;
+	}
+
 	private void _sendUndeliveredUserNotificationEvents(
 		JournalArticle article, JournalArticle importedArticle,
 		ServiceContext serviceContext) {
@@ -1801,9 +1814,6 @@ public class JournalArticleStagedModelDataHandler
 	@Reference
 	private JournalArticleResourceLocalService
 		_journalArticleResourceLocalService;
-
-	@Reference
-	private JournalCreationStrategy _journalCreationStrategy;
 
 	@Reference
 	private JSONFactory _jsonFactory;

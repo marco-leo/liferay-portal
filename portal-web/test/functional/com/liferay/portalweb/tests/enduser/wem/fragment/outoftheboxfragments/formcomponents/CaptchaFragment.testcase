@@ -68,15 +68,15 @@ definition {
 			PageEditor.addFragmentToFormContainer(
 				collectionName = "Form Components",
 				fragmentName = "CAPTCHA",
-				targetFragmentName = "Text Input");
+				targetFragmentName = "Text");
 		}
 
 		task ("Then the page creator cannot type text verification and reload simple captcha") {
 			AssertAttributeValue(
-				attribute1 = "disabled",
 				index = 1,
 				locator1 = "Fragment#INPUT_CAPTCHA_BODY",
-				value1 = "true");
+				value1 = "disabled",
+				value2 = "true");
 		}
 	}
 
@@ -121,7 +121,7 @@ definition {
 				PageEditor.addFragmentToFormContainer(
 					collectionName = "Form Components",
 					fragmentName = "CAPTCHA",
-					targetFragmentName = "Text Input");
+					targetFragmentName = "Text");
 
 				PageEditor.publish();
 			}
@@ -147,7 +147,7 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-155168. The user could submit Text verification of Simple Captcha via pressing enter at view mode. The user could see error message when validation fail."
+	@description = "This is a test for LPS-155168 and LPS-182728. The user could submit Text verification of Simple Captcha via pressing enter at view mode. The user should see the field error below the Captcha fragment."
 	@priority = 5
 	test SubmitTextVerificationViaPressingEnter {
 		property portal.acceptance = "true";
@@ -185,7 +185,7 @@ definition {
 					contentType = "Purchase Order",
 					panel = "General");
 
-				for (var fragmentName : list "Text Input,Submit Button") {
+				for (var fragmentName : list "Text,Submit Button") {
 					PageEditor.removeFragment(fragmentName = ${fragmentName});
 				}
 			}
@@ -290,7 +290,7 @@ definition {
 				PageEditor.addFragmentToFormContainer(
 					collectionName = "Form Components",
 					fragmentName = "CAPTCHA",
-					targetFragmentName = "Text Input");
+					targetFragmentName = "Text");
 
 				AssertElementPresent(locator1 = "IFrame#RECAPTCHA");
 

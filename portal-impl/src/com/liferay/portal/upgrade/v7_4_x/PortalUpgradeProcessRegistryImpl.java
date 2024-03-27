@@ -66,7 +66,10 @@ public class PortalUpgradeProcessRegistryImpl
 
 		upgradeVersionTreeMap.put(new Version(9, 2, 0), new UpgradeCountry());
 
-		upgradeVersionTreeMap.put(new Version(9, 2, 1), new UpgradeListType());
+		upgradeVersionTreeMap.put(
+			new Version(9, 2, 1), new UpgradeListType(),
+			UpgradeModulesFactory.create(
+				new String[] {"com.liferay.address.impl"}, null));
 
 		upgradeVersionTreeMap.put(
 			new Version(10, 0, 0), new UpgradePortletPreferences());
@@ -335,6 +338,52 @@ public class PortalUpgradeProcessRegistryImpl
 			new GuestUnsupportedResourcePermissionsUpgradeProcess(
 				Group.class.getName(), ActionKeys.CONFIGURE_PORTLETS,
 				ActionKeys.VIEW_SITE_ADMINISTRATION));
+
+		upgradeVersionTreeMap.put(
+			new Version(28, 0, 2),
+			UpgradeModulesFactory.create(
+				new String[] {"com.liferay.user.associated.data.web"}, null));
+
+		upgradeVersionTreeMap.put(
+			new Version(29, 0, 0), new UpgradeListTypeCompanyId());
+
+		upgradeVersionTreeMap.put(
+			new Version(29, 1, 0),
+			new CTModelUpgradeProcess(
+				"Country", "CountryLocalization", "Region",
+				"RegionLocalization"));
+
+		upgradeVersionTreeMap.put(
+			new Version(29, 1, 1), new DummyUpgradeProcess());
+
+		upgradeVersionTreeMap.put(
+			new Version(29, 1, 2), new UpgradeListTypeType());
+
+		upgradeVersionTreeMap.put(
+			new Version(29, 2, 0),
+			UpgradeProcessFactory.addColumns(
+				"DLFileEntry", "displayDate DATE null"),
+			UpgradeProcessFactory.addColumns(
+				"DLFileVersion", "displayDate DATE null"));
+
+		upgradeVersionTreeMap.put(
+			new Version(29, 2, 1),
+			UpgradeModulesFactory.create(
+				new String[] {"com.liferay.portal.search.tuning.rankings.web"},
+				null));
+
+		upgradeVersionTreeMap.put(
+			new Version(29, 2, 2),
+			UpgradeModulesFactory.create(
+				new String[] {"com.liferay.headless.builder.impl"}, null));
+
+		upgradeVersionTreeMap.put(
+			new Version(29, 3, 0),
+			new CTModelUpgradeProcess("AnnouncementsDelivery"));
+
+		upgradeVersionTreeMap.put(
+			new Version(30, 0, 0),
+			new UpgradePartitionedControlTable("Counter"));
 	}
 
 }

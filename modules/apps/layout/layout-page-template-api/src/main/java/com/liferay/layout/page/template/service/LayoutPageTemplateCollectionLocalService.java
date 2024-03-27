@@ -302,6 +302,10 @@ public interface LayoutPageTemplateCollectionLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<LayoutPageTemplateCollection> getLayoutPageTemplateCollections(
+		long groupId, long layoutPageTemplateCollectionId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<LayoutPageTemplateCollection> getLayoutPageTemplateCollections(
 		long groupId, String name, int type, int start, int end,
 		OrderByComparator<LayoutPageTemplateCollection> orderByComparator);
 
@@ -367,6 +371,11 @@ public interface LayoutPageTemplateCollectionLocalService
 	public String getUniqueLayoutPageTemplateCollectionName(
 		long groupId, String name, int type);
 
+	public LayoutPageTemplateCollection moveLayoutPageTemplateCollection(
+			long layoutPageTemplateCollectionId,
+			long parentLayoutPageTemplateCollectionId)
+		throws PortalException;
+
 	/**
 	 * Updates the layout page template collection in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
@@ -380,6 +389,10 @@ public interface LayoutPageTemplateCollectionLocalService
 	@Indexable(type = IndexableType.REINDEX)
 	public LayoutPageTemplateCollection updateLayoutPageTemplateCollection(
 		LayoutPageTemplateCollection layoutPageTemplateCollection);
+
+	public LayoutPageTemplateCollection updateLayoutPageTemplateCollection(
+			long layoutPageTemplateCollectionId, String name)
+		throws PortalException;
 
 	public LayoutPageTemplateCollection updateLayoutPageTemplateCollection(
 			long layoutPageTemplateCollectionId, String name,

@@ -28,8 +28,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -38,6 +36,7 @@ import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.search.test.util.SearchTestRule;
@@ -63,8 +62,6 @@ import java.util.Set;
 import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
-import org.apache.commons.lang.time.DateUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -332,11 +329,12 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 	public void testGetListTypeDefinitionsPageWithPagination()
 		throws Exception {
 
-		Page<ListTypeDefinition> totalPage =
+		Page<ListTypeDefinition> listTypeDefinitionPage =
 			listTypeDefinitionResource.getListTypeDefinitionsPage(
 				null, null, null, null, null);
 
-		int totalCount = GetterUtil.getInteger(totalPage.getTotalCount());
+		int totalCount = GetterUtil.getInteger(
+			listTypeDefinitionPage.getTotalCount());
 
 		ListTypeDefinition listTypeDefinition1 =
 			testGetListTypeDefinitionsPage_addListTypeDefinition(
@@ -350,39 +348,89 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 			testGetListTypeDefinitionsPage_addListTypeDefinition(
 				randomListTypeDefinition());
 
-		Page<ListTypeDefinition> page1 =
-			listTypeDefinitionResource.getListTypeDefinitionsPage(
-				null, null, null, Pagination.of(1, totalCount + 2), null);
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<ListTypeDefinition> listTypeDefinitions1 =
-			(List<ListTypeDefinition>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(
-			listTypeDefinitions1.toString(), totalCount + 2,
-			listTypeDefinitions1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<ListTypeDefinition> page1 =
+				listTypeDefinitionResource.getListTypeDefinitionsPage(
+					null, null, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+						pageSizeLimit),
+					null);
 
-		Page<ListTypeDefinition> page2 =
-			listTypeDefinitionResource.getListTypeDefinitionsPage(
-				null, null, null, Pagination.of(2, totalCount + 2), null);
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+			assertContains(
+				listTypeDefinition1,
+				(List<ListTypeDefinition>)page1.getItems());
 
-		List<ListTypeDefinition> listTypeDefinitions2 =
-			(List<ListTypeDefinition>)page2.getItems();
+			Page<ListTypeDefinition> page2 =
+				listTypeDefinitionResource.getListTypeDefinitionsPage(
+					null, null, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+						pageSizeLimit),
+					null);
 
-		Assert.assertEquals(
-			listTypeDefinitions2.toString(), 1, listTypeDefinitions2.size());
+			assertContains(
+				listTypeDefinition2,
+				(List<ListTypeDefinition>)page2.getItems());
 
-		Page<ListTypeDefinition> page3 =
-			listTypeDefinitionResource.getListTypeDefinitionsPage(
-				null, null, null, Pagination.of(1, totalCount + 3), null);
+			Page<ListTypeDefinition> page3 =
+				listTypeDefinitionResource.getListTypeDefinitionsPage(
+					null, null, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+						pageSizeLimit),
+					null);
 
-		assertContains(
-			listTypeDefinition1, (List<ListTypeDefinition>)page3.getItems());
-		assertContains(
-			listTypeDefinition2, (List<ListTypeDefinition>)page3.getItems());
-		assertContains(
-			listTypeDefinition3, (List<ListTypeDefinition>)page3.getItems());
+			assertContains(
+				listTypeDefinition3,
+				(List<ListTypeDefinition>)page3.getItems());
+		}
+		else {
+			Page<ListTypeDefinition> page1 =
+				listTypeDefinitionResource.getListTypeDefinitionsPage(
+					null, null, null, Pagination.of(1, totalCount + 2), null);
+
+			List<ListTypeDefinition> listTypeDefinitions1 =
+				(List<ListTypeDefinition>)page1.getItems();
+
+			Assert.assertEquals(
+				listTypeDefinitions1.toString(), totalCount + 2,
+				listTypeDefinitions1.size());
+
+			Page<ListTypeDefinition> page2 =
+				listTypeDefinitionResource.getListTypeDefinitionsPage(
+					null, null, null, Pagination.of(2, totalCount + 2), null);
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<ListTypeDefinition> listTypeDefinitions2 =
+				(List<ListTypeDefinition>)page2.getItems();
+
+			Assert.assertEquals(
+				listTypeDefinitions2.toString(), 1,
+				listTypeDefinitions2.size());
+
+			Page<ListTypeDefinition> page3 =
+				listTypeDefinitionResource.getListTypeDefinitionsPage(
+					null, null, null, Pagination.of(1, (int)totalCount + 3),
+					null);
+
+			assertContains(
+				listTypeDefinition1,
+				(List<ListTypeDefinition>)page3.getItems());
+			assertContains(
+				listTypeDefinition2,
+				(List<ListTypeDefinition>)page3.getItems());
+			assertContains(
+				listTypeDefinition3,
+				(List<ListTypeDefinition>)page3.getItems());
+		}
 	}
 
 	@Test
@@ -394,7 +442,7 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 			(entityField, listTypeDefinition1, listTypeDefinition2) -> {
 				BeanTestUtil.setProperty(
 					listTypeDefinition1, entityField.getName(),
-					DateUtils.addMinutes(new Date(), -2));
+					new Date(System.currentTimeMillis() - (2 * Time.MINUTE)));
 			});
 	}
 
@@ -508,23 +556,35 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 			testGetListTypeDefinitionsPage_addListTypeDefinition(
 				listTypeDefinition2);
 
+		Page<ListTypeDefinition> page =
+			listTypeDefinitionResource.getListTypeDefinitionsPage(
+				null, null, null, null, null);
+
 		for (EntityField entityField : entityFields) {
 			Page<ListTypeDefinition> ascPage =
 				listTypeDefinitionResource.getListTypeDefinitionsPage(
-					null, null, null, Pagination.of(1, 2),
+					null, null, null,
+					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":asc");
 
-			assertEquals(
-				Arrays.asList(listTypeDefinition1, listTypeDefinition2),
+			assertContains(
+				listTypeDefinition1,
+				(List<ListTypeDefinition>)ascPage.getItems());
+			assertContains(
+				listTypeDefinition2,
 				(List<ListTypeDefinition>)ascPage.getItems());
 
 			Page<ListTypeDefinition> descPage =
 				listTypeDefinitionResource.getListTypeDefinitionsPage(
-					null, null, null, Pagination.of(1, 2),
+					null, null, null,
+					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":desc");
 
-			assertEquals(
-				Arrays.asList(listTypeDefinition2, listTypeDefinition1),
+			assertContains(
+				listTypeDefinition2,
+				(List<ListTypeDefinition>)descPage.getItems());
+			assertContains(
+				listTypeDefinition1,
 				(List<ListTypeDefinition>)descPage.getItems());
 		}
 	}
@@ -1395,6 +1455,10 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -1469,22 +1533,20 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 
 		if (entityFieldName.equals("dateCreated")) {
 			if (operator.equals("between")) {
+				Date date = listTypeDefinition.getDateCreated();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							listTypeDefinition.getDateCreated(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							listTypeDefinition.getDateCreated(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1503,22 +1565,20 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 
 		if (entityFieldName.equals("dateModified")) {
 			if (operator.equals("between")) {
+				Date date = listTypeDefinition.getDateModified();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							listTypeDefinition.getDateModified(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							listTypeDefinition.getDateModified(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1718,9 +1778,9 @@ public abstract class BaseListTypeDefinitionResourceTestCase {
 	}
 
 	protected ListTypeDefinitionResource listTypeDefinitionResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

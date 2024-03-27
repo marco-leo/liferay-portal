@@ -1,7 +1,7 @@
 @component-name = "portal-headless"
 definition {
 
-	property custom.properties = "feature.flag.LPS-167253=true${line.separator}feature.flag.LPS-178642=true";
+	property custom.properties = "feature.flag.LPS-178642=true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.component.names = "Object";
@@ -10,15 +10,12 @@ definition {
 	setUp {
 		TestCase.setUpPortalInstance();
 
-		User.firstLoginUI();
+		User.firstLoginPG();
 
 		task ("Given create an API application") {
 			ApplicationAPI.createAPIApplication(
 				baseURL = "test",
-				status = "unpublished",
 				title = "test");
-
-			ApplicationAPI.setUpGlobalAPIApplicationId();
 		}
 	}
 
@@ -33,7 +30,7 @@ definition {
 	}
 
 	@priority = 4
-	test CanDeleteAPIFromApiBuilderAndApi {
+	test CanDeleteAPIFromAPIBuilderAndAPI {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 
@@ -67,7 +64,7 @@ definition {
 	}
 
 	@priority = 4
-	test CanDeletePublishedApiAndAssociatedEntities {
+	test CanDeletePublishedAPIAndAssociatedEntities {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 
@@ -77,14 +74,14 @@ definition {
 
 		task ("And Given with postAPISchema to create a Schema associate to the API application") {
 			SchemaAPI.createAPISchema(
-				apiApplicationId = ${staticApplicationId},
+				apiApplicationERC = "test",
 				mainObjectDefinitionERC = "L_API_APPLICATION",
 				name = "mySchema");
 		}
 
 		task ("And Given with postAPIEndpoint to create an Endpoint associate to API application and Schema") {
 			EndpointAPI.createAPIEndpoint(
-				apiApplicationId = ${staticApplicationId},
+				apiApplicationERC = "test",
 				name = "myEndpoint",
 				path = "/myEndpoint");
 		}
@@ -125,20 +122,20 @@ definition {
 	}
 
 	@priority = 4
-	test CanDeleteUnpublishedApiAndAssociatedEntities {
+	test CanDeleteUnpublishedAPIAndAssociatedEntities {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 
 		task ("And Given with postAPISchema to create a Schema associate to the API application") {
 			SchemaAPI.createAPISchema(
-				apiApplicationId = ${staticApplicationId},
+				apiApplicationERC = "test",
 				mainObjectDefinitionERC = "L_API_APPLICATION",
 				name = "mySchema");
 		}
 
 		task ("And Given with postAPIEndpoint to create an Endpoint associate to API application and Schema") {
 			EndpointAPI.createAPIEndpoint(
-				apiApplicationId = ${staticApplicationId},
+				apiApplicationERC = "test",
 				name = "myEndpoint",
 				path = "/myEndpoint");
 		}
@@ -179,7 +176,7 @@ definition {
 	}
 
 	@priority = 4
-	test CannotDeleteApiWithIncorrectTitleValue {
+	test CannotDeleteAPIWithIncorrectTitleValue {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 
@@ -208,7 +205,7 @@ definition {
 	}
 
 	@priority = 4
-	test CanSeeDeleteApiApplicationDialog {
+	test CanSeeDeleteAPIApplicationDialog {
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 

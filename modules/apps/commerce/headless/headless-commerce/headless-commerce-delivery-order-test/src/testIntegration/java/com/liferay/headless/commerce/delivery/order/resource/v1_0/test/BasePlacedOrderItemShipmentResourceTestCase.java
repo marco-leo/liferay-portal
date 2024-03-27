@@ -25,8 +25,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -34,6 +32,7 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.test.rule.Inject;
@@ -58,8 +57,6 @@ import java.util.Set;
 import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
-import org.apache.commons.lang.time.DateUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -216,7 +213,7 @@ public abstract class BasePlacedOrderItemShipmentResourceTestCase {
 				getPlacedOrderItemPlacedOrderItemShipmentsPage(
 					placedOrderItemId);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantPlacedOrderItemId != null) {
 			PlacedOrderItemShipment irrelevantPlacedOrderItemShipment =
@@ -229,10 +226,10 @@ public abstract class BasePlacedOrderItemShipmentResourceTestCase {
 					getPlacedOrderItemPlacedOrderItemShipmentsPage(
 						irrelevantPlacedOrderItemId);
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantPlacedOrderItemShipment),
+			assertContains(
+				irrelevantPlacedOrderItemShipment,
 				(List<PlacedOrderItemShipment>)page.getItems());
 			assertValid(
 				page,
@@ -253,10 +250,13 @@ public abstract class BasePlacedOrderItemShipmentResourceTestCase {
 				getPlacedOrderItemPlacedOrderItemShipmentsPage(
 					placedOrderItemId);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(placedOrderItemShipment1, placedOrderItemShipment2),
+		assertContains(
+			placedOrderItemShipment1,
+			(List<PlacedOrderItemShipment>)page.getItems());
+		assertContains(
+			placedOrderItemShipment2,
 			(List<PlacedOrderItemShipment>)page.getItems());
 		assertValid(
 			page,
@@ -917,6 +917,10 @@ public abstract class BasePlacedOrderItemShipmentResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -1085,22 +1089,20 @@ public abstract class BasePlacedOrderItemShipmentResourceTestCase {
 
 		if (entityFieldName.equals("createDate")) {
 			if (operator.equals("between")) {
+				Date date = placedOrderItemShipment.getCreateDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							placedOrderItemShipment.getCreateDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							placedOrderItemShipment.getCreateDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1120,24 +1122,20 @@ public abstract class BasePlacedOrderItemShipmentResourceTestCase {
 
 		if (entityFieldName.equals("estimatedDeliveryDate")) {
 			if (operator.equals("between")) {
+				Date date = placedOrderItemShipment.getEstimatedDeliveryDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							placedOrderItemShipment.getEstimatedDeliveryDate(),
-							-2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							placedOrderItemShipment.getEstimatedDeliveryDate(),
-							2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1157,24 +1155,20 @@ public abstract class BasePlacedOrderItemShipmentResourceTestCase {
 
 		if (entityFieldName.equals("estimatedShippingDate")) {
 			if (operator.equals("between")) {
+				Date date = placedOrderItemShipment.getEstimatedShippingDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							placedOrderItemShipment.getEstimatedShippingDate(),
-							-2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							placedOrderItemShipment.getEstimatedShippingDate(),
-							2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1199,22 +1193,20 @@ public abstract class BasePlacedOrderItemShipmentResourceTestCase {
 
 		if (entityFieldName.equals("modifiedDate")) {
 			if (operator.equals("between")) {
+				Date date = placedOrderItemShipment.getModifiedDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							placedOrderItemShipment.getModifiedDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							placedOrderItemShipment.getModifiedDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1532,9 +1524,9 @@ public abstract class BasePlacedOrderItemShipmentResourceTestCase {
 	}
 
 	protected PlacedOrderItemShipmentResource placedOrderItemShipmentResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

@@ -4,12 +4,8 @@
  */
 
 import ClayPanel from '@clayui/panel';
-import {
-	API,
-	BetaButton,
-	getLocalizableLabel,
-	openToast,
-} from '@liferay/object-js-components-web';
+import {API, openToast, stringUtils} from '@liferay/object-js-components-web';
+import {FeatureIndicator} from 'frontend-js-components-web';
 import React, {useEffect, useState} from 'react';
 
 import ObjectManagementToolbar from '../ObjectManagementToolbar';
@@ -25,29 +21,30 @@ import {useObjectDetailsForm} from './useObjectDetailsForm';
 
 import './ObjectDetails.scss';
 
-export type KeyValuePair = {
-	key: string;
-	value: string;
+export type Scope = {
+	items: LabelValueObject[];
+	label: string;
 };
 interface EditObjectDetailsProps {
 	backURL: string;
-	companyKeyValuePair: KeyValuePair[];
+	companies: Scope[];
 	dbTableName: string;
-	externalReferenceCode: string;
 	hasPublishObjectPermission: boolean;
 	hasUpdateObjectDefinitionPermission: boolean;
 	isApproved: boolean;
 	isRootDescendantNode: boolean;
 	label: LocalizedValue<string>;
+	learnResourceContext: any;
 	nonRelationshipObjectFieldsInfo: {
 		label: LocalizedValue<string>;
 		name: string;
 	}[];
+	objectDefinitionExternalReferenceCode: string;
 	objectDefinitionId: number;
 	pluralLabel: LocalizedValue<string>;
 	portletNamespace: string;
 	shortName: string;
-	siteKeyValuePair: KeyValuePair[];
+	sites: Scope[];
 	storageTypes: LabelValueObject[];
 }
 
@@ -75,20 +72,21 @@ function setAccountRelationshipFieldMandatory(
 
 export default function EditObjectDetails({
 	backURL,
-	companyKeyValuePair,
+	companies,
 	dbTableName,
-	externalReferenceCode,
 	hasPublishObjectPermission,
 	hasUpdateObjectDefinitionPermission,
 	isApproved,
 	isRootDescendantNode,
 	label,
+	learnResourceContext,
 	nonRelationshipObjectFieldsInfo,
+	objectDefinitionExternalReferenceCode,
 	objectDefinitionId,
 	pluralLabel,
 	portletNamespace,
 	shortName,
-	siteKeyValuePair,
+	sites,
 	storageTypes,
 }: EditObjectDetailsProps) {
 	const [objectFields, setObjectFields] = useState<ObjectField[]>([]);
@@ -102,7 +100,7 @@ export default function EditObjectDetails({
 	} = useObjectDetailsForm({
 		initialValues: {
 			defaultLanguageId: 'en_US',
-			externalReferenceCode,
+			externalReferenceCode: objectDefinitionExternalReferenceCode,
 			id: objectDefinitionId,
 			label,
 			name: shortName,
@@ -184,10 +182,10 @@ export default function EditObjectDetails({
 	useEffect(() => {
 		const makeFetch = async () => {
 			const objectFieldsResponse = await API.getObjectDefinitionByExternalReferenceCodeObjectFields(
-				externalReferenceCode
+				objectDefinitionExternalReferenceCode
 			);
 			const objectDefinitionResponse = await API.getObjectDefinitionByExternalReferenceCode(
-				externalReferenceCode
+				objectDefinitionExternalReferenceCode
 			);
 
 			setValues(objectDefinitionResponse);
@@ -203,23 +201,24 @@ export default function EditObjectDetails({
 			<div className="lfr-objects__object-definition-details-management-toolbar">
 				<ObjectManagementToolbar
 					backURL={backURL}
-					externalReferenceCode={externalReferenceCode}
 					hasPublishObjectPermission={hasPublishObjectPermission}
 					hasUpdateObjectDefinitionPermission={
 						hasUpdateObjectDefinitionPermission
 					}
 					isApproved={isApproved}
 					isRootDescendantNode={isRootDescendantNode}
-					label={getLocalizableLabel(
+					label={stringUtils.getLocalizableLabel(
 						values.defaultLanguageId as Liferay.Language.Locale,
 						values.label,
 						values.name
 					)}
+					objectDefinitionExternalReferenceCode={
+						objectDefinitionExternalReferenceCode
+					}
 					objectDefinitionId={objectDefinitionId}
 					onSubmit={onSubmit}
 					portletNamespace={portletNamespace}
 					screenNavigationCategoryKey="details"
-					setValues={setValues}
 					system={values.system as boolean}
 				/>
 			</div>
@@ -270,24 +269,36 @@ export default function EditObjectDetails({
 						<ClayPanel
 							collapsable
 							defaultExpanded
-							displayTitle={Liferay.Language.get(
-								'external-data-source'
-							)}
+							displayTitle={
+								<div className="lfr__object-web-edit-object-details-external-data-source-panel">
+									<span className="panel-title">
+										{Liferay.Language.get(
+											'external-data-source'
+										)}
+									</span>
+
+									{values.storageType === 'salesforce' && (
+										<div className="lfr__object-web-edit-object-details-external-data-source-panel-container-beta">
+											<FeatureIndicator
+												interactive
+												learnResourceContext={
+													learnResourceContext
+												}
+												type="beta"
+											/>
+										</div>
+									)}
+								</div>
+							}
 							displayType="unstyled"
 						>
 							<ClayPanel.Body>
 								<div className="lfr__object-web-edit-object-details-external-data-source-container">
 									<ExternalDataSourceContainer
 										errors={errors}
-										setValues={setValues}
 										storageTypes={storageTypes}
 										values={values}
 									/>
-
-									<div className="lfr__object-web-edit-object-details-external-data-source-container-beta">
-										{values.storageType ===
-											'salesforce' && <BetaButton />}
-									</div>
 								</div>
 							</ClayPanel.Body>
 						</ClayPanel>
@@ -301,7 +312,7 @@ export default function EditObjectDetails({
 					>
 						<ClayPanel.Body>
 							<ScopeContainer
-								companyKeyValuePairs={companyKeyValuePair}
+								companies={companies}
 								errors={errors}
 								hasUpdateObjectDefinitionPermission={
 									hasUpdateObjectDefinitionPermission
@@ -309,15 +320,13 @@ export default function EditObjectDetails({
 								isApproved={isApproved}
 								isRootDescendantNode={isRootDescendantNode}
 								setValues={setValues}
-								siteKeyValuePairs={siteKeyValuePair}
+								sites={sites}
 								values={values}
 							/>
 						</ClayPanel.Body>
 					</ClayPanel>
 
-					{(Liferay.FeatureFlags['LPS-167253']
-						? values.modifiable
-						: !values.system) && (
+					{values.modifiable && (
 						<ClayPanel
 							collapsable
 							defaultExpanded
@@ -357,21 +366,19 @@ export default function EditObjectDetails({
 						</ClayPanel.Body>
 					</ClayPanel>
 
-					{Liferay.FeatureFlags['LPS-172017'] && (
-						<ClayPanel
-							collapsable
-							defaultExpanded
-							displayTitle={Liferay.Language.get('translations')}
-							displayType="unstyled"
-						>
-							<ClayPanel.Body>
-								<TranslationsContainer
-									setValues={setValues}
-									values={values}
-								/>
-							</ClayPanel.Body>
-						</ClayPanel>
-					)}
+					<ClayPanel
+						collapsable
+						defaultExpanded
+						displayTitle={Liferay.Language.get('translations')}
+						displayType="unstyled"
+					>
+						<ClayPanel.Body>
+							<TranslationsContainer
+								setValues={setValues}
+								values={values}
+							/>
+						</ClayPanel.Body>
+					</ClayPanel>
 				</Sheet>
 			</div>
 		</>

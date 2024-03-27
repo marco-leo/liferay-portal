@@ -63,10 +63,6 @@ definition {
 	tearDown {
 		var testLiferayVirtualInstance = PropsUtil.get("test.liferay.virtual.instance");
 
-		// It is not possible to delete properties and data source after LRAC-13389. This functionality should return after LRAC-8040
-
-		//ACUtils.tearDownAC();
-
 		ACUtils.tearDownDXP();
 
 		if (${testLiferayVirtualInstance} == "true") {
@@ -75,6 +71,8 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
+
+		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: LRAC-7868 | Automation ID: LRAC-10314 | Test Summary: Event Analysis in an empty state"
@@ -440,8 +438,7 @@ definition {
 
 		task ("Add a default attribute in the filter and use the contains condition") {
 			ACEventAnalysis.addFilter(
-				dropdownData = ${analysisInformation},
-				dropdownIndex = 1,
+				dropdownOptionName = ${analysisInformation},
 				filterName = ${firstFilterName},
 				optionValue = ${firstFilterCondition});
 		}
@@ -452,8 +449,7 @@ definition {
 
 		task ("Add another attribute in the filter and use not contains condition") {
 			ACEventAnalysis.addFilter(
-				dropdownData = ${currentURL},
-				dropdownIndex = 1,
+				dropdownOptionName = ${currentURL},
 				filterName = ${secondFilterName},
 				optionValue = ${secondFilterCondition});
 		}
@@ -700,12 +696,20 @@ definition {
 		var defaultEventName = "pageViewed";
 		var dataSource = StringUtil.extractFirst(${assignedPropertyName}, " ");
 
+		task ("View the page") {
+			ACUtils.navigateToSitePage(
+				actionType = "View WC",
+				documentTitleList = "1,2,3,4",
+				pageName = "AC Page",
+				siteName = "Site Name");
+		}
+
 		task ("Fill fields and create custom event") {
 			var customEventName = ACCustomEvents.generateCustomEventName();
 
 			ACCustomEvents.createCustomEvent(
 				customEventName = ${customEventName},
-				timeToSendCustomEvent = 1);
+				timeToSendCustomEvent = 4);
 		}
 
 		task ("Close sessions") {
@@ -864,9 +868,7 @@ definition {
 		}
 
 		task ("Check the analysis result appears") {
-			var dataSourceName = StringUtil.extractFirst(${assignedPropertyName}, "(");
-
-			var dataSourceName = StringUtil.trim(${dataSourceName});
+			var dataSourceName = StringUtil.extractFirst(${assignedPropertyName}, " ");
 
 			ACTimeFilter.clickTimeFilterButton();
 
@@ -880,7 +882,7 @@ definition {
 		}
 
 		task ("Check that the breakdown information does not appear in the result") {
-			ACEventAnalysis.viewAnalysisInformationNotPresent(informationValueList = "ac page - site name - liferay dxp");
+			ACEventAnalysis.viewAnalysisInformationNotPresent(informationValueList = "ac page - site name - ${dataSourceName}");
 		}
 
 		task ("Check that the breakdown does not appear on the dashboard") {

@@ -1,13 +1,14 @@
 definition {
 
-	macro _addCommerceCart {
+	@summary = "Default summary"
+	macro _addCommerceCart(shippingAddressName = null, billingAddressName = null, cartItems = null, accountEntryName = null) {
 		Variables.assertDefined(parameterList = ${accountEntryName});
 
 		var accountEntryId = JSONAccountEntryAPI._getAccountEntryId(accountEntryName = ${accountEntryName});
 		var baseURL = ${baseURL};
 
 		if (!(isSet(baseURL))) {
-			var baseURL = PropsUtil.get("portal.url");
+			var baseURL = JSONCompany.getPortalURL();
 		}
 
 		if (!(isSet(billingAddressName))) {
@@ -29,8 +30,18 @@ definition {
 
 		if (isSet(cartItems)) {
 			for (var cartItem : list ${cartItems}) {
-				var itemSku = StringUtil.extractFirst(${cartItem}, ":");
-				var itemQuantity = StringUtil.extractLast(${cartItem}, ":");
+				var cartItemList = ListUtil.newListFromString(${cartItem}, ":");
+
+				var size = ListUtil.size(${cartItemList});
+				var itemSku = ListUtil.get(${cartItemList}, 0);
+				var itemQuantity = ListUtil.get(${cartItemList}, 1);
+
+				if (${size} == 2) {
+					var uomKey = "";
+				}
+				else if (${size} == 3) {
+					var uomKey = ListUtil.get(${cartItemList}, 2);
+				}
 
 				if (${itemSku} != "") {
 					var itemSkuId = CommerceJSONProductsAPI._getSKUId(productSKU = ${itemSku});
@@ -50,7 +61,10 @@ definition {
 						${cartItemsList}${comma}
 						{
 							"quantity": "${itemQuantity}",
-      						"skuId": "${itemSkuId}"
+      						"skuId": "${itemSkuId}",
+							"skuUnitOfMeasure": {
+								"key": "${uomKey}"
+						    }
 						}
 				''';
 			}
@@ -115,11 +129,12 @@ definition {
 		return ${responseBody};
 	}
 
-	macro _postCommerceCartCheckout {
+	@summary = "Default summary"
+	macro _postCommerceCartCheckout(cartId = null) {
 		var baseURL = ${baseURL};
 
 		if (!(isSet(baseURL))) {
-			var baseURL = PropsUtil.get("portal.url");
+			var baseURL = JSONCompany.getPortalURL();
 		}
 
 		var userLoginInfo = JSONUtil2.formatJSONUser();
@@ -133,7 +148,8 @@ definition {
 		JSONCurlUtil.post(${curl});
 	}
 
-	macro getOrderItemPostRequestStatus {
+	@summary = "Default summary"
+	macro getOrderItemPostRequestStatus(cartItems = null, accountEntryName = null) {
 		var responseBody = CommerceJSONDeliveryCart._addCommerceCart(
 			accountEntryName = ${accountEntryName},
 			cartItems = ${cartItems});

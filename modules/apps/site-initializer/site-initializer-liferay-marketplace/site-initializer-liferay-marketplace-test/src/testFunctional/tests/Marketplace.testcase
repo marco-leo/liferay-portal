@@ -1,4 +1,4 @@
-@component-name = "portal-liferay-online"
+@component-name = "portal-solutions"
 definition {
 
 	property osgi.modules.includes = "site-initializer-liferay-marketplace";
@@ -11,7 +11,12 @@ definition {
 	var testSiteURL = "marketplace-site";
 
 	setUp {
-		MP2Configuration.marketplaceSetUp();
+
+		// This addition should be reverted when the issue ISSD-1572 is completed and the macro HeadlessSite.addSite() is usable.
+
+		MP2Configuration.marketplaceSetUp(
+			clientExtensionDeploy = "true",
+			viaFrontEnd = "true");
 	}
 
 	tearDown {
@@ -26,7 +31,7 @@ definition {
 		}
 
 		task ("Then I should be able to assert that Account Users was created") {
-			for (var accountName : list "Jane Acme,Dashboard Administrator,Customer Account Buyer,Publisher App Editor,MKT Account Administrator Regular") {
+			for (var accountName : list "Dashboard ADM,Customer Account Buyer,Publisher App Editor") {
 				LexiconEntry.viewEntryName(rowEntry = ${accountName});
 			}
 		}
@@ -41,7 +46,7 @@ definition {
 
 		task ("Then I should be able to assert that the App Marketplace page is present") {
 			AssertElementPresent(
-				key_title = "App Marketplace",
+				key_title = "Applications",
 				locator1 = "Marketplace#FRAGMENT_HEADING");
 		}
 	}
@@ -73,9 +78,7 @@ definition {
 	@priority = 4
 	test ChannelsAreCreatedForMP20 {
 		task ("Given that I go to the Channels page") {
-			CommerceNavigator.gotoPortlet(
-				category = "Store Management",
-				portlet = "Channels");
+			CommerceChannels.openChannelsAdmin();
 
 			// Workaround
 
@@ -95,7 +98,6 @@ definition {
 	}
 
 	@description = "Story ID: LPS-183566 | Test Summary: Verify that when the Marketplace is created, Products Options will also be created for it as well"
-	@ignore = "true"
 	@priority = 3
 	test ProductsOptionsAreCreatedForMP20 {
 		task ("Given that I go to the Product Options page") {

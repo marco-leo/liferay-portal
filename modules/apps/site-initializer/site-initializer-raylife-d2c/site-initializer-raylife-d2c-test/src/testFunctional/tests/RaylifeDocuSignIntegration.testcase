@@ -14,10 +14,7 @@ definition {
 
 		User.firstLoginPG();
 
-		ApplicationsMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Instance Settings");
+		PortalSettings.openInstanceSettingsAdmin();
 
 		SystemSettings.gotoConfiguration(
 			configurationCategory = "Digital Signature",
@@ -26,9 +23,14 @@ definition {
 
 		FormFields.enableCheckbox(fieldName = "enabled");
 
-		DigitalSignature.enableDigitalSignature(siteStrategy = "Always Inherit");
+		DigitalSignature.enableDigitalSignature(
+			environment = "Sandbox",
+			siteStrategy = "Always Inherit");
 
-		Raylife.createRaylifeSite(siteName = ${testSiteName});
+		HeadlessSite.addSite(
+			siteName = ${testSiteName},
+			templateName = "Raylife D2C",
+			templateType = "Site Initializer");
 	}
 
 	tearDown {

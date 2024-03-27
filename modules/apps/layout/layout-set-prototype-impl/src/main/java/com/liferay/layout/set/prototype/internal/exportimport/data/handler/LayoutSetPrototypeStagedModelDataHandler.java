@@ -47,14 +47,13 @@ import com.liferay.portal.kernel.service.LayoutPrototypeLocalService;
 import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.service.permission.PortalPermission;
+import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.xml.Element;
-import com.liferay.sites.kernel.util.Sites;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -513,7 +512,7 @@ public class LayoutSetPrototypeStagedModelDataHandler
 			PermissionThreadLocal.getPermissionChecker();
 
 		if ((permissionChecker == null) ||
-			!_portalPermission.contains(
+			!PortalPermissionUtil.contains(
 				permissionChecker, ActionKeys.UNLINK_LAYOUT_SET_PROTOTYPE)) {
 
 			return;
@@ -581,12 +580,6 @@ public class LayoutSetPrototypeStagedModelDataHandler
 
 	@Reference
 	private LayoutSetPrototypeLocalService _layoutSetPrototypeLocalService;
-
-	@Reference
-	private PortalPermission _portalPermission;
-
-	@Reference
-	private Sites _sites;
 
 	@Reference
 	private UserLocalService _userLocalService;

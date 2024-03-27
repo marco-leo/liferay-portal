@@ -788,6 +788,11 @@ public class ObjectDefinitionWrapper
 		return model.getRESTContextPath();
 	}
 
+	@Override
+	public String getRootObjectDefinitionExternalReferenceCode() {
+		return model.getRootObjectDefinitionExternalReferenceCode();
+	}
+
 	/**
 	 * Returns the root object definition ID of this object definition.
 	 *
@@ -996,6 +1001,11 @@ public class ObjectDefinitionWrapper
 	@Override
 	public boolean isModifiable() {
 		return model.isModifiable();
+	}
+
+	@Override
+	public boolean isNodeCandidate() {
+		return model.isNodeCandidate();
 	}
 
 	/**

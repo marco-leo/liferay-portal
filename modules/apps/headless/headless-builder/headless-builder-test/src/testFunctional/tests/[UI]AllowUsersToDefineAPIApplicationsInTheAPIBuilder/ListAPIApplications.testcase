@@ -1,7 +1,7 @@
 @component-name = "portal-headless"
 definition {
 
-	property custom.properties = "feature.flag.LPS-167253=true${line.separator}feature.flag.LPS-178642=true";
+	property custom.properties = "feature.flag.LPS-178642=true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.component.names = "Object";
@@ -10,7 +10,7 @@ definition {
 	setUp {
 		TestCase.setUpPortalInstance();
 
-		User.firstLoginUI();
+		User.firstLoginPG();
 	}
 
 	tearDown {
@@ -59,7 +59,6 @@ definition {
 		task ("Given with postAPIApplication to create an API application with unpublished status") {
 			ApplicationAPI.createAPIApplication(
 				baseURL = "test",
-				status = "unpublished",
 				title = "test");
 		}
 

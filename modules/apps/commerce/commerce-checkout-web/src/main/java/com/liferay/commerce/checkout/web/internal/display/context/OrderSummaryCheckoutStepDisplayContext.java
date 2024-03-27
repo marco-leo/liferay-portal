@@ -23,7 +23,8 @@ import com.liferay.commerce.model.CommerceShippingOption;
 import com.liferay.commerce.order.CommerceOrderHttpHelper;
 import com.liferay.commerce.order.CommerceOrderValidatorRegistry;
 import com.liferay.commerce.order.CommerceOrderValidatorResult;
-import com.liferay.commerce.payment.engine.CommercePaymentEngine;
+import com.liferay.commerce.payment.model.CommercePaymentMethodGroupRel;
+import com.liferay.commerce.payment.service.CommercePaymentMethodGroupRelLocalService;
 import com.liferay.commerce.percentage.PercentageFormatter;
 import com.liferay.commerce.price.CommerceOrderPrice;
 import com.liferay.commerce.price.CommerceOrderPriceCalculation;
@@ -32,13 +33,16 @@ import com.liferay.commerce.price.CommerceProductPriceCalculation;
 import com.liferay.commerce.price.CommerceProductPriceImpl;
 import com.liferay.commerce.price.CommerceProductPriceRequest;
 import com.liferay.commerce.product.constants.CPConstants;
+import com.liferay.commerce.product.model.CPInstanceUnitOfMeasure;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.option.CommerceOptionValue;
 import com.liferay.commerce.product.option.CommerceOptionValueHelper;
+import com.liferay.commerce.product.service.CPInstanceUnitOfMeasureLocalService;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.product.util.CPInstanceHelper;
 import com.liferay.commerce.term.model.CommerceTermEntry;
 import com.liferay.commerce.term.service.CommerceTermEntryLocalService;
+import com.liferay.commerce.util.CommerceOrderItemQuantityFormatter;
 import com.liferay.commerce.util.CommerceShippingEngineRegistry;
 import com.liferay.commerce.util.CommerceUtil;
 import com.liferay.petra.string.StringPool;
@@ -76,28 +80,36 @@ public class OrderSummaryCheckoutStepDisplayContext {
 	public OrderSummaryCheckoutStepDisplayContext(
 		CommerceChannelLocalService commerceChannelLocalService,
 		CommerceOrderHttpHelper commerceOrderHttpHelper,
+		CommerceOrderItemQuantityFormatter commerceOrderItemQuantityFormatter,
 		CommerceOrderPriceCalculation commerceOrderPriceCalculation,
 		CommerceOrderValidatorRegistry commerceOrderValidatorRegistry,
 		CommerceOptionValueHelper commerceOptionValueHelper,
-		CommercePaymentEngine commercePaymentEngine,
+		CommercePaymentMethodGroupRelLocalService
+			commercePaymentMethodGroupRelLocalService,
 		CommerceProductPriceCalculation commerceProductPriceCalculation,
 		CommerceShippingEngineRegistry commerceShippingEngineRegistry,
 		CommerceTermEntryLocalService commerceTermEntryLocalService,
 		CPInstanceHelper cpInstanceHelper,
+		CPInstanceUnitOfMeasureLocalService cpInstanceUnitOfMeasureLocalService,
 		HttpServletRequest httpServletRequest,
 		PercentageFormatter percentageFormatter, Portal portal,
 		PortletResourcePermission portletResourcePermission) {
 
 		_commerceChannelLocalService = commerceChannelLocalService;
 		_commerceOrderHttpHelper = commerceOrderHttpHelper;
+		_commerceOrderItemQuantityFormatter =
+			commerceOrderItemQuantityFormatter;
 		_commerceOrderPriceCalculation = commerceOrderPriceCalculation;
 		_commerceOrderValidatorRegistry = commerceOrderValidatorRegistry;
 		_commerceOptionValueHelper = commerceOptionValueHelper;
-		_commercePaymentEngine = commercePaymentEngine;
+		_commercePaymentMethodGroupRelLocalService =
+			commercePaymentMethodGroupRelLocalService;
 		_commerceProductPriceCalculation = commerceProductPriceCalculation;
 		_commerceShippingEngineRegistry = commerceShippingEngineRegistry;
 		_commerceTermEntryLocalService = commerceTermEntryLocalService;
 		_cpInstanceHelper = cpInstanceHelper;
+		_cpInstanceUnitOfMeasureLocalService =
+			cpInstanceUnitOfMeasureLocalService;
 		_httpServletRequest = httpServletRequest;
 		_percentageFormatter = percentageFormatter;
 		_portal = portal;
@@ -116,6 +128,30 @@ public class OrderSummaryCheckoutStepDisplayContext {
 
 		return (CommerceOrder)_httpServletRequest.getAttribute(
 			CommerceCheckoutWebKeys.COMMERCE_ORDER);
+	}
+
+	public String getCommerceOrderItemFormattedQuantity(
+			CommerceOrderItem commerceOrderItem)
+		throws PortalException {
+
+		CPInstanceUnitOfMeasure cpInstanceUnitOfMeasure = null;
+
+		String unitOfMeasureKey = commerceOrderItem.getUnitOfMeasureKey();
+
+		if (Validator.isNotNull(unitOfMeasureKey)) {
+			cpInstanceUnitOfMeasure =
+				_cpInstanceUnitOfMeasureLocalService.
+					fetchCPInstanceUnitOfMeasure(
+						commerceOrderItem.getCPInstanceId(), unitOfMeasureKey);
+		}
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)_httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		return _commerceOrderItemQuantityFormatter.format(
+			commerceOrderItem, cpInstanceUnitOfMeasure,
+			themeDisplay.getLocale());
 	}
 
 	public int getCommerceOrderItemsQuantity() throws PortalException {
@@ -222,13 +258,21 @@ public class OrderSummaryCheckoutStepDisplayContext {
 			commerceCurrency.getMinFractionDigits(), percentage);
 	}
 
-	public String getPaymentMethodName(String paymentMethodKey, Locale locale) {
+	public String getPaymentMethodName(String paymentMethodKey, Locale locale)
+		throws PortalException {
+
 		if (paymentMethodKey.isEmpty() || (locale == null)) {
 			return StringPool.BLANK;
 		}
 
-		return _commercePaymentEngine.getPaymentMethodName(
-			paymentMethodKey, locale);
+		CommerceOrder commerceOrder = getCommerceOrder();
+
+		CommercePaymentMethodGroupRel commercePaymentMethodGroupRel =
+			_commercePaymentMethodGroupRelLocalService.
+				getCommercePaymentMethodGroupRel(
+					commerceOrder.getGroupId(), paymentMethodKey);
+
+		return commercePaymentMethodGroupRel.getName(locale);
 	}
 
 	public String getPaymentTermEntryName(Locale locale) {
@@ -517,16 +561,21 @@ public class OrderSummaryCheckoutStepDisplayContext {
 	private final CommerceOptionValueHelper _commerceOptionValueHelper;
 	private final CommerceOrder _commerceOrder;
 	private final CommerceOrderHttpHelper _commerceOrderHttpHelper;
+	private final CommerceOrderItemQuantityFormatter
+		_commerceOrderItemQuantityFormatter;
 	private final CommerceOrderPriceCalculation _commerceOrderPriceCalculation;
 	private final CommerceOrderValidatorRegistry
 		_commerceOrderValidatorRegistry;
-	private final CommercePaymentEngine _commercePaymentEngine;
+	private final CommercePaymentMethodGroupRelLocalService
+		_commercePaymentMethodGroupRelLocalService;
 	private final CommerceProductPriceCalculation
 		_commerceProductPriceCalculation;
 	private final CommerceShippingEngineRegistry
 		_commerceShippingEngineRegistry;
 	private final CommerceTermEntryLocalService _commerceTermEntryLocalService;
 	private final CPInstanceHelper _cpInstanceHelper;
+	private final CPInstanceUnitOfMeasureLocalService
+		_cpInstanceUnitOfMeasureLocalService;
 	private final HttpServletRequest _httpServletRequest;
 	private final PercentageFormatter _percentageFormatter;
 	private final Portal _portal;

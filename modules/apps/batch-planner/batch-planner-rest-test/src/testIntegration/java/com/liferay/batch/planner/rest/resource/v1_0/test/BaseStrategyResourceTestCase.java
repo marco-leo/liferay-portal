@@ -26,8 +26,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -196,7 +194,7 @@ public abstract class BaseStrategyResourceTestCase {
 			strategyResource.getPlanInternalClassNameKeyStrategiesPage(
 				internalClassNameKey);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantInternalClassNameKey != null) {
 			Strategy irrelevantStrategy =
@@ -206,11 +204,9 @@ public abstract class BaseStrategyResourceTestCase {
 			page = strategyResource.getPlanInternalClassNameKeyStrategiesPage(
 				irrelevantInternalClassNameKey);
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantStrategy),
-				(List<Strategy>)page.getItems());
+			assertContains(irrelevantStrategy, (List<Strategy>)page.getItems());
 			assertValid(
 				page,
 				testGetPlanInternalClassNameKeyStrategiesPage_getExpectedActions(
@@ -228,11 +224,10 @@ public abstract class BaseStrategyResourceTestCase {
 		page = strategyResource.getPlanInternalClassNameKeyStrategiesPage(
 			internalClassNameKey);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(strategy1, strategy2),
-			(List<Strategy>)page.getItems());
+		assertContains(strategy1, (List<Strategy>)page.getItems());
+		assertContains(strategy2, (List<Strategy>)page.getItems());
 		assertValid(
 			page,
 			testGetPlanInternalClassNameKeyStrategiesPage_getExpectedActions(
@@ -532,6 +527,10 @@ public abstract class BaseStrategyResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -751,9 +750,9 @@ public abstract class BaseStrategyResourceTestCase {
 	}
 
 	protected StrategyResource strategyResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

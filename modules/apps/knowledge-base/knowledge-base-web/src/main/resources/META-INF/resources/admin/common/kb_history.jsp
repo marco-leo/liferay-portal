@@ -176,6 +176,30 @@ if (portletTitleBasedNavigation) {
 	</liferay-ui:search-container>
 </aui:fieldset>
 
+<div>
+
+	<%
+	LockedKBArticleException lockedKBArticleException = (LockedKBArticleException)MultiSessionErrors.get(liferayPortletRequest, LockedKBArticleException.class.getName());
+	%>
+
+	<react:component
+		module="{LockedKBArticleModal} from knowledge-base-web"
+		props='<%=
+			HashMapBuilder.<String, Object>put(
+				"actionLabel", (lockedKBArticleException != null) ? LanguageUtil.get(request, lockedKBArticleException.getCmd()) : null
+			).put(
+				"actionURL", (lockedKBArticleException != null) ? lockedKBArticleException.getActionURL() : null
+			).put(
+				"groupAdmin", permissionChecker.isGroupAdmin(scopeGroupId)
+			).put(
+				"open", lockedKBArticleException != null
+			).put(
+				"userName", (lockedKBArticleException != null) ? lockedKBArticleException.getUserName() : null
+			).build()
+		%>'
+	/>
+</div>
+
 <aui:script require="frontend-js-web/index as frontendJsWeb">
 	var {delegate} = frontendJsWeb;
 

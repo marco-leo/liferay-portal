@@ -18,6 +18,8 @@ import com.liferay.portal.tools.ToolsUtil;
 
 import java.io.File;
 
+import java.security.InvalidParameterException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -81,7 +83,23 @@ public class JavaSourceUtil extends SourceUtil {
 		sb.append(StringPool.NEW_LINE);
 		sb.append(indent);
 		sb.append(StringPool.TAB);
-		sb.append(StringUtil.merge(parameterList, StringPool.COMMA_AND_SPACE));
+		sb.append(parameterList.get(0));
+
+		for (int i = 1; i < parameterList.size(); i++) {
+			if ((i % 4) == 0) {
+				sb.append(StringPool.COMMA);
+				sb.append(StringPool.NEW_LINE);
+				sb.append(indent);
+				sb.append(StringPool.TAB);
+				sb.append(parameterList.get(i));
+
+				continue;
+			}
+
+			sb.append(StringPool.COMMA_AND_SPACE);
+			sb.append(parameterList.get(i));
+		}
+
 		sb.append(StringPool.CLOSE_PARENTHESIS);
 
 		return sb.toString();
@@ -227,8 +245,31 @@ public class JavaSourceUtil extends SourceUtil {
 		return classPackageName;
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 * #getParameterNames(String)}
+	 */
+	@Deprecated
 	public static List<String> getParameterList(String methodCall) {
 		return splitParameters(getParameters(methodCall));
+	}
+
+	public static List<String> getParameterNames(String methodCall) {
+		List<String> parameterNames = new ArrayList<>();
+
+		List<String> parameters = splitParameters(getParameters(methodCall));
+
+		for (String parameter : parameters) {
+			int index = parameter.lastIndexOf(CharPool.SPACE);
+
+			if (index == -1) {
+				return parameters;
+			}
+
+			parameterNames.add(parameter.substring(index + 1));
+		}
+
+		return parameterNames;
 	}
 
 	public static String getParameters(String methodCall) {
@@ -251,6 +292,25 @@ public class JavaSourceUtil extends SourceUtil {
 		x = parameters.indexOf(StringPool.OPEN_PARENTHESIS);
 
 		return parameters.substring(x + 1, parameters.length() - 1);
+	}
+
+	public static List<String> getParameterTypes(String methodCall) {
+		List<String> parameterTypes = new ArrayList<>();
+
+		List<String> parameters = splitParameters(getParameters(methodCall));
+
+		for (String parameter : parameters) {
+			int index = parameter.lastIndexOf(CharPool.SPACE);
+
+			if (index == -1) {
+				throw new InvalidParameterException(
+					"Unable to get parameter type");
+			}
+
+			parameterTypes.add(parameter.substring(0, index));
+		}
+
+		return parameterTypes;
 	}
 
 	public static boolean isValidJavaParameter(String javaParameter) {

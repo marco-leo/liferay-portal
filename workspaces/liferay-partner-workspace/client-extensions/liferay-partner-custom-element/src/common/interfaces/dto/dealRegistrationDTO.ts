@@ -20,6 +20,7 @@ export default interface DealRegistrationDTO
 	> {
 	accountExternalReferenceCode?: string;
 	accountName?: string;
+	active?: boolean;
 	additionalContactEmailAddress?: string;
 	additionalContactFirstName?: string;
 	additionalContactLastName?: string;
@@ -27,13 +28,17 @@ export default interface DealRegistrationDTO
 	additionalInformationAboutTheOpportunity?: string;
 	amount?: number;
 	closeDate?: string;
+	fiscalPeriod?: string;
+	growthArr?: number;
+	hasRenewal?: boolean;
+	isConverted?: boolean;
 	leadExternalReferenceCode?: string;
 	leadQualificationExternalReferenceCode?: string;
 	leadStatus?: string;
 	leadStatusDetail?: string;
-	leadType?: string;
 	mdfActivityExternalReferenceCode?: string;
 	mdfActivityName?: string;
+	opportunity?: string;
 	opportunityOwner?: string;
 	ownerName?: string;
 	partnerAccountName?: string;
@@ -64,5 +69,6 @@ export default interface DealRegistrationDTO
 	r_actToDealRegs_c_activity?: MDFRequestActivity;
 	r_actToDealRegs_c_activityId?: number;
 	stage?: string;
+	subscriptionArr?: number;
 	type?: string;
 }

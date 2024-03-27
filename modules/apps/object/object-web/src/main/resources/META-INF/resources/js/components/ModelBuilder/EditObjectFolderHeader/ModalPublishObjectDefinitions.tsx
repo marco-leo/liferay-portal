@@ -10,7 +10,7 @@ import ClayIcon from '@clayui/icon';
 import ClayList from '@clayui/list';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import ClayModal, {useModal} from '@clayui/modal';
-import {API, getLocalizableLabel} from '@liferay/object-js-components-web';
+import {API, stringUtils} from '@liferay/object-js-components-web';
 import {sub} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 import {Elements, FlowElement, isNode} from 'react-flow-renderer';
@@ -31,7 +31,7 @@ enum STATUS {
 interface ModalPublishObjectDefinitionsProps {
 	disableAutoClose: boolean;
 	dispatch: React.Dispatch<TAction>;
-	elements: Elements<ObjectDefinitionNodeData | ObjectRelationshipEdgeData>;
+	elements: Elements<ObjectDefinitionNodeData | ObjectRelationshipEdgeData[]>;
 	handleOnClose: () => void;
 }
 
@@ -68,7 +68,8 @@ export function ModalPublishObjectDefinitions({
 	>(
 		objectDefinitionNodes.filter(
 			(objectDefinitionNode) =>
-				objectDefinitionNode.data?.status?.code === STATUS.DRAFT
+				objectDefinitionNode.data?.status?.code === STATUS.DRAFT &&
+				!objectDefinitionNode.data.linkedObjectDefinition
 		)
 	);
 	const [modalHeaderMessage, setModalHeaderMessage] = useState<string>(
@@ -326,7 +327,26 @@ export function ModalPublishObjectDefinitions({
 			observer={observer}
 			status={modalStatus()}
 		>
-			<ClayModal.Header>{modalHeaderMessage}</ClayModal.Header>
+			{publishObjectDefinitionsStatus !== STATUS.PENDING ? (
+				<ClayModal.Header>{modalHeaderMessage}</ClayModal.Header>
+			) : (
+				<ClayModal.Header withTitle={false}>
+					<ClayModal.ItemGroup>
+						<ClayModal.Item>
+							<ClayModal.Title>
+								<ClayModal.TitleIndicator>
+									<ClayIcon
+										color="blue"
+										symbol="info-circle"
+									/>
+								</ClayModal.TitleIndicator>
+
+								{modalHeaderMessage}
+							</ClayModal.Title>
+						</ClayModal.Item>
+					</ClayModal.ItemGroup>
+				</ClayModal.Header>
+			)}
 
 			<ClayModal.Body>
 				<div className="c-mb-sm-4">
@@ -365,11 +385,13 @@ export function ModalPublishObjectDefinitions({
 						/>
 
 						<ClayButton
+							aria-labelledby={Liferay.Language.get('select-all')}
 							className="c-px-sm-0 text-3 text-weight-semi-bold"
 							displayType="link"
 							onClick={() =>
 								handleSelectAllObjectDefinitions('checkAll')
 							}
+							size="sm"
 						>
 							{Liferay.Language.get('select-all')}
 						</ClayButton>
@@ -432,7 +454,7 @@ export function ModalPublishObjectDefinitions({
 													size={3}
 													weight="semi-bold"
 												>
-													{getLocalizableLabel(
+													{stringUtils.getLocalizableLabel(
 														defaultLanguageId,
 														data?.label,
 														data?.name
@@ -487,22 +509,43 @@ export function ModalPublishObjectDefinitions({
 					publishObjectDefinitionsStatus === STATUS.APPROVED ||
 					publishObjectDefinitionsStatus === STATUS.REJECTED ? (
 						<ClayButton.Group key={1} spaced>
-							<ClayButton displayType="primary" onClick={onClose}>
+							<ClayButton
+								aria-labelledby={Liferay.Language.get('close')}
+								displayType="primary"
+								onClick={onClose}
+								size="sm"
+							>
 								{Liferay.Language.get('close')}
 							</ClayButton>
 						</ClayButton.Group>
 					) : (
 						<ClayButton.Group key={2} spaced>
 							<>
+								{publishObjectDefinitionsStatus !==
+									STATUS.PENDING && (
+									<ClayButton
+										aria-labelledby={Liferay.Language.get(
+											'cancel'
+										)}
+										className="c-mr-sm-2"
+										displayType="secondary"
+										onClick={onClose}
+										size="sm"
+									>
+										{Liferay.Language.get('cancel')}
+									</ClayButton>
+								)}
 								<ClayButton
-									className="c-mr-sm-2"
-									displayType="secondary"
-									onClick={onClose}
-								>
-									{Liferay.Language.get('cancel')}
-								</ClayButton>
-
-								<ClayButton
+									aria-labelledby={
+										publishObjectDefinitionsStatus ===
+										STATUS.PENDING
+											? Liferay.Language.get(
+													'please-wait'
+											  ) + '...'
+											: Liferay.Language.get(
+													'publish-objects'
+											  )
+									}
 									disabled={
 										!selectedDraftObjectDefinitions.length ||
 										publishObjectDefinitionsStatus ===
@@ -510,6 +553,7 @@ export function ModalPublishObjectDefinitions({
 									}
 									displayType="primary"
 									onClick={handleOnClickPublish}
+									size="sm"
 								>
 									{publishObjectDefinitionsStatus ===
 									STATUS.PENDING

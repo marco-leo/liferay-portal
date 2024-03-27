@@ -17,6 +17,7 @@ import submitMDFClaim from './submitMDFClaim';
 import submitMDFClaimActivity from './submitMDFClaimActivity';
 import submitMDFClaimActivityDocuments from './submitMDFClaimActivityDocuments';
 import submitMDFClaimBudget from './submitMDFClaimBudget';
+import submitMDFClaimDocuments from './submitMDFClaimDocuments';
 import submitMDFClaimProxyAPI from './submitMDFClaimProxyAPI';
 
 export default async function submitForm(
@@ -56,6 +57,18 @@ export default async function submitForm(
 
 		submitValues.id = dtoMDFClaim?.id;
 		submitValues.externalReferenceCode = dtoMDFClaim?.externalReferenceCode;
+
+		if (
+			submitValues.reimbursementInvoices &&
+			dtoMDFClaim?.id &&
+			mdfRequest.r_accToMDFReqs_accountEntryId
+		) {
+			submitMDFClaimDocuments(
+				mdfRequest.r_accToMDFReqs_accountEntryId,
+				dtoMDFClaim.id,
+				submitValues.reimbursementInvoices
+			);
+		}
 
 		if (submitValues.activities?.length) {
 			for (const mdfClaimActivity of submitValues.activities) {
@@ -111,7 +124,10 @@ export default async function submitForm(
 
 		formikHelpers.setValues(submitValues);
 
-		if (values.dateCreated) {
+		if (
+			values.dateCreated &&
+			submitValues.mdfClaimStatus.key !== Status.DRAFT.key
+		) {
 			Liferay.Util.navigate(
 				`${siteURL}/${PRMPageRoute.CONFIRMATION_MDF_CLAIM}`
 			);
@@ -126,7 +142,7 @@ export default async function submitForm(
 
 		if (submitValues.mdfClaimStatus.key === Status.DRAFT.key) {
 			Liferay.Util.navigate(
-				`${siteURL}/${PRMPageRoute.CONFIRMATION_MDF_CLAIM}`
+				`${siteURL}/${PRMPageRoute.MDF_CLAIM_LISTING}`
 			);
 
 			Liferay.Util.openToast({

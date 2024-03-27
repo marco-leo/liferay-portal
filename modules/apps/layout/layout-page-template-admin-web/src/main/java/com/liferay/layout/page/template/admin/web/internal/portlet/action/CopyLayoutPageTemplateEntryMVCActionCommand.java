@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.TransactionConfig;
 import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.concurrent.Callable;
@@ -87,6 +86,8 @@ public class CopyLayoutPageTemplateEntryMVCActionCommand
 			actionRequest, "layoutPageTemplateCollectionId");
 		long layoutPageTemplateEntryId = ParamUtil.getLong(
 			actionRequest, "layoutPageTemplateEntryId");
+		boolean copyPermissions = ParamUtil.getBoolean(
+			actionRequest, "copyPermissions");
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			actionRequest);
@@ -94,7 +95,7 @@ public class CopyLayoutPageTemplateEntryMVCActionCommand
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryService.copyLayoutPageTemplateEntry(
 				themeDisplay.getScopeGroupId(), layoutPageTemplateCollectionId,
-				layoutPageTemplateEntryId, serviceContext);
+				layoutPageTemplateEntryId, copyPermissions, serviceContext);
 
 		LayoutPageTemplateEntry sourceLayoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.getLayoutPageTemplateEntry(
@@ -133,9 +134,6 @@ public class CopyLayoutPageTemplateEntryMVCActionCommand
 
 	@Reference
 	private LayoutPageTemplateEntryService _layoutPageTemplateEntryService;
-
-	@Reference
-	private Portal _portal;
 
 	private class CopyLayoutPageTemplateEntryCallable
 		implements Callable<LayoutPageTemplateEntry> {

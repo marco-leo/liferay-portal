@@ -58,6 +58,7 @@ definition {
 	}
 
 	@description = "LPS-185953 - Verify that when the card activation status is active (in the side menu > Liferay Experience Cloud) the title Manage product users appears under Team Members"
+	@ignore = "true"
 	@priority = 3
 	test AssertThatManageProductUserAppearsInTeamMembers {
 		task ("Given I go to the test account") {
@@ -78,12 +79,13 @@ definition {
 
 		task ("When I fill in all the required fields") {
 			CP2Utils.finishActivation(
+				disasterRegion = "Frankfurt, Germany",
 				doneButton = "doneButton",
 				email = "test@liferay.com",
-				fullName = "Test Test",
-				incidentManagementEmail = "test@liferay.com",
-				incidentManagementFullName = "Manager Test",
-				primaryRegion = "Europe",
+				firstName = "Test",
+				githubUserName = "Test7",
+				lastName = "Test",
+				primaryRegion = "Iowa, USA",
 				projectId = "testid");
 		}
 

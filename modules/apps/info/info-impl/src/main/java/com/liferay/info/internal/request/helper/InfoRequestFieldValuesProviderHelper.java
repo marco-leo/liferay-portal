@@ -26,7 +26,6 @@ import com.liferay.info.item.provider.InfoItemFormProvider;
 import com.liferay.info.localized.InfoLocalizedValue;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -56,6 +55,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -132,7 +132,7 @@ public class InfoRequestFieldValuesProviderHelper {
 
 				infoFieldValues.put(
 					infoField.getUniqueId(),
-					_getInfoFieldValue(
+					_getMultiselectInfoFieldValue(
 						infoField, themeDisplay.getLocale(),
 						regularParameterMap.get(infoField.getName())));
 
@@ -304,9 +304,7 @@ public class InfoRequestFieldValuesProviderHelper {
 			return _getDateInfoFieldValue(infoField, locale, value);
 		}
 
-		if ((infoField.getInfoFieldType() instanceof DateTimeInfoFieldType) &&
-			FeatureFlagManagerUtil.isEnabled("LPS-183727")) {
-
+		if (infoField.getInfoFieldType() instanceof DateTimeInfoFieldType) {
 			return _getDateTimeInfoFieldValue(infoField, locale, value);
 		}
 
@@ -326,6 +324,16 @@ public class InfoRequestFieldValuesProviderHelper {
 		}
 
 		return null;
+	}
+
+	private InfoFieldValue<Object> _getMultiselectInfoFieldValue(
+		InfoField infoField, Locale locale, Object value) {
+
+		if (Validator.isNull(value)) {
+			value = Collections.emptyList();
+		}
+
+		return _getInfoFieldValue(infoField, locale, value);
 	}
 
 	private InfoFieldValue<Object> _getNumberInfoFieldValue(

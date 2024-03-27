@@ -32,6 +32,7 @@ import useBudgetsAmount from './hooks/useBudgetsAmount';
 interface IProps {
 	activity: MDFClaimActivity;
 	activityIndex: number;
+	hasPermissionEditClaimActivity: boolean;
 	overallCampaignDescription: string;
 }
 
@@ -63,6 +64,7 @@ const activityClaimStatusClassName = {
 const ActivityClaimPanel = ({
 	activity,
 	activityIndex,
+	hasPermissionEditClaimActivity,
 	overallCampaignDescription,
 	setFieldValue,
 }: IProps & Pick<FormikContextType<MDFClaim>, 'setFieldValue'>) => {
@@ -89,10 +91,11 @@ const ActivityClaimPanel = ({
 			activity.activityStatus?.key === Status.ACTIVE.key) &&
 		!activity.claimed;
 
-	const editableClaimActivityByStatus = activity.id && activity.selected;
+	const editableClaimActivityByStatus = activity.id && !activity.selected;
 
-	const displayActivityClaimCheckbox =
-		claimableActivityByStatus || editableClaimActivityByStatus;
+	const displayActivityClaimCheckbox = activity.id
+		? hasPermissionEditClaimActivity
+		: claimableActivityByStatus || editableClaimActivityByStatus;
 
 	const typeActivityComponents: TypeActivityComponent = {
 		[TypeActivityKey.DIGITAL_MARKETING]: (
@@ -128,14 +131,16 @@ const ActivityClaimPanel = ({
 	return (
 		<>
 			<ClayPanel
-				className="bg-neutral-1 border-brand-primary-lighten-2 mb-4 text-neutral-7"
-				displayType="secondary"
+				className="border-brand-primary-lighten-4"
 				expanded={activity.selected && expanded}
 			>
 				<PanelHeader
 					expanded={activity.selected && expanded}
 					onClick={() => {
-						if (activity.selected) {
+						if (
+							(activity.selected && !activity.claimed) ||
+							hasPermissionEditClaimActivity
+						) {
 							setExpanded(
 								(previousExpanded) => !previousExpanded
 							);
@@ -210,6 +215,17 @@ const ActivityClaimPanel = ({
 							</h5>
 						</div>
 					</div>
+
+					{!expanded && activity.selected && (
+						<span className="collapse-icon-closed mt-2">
+							<ClayIcon symbol="angle-down" />
+						</span>
+					)}
+					{expanded && activity.selected && (
+						<span className="collapse-icon-open mt-2">
+							<ClayIcon symbol="angle-up" />
+						</span>
+					)}
 				</PanelHeader>
 
 				<PanelBody expanded={activity.selected && expanded}>

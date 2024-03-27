@@ -21,6 +21,8 @@ import com.liferay.info.field.type.LongTextInfoFieldType;
 import com.liferay.info.field.type.MultiselectInfoFieldType;
 import com.liferay.info.field.type.NumberInfoFieldType;
 import com.liferay.info.field.type.OptionInfoFieldType;
+import com.liferay.info.field.type.PicklistMultiselectInfoFieldType;
+import com.liferay.info.field.type.PicklistSelectInfoFieldType;
 import com.liferay.info.field.type.RelationshipInfoFieldType;
 import com.liferay.info.field.type.SelectInfoFieldType;
 import com.liferay.info.field.type.TextInfoFieldType;
@@ -33,12 +35,13 @@ import com.liferay.info.search.InfoSearchClassMapperRegistry;
 import com.liferay.info.type.KeyLocalizedLabelPair;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType;
-import com.liferay.item.selector.criteria.file.criterion.FileItemSelectorCriterion;
+import com.liferay.item.selector.criteria.file.criterion.CustomFileItemSelectorCriterion;
 import com.liferay.layout.display.page.LayoutDisplayPageObjectProvider;
 import com.liferay.layout.display.page.constants.LayoutDisplayPageWebKeys;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.InfoFormException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -50,6 +53,7 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -127,21 +131,31 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 			SessionErrors.remove(httpServletRequest, infoField.getUniqueId());
 		}
 		else if (SessionErrors.contains(
-					httpServletRequest,
-					String.valueOf(
-						fragmentEntryLink.getFragmentEntryLinkId()))) {
+					httpServletRequest, InfoFormException.class)) {
 
-			InfoFormValidationException infoFormValidationException =
-				(InfoFormValidationException)SessionErrors.get(
-					httpServletRequest,
-					String.valueOf(fragmentEntryLink.getFragmentEntryLinkId()));
+			InfoFormException infoFormException =
+				(InfoFormException)SessionErrors.get(
+					httpServletRequest, InfoFormException.class);
 
-			errorMessage = infoFormValidationException.getLocalizedMessage(
-				locale);
+			if (infoFormException instanceof
+					InfoFormValidationException.InvalidCaptcha) {
 
-			SessionErrors.remove(
-				httpServletRequest,
-				String.valueOf(fragmentEntryLink.getFragmentEntryLinkId()));
+				InfoFormValidationException.InvalidCaptcha
+					infoFormValidationExceptionInvalidCaptcha =
+						(InfoFormValidationException.InvalidCaptcha)
+							infoFormException;
+
+				if (fragmentEntryLink.getFragmentEntryLinkId() ==
+						infoFormValidationExceptionInvalidCaptcha.
+							getFragmentEntryLinkId()) {
+
+					errorMessage = infoFormException.getLocalizedMessage(
+						locale);
+
+					SessionErrors.remove(
+						httpServletRequest, InfoFormException.class);
+				}
+			}
 		}
 
 		String inputHelpText = GetterUtil.getString(
@@ -164,9 +178,11 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 			locale);
 
 		String name = "name";
+		boolean readOnly = false;
 
 		if (infoField != null) {
 			name = infoField.getName();
+			readOnly = infoField.isReadOnly();
 		}
 
 		boolean required = false;
@@ -198,8 +214,9 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 
 		if (infoField == null) {
 			return new InputTemplateNode(
-				errorMessage, inputHelpText, inputLabel, name, required,
-				inputShowHelpText, inputShowLabel, "type", StringPool.BLANK);
+				errorMessage, inputHelpText, inputLabel, name, readOnly,
+				required, inputShowHelpText, inputShowLabel, "type",
+				StringPool.BLANK);
 		}
 
 		InfoFieldType infoFieldType = infoField.getInfoFieldType();
@@ -257,13 +274,23 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 			value = infoFormParameterMap.get(infoField.getName());
 		}
 		else {
-			value = _getValue(
+			Object infoFieldValue = _getValue(
 				value, httpServletRequest, infoField, infoForm.getName(),
 				locale);
+
+			if (infoFieldValue instanceof KeyValuePair) {
+				KeyValuePair keyValuePair = (KeyValuePair)infoFieldValue;
+
+				label = keyValuePair.getValue();
+				value = keyValuePair.getKey();
+			}
+			else {
+				value = String.valueOf(infoFieldValue);
+			}
 		}
 
 		InputTemplateNode inputTemplateNode = new InputTemplateNode(
-			errorMessage, inputHelpText, inputLabel, name, required,
+			errorMessage, inputHelpText, inputLabel, name, readOnly, required,
 			inputShowHelpText, inputShowLabel, infoFieldType.getName(), value);
 
 		_addInputTemplateNodeAttributes(
@@ -288,9 +315,10 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 		if (Validator.isNotNull(allowedFileExtensions)) {
 			StringBundler sb = new StringBundler();
 
-			for (String allowedFileExtension :
-					StringUtil.split(allowedFileExtensions)) {
+			String[] allowedFileExtensionsArray = StringUtil.split(
+				allowedFileExtensions);
 
+			for (String allowedFileExtension : allowedFileExtensionsArray) {
 				sb.append(StringPool.PERIOD);
 				sb.append(allowedFileExtension.trim());
 				sb.append(StringPool.COMMA);
@@ -354,11 +382,17 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 		inputTemplateNode.addAttribute(
 			"selectFromDocumentLibrary", selectFromDocumentLibrary);
 
-		if (selectFromDocumentLibrary) {
-			FileItemSelectorCriterion fileItemSelectorCriterion =
-				new FileItemSelectorCriterion();
+		if (selectFromDocumentLibrary &&
+			Validator.isNotNull(allowedFileExtensions)) {
 
-			fileItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
+			CustomFileItemSelectorCriterion customFileItemSelectorCriterion =
+				new CustomFileItemSelectorCriterion();
+
+			customFileItemSelectorCriterion.setExtensions(
+				StringUtil.split(allowedFileExtensions));
+			customFileItemSelectorCriterion.setMaxFileSize(maximumFileSize);
+
+			customFileItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
 				new FileEntryItemSelectorReturnType());
 
 			inputTemplateNode.addAttribute(
@@ -368,7 +402,7 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 						RequestBackedPortletURLFactoryUtil.create(
 							httpServletRequest),
 						fragmentEntryLink.getNamespace() + "selectFileEntry",
-						fileItemSelectorCriterion)));
+						customFileItemSelectorCriterion)));
 		}
 	}
 
@@ -413,6 +447,8 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 			_addTextInfoFieldTypeInputTemplateNodeAttributes(
 				infoField, inputTemplateNode);
 		}
+
+		inputTemplateNode.addAttribute("readOnly", infoField.isReadOnly());
 	}
 
 	private void _addLongTextInfoFieldTypeInputTemplateNodeAttributes(
@@ -590,7 +626,7 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 	}
 
 	private List<String> _getSelectedOptions(
-		Locale locale, List<OptionInfoFieldType> optionInfoFieldTypes,
+		List<OptionInfoFieldType> optionInfoFieldTypes,
 		List<KeyLocalizedLabelPair> values) {
 
 		List<String> selectedOptions = new ArrayList<>();
@@ -600,8 +636,8 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 					optionInfoFieldTypes) {
 
 				if (Objects.equals(
-						keyLocalizedLabelPair.getLabel(locale),
-						optionInfoFieldType.getLabel(locale))) {
+						keyLocalizedLabelPair.getKey(),
+						optionInfoFieldType.getValue())) {
 
 					selectedOptions.add(optionInfoFieldType.getValue());
 				}
@@ -628,7 +664,7 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 			"1");
 	}
 
-	private String _getValue(
+	private Object _getValue(
 		String defaultValue, HttpServletRequest httpServletRequest,
 		InfoField infoField, String infoFormName, Locale locale) {
 
@@ -670,7 +706,7 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 				layoutDisplayPageObjectProvider.getDisplayObject());
 
 		InfoFieldValue<?> infoFieldValue =
-			infoItemFieldValues.getInfoFieldValue(infoField.getName());
+			infoItemFieldValues.getInfoFieldValue(infoField.getUniqueId());
 
 		if (infoFieldValue == null) {
 			return defaultValue;
@@ -717,6 +753,10 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 		}
 
 		if (infoField.getInfoFieldType() == MultiselectInfoFieldType.INSTANCE) {
+			if (!(infoFieldValue.getValue() instanceof List)) {
+				return defaultValue;
+			}
+
 			List<KeyLocalizedLabelPair> values =
 				(List<KeyLocalizedLabelPair>)infoFieldValue.getValue();
 
@@ -729,11 +769,77 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 					MultiselectInfoFieldType.OPTIONS);
 
 			return ListUtil.toString(
-				_getSelectedOptions(locale, optionInfoFieldTypes, values),
+				_getSelectedOptions(optionInfoFieldTypes, values),
+				StringPool.BLANK);
+		}
+
+		if ((infoField.getInfoFieldType() == NumberInfoFieldType.INSTANCE) &&
+			(infoFieldValue.getValue() instanceof BigDecimal)) {
+
+			BigDecimal bigDecimal = (BigDecimal)infoFieldValue.getValue();
+
+			if (Objects.equals(bigDecimal.signum(), 0)) {
+				return "0";
+			}
+		}
+
+		if (infoField.getInfoFieldType() ==
+				RelationshipInfoFieldType.INSTANCE) {
+
+			return infoFieldValue.getValue();
+		}
+
+		if (infoField.getInfoFieldType() ==
+				PicklistMultiselectInfoFieldType.INSTANCE) {
+
+			if (!(infoFieldValue.getValue() instanceof List)) {
+				return defaultValue;
+			}
+
+			List<KeyLocalizedLabelPair> values =
+				(List<KeyLocalizedLabelPair>)infoFieldValue.getValue();
+
+			if (ListUtil.isEmpty(values)) {
+				return defaultValue;
+			}
+
+			List<OptionInfoFieldType> optionInfoFieldTypes =
+				(List<OptionInfoFieldType>)infoField.getAttribute(
+					PicklistMultiselectInfoFieldType.OPTIONS);
+
+			return ListUtil.toString(
+				_getSelectedOptions(optionInfoFieldTypes, values),
+				StringPool.BLANK);
+		}
+
+		if (infoField.getInfoFieldType() ==
+				PicklistSelectInfoFieldType.INSTANCE) {
+
+			if (!(infoFieldValue.getValue() instanceof List)) {
+				return defaultValue;
+			}
+
+			List<KeyLocalizedLabelPair> values =
+				(List<KeyLocalizedLabelPair>)infoFieldValue.getValue();
+
+			if (ListUtil.isEmpty(values)) {
+				return defaultValue;
+			}
+
+			List<OptionInfoFieldType> optionInfoFieldTypes =
+				(List<OptionInfoFieldType>)infoField.getAttribute(
+					PicklistSelectInfoFieldType.OPTIONS);
+
+			return ListUtil.toString(
+				_getSelectedOptions(optionInfoFieldTypes, values),
 				StringPool.BLANK);
 		}
 
 		if (infoField.getInfoFieldType() == SelectInfoFieldType.INSTANCE) {
+			if (!(infoFieldValue.getValue() instanceof List)) {
+				return defaultValue;
+			}
+
 			List<KeyLocalizedLabelPair> values =
 				(List<KeyLocalizedLabelPair>)infoFieldValue.getValue();
 
@@ -746,7 +852,7 @@ public class FragmentEntryInputTemplateNodeContextHelper {
 					SelectInfoFieldType.OPTIONS);
 
 			return ListUtil.toString(
-				_getSelectedOptions(locale, optionInfoFieldTypes, values),
+				_getSelectedOptions(optionInfoFieldTypes, values),
 				StringPool.BLANK);
 		}
 

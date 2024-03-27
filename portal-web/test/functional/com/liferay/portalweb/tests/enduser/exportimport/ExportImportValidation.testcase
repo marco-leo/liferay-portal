@@ -166,9 +166,7 @@ definition {
 		task ("Given: Add multiple URL Pattern in System Settings") {
 			StagingNavigator.openToConfigInSystemSettings(portlet = "Export/Import, Staging");
 
-			ExportImport.configureURLPattern(
-				multipleURL = "/files/MyFileToLinkToWebContent",
-				urlPattern = "/dl/*");
+			ExportImport.configureURLPattern(urlPattern = "/dl/*");
 
 			takeScreenshot();
 		}
@@ -269,7 +267,7 @@ definition {
 
 			// Wait for OSGi configurations loading due to LPS-184978
 
-			Pause(locator1 = 15000);
+			Pause(value1 = 15000);
 		}
 
 		task ("Then: The preconfigured value is present at Instance Settings.") {
@@ -312,7 +310,7 @@ definition {
 
 			// Wait for OSGi configurations loading due to LPS-184978
 
-			Pause(locator1 = 15000);
+			Pause(value1 = 15000);
 		}
 
 		task ("When: The Instance Administrator opens the Export/Import settings at Instance level.") {

@@ -5,12 +5,11 @@
 
 package com.liferay.layout.locked.layouts.web.internal.scheduler;
 
-import com.liferay.layout.locked.layouts.web.internal.configuration.LockedLayoutsConfiguration;
+import com.liferay.layout.locked.layouts.web.internal.configuration.LockedLayoutsCompanyConfiguration;
 import com.liferay.layout.manager.LayoutLockManager;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.scheduler.SchedulerJobConfiguration;
 import com.liferay.portal.kernel.scheduler.TimeUnit;
 import com.liferay.portal.kernel.scheduler.TriggerConfiguration;
@@ -22,10 +21,7 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Lourdes Fernández Besada
  */
-@Component(
-	configurationPid = "com.liferay.layout.locked.layouts.web.internal.configuration.LockedLayoutsConfiguration",
-	service = SchedulerJobConfiguration.class
-)
+@Component(service = SchedulerJobConfiguration.class)
 public class UnlockLayoutsSchedulerJobConfiguration
 	implements SchedulerJobConfiguration {
 
@@ -52,20 +48,19 @@ public class UnlockLayoutsSchedulerJobConfiguration
 		_getCompanyJobExecutorUnsafeConsumer() {
 
 		return companyId -> {
-			if (!FeatureFlagManagerUtil.isEnabled("LPS-180328")) {
-				return;
-			}
+			LockedLayoutsCompanyConfiguration
+				lockedLayoutsCompanyConfiguration =
+					_configurationProvider.getCompanyConfiguration(
+						LockedLayoutsCompanyConfiguration.class, companyId);
 
-			LockedLayoutsConfiguration lockedLayoutsConfiguration =
-				_configurationProvider.getCompanyConfiguration(
-					LockedLayoutsConfiguration.class, companyId);
+			if (!lockedLayoutsCompanyConfiguration.
+					allowAutomaticUnlockingProcess()) {
 
-			if (!lockedLayoutsConfiguration.allowAutomaticUnlockingProcess()) {
 				return;
 			}
 
 			_layoutLockManager.unlockLayouts(
-				companyId, lockedLayoutsConfiguration.timeWithoutAutosave());
+				companyId, lockedLayoutsCompanyConfiguration.autosaveMinutes());
 		};
 	}
 

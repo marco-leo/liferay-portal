@@ -11,8 +11,6 @@ import com.liferay.osb.faro.constants.FaroUserConstants;
 import com.liferay.osb.faro.contacts.model.constants.JSONConstants;
 import com.liferay.osb.faro.contacts.service.ContactsCardTemplateLocalService;
 import com.liferay.osb.faro.contacts.service.ContactsLayoutTemplateLocalService;
-import com.liferay.osb.faro.engine.client.ContactsEngineClient;
-import com.liferay.osb.faro.engine.client.WorkspaceEngineClient;
 import com.liferay.osb.faro.engine.client.model.Workspace;
 import com.liferay.osb.faro.engine.client.util.EngineServiceURLUtil;
 import com.liferay.osb.faro.exception.EmailAddressDomainException;
@@ -39,7 +37,6 @@ import com.liferay.osb.faro.web.internal.model.display.contacts.ProjectDisplay;
 import com.liferay.osb.faro.web.internal.model.display.contacts.TimeZoneDisplay;
 import com.liferay.osb.faro.web.internal.model.display.main.FaroSubscriptionDisplay;
 import com.liferay.osb.faro.web.internal.param.FaroParam;
-import com.liferay.osb.faro.web.internal.util.ContactsLayoutHelper;
 import com.liferay.osb.faro.web.internal.util.JSONUtil;
 import com.liferay.osb.faro.web.internal.util.TimeZoneUtil;
 import com.liferay.petra.function.transform.TransformUtil;
@@ -47,6 +44,8 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.GroupFriendlyURLException;
 import com.liferay.portal.kernel.exception.LayoutFriendlyURLException;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -301,9 +300,7 @@ public class ProjectController extends BaseFaroController {
 				corpProjectUuid);
 
 		if (faroProject != null) {
-			return new ProjectDisplay(
-				faroProject, cerebroEngineClient, contactsEngineClient,
-				_provisioningClient);
+			return new ProjectDisplay(faroProject);
 		}
 
 		return _createUnprovisioned(
@@ -384,13 +381,20 @@ public class ProjectController extends BaseFaroController {
 		if (forceUpdate) {
 			faroProject.setModifiedTime(now);
 
-			if (Validator.isNotNull(faroProject.getCorpProjectUuid())) {
-				faroProject.setSubscription(
-					JSONUtil.writeValueAsString(
-						new FaroSubscriptionDisplay(
-							_provisioningClient.getOSBAccountEntry(
-								faroProject.getCorpProjectUuid()))));
+			FaroSubscriptionDisplay faroSubscriptionDisplay =
+				new FaroSubscriptionDisplay(getOSBAccountEntry(faroProject));
+
+			if (_isSubscriptionPlanChanged(
+					faroProject, faroSubscriptionDisplay.getName())) {
+
+				faroProject.setSubscriptionModifiedTime(now);
 			}
+
+			faroSubscriptionDisplay.setCounts(
+				faroProject, cerebroEngineClient, contactsEngineClient);
+
+			faroProject.setSubscription(
+				JSONUtil.writeValueAsString(faroSubscriptionDisplay));
 
 			faroProject = _faroProjectLocalService.updateFaroProject(
 				faroProject);
@@ -421,13 +425,10 @@ public class ProjectController extends BaseFaroController {
 				corpProjectUuid);
 
 		if (faroProject == null) {
-			return new ProjectDisplay(
-				_provisioningClient.getOSBAccountEntry(corpProjectUuid));
+			return new ProjectDisplay(getOSBAccountEntry(corpProjectUuid));
 		}
 
-		return new ProjectDisplay(
-			faroProject, cerebroEngineClient, contactsEngineClient,
-			_provisioningClient);
+		return new ProjectDisplay(faroProject);
 	}
 
 	@GET
@@ -665,6 +666,41 @@ public class ProjectController extends BaseFaroController {
 		};
 	}
 
+	protected OSBAccountEntry getOSBAccountEntry(FaroProject faroProject)
+		throws Exception {
+
+		if (Validator.isNull(faroProject.getCorpProjectUuid())) {
+			return new OSBAccountEntry() {
+				{
+					OSBOfferingEntry osbOfferingEntry = new OSBOfferingEntry();
+
+					osbOfferingEntry.setProductEntryId(
+						ProductConstants.BASIC_PRODUCT_ENTRY_ID);
+
+					osbOfferingEntry.setQuantity(1);
+					osbOfferingEntry.setStartDate(
+						new Date(faroProject.getCreateTime()));
+
+					setOfferingEntries(
+						Collections.singletonList(osbOfferingEntry));
+				}
+			};
+		}
+
+		return _provisioningClient.getOSBAccountEntry(
+			faroProject.getCorpProjectUuid());
+	}
+
+	protected OSBAccountEntry getOSBAccountEntry(String corpProjectUuid)
+		throws Exception {
+
+		if (Validator.isNull(corpProjectUuid)) {
+			return createOSBAccountEntry(true);
+		}
+
+		return _provisioningClient.getOSBAccountEntry(corpProjectUuid);
+	}
+
 	private FaroProject _create(
 			String corpProjectUuid, String name,
 			List<String> emailAddressDomains, String friendlyURL,
@@ -676,8 +712,7 @@ public class ProjectController extends BaseFaroController {
 		_validateIncidentReportEmailAddresses(incidentReportEmailAddresses);
 		_validateTimeZoneId(timeZoneId);
 
-		OSBAccountEntry osbAccountEntry =
-			_provisioningClient.getOSBAccountEntry(corpProjectUuid);
+		OSBAccountEntry osbAccountEntry = getOSBAccountEntry(corpProjectUuid);
 
 		FaroSubscriptionDisplay faroSubscriptionDisplay =
 			new FaroSubscriptionDisplay(osbAccountEntry);
@@ -919,9 +954,7 @@ public class ProjectController extends BaseFaroController {
 				faroProject);
 		}
 
-		ProjectDisplay projectDisplay = new ProjectDisplay(
-			faroProject, cerebroEngineClient, contactsEngineClient,
-			_provisioningClient);
+		ProjectDisplay projectDisplay = new ProjectDisplay(faroProject);
 
 		Group group = _groupLocalService.getGroup(faroProject.getGroupId());
 
@@ -993,6 +1026,22 @@ public class ProjectController extends BaseFaroController {
 		finally {
 			_initializingGroupIds.remove(groupId);
 		}
+	}
+
+	private boolean _isSubscriptionPlanChanged(
+			FaroProject faroProject, String subscriptionName)
+		throws Exception {
+
+		JSONObject subscriptionJSONObject = _jsonFactory.createJSONObject(
+			faroProject.getSubscription());
+
+		if (!Objects.equals(
+				subscriptionJSONObject.get("name"), subscriptionName)) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private boolean _isWorkspaceHealthy(FaroProject faroProject) {
@@ -1072,7 +1121,7 @@ public class ProjectController extends BaseFaroController {
 	private void _validateCorpProjectUuid(String corpProjectUuid)
 		throws Exception {
 
-		if (isOmniadmin()) {
+		if (isOmniadmin() || corpProjectUuid.contains("Test")) {
 			return;
 		}
 
@@ -1135,12 +1184,6 @@ public class ProjectController extends BaseFaroController {
 	private ContactsCardTemplateLocalService _contactsCardTemplateLocalService;
 
 	@Reference
-	private ContactsEngineClient _contactsEngineClient;
-
-	@Reference
-	private ContactsLayoutHelper _contactsLayoutHelper;
-
-	@Reference
 	private ContactsLayoutTemplateLocalService
 		_contactsLayoutTemplateLocalService;
 
@@ -1163,6 +1206,9 @@ public class ProjectController extends BaseFaroController {
 	@Reference
 	private GroupLocalService _groupLocalService;
 
+	@Reference
+	private JSONFactory _jsonFactory;
+
 	@Reference(
 		policy = ReferencePolicy.DYNAMIC,
 		policyOption = ReferencePolicyOption.GREEDY
@@ -1171,8 +1217,5 @@ public class ProjectController extends BaseFaroController {
 
 	@Reference
 	private RoleLocalService _roleLocalService;
-
-	@Reference
-	private WorkspaceEngineClient _workspaceEngineClient;
 
 }

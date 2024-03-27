@@ -5,11 +5,15 @@
 
 import React, {useEffect, useState} from 'react';
 
+import './index.css';
 import Container from '../../../common/components/dashboard/components/Container';
 import DonutChart from '../../../common/components/dashboard/components/DonutChart';
 import {revenueChartColumnColors} from '../../../common/components/dashboard/utils/constants/chartColumnsColors';
 import getRevenueChartColumns from '../../../common/components/dashboard/utils/getRevenueChartColumns';
 import {Liferay} from '../../../common/services/liferay';
+import {LiferayAPIs} from '../../../common/services/liferay/common/enums/apis';
+import {Filters} from '../../../common/utils/constants/filters';
+import {retry} from '../../../common/utils/retry';
 
 export default function () {
 	const [titleChart, setTitleChart] = useState('');
@@ -20,69 +24,60 @@ export default function () {
 
 	const getRevenueData = async () => {
 		setLoading(true);
-		// eslint-disable-next-line @liferay/portal/no-global-fetch
-		const growthRevenueResponseNewProject = await fetch(
-			"/o/c/opportunitysfs?pageSize=200&sort=closeDate:desc&filter=type eq 'New Project Existing Business' and stage eq 'Closed Won'",
-			{
-				headers: {
-					'accept': 'application/json',
-					'x-csrf-token': Liferay.authToken,
-				},
-			}
-		);
-
-		const growthRevenueResponseNewBusiness = await fetch(
-			"/o/c/opportunitysfs?pageSize=200&sort=closeDate:desc&filter=type eq 'New Business' and stage eq 'Closed Won'",
-			{
-				headers: {
-					'accept': 'application/json',
-					'x-csrf-token': Liferay.authToken,
-				},
-			}
-		);
 
 		// eslint-disable-next-line @liferay/portal/no-global-fetch
-		const renewalRevenueResponse = await fetch(
-			"/o/c/opportunitysfs?&pageSize=200&sort=closeDate:desc&filter=type ne 'New Business' and type ne 'New Project Existing Business' and stage ne 'Rejected' and stage ne 'Rolled into another opportunity' and stage ne 'Disqualified' and stage ne 'Closed Lost'",
-			{
+		const opportunities = await retry<any>(() =>
+			fetch(
+				`/o/c/opportunitysfs?pageSize=200&sort=closeDate:desc&filter=${Filters.REVENUE_DASHBOARD.opportunities}`,
+				{
+					headers: {
+						'accept': 'application/json',
+						'x-csrf-token': Liferay.authToken,
+					},
+				}
+			)
+		);
+
+		const myUserAccount = await retry<any>(() =>
+			fetch(`/o/${LiferayAPIs.HEADERLESS_ADMIN_USER}/my-user-account`, {
 				headers: {
 					'accept': 'application/json',
 					'x-csrf-token': Liferay.authToken,
 				},
-			}
+			})
 		);
 
-		if (
-			growthRevenueResponseNewProject.ok &&
-			renewalRevenueResponse.ok &&
-			growthRevenueResponseNewBusiness.ok
-		) {
-			const growthRevenueResponseNewProjectData = await growthRevenueResponseNewProject.json();
-			const growthRevenueResponseNewBusinessData = await growthRevenueResponseNewBusiness.json();
-			const renewalRevenueData = await renewalRevenueResponse.json();
+		const account =
+			myUserAccount.accountBriefs[0]?.externalReferenceCode &&
+			(await retry<any>(() =>
+				fetch(
+					`/o/${LiferayAPIs.HEADERLESS_ADMIN_USER}/accounts/by-external-reference-code/${myUserAccount.accountBriefs[0]?.externalReferenceCode}`,
+					{
+						headers: {
+							'accept': 'application/json',
+							'x-csrf-token': Liferay.authToken,
+						},
+					}
+				)
+			));
 
-			const revenueCurrency =
-				growthRevenueResponseNewProjectData?.items[0]?.currency?.key;
+		const currency = account ? account.currency : 'USD';
 
-			setCurrencyData(revenueCurrency);
+		if (opportunities) {
+			setCurrencyData(currency);
 
 			getRevenueChartColumns(
-				revenueCurrency,
-				growthRevenueResponseNewProjectData,
-				growthRevenueResponseNewBusinessData,
-				renewalRevenueData,
+				currency,
+				opportunities,
 				setTitleChart,
 				setValueChart,
 				setColumnsRevenueChart
 			);
+
 			setLoading(false);
 
 			return;
 		}
-		Liferay.Util.openToast({
-			message: 'An unexpected error occured.',
-			type: 'danger',
-		});
 	};
 
 	useEffect(() => {
@@ -96,7 +91,10 @@ export default function () {
 	};
 
 	return (
-		<Container className="dashboard-mdf-revenue-chart" title="Revenue">
+		<Container
+			className="dashboard-revenue-chart justify-content-between pb-7"
+			title="Revenue"
+		>
 			<DonutChart
 				chartDataColumns={chartData}
 				dataCurrency={currencyData}

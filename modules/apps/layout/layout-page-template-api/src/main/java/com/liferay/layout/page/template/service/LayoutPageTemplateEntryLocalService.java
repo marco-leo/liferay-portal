@@ -109,7 +109,8 @@ public interface LayoutPageTemplateEntryLocalService
 
 	public LayoutPageTemplateEntry copyLayoutPageTemplateEntry(
 			long userId, long groupId, long layoutPageTemplateCollectionId,
-			long sourceLayoutPageTemplateEntryId, ServiceContext serviceContext)
+			long sourceLayoutPageTemplateEntryId, boolean copyPermissions,
+			ServiceContext serviceContext)
 		throws Exception;
 
 	/**
@@ -303,6 +304,10 @@ public interface LayoutPageTemplateEntryLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<LayoutPageTemplateEntry> getLayoutPageTemplateEntries(
 		long groupId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<LayoutPageTemplateEntry> getLayoutPageTemplateEntries(
+		long groupId, int status);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<LayoutPageTemplateEntry> getLayoutPageTemplateEntries(

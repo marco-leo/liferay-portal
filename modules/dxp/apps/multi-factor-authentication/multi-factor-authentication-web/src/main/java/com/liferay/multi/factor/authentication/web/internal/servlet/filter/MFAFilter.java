@@ -11,7 +11,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.BaseFilter;
 import com.liferay.portal.kernel.servlet.TryFilter;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.Map;
@@ -33,7 +32,7 @@ import org.osgi.service.component.annotations.Reference;
 	property = {
 		"dispatcher=FORWARD", "dispatcher=REQUEST", "servlet-context-name=",
 		"servlet-filter-name=MFA Filter",
-		"url-pattern=/c/portal/update_password*"
+		"url-pattern=/c/portal/update_password"
 	},
 	service = Filter.class
 )
@@ -75,8 +74,5 @@ public class MFAFilter extends BaseFilter implements TryFilter {
 
 	@Reference
 	private MFAPolicy _mfaPolicy;
-
-	@Reference
-	private Portal _portal;
 
 }

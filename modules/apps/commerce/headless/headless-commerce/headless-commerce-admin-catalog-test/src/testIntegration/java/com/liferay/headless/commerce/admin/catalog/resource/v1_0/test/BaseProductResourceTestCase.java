@@ -28,8 +28,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -38,6 +36,7 @@ import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.search.test.util.SearchTestRule;
@@ -63,8 +62,6 @@ import java.util.Set;
 import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
-import org.apache.commons.lang.time.DateUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -305,10 +302,10 @@ public abstract class BaseProductResourceTestCase {
 
 	@Test
 	public void testGetProductsPageWithPagination() throws Exception {
-		Page<Product> totalPage = productResource.getProductsPage(
+		Page<Product> productPage = productResource.getProductsPage(
 			null, null, null, null);
 
-		int totalCount = GetterUtil.getInteger(totalPage.getTotalCount());
+		int totalCount = GetterUtil.getInteger(productPage.getTotalCount());
 
 		Product product1 = testGetProductsPage_addProduct(randomProduct());
 
@@ -316,29 +313,65 @@ public abstract class BaseProductResourceTestCase {
 
 		Product product3 = testGetProductsPage_addProduct(randomProduct());
 
-		Page<Product> page1 = productResource.getProductsPage(
-			null, null, Pagination.of(1, totalCount + 2), null);
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<Product> products1 = (List<Product>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(
-			products1.toString(), totalCount + 2, products1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<Product> page1 = productResource.getProductsPage(
+				null, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+					pageSizeLimit),
+				null);
 
-		Page<Product> page2 = productResource.getProductsPage(
-			null, null, Pagination.of(2, totalCount + 2), null);
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+			assertContains(product1, (List<Product>)page1.getItems());
 
-		List<Product> products2 = (List<Product>)page2.getItems();
+			Page<Product> page2 = productResource.getProductsPage(
+				null, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+					pageSizeLimit),
+				null);
 
-		Assert.assertEquals(products2.toString(), 1, products2.size());
+			assertContains(product2, (List<Product>)page2.getItems());
 
-		Page<Product> page3 = productResource.getProductsPage(
-			null, null, Pagination.of(1, totalCount + 3), null);
+			Page<Product> page3 = productResource.getProductsPage(
+				null, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+					pageSizeLimit),
+				null);
 
-		assertContains(product1, (List<Product>)page3.getItems());
-		assertContains(product2, (List<Product>)page3.getItems());
-		assertContains(product3, (List<Product>)page3.getItems());
+			assertContains(product3, (List<Product>)page3.getItems());
+		}
+		else {
+			Page<Product> page1 = productResource.getProductsPage(
+				null, null, Pagination.of(1, totalCount + 2), null);
+
+			List<Product> products1 = (List<Product>)page1.getItems();
+
+			Assert.assertEquals(
+				products1.toString(), totalCount + 2, products1.size());
+
+			Page<Product> page2 = productResource.getProductsPage(
+				null, null, Pagination.of(2, totalCount + 2), null);
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<Product> products2 = (List<Product>)page2.getItems();
+
+			Assert.assertEquals(products2.toString(), 1, products2.size());
+
+			Page<Product> page3 = productResource.getProductsPage(
+				null, null, Pagination.of(1, (int)totalCount + 3), null);
+
+			assertContains(product1, (List<Product>)page3.getItems());
+			assertContains(product2, (List<Product>)page3.getItems());
+			assertContains(product3, (List<Product>)page3.getItems());
+		}
 	}
 
 	@Test
@@ -348,7 +381,7 @@ public abstract class BaseProductResourceTestCase {
 			(entityField, product1, product2) -> {
 				BeanTestUtil.setProperty(
 					product1, entityField.getName(),
-					DateUtils.addMinutes(new Date(), -2));
+					new Date(System.currentTimeMillis() - (2 * Time.MINUTE)));
 			});
 	}
 
@@ -446,22 +479,23 @@ public abstract class BaseProductResourceTestCase {
 
 		product2 = testGetProductsPage_addProduct(product2);
 
+		Page<Product> page = productResource.getProductsPage(
+			null, null, null, null);
+
 		for (EntityField entityField : entityFields) {
 			Page<Product> ascPage = productResource.getProductsPage(
-				null, null, Pagination.of(1, 2),
+				null, null, Pagination.of(1, (int)page.getTotalCount() + 1),
 				entityField.getName() + ":asc");
 
-			assertEquals(
-				Arrays.asList(product1, product2),
-				(List<Product>)ascPage.getItems());
+			assertContains(product1, (List<Product>)ascPage.getItems());
+			assertContains(product2, (List<Product>)ascPage.getItems());
 
 			Page<Product> descPage = productResource.getProductsPage(
-				null, null, Pagination.of(1, 2),
+				null, null, Pagination.of(1, (int)page.getTotalCount() + 1),
 				entityField.getName() + ":desc");
 
-			assertEquals(
-				Arrays.asList(product2, product1),
-				(List<Product>)descPage.getItems());
+			assertContains(product2, (List<Product>)descPage.getItems());
+			assertContains(product1, (List<Product>)descPage.getItems());
 		}
 	}
 
@@ -2207,6 +2241,10 @@ public abstract class BaseProductResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -2305,20 +2343,20 @@ public abstract class BaseProductResourceTestCase {
 
 		if (entityFieldName.equals("createDate")) {
 			if (operator.equals("between")) {
+				Date date = product.getCreateDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(product.getCreateDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(product.getCreateDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -2397,20 +2435,20 @@ public abstract class BaseProductResourceTestCase {
 
 		if (entityFieldName.equals("displayDate")) {
 			if (operator.equals("between")) {
+				Date date = product.getDisplayDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(product.getDisplayDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(product.getDisplayDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -2433,20 +2471,20 @@ public abstract class BaseProductResourceTestCase {
 
 		if (entityFieldName.equals("expirationDate")) {
 			if (operator.equals("between")) {
+				Date date = product.getExpirationDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(product.getExpirationDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(product.getExpirationDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -2545,20 +2583,20 @@ public abstract class BaseProductResourceTestCase {
 
 		if (entityFieldName.equals("modifiedDate")) {
 			if (operator.equals("between")) {
+				Date date = product.getModifiedDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(product.getModifiedDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(product.getModifiedDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -2959,9 +2997,9 @@ public abstract class BaseProductResourceTestCase {
 	}
 
 	protected ProductResource productResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

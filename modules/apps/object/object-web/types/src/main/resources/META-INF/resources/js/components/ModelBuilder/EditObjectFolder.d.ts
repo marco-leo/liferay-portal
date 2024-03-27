@@ -5,15 +5,18 @@
 
 /// <reference types="react" />
 
-import {KeyValuePair} from '../ObjectDetails/EditObjectDetails';
+import {Scope} from '../ObjectDetails/EditObjectDetails';
+import './EditObjectFolder.scss';
 interface EditObjectFolder {
-	companyKeyValuePairs: KeyValuePair[];
+	companies: Scope[];
 	objectRelationshipDeletionTypes: LabelValueObject[];
-	siteKeyValuePairs: KeyValuePair[];
+	sites: Scope[];
+	viewObjectDefinitionsURL: string;
 }
 export default function EditObjectFolder({
-	companyKeyValuePairs,
+	companies,
 	objectRelationshipDeletionTypes,
-	siteKeyValuePairs,
+	sites,
+	viewObjectDefinitionsURL,
 }: EditObjectFolder): JSX.Element;
 export {};

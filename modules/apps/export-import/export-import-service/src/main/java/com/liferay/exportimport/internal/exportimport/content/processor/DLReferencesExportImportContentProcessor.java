@@ -164,24 +164,34 @@ public class DLReferencesExportImportContentProcessor
 					pathArray[2],
 					FriendlyURLResolverConstants.URL_SEPARATOR_Y_FILE_ENTRY)) {
 
-				map.put(
-					"friendlyURL",
-					new String[] {
-						StringUtils.substringBefore(
-							HttpComponentsUtil.decodeURL(pathArray[4]),
-							StringPool.POUND)
-					});
-				map.put("groupName", new String[] {pathArray[3]});
+				if (pathArray.length >= 5) {
+					map.put(
+						"friendlyURL",
+						new String[] {
+							StringUtils.substringBefore(
+								HttpComponentsUtil.decodeURL(pathArray[4]),
+								StringPool.POUND)
+						});
+				}
+
+				if (pathArray.length >= 4) {
+					map.put("groupName", new String[] {pathArray[3]});
+				}
 			}
 			else if (Objects.equals(pathArray[2], "portlet_file_entry")) {
-				map.put("groupId", new String[] {pathArray[3]});
-				map.put(
-					"title",
-					new String[] {
-						StringUtils.substringBefore(
-							HttpComponentsUtil.decodeURL(pathArray[4]),
-							StringPool.POUND)
-					});
+				if (pathArray.length >= 4) {
+					map.put("groupId", new String[] {pathArray[3]});
+				}
+
+				if (pathArray.length >= 5) {
+					map.put(
+						"title",
+						new String[] {
+							StringUtils.substringBefore(
+								HttpComponentsUtil.decodeURL(pathArray[4]),
+								StringPool.POUND)
+						});
+				}
 			}
 			else {
 				map.put("groupId", new String[] {pathArray[2]});
@@ -931,7 +941,8 @@ public class DLReferencesExportImportContentProcessor
 		StringPool.BACK_SLASH + StringPool.QUOTE, StringPool.CLOSE_BRACKET,
 		StringPool.CLOSE_CURLY_BRACE, StringPool.CLOSE_PARENTHESIS,
 		StringPool.GREATER_THAN, StringPool.LESS_THAN, StringPool.PIPE,
-		StringPool.QUOTE, StringPool.QUOTE_ENCODED, StringPool.SPACE
+		StringPool.POUND, StringPool.QUOTE, StringPool.QUOTE_ENCODED,
+		StringPool.SPACE
 	};
 
 	private static final String[] _DL_REFERENCE_STOP_STRINGS = {
@@ -940,8 +951,8 @@ public class DLReferencesExportImportContentProcessor
 		StringPool.BACK_SLASH + StringPool.QUOTE, StringPool.CLOSE_BRACKET,
 		StringPool.CLOSE_CURLY_BRACE, StringPool.CLOSE_PARENTHESIS,
 		StringPool.GREATER_THAN, StringPool.LESS_THAN, StringPool.NEW_LINE,
-		StringPool.PIPE, StringPool.QUESTION, StringPool.QUOTE,
-		StringPool.QUOTE_ENCODED, StringPool.SPACE
+		StringPool.PIPE, StringPool.POUND, StringPool.QUESTION,
+		StringPool.QUOTE, StringPool.QUOTE_ENCODED, StringPool.SPACE
 	};
 
 	private static final int _OFFSET_COLON_PORT = 6;

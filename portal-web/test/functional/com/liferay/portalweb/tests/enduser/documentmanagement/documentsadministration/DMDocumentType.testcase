@@ -139,7 +139,7 @@ definition {
 
 		AssertElementPresent(
 			key_fieldFieldLabel = "Image",
-			key_image = "Document_1.jpg",
+			key_image = "document_1-jpg",
 			locator1 = "DocumentsAndMediaDocument#CUSTOM_FIELD_IMAGE_PREVIEW");
 
 		PortletEntry.publish();
@@ -202,6 +202,9 @@ definition {
 	@description = "This ensures that a document with a custom document type in asset library can be copied to the site which connected to the asset library with structures available with document type."
 	@priority = 4
 	test CanCopyFileWithCustomTypeFromDepotToConnectedSite {
+		property test.liferay.virtual.instance = "false";
+		property test.run.type = "single";
+
 		JSONDepot.addDepot(
 			depotDescription = "This is the description of a depot",
 			depotName = "Test Depot Name");
@@ -385,7 +388,8 @@ definition {
 
 		DMDocument.viewDocumentTypePG(
 			fieldFieldLabel = "Photo",
-			imageName = "Document_2.jpg");
+			imageName = "Document_2.jpg",
+			panelName = "DM Document Type Name Edit");
 	}
 
 	@description = "This ensures that the user can create a document using edited text field inside document type."
@@ -435,6 +439,7 @@ definition {
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title 2");
 
 		DMDocument.viewDocumentTypePG(
+			panelName = "DM Document Type Name Edit",
 			textContent = "Liferay",
 			textFieldLabel = "Company");
 	}
@@ -491,6 +496,7 @@ definition {
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title 2");
 
 		DMDocument.viewDocumentTypePG(
+			panelName = "DM Document Type Name Edit",
 			uploadFieldLabel = "Resume",
 			uploadFile = "Document_1.doc");
 	}
@@ -866,7 +872,7 @@ definition {
 	}
 
 	@description = "This test covers LPS-127092. It ensures that the translated document type can be localized properly."
-	@priority = 5
+	@priority = 3
 	@refactordone
 	test CanViewLocalizedDocumentType {
 		DMNavigator.openDocumentTypesAdmin(siteURLKey = "guest");

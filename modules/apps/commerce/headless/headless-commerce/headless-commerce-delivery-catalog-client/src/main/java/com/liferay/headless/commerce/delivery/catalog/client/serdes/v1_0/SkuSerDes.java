@@ -5,6 +5,7 @@
 
 package com.liferay.headless.commerce.delivery.catalog.client.serdes.v1_0;
 
+import com.liferay.headless.commerce.delivery.catalog.client.dto.v1_0.CustomField;
 import com.liferay.headless.commerce.delivery.catalog.client.dto.v1_0.DDMOption;
 import com.liferay.headless.commerce.delivery.catalog.client.dto.v1_0.Sku;
 import com.liferay.headless.commerce.delivery.catalog.client.dto.v1_0.SkuOption;
@@ -118,6 +119,26 @@ public class SkuSerDes {
 			sb.append("\"backOrderAllowed\": ");
 
 			sb.append(sku.getBackOrderAllowed());
+		}
+
+		if (sku.getCustomFields() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"customFields\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < sku.getCustomFields().length; i++) {
+				sb.append(String.valueOf(sku.getCustomFields()[i]));
+
+				if ((i + 1) < sku.getCustomFields().length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
 		}
 
 		if (sku.getDepth() != null) {
@@ -293,6 +314,16 @@ public class SkuSerDes {
 			sb.append("\"price\": ");
 
 			sb.append(String.valueOf(sku.getPrice()));
+		}
+
+		if (sku.getProductConfiguration() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"productConfiguration\": ");
+
+			sb.append(String.valueOf(sku.getProductConfiguration()));
 		}
 
 		if (sku.getProductId() != null) {
@@ -505,6 +536,13 @@ public class SkuSerDes {
 				"backOrderAllowed", String.valueOf(sku.getBackOrderAllowed()));
 		}
 
+		if (sku.getCustomFields() == null) {
+			map.put("customFields", null);
+		}
+		else {
+			map.put("customFields", String.valueOf(sku.getCustomFields()));
+		}
+
 		if (sku.getDepth() == null) {
 			map.put("depth", null);
 		}
@@ -622,6 +660,15 @@ public class SkuSerDes {
 		}
 		else {
 			map.put("price", String.valueOf(sku.getPrice()));
+		}
+
+		if (sku.getProductConfiguration() == null) {
+			map.put("productConfiguration", null);
+		}
+		else {
+			map.put(
+				"productConfiguration",
+				String.valueOf(sku.getProductConfiguration()));
 		}
 
 		if (sku.getProductId() == null) {
@@ -767,6 +814,22 @@ public class SkuSerDes {
 					sku.setBackOrderAllowed((Boolean)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "customFields")) {
+				if (jsonParserFieldValue != null) {
+					Object[] jsonParserFieldValues =
+						(Object[])jsonParserFieldValue;
+
+					CustomField[] customFieldsArray =
+						new CustomField[jsonParserFieldValues.length];
+
+					for (int i = 0; i < customFieldsArray.length; i++) {
+						customFieldsArray[i] = CustomFieldSerDes.toDTO(
+							(String)jsonParserFieldValues[i]);
+					}
+
+					sku.setCustomFields(customFieldsArray);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "depth")) {
 				if (jsonParserFieldValue != null) {
 					sku.setDepth(Double.valueOf((String)jsonParserFieldValue));
@@ -850,6 +913,15 @@ public class SkuSerDes {
 				if (jsonParserFieldValue != null) {
 					sku.setPrice(
 						PriceSerDes.toDTO((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "productConfiguration")) {
+
+				if (jsonParserFieldValue != null) {
+					sku.setProductConfiguration(
+						ProductConfigurationSerDes.toDTO(
+							(String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "productId")) {

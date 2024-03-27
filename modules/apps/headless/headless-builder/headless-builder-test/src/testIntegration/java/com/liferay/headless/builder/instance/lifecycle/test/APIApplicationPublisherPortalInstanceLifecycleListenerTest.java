@@ -7,7 +7,7 @@ package com.liferay.headless.builder.instance.lifecycle.test;
 
 import com.liferay.headless.builder.application.APIApplication;
 import com.liferay.headless.builder.test.BaseTestCase;
-import com.liferay.headless.builder.util.APIApplicationTestUtil;
+import com.liferay.headless.builder.test.util.APIApplicationTestUtil;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -35,7 +35,7 @@ import org.osgi.util.promise.Promise;
 /**
  * @author Carlos Correa
  */
-@FeatureFlags({"LPS-167253", "LPS-178642"})
+@FeatureFlags("LPS-178642")
 public class APIApplicationPublisherPortalInstanceLifecycleListenerTest
 	extends BaseTestCase {
 
@@ -94,6 +94,9 @@ public class APIApplicationPublisherPortalInstanceLifecycleListenerTest
 
 		String apiEndpointExternalReferenceCode = RandomTestUtil.randomString();
 		String apiSchemaExternalReferenceCode = RandomTestUtil.randomString();
+		String path =
+			StringPool.FORWARD_SLASH +
+				StringUtil.toLowerCase(RandomTestUtil.randomString());
 
 		HTTPTestUtil.invokeToJSONObject(
 			JSONUtil.put(
@@ -109,8 +112,7 @@ public class APIApplicationPublisherPortalInstanceLifecycleListenerTest
 					).put(
 						"name", "name"
 					).put(
-						"path",
-						StringPool.FORWARD_SLASH + RandomTestUtil.randomString()
+						"path", path
 					).put(
 						"retrieveType",
 						APIApplication.Endpoint.RetrieveType.COLLECTION.

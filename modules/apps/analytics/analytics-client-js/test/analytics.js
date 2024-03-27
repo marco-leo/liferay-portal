@@ -12,18 +12,45 @@ import {
 	STORAGE_KEY_IDENTITY,
 	STORAGE_KEY_USER_ID,
 } from '../src/utils/constants';
-import {getItem} from '../src/utils/storage';
+import {getItem, removeItem} from '../src/utils/storage';
 import {sendDummyEvents, trackDummyEvents, wait} from './helpers';
+
+const localStorageMock = (function () {
+	const store = {};
+
+	return {
+		getItem(key) {
+			return JSON.parse(decodeURIComponent(store[key]));
+		},
+		removeItem(key) {
+			delete localStorage[key];
+		},
+		setItem(key, value, encode) {
+			const newValue = JSON.stringify(value);
+
+			store[key] = encode ? encodeURIComponent(newValue) : newValue;
+		},
+	};
+})();
 
 const ANALYTICS_IDENTITY = {email: 'foo@bar.com'};
 const ENDPOINT_URL = 'https://ac-server.io';
 const FLUSH_INTERVAL = 100;
 const INITIAL_CONFIG = {
 	channelId: '4321',
+	cookieManager: {
+		actions: {
+			getItem: localStorageMock.getItem,
+			removeItem: localStorageMock.removeItem,
+			setItem: localStorageMock.setItem,
+		},
+	},
 	dataSourceId: '1234',
 	endpointUrl: ENDPOINT_URL,
 	flushInterval: FLUSH_INTERVAL,
 };
+
+Object.defineProperty(window, 'localStorage', {value: localStorageMock});
 
 describe('Analytics', () => {
 	let Analytics;
@@ -33,8 +60,8 @@ describe('Analytics', () => {
 
 		Analytics = AnalyticsClient.create(INITIAL_CONFIG);
 
-		localStorage.removeItem(STORAGE_KEY_EVENTS);
-		localStorage.removeItem(STORAGE_KEY_USER_ID);
+		removeItem(STORAGE_KEY_EVENTS);
+		removeItem(STORAGE_KEY_USER_ID);
 	});
 
 	afterEach(() => {
@@ -298,7 +325,7 @@ describe('Analytics', () => {
 			]);
 		});
 
-		it('persists the given events to the LocalStorage', async () => {
+		it('persists the given events to the Cookie', async () => {
 			Analytics = AnalyticsClient.create(INITIAL_CONFIG);
 			const eventsNumber = 5;
 
@@ -457,7 +484,7 @@ describe('Analytics', () => {
 			]);
 		});
 
-		it('persists the given events to the LocalStorage', async () => {
+		it('persists the given events to the Cookie', async () => {
 			Analytics = AnalyticsClient.create(INITIAL_CONFIG);
 			const eventsNumber = 5;
 

@@ -6,7 +6,6 @@
 package com.liferay.layout.page.template.service.impl;
 
 import com.liferay.asset.kernel.NoSuchClassTypeException;
-import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLinkLocalService;
 import com.liferay.info.item.InfoItemFormVariation;
 import com.liferay.info.item.InfoItemServiceRegistry;
@@ -23,6 +22,7 @@ import com.liferay.layout.page.template.service.base.LayoutPageTemplateEntryLoca
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
+import com.liferay.portal.kernel.exception.LockedLayoutException;
 import com.liferay.portal.kernel.exception.NoSuchClassNameException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
@@ -43,6 +43,7 @@ import com.liferay.portal.kernel.portletfilerepository.PortletFileRepository;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.security.auth.GuestOrUserUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
@@ -54,6 +55,7 @@ import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.ThemeLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.File;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Localization;
@@ -154,7 +156,7 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		layoutPageTemplateEntry = layoutPageTemplateEntryPersistence.update(
 			layoutPageTemplateEntry);
 
-		if ((type == LayoutPageTemplateEntryTypeConstants.TYPE_WIDGET_PAGE) &&
+		if ((type == LayoutPageTemplateEntryTypeConstants.WIDGET_PAGE) &&
 			(layoutPrototypeId == 0)) {
 
 			serviceContext.setAttribute(
@@ -252,7 +254,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 	@Override
 	public LayoutPageTemplateEntry copyLayoutPageTemplateEntry(
 			long userId, long groupId, long layoutPageTemplateCollectionId,
-			long sourceLayoutPageTemplateEntryId, ServiceContext serviceContext)
+			long sourceLayoutPageTemplateEntryId, boolean copyPermissions,
+			ServiceContext serviceContext)
 		throws Exception {
 
 		LayoutPageTemplateEntry sourceLayoutPageTemplateEntry =
@@ -261,8 +264,7 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 
 		String name = _getUniqueCopyName(
 			groupId, sourceLayoutPageTemplateEntry.getName(),
-			sourceLayoutPageTemplateEntry.getType(),
-			serviceContext.getLocale());
+			sourceLayoutPageTemplateEntry.getType());
 
 		long masterLayoutPlid = 0;
 
@@ -282,6 +284,20 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 				sourceLayoutPageTemplateEntry.getLayoutPrototypeId(), 0,
 				masterLayoutPlid, WorkflowConstants.STATUS_DRAFT,
 				serviceContext);
+
+		if (copyPermissions) {
+			_resourceLocalService.deleteResource(
+				targetLayoutPageTemplateEntry.getCompanyId(),
+				LayoutPageTemplateEntry.class.getName(),
+				ResourceConstants.SCOPE_INDIVIDUAL,
+				targetLayoutPageTemplateEntry.getLayoutPageTemplateEntryId());
+
+			_resourceLocalService.copyModelResources(
+				sourceLayoutPageTemplateEntry.getCompanyId(),
+				LayoutPageTemplateEntry.class.getName(),
+				sourceLayoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+				targetLayoutPageTemplateEntry.getLayoutPageTemplateEntryId());
+		}
 
 		FileEntry targetPreviewFileEntry = _copyPreviewFileEntry(
 			sourceLayoutPageTemplateEntry, targetLayoutPageTemplateEntry,
@@ -358,7 +374,7 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 
 		if (Objects.equals(
 				layoutPageTemplateEntry.getType(),
-				LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE) &&
+				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE) &&
 			(layoutPageTemplateEntry.getClassTypeId() > 0)) {
 
 			_ddmStructureLinkLocalService.deleteStructureLinks(
@@ -431,6 +447,13 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		long groupId) {
 
 		return layoutPageTemplateEntryPersistence.findByGroupId(groupId);
+	}
+
+	@Override
+	public List<LayoutPageTemplateEntry> getLayoutPageTemplateEntries(
+		long groupId, int status) {
+
+		return layoutPageTemplateEntryPersistence.findByG_S(groupId, status);
 	}
 
 	@Override
@@ -651,6 +674,16 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			layoutPageTemplateEntryPersistence.findByPrimaryKey(
 				layoutPageTemplateEntryId);
 
+		Layout draftLayout = _layoutLocalService.fetchDraftLayout(
+			layoutPageTemplateEntry.getPlid());
+
+		if ((draftLayout != null) &&
+			!draftLayout.isUnlocked(
+				Constants.EDIT, GuestOrUserUtil.getUserId())) {
+
+			throw new LockedLayoutException();
+		}
+
 		layoutPageTemplateEntry.setModifiedDate(new Date());
 		layoutPageTemplateEntry.setClassNameId(classNameId);
 		layoutPageTemplateEntry.setClassTypeId(classTypeId);
@@ -789,8 +822,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		boolean privateLayout = false;
 		String layoutType = LayoutConstants.TYPE_ASSET_DISPLAY;
 
-		if ((type == LayoutPageTemplateEntryTypeConstants.TYPE_BASIC) ||
-			(type == LayoutPageTemplateEntryTypeConstants.TYPE_MASTER_LAYOUT)) {
+		if ((type == LayoutPageTemplateEntryTypeConstants.BASIC) ||
+			(type == LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT)) {
 
 			privateLayout = true;
 			layoutType = LayoutConstants.TYPE_CONTENT;
@@ -807,7 +840,7 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 				LayoutTypeSettingsConstants.KEY_PUBLISHED, "true");
 		}
 
-		if ((type == LayoutPageTemplateEntryTypeConstants.TYPE_MASTER_LAYOUT) ||
+		if ((type == LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT) ||
 			(masterLayoutPlid > 0)) {
 
 			typeSettingsUnicodeProperties.setProperty(
@@ -835,7 +868,7 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 
 		Layout draftLayout = layout.fetchDraftLayout();
 
-		if ((type == LayoutPageTemplateEntryTypeConstants.TYPE_MASTER_LAYOUT) ||
+		if ((type == LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT) ||
 			(masterLayoutPlid > 0)) {
 
 			LayoutSet layoutSet = _layoutSetLocalService.getLayoutSet(
@@ -880,7 +913,7 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		return addLayoutPageTemplateEntry(
 			layoutPrototype.getUserId(), groupId, 0, 0, 0,
 			nameMap.get(defaultLocale),
-			LayoutPageTemplateEntryTypeConstants.TYPE_WIDGET_PAGE, 0, false,
+			LayoutPageTemplateEntryTypeConstants.WIDGET_PAGE, 0, false,
 			layoutPrototype.getLayoutPrototypeId(), layout.getPlid(), 0, status,
 			new ServiceContext());
 	}
@@ -965,9 +998,9 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 	}
 
 	private String _getUniqueCopyName(
-		long groupId, String sourceName, int type, Locale locale) {
+		long groupId, String sourceName, int type) {
 
-		String copy = _language.get(locale, "copy");
+		String copy = _language.get(LocaleUtil.getSiteDefault(), "copy");
 
 		String name = StringUtil.appendParentheticalSuffix(sourceName, copy);
 
@@ -1051,7 +1084,7 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		}
 
 		if (Objects.equals(name, "Blank") &&
-			(type == LayoutPageTemplateEntryTypeConstants.TYPE_MASTER_LAYOUT)) {
+			(type == LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT)) {
 
 			throw new LayoutPageTemplateEntryNameException.MustNotBeDuplicate(
 				groupId, name);
@@ -1078,9 +1111,6 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 
 	@Reference
 	private DDMStructureLinkLocalService _ddmStructureLinkLocalService;
-
-	@Reference
-	private DLFileEntryLocalService _dlFileEntryLocalService;
 
 	@Reference
 	private File _file;

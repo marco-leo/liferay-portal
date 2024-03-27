@@ -1,7 +1,6 @@
 @component-name = "liferay-sample-workspace"
 definition {
 
-	property custom.properties = "feature.flag.LPS-166479=true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property test.liferay.virtual.instance = "false";
@@ -35,10 +34,7 @@ definition {
 		}
 
 		task ("Assert each deployed Client Extension sample appears in the Client Extensions admin page with the correct table values") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Custom Apps",
-				panel = "Applications",
-				portlet = "Client Extensions");
+			ClientExtension.openClientExtensionsAdmin();
 
 			for (var clientExtensionCombo : list "Liferay Sample Custom Element 1/Custom Element,Liferay Sample Custom Element 2/Custom Element,Liferay Sample Global CSS/CSS,Liferay Sample Global JS/JS,Counter App/IFrame,Liferay Sample Theme CSS 1/Theme CSS,Liferay Sample Theme Favicon/Theme Favicon,Liferay Sample Theme Spritemap 1/Theme SVG Spritemap") {
 				var clientExtensionName = StringUtil.extractFirst(${clientExtensionCombo}, "/");
@@ -326,7 +322,7 @@ definition {
 		task ("Navigate to the Home page") {
 			var baseURL = PropsUtil.get("portal.url");
 
-			Open.openNoError(locator1 = "${baseURL}/web/guest/home");
+			Open.openNoError(value1 = "${baseURL}/web/guest/home");
 		}
 
 		task ("Assert an alert pops up that reads 'Sample Global JS deployed.'") {
@@ -429,7 +425,7 @@ definition {
 
 		task ("Assert the page is using the client extension sample favicon") {
 			AssertElementPresent(
-				imageFileName = "liferay-sample-theme-favicon/favicon.ico",
+				imageFileName = "liferay-sample-theme-favicon/favicon.",
 				locator1 = "Icon#FAVICON");
 		}
 	}

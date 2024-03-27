@@ -42,7 +42,6 @@ import com.puppycrawl.tools.checkstyle.api.FullIdent;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
 
 import java.io.File;
-import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1028,8 +1027,18 @@ public abstract class BaseCheck extends AbstractCheck {
 		DetailAST dotDetailAST = methodCallDetailAST.findFirstToken(
 			TokenTypes.DOT);
 
-		if (dotDetailAST == null) {
-			return null;
+		while (true) {
+			if (dotDetailAST == null) {
+				return null;
+			}
+
+			DetailAST firstChildDetailAST = dotDetailAST.getFirstChild();
+
+			if (firstChildDetailAST.getType() != TokenTypes.METHOD_CALL) {
+				break;
+			}
+
+			dotDetailAST = firstChildDetailAST.findFirstToken(TokenTypes.DOT);
 		}
 
 		return getName(dotDetailAST);
@@ -1501,17 +1510,10 @@ public abstract class BaseCheck extends AbstractCheck {
 		File file = new File(fileName);
 
 		if (file.exists()) {
-			try {
-				List<String> curImportNames =
-					JSPImportsFormatter.getImportNames(FileUtil.read(file));
+			List<String> curImportNames = JSPImportsFormatter.getImportNames(
+				FileUtil.read(file));
 
-				importNames.addAll(curImportNames);
-			}
-			catch (IOException ioException) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(ioException);
-				}
-			}
+			importNames.addAll(curImportNames);
 		}
 
 		int x = directoryName.lastIndexOf(CharPool.SLASH);

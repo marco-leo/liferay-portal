@@ -7,15 +7,13 @@ import ClayDatePicker from '@clayui/date-picker';
 import {ClayTooltipProvider} from '@clayui/tooltip';
 import {
 	createAutoCorrectedDatePipe,
-	generateDate,
-	generateDateConfigurations,
-	generateInputMask,
+	datetimeUtils,
 } from '@liferay/object-js-components-web';
 import moment from 'moment/min/moment-with-locales';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {createTextMaskInputElement} from 'text-mask-core';
 
-import {FieldBase} from '../FieldBase/ReactFieldBase.es';
+import FieldBase from '../FieldBase/ReactFieldBase.es';
 import {getTooltipTitle} from '../util/tooltip';
 
 export default function DatePicker({
@@ -47,7 +45,7 @@ export default function DatePicker({
 		serverFormat,
 		use12Hours,
 	} = useMemo(() => {
-		return generateDateConfigurations({
+		return datetimeUtils.generateDateConfigurations({
 			defaultLanguageId,
 			locale,
 			type,
@@ -115,7 +113,9 @@ export default function DatePicker({
 	 * Creates the input mask and update it whenever the format changes
 	 */
 	useEffect(() => {
-		const {mask, pipeFormat} = generateInputMask(momentFormat);
+		const {mask, pipeFormat} = datetimeUtils.generateInputMask(
+			momentFormat
+		);
 
 		maskRef.current = createTextMaskInputElement({
 			guide: true,
@@ -128,7 +128,7 @@ export default function DatePicker({
 	}, [momentFormat]);
 
 	const handleValueChange = (value) => {
-		const nextState = generateDate({
+		const nextState = datetimeUtils.generateDate({
 			isDateTime,
 			momentFormat,
 			serverFormat,
@@ -170,6 +170,7 @@ export default function DatePicker({
 			localizedValue={localizedValue}
 			name={name}
 			readOnly={readOnly}
+			type="date"
 			{...otherProps}
 		>
 			<ClayTooltipProvider autoAlign>
@@ -178,14 +179,28 @@ export default function DatePicker({
 					{...getTooltipTitle({placeholder, value: formattedDate})}
 				>
 					<ClayDatePicker
-						accessibleProps={{
-							'aria-required': otherProps.required,
+						aria-required={otherProps.required}
+						ariaLabels={{
+							buttonChooseDate: `${Liferay.Language.get(
+								'select-date'
+							)}`,
+							buttonDot: `${Liferay.Language.get(
+								'select-current-date'
+							)}`,
+							buttonNextMonth: `${Liferay.Language.get(
+								'select-next-month'
+							)}`,
+							buttonPreviousMonth: `${Liferay.Language.get(
+								'select-previous-month'
+							)}`,
+							dialog: `${Liferay.Language.get('select-date')}`,
 						}}
 						dateFormat={clayFormat}
 						dir={dir}
 						disabled={readOnly}
 						expanded={expanded}
 						firstDayOfWeek={firstDayOfWeek}
+						id={name}
 						months={months}
 						onBlur={onBlur}
 						onChange={handleValueChange}

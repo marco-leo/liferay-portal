@@ -61,7 +61,6 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -681,8 +680,7 @@ public class TemplateInfoItemFieldSetProviderTest {
 			infoField.getName());
 
 		_assertExpectedNames(
-			(String)infoFieldValue.getValue(LocaleUtil.US),
-			StringUtil.toLowerCase(tagName1), StringUtil.toLowerCase(tagName2));
+			(String)infoFieldValue.getValue(LocaleUtil.US), tagName1, tagName2);
 	}
 
 	@Test

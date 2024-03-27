@@ -5,6 +5,8 @@
 
 package com.liferay.source.formatter.processor;
 
+import com.liferay.petra.string.StringBundler;
+
 import org.junit.Test;
 
 /**
@@ -299,6 +301,31 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testIncorrectInitialRequestPortalInstanceLifecycleListener()
+		throws Exception {
+
+		test(
+			"IncorrectInitialRequestPortalInstanceLifecycleListener1.testjava",
+			StringBundler.concat(
+				"Missing 'activate(BundleContext bundleContext)' method with ",
+				"'@Activate' annotation that calls ",
+				"'super.activate(bundleContext)'"));
+
+		test(
+			SourceProcessorTestParameters.create(
+				"IncorrectInitialRequestPortalInstanceLifecycleListener2." +
+					"testjava"
+			).addExpectedMessage(
+				"The 'activate' method is missing the '@Override' annotation",
+				22
+			).addExpectedMessage(
+				"The 'activate' method must call 'super.activate(" +
+					"bundleContext)'",
+				22
+			));
+	}
+
+	@Test
 	public void testIncorrectOperatorOrder() throws Exception {
 		test(
 			SourceProcessorTestParameters.create(
@@ -355,6 +382,23 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 				"Parameter 'TestString' must match pattern " +
 					"'^[a-z][_a-zA-Z0-9]*$'",
 				19
+			));
+	}
+
+	@Test
+	public void testIncorrectReferenceCardinality() throws Exception {
+		test(
+			SourceProcessorTestParameters.create(
+				"IncorrectReferenceCardinality.testjava"
+			).addExpectedMessage(
+				"Use Snapshot instead of 'cardinality = ReferenceCardinality." +
+					"OPTIONAL', see LPS-184625",
+				20
+			).addExpectedMessage(
+				"When using 'cardinality = ReferenceCardinality.OPTIONAL' " +
+					"and 'policyOption = ReferencePolicyOption.GREEDY', " +
+						"always use 'policy = ReferencePolicy.DYNAMIC' as well",
+				20
 			));
 	}
 
@@ -473,6 +517,18 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testMethodEquals() throws Exception {
+		test(
+			SourceProcessorTestParameters.create(
+				"MethodEquals.testjava"
+			).addExpectedMessage(
+				"Use 'Objects.equals' instead of calling 'equals' on method", 15
+			).addExpectedMessage(
+				"Use 'Objects.equals' instead of calling 'equals' on method", 21
+			));
+	}
+
+	@Test
 	public void testMissingAuthor() throws Exception {
 		test("MissingAuthor.testjava", "Missing author", 11);
 	}
@@ -563,16 +619,6 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
-	public void testMissingReferencePolicyDynamic() throws Exception {
-		test(
-			"MissingReferencePolicyDynamic.testjava",
-			"When using 'cardinality = ReferenceCardinality.OPTIONAL' and " +
-				"'policyOption = ReferencePolicyOption.GREEDY', always use " +
-					"'policy = ReferencePolicy.DYNAMIC' as well",
-			21);
-	}
-
-	@Test
 	public void testMissingSerialVersionUID() throws Exception {
 		test(
 			"MissingSerialVersionUID.testjava",
@@ -636,6 +682,15 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testReadabilityImprovement() throws Exception {
+		test(
+			"ReadabilityImprovement.testjava",
+			"Create a new variable for the left hand side operand of the '+' " +
+				"operator for better readability",
+			14);
+	}
+
+	@Test
 	public void testRedundantCommas() throws Exception {
 		test("RedundantCommas.testjava");
 	}
@@ -691,22 +746,6 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	@Test
 	public void testSimplifyListUtilCalls() throws Exception {
 		test("SimplifyListUtilCalls.testjava");
-	}
-
-	@Test
-	public void testSingleStatementClause() throws Exception {
-		test(
-			SourceProcessorTestParameters.create(
-				"SingleStatementClause.testjava"
-			).addExpectedMessage(
-				"Use braces around if-statement clause", 14
-			).addExpectedMessage(
-				"Use braces around while-statement clause", 19
-			).addExpectedMessage(
-				"Use braces around for-statement clause", 22
-			).addExpectedMessage(
-				"Use braces around if-statement clause", 25
-			));
 	}
 
 	@Test

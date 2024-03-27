@@ -7,7 +7,7 @@ import {KeyedMutator, mutate} from 'swr';
 
 import Dropdown from '../../../common/components/Dropdown';
 import {DropdownOption} from '../../../common/components/Dropdown/Dropdown';
-import StatusBadge from '../../../common/components/StatusBadge';
+import StatusLabel from '../../../common/components/StatusLabel';
 import {MDFColumnKey} from '../../../common/enums/mdfColumnKey';
 import {PermissionActionType} from '../../../common/enums/permissionActionType';
 import {PRMPageRoute} from '../../../common/enums/prmPageRoute';
@@ -19,6 +19,7 @@ import LiferayItems from '../../../common/services/liferay/common/interfaces/lif
 import deleteObjectEntry from '../../../common/services/liferay/object/deleteObjectEntry/deleteObjectEntry';
 import {ResourceName} from '../../../common/services/liferay/object/enum/resourceName';
 import {Status} from '../../../common/utils/constants/status';
+import patchRequestStatus from '../../MDFRequestManagerStatus/util/patchRequestStatus';
 
 export default function getMDFListColumns(
 	hasUserAccountSameAccountEntryCurrentMDFRequest: (
@@ -26,7 +27,8 @@ export default function getMDFListColumns(
 	) => boolean | undefined,
 	siteURL: string,
 	actions?: PermissionActionType[],
-	mutated?: KeyedMutator<LiferayItems<MDFRequestDTO[]>>
+	mutated?: KeyedMutator<LiferayItems<MDFRequestDTO[]>>,
+	isChannel?: boolean
 ): TableColumn<MDFRequestListItem>[] | undefined {
 	const getDropdownOptions = (row: MDFRequestListItem, index: number) => {
 		const isUserAssociated = hasUserAccountSameAccountEntryCurrentMDFRequest(
@@ -39,8 +41,13 @@ export default function getMDFListColumns(
 					row[MDFColumnKey.STATUS] === Status.DRAFT.name ||
 					row[MDFColumnKey.STATUS] === Status.REQUEST_MORE_INFO.name;
 
-				const currentMDFRequestHasValidStatusToDelete =
-					row[MDFColumnKey.STATUS] === Status.DRAFT.name;
+				const currentMDFRequestHasValidStatusToRemove =
+					(isChannel &&
+						currentValue === PermissionActionType.DELETE &&
+						row.STATUS === 'Approved') ||
+					(!isChannel &&
+						currentValue === PermissionActionType.DELETE &&
+						row.STATUS === 'Draft');
 
 				if (currentValue === PermissionActionType.VIEW) {
 					previousValue.push({
@@ -49,7 +56,11 @@ export default function getMDFListColumns(
 						label: ' View',
 						onClick: () =>
 							Liferay.Util.navigate(
-								`${siteURL}/l/${row[MDFColumnKey.ID]}`
+								`${siteURL}/l/${
+									row[MDFColumnKey.ID]
+								}?p_l_back_url=${encodeURIComponent(
+									Liferay.ThemeDisplay.getLayoutRelativeURL()
+								)}`
 							),
 					});
 				}
@@ -75,16 +86,50 @@ export default function getMDFListColumns(
 				}
 
 				if (
-					currentValue === PermissionActionType.DELETE &&
-					currentMDFRequestHasValidStatusToDelete
+					currentValue === PermissionActionType.CANCEL &&
+					row[MDFColumnKey.STATUS] === Status.APPROVED.name
 				) {
+					previousValue.push({
+						icon: 'block',
+						key: Status.CANCELED.key,
+						label: ' Cancel',
+						onClick: () => {
+							Liferay.Util.openConfirmModal({
+								message:
+									'Are you sure you want to cancel the MDF request?',
+								onConfirm: async (isConfirmed: boolean) => {
+									if (isConfirmed) {
+										const newRequestStatus = await patchRequestStatus(
+											Status.CANCELED,
+											String(row[MDFColumnKey.ID])
+										);
+
+										if (newRequestStatus) {
+											Liferay.Util.openToast({
+												message:
+													'MDF Request successfully canceled!',
+												title: 'Success',
+												type: 'success',
+											});
+										}
+
+										mutate(mutated);
+									}
+								},
+							});
+						},
+					});
+				}
+
+				if (currentMDFRequestHasValidStatusToRemove) {
 					previousValue.push({
 						icon: 'trash',
 						key: 'delete',
 						label: ' Delete',
 						onClick: () => {
 							Liferay.Util.openConfirmModal({
-								message: 'Are you sure?',
+								message:
+									'Are you sure you want to delete this MDF record?',
 								onConfirm: async (isConfirmed: boolean) => {
 									if (isConfirmed) {
 										try {
@@ -123,7 +168,11 @@ export default function getMDFListColumns(
 		);
 
 		return (
-			<Dropdown closeOnClick={true} options={options || []}></Dropdown>
+			<Dropdown
+				closeOnClick={true}
+				icon="ellipsis-v"
+				options={options || []}
+			></Dropdown>
 		);
 	};
 
@@ -134,58 +183,85 @@ export default function getMDFListColumns(
 			render: (data, row) => (
 				<a
 					className="link"
-					onClick={() =>
-						Liferay.Util.navigate(
-							`${siteURL}/l/${row[MDFColumnKey.ID]}`
-						)
-					}
-				>{`Request-${data}`}</a>
+					href={`${siteURL}/l/${
+						row[MDFColumnKey.ID]
+					}?p_l_back_url=${encodeURIComponent(
+						Liferay.ThemeDisplay.getLayoutRelativeURL()
+					)}`}
+				>
+					{data}
+				</a>
 			),
-		},
-		{
-			columnKey: MDFColumnKey.STATUS,
-			label: 'Status',
-			render: (data) => <StatusBadge status={data as string} />,
-		},
-		{
-			columnKey: MDFColumnKey.ACTIVITY_PERIOD,
-			label: 'Activity Period',
 		},
 		{
 			columnKey: MDFColumnKey.PARTNER,
 			label: 'Partner',
+			size: 'md',
 		},
 		{
-			columnKey: MDFColumnKey.TOTAL_COST,
-			label: 'Total Cost',
+			columnKey: MDFColumnKey.STATUS,
+			label: 'Status',
+			render: (data) => <StatusLabel status={data as string} />,
 		},
 		{
 			columnKey: MDFColumnKey.NAME,
-			label: 'Name',
+			label: 'Campaign Name',
+			size: 'sm',
+		},
+		{
+			columnKey: MDFColumnKey.ACTIVITY_PERIOD,
+			label: 'Activity Period',
+			wrap: true,
 		},
 		{
 			columnKey: MDFColumnKey.REQUESTED,
 			label: 'Requested',
 		},
 		{
-			columnKey: MDFColumnKey.APPROVED,
-			label: 'Approved',
-		},
-		{
 			columnKey: MDFColumnKey.AMOUNT_CLAIMED,
-			label: 'Amout Claimed',
+			label: (
+				<div>
+					<p className="mb-0 mt-4 text-neutral-10">Amount Claimed</p>
+					<p className="mt-0 text-neutral-5 text-paragraph-sm">
+						Amount Paid
+					</p>
+				</div>
+			),
+			render: (_, row) => (
+				<div>
+					<p className="border-0 font-weight-normal mb-0">
+						{row['AMOUNT-CLAIMED']}
+					</p>
+					<p className="mb-0 mt-0 text-neutral-7 text-paragraph-sm">
+						{row['AMOUNT-PAID']}
+					</p>
+				</div>
+			),
 		},
 		{
-			columnKey: MDFColumnKey.PAID,
-			label: 'Paid',
+			columnKey: MDFColumnKey.BALANCE,
+			label: 'Balance',
 		},
 		{
 			columnKey: MDFColumnKey.DATE_SUBMITTTED,
-			label: 'Date Submitted',
-		},
-		{
-			columnKey: MDFColumnKey.LAST_MODIFIED,
-			label: 'Last Modified',
+			label: (
+				<div>
+					<p className="mb-0 mt-4 text-neutral-10">Submit Date</p>
+					<p className="mt-0 text-neutral-5 text-paragraph-sm">
+						Last Modified Date
+					</p>
+				</div>
+			),
+			render: (_, row) => (
+				<div>
+					<p className="border-0 font-weight-normal mb-0">
+						{row['DATE-SUBMITTED']}
+					</p>
+					<p className="mb-0 mt-0 text-neutral-7 text-paragraph-sm">
+						{row['LAST-MODIFIED']}
+					</p>
+				</div>
+			),
 		},
 		{
 			columnKey: MDFColumnKey.ACTION,

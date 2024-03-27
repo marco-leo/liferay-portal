@@ -113,6 +113,7 @@ create table CommerceOrder (
 	printedNote STRING null,
 	purchaseOrderNumber VARCHAR(75) null,
 	requestedDeliveryDate DATE null,
+	shippable BOOLEAN,
 	shippingAmount BIGDECIMAL null,
 	shippingDiscountAmount BIGDECIMAL null,
 	shippingDiscountPercentLevel1 BIGDECIMAL null,
@@ -354,7 +355,8 @@ create table CommerceShippingMethod (
 	engineKey VARCHAR(75) null,
 	imageId LONG,
 	priority DOUBLE,
-	trackingURL STRING null
+	trackingURL STRING null,
+	typeSettings TEXT null
 );
 
 create table CommerceSubscriptionEntry (

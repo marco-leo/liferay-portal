@@ -28,8 +28,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
@@ -37,6 +35,7 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -303,7 +302,7 @@ public abstract class BaseDataRecordCollectionResourceTestCase {
 					dataDefinitionId, RandomTestUtil.randomString(),
 					Pagination.of(1, 10));
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantDataDefinitionId != null) {
 			DataRecordCollection irrelevantDataRecordCollection =
@@ -314,12 +313,13 @@ public abstract class BaseDataRecordCollectionResourceTestCase {
 			page =
 				dataRecordCollectionResource.
 					getDataDefinitionDataRecordCollectionsPage(
-						irrelevantDataDefinitionId, null, Pagination.of(1, 2));
+						irrelevantDataDefinitionId, null,
+						Pagination.of(1, (int)totalCount + 1));
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantDataRecordCollection),
+			assertContains(
+				irrelevantDataRecordCollection,
 				(List<DataRecordCollection>)page.getItems());
 			assertValid(
 				page,
@@ -340,11 +340,12 @@ public abstract class BaseDataRecordCollectionResourceTestCase {
 				getDataDefinitionDataRecordCollectionsPage(
 					dataDefinitionId, null, Pagination.of(1, 10));
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(dataRecordCollection1, dataRecordCollection2),
-			(List<DataRecordCollection>)page.getItems());
+		assertContains(
+			dataRecordCollection1, (List<DataRecordCollection>)page.getItems());
+		assertContains(
+			dataRecordCollection2, (List<DataRecordCollection>)page.getItems());
 		assertValid(
 			page,
 			testGetDataDefinitionDataRecordCollectionsPage_getExpectedActions(
@@ -384,6 +385,14 @@ public abstract class BaseDataRecordCollectionResourceTestCase {
 		Long dataDefinitionId =
 			testGetDataDefinitionDataRecordCollectionsPage_getDataDefinitionId();
 
+		Page<DataRecordCollection> dataRecordCollectionPage =
+			dataRecordCollectionResource.
+				getDataDefinitionDataRecordCollectionsPage(
+					dataDefinitionId, null, null);
+
+		int totalCount = GetterUtil.getInteger(
+			dataRecordCollectionPage.getTotalCount());
+
 		DataRecordCollection dataRecordCollection1 =
 			testGetDataDefinitionDataRecordCollectionsPage_addDataRecordCollection(
 				dataDefinitionId, randomDataRecordCollection());
@@ -396,42 +405,94 @@ public abstract class BaseDataRecordCollectionResourceTestCase {
 			testGetDataDefinitionDataRecordCollectionsPage_addDataRecordCollection(
 				dataDefinitionId, randomDataRecordCollection());
 
-		Page<DataRecordCollection> page1 =
-			dataRecordCollectionResource.
-				getDataDefinitionDataRecordCollectionsPage(
-					dataDefinitionId, null, Pagination.of(1, 2));
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<DataRecordCollection> dataRecordCollections1 =
-			(List<DataRecordCollection>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(
-			dataRecordCollections1.toString(), 2,
-			dataRecordCollections1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<DataRecordCollection> page1 =
+				dataRecordCollectionResource.
+					getDataDefinitionDataRecordCollectionsPage(
+						dataDefinitionId, null,
+						Pagination.of(
+							(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+							pageSizeLimit));
 
-		Page<DataRecordCollection> page2 =
-			dataRecordCollectionResource.
-				getDataDefinitionDataRecordCollectionsPage(
-					dataDefinitionId, null, Pagination.of(2, 2));
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(3, page2.getTotalCount());
+			assertContains(
+				dataRecordCollection1,
+				(List<DataRecordCollection>)page1.getItems());
 
-		List<DataRecordCollection> dataRecordCollections2 =
-			(List<DataRecordCollection>)page2.getItems();
+			Page<DataRecordCollection> page2 =
+				dataRecordCollectionResource.
+					getDataDefinitionDataRecordCollectionsPage(
+						dataDefinitionId, null,
+						Pagination.of(
+							(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+							pageSizeLimit));
 
-		Assert.assertEquals(
-			dataRecordCollections2.toString(), 1,
-			dataRecordCollections2.size());
+			assertContains(
+				dataRecordCollection2,
+				(List<DataRecordCollection>)page2.getItems());
 
-		Page<DataRecordCollection> page3 =
-			dataRecordCollectionResource.
-				getDataDefinitionDataRecordCollectionsPage(
-					dataDefinitionId, null, Pagination.of(1, 3));
+			Page<DataRecordCollection> page3 =
+				dataRecordCollectionResource.
+					getDataDefinitionDataRecordCollectionsPage(
+						dataDefinitionId, null,
+						Pagination.of(
+							(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+							pageSizeLimit));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(
-				dataRecordCollection1, dataRecordCollection2,
-				dataRecordCollection3),
-			(List<DataRecordCollection>)page3.getItems());
+			assertContains(
+				dataRecordCollection3,
+				(List<DataRecordCollection>)page3.getItems());
+		}
+		else {
+			Page<DataRecordCollection> page1 =
+				dataRecordCollectionResource.
+					getDataDefinitionDataRecordCollectionsPage(
+						dataDefinitionId, null,
+						Pagination.of(1, totalCount + 2));
+
+			List<DataRecordCollection> dataRecordCollections1 =
+				(List<DataRecordCollection>)page1.getItems();
+
+			Assert.assertEquals(
+				dataRecordCollections1.toString(), totalCount + 2,
+				dataRecordCollections1.size());
+
+			Page<DataRecordCollection> page2 =
+				dataRecordCollectionResource.
+					getDataDefinitionDataRecordCollectionsPage(
+						dataDefinitionId, null,
+						Pagination.of(2, totalCount + 2));
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<DataRecordCollection> dataRecordCollections2 =
+				(List<DataRecordCollection>)page2.getItems();
+
+			Assert.assertEquals(
+				dataRecordCollections2.toString(), 1,
+				dataRecordCollections2.size());
+
+			Page<DataRecordCollection> page3 =
+				dataRecordCollectionResource.
+					getDataDefinitionDataRecordCollectionsPage(
+						dataDefinitionId, null,
+						Pagination.of(1, (int)totalCount + 3));
+
+			assertContains(
+				dataRecordCollection1,
+				(List<DataRecordCollection>)page3.getItems());
+			assertContains(
+				dataRecordCollection2,
+				(List<DataRecordCollection>)page3.getItems());
+			assertContains(
+				dataRecordCollection3,
+				(List<DataRecordCollection>)page3.getItems());
+		}
 	}
 
 	protected DataRecordCollection
@@ -1215,6 +1276,10 @@ public abstract class BaseDataRecordCollectionResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -1427,9 +1492,9 @@ public abstract class BaseDataRecordCollectionResourceTestCase {
 	}
 
 	protected DataRecordCollectionResource dataRecordCollectionResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

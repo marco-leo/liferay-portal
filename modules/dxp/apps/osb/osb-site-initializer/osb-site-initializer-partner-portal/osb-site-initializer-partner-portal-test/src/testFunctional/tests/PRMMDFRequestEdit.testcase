@@ -1,4 +1,4 @@
-@component-name = "OSB Site Initializer Partner Portal"
+@component-name = "portal-solutions"
 definition {
 
 	property custom.properties = "feature.flag.LPS-135430=true";
@@ -6,6 +6,7 @@ definition {
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
+	property test.liferay.virtual.instance = "true";
 	property testray.main.component.name = "OSB Site Initializer Partner Portal";
 
 	setUp {
@@ -365,6 +366,7 @@ definition {
 	@description = "This is a test for LPS-187090. Verify that the PMU can edit an MDF in 'Draft' Status"
 	@priority = 5
 	test PMUCanEditMDFInDraftStatus {
+		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 
@@ -399,6 +401,8 @@ definition {
 				newActivity = "Activity Name Added",
 				tactic = "Other",
 				typeOfActivity = "Miscellaneous Marketing");
+
+			Button.click(button = "See MDF Home");
 		}
 
 		task ("Then the MDF information will be updated") {
@@ -438,6 +442,8 @@ definition {
 				campaignName = "Campaign Name Edited",
 				newActivityName = "Activity Name Edited",
 				newBugdetValue = 2000);
+
+			Button.click(button = "See MDF Home");
 		}
 
 		task ("Then the information will be updated") {

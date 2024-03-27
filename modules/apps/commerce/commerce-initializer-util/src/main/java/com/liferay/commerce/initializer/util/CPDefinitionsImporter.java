@@ -791,7 +791,7 @@ public class CPDefinitionsImporter {
 			addCPDefinitionSpecificationOptionValue(
 				cpDefinitionId,
 				cpSpecificationOption.getCPSpecificationOptionId(),
-				cpOptionCategoryId, valueMap, priority, serviceContext);
+				cpOptionCategoryId, priority, valueMap, serviceContext);
 	}
 
 	private CPInstance _importCPInstance(
@@ -938,10 +938,9 @@ public class CPDefinitionsImporter {
 
 				return _cpdAvailabilityEstimateLocalService.
 					updateCPDAvailabilityEstimateByCProductId(
-						0, cProductId,
+						serviceContext.getUserId(), 0, cProductId,
 						commerceAvailabilityEstimate.
-							getCommerceAvailabilityEstimateId(),
-						serviceContext);
+							getCommerceAvailabilityEstimateId());
 			}
 		}
 
@@ -954,10 +953,9 @@ public class CPDefinitionsImporter {
 
 		return _cpdAvailabilityEstimateLocalService.
 			updateCPDAvailabilityEstimateByCProductId(
-				0, cProductId,
+				serviceContext.getUserId(), 0, cProductId,
 				commerceAvailabilityEstimate.
-					getCommerceAvailabilityEstimateId(),
-				serviceContext);
+					getCommerceAvailabilityEstimateId());
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

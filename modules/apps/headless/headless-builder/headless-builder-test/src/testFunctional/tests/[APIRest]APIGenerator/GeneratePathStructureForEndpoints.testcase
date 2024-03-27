@@ -1,7 +1,7 @@
 @component-name = "portal-headless"
 definition {
 
-	property custom.properties = "feature.flag.LPS-167253=true${line.separator}feature.flag.LPS-178642=true";
+	property custom.properties = "feature.flag.LPS-178642=true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.component.names = "Object";
@@ -87,7 +87,6 @@ definition {
 		task ("Given creating an API application") {
 			var response = ApplicationAPI.createAPIApplication(
 				baseURL = "app-test",
-				status = "unpublished",
 				title = "App-test");
 		}
 
@@ -105,8 +104,8 @@ definition {
 
 			APIBuilderUI.createAPIEndpoint(
 				applicationId = ${applicationId},
-				name = "testEndpoint",
-				path = "/testEndpoint");
+				name = "testendpoint",
+				pathCP = "/testendpoint");
 		}
 
 		task ("Then I can see endpoint is created with correct path") {
@@ -117,7 +116,7 @@ definition {
 				title = "App-test");
 
 			AssertElementPresent(
-				key_name = "/testEndpoint/",
+				key_name = "/testendpoint/",
 				locator1 = "ObjectAdmin#TABLE_LIST_TITLE");
 		}
 	}
@@ -156,7 +155,6 @@ definition {
 		task ("Given creating an API application") {
 			var response = ApplicationAPI.createAPIApplication(
 				baseURL = "app-test",
-				status = "unpublished",
 				title = "App-test");
 		}
 
@@ -174,8 +172,8 @@ definition {
 
 			APIBuilderUI.createAPIEndpoint(
 				applicationId = ${applicationId},
-				name = "testEndpoint",
-				path = "testEndpoint");
+				name = "testendpoint",
+				pathCP = "testendpoint");
 		}
 
 		task ("Then I can see error message") {
@@ -188,7 +186,7 @@ definition {
 				title = "App-test");
 
 			AssertElementNotPresent(
-				key_name = "/testEndpoint/",
+				key_name = "/testendpoint/",
 				locator1 = "ObjectAdmin#TABLE_LIST_TITLE");
 		}
 	}
@@ -202,10 +200,9 @@ definition {
 		task ("Given with postAPIApplication including apiApplicationToAPIEndpoints and path to create an API application with its endpoint") {
 			ApplicationAPI.createAPIApplication(
 				baseURL = "app-test",
-				endpointName = "testEndpoint",
-				endpointPath = "/testEndpoint",
+				endpointName = "testendpoint",
+				endpointPath = "/testendpoint",
 				relatedEndpoint = "true",
-				status = "unpublished",
 				title = "App-test");
 		}
 
@@ -217,7 +214,7 @@ definition {
 
 		task ("Then I can see correct path") {
 			AssertElementPresent(
-				key_name = "/testEndpoint/",
+				key_name = "/testendpoint/",
 				locator1 = "ObjectAdmin#TABLE_LIST_TITLE");
 		}
 	}
@@ -231,8 +228,8 @@ definition {
 		task ("Given with postAPIApplication including apiApplicationToAPIEndpoints and path to create an published API application with its endpoint") {
 			ApplicationAPI.createAPIApplication(
 				baseURL = "app-test",
-				endpointName = "testEndpoint",
-				endpointPath = "/testEndpoint",
+				endpointName = "testendpoint",
+				endpointPath = "/testendpoint",
 				relatedEndpoint = "true",
 				status = "published",
 				title = "App-test");
@@ -245,9 +242,9 @@ definition {
 		task ("Then I can see '/{path}' is present under get{Endpoint}Page") {
 			AssertTextEquals.assertPartialText(
 				locator1 = "OpenAPI#API_METHOD",
-				method = "getTestEndpointPage",
+				method = "getTestendpointPage",
 				service = "default",
-				value1 = "/testEndpoint");
+				value1 = "/testendpoint");
 		}
 	}
 
@@ -259,7 +256,6 @@ definition {
 		task ("Given creating an API application") {
 			var response = ApplicationAPI.createAPIApplication(
 				baseURL = "app-test",
-				status = "unpublished",
 				title = "App-test");
 		}
 

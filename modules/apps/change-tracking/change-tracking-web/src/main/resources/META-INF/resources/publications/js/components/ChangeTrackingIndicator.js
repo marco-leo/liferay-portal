@@ -11,21 +11,25 @@ import ClayList from '@clayui/list';
 import ClayModal, {useModal} from '@clayui/modal';
 import ClayPopover from '@clayui/popover';
 import ClaySticker from '@clayui/sticker';
-import {navigate as navigateUtil, openConfirmModal} from 'frontend-js-web';
-import React, {useState} from 'react';
+import {
+	createPortletURL,
+	fetch,
+	navigate as navigateUtil,
+	openConfirmModal,
+} from 'frontend-js-web';
+import React, {useEffect, useState} from 'react';
 
 import PublicationTimeline from './PublicationTimeline';
 import PublicationsSearchContainer from './PublicationsSearchContainer';
 
 export default function ChangeTrackingIndicator({
 	checkoutDropdownItem,
-	conflictIconClass,
-	conflictIconLabel,
-	conflictIconName,
 	createDropdownItem,
+	getConflictInfoURL,
 	getSelectPublicationsURL,
 	iconClass,
 	iconName,
+	namespace,
 	orderByAscending,
 	orderByColumn,
 	preferencesPrefix,
@@ -34,7 +38,7 @@ export default function ChangeTrackingIndicator({
 	spritemap,
 	timelineIconClass,
 	timelineIconName,
-	timelineItems,
+	timelineItemsURL,
 	title,
 	warningBody,
 	warningButton,
@@ -54,22 +58,17 @@ export default function ChangeTrackingIndicator({
 	);
 
 	const navigate = (url, action) => {
-		AUI().use('liferay-portlet-url', () => {
-			const portletURL = Liferay.PortletURL.createURL(url);
-
-			portletURL.setParameter(
-				'redirect',
-				window.location.pathname + window.location.search
-			);
-
-			if (action) {
-				submitForm(document.hrefFm, portletURL.toString());
-
-				return;
-			}
-
-			navigateUtil(portletURL.toString());
+		const portletURL = createPortletURL(url, {
+			redirect: window.location.pathname + window.location.search,
 		});
+
+		if (action) {
+			submitForm(document.hrefFm, portletURL.toString());
+
+			return;
+		}
+
+		navigateUtil(portletURL);
 	};
 
 	const dropdownItems = [];
@@ -325,6 +324,7 @@ export default function ChangeTrackingIndicator({
 						fetchDataURL={getSelectPublicationsURL}
 						filterEntries={filterEntries}
 						getListItem={getListItem}
+						namespace={namespace}
 						orderByItems={[
 							{
 								label: Liferay.Language.get('modified-date'),
@@ -346,6 +346,32 @@ export default function ChangeTrackingIndicator({
 		);
 	};
 
+	const [fetchData, setFetchData] = useState(null);
+	const [conflictIconClass, setConflictIconClass] = useState(null);
+	const [conflictIconLabel, setConflictIconLabel] = useState(null);
+	const [conflictIconName, setConflictIconName] = useState(null);
+
+	useEffect(() => {
+		if (getConflictInfoURL) {
+			fetch(createPortletURL(getConflictInfoURL))
+				.then((response) => response.json())
+				.then((json) => {
+					if (json) {
+						setConflictIconClass(json.conflictIconClass);
+						setConflictIconLabel(json.conflictIconLabel);
+						setConflictIconName(json.conflictIconName);
+					}
+				})
+				.catch(() => {
+					setFetchData({
+						errorMessage: Liferay.Language.get(
+							'an-unexpected-error-occurred'
+						),
+					});
+				});
+		}
+	}, [getConflictInfoURL]);
+
 	const renderConflictIcon = () => {
 		if (conflictIconClass && conflictIconName) {
 			return (
@@ -363,6 +389,7 @@ export default function ChangeTrackingIndicator({
 			<ClayDropDownWithItems
 				alignmentPosition={Align.BottomCenter}
 				items={dropdownItems}
+				menuElementAttrs={{style: {zIndex: 1021}}}
 				trigger={renderTrigger}
 			/>
 		);
@@ -441,9 +468,7 @@ export default function ChangeTrackingIndicator({
 									}}
 									size="xs"
 								>
-									{Liferay.Language.get(
-										'work-on-publication'
-									)}
+									{Liferay.Language.get('work-on-production')}
 								</ClayButton>
 							)}
 						</ClayLayout.Col>
@@ -464,10 +489,11 @@ export default function ChangeTrackingIndicator({
 	);
 
 	const renderTimeline = () => {
-		if (timelineItems) {
+		if (timelineItemsURL !== null) {
 			return (
 				<ClayDropDown
 					alignmentPosition={Align.BottomCenter}
+					renderMenuOnClick
 					trigger={
 						<ClayButton
 							aria-controls="publication-timeline-dropdown"
@@ -480,7 +506,10 @@ export default function ChangeTrackingIndicator({
 						</ClayButton>
 					}
 				>
-					<PublicationTimeline timelineItems={timelineItems} />
+					<PublicationTimeline
+						namespace={namespace}
+						timelineItemsURL={timelineItemsURL}
+					/>
 				</ClayDropDown>
 			);
 		}

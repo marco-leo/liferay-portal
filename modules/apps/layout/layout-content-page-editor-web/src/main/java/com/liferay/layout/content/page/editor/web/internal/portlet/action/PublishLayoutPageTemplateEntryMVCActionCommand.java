@@ -79,12 +79,12 @@ public class PublishLayoutPageTemplateEntryMVCActionCommand
 		String key = "layoutPageTemplatePublished";
 
 		if (layoutPageTemplateEntry.getType() ==
-				LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE) {
+				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE) {
 
 			key = "displayPagePublished";
 		}
 		else if (layoutPageTemplateEntry.getType() ==
-					LayoutPageTemplateEntryTypeConstants.TYPE_MASTER_LAYOUT) {
+					LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT) {
 
 			key = "masterPagePublished";
 		}
@@ -113,13 +113,13 @@ public class PublishLayoutPageTemplateEntryMVCActionCommand
 			Layout draftLayout, Layout layout)
 		throws Exception {
 
-		LayoutStructureUtil.deleteMarkedForDeletionItems(
-			draftLayout.getGroupId(), draftLayout.getPlid());
-
 		UnicodeProperties previousLayouTypeSettingsUnicodeProperties =
 			layout.getTypeSettingsProperties();
 
 		_layoutCopyHelper.copyLayoutContent(draftLayout, layout);
+
+		LayoutStructureUtil.deleteMarkedForDeletionItems(
+			draftLayout.getGroupId(), draftLayout.getPlid());
 
 		draftLayout = _layoutLocalService.fetchLayout(draftLayout.getPlid());
 
@@ -147,6 +147,10 @@ public class PublishLayoutPageTemplateEntryMVCActionCommand
 			WorkflowConstants.STATUS_APPROVED);
 
 		layout = _layoutLocalService.fetchLayout(layout.getPlid());
+
+		layout.setStatus(WorkflowConstants.STATUS_APPROVED);
+
+		layout = _layoutLocalService.updateLayout(layout);
 
 		_layoutLocalService.updateLayout(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),

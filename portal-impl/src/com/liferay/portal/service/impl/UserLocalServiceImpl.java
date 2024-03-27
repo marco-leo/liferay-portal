@@ -51,6 +51,7 @@ import com.liferay.portal.kernel.exception.UserPasswordException;
 import com.liferay.portal.kernel.exception.UserReminderQueryException;
 import com.liferay.portal.kernel.exception.UserScreenNameException;
 import com.liferay.portal.kernel.exception.UserSmsException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -75,6 +76,7 @@ import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.model.UserGroupRole;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.module.util.ServiceLatch;
 import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
@@ -102,7 +104,6 @@ import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.auth.ScreenNameGenerator;
 import com.liferay.portal.kernel.security.auth.ScreenNameValidator;
 import com.liferay.portal.kernel.security.ldap.LDAPSettingsUtil;
-import com.liferay.portal.kernel.security.membershippolicy.SiteMembershipPolicyUtil;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.pwd.PasswordEncryptorUtil;
@@ -159,7 +160,6 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -176,6 +176,7 @@ import com.liferay.portal.security.auth.EmailAddressValidatorFactory;
 import com.liferay.portal.security.auth.FullNameValidatorFactory;
 import com.liferay.portal.security.auth.ScreenNameGeneratorFactory;
 import com.liferay.portal.security.auth.ScreenNameValidatorFactory;
+import com.liferay.portal.security.membershippolicy.SiteMembershipPolicyUtil;
 import com.liferay.portal.security.pwd.PwdAuthenticator;
 import com.liferay.portal.security.pwd.PwdToolkitUtil;
 import com.liferay.portal.security.pwd.RegExpToolkit;
@@ -205,6 +206,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -240,6 +242,7 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 	 * @param  lastName the user's last name
 	 * @return the new default admin user
 	 */
+	@Override
 	public User addDefaultAdminUser(
 			long companyId, String password, String screenName,
 			String emailAddress, Locale locale, String firstName,
@@ -493,6 +496,7 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			new long[] {adminRole.getRoleId()}, null, false,
 			new ServiceContext());
 
+		defaultServiceAccountUser.setPasswordReset(false);
 		defaultServiceAccountUser.setEmailAddressVerified(true);
 
 		return userLocalService.updateUser(defaultServiceAccountUser);
@@ -3476,20 +3480,38 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 
 	@Override
 	public List<User> searchBySocial(
-		long companyId, long[] groupIds, String keywords, int start, int end) {
+		long companyId, long[] groupIds, long[] userGroupIds, String keywords,
+		int start, int end) {
 
-		return searchBySocial(companyId, groupIds, keywords, start, end, null);
+		return searchBySocial(
+			companyId, groupIds, userGroupIds, keywords, start, end, null);
 	}
 
 	@Override
 	public List<User> searchBySocial(
-		long companyId, long[] groupIds, String keywords, int start, int end,
-		OrderByComparator<User> orderByComparator) {
+		long companyId, long[] groupIds, long[] userGroupIds, String keywords,
+		int start, int end, OrderByComparator<User> orderByComparator) {
 
 		return userFinder.findByKeywords(
 			companyId, keywords, WorkflowConstants.STATUS_APPROVED,
 			LinkedHashMapBuilder.<String, Object>put(
-				"usersGroups", ArrayUtil.toLongArray(groupIds)
+				"usersGroups",
+				() -> {
+					if (!ArrayUtil.isEmpty(groupIds)) {
+						return ArrayUtil.toLongArray(groupIds);
+					}
+
+					return null;
+				}
+			).put(
+				"usersUserGroups",
+				() -> {
+					if (!ArrayUtil.isEmpty(userGroupIds)) {
+						return ArrayUtil.toLongArray(userGroupIds);
+					}
+
+					return null;
+				}
 			).put(
 				"wildcardMode", WildcardMode.TRAILING
 			).build(),
@@ -3891,6 +3913,104 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			mailTemplateContextBuilder.build());
 	}
 
+	@Override
+	public boolean sendEmailUserCreationAttempt(
+			long companyId, String emailAddress, String fromName,
+			String fromAddress, String subject, String body,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		emailAddress = StringUtil.toLowerCase(StringUtil.trim(emailAddress));
+
+		if (Validator.isNull(emailAddress)) {
+			throw new UserEmailAddressException.MustNotBeNull();
+		}
+
+		if (Validator.isNull(fromName)) {
+			fromName = PrefsPropsUtil.getString(
+				companyId, PropsKeys.ADMIN_EMAIL_FROM_NAME);
+		}
+
+		if (Validator.isNull(fromAddress)) {
+			fromAddress = PrefsPropsUtil.getString(
+				companyId, PropsKeys.ADMIN_EMAIL_FROM_ADDRESS);
+		}
+
+		User user = userPersistence.findByC_EA(companyId, emailAddress);
+
+		String toName = user.getFullName();
+		String toAddress = user.getEmailAddress();
+
+		PortletPreferences companyPortletPreferences =
+			PrefsPropsUtil.getPreferences(companyId);
+
+		String prefix = "adminEmailUserCreationAttempt";
+
+		String localizedBody = body;
+
+		if (Validator.isNull(body)) {
+			Map<Locale, String> localizedBodyMap =
+				LocalizationUtil.getLocalizationMap(
+					companyPortletPreferences, prefix + "Body",
+					PropsKeys.ADMIN_EMAIL_USER_CREATION_ATTEMPT_BODY);
+
+			localizedBody = _getLocalizedValue(
+				localizedBodyMap, user.getLocale(), LocaleUtil.getDefault());
+		}
+
+		String localizedSubject = subject;
+
+		if (Validator.isNull(subject)) {
+			String subjectProperty =
+				PropsKeys.ADMIN_EMAIL_USER_CREATION_ATTEMPT_SUBJECT;
+
+			Map<Locale, String> localizedSubjectMap =
+				LocalizationUtil.getLocalizationMap(
+					companyPortletPreferences, prefix + "Subject",
+					subjectProperty);
+
+			localizedSubject = _getLocalizedValue(
+				localizedSubjectMap, user.getLocale(), LocaleUtil.getDefault());
+		}
+
+		MailTemplateContextBuilder mailTemplateContextBuilder =
+			MailTemplateFactoryUtil.createMailTemplateContextBuilder();
+
+		mailTemplateContextBuilder.put("[$FROM_ADDRESS$]", fromAddress);
+		mailTemplateContextBuilder.put(
+			"[$FROM_NAME$]", new EscapableObject<>(fromName));
+		mailTemplateContextBuilder.put(
+			"[$PORTAL_URL$]", serviceContext.getPortalURL());
+		mailTemplateContextBuilder.put(
+			"[$REMOTE_ADDRESS$]", serviceContext.getRemoteAddr());
+		mailTemplateContextBuilder.put(
+			"[$REMOTE_HOST$]",
+			new EscapableObject<>(serviceContext.getRemoteHost()));
+		mailTemplateContextBuilder.put("[$TO_ADDRESS$]", toAddress);
+		mailTemplateContextBuilder.put(
+			"[$TO_FIRST_NAME$]", new EscapableObject<>(user.getFirstName()));
+		mailTemplateContextBuilder.put(
+			"[$TO_NAME$]", new EscapableObject<>(toName));
+		mailTemplateContextBuilder.put(
+			"[$USER_ID$]", String.valueOf(user.getUserId()));
+		mailTemplateContextBuilder.put(
+			"[$USER_SCREENNAME$]", new EscapableObject<>(user.getScreenName()));
+
+		MailTemplateContext mailTemplateContext =
+			mailTemplateContextBuilder.build();
+
+		try {
+			_sendNotificationEmail(
+				fromAddress, fromName, toAddress, user, localizedSubject,
+				localizedBody, mailTemplateContext);
+		}
+		catch (PortalException portalException) {
+			ReflectionUtil.throwException(portalException);
+		}
+
+		return false;
+	}
+
 	/**
 	 * Sends the password email to the user with the email address. The content
 	 * of this email can be specified in <code>portal.properties</code> with the
@@ -3926,29 +4046,38 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			throw new UserEmailAddressException.MustNotBeNull();
 		}
 
+		String passwordResetURL = null;
+
 		User user = userPersistence.findByC_EA(companyId, emailAddress);
 
 		PasswordPolicy passwordPolicy = user.getPasswordPolicy();
 
-		Date expirationDate = null;
+		if (passwordPolicy.isChangeable()) {
+			Date expirationDate = null;
 
-		if ((passwordPolicy != null) &&
-			(passwordPolicy.getResetTicketMaxAge() > 0)) {
+			if ((passwordPolicy != null) &&
+				(passwordPolicy.getResetTicketMaxAge() > 0)) {
 
-			expirationDate = new Date(
-				System.currentTimeMillis() +
-					(passwordPolicy.getResetTicketMaxAge() * 1000));
+				expirationDate = new Date(
+					System.currentTimeMillis() +
+						(passwordPolicy.getResetTicketMaxAge() * 1000));
+			}
+
+			Ticket ticket = _ticketLocalService.addDistinctTicket(
+				companyId, User.class.getName(), user.getUserId(),
+				TicketConstants.TYPE_PASSWORD, null, expirationDate,
+				serviceContext);
+
+			passwordResetURL = StringBundler.concat(
+				serviceContext.getPortalURL(), serviceContext.getPathMain(),
+				"/portal/update_password?p_l_id=", serviceContext.getPlid(),
+				"&ticketId=", ticket.getTicketId(), "&ticketKey=",
+				ticket.getKey());
+
+			ticket.setKey(PasswordEncryptorUtil.encrypt(ticket.getKey()));
+
+			_ticketLocalService.updateTicket(ticket);
 		}
-
-		Ticket ticket = _ticketLocalService.addDistinctTicket(
-			companyId, User.class.getName(), user.getUserId(),
-			TicketConstants.TYPE_PASSWORD, null, expirationDate,
-			serviceContext);
-
-		String passwordResetURL = StringBundler.concat(
-			serviceContext.getPortalURL(), serviceContext.getPathMain(),
-			"/portal/update_password?p_l_id=", serviceContext.getPlid(),
-			"&ticketKey=", ticket.getKey());
 
 		sendPasswordNotification(
 			user, companyId, null, passwordResetURL, fromName, fromAddress,
@@ -4446,6 +4575,33 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		return userPersistence.update(user);
 	}
 
+	@Indexable(type = IndexableType.REINDEX)
+	@Override
+	public User updateExternalReferenceCode(
+			long userId, String externalReferenceCode)
+		throws PortalException {
+
+		return updateExternalReferenceCode(
+			getUserById(userId), externalReferenceCode);
+	}
+
+	@Indexable(type = IndexableType.REINDEX)
+	@Override
+	public User updateExternalReferenceCode(
+			User user, String externalReferenceCode)
+		throws PortalException {
+
+		if (Objects.equals(
+				user.getExternalReferenceCode(), externalReferenceCode)) {
+
+			return user;
+		}
+
+		user.setExternalReferenceCode(externalReferenceCode);
+
+		return updateUser(user);
+	}
+
 	/**
 	 * Updates the user's Facebook ID.
 	 *
@@ -4703,6 +4859,17 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		_contactPersistence.update(contact);
 
 		return user;
+	}
+
+	@Override
+	public User updateLanguageId(long userId, String languageId)
+		throws PortalException {
+
+		User user = userPersistence.findByPrimaryKey(userId);
+
+		user.setLanguageId(languageId);
+
+		return userPersistence.update(user);
 	}
 
 	/**
@@ -4974,7 +5141,6 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		user.setPasswordUnencrypted(password1);
 		user.setPasswordEncrypted(true);
 		user.setPasswordReset(passwordReset);
-		user.setDigest(user.getDigest(password1));
 		user.setGraceLoginCount(0);
 
 		if (!silentUpdate) {
@@ -5052,7 +5218,6 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		user.setPasswordEncrypted(passwordEncrypted);
 		user.setPasswordReset(passwordReset);
 		user.setPasswordModifiedDate(passwordModifiedDate);
-		user.setDigest(user.getDigest(password));
 
 		user = userPersistence.update(user);
 
@@ -5095,11 +5260,14 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 
 		User user = userPersistence.findByPrimaryKey(userId);
 
+		UserFileUploadsSettings userFileUploadsSettings =
+			_userFileUploadsSettingsSnapshot.get();
+
 		PortalUtil.updateImageId(
 			user, true, bytes, "portraitId",
-			_userFileUploadsSettings.getImageMaxSize(),
-			_userFileUploadsSettings.getImageMaxHeight(),
-			_userFileUploadsSettings.getImageMaxWidth());
+			userFileUploadsSettings.getImageMaxSize(),
+			userFileUploadsSettings.getImageMaxHeight(),
+			userFileUploadsSettings.getImageMaxWidth());
 
 		return userPersistence.update(user);
 	}
@@ -5146,10 +5314,6 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		screenName = getLogin(screenName);
 
 		validateScreenName(user.getCompanyId(), userId, screenName);
-
-		if (!StringUtil.equalsIgnoreCase(user.getScreenName(), screenName)) {
-			user.setDigest(StringPool.BLANK);
-		}
 
 		user.setScreenName(screenName);
 
@@ -5317,8 +5481,6 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 				userId, newPassword1, newPassword2, passwordReset);
 
 			password = newPassword1;
-
-			user.setDigest(user.getDigest(password));
 		}
 
 		if (user.getContactId() <= 0) {
@@ -5339,8 +5501,6 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 
 		if (screenNameModified) {
 			user.setScreenName(screenName);
-
-			user.setDigest(StringPool.BLANK);
 		}
 
 		boolean sendEmailAddressVerification = false;
@@ -5374,11 +5534,14 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			user.setLdapServerId(ldapServerId);
 		}
 
+		UserFileUploadsSettings userFileUploadsSettings =
+			_userFileUploadsSettingsSnapshot.get();
+
 		PortalUtil.updateImageId(
 			user, hasPortrait, portraitBytes, "portraitId",
-			_userFileUploadsSettings.getImageMaxSize(),
-			_userFileUploadsSettings.getImageMaxHeight(),
-			_userFileUploadsSettings.getImageMaxWidth());
+			userFileUploadsSettings.getImageMaxSize(),
+			userFileUploadsSettings.getImageMaxHeight(),
+			userFileUploadsSettings.getImageMaxWidth());
 
 		user.setLanguageId(languageId);
 		user.setTimeZoneId(timeZoneId);
@@ -5499,6 +5662,7 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		return user;
 	}
 
+	@Override
 	public void validateMaxUsers(long companyId) throws PortalException {
 		Company company = _companyPersistence.findByPrimaryKey(companyId);
 
@@ -5784,12 +5948,8 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 
 		// Authenticate against the User_ table
 
-		boolean skipLiferayCheck = false;
-
 		if (authResult == Authenticator.SKIP_LIFERAY_CHECK) {
 			authResult = Authenticator.SUCCESS;
-
-			skipLiferayCheck = true;
 		}
 		else if ((authResult == Authenticator.SUCCESS) &&
 				 PropsValues.AUTH_PIPELINE_ENABLE_LIFERAY_CHECK) {
@@ -5834,27 +5994,6 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 					companyId, authType, login, user, headerMap, parameterMap);
 
 				throw portalException;
-			}
-
-			// Update digest
-
-			user = userPersistence.fetchByPrimaryKey(user.getUserId());
-
-			String digest = user.getDigest();
-
-			if (skipLiferayCheck ||
-				!PropsValues.AUTH_PIPELINE_ENABLE_LIFERAY_CHECK ||
-				Validator.isNull(digest)) {
-
-				String newDigest = user.getDigest(password);
-
-				if (!newDigest.equals(digest)) {
-					user = userPersistence.fetchByPrimaryKey(user.getUserId());
-
-					user.setDigest(newDigest);
-
-					user = userPersistence.update(user);
-				}
 			}
 		}
 
@@ -6038,10 +6177,6 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 				user = userPersistence.update(user);
 			}
 			else {
-				user.setDigest(StringPool.BLANK);
-
-				user = userPersistence.update(user);
-
 				throw new PasswordExpiredException();
 			}
 		}
@@ -6199,6 +6334,11 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 					return true;
 				}
 			}
+			else if (key.equals("noAccountEntriesAndNoOrganizations")) {
+				if (!Boolean.TRUE.equals(entry.getValue())) {
+					return true;
+				}
+			}
 			else if (key.equals("noOrganizations")) {
 				if (!Boolean.TRUE.equals(entry.getValue())) {
 					return true;
@@ -6266,7 +6406,9 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		return true;
 	}
 
-	protected void notifyUser(User user, ServiceContext serviceContext) {
+	protected void notifyUser(User user, ServiceContext serviceContext)
+		throws PortalException {
+
 		if (!PrefsPropsUtil.getBoolean(
 				user.getCompanyId(),
 				PropsKeys.ADMIN_EMAIL_USER_ADDED_ENABLED)) {
@@ -6299,10 +6441,6 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 				PropsKeys.ADMIN_EMAIL_USER_ADDED_NO_PASSWORD_BODY);
 		}
 		else {
-			Ticket ticket = _ticketLocalService.addDistinctTicket(
-				user.getCompanyId(), User.class.getName(), user.getUserId(),
-				TicketConstants.TYPE_PASSWORD, null, null, serviceContext);
-
 			String updatePasswordURL = "/portal/update_password?";
 
 			long plid = serviceContext.getPlid();
@@ -6320,9 +6458,34 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 				}
 			}
 
+			Date expirationDate = null;
+
+			if (FeatureFlagManagerUtil.isEnabled("LPS-193884")) {
+				PasswordPolicy passwordPolicy = user.getPasswordPolicy();
+
+				if ((passwordPolicy != null) &&
+					(passwordPolicy.getResetTicketMaxAge() > 0)) {
+
+					expirationDate = new Date(
+						System.currentTimeMillis() +
+							(passwordPolicy.getResetTicketMaxAge() * 1000));
+				}
+			}
+
+			Ticket ticket = _ticketLocalService.addDistinctTicket(
+				user.getCompanyId(), User.class.getName(), user.getUserId(),
+				TicketConstants.TYPE_PASSWORD, null, expirationDate,
+				serviceContext);
+
 			passwordResetURL = StringBundler.concat(
 				serviceContext.getPortalURL(), serviceContext.getPathMain(),
-				updatePasswordURL, "ticketKey=", ticket.getKey());
+				updatePasswordURL, "languageId=", user.getLanguageId(),
+				"&ticketId=", ticket.getTicketId(), "&ticketKey=",
+				ticket.getKey());
+
+			ticket.setKey(PasswordEncryptorUtil.encrypt(ticket.getKey()));
+
+			_ticketLocalService.updateTicket(ticket);
 
 			localizedBodyMap = LocalizationUtil.getLocalizationMap(
 				companyPortletPreferences,
@@ -6477,10 +6640,16 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			prefix = "adminEmailPasswordReset";
 			subjectProperty = PropsKeys.ADMIN_EMAIL_PASSWORD_RESET_SUBJECT;
 		}
-		else {
+		else if (PasswordModificationThreadLocal.isPasswordModified()) {
 			bodyProperty = PropsKeys.ADMIN_EMAIL_PASSWORD_CHANGED_BODY;
 			prefix = "adminEmailPasswordChanged";
 			subjectProperty = PropsKeys.ADMIN_EMAIL_PASSWORD_CHANGED_SUBJECT;
+		}
+		else {
+			bodyProperty = PropsKeys.ADMIN_EMAIL_PASSWORD_UNCHANGEABLE_BODY;
+			prefix = "adminEmailPasswordUnchangeable";
+			subjectProperty =
+				PropsKeys.ADMIN_EMAIL_PASSWORD_UNCHANGEABLE_SUBJECT;
 		}
 
 		String localizedBody = body;
@@ -6553,7 +6722,6 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			return;
 		}
 
-		user.setDigest(StringPool.BLANK);
 		user.setEmailAddress(emailAddress);
 	}
 
@@ -7216,10 +7384,9 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 	private static final Log _log = LogFactoryUtil.getLog(
 		UserLocalServiceImpl.class);
 
-	private static volatile UserFileUploadsSettings _userFileUploadsSettings =
-		ServiceProxyFactory.newServiceTrackedInstance(
-			UserFileUploadsSettings.class, UserLocalServiceImpl.class,
-			"_userFileUploadsSettings", false);
+	private static final Snapshot<UserFileUploadsSettings>
+		_userFileUploadsSettingsSnapshot = new Snapshot<>(
+			UserLocalServiceImpl.class, UserFileUploadsSettings.class);
 
 	@BeanReference(type = AnnouncementsDeliveryLocalService.class)
 	private AnnouncementsDeliveryLocalService

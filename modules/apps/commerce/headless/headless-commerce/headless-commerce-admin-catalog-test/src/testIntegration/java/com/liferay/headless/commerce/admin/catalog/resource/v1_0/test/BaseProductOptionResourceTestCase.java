@@ -28,15 +28,15 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.test.rule.Inject;
@@ -61,8 +61,6 @@ import java.util.Set;
 import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
-import org.apache.commons.lang.time.DateUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -175,7 +173,10 @@ public abstract class BaseProductOptionResourceTestCase {
 		ProductOption productOption = randomProductOption();
 
 		productOption.setFieldType(regex);
+		productOption.setInfoItemServiceKey(regex);
 		productOption.setKey(regex);
+		productOption.setPriceType(regex);
+		productOption.setTypeSettings(regex);
 
 		String json = ProductOptionSerDes.toJSON(productOption);
 
@@ -184,7 +185,10 @@ public abstract class BaseProductOptionResourceTestCase {
 		productOption = ProductOptionSerDes.toDTO(json);
 
 		Assert.assertEquals(regex, productOption.getFieldType());
+		Assert.assertEquals(regex, productOption.getInfoItemServiceKey());
 		Assert.assertEquals(regex, productOption.getKey());
+		Assert.assertEquals(regex, productOption.getPriceType());
+		Assert.assertEquals(regex, productOption.getTypeSettings());
 	}
 
 	@Test
@@ -339,7 +343,7 @@ public abstract class BaseProductOptionResourceTestCase {
 				getProductByExternalReferenceCodeProductOptionsPage(
 					externalReferenceCode, null, Pagination.of(1, 10), null);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantExternalReferenceCode != null) {
 			ProductOption irrelevantProductOption =
@@ -351,13 +355,12 @@ public abstract class BaseProductOptionResourceTestCase {
 				productOptionResource.
 					getProductByExternalReferenceCodeProductOptionsPage(
 						irrelevantExternalReferenceCode, null,
-						Pagination.of(1, 2), null);
+						Pagination.of(1, (int)totalCount + 1), null);
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantProductOption),
-				(List<ProductOption>)page.getItems());
+			assertContains(
+				irrelevantProductOption, (List<ProductOption>)page.getItems());
 			assertValid(
 				page,
 				testGetProductByExternalReferenceCodeProductOptionsPage_getExpectedActions(
@@ -377,11 +380,10 @@ public abstract class BaseProductOptionResourceTestCase {
 				getProductByExternalReferenceCodeProductOptionsPage(
 					externalReferenceCode, null, Pagination.of(1, 10), null);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(productOption1, productOption2),
-			(List<ProductOption>)page.getItems());
+		assertContains(productOption1, (List<ProductOption>)page.getItems());
+		assertContains(productOption2, (List<ProductOption>)page.getItems());
 		assertValid(
 			page,
 			testGetProductByExternalReferenceCodeProductOptionsPage_getExpectedActions(
@@ -409,6 +411,14 @@ public abstract class BaseProductOptionResourceTestCase {
 		String externalReferenceCode =
 			testGetProductByExternalReferenceCodeProductOptionsPage_getExternalReferenceCode();
 
+		Page<ProductOption> productOptionPage =
+			productOptionResource.
+				getProductByExternalReferenceCodeProductOptionsPage(
+					externalReferenceCode, null, null, null);
+
+		int totalCount = GetterUtil.getInteger(
+			productOptionPage.getTotalCount());
+
 		ProductOption productOption1 =
 			testGetProductByExternalReferenceCodeProductOptionsPage_addProductOption(
 				externalReferenceCode, randomProductOption());
@@ -421,38 +431,90 @@ public abstract class BaseProductOptionResourceTestCase {
 			testGetProductByExternalReferenceCodeProductOptionsPage_addProductOption(
 				externalReferenceCode, randomProductOption());
 
-		Page<ProductOption> page1 =
-			productOptionResource.
-				getProductByExternalReferenceCodeProductOptionsPage(
-					externalReferenceCode, null, Pagination.of(1, 2), null);
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<ProductOption> productOptions1 =
-			(List<ProductOption>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(
-			productOptions1.toString(), 2, productOptions1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<ProductOption> page1 =
+				productOptionResource.
+					getProductByExternalReferenceCodeProductOptionsPage(
+						externalReferenceCode, null,
+						Pagination.of(
+							(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+							pageSizeLimit),
+						null);
 
-		Page<ProductOption> page2 =
-			productOptionResource.
-				getProductByExternalReferenceCodeProductOptionsPage(
-					externalReferenceCode, null, Pagination.of(2, 2), null);
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(3, page2.getTotalCount());
+			assertContains(
+				productOption1, (List<ProductOption>)page1.getItems());
 
-		List<ProductOption> productOptions2 =
-			(List<ProductOption>)page2.getItems();
+			Page<ProductOption> page2 =
+				productOptionResource.
+					getProductByExternalReferenceCodeProductOptionsPage(
+						externalReferenceCode, null,
+						Pagination.of(
+							(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+							pageSizeLimit),
+						null);
 
-		Assert.assertEquals(
-			productOptions2.toString(), 1, productOptions2.size());
+			assertContains(
+				productOption2, (List<ProductOption>)page2.getItems());
 
-		Page<ProductOption> page3 =
-			productOptionResource.
-				getProductByExternalReferenceCodeProductOptionsPage(
-					externalReferenceCode, null, Pagination.of(1, 3), null);
+			Page<ProductOption> page3 =
+				productOptionResource.
+					getProductByExternalReferenceCodeProductOptionsPage(
+						externalReferenceCode, null,
+						Pagination.of(
+							(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+							pageSizeLimit),
+						null);
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(productOption1, productOption2, productOption3),
-			(List<ProductOption>)page3.getItems());
+			assertContains(
+				productOption3, (List<ProductOption>)page3.getItems());
+		}
+		else {
+			Page<ProductOption> page1 =
+				productOptionResource.
+					getProductByExternalReferenceCodeProductOptionsPage(
+						externalReferenceCode, null,
+						Pagination.of(1, totalCount + 2), null);
+
+			List<ProductOption> productOptions1 =
+				(List<ProductOption>)page1.getItems();
+
+			Assert.assertEquals(
+				productOptions1.toString(), totalCount + 2,
+				productOptions1.size());
+
+			Page<ProductOption> page2 =
+				productOptionResource.
+					getProductByExternalReferenceCodeProductOptionsPage(
+						externalReferenceCode, null,
+						Pagination.of(2, totalCount + 2), null);
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<ProductOption> productOptions2 =
+				(List<ProductOption>)page2.getItems();
+
+			Assert.assertEquals(
+				productOptions2.toString(), 1, productOptions2.size());
+
+			Page<ProductOption> page3 =
+				productOptionResource.
+					getProductByExternalReferenceCodeProductOptionsPage(
+						externalReferenceCode, null,
+						Pagination.of(1, (int)totalCount + 3), null);
+
+			assertContains(
+				productOption1, (List<ProductOption>)page3.getItems());
+			assertContains(
+				productOption2, (List<ProductOption>)page3.getItems());
+			assertContains(
+				productOption3, (List<ProductOption>)page3.getItems());
+		}
 	}
 
 	@Test
@@ -464,7 +526,7 @@ public abstract class BaseProductOptionResourceTestCase {
 			(entityField, productOption1, productOption2) -> {
 				BeanTestUtil.setProperty(
 					productOption1, entityField.getName(),
-					DateUtils.addMinutes(new Date(), -2));
+					new Date(System.currentTimeMillis() - (2 * Time.MINUTE)));
 			});
 	}
 
@@ -582,26 +644,35 @@ public abstract class BaseProductOptionResourceTestCase {
 			testGetProductByExternalReferenceCodeProductOptionsPage_addProductOption(
 				externalReferenceCode, productOption2);
 
+		Page<ProductOption> page =
+			productOptionResource.
+				getProductByExternalReferenceCodeProductOptionsPage(
+					externalReferenceCode, null, null, null);
+
 		for (EntityField entityField : entityFields) {
 			Page<ProductOption> ascPage =
 				productOptionResource.
 					getProductByExternalReferenceCodeProductOptionsPage(
-						externalReferenceCode, null, Pagination.of(1, 2),
+						externalReferenceCode, null,
+						Pagination.of(1, (int)page.getTotalCount() + 1),
 						entityField.getName() + ":asc");
 
-			assertEquals(
-				Arrays.asList(productOption1, productOption2),
-				(List<ProductOption>)ascPage.getItems());
+			assertContains(
+				productOption1, (List<ProductOption>)ascPage.getItems());
+			assertContains(
+				productOption2, (List<ProductOption>)ascPage.getItems());
 
 			Page<ProductOption> descPage =
 				productOptionResource.
 					getProductByExternalReferenceCodeProductOptionsPage(
-						externalReferenceCode, null, Pagination.of(1, 2),
+						externalReferenceCode, null,
+						Pagination.of(1, (int)page.getTotalCount() + 1),
 						entityField.getName() + ":desc");
 
-			assertEquals(
-				Arrays.asList(productOption2, productOption1),
-				(List<ProductOption>)descPage.getItems());
+			assertContains(
+				productOption2, (List<ProductOption>)descPage.getItems());
+			assertContains(
+				productOption1, (List<ProductOption>)descPage.getItems());
 		}
 	}
 
@@ -646,7 +717,7 @@ public abstract class BaseProductOptionResourceTestCase {
 			productOptionResource.getProductIdProductOptionsPage(
 				id, null, Pagination.of(1, 10), null);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantId != null) {
 			ProductOption irrelevantProductOption =
@@ -654,13 +725,13 @@ public abstract class BaseProductOptionResourceTestCase {
 					irrelevantId, randomIrrelevantProductOption());
 
 			page = productOptionResource.getProductIdProductOptionsPage(
-				irrelevantId, null, Pagination.of(1, 2), null);
+				irrelevantId, null, Pagination.of(1, (int)totalCount + 1),
+				null);
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantProductOption),
-				(List<ProductOption>)page.getItems());
+			assertContains(
+				irrelevantProductOption, (List<ProductOption>)page.getItems());
 			assertValid(
 				page,
 				testGetProductIdProductOptionsPage_getExpectedActions(
@@ -678,11 +749,10 @@ public abstract class BaseProductOptionResourceTestCase {
 		page = productOptionResource.getProductIdProductOptionsPage(
 			id, null, Pagination.of(1, 10), null);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(productOption1, productOption2),
-			(List<ProductOption>)page.getItems());
+		assertContains(productOption1, (List<ProductOption>)page.getItems());
+		assertContains(productOption2, (List<ProductOption>)page.getItems());
 		assertValid(
 			page, testGetProductIdProductOptionsPage_getExpectedActions(id));
 
@@ -706,6 +776,13 @@ public abstract class BaseProductOptionResourceTestCase {
 
 		Long id = testGetProductIdProductOptionsPage_getId();
 
+		Page<ProductOption> productOptionPage =
+			productOptionResource.getProductIdProductOptionsPage(
+				id, null, null, null);
+
+		int totalCount = GetterUtil.getInteger(
+			productOptionPage.getTotalCount());
+
 		ProductOption productOption1 =
 			testGetProductIdProductOptionsPage_addProductOption(
 				id, randomProductOption());
@@ -718,35 +795,81 @@ public abstract class BaseProductOptionResourceTestCase {
 			testGetProductIdProductOptionsPage_addProductOption(
 				id, randomProductOption());
 
-		Page<ProductOption> page1 =
-			productOptionResource.getProductIdProductOptionsPage(
-				id, null, Pagination.of(1, 2), null);
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<ProductOption> productOptions1 =
-			(List<ProductOption>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(
-			productOptions1.toString(), 2, productOptions1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<ProductOption> page1 =
+				productOptionResource.getProductIdProductOptionsPage(
+					id, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+						pageSizeLimit),
+					null);
 
-		Page<ProductOption> page2 =
-			productOptionResource.getProductIdProductOptionsPage(
-				id, null, Pagination.of(2, 2), null);
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(3, page2.getTotalCount());
+			assertContains(
+				productOption1, (List<ProductOption>)page1.getItems());
 
-		List<ProductOption> productOptions2 =
-			(List<ProductOption>)page2.getItems();
+			Page<ProductOption> page2 =
+				productOptionResource.getProductIdProductOptionsPage(
+					id, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+						pageSizeLimit),
+					null);
 
-		Assert.assertEquals(
-			productOptions2.toString(), 1, productOptions2.size());
+			assertContains(
+				productOption2, (List<ProductOption>)page2.getItems());
 
-		Page<ProductOption> page3 =
-			productOptionResource.getProductIdProductOptionsPage(
-				id, null, Pagination.of(1, 3), null);
+			Page<ProductOption> page3 =
+				productOptionResource.getProductIdProductOptionsPage(
+					id, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+						pageSizeLimit),
+					null);
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(productOption1, productOption2, productOption3),
-			(List<ProductOption>)page3.getItems());
+			assertContains(
+				productOption3, (List<ProductOption>)page3.getItems());
+		}
+		else {
+			Page<ProductOption> page1 =
+				productOptionResource.getProductIdProductOptionsPage(
+					id, null, Pagination.of(1, totalCount + 2), null);
+
+			List<ProductOption> productOptions1 =
+				(List<ProductOption>)page1.getItems();
+
+			Assert.assertEquals(
+				productOptions1.toString(), totalCount + 2,
+				productOptions1.size());
+
+			Page<ProductOption> page2 =
+				productOptionResource.getProductIdProductOptionsPage(
+					id, null, Pagination.of(2, totalCount + 2), null);
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<ProductOption> productOptions2 =
+				(List<ProductOption>)page2.getItems();
+
+			Assert.assertEquals(
+				productOptions2.toString(), 1, productOptions2.size());
+
+			Page<ProductOption> page3 =
+				productOptionResource.getProductIdProductOptionsPage(
+					id, null, Pagination.of(1, (int)totalCount + 3), null);
+
+			assertContains(
+				productOption1, (List<ProductOption>)page3.getItems());
+			assertContains(
+				productOption2, (List<ProductOption>)page3.getItems());
+			assertContains(
+				productOption3, (List<ProductOption>)page3.getItems());
+		}
 	}
 
 	@Test
@@ -758,7 +881,7 @@ public abstract class BaseProductOptionResourceTestCase {
 			(entityField, productOption1, productOption2) -> {
 				BeanTestUtil.setProperty(
 					productOption1, entityField.getName(),
-					DateUtils.addMinutes(new Date(), -2));
+					new Date(System.currentTimeMillis() - (2 * Time.MINUTE)));
 			});
 	}
 
@@ -872,24 +995,30 @@ public abstract class BaseProductOptionResourceTestCase {
 		productOption2 = testGetProductIdProductOptionsPage_addProductOption(
 			id, productOption2);
 
+		Page<ProductOption> page =
+			productOptionResource.getProductIdProductOptionsPage(
+				id, null, null, null);
+
 		for (EntityField entityField : entityFields) {
 			Page<ProductOption> ascPage =
 				productOptionResource.getProductIdProductOptionsPage(
-					id, null, Pagination.of(1, 2),
+					id, null, Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":asc");
 
-			assertEquals(
-				Arrays.asList(productOption1, productOption2),
-				(List<ProductOption>)ascPage.getItems());
+			assertContains(
+				productOption1, (List<ProductOption>)ascPage.getItems());
+			assertContains(
+				productOption2, (List<ProductOption>)ascPage.getItems());
 
 			Page<ProductOption> descPage =
 				productOptionResource.getProductIdProductOptionsPage(
-					id, null, Pagination.of(1, 2),
+					id, null, Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":desc");
 
-			assertEquals(
-				Arrays.asList(productOption2, productOption1),
-				(List<ProductOption>)descPage.getItems());
+			assertContains(
+				productOption2, (List<ProductOption>)descPage.getItems());
+			assertContains(
+				productOption1, (List<ProductOption>)descPage.getItems());
 		}
 	}
 
@@ -1012,6 +1141,24 @@ public abstract class BaseProductOptionResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("customFields", additionalAssertFieldName)) {
+				if (productOption.getCustomFields() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"definedExternally", additionalAssertFieldName)) {
+
+				if (productOption.getDefinedExternally() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("description", additionalAssertFieldName)) {
 				if (productOption.getDescription() == null) {
 					valid = false;
@@ -1036,6 +1183,16 @@ public abstract class BaseProductOptionResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"infoItemServiceKey", additionalAssertFieldName)) {
+
+				if (productOption.getInfoItemServiceKey() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("key", additionalAssertFieldName)) {
 				if (productOption.getKey() == null) {
 					valid = false;
@@ -1054,6 +1211,14 @@ public abstract class BaseProductOptionResourceTestCase {
 
 			if (Objects.equals("optionId", additionalAssertFieldName)) {
 				if (productOption.getOptionId() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("priceType", additionalAssertFieldName)) {
+				if (productOption.getPriceType() == null) {
 					valid = false;
 				}
 
@@ -1088,6 +1253,14 @@ public abstract class BaseProductOptionResourceTestCase {
 
 			if (Objects.equals("skuContributor", additionalAssertFieldName)) {
 				if (productOption.getSkuContributor() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("typeSettings", additionalAssertFieldName)) {
+				if (productOption.getTypeSettings() == null) {
 					valid = false;
 				}
 
@@ -1224,6 +1397,30 @@ public abstract class BaseProductOptionResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("customFields", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						productOption1.getCustomFields(),
+						productOption2.getCustomFields())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"definedExternally", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						productOption1.getDefinedExternally(),
+						productOption2.getDefinedExternally())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("description", additionalAssertFieldName)) {
 				if (!equals(
 						(Map)productOption1.getDescription(),
@@ -1267,6 +1464,19 @@ public abstract class BaseProductOptionResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"infoItemServiceKey", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						productOption1.getInfoItemServiceKey(),
+						productOption2.getInfoItemServiceKey())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("key", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						productOption1.getKey(), productOption2.getKey())) {
@@ -1292,6 +1502,17 @@ public abstract class BaseProductOptionResourceTestCase {
 				if (!Objects.deepEquals(
 						productOption1.getOptionId(),
 						productOption2.getOptionId())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("priceType", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						productOption1.getPriceType(),
+						productOption2.getPriceType())) {
 
 					return false;
 				}
@@ -1345,6 +1566,17 @@ public abstract class BaseProductOptionResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("typeSettings", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						productOption1.getTypeSettings(),
+						productOption2.getTypeSettings())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			throw new IllegalArgumentException(
 				"Invalid additional assert field name " +
 					additionalAssertFieldName);
@@ -1381,6 +1613,10 @@ public abstract class BaseProductOptionResourceTestCase {
 
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
+
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
 
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
@@ -1453,6 +1689,16 @@ public abstract class BaseProductOptionResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("customFields")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("definedExternally")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("description")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -1514,6 +1760,52 @@ public abstract class BaseProductOptionResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("infoItemServiceKey")) {
+			Object object = productOption.getInfoItemServiceKey();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("key")) {
 			Object object = productOption.getKey();
 
@@ -1570,6 +1862,52 @@ public abstract class BaseProductOptionResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("priceType")) {
+			Object object = productOption.getPriceType();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("priority")) {
 			sb.append(String.valueOf(productOption.getPriority()));
 
@@ -1589,6 +1927,52 @@ public abstract class BaseProductOptionResourceTestCase {
 		if (entityFieldName.equals("skuContributor")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("typeSettings")) {
+			Object object = productOption.getTypeSettings();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
 		}
 
 		throw new IllegalArgumentException(
@@ -1636,15 +2020,22 @@ public abstract class BaseProductOptionResourceTestCase {
 		return new ProductOption() {
 			{
 				catalogId = RandomTestUtil.randomLong();
+				definedExternally = RandomTestUtil.randomBoolean();
 				facetable = RandomTestUtil.randomBoolean();
 				fieldType = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				id = RandomTestUtil.randomLong();
+				infoItemServiceKey = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
 				key = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				optionId = RandomTestUtil.randomLong();
+				priceType = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
 				priority = RandomTestUtil.randomDouble();
 				required = RandomTestUtil.randomBoolean();
 				skuContributor = RandomTestUtil.randomBoolean();
+				typeSettings = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
 			}
 		};
 	}
@@ -1660,9 +2051,9 @@ public abstract class BaseProductOptionResourceTestCase {
 	}
 
 	protected ProductOptionResource productOptionResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

@@ -8,17 +8,13 @@ package com.liferay.object.service.impl;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountEntryOrganizationRelLocalService;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.fragment.cache.FragmentEntryLinkCache;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.layout.model.LayoutClassedModelUsage;
 import com.liferay.layout.service.LayoutClassedModelUsageLocalService;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectFieldConstants;
-import com.liferay.object.constants.ObjectFieldSettingConstants;
 import com.liferay.object.constants.ObjectRelationshipConstants;
-import com.liferay.object.definition.tree.Edge;
-import com.liferay.object.definition.tree.Node;
-import com.liferay.object.definition.tree.Tree;
-import com.liferay.object.definition.tree.TreeFactory;
 import com.liferay.object.definition.util.ObjectDefinitionUtil;
 import com.liferay.object.deployer.InactiveObjectDefinitionDeployer;
 import com.liferay.object.deployer.ObjectDefinitionDeployer;
@@ -28,6 +24,7 @@ import com.liferay.object.exception.ObjectDefinitionAccountEntryRestrictedObject
 import com.liferay.object.exception.ObjectDefinitionActiveException;
 import com.liferay.object.exception.ObjectDefinitionEnableCategorizationException;
 import com.liferay.object.exception.ObjectDefinitionEnableCommentsException;
+import com.liferay.object.exception.ObjectDefinitionEnableLocalizationException;
 import com.liferay.object.exception.ObjectDefinitionEnableObjectEntryHistoryException;
 import com.liferay.object.exception.ObjectDefinitionExternalReferenceCodeException;
 import com.liferay.object.exception.ObjectDefinitionLabelException;
@@ -43,8 +40,6 @@ import com.liferay.object.exception.ObjectDefinitionSystemException;
 import com.liferay.object.exception.ObjectDefinitionVersionException;
 import com.liferay.object.exception.ObjectFieldRelationshipTypeException;
 import com.liferay.object.exception.RequiredObjectDefinitionException;
-import com.liferay.object.exception.RequiredObjectFieldException;
-import com.liferay.object.field.setting.util.ObjectFieldSettingUtil;
 import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.internal.dao.db.ObjectDBManagerUtil;
 import com.liferay.object.internal.deployer.InactiveObjectDefinitionDeployerImpl;
@@ -55,6 +50,7 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectEntryTable;
 import com.liferay.object.model.ObjectField;
+import com.liferay.object.model.ObjectFieldModel;
 import com.liferay.object.model.ObjectFolder;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.model.impl.ObjectDefinitionImpl;
@@ -80,23 +76,28 @@ import com.liferay.object.service.persistence.ObjectFieldPersistence;
 import com.liferay.object.service.persistence.ObjectFolderPersistence;
 import com.liferay.object.service.persistence.ObjectRelationshipPersistence;
 import com.liferay.object.system.SystemObjectDefinitionManager;
+import com.liferay.object.tree.Edge;
+import com.liferay.object.tree.Node;
+import com.liferay.object.tree.Tree;
+import com.liferay.object.tree.TreeFactory;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.sql.dsl.Column;
 import com.liferay.petra.sql.dsl.Table;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
-import com.liferay.portal.kernel.cache.MultiVMPool;
-import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cluster.ClusterExecutorUtil;
 import com.liferay.portal.kernel.cluster.ClusterRequest;
+import com.liferay.portal.kernel.dao.db.DB;
+import com.liferay.portal.kernel.dao.db.DBManagerUtil;
+import com.liferay.portal.kernel.dao.jdbc.ConnectionUtil;
 import com.liferay.portal.kernel.dao.jdbc.CurrentConnection;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dependency.manager.DependencyManagerSyncUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -114,7 +115,6 @@ import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ListTypeLocalService;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
-import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.service.PortletLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
@@ -139,9 +139,10 @@ import com.liferay.portal.kernel.workflow.WorkflowInstanceManager;
 import com.liferay.portal.language.override.service.PLOEntryLocalService;
 import com.liferay.portal.search.batch.DynamicQueryBatchIndexingActionableFactory;
 import com.liferay.portal.search.spi.model.query.contributor.ModelPreFilterContributor;
-import com.liferay.portal.search.spi.model.registrar.ModelSearchRegistrarHelper;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
+
+import java.sql.Connection;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -150,8 +151,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.sql.DataSource;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -238,6 +240,10 @@ public class ObjectDefinitionLocalServiceImpl
 			ObjectDefinition.class.getName(),
 			objectDefinition.getObjectDefinitionId(), false, true, true);
 
+		_objectFolderItemLocalService.addObjectFolderItem(
+			userId, objectDefinition.getObjectDefinitionId(),
+			objectDefinition.getObjectFolderId(), 0, 0);
+
 		_addSystemObjectFields(
 			ObjectEntryTable.INSTANCE.getTableName(), objectDefinition,
 			ObjectEntryTable.INSTANCE.objectEntryId.getName(), userId);
@@ -285,7 +291,11 @@ public class ObjectDefinitionLocalServiceImpl
 			return objectDefinition;
 		}
 
+		objectDefinition.setLabelMap(
+			systemObjectDefinitionManager.getLabelMap());
 		objectDefinition.setObjectFolderId(objectFolderId);
+		objectDefinition.setPluralLabelMap(
+			systemObjectDefinitionManager.getPluralLabelMap());
 		objectDefinition.setVersion(systemObjectDefinitionManager.getVersion());
 
 		objectDefinition = objectDefinitionPersistence.update(objectDefinition);
@@ -404,31 +414,38 @@ public class ObjectDefinitionLocalServiceImpl
 			}
 
 			_objectRelationshipLocalService.updateObjectRelationship(
+				objectRelationship.getExternalReferenceCode(),
 				objectRelationship.getObjectRelationshipId(),
 				objectRelationship.getParameterObjectFieldId(),
 				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, true,
-				objectRelationship.getLabelMap());
+				objectRelationship.getLabelMap(), null);
 
 			ObjectDefinition objectDefinition1 =
 				objectDefinitionLocalService.getObjectDefinition(
 					objectRelationship.getObjectDefinitionId1());
 
 			if (objectDefinition1.getRootObjectDefinitionId() == 0) {
-				objectDefinitionLocalService.updateRootObjectDefinitionId(
-					objectDefinition1.getObjectDefinitionId(),
-					rootObjectDefinitionId);
+				objectDefinition1 =
+					objectDefinitionLocalService.updateRootObjectDefinitionId(
+						objectDefinition1.getObjectDefinitionId(),
+						rootObjectDefinitionId);
 			}
+
+			_updateObjectDefinitionPortlet(objectDefinition1);
 
 			ObjectDefinition objectDefinition2 =
 				objectDefinitionLocalService.getObjectDefinition(
 					objectRelationship.getObjectDefinitionId2());
 
-			objectDefinitionLocalService.updateRootObjectDefinitionId(
-				objectDefinition2.getObjectDefinitionId(),
-				rootObjectDefinitionId);
+			objectDefinition2 =
+				objectDefinitionLocalService.updateRootObjectDefinitionId(
+					objectDefinition2.getObjectDefinitionId(),
+					rootObjectDefinitionId);
 
 			_objectFieldLocalService.updateRequired(
 				objectRelationship.getObjectFieldId2(), true);
+
+			_updateObjectDefinitionPortlet(objectDefinition2);
 		}
 	}
 
@@ -659,11 +676,8 @@ public class ObjectDefinitionLocalServiceImpl
 			return objectDefinition2;
 		}
 
-		ObjectField objectField = _objectFieldLocalService.getObjectField(
-			objectRelationship.getObjectFieldId2());
-
 		objectDefinition2.setAccountEntryRestrictedObjectFieldId(
-			objectField.getObjectFieldId());
+			objectRelationship.getObjectFieldId2());
 
 		objectDefinition2.setAccountEntryRestricted(true);
 
@@ -714,6 +728,7 @@ public class ObjectDefinitionLocalServiceImpl
 		return objectDefinitionPersistence.fetchByC_C(companyId, className);
 	}
 
+	@Override
 	public ObjectDefinition fetchSystemObjectDefinition(String name) {
 		for (ObjectDefinition systemObjectDefinition :
 				getSystemObjectDefinitions()) {
@@ -727,6 +742,14 @@ public class ObjectDefinitionLocalServiceImpl
 	}
 
 	@Override
+	public List<ObjectDefinition> getBoundObjectDefinitions(
+		long companyId, long rootObjectDefinitionId) {
+
+		return objectDefinitionPersistence.findByC_RODI(
+			companyId, rootObjectDefinitionId);
+	}
+
+	@Override
 	public List<ObjectDefinition> getCustomObjectDefinitions(int status) {
 		return objectDefinitionPersistence.findByS_S(false, status);
 	}
@@ -736,6 +759,21 @@ public class ObjectDefinitionLocalServiceImpl
 		throws PortalException {
 
 		return objectDefinitionPersistence.findByPrimaryKey(objectDefinitionId);
+	}
+
+	@Override
+	public ObjectDefinition getObjectDefinition(long companyId, String name)
+		throws PortalException {
+
+		return objectDefinitionPersistence.findByC_N(companyId, name);
+	}
+
+	@Override
+	public List<ObjectDefinition> getObjectDefinitions(
+		boolean accountEntryRestricted) {
+
+		return objectDefinitionPersistence.findByAccountEntryRestricted(
+			accountEntryRestricted);
 	}
 
 	@Override
@@ -775,6 +813,7 @@ public class ObjectDefinitionLocalServiceImpl
 		return objectDefinitionPersistence.findByObjectFolderId(objectFolderId);
 	}
 
+	@Override
 	public int getObjectFolderObjectDefinitionsCount(long objectFolderId)
 		throws PortalException {
 
@@ -812,6 +851,7 @@ public class ObjectDefinitionLocalServiceImpl
 		return false;
 	}
 
+	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public ObjectDefinition publishCustomObjectDefinition(
 			long userId, long objectDefinitionId)
@@ -821,7 +861,8 @@ public class ObjectDefinitionLocalServiceImpl
 			objectDefinitionPersistence.findByPrimaryKey(objectDefinitionId);
 
 		if (objectDefinition.isUnmodifiableSystemObject()) {
-			throw new ObjectDefinitionStatusException();
+			throw new ObjectDefinitionStatusException(
+				"Unmodifiable system object definition cannot be published");
 		}
 
 		if (objectDefinition.getRootObjectDefinitionId() == 0) {
@@ -834,7 +875,7 @@ public class ObjectDefinitionLocalServiceImpl
 					"are ineligible for publication");
 		}
 
-		Tree tree = _treeFactory.create(objectDefinitionId);
+		Tree tree = _treeFactory.createObjectDefinitionTree(objectDefinitionId);
 
 		Iterator<Node> iterator = tree.iterator();
 
@@ -842,12 +883,13 @@ public class ObjectDefinitionLocalServiceImpl
 			Node node = iterator.next();
 
 			_publishObjectDefinition(
-				userId, getObjectDefinition(node.getObjectDefinitionId()));
+				userId, getObjectDefinition(node.getPrimaryKey()));
 		}
 
 		return getObjectDefinition(objectDefinitionId);
 	}
 
+	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public ObjectDefinition publishSystemObjectDefinition(
 			long userId, long objectDefinitionId)
@@ -878,17 +920,16 @@ public class ObjectDefinitionLocalServiceImpl
 				_accountEntryOrganizationRelLocalService,
 				_assetEntryLocalService, _bundleContext,
 				_dynamicQueryBatchIndexingActionableFactory, _groupLocalService,
-				_listTypeLocalService, _modelSearchRegistrarHelper,
-				_objectActionLocalService, objectDefinitionLocalService,
-				_objectEntryLocalService, _objectEntryService,
-				_objectFieldLocalService, _objectLayoutLocalService,
-				_objectLayoutTabLocalService,
+				_listTypeLocalService, _objectActionLocalService,
+				objectDefinitionLocalService, _objectEntryLocalService,
+				_objectEntryService, _objectFieldLocalService,
+				_objectLayoutLocalService, _objectLayoutTabLocalService,
 				_objectRelatedModelsProviderRegistrarHelper,
 				_objectRelationshipLocalService, _objectScopeProviderRegistry,
 				_objectViewLocalService, _organizationLocalService,
-				_persistedModelLocalServiceRegistry, _ploEntryLocalService,
-				_portal, _portletLocalService, _resourceActions, _treeFactory,
-				_userLocalService, _resourcePermissionLocalService,
+				_ploEntryLocalService, _portal, _portletLocalService,
+				_resourceActions, _treeFactory, _userLocalService,
+				_resourcePermissionLocalService,
 				_workflowStatusModelPreFilterContributor,
 				_userGroupRoleLocalService);
 
@@ -994,7 +1035,7 @@ public class ObjectDefinitionLocalServiceImpl
 			objectDefinitionLocalService.getObjectDefinition(
 				objectDefinitionId);
 
-		Tree tree = _treeFactory.create(
+		Tree tree = _treeFactory.createObjectDefinitionTree(
 			objectDefinition.getRootObjectDefinitionId());
 
 		Iterator<Node> iterator = tree.iterator(
@@ -1004,7 +1045,7 @@ public class ObjectDefinitionLocalServiceImpl
 			Node node = iterator.next();
 
 			objectDefinitionLocalService.updateRootObjectDefinitionId(
-				node.getObjectDefinitionId(), 0);
+				node.getPrimaryKey(), 0);
 
 			if (node.isRoot()) {
 				continue;
@@ -1017,10 +1058,11 @@ public class ObjectDefinitionLocalServiceImpl
 					edge.getObjectRelationshipId());
 
 			_objectRelationshipLocalService.updateObjectRelationship(
+				objectRelationship.getExternalReferenceCode(),
 				objectRelationship.getObjectRelationshipId(),
 				objectRelationship.getParameterObjectFieldId(),
 				objectRelationship.getDeletionType(), false,
-				objectRelationship.getLabelMap());
+				objectRelationship.getLabelMap(), null);
 		}
 	}
 
@@ -1070,7 +1112,7 @@ public class ObjectDefinitionLocalServiceImpl
 			boolean enableObjectEntryDraft, boolean enableObjectEntryHistory,
 			Map<Locale, String> labelMap, String name, String panelAppOrder,
 			String panelCategoryKey, boolean portlet,
-			Map<Locale, String> pluralLabelMap, String scope)
+			Map<Locale, String> pluralLabelMap, String scope, int status)
 		throws PortalException {
 
 		ObjectDefinition objectDefinition =
@@ -1125,7 +1167,7 @@ public class ObjectDefinitionLocalServiceImpl
 			null, enableCategorization, enableComments, enableLocalization,
 			enableObjectEntryDraft, enableObjectEntryHistory, labelMap, name,
 			panelAppOrder, panelCategoryKey, portlet, null, null,
-			pluralLabelMap, scope);
+			pluralLabelMap, scope, status);
 	}
 
 	@Override
@@ -1449,7 +1491,7 @@ public class ObjectDefinitionLocalServiceImpl
 		for (ObjectAction objectAction : objectActions) {
 			_objectActionLocalService.addOrUpdateObjectAction(
 				objectAction.getExternalReferenceCode(), 0, userId,
-				objectDefinitionId, objectAction.getActive(),
+				objectDefinitionId, objectAction.isActive(),
 				objectAction.getConditionExpression(),
 				objectAction.getDescription(),
 				objectAction.getErrorMessageMap(), objectAction.getLabelMap(),
@@ -1457,7 +1499,7 @@ public class ObjectDefinitionLocalServiceImpl
 				objectAction.getObjectActionExecutorKey(),
 				objectAction.getObjectActionTriggerKey(),
 				objectAction.getParametersUnicodeProperties(),
-				objectAction.getSystem());
+				objectAction.isSystem());
 		}
 	}
 
@@ -1562,44 +1604,37 @@ public class ObjectDefinitionLocalServiceImpl
 		runSQL(dynamicObjectDefinitionTable.getCreateTableSQL());
 
 		for (ObjectField objectField : objectFields) {
-			boolean indexable = false;
-			boolean unique = false;
-
-			if (StringUtil.equals(
+			if (!StringUtil.equals(
 					objectField.getBusinessType(),
 					ObjectFieldConstants.BUSINESS_TYPE_RELATIONSHIP)) {
 
-				indexable = true;
-			}
-			else if (GetterUtil.getBoolean(
-						ObjectFieldSettingUtil.getValue(
-							ObjectFieldSettingConstants.NAME_UNIQUE_VALUES,
-							objectField))) {
-
-				indexable = true;
-				unique = true;
-			}
-
-			if (!indexable) {
 				continue;
 			}
 
 			ObjectDBManagerUtil.createIndexMetadata(
-				objectField.getDBColumnName(),
 				_currentConnection.getConnection(
 					objectDefinitionPersistence.getDataSource()),
-				dbTableName, unique);
+				dbTableName, false, objectField.getDBColumnName());
 		}
 	}
 
 	private void _dropTable(String dbTableName) {
-		String sql = "drop table " + dbTableName;
+		String sql = "DROP_TABLE_IF_EXISTS(" + dbTableName + ")";
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("SQL: " + sql);
 		}
 
-		runSQL(sql);
+		DataSource dataSource = objectDefinitionPersistence.getDataSource();
+
+		DB db = DBManagerUtil.getDB();
+
+		try (Connection connection = ConnectionUtil.getConnection(dataSource)) {
+			db.runSQL(connection, new String[] {sql});
+		}
+		catch (Exception exception) {
+			throw new SystemException(exception);
+		}
 	}
 
 	private String _getClassName(
@@ -1654,8 +1689,7 @@ public class ObjectDefinitionLocalServiceImpl
 
 		if (objectFolderId == 0) {
 			ObjectFolder objectFolder =
-				_objectFolderLocalService.getUncategorizedObjectFolder(
-					companyId);
+				_objectFolderLocalService.getDefaultObjectFolder(companyId);
 
 			return objectFolder.getObjectFolderId();
 		}
@@ -1713,10 +1747,6 @@ public class ObjectDefinitionLocalServiceImpl
 	}
 
 	private void _invalidatePortalCache(ObjectDefinition objectDefinition) {
-		PortalCache<String, String> portalCache =
-			(PortalCache<String, String>)_multiVMPool.getPortalCache(
-				FragmentEntryLink.class.getName());
-
 		List<LayoutClassedModelUsage> layoutClassedModelUsages =
 			_layoutClassedModelUsageLocalService.getLayoutClassedModelUsages(
 				objectDefinition.getCompanyId(),
@@ -1727,42 +1757,54 @@ public class ObjectDefinitionLocalServiceImpl
 		for (LayoutClassedModelUsage layoutClassedModelUsage :
 				layoutClassedModelUsages) {
 
-			Set<Locale> availableLocales = _language.getAvailableLocales(
-				layoutClassedModelUsage.getGroupId());
-
-			for (Locale locale : availableLocales) {
-				portalCache.remove(
-					StringBundler.concat(
-						layoutClassedModelUsage.getContainerKey(),
-						StringPool.DASH, locale, StringPool.DASH, 0));
-			}
+			_fragmentEntryLinkCache.removeFragmentEntryLinkCache(
+				GetterUtil.getLong(layoutClassedModelUsage.getContainerKey()));
 		}
 	}
 
 	private boolean _isUnmodifiableSystemObject(
 		boolean modifiable, boolean system) {
 
-		if (FeatureFlagManagerUtil.isEnabled("LPS-167253")) {
-			if (!modifiable && system) {
-				return true;
-			}
-
-			return false;
+		if (!modifiable && system) {
+			return true;
 		}
 
-		return system;
+		return false;
 	}
 
 	private ObjectDefinition _publishObjectDefinition(
 			long userId, ObjectDefinition objectDefinition)
 		throws PortalException {
 
-		if (!ListUtil.exists(
-				_objectFieldPersistence.findByObjectDefinitionId(
-					objectDefinition.getObjectDefinitionId()),
-				objectField -> !objectField.isMetadata())) {
+		if (objectDefinition.isApproved()) {
+			throw new ObjectDefinitionStatusException(
+				"The object definition is already published",
+				"the-object-definition-is-already-published");
+		}
 
-			throw new RequiredObjectFieldException();
+		List<ObjectField> objectFields =
+			_objectFieldPersistence.findByObjectDefinitionId(
+				objectDefinition.getObjectDefinitionId());
+
+		if (!objectDefinition.isEnableLocalization() &&
+			ListUtil.exists(objectFields, ObjectFieldModel::isLocalized)) {
+
+			throw new ObjectDefinitionEnableLocalizationException(
+				"You cannot disable entry translation for the object " +
+					"definition because translation is enabled for custom " +
+						"fields",
+				"you-cannot-disable-entry-translation-for-the-object-" +
+					"definition-because-translation-is-enabled-for-custom-" +
+						"fields");
+		}
+
+		if (!ListUtil.exists(
+				objectFields, objectField -> !objectField.isMetadata())) {
+
+			throw new ObjectDefinitionStatusException(
+				"At least one object field must be added when publishing the " +
+					"object definition",
+				"at-least-one-object-field-must-be-added");
 		}
 
 		objectDefinition.setActive(true);
@@ -1829,7 +1871,7 @@ public class ObjectDefinitionLocalServiceImpl
 			Map<Locale, String> labelMap, String name, String panelAppOrder,
 			String panelCategoryKey, boolean portlet,
 			String pkObjectFieldDBColumnName, String pkObjectFieldName,
-			Map<Locale, String> pluralLabelMap, String scope)
+			Map<Locale, String> pluralLabelMap, String scope, int status)
 		throws PortalException {
 
 		long oldObjectFolderId = objectDefinition.getObjectFolderId();
@@ -1843,7 +1885,7 @@ public class ObjectDefinitionLocalServiceImpl
 			objectDefinition);
 		_validateObjectFieldId(objectDefinition, descriptionObjectFieldId);
 		_validateObjectFieldId(objectDefinition, titleObjectFieldId);
-		_validateActive(objectDefinition, active);
+		_validateActive(active, status);
 		_validateEnableCategorization(
 			enableCategorization, objectDefinition.isModifiable(),
 			objectDefinition.getStorageType(), objectDefinition.isSystem());
@@ -1970,6 +2012,19 @@ public class ObjectDefinitionLocalServiceImpl
 		return objectDefinition;
 	}
 
+	private void _updateObjectDefinitionPortlet(
+			ObjectDefinition objectDefinition)
+		throws PortalException {
+
+		if (objectDefinition.isPortlet() &&
+			objectDefinition.isRootDescendantNode()) {
+
+			objectDefinition.setPortlet(false);
+
+			objectDefinitionPersistence.update(objectDefinition);
+		}
+	}
+
 	private ObjectDefinition _updateTitleObjectFieldId(
 			ObjectDefinition objectDefinition, String titleObjectFieldName)
 		throws PortalException {
@@ -2053,11 +2108,12 @@ public class ObjectDefinitionLocalServiceImpl
 		}
 	}
 
-	private void _validateActive(
-			ObjectDefinition objectDefinition, boolean active)
+	private void _validateActive(boolean active, int status)
 		throws PortalException {
 
-		if (active && !objectDefinition.isApproved()) {
+		if (active &&
+			!Objects.equals(WorkflowConstants.STATUS_APPROVED, status)) {
+
 			throw new ObjectDefinitionActiveException(
 				"Object definitions must be published before being activated");
 		}
@@ -2371,6 +2427,9 @@ public class ObjectDefinitionLocalServiceImpl
 		_dynamicQueryBatchIndexingActionableFactory;
 
 	@Reference
+	private FragmentEntryLinkCache _fragmentEntryLinkCache;
+
+	@Reference
 	private GroupLocalService _groupLocalService;
 
 	private final Map
@@ -2388,12 +2447,6 @@ public class ObjectDefinitionLocalServiceImpl
 
 	@Reference
 	private ListTypeLocalService _listTypeLocalService;
-
-	@Reference
-	private ModelSearchRegistrarHelper _modelSearchRegistrarHelper;
-
-	@Reference
-	private MultiVMPool _multiVMPool;
 
 	@Reference
 	private ObjectActionLocalService _objectActionLocalService;
@@ -2452,10 +2505,6 @@ public class ObjectDefinitionLocalServiceImpl
 
 	@Reference
 	private OrganizationLocalService _organizationLocalService;
-
-	@Reference
-	private PersistedModelLocalServiceRegistry
-		_persistedModelLocalServiceRegistry;
 
 	@Reference
 	private PLOEntryLocalService _ploEntryLocalService;

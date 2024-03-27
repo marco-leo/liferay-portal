@@ -71,7 +71,7 @@ definition {
 		User.firstLoginPG();
 
 		ContentPages.viewFragmentText(
-			fragmentName = "heading",
+			fragmentName = "paragraph",
 			id = "element-text",
 			text = "Welcome to Liferay");
 
@@ -85,7 +85,7 @@ definition {
 		User.logoutPG();
 
 		ContentPages.viewFragmentText(
-			fragmentName = "heading",
+			fragmentName = "paragraph",
 			id = "element-text",
 			text = "Bienvenido a Liferay");
 	}
@@ -129,7 +129,7 @@ definition {
 	@priority = 4
 	test CanRemoveAvailableLanguageFromSite {
 		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
+		property test.run.type = "sequential";
 
 		User.firstLoginPG();
 
@@ -390,7 +390,7 @@ definition {
 		User.firstLoginPG();
 
 		ContentPages.viewFragmentText(
-			fragmentName = "heading",
+			fragmentName = "paragraph",
 			id = "element-text",
 			text = "Welcome to Liferay");
 
@@ -419,7 +419,7 @@ definition {
 			userEmailAddress = "test@www.able.com");
 
 		ContentPages.viewFragmentText(
-			fragmentName = "heading",
+			fragmentName = "paragraph",
 			id = "element-text",
 			text = "Bienvenido a Liferay");
 	}
@@ -476,9 +476,9 @@ definition {
 			locator1 = "UserBar#USER_SIGN_IN",
 			value1 = "Accedeix");
 
-		Click(
-			key_language = "српски (serbia, latin)",
-			locator1 = "Language#LONG_TEXT_LINK");
+		// TODO Clean up after CLDR update is finished
+
+		Click(locator1 = "//a[contains(@class, 'long-text') and contains(., 'српски') and contains(., 'latin')]");
 
 		AssertLocation(value1 = "${portalURL}/sr-RS-latin/web/guest/language-selector-page");
 
@@ -692,7 +692,7 @@ definition {
 
 		task ("View the inline text is localized on Home page") {
 			ContentPages.viewFragmentText(
-				fragmentName = "heading",
+				fragmentName = "paragraph",
 				id = "element-text",
 				text = "Bienvenido a Liferay");
 		}
@@ -941,7 +941,7 @@ definition {
 	@priority = 4
 	test ViewDefaultAvailableTimeZonesForInstancesAndUsers {
 		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
+		property test.run.type = "sequential";
 
 		User.firstLoginPG();
 
@@ -1073,7 +1073,7 @@ definition {
 	@priority = 4
 	test ViewTimeZoneIDInNonEnglishLocale {
 		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
+		property test.run.type = "sequential";
 
 		User.firstLoginPG();
 
@@ -1232,7 +1232,7 @@ definition {
 	@priority = 3
 	test VirtualHostLanguageCanBeChangedWithUserDefaultLanguage {
 		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
+		property test.run.type = "sequential";
 
 		User.firstLoginPG();
 

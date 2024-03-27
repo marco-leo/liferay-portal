@@ -25,8 +25,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -261,7 +259,7 @@ public abstract class BaseEmailAddressResourceTestCase {
 			emailAddressResource.getOrganizationEmailAddressesPage(
 				organizationId);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantOrganizationId != null) {
 			EmailAddress irrelevantEmailAddress =
@@ -271,11 +269,10 @@ public abstract class BaseEmailAddressResourceTestCase {
 			page = emailAddressResource.getOrganizationEmailAddressesPage(
 				irrelevantOrganizationId);
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantEmailAddress),
-				(List<EmailAddress>)page.getItems());
+			assertContains(
+				irrelevantEmailAddress, (List<EmailAddress>)page.getItems());
 			assertValid(
 				page,
 				testGetOrganizationEmailAddressesPage_getExpectedActions(
@@ -293,11 +290,10 @@ public abstract class BaseEmailAddressResourceTestCase {
 		page = emailAddressResource.getOrganizationEmailAddressesPage(
 			organizationId);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(emailAddress1, emailAddress2),
-			(List<EmailAddress>)page.getItems());
+		assertContains(emailAddress1, (List<EmailAddress>)page.getItems());
+		assertContains(emailAddress2, (List<EmailAddress>)page.getItems());
 		assertValid(
 			page,
 			testGetOrganizationEmailAddressesPage_getExpectedActions(
@@ -348,7 +344,7 @@ public abstract class BaseEmailAddressResourceTestCase {
 			emailAddressResource.getUserAccountEmailAddressesPage(
 				userAccountId);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantUserAccountId != null) {
 			EmailAddress irrelevantEmailAddress =
@@ -358,11 +354,10 @@ public abstract class BaseEmailAddressResourceTestCase {
 			page = emailAddressResource.getUserAccountEmailAddressesPage(
 				irrelevantUserAccountId);
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantEmailAddress),
-				(List<EmailAddress>)page.getItems());
+			assertContains(
+				irrelevantEmailAddress, (List<EmailAddress>)page.getItems());
 			assertValid(
 				page,
 				testGetUserAccountEmailAddressesPage_getExpectedActions(
@@ -380,11 +375,10 @@ public abstract class BaseEmailAddressResourceTestCase {
 		page = emailAddressResource.getUserAccountEmailAddressesPage(
 			userAccountId);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(emailAddress1, emailAddress2),
-			(List<EmailAddress>)page.getItems());
+		assertContains(emailAddress1, (List<EmailAddress>)page.getItems());
+		assertContains(emailAddress2, (List<EmailAddress>)page.getItems());
 		assertValid(
 			page,
 			testGetUserAccountEmailAddressesPage_getExpectedActions(
@@ -732,6 +726,10 @@ public abstract class BaseEmailAddressResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -965,9 +963,9 @@ public abstract class BaseEmailAddressResourceTestCase {
 	}
 
 	protected EmailAddressResource emailAddressResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

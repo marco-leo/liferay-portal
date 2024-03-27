@@ -1,7 +1,7 @@
-@component-name = "portal-liferay-online"
+@component-name = "portal-solutions"
 definition {
 
-	property database.types = "mysql";
+	property database.types = "mysql, postgresql";
 	property liferay.online.properties = "true";
 	property osgi.modules.includes = "site-initializer-team-extranet";
 	property portal.release = "true";
@@ -64,10 +64,7 @@ definition {
 		property test.run.type = "single";
 
 		task ("Go to Sites and add a new one") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Sites",
-				panel = "Control Panel",
-				portlet = "Sites");
+			Site.openSitesAdmin();
 
 			Site.addSiteTemplateCP(
 				siteName = "Liferay Welcome Site",
@@ -108,7 +105,7 @@ definition {
 
 		task ("Assert the default Welcome Page is present") {
 			ContentPages.viewFragmentText(
-				fragmentName = "heading",
+				fragmentName = "paragraph",
 				id = "element-text",
 				text = "Welcome to Liferay");
 		}
@@ -375,7 +372,7 @@ definition {
 		task ("Search for Careers in Search Bar to get results") {
 			TeamExtranet.searchEmbedded(searchTerm = "careers");
 
-			SearchResultPortlet.viewSearchResults(
+			SearchResults.viewSearchResults(
 				searchAssetTitle = "Careers",
 				searchAssetType = "Page");
 		}

@@ -32,8 +32,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
@@ -41,8 +39,10 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.search.test.util.SearchTestRule;
@@ -68,8 +68,6 @@ import java.util.Set;
 import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
-import org.apache.commons.lang.time.DateUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -489,7 +487,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 		Page<BlogPosting> page = blogPostingResource.getSiteBlogPostingsPage(
 			siteId, null, null, null, Pagination.of(1, 10), null);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantSiteId != null) {
 			BlogPosting irrelevantBlogPosting =
@@ -497,13 +495,13 @@ public abstract class BaseBlogPostingResourceTestCase {
 					irrelevantSiteId, randomIrrelevantBlogPosting());
 
 			page = blogPostingResource.getSiteBlogPostingsPage(
-				irrelevantSiteId, null, null, null, Pagination.of(1, 2), null);
+				irrelevantSiteId, null, null, null,
+				Pagination.of(1, (int)totalCount + 1), null);
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantBlogPosting),
-				(List<BlogPosting>)page.getItems());
+			assertContains(
+				irrelevantBlogPosting, (List<BlogPosting>)page.getItems());
 			assertValid(
 				page,
 				testGetSiteBlogPostingsPage_getExpectedActions(
@@ -519,11 +517,10 @@ public abstract class BaseBlogPostingResourceTestCase {
 		page = blogPostingResource.getSiteBlogPostingsPage(
 			siteId, null, null, null, Pagination.of(1, 10), null);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(blogPosting1, blogPosting2),
-			(List<BlogPosting>)page.getItems());
+		assertContains(blogPosting1, (List<BlogPosting>)page.getItems());
+		assertContains(blogPosting2, (List<BlogPosting>)page.getItems());
 		assertValid(
 			page, testGetSiteBlogPostingsPage_getExpectedActions(siteId));
 
@@ -647,6 +644,12 @@ public abstract class BaseBlogPostingResourceTestCase {
 	public void testGetSiteBlogPostingsPageWithPagination() throws Exception {
 		Long siteId = testGetSiteBlogPostingsPage_getSiteId();
 
+		Page<BlogPosting> blogPostingPage =
+			blogPostingResource.getSiteBlogPostingsPage(
+				siteId, null, null, null, null, null);
+
+		int totalCount = GetterUtil.getInteger(blogPostingPage.getTotalCount());
+
 		BlogPosting blogPosting1 = testGetSiteBlogPostingsPage_addBlogPosting(
 			siteId, randomBlogPosting());
 
@@ -656,28 +659,77 @@ public abstract class BaseBlogPostingResourceTestCase {
 		BlogPosting blogPosting3 = testGetSiteBlogPostingsPage_addBlogPosting(
 			siteId, randomBlogPosting());
 
-		Page<BlogPosting> page1 = blogPostingResource.getSiteBlogPostingsPage(
-			siteId, null, null, null, Pagination.of(1, 2), null);
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<BlogPosting> blogPostings1 = (List<BlogPosting>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(blogPostings1.toString(), 2, blogPostings1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<BlogPosting> page1 =
+				blogPostingResource.getSiteBlogPostingsPage(
+					siteId, null, null, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+						pageSizeLimit),
+					null);
 
-		Page<BlogPosting> page2 = blogPostingResource.getSiteBlogPostingsPage(
-			siteId, null, null, null, Pagination.of(2, 2), null);
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(3, page2.getTotalCount());
+			assertContains(blogPosting1, (List<BlogPosting>)page1.getItems());
 
-		List<BlogPosting> blogPostings2 = (List<BlogPosting>)page2.getItems();
+			Page<BlogPosting> page2 =
+				blogPostingResource.getSiteBlogPostingsPage(
+					siteId, null, null, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+						pageSizeLimit),
+					null);
 
-		Assert.assertEquals(blogPostings2.toString(), 1, blogPostings2.size());
+			assertContains(blogPosting2, (List<BlogPosting>)page2.getItems());
 
-		Page<BlogPosting> page3 = blogPostingResource.getSiteBlogPostingsPage(
-			siteId, null, null, null, Pagination.of(1, 3), null);
+			Page<BlogPosting> page3 =
+				blogPostingResource.getSiteBlogPostingsPage(
+					siteId, null, null, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+						pageSizeLimit),
+					null);
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(blogPosting1, blogPosting2, blogPosting3),
-			(List<BlogPosting>)page3.getItems());
+			assertContains(blogPosting3, (List<BlogPosting>)page3.getItems());
+		}
+		else {
+			Page<BlogPosting> page1 =
+				blogPostingResource.getSiteBlogPostingsPage(
+					siteId, null, null, null, Pagination.of(1, totalCount + 2),
+					null);
+
+			List<BlogPosting> blogPostings1 =
+				(List<BlogPosting>)page1.getItems();
+
+			Assert.assertEquals(
+				blogPostings1.toString(), totalCount + 2, blogPostings1.size());
+
+			Page<BlogPosting> page2 =
+				blogPostingResource.getSiteBlogPostingsPage(
+					siteId, null, null, null, Pagination.of(2, totalCount + 2),
+					null);
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<BlogPosting> blogPostings2 =
+				(List<BlogPosting>)page2.getItems();
+
+			Assert.assertEquals(
+				blogPostings2.toString(), 1, blogPostings2.size());
+
+			Page<BlogPosting> page3 =
+				blogPostingResource.getSiteBlogPostingsPage(
+					siteId, null, null, null,
+					Pagination.of(1, (int)totalCount + 3), null);
+
+			assertContains(blogPosting1, (List<BlogPosting>)page3.getItems());
+			assertContains(blogPosting2, (List<BlogPosting>)page3.getItems());
+			assertContains(blogPosting3, (List<BlogPosting>)page3.getItems());
+		}
 	}
 
 	@Test
@@ -687,7 +739,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 			(entityField, blogPosting1, blogPosting2) -> {
 				BeanTestUtil.setProperty(
 					blogPosting1, entityField.getName(),
-					DateUtils.addMinutes(new Date(), -2));
+					new Date(System.currentTimeMillis() - (2 * Time.MINUTE)));
 			});
 	}
 
@@ -793,24 +845,29 @@ public abstract class BaseBlogPostingResourceTestCase {
 		blogPosting2 = testGetSiteBlogPostingsPage_addBlogPosting(
 			siteId, blogPosting2);
 
+		Page<BlogPosting> page = blogPostingResource.getSiteBlogPostingsPage(
+			siteId, null, null, null, null, null);
+
 		for (EntityField entityField : entityFields) {
 			Page<BlogPosting> ascPage =
 				blogPostingResource.getSiteBlogPostingsPage(
-					siteId, null, null, null, Pagination.of(1, 2),
+					siteId, null, null, null,
+					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":asc");
 
-			assertEquals(
-				Arrays.asList(blogPosting1, blogPosting2),
-				(List<BlogPosting>)ascPage.getItems());
+			assertContains(blogPosting1, (List<BlogPosting>)ascPage.getItems());
+			assertContains(blogPosting2, (List<BlogPosting>)ascPage.getItems());
 
 			Page<BlogPosting> descPage =
 				blogPostingResource.getSiteBlogPostingsPage(
-					siteId, null, null, null, Pagination.of(1, 2),
+					siteId, null, null, null,
+					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":desc");
 
-			assertEquals(
-				Arrays.asList(blogPosting2, blogPosting1),
-				(List<BlogPosting>)descPage.getItems());
+			assertContains(
+				blogPosting2, (List<BlogPosting>)descPage.getItems());
+			assertContains(
+				blogPosting1, (List<BlogPosting>)descPage.getItems());
 		}
 	}
 
@@ -852,7 +909,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
 			"JSONObject/blogPostings");
 
-		Assert.assertEquals(0, blogPostingsJSONObject.get("totalCount"));
+		long totalCount = blogPostingsJSONObject.getLong("totalCount");
 
 		BlogPosting blogPosting1 =
 			testGraphQLGetSiteBlogPostingsPage_addBlogPosting();
@@ -863,10 +920,16 @@ public abstract class BaseBlogPostingResourceTestCase {
 			invokeGraphQLQuery(graphQLField), "JSONObject/data",
 			"JSONObject/blogPostings");
 
-		Assert.assertEquals(2, blogPostingsJSONObject.getLong("totalCount"));
+		Assert.assertEquals(
+			totalCount + 2, blogPostingsJSONObject.getLong("totalCount"));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(blogPosting1, blogPosting2),
+		assertContains(
+			blogPosting1,
+			Arrays.asList(
+				BlogPostingSerDes.toDTOs(
+					blogPostingsJSONObject.getString("items"))));
+		assertContains(
+			blogPosting2,
 			Arrays.asList(
 				BlogPostingSerDes.toDTOs(
 					blogPostingsJSONObject.getString("items"))));
@@ -2253,6 +2316,10 @@ public abstract class BaseBlogPostingResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -2433,21 +2500,20 @@ public abstract class BaseBlogPostingResourceTestCase {
 
 		if (entityFieldName.equals("dateCreated")) {
 			if (operator.equals("between")) {
+				Date date = blogPosting.getDateCreated();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							blogPosting.getDateCreated(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(blogPosting.getDateCreated(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -2465,22 +2531,20 @@ public abstract class BaseBlogPostingResourceTestCase {
 
 		if (entityFieldName.equals("dateModified")) {
 			if (operator.equals("between")) {
+				Date date = blogPosting.getDateModified();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							blogPosting.getDateModified(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							blogPosting.getDateModified(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -2498,22 +2562,20 @@ public abstract class BaseBlogPostingResourceTestCase {
 
 		if (entityFieldName.equals("datePublished")) {
 			if (operator.equals("between")) {
+				Date date = blogPosting.getDatePublished();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							blogPosting.getDatePublished(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							blogPosting.getDatePublished(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -2904,9 +2966,9 @@ public abstract class BaseBlogPostingResourceTestCase {
 	}
 
 	protected BlogPostingResource blogPostingResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

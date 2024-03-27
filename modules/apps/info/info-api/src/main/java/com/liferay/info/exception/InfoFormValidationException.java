@@ -7,6 +7,7 @@ package com.liferay.info.exception;
 
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.captcha.CaptchaException;
+import com.liferay.portal.kernel.exception.InfoFormException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 
 import java.util.ArrayList;
@@ -53,6 +54,29 @@ public class InfoFormValidationException extends InfoFormException {
 		}
 
 		private final String _message;
+
+	}
+
+	public static class ExceedsMaxEntries extends InfoFormValidationException {
+
+		public ExceedsMaxEntries(String infoFormLabel, String messageKey) {
+			_infoFormLabel = infoFormLabel;
+			_messageKey = messageKey;
+		}
+
+		@Override
+		public String getLocalizedMessage(Locale locale) {
+			return LanguageUtil.format(
+				locale, _messageKey, new String[] {_infoFormLabel}, false);
+		}
+
+		@Override
+		public String getLocalizedMessage(String fieldLabel, Locale locale) {
+			return getLocalizedMessage(locale);
+		}
+
+		private final String _infoFormLabel;
+		private final String _messageKey;
 
 	}
 
@@ -296,6 +320,29 @@ public class InfoFormValidationException extends InfoFormException {
 		private final List<CustomValidation> _customValidations =
 			new ArrayList<>();
 		private final String _message;
+
+	}
+
+	public static class UniqueValueConstraintViolation
+		extends InfoFormValidationException {
+
+		public UniqueValueConstraintViolation(String infoFieldLabel) {
+			_infoFieldLabel = infoFieldLabel;
+		}
+
+		@Override
+		public String getLocalizedMessage(Locale locale) {
+			return LanguageUtil.format(
+				locale, "the-x-is-already-in-use",
+				new String[] {_infoFieldLabel, _infoFieldLabel}, false);
+		}
+
+		@Override
+		public String getLocalizedMessage(String fieldLabel, Locale locale) {
+			return super.getLocalizedMessage(locale);
+		}
+
+		private final String _infoFieldLabel;
 
 	}
 

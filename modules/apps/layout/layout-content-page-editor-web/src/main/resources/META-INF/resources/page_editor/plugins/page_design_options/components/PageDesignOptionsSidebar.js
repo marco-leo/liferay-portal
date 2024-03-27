@@ -75,13 +75,13 @@ export default function PageDesignOptionsSidebar() {
 	const onSelectStyleBook = useCallback(
 		(styleBookEntryId) => {
 			LayoutService.changeStyleBookEntry({
-				onNetworkStatus: () => {},
+				onNetworkStatus: dispatch,
 				styleBookEntryId,
 			}).then(({tokenValues}) => {
 				setSelectedStyleBook({styleBookEntryId, tokenValues});
 			});
 		},
-		[setSelectedStyleBook]
+		[setSelectedStyleBook, dispatch]
 	);
 
 	useEffect(() => {
@@ -123,14 +123,18 @@ export default function PageDesignOptionsSidebar() {
 		<>
 			<SidebarPanelHeader
 				iconRight={
-					<ClayLink
-						displayType="secondary"
-						href={config.lookAndFeelURL}
-						monospaced
-						title={Liferay.Language.get('more-page-design-options')}
-					>
-						<ClayIcon symbol="cog" />
-					</ClayLink>
+					config.lookAndFeelURL && (
+						<ClayLink
+							displayType="secondary"
+							href={config.lookAndFeelURL}
+							monospaced
+							title={Liferay.Language.get(
+								'more-page-design-options'
+							)}
+						>
+							<ClayIcon symbol="cog" />
+						</ClayLink>
+					)
 				}
 			>
 				{Liferay.Language.get('page-design-options')}

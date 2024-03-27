@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.CountryServiceUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
+import com.liferay.portal.kernel.service.ListTypeServiceUtil;
 import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.kernel.service.RegionServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -248,7 +249,10 @@ public class SetupWizardSampleDataUtil {
 					null, guestUser.getUserId(),
 					parentOrganization.getOrganizationId(), name, type,
 					regionId, countryId,
-					ListTypeConstants.ORGANIZATION_STATUS_DEFAULT,
+					ListTypeServiceUtil.getListTypeId(
+						country.getCompanyId(),
+						ListTypeConstants.ORGANIZATION_STATUS_DEFAULT,
+						ListTypeConstants.ORGANIZATION_STATUS),
 					StringPool.BLANK, true, null);
 
 			GroupLocalServiceUtil.updateFriendlyURL(

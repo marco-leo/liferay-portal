@@ -16,17 +16,16 @@ import {
 } from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
+const TPL_ERROR_MESSAGES = `<span>{0}</span><ul class="mb-0 mt-2 pl-3">{1}</ul>`;
+
 const DLFolderSelector = ({
 	copyActionURL,
-	fileShortcutId,
-	itemType,
+	dlObjectIds,
+	dlObjectName,
 	portletNamespace,
 	redirect,
 	selectionModalURL,
-	sourceFileEntryId,
-	sourceFileName,
-	sourceFolderId,
-	sourceFolderName,
+	size,
 	sourceRepositoryId,
 }) => {
 	const [copyButtonDisabled, setCopyButtonDisabled] = useState(true);
@@ -72,60 +71,99 @@ const DLFolderSelector = ({
 					return;
 				}
 
-				setDestinationParentFolderName(selectedItem.foldername);
-				setDestinationParentFolderId(selectedItem.folderid);
+				setDestinationParentFolderName(selectedItem.resourcename);
+				setDestinationParentFolderId(selectedItem.resourceid);
 				setDestinationRepositoryId(selectedItem.repositoryid);
 				setDestinationRepositoryName(selectedItem.repositoryname);
 				setCopyButtonDisabled(false);
 			},
 			selectEventName: `${portletNamespace}folderSelected`,
-			title: sub(Liferay.Language.get('select')),
+			title: Liferay.Language.get('select'),
 			url: selectionModalURL,
+		});
+	};
+
+	const formatErrorMessages = (errorMessages, failedItems) => {
+		const errors = errorMessages
+			.map((message) => {
+				return `<li>${message}</li>`;
+			})
+			.join('');
+
+		return sub(TPL_ERROR_MESSAGES, [
+			failedItems > 1
+				? sub(
+						Liferay.Language.get('x-items-could-not-be-copied'),
+						failedItems
+				  )
+				: sub(
+						Liferay.Language.get('x-item-could-not-be-copied'),
+						failedItems
+				  ),
+			errors,
+		]);
+	};
+
+	const showErrorMessage = (message) => {
+		openToast({
+			autoClose: false,
+			message,
+			title: Liferay.Language.get('error'),
+			type: 'danger',
 		});
 	};
 
 	const handleSubmit = (event) => {
 		event.preventDefault();
 
-		const bodyContentObject = objectToFormData(
-			itemType === 'folder'
-				? {
-						[`${portletNamespace}sourceRepositoryId`]: sourceRepositoryId,
-						[`${portletNamespace}sourceFolderId`]: sourceFolderId,
-						[`${portletNamespace}destinationParentFolderId`]: destinationParentFolderId,
-						[`${portletNamespace}destinationRepositoryId`]: destinationRepositoryId,
-				  }
-				: {
-						[`${portletNamespace}fileEntryId`]: sourceFileEntryId,
-						[`${portletNamespace}fileShortcutId`]: fileShortcutId,
-						[`${portletNamespace}destinationFolderId`]: destinationParentFolderId,
-						[`${portletNamespace}destinationRepositoryId`]: destinationRepositoryId,
-				  }
-		);
+		const bodyContentObject = objectToFormData({
+			[`${portletNamespace}dlObjectIds`]: dlObjectIds,
+			[`${portletNamespace}size`]: size,
+			[`${portletNamespace}sourceRepositoryId`]: sourceRepositoryId,
+			[`${portletNamespace}destinationParentFolderId`]: destinationParentFolderId,
+			[`${portletNamespace}destinationRepositoryId`]: destinationRepositoryId,
+		});
 
 		fetch(copyActionURL, {
 			body: bodyContentObject,
 			method: 'POST',
 		})
 			.then((response) => response.json())
-			.then(({errorMessage}) => {
-				if (errorMessage) {
+			.then(({errorMessages, failedItems, successItems}) => {
+				if (successItems) {
 					openToast({
-						message: errorMessage,
-						title: Liferay.Language.get('error'),
-						type: 'danger',
+						message: sub(
+							successItems > 1
+								? Liferay.Language.get(
+										'x-items-were-copied-successfully'
+								  )
+								: Liferay.Language.get(
+										'x-item-was-copied-successfully'
+								  ),
+							successItems
+						),
 					});
+				}
+
+				if (failedItems > 10) {
+					showErrorMessage(
+						sub(
+							Liferay.Language.get('x-items-could-not-be-copied'),
+							failedItems
+						)
+					);
+				}
+				else if (errorMessages) {
+					showErrorMessage(
+						formatErrorMessages(errorMessages, failedItems)
+					);
 				}
 				else {
 					navigate(redirect);
 				}
 			})
 			.catch((error) => {
-				openToast({
-					message: error.message,
-					title: Liferay.Language.get('error'),
-					type: 'danger',
-				});
+				showErrorMessage(error.message);
 			});
 	};
 
@@ -148,7 +186,8 @@ const DLFolderSelector = ({
 					className="c-mb-3"
 					disabled
 					id={`${portletNamespace}copyFromInput`}
-					placeholder={sourceFolderName || sourceFileName}
+					placeholder={dlObjectName}
+					readOnly
 					type="text"
 				/>
 

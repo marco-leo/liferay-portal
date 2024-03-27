@@ -8,7 +8,7 @@
 <%@ include file="/init.jsp" %>
 
 <%
-DisplayPageDisplayContext displayPageDisplayContext = new DisplayPageDisplayContext(request, renderRequest, renderResponse);
+DisplayPageDisplayContext displayPageDisplayContext = new DisplayPageDisplayContext(request, liferayPortletRequest, liferayPortletResponse);
 %>
 
 <clay:navigation-bar
@@ -24,7 +24,7 @@ DisplayPageManagementToolbarDisplayContext displayPageManagementToolbarDisplayCo
 
 <clay:management-toolbar
 	managementToolbarDisplayContext="<%= displayPageManagementToolbarDisplayContext %>"
-	propsTransformer="js/propsTransformers/DisplayPageManagementToolbarPropsTransformer"
+	propsTransformer="{DisplayPageManagementToolbarPropsTransformer} from layout-page-template-admin-web"
 />
 
 <c:if test='<%= FeatureFlagManagerUtil.isEnabled("LPS-189856") %>'>
@@ -44,12 +44,15 @@ DisplayPageManagementToolbarDisplayContext displayPageManagementToolbarDisplayCo
 	cssClass="container-view sidenav-content"
 >
 	<portlet:actionURL name="/layout_page_template_admin/delete_layout_page_template_entry" var="deleteDisplayPageURL">
+		<portlet:param name="tabs1" value="display-page-templates" />
 		<portlet:param name="redirect" value="<%= currentURL %>" />
 	</portlet:actionURL>
 
 	<aui:form action="<%= deleteDisplayPageURL %>" cssClass="container-fluid container-fluid-max-xl" name="fm">
-		<liferay-ui:error key="<%= RequiredLayoutPageTemplateEntryException.class.getName() %>" message="you-cannot-delete-display-page-templates-that-are-used-by-one-or-more-items.-please-view-the-usages-and-try-to-unassign-them" />
+		<liferay-ui:error exception="<%= PortalException.class %>" message="one-or-more-entries-could-not-be-deleted" />
+		<liferay-ui:error exception="<%= RequiredLayoutPageTemplateEntryException.class %>" message="you-cannot-delete-display-page-templates-that-are-used-by-one-or-more-items.-please-view-the-usages-and-try-to-unassign-them" />
 
+		<liferay-ui:success key="displayPageContentTypeChanged" message='<%= GetterUtil.getString(SessionMessages.get(renderRequest, "displayPageContentTypeChanged")) %>' />
 		<liferay-ui:success key="displayPageTemplateDeleted" message='<%= GetterUtil.getString(MultiSessionMessages.get(renderRequest, "displayPageTemplateDeleted")) %>' />
 
 		<c:if test='<%= FeatureFlagManagerUtil.isEnabled("LPS-189856") %>'>
@@ -86,6 +89,10 @@ DisplayPageManagementToolbarDisplayContext displayPageManagementToolbarDisplayCo
 
 						<%
 						row.setCssClass("card-page-item card-page-item-directory " + row.getCssClass());
+						row.setData(
+							HashMapBuilder.<String, Object>put(
+								"actions", displayPageManagementToolbarDisplayContext.getAvailableLayoutPageTemplateCollectionActions(curLayoutPageTemplateCollection)
+							).build());
 						%>
 
 						<liferay-ui:search-container-column-text
@@ -93,7 +100,7 @@ DisplayPageManagementToolbarDisplayContext displayPageManagementToolbarDisplayCo
 						>
 							<clay:horizontal-card
 								horizontalCard="<%= new DisplayPageTemplateCollectionHorizontalCard (curLayoutPageTemplateCollection, renderRequest, renderResponse, searchContainer.getRowChecker()) %>"
-								propsTransformer="js/propsTransformers/LayoutPageTemplateCollectionPropsTransformer"
+								propsTransformer="{LayoutPageTemplateCollectionPropsTransformer} from layout-page-template-admin-web"
 							/>
 						</liferay-ui:search-container-column-text>
 					</c:when>
@@ -102,7 +109,7 @@ DisplayPageManagementToolbarDisplayContext displayPageManagementToolbarDisplayCo
 						<%
 						row.setData(
 							HashMapBuilder.<String, Object>put(
-								"actions", displayPageManagementToolbarDisplayContext.getAvailableActions(curLayoutPageTemplateEntry)
+								"actions", displayPageManagementToolbarDisplayContext.getAvailableLayoutPageTemplateEntryActions(curLayoutPageTemplateEntry)
 							).build());
 						%>
 
@@ -110,13 +117,11 @@ DisplayPageManagementToolbarDisplayContext displayPageManagementToolbarDisplayCo
 							<clay:vertical-card
 								additionalProps='<%=
 									HashMapBuilder.<String, Object>put(
-										"changeContentTypeURL", displayPageDisplayContext.getChangeContentTypeURL(curLayoutPageTemplateEntry)
-									).put(
 										"mappingTypes", displayPageDisplayContext.getMappingTypesJSONArray()
 									).build()
 								%>'
-								propsTransformer="js/propsTransformers/DisplayPageDropdownPropsTransformer"
-								verticalCard="<%= new DisplayPageVerticalCard(curLayoutPageTemplateEntry, renderRequest, renderResponse, searchContainer.getRowChecker()) %>"
+								propsTransformer="{DisplayPageDropdownPropsTransformer} from layout-page-template-admin-web"
+								verticalCard="<%= new DisplayPageVerticalCard(displayPageDisplayContext.isAllowedMappedContentType(curLayoutPageTemplateEntry), curLayoutPageTemplateEntry, displayPageDisplayContext.existsMappedContentType(curLayoutPageTemplateEntry), renderRequest, renderResponse, searchContainer.getRowChecker()) %>"
 							/>
 						</liferay-ui:search-container-column-text>
 					</c:when>
@@ -136,11 +141,21 @@ DisplayPageManagementToolbarDisplayContext displayPageManagementToolbarDisplayCo
 	</div>
 </c:if>
 
-	<portlet:actionURL name="/layout_page_template_admin/update_layout_page_template_entry_preview" var="updateLayoutPageTemplateEntryPreviewURL">
-		<portlet:param name="redirect" value="<%= currentURL %>" />
-	</portlet:actionURL>
+<portlet:actionURL name="/layout_page_template_admin/move_layout_page_template_entries_and_layout_page_template_collections" var="moveEntriesURL">
+	<portlet:param name="redirect" value="<%= currentURL %>" />
+</portlet:actionURL>
 
-	<aui:form action="<%= updateLayoutPageTemplateEntryPreviewURL %>" name="layoutPageTemplateEntryPreviewFm">
-		<aui:input name="layoutPageTemplateEntryId" type="hidden" />
-		<aui:input name="fileEntryId" type="hidden" />
-	</aui:form>
+<aui:form action="<%= moveEntriesURL %>" name="moveEntriesFm">
+	<aui:input name="layoutPageTemplateCollectionsIds" type="hidden" />
+	<aui:input name="layoutPageTemplateEntriesIds" type="hidden" />
+	<aui:input name="targetLayoutPageTemplateCollectionId" type="hidden" />
+</aui:form>
+
+<portlet:actionURL name="/layout_page_template_admin/update_layout_page_template_entry_preview" var="updateLayoutPageTemplateEntryPreviewURL">
+	<portlet:param name="redirect" value="<%= currentURL %>" />
+</portlet:actionURL>
+
+<aui:form action="<%= updateLayoutPageTemplateEntryPreviewURL %>" name="layoutPageTemplateEntryPreviewFm">
+	<aui:input name="layoutPageTemplateEntryId" type="hidden" />
+	<aui:input name="fileEntryId" type="hidden" />
+</aui:form>

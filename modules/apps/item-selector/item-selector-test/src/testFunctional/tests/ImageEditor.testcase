@@ -1,4 +1,4 @@
-@component-name = "portal-lima"
+@component-name = "portal-content-management"
 definition {
 
 	property portal.release = "true";
@@ -27,7 +27,7 @@ definition {
 	}
 
 	@description = "This makes sure that canceling the image edition will preserve the original image."
-	@priority = 5
+	@priority = 4
 	test CanDiscardChange {
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -50,6 +50,8 @@ definition {
 		Refresh();
 
 		LexiconCard.checkCardCheckbox(card = "Document_2.jpg");
+
+		DMDocument.expandInfo();
 
 		DMDocument.viewDocumentMetadataCP(
 			metadataData = 313,
@@ -85,6 +87,8 @@ definition {
 		Refresh();
 
 		LexiconCard.checkCardCheckbox(card = "Document_2.jpg");
+
+		DMDocument.expandInfo();
 
 		DMDocument.viewDocumentMetadataCP(
 			metadataData = 312,
@@ -133,6 +137,8 @@ definition {
 
 		LexiconCard.checkCardCheckbox(card = "Document_2.jpg");
 
+		DMDocument.expandInfo();
+
 		DMDocument.viewDocumentMetadataCP(
 			metadataData = 313,
 			metadataLabel = "Image Length");
@@ -144,6 +150,8 @@ definition {
 		Refresh();
 
 		LexiconCard.checkCardCheckbox(card = "Document_2 (1).jpg");
+
+		DMDocument.expandInfo();
 
 		DMDocument.viewDocumentMetadataCP(
 			metadataData = 312,
@@ -178,6 +186,8 @@ definition {
 		Refresh();
 
 		LexiconCard.checkCardCheckbox(card = "Document_2.jpg");
+
+		DMDocument.expandInfo();
 
 		DMDocument.viewDocumentMetadataCP(
 			metadataData = 313,

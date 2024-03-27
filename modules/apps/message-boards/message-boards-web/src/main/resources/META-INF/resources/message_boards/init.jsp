@@ -95,6 +95,7 @@ page import="com.liferay.message.boards.util.comparator.ThreadModifiedDateCompar
 page import="com.liferay.message.boards.web.internal.dao.search.MBResultRowSplitter" %><%@
 page import="com.liferay.message.boards.web.internal.display.MBCategoryDisplay" %><%@
 page import="com.liferay.message.boards.web.internal.display.context.MBBannedUsersManagementToolbarDisplayContext" %><%@
+page import="com.liferay.message.boards.web.internal.display.context.MBConfigurationDisplayContext" %><%@
 page import="com.liferay.message.boards.web.internal.display.context.MBEditMessageDisplayContext" %><%@
 page import="com.liferay.message.boards.web.internal.display.context.MBEntriesManagementToolbarDisplayContext" %><%@
 page import="com.liferay.message.boards.web.internal.display.context.MBNavigationDisplayContext" %><%@
@@ -225,8 +226,8 @@ int rssDelta = mbGroupServiceSettings.getRSSDelta();
 String rssDisplayStyle = mbGroupServiceSettings.getRSSDisplayStyle();
 String rssFeedType = mbGroupServiceSettings.getRSSFeedType();
 
-Format dateFormatDate = FastDateFormatFactoryUtil.getDate(locale, timeZone);
-Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
+Format dateFormat = FastDateFormatFactoryUtil.getDate(locale, timeZone);
+Format dateTimeFormat = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
 
 NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);
 %>

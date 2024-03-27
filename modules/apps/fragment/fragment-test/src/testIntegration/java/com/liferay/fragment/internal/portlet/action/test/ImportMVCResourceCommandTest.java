@@ -35,6 +35,7 @@ import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 
 import java.io.File;
+import java.io.InputStream;
 
 import java.net.URL;
 
@@ -192,7 +193,7 @@ public class ImportMVCResourceCommandTest {
 			TestPropsValues.getUserId(), _group.getGroupId(),
 			fragmentCollection.getFragmentCollectionId(), key, name,
 			StringPool.BLANK, html, StringPool.BLANK, false, StringPool.BLANK,
-			null, 0, FragmentConstants.TYPE_COMPONENT, null,
+			null, 0, false, FragmentConstants.TYPE_COMPONENT, null,
 			WorkflowConstants.STATUS_APPROVED, _serviceContext);
 	}
 
@@ -236,9 +237,12 @@ public class ImportMVCResourceCommandTest {
 			String path = url.getPath();
 
 			if (!path.endsWith(StringPool.SLASH)) {
-				zipWriter.addEntry(
-					StringUtil.removeSubstring(url.getPath(), _RESOURCES_PATH),
-					url.openStream());
+				try (InputStream inputStream = url.openStream()) {
+					zipWriter.addEntry(
+						StringUtil.removeSubstring(
+							url.getPath(), _RESOURCES_PATH),
+						inputStream);
+				}
 			}
 		}
 

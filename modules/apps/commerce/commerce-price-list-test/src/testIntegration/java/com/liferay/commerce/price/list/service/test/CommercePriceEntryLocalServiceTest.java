@@ -17,6 +17,7 @@ import com.liferay.commerce.product.exception.NoSuchCPInstanceException;
 import com.liferay.commerce.product.model.CPInstance;
 import com.liferay.commerce.product.model.CPInstanceUnitOfMeasure;
 import com.liferay.commerce.product.model.CommerceCatalog;
+import com.liferay.commerce.product.service.CPInstanceLocalService;
 import com.liferay.commerce.product.service.CommerceCatalogLocalServiceUtil;
 import com.liferay.commerce.product.test.util.CPTestUtil;
 import com.liferay.commerce.test.util.price.list.CommercePriceEntryTestUtil;
@@ -30,7 +31,6 @@ import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -58,7 +58,6 @@ import org.junit.runner.RunWith;
  * @author Ethan Bustad
  * @author Luca Pellizzon
  */
-@FeatureFlags("COMMERCE-11287")
 @RunWith(Arquillian.class)
 public class CommercePriceEntryLocalServiceTest {
 
@@ -940,7 +939,10 @@ public class CommercePriceEntryLocalServiceTest {
 			CommercePriceEntry commercePriceEntry)
 		throws Exception {
 
-		CPInstance actualCPInstance = commercePriceEntry.getCPInstance();
+		CPInstance actualCPInstance =
+			_cpInstanceLocalService.fetchCProductInstance(
+				commercePriceEntry.getCProductId(),
+				commercePriceEntry.getCPInstanceUuid());
 
 		Assert.assertThat(
 			cpInstance.getCPInstanceId(),
@@ -964,6 +966,9 @@ public class CommercePriceEntryLocalServiceTest {
 
 	@Inject
 	private CommercePriceListLocalService _commercePriceListLocalService;
+
+	@Inject
+	private CPInstanceLocalService _cpInstanceLocalService;
 
 	private Group _group;
 

@@ -27,7 +27,7 @@ KaleoDefinition kaleoDefinition = kaleoDesignerDisplayContext.getKaleoDefinition
 
 String name = BeanParamUtil.getString(kaleoDefinitionVersion, request, "name");
 String draftVersion = BeanParamUtil.getString(kaleoDefinitionVersion, request, "version");
-String content = BeanParamUtil.getString(kaleoDefinitionVersion, request, "content");
+String content = BeanParamUtil.getString(kaleoDefinitionVersion, request, "contentAsXML");
 
 String latestDraftVersion = StringPool.BLANK;
 int version = 0;
@@ -104,13 +104,13 @@ String randomNamespace = StringUtil.randomId() + StringPool.UNDERLINE;
 					<span>
 						<c:choose>
 							<c:when test="<%= userName == null %>">
-								<%= dateFormatTime.format(kaleoDefinitionVersion.getModifiedDate()) %>
+								<%= displayDateFormat.format(kaleoDefinitionVersion.getModifiedDate()) %>
 							</c:when>
 							<c:when test="<%= Objects.equals(state, WorkflowWebKeys.WORKFLOW_PREVIEW_BEFORE_RESTORE_STATE) %>">
-								<liferay-ui:message arguments="<%= new String[] {dateFormatTime.format(kaleoDefinitionVersion.getModifiedDate()), HtmlUtil.escape(userName)} %>" key="revision-from-x-by-x" translateArguments="<%= false %>" />
+								<liferay-ui:message arguments="<%= new String[] {displayDateFormat.format(kaleoDefinitionVersion.getModifiedDate()), HtmlUtil.escape(userName)} %>" key="revision-from-x-by-x" translateArguments="<%= false %>" />
 							</c:when>
 							<c:otherwise>
-								<liferay-ui:message arguments="<%= new String[] {dateFormatTime.format(kaleoDefinitionVersion.getModifiedDate()), HtmlUtil.escape(userName)} %>" key="x,-by-x" translateArguments="<%= false %>" />
+								<liferay-ui:message arguments="<%= new String[] {displayDateFormat.format(kaleoDefinitionVersion.getModifiedDate()), HtmlUtil.escape(userName)} %>" key="x,-by-x" translateArguments="<%= false %>" />
 							</c:otherwise>
 						</c:choose>
 					</span>
@@ -698,7 +698,7 @@ String randomNamespace = StringUtil.randomId() + StringPool.UNDERLINE;
 			<aui:input name="randomNamespace" type="hidden" value="<%= randomNamespace %>" />
 			<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 			<aui:input name="name" type="hidden" value="<%= PortalUUIDUtil.generate() %>" />
-			<aui:input name="content" type="hidden" value="<%= kaleoDefinition.getContent() %>" />
+			<aui:input name="content" type="hidden" value="<%= kaleoDefinition.getContentAsXML() %>" />
 			<aui:input name="defaultDuplicationTitle" type="hidden" value="<%= duplicateTitle %>" />
 			<aui:input name="duplicatedDefinitionName" type="hidden" value="<%= kaleoDefinition.getName() %>" />
 			<aui:input name="duplicatedDefinitionTitle" type="hidden" value="<%= HtmlUtil.escape(kaleoDefinition.getTitle(LanguageUtil.getLanguageId(request))) %>" />

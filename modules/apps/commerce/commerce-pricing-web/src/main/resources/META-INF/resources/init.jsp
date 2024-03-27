@@ -16,6 +16,7 @@ taglib uri="http://liferay.com/tld/expando" prefix="liferay-expando" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
 taglib uri="http://liferay.com/tld/frontend-data-set" prefix="frontend-data-set" %><%@
 taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %><%@
+taglib uri="http://liferay.com/tld/react" prefix="react" %><%@
 taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 
@@ -28,6 +29,7 @@ page import="com.liferay.commerce.discount.exception.CommerceDiscountExpirationD
 page import="com.liferay.commerce.discount.exception.CommerceDiscountMaxPriceValueException" %><%@
 page import="com.liferay.commerce.discount.exception.CommerceDiscountRuleTypeSettingsException" %><%@
 page import="com.liferay.commerce.discount.exception.DuplicateCommerceDiscountException" %><%@
+page import="com.liferay.commerce.discount.exception.DuplicateCommerceDiscountExternalReferenceCodeException" %><%@
 page import="com.liferay.commerce.discount.model.CommerceDiscount" %><%@
 page import="com.liferay.commerce.discount.model.CommerceDiscountRule" %><%@
 page import="com.liferay.commerce.discount.rule.type.CommerceDiscountRuleType" %><%@
@@ -38,13 +40,16 @@ page import="com.liferay.commerce.price.list.exception.CommercePriceListCurrency
 page import="com.liferay.commerce.price.list.exception.CommercePriceListExpirationDateException" %><%@
 page import="com.liferay.commerce.price.list.exception.CommercePriceListMaxPriceValueException" %><%@
 page import="com.liferay.commerce.price.list.exception.CommercePriceListParentPriceListGroupIdException" %><%@
+page import="com.liferay.commerce.price.list.exception.CommerceTierPriceEntryMinQuantityException" %><%@
 page import="com.liferay.commerce.price.list.exception.DuplicateCommercePriceEntryException" %><%@
+page import="com.liferay.commerce.price.list.exception.DuplicateCommercePriceListExternalReferenceCodeException" %><%@
 page import="com.liferay.commerce.price.list.exception.DuplicateCommerceTierPriceEntryException" %><%@
 page import="com.liferay.commerce.price.list.model.CommercePriceEntry" %><%@
 page import="com.liferay.commerce.price.list.model.CommercePriceList" %><%@
 page import="com.liferay.commerce.price.list.model.CommerceTierPriceEntry" %><%@
 page import="com.liferay.commerce.pricing.constants.CommercePriceModifierConstants" %><%@
 page import="com.liferay.commerce.pricing.exception.CommercePriceModifierExpirationDateException" %><%@
+page import="com.liferay.commerce.pricing.exception.DuplicateCommercePricingClassExternalReferenceCodeException" %><%@
 page import="com.liferay.commerce.pricing.exception.NoSuchPricingClassException" %><%@
 page import="com.liferay.commerce.pricing.model.CommercePriceModifier" %><%@
 page import="com.liferay.commerce.pricing.model.CommercePricingClass" %><%@
@@ -76,13 +81,13 @@ page import="com.liferay.commerce.product.exception.DuplicateCommerceChannelAcco
 page import="com.liferay.commerce.product.exception.NoSuchCatalogException" %><%@
 page import="com.liferay.commerce.product.model.CPDefinition" %><%@
 page import="com.liferay.commerce.product.model.CPInstance" %><%@
+page import="com.liferay.commerce.product.model.CPInstanceUnitOfMeasure" %><%@
 page import="com.liferay.commerce.product.model.CProduct" %><%@
 page import="com.liferay.commerce.product.model.CommerceCatalog" %><%@
 page import="com.liferay.commerce.product.model.CommerceChannel" %><%@
 page import="com.liferay.commerce.product.model.CommerceChannelAccountEntryRel" %><%@
 page import="com.liferay.petra.string.StringPool" %><%@
 page import="com.liferay.portal.kernel.bean.BeanParamUtil" %><%@
-page import="com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil" %><%@
 page import="com.liferay.portal.kernel.language.LanguageUtil" %><%@
 page import="com.liferay.portal.kernel.portlet.LiferayWindowState" %><%@
 page import="com.liferay.portal.kernel.security.permission.ActionKeys" %><%@
@@ -111,9 +116,3 @@ page import="java.util.Objects" %>
 <liferay-theme:defineObjects />
 
 <portlet:defineObjects />
-
-<%
-String redirect = ParamUtil.getString(request, "redirect");
-
-String backURL = ParamUtil.getString(request, "backURL", redirect);
-%>

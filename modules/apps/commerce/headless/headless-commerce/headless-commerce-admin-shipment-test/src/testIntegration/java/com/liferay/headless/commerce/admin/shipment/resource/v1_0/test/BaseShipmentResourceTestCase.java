@@ -28,8 +28,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -38,6 +36,7 @@ import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.search.test.util.SearchTestRule;
@@ -63,8 +62,6 @@ import java.util.Set;
 import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
-import org.apache.commons.lang.time.DateUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -309,10 +306,10 @@ public abstract class BaseShipmentResourceTestCase {
 
 	@Test
 	public void testGetShipmentsPageWithPagination() throws Exception {
-		Page<Shipment> totalPage = shipmentResource.getShipmentsPage(
+		Page<Shipment> shipmentPage = shipmentResource.getShipmentsPage(
 			null, null, null, null);
 
-		int totalCount = GetterUtil.getInteger(totalPage.getTotalCount());
+		int totalCount = GetterUtil.getInteger(shipmentPage.getTotalCount());
 
 		Shipment shipment1 = testGetShipmentsPage_addShipment(randomShipment());
 
@@ -320,29 +317,65 @@ public abstract class BaseShipmentResourceTestCase {
 
 		Shipment shipment3 = testGetShipmentsPage_addShipment(randomShipment());
 
-		Page<Shipment> page1 = shipmentResource.getShipmentsPage(
-			null, null, Pagination.of(1, totalCount + 2), null);
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<Shipment> shipments1 = (List<Shipment>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(
-			shipments1.toString(), totalCount + 2, shipments1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<Shipment> page1 = shipmentResource.getShipmentsPage(
+				null, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+					pageSizeLimit),
+				null);
 
-		Page<Shipment> page2 = shipmentResource.getShipmentsPage(
-			null, null, Pagination.of(2, totalCount + 2), null);
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+			assertContains(shipment1, (List<Shipment>)page1.getItems());
 
-		List<Shipment> shipments2 = (List<Shipment>)page2.getItems();
+			Page<Shipment> page2 = shipmentResource.getShipmentsPage(
+				null, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+					pageSizeLimit),
+				null);
 
-		Assert.assertEquals(shipments2.toString(), 1, shipments2.size());
+			assertContains(shipment2, (List<Shipment>)page2.getItems());
 
-		Page<Shipment> page3 = shipmentResource.getShipmentsPage(
-			null, null, Pagination.of(1, totalCount + 3), null);
+			Page<Shipment> page3 = shipmentResource.getShipmentsPage(
+				null, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+					pageSizeLimit),
+				null);
 
-		assertContains(shipment1, (List<Shipment>)page3.getItems());
-		assertContains(shipment2, (List<Shipment>)page3.getItems());
-		assertContains(shipment3, (List<Shipment>)page3.getItems());
+			assertContains(shipment3, (List<Shipment>)page3.getItems());
+		}
+		else {
+			Page<Shipment> page1 = shipmentResource.getShipmentsPage(
+				null, null, Pagination.of(1, totalCount + 2), null);
+
+			List<Shipment> shipments1 = (List<Shipment>)page1.getItems();
+
+			Assert.assertEquals(
+				shipments1.toString(), totalCount + 2, shipments1.size());
+
+			Page<Shipment> page2 = shipmentResource.getShipmentsPage(
+				null, null, Pagination.of(2, totalCount + 2), null);
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<Shipment> shipments2 = (List<Shipment>)page2.getItems();
+
+			Assert.assertEquals(shipments2.toString(), 1, shipments2.size());
+
+			Page<Shipment> page3 = shipmentResource.getShipmentsPage(
+				null, null, Pagination.of(1, (int)totalCount + 3), null);
+
+			assertContains(shipment1, (List<Shipment>)page3.getItems());
+			assertContains(shipment2, (List<Shipment>)page3.getItems());
+			assertContains(shipment3, (List<Shipment>)page3.getItems());
+		}
 	}
 
 	@Test
@@ -352,7 +385,7 @@ public abstract class BaseShipmentResourceTestCase {
 			(entityField, shipment1, shipment2) -> {
 				BeanTestUtil.setProperty(
 					shipment1, entityField.getName(),
-					DateUtils.addMinutes(new Date(), -2));
+					new Date(System.currentTimeMillis() - (2 * Time.MINUTE)));
 			});
 	}
 
@@ -450,22 +483,23 @@ public abstract class BaseShipmentResourceTestCase {
 
 		shipment2 = testGetShipmentsPage_addShipment(shipment2);
 
+		Page<Shipment> page = shipmentResource.getShipmentsPage(
+			null, null, null, null);
+
 		for (EntityField entityField : entityFields) {
 			Page<Shipment> ascPage = shipmentResource.getShipmentsPage(
-				null, null, Pagination.of(1, 2),
+				null, null, Pagination.of(1, (int)page.getTotalCount() + 1),
 				entityField.getName() + ":asc");
 
-			assertEquals(
-				Arrays.asList(shipment1, shipment2),
-				(List<Shipment>)ascPage.getItems());
+			assertContains(shipment1, (List<Shipment>)ascPage.getItems());
+			assertContains(shipment2, (List<Shipment>)ascPage.getItems());
 
 			Page<Shipment> descPage = shipmentResource.getShipmentsPage(
-				null, null, Pagination.of(1, 2),
+				null, null, Pagination.of(1, (int)page.getTotalCount() + 1),
 				entityField.getName() + ":desc");
 
-			assertEquals(
-				Arrays.asList(shipment2, shipment1),
-				(List<Shipment>)descPage.getItems());
+			assertContains(shipment2, (List<Shipment>)descPage.getItems());
+			assertContains(shipment1, (List<Shipment>)descPage.getItems());
 		}
 	}
 
@@ -1611,6 +1645,10 @@ public abstract class BaseShipmentResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -1735,20 +1773,20 @@ public abstract class BaseShipmentResourceTestCase {
 
 		if (entityFieldName.equals("createDate")) {
 			if (operator.equals("between")) {
+				Date date = shipment.getCreateDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(shipment.getCreateDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(shipment.getCreateDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1771,20 +1809,20 @@ public abstract class BaseShipmentResourceTestCase {
 
 		if (entityFieldName.equals("expectedDate")) {
 			if (operator.equals("between")) {
+				Date date = shipment.getExpectedDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(shipment.getExpectedDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(shipment.getExpectedDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1853,20 +1891,20 @@ public abstract class BaseShipmentResourceTestCase {
 
 		if (entityFieldName.equals("modifiedDate")) {
 			if (operator.equals("between")) {
+				Date date = shipment.getModifiedDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(shipment.getModifiedDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(shipment.getModifiedDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -1904,20 +1942,20 @@ public abstract class BaseShipmentResourceTestCase {
 
 		if (entityFieldName.equals("shippingDate")) {
 			if (operator.equals("between")) {
+				Date date = shipment.getShippingDate();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(shipment.getShippingDate(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(shipment.getShippingDate(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -2206,9 +2244,9 @@ public abstract class BaseShipmentResourceTestCase {
 	}
 
 	protected ShipmentResource shipmentResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

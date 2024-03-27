@@ -13,9 +13,10 @@ import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.audit.AuditMessageFactoryUtil;
+import com.liferay.portal.image.ImageToolUtil_IW;
+import com.liferay.portal.kernel.audit.AuditMessageFactory;
 import com.liferay.portal.kernel.audit.AuditRouterUtil;
-import com.liferay.portal.kernel.image.ImageToolUtil;
+import com.liferay.portal.kernel.content.security.policy.ContentSecurityPolicyNonceProviderUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -42,12 +43,10 @@ import com.liferay.portal.kernel.service.UserService;
 import com.liferay.portal.kernel.service.permission.GroupPermissionUtil_IW;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.service.permission.OrganizationPermissionUtil_IW;
-import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
-import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
+import com.liferay.portal.kernel.service.permission.PortalPermissionUtil_IW;
+import com.liferay.portal.kernel.service.permission.PortletPermissionUtil_IW;
 import com.liferay.portal.kernel.service.permission.RolePermissionUtil_IW;
-import com.liferay.portal.kernel.service.permission.UserGroupPermissionUtil;
 import com.liferay.portal.kernel.service.permission.UserPermissionUtil_IW;
-import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.kernel.template.TemplateContextContributor;
 import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.template.TemplateHandlerRegistryUtil;
@@ -59,7 +58,7 @@ import com.liferay.portal.kernel.util.DateUtil_IW;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.GetterUtil_IW;
-import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.HtmlUtil_IW;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.InetAddressUtil;
@@ -83,6 +82,8 @@ import com.liferay.portal.kernel.webserver.WebServerServletTokenUtil;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.service.permission.CommonPermissionUtil_IW;
 import com.liferay.portal.service.permission.PasswordPolicyPermissionUtil_IW;
+import com.liferay.portal.service.permission.UserGroupPermissionUtil_IW;
+import com.liferay.portal.servlet.BrowserSnifferUtil_IW;
 import com.liferay.portal.struts.Definition;
 import com.liferay.portal.struts.TilesUtil;
 import com.liferay.portal.template.ServiceLocator;
@@ -201,6 +202,13 @@ public class TemplateContextHelper {
 	public void prepare(
 		Map<String, Object> contextObjects,
 		HttpServletRequest httpServletRequest) {
+
+		// Content security policy nonce
+
+		contextObjects.put(
+			"nonceAttribute",
+			ContentSecurityPolicyNonceProviderUtil.getNonceAttribute(
+				httpServletRequest));
 
 		// Request
 
@@ -382,9 +390,7 @@ public class TemplateContextHelper {
 		// Audit message factory
 
 		try {
-			variables.put(
-				"auditMessageFactoryUtil",
-				AuditMessageFactoryUtil.getAuditMessageFactory());
+			variables.put("auditMessageFactoryUtil", new AuditMessageFactory());
 		}
 		catch (SecurityException securityException) {
 			_log.error(securityException);
@@ -403,7 +409,7 @@ public class TemplateContextHelper {
 
 		try {
 			variables.put(
-				"browserSniffer", BrowserSnifferUtil.getBrowserSniffer());
+				"browserSniffer", BrowserSnifferUtil_IW.getInstance());
 		}
 		catch (SecurityException securityException) {
 			_log.error(securityException);
@@ -494,7 +500,7 @@ public class TemplateContextHelper {
 		// Html util
 
 		try {
-			variables.put("htmlUtil", HtmlUtil.getHtml());
+			variables.put("htmlUtil", HtmlUtil_IW.getInstance());
 		}
 		catch (SecurityException securityException) {
 			_log.error(securityException);
@@ -520,7 +526,7 @@ public class TemplateContextHelper {
 		// Image tool util
 
 		try {
-			variables.put("imageToolUtil", ImageToolUtil.getImageTool());
+			variables.put("imageToolUtil", ImageToolUtil_IW.getInstance());
 		}
 		catch (SecurityException securityException) {
 			_log.error(securityException);
@@ -709,7 +715,7 @@ public class TemplateContextHelper {
 
 		try {
 			variables.put(
-				"portalPermission", PortalPermissionUtil.getPortalPermission());
+				"portalPermission", PortalPermissionUtil_IW.getInstance());
 		}
 		catch (SecurityException securityException) {
 			_log.error(securityException);
@@ -717,8 +723,7 @@ public class TemplateContextHelper {
 
 		try {
 			variables.put(
-				"portletPermission",
-				PortletPermissionUtil.getPortletPermission());
+				"portletPermission", PortletPermissionUtil_IW.getInstance());
 		}
 		catch (SecurityException securityException) {
 			_log.error(securityException);
@@ -749,7 +754,7 @@ public class TemplateContextHelper {
 		try {
 			variables.put(
 				"userGroupPermission",
-				UserGroupPermissionUtil.getUserGroupPermission());
+				UserGroupPermissionUtil_IW.getInstance());
 		}
 		catch (SecurityException securityException) {
 			_log.error(securityException);

@@ -173,7 +173,9 @@ definition {
 		property test.run.type = "single";
 
 		task ("Add the OSGI configuration file") {
-			OAuth2.deployInstanceConfigFile(osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~instance.config");
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~instance.config");
 		}
 
 		task ("Add a new OAuth2 application") {
@@ -368,9 +370,7 @@ definition {
 		property test.run.type = "single";
 
 		task ("Add the OSGI configuration file to configure System Settings") {
-			OSGiConfig.copyOSGiConfigFile(
-				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
-				osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~default.config");
+			OAuth2.deployInstanceConfigFile(osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~default.config");
 		}
 
 		task ("Add the OSGI configuration file to configure Instance Settings") {
@@ -963,7 +963,7 @@ definition {
 
 			// Pausing 20 seconds due to assert the authorization is not yet expired. See LPS-105156 for more details.
 
-			Pause(locator1 = 20000);
+			Pause(value1 = 20000);
 
 			Refresh();
 
@@ -971,7 +971,7 @@ definition {
 
 			// Pausing 30 seconds due to assert the authorization has expired. See LPS-105156 for more details.
 
-			Pause(locator1 = 30000);
+			Pause(value1 = 30000);
 
 			Refresh();
 
@@ -979,7 +979,7 @@ definition {
 
 			// Pausing 60 seconds due to assert the authorization is deleted. See LPS-105156 for more details.
 
-			Pause(locator1 = 60000);
+			Pause(value1 = 60000);
 
 			UserBar.gotoDropdownItem(dropdownItem = "My Connected Applications");
 
@@ -1283,7 +1283,9 @@ definition {
 		}
 
 		task ("Add the OSGI configuration file to configure Instance Settings") {
-			OAuth2.deployInstanceConfigFile(osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~instance~screenName.config");
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~instance~screenName.config");
 		}
 
 		task ("Add a new OAuth2 application") {
@@ -1349,7 +1351,9 @@ definition {
 		property test.run.type = "single";
 
 		task ("Add the OSGI configuration file") {
-			OAuth2.deployInstanceConfigFile(osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~instance.config");
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~instance.config");
 		}
 
 		task ("Add a new OAuth2 application") {
@@ -1464,7 +1468,9 @@ definition {
 		property test.run.type = "single";
 
 		task ("Add the OSGI configuration file") {
-			OAuth2.deployInstanceConfigFile(osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~instance~screenName.config");
+			OSGiConfig.copyOSGiConfigFile(
+				osgiConfigFileBaseDir = "test/functional/com/liferay/portalweb/tests/coreinfrastructure/security/oauth2/dependencies",
+				osgiConfigFileName = "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration~instance~screenName.config");
 		}
 
 		task ("Add a new OAuth2 application") {
@@ -1536,7 +1542,7 @@ definition {
 		task ("When: Get the value of the application externalReferenceCode and look up clientId") {
 			var mysqlStatement = "SELECT externalReferenceCode FROM OAuth2Application WHERE name = 'OAuth2 Application';";
 
-			var sqlResults = SQL.executeMySQLStatement(mysqlStatement = ${mysqlStatement});
+			var sqlResults = SQL.executeSQLStatement(sqlStatement = ${mysqlStatement});
 
 			var externalReferenceCode = StringUtil.regexReplaceAll(${sqlResults}, "[\n]", "");
 
@@ -1706,7 +1712,7 @@ definition {
 
 			// We need this pause for waiting for the Client Extension to present
 
-			Pause(locator1 = 10000);
+			Pause(value1 = 10000);
 		}
 
 		task ("And: Verify oAuthApplication* are present in scopes on node1") {

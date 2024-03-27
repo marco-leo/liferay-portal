@@ -7,13 +7,18 @@
 
 import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
+import ClayForm from '@clayui/form';
 import {
 	ExpressionBuilder,
 	SidebarCategory,
 	Toggle,
 } from '@liferay/object-js-components-web';
 import classNames from 'classnames';
-import {LearnMessage, LearnResourcesContext} from 'frontend-js-components-web';
+import {
+	ILearnResourceContext,
+	LearnMessage,
+	LearnResourcesContext,
+} from 'frontend-js-components-web';
 import React, {useEffect, useState} from 'react';
 
 import {
@@ -26,12 +31,10 @@ import ListTypeDefaultValueSelect from '../../DefaultValueFields/ListTypeDefault
 import {ObjectFieldErrors} from '../../ObjectFieldFormBase';
 interface DefaultValueContainerProps {
 	creationLanguageId: Liferay.Language.Locale;
-	disabled?: boolean;
 	errors: ObjectFieldErrors;
-	learnResources: ObjectWebLearnResources;
+	learnResources: ILearnResourceContext;
 	modelBuilder?: boolean;
-	objectFieldBusinessType: ObjectFieldBusinessType;
-	objectFieldSettings: ObjectFieldSetting[];
+	onSubmit?: (values?: Partial<ObjectField>) => void;
 	setValues: (value: Partial<ObjectField>) => void;
 	sidebarElements: SidebarCategory[];
 	values: Partial<ObjectField>;
@@ -42,6 +45,7 @@ export interface InputAsValueFieldComponentProps {
 	defaultValue?: ObjectFieldSettingValue;
 	error?: string;
 	label: string;
+	onSubmit?: (values?: Partial<ObjectField>) => void;
 	placeholder?: string;
 	required?: boolean;
 	setValues: (values: Partial<ObjectField>) => void;
@@ -49,7 +53,9 @@ export interface InputAsValueFieldComponentProps {
 }
 
 type InputAsValueFieldComponents = {
-	[key in ObjectFieldBusinessType]: React.FC<InputAsValueFieldComponentProps>;
+	[key in ObjectFieldBusinessTypeName]: React.FC<
+		InputAsValueFieldComponentProps
+	>;
 };
 
 const InputAsValueFieldComponents: Partial<InputAsValueFieldComponents> = {
@@ -61,6 +67,7 @@ export function DefaultValueContainer({
 	errors,
 	learnResources,
 	modelBuilder = false,
+	onSubmit,
 	setValues,
 	sidebarElements,
 	values,
@@ -94,6 +101,16 @@ export function DefaultValueContainer({
 					values
 				),
 			});
+
+			if (onSubmit) {
+				onSubmit({
+					...values,
+					objectFieldSettings: removeFieldSettings(
+						['defaultValueType', 'defaultValue'],
+						values
+					),
+				});
+			}
 		}
 		else {
 			setValues({
@@ -128,20 +145,22 @@ export function DefaultValueContainer({
 						<LearnMessage
 							className="alert-link"
 							resource="object-web"
-							resourceKey="general"
+							resourceKey="expression-builder-validations-reference"
 						/>
 					</LearnResourcesContext.Provider>
 				</ClayAlert>
 			)}
 
 			{!values.state && (
-				<Toggle
-					label={Liferay.Language.get('use-default-value')}
-					onToggle={(toggled) => {
-						handleToggle(toggled);
-					}}
-					toggled={defaultValueToggleEnabled}
-				/>
+				<ClayForm.Group>
+					<Toggle
+						label={Liferay.Language.get('use-default-value')}
+						onToggle={(toggled) => {
+							handleToggle(toggled);
+						}}
+						toggled={defaultValueToggleEnabled}
+					/>
+				</ClayForm.Group>
 			)}
 
 			{defaultValueToggleEnabled && !values.state && (
@@ -203,6 +222,7 @@ export function DefaultValueContainer({
 								? Liferay.Language.get('default-value')
 								: Liferay.Language.get('input-as-value')
 						}
+						onSubmit={onSubmit}
 						required
 						setValues={setValues}
 						values={values}
@@ -217,6 +237,13 @@ export function DefaultValueContainer({
 							'use-expressions-to-create-a-condition'
 						)}
 						label={Liferay.Language.get('default-value')}
+						onBlur={(event) => {
+							event.stopPropagation();
+
+							if (onSubmit) {
+								onSubmit();
+							}
+						}}
 						onChange={({target: {value}}) => {
 							setValues({
 								objectFieldSettings: getUpdatedDefaultValueFieldSettings(
@@ -241,6 +268,17 @@ export function DefaultValueContainer({
 												'expressionBuilder'
 											),
 										});
+
+										if (onSubmit) {
+											onSubmit({
+												...values,
+												objectFieldSettings: getUpdatedDefaultValueFieldSettings(
+													values,
+													script,
+													'expressionBuilder'
+												),
+											});
+										}
 									},
 									placeholder: `<#-- ${Liferay.Language.get(
 										'create-a-condition-to-set-the-default-value'

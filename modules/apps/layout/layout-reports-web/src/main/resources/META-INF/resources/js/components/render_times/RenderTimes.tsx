@@ -5,17 +5,31 @@
 
 import ClayAlert from '@clayui/alert';
 import ClayEmptyState from '@clayui/empty-state';
-import {SearchResultsMessage} from '@liferay/layout-js-components-web';
+import {
+	ExperienceSelector,
+	SearchResultsMessage,
+	SegmentExperience,
+} from '@liferay/layout-js-components-web';
+import {FeatureIndicator} from 'frontend-js-components-web';
 import {fetch} from 'frontend-js-web';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 
 import {Fragment, FragmentFilter} from '../../constants/Fragment';
+import {ConstantsContext} from '../../context/ConstantsContext';
 import Filter from './Filter';
 import FragmentList from './FragmentList';
 import ResultsBar from './ResultsBar';
 import getFragmentsByFilterValue from './getFragmentsByFilterValue';
 
-export default function RenderTimes({url}: {url: string}) {
+export default function RenderTimes({
+	segmentsExperiences,
+	selectedSegmentsExperience,
+	url,
+}: {
+	segmentsExperiences: SegmentExperience[];
+	selectedSegmentsExperience: SegmentExperience;
+	url: string;
+}) {
 	const [ascending, setAscending] = useState(false);
 	const [filters, setFilters] = useState<FragmentFilter>({
 		origin: null,
@@ -25,6 +39,7 @@ export default function RenderTimes({url}: {url: string}) {
 	const [fragments, setFragments] = useState<Fragment[]>([]);
 	const [searchValue, setSearchValue] = useState('');
 	const [visibleInfo, setVisibleInfo] = useState<boolean>(true);
+	const {learnResources} = useContext(ConstantsContext);
 
 	const filteredFragments = useMemo(() => {
 		const fragmentsByFilterValue = getFragmentsByFilterValue(
@@ -51,6 +66,23 @@ export default function RenderTimes({url}: {url: string}) {
 
 	return (
 		<>
+			<div className="c-mb-3">
+				<FeatureIndicator
+					interactive
+					learnResourceContext={learnResources}
+					tooltipAlign="top-left"
+					type="beta"
+				/>
+			</div>
+
+			{segmentsExperiences.length > 1 ? (
+				<ExperienceSelector
+					className="page-audit__experience-selector"
+					segmentsExperiences={segmentsExperiences}
+					selectedSegmentsExperience={selectedSegmentsExperience}
+				/>
+			) : null}
+
 			<Filter
 				filters={filters}
 				isAscendingSort={ascending}

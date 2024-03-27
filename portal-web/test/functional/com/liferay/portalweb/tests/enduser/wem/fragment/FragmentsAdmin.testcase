@@ -49,21 +49,23 @@ definition {
 		}
 
 		task ("View resource") {
-			FragmentsAdmin.viewEntryPresent(entry = "Document_1.png");
+			FragmentsAdmin.viewEntryPresent(entry = "Document_1");
 		}
 
 		task ("Delete resource") {
-			FragmentsAdmin.deleteResource(entry = "Document_1.png");
+			FragmentsAdmin.deleteResource(entry = "Document_1");
 		}
 
 		task ("View no resource") {
-			FragmentsAdmin.viewEntryNotPresent(entry = "Document_1.png");
+			FragmentsAdmin.viewEntryNotPresent(entry = "Document_1");
 		}
 	}
 
 	@description = "This is a test for LPS-166203. The site designer could add fragment set during copy OOTB fragment when the site doesn't have fragment set."
 	@priority = 5
 	test AddFirstFragmentSetWhenCopyContributedFragment {
+		property portal.acceptance = "true";
+
 		task ("Given a site designer navigates to the Fragments admin of a new site") {
 			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = ${siteURLKey});
 		}
@@ -99,8 +101,6 @@ definition {
 	@description = "This is a test for LPS-159235. Add folders to fragment resource and check hints."
 	@priority = 4
 	test AddFoldersToResourceAndCheckHints {
-		property custom.properties = "feature.flag.LPS-158675=true";
-
 		task ("When user is in resources tab") {
 			task ("Add a fragment collection") {
 				JSONFragment.addFragmentCollection(
@@ -258,6 +258,8 @@ definition {
 	@description = "This is a test for LPS-166203. The site designer could save in new set during copy OOTB fragment when the site has fragment sets."
 	@priority = 5
 	test AddNewFragmentSetWhenCopyContributedFragment {
+		property portal.acceptance = "true";
+
 		task ("Given a site designer has a fragment set") {
 			JSONFragment.addFragmentCollection(
 				groupName = ${randomSiteName},
@@ -885,6 +887,81 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-177682. The tooltip of the back button of fragments entry is Go to Fragments."
+	@priority = 3
+	test ViewBackButtonTooltipInFragmentEditor {
+		task ("Given access to the Fragment editor page") {
+			JSONFragment.addFragmentCollection(
+				groupName = ${randomSiteName},
+				name = "Fragment Set Name");
+
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = ${siteURLKey});
+
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Fragment Set Name");
+
+			FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
+
+			WaitForVisible(locator1 = "FragmentEditor#HTML_EDITOR");
+		}
+
+		task ("When hover over the back button") {
+			MouseOver.javaScriptFocus(locator1 = "Icon#BACK");
+		}
+
+		task ("Then see the tooltip message") {
+			AssertVisible(
+				key_content = "Go to Fragments",
+				locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+		}
+	}
+
+	@description = "This is a test for LPS-177682. The tooltip of the back button of usages is Go to Fragments."
+	@priority = 3
+	test ViewBackButtonTooltipInViewUsages {
+		task ("Given the View Usages page of a fragment") {
+			JSONFragment.addFragmentCollection(
+				groupName = ${randomSiteName},
+				name = "Fragment Set Name");
+
+			JSONFragment.addSection(
+				collectionName = "Fragment Set Name",
+				fragmentStatus = "Approved",
+				groupName = ${randomSiteName},
+				name = "Fragment Name");
+
+			JSONLayout.addPublicLayout(
+				groupName = ${randomSiteName},
+				layoutName = "Test Page Name",
+				type = "content");
+
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Page Name",
+				siteName = ${randomSiteName});
+
+			PageEditor.addFragment(
+				collectionName = "Fragment Set Name",
+				fragmentName = "Fragment Name");
+
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = ${siteURLKey});
+
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Fragment Set Name");
+
+			FragmentsAdminNavigator.gotoEntryEllipsisItem(
+				entry = "Fragment Name",
+				item = "View Usages");
+		}
+
+		task ("When hover over the back button") {
+			MouseOver.javaScriptFocus(locator1 = "Icon#BACK");
+		}
+
+		task ("Then see the tooltip message") {
+			AssertVisible(
+				key_content = "Go to Fragments",
+				locator1 = "Tooltip#FLOATING_TOOLTIP_CONTENT");
+		}
+	}
+
 	@description = "This is a test for LPS-89115. Can see contributed fragment collections in fragment administration"
 	@priority = 5
 	@uitest
@@ -924,7 +1001,7 @@ definition {
 				FragmentsAdminNavigator.gotoCollection(collectionName = "Form Components");
 
 				FragmentsAdminNavigator.gotoEntryEllipsisItem(
-					entry = "Text Input",
+					entry = "Text",
 					item = "Copy To",
 					specificFormFragment = "true");
 
@@ -939,9 +1016,9 @@ definition {
 
 			task ("Open the Select Fragment modal for Text field type") {
 				Click(
-					key_class = "btn-secondary",
-					key_index = 10,
-					locator1 = "Button#ANY_WITH_CLASS_AND_INDEX");
+					key_tableEntry = "Text",
+					key_text = "Select",
+					locator1 = "LexiconTable#TABLE_ENTRY_BUTTON");
 			}
 
 			task ("View two tabs shown on modal, Default, Global") {
@@ -961,7 +1038,7 @@ definition {
 
 				LexiconCard.clickCardTitle(card = "Fragment Set Name");
 
-				LexiconCard.clickCard(card = "Text Input (Copy)");
+				LexiconCard.clickCard(card = "Text (Copy)");
 			}
 		}
 
@@ -971,7 +1048,7 @@ definition {
 
 				FragmentsAdmin.viewFormFragementForEachFieldType(
 					fieldType = "Text",
-					formFragmentName = "Text Input (Copy)");
+					formFragmentName = "Text (Copy)");
 			}
 
 			task ("Save and back to fragment admin configuration") {
@@ -985,7 +1062,7 @@ definition {
 			task ("View the copy of fragment is shown in Form Fragment selector for Text field type") {
 				FragmentsAdmin.viewFormFragementForEachFieldType(
 					fieldType = "Text",
-					formFragmentName = "Text Input (Copy)");
+					formFragmentName = "Text (Copy)");
 			}
 		}
 	}
@@ -1008,7 +1085,7 @@ definition {
 				FragmentsAdminNavigator.gotoCollection(collectionName = "Form Components");
 
 				FragmentsAdminNavigator.gotoEntryEllipsisItem(
-					entry = "Text Input",
+					entry = "Text",
 					item = "Copy To",
 					specificFormFragment = "true");
 
@@ -1023,7 +1100,7 @@ definition {
 
 			task ("View the default form fragment displayed by default for each field type") {
 				var fieldTypeList = "Boolean,Date,File,HTML,Long Text,Multiselect,Number,Relationship,Select,Text,Submit Button";
-				var formFragmentNameList = "Checkbox,Date,File Upload,Rich Text Input,Textarea,Multiselect List,Numeric Input,Select from List,Select from List,Text Input,Submit Button";
+				var formFragmentNameList = "Checkbox,Date,File Upload,Rich Text,Textarea,Multiselect,Numeric,Select,Select,Text,Submit Button";
 				var i = 0;
 				var list1 = ListUtil.newListFromString(${fieldTypeList});
 				var list2 = ListUtil.newListFromString(${formFragmentNameList});
@@ -1045,9 +1122,9 @@ definition {
 
 			task ("Open the Select Fragment modal for Text field type") {
 				Click(
-					key_class = "btn-secondary",
-					key_index = 10,
-					locator1 = "Button#ANY_WITH_CLASS_AND_INDEX");
+					key_tableEntry = "Text",
+					key_text = "Select",
+					locator1 = "LexiconTable#TABLE_ENTRY_BUTTON");
 			}
 
 			task ("View three tabs shown on modal, Default, Global and current site") {
@@ -1067,7 +1144,7 @@ definition {
 
 				LexiconCard.clickCardTitle(card = "Fragment Set Name");
 
-				LexiconCard.clickCard(card = "Text Input (Copy)");
+				LexiconCard.clickCard(card = "Text (Copy)");
 			}
 		}
 
@@ -1077,7 +1154,7 @@ definition {
 
 				FragmentsAdmin.viewFormFragementForEachFieldType(
 					fieldType = "Text",
-					formFragmentName = "Text Input (Copy)");
+					formFragmentName = "Text (Copy)");
 			}
 
 			task ("Save and back to fragment admin configuration") {
@@ -1091,7 +1168,7 @@ definition {
 			task ("View the copy of fragment is shown in Form Fragment selector for Text field type") {
 				FragmentsAdmin.viewFormFragementForEachFieldType(
 					fieldType = "Text",
-					formFragmentName = "Text Input (Copy)");
+					formFragmentName = "Text (Copy)");
 			}
 		}
 	}
@@ -1213,7 +1290,7 @@ definition {
 				FragmentsAdminNavigator.gotoCollection(collectionName = "Form Components");
 
 				FragmentsAdminNavigator.gotoEntryEllipsisItem(
-					entry = "Text Input",
+					entry = "Text",
 					item = "Copy To",
 					specificFormFragment = "true");
 
@@ -1223,7 +1300,7 @@ definition {
 
 		task ("When go to edit the copy of fragment's configuration") {
 			FragmentsAdminNavigator.gotoEntryEllipsisItem(
-				entry = "Text Input (Copy)",
+				entry = "Text (Copy)",
 				item = "Edit");
 
 			FragmentsEditor.gotoConfigurationTab();
@@ -1237,7 +1314,7 @@ definition {
 			}
 
 			task ("View the configuration page of form fragments shown in a new tab") {
-				SelectWindow.selectPopUp(locator1 = "null");
+				SelectWindow.selectPopUp(value1 = "null");
 
 				ControlMenu.viewHeaderTitle(headerTitle = "Fragment Configuration");
 
@@ -1291,7 +1368,7 @@ definition {
 				FragmentsAdminNavigator.gotoCollection(collectionName = "Form Components");
 
 				FragmentsAdminNavigator.gotoEntryEllipsisItem(
-					entry = "Text Input",
+					entry = "Text",
 					item = "Copy To",
 					specificFormFragment = "true");
 
@@ -1333,9 +1410,9 @@ definition {
 
 			task ("Open the Select Fragment modal for Text field type") {
 				Click(
-					key_class = "btn-secondary",
-					key_index = 10,
-					locator1 = "Button#ANY_WITH_CLASS_AND_INDEX");
+					key_tableEntry = "Text",
+					key_text = "Select",
+					locator1 = "LexiconTable#TABLE_ENTRY_BUTTON");
 			}
 
 			task ("View only the copy of fragment is available in form fragment selector") {
@@ -1347,7 +1424,7 @@ definition {
 
 				LexiconCard.clickCardTitle(card = "Fragment Set Name");
 
-				LexiconCard.viewCardPresent(card = "Text Input (Copy)");
+				LexiconCard.viewCardPresent(card = "Text (Copy)");
 
 				LexiconCard.viewCardNotPresent(card = "Draft Form Fragment Name");
 
@@ -1378,7 +1455,7 @@ definition {
 				FragmentsAdminNavigator.gotoCollection(collectionName = "Form Components");
 
 				FragmentsAdminNavigator.gotoEntryEllipsisItem(
-					entry = "Text Input",
+					entry = "Text",
 					item = "Copy To",
 					specificFormFragment = "true");
 
@@ -1401,9 +1478,9 @@ definition {
 		task ("Then view only same type form fragments display in form fragment selector") {
 			task ("Open the Select Fragment modal for Text field type") {
 				Click(
-					key_class = "btn-secondary",
-					key_index = 10,
-					locator1 = "Button#ANY_WITH_CLASS_AND_INDEX");
+					key_tableEntry = "Text",
+					key_text = "Select",
+					locator1 = "LexiconTable#TABLE_ENTRY_BUTTON");
 			}
 
 			task ("Select the copy of fragment from current site") {
@@ -1415,7 +1492,7 @@ definition {
 
 				LexiconCard.clickCardTitle(card = "Fragment Set Name");
 
-				LexiconCard.viewCardPresent(card = "Text Input (Copy)");
+				LexiconCard.viewCardPresent(card = "Text (Copy)");
 
 				LexiconCard.viewCardNotPresent(card = "Checkbox (Copy)");
 			}
@@ -1640,7 +1717,7 @@ if (layoutMode === 'edit') {
 				contentType = "Purchase Order",
 				panel = "General");
 
-			PageEditor.removeFragment(fragmentName = "Text Input");
+			PageEditor.removeFragment(fragmentName = "Text");
 
 			PageEditor.addFragmentToFormContainer(
 				collectionName = "Fragment Set Name",

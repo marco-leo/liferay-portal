@@ -21,10 +21,6 @@ definition {
 	tearDown {
 		var testLiferayVirtualInstance = PropsUtil.get("test.liferay.virtual.instance");
 
-		// It is not possible to delete properties and data source after LRAC-13389. This functionality should return after LRAC-8040
-
-		//ACUtils.tearDownAC();
-
 		ACUtils.tearDownDXP();
 
 		if (${testLiferayVirtualInstance} == "true") {
@@ -33,6 +29,8 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
+
+		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8319 | Test Summary: Custom Range time period filter in Sites"
@@ -201,12 +199,8 @@ definition {
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8323 | Test Summary: A user lost access to a given property (because the admin removed the user's access or someone deleted the property of the system)"
-	@ignore = "true"
 	@priority = 4
 	test UserLostAccess {
-
-		// It is not possible to delete properties and data source after LRAC-13389. This functionality should return after LRAC-8040
-
 		task ("AC launch and go to the porpreties menu") {
 			ACUtils.launchAC();
 
@@ -226,11 +220,7 @@ definition {
 		task ("Log in as the user corbin.murakami@faro.io and go to the properties menu") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "corbin.murakami@faro.io",
-				password = "test");
-
-			ACWorkspace.openWorkspace();
+			ACUtils.launchAC(emailAddress = "corbin.murakami@faro.io");
 
 			ACNavigation.goToSettings();
 
@@ -244,28 +234,19 @@ definition {
 		task ("Log in as the user test@liferay.com, go to the properties menu and delete all properties") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "test@liferay.com",
-				password = "test");
-
-			ACWorkspace.openWorkspace();
+			ACUtils.launchAC(emailAddress = "test@liferay.com");
 
 			ACNavigation.goToSettings();
 
 			ACSettings.goToProperties();
 
-			//ACSettings.deleteAllProperties();
-
+			ACSettings.deleteAllProperties();
 		}
 
 		task ("Log in as the user corbin.murakami@faro.io, go to the properties menu and checks if the property has been deleted for the user") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "corbin.murakami@faro.io",
-				password = "test");
-
-			ACWorkspace.openWorkspace();
+			ACUtils.launchAC(emailAddress = "corbin.murakami@faro.io");
 
 			ACNavigation.goToSettings();
 
@@ -317,11 +298,7 @@ definition {
 		task ("Log in as the user corbin.murakami@faro.io and go to the properties menu") {
 			ACWorkspace.signOut();
 
-			ACLogin.loginAs(
-				emailAddress = "corbin.murakami@faro.io",
-				password = "test");
-
-			ACWorkspace.openWorkspace();
+			ACUtils.launchAC(emailAddress = "corbin.murakami@faro.io");
 
 			ACNavigation.goToSettings();
 

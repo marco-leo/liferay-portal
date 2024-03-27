@@ -1,6 +1,6 @@
 <%--
 /**
- * SPDX-FileCopyrightText: (c) 2000 Liferay, Inc. https://liferay.com
+ * SPDX-FileCopyrightText: (c) 2023 Liferay, Inc. https://liferay.com
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 --%>
@@ -12,6 +12,7 @@
 <%@ taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
 taglib uri="http://liferay.com/tld/clay" prefix="clay" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
+taglib uri="http://liferay.com/tld/portal-workflow" prefix="liferay-portal-workflow" %><%@
 taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %><%@
 taglib uri="http://liferay.com/tld/react" prefix="react" %><%@
 taglib uri="http://liferay.com/tld/site-navigation" prefix="liferay-site-navigation" %><%@
@@ -70,6 +71,7 @@ page import="com.liferay.portal.kernel.portlet.LiferayWindowState" %><%@
 page import="com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder" %><%@
 page import="com.liferay.portal.kernel.service.LayoutPrototypeServiceUtil" %><%@
 page import="com.liferay.portal.kernel.servlet.MultiSessionMessages" %><%@
+page import="com.liferay.portal.kernel.servlet.SessionMessages" %><%@
 page import="com.liferay.portal.kernel.util.FastDateFormatFactoryUtil" %><%@
 page import="com.liferay.portal.kernel.util.GetterUtil" %><%@
 page import="com.liferay.portal.kernel.util.HashMapBuilder" %><%@
@@ -83,7 +85,8 @@ page import="com.liferay.portal.kernel.workflow.WorkflowConstants" %><%@
 page import="com.liferay.portal.model.impl.LayoutPrototypeImpl" %><%@
 page import="com.liferay.portal.util.PropsValues" %>
 
-<%@ page import="java.text.Format" %>
+<%@ page import="java.text.DateFormat" %><%@
+page import="java.text.Format" %>
 
 <%@ page import="java.util.ArrayList" %><%@
 page import="java.util.List" %><%@

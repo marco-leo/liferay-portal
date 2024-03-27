@@ -11,7 +11,16 @@ import React, {useEffect, useRef, useState} from 'react';
 import ServiceProvider from '../../ServiceProvider/index';
 import {CP_INSTANCE_CHANGED} from '../../utilities/eventsDefinitions';
 
-function TierPrice({accountId, channelId, cpInstanceId, namespace, productId}) {
+function TierPrice({
+	accountId,
+	alwaysVisible,
+	autoload,
+	channelId,
+	cpInstanceId,
+	label,
+	namespace,
+	productId,
+}) {
 	const [columns, setColumns] = useState([]);
 	const [rows, setRows] = useState([]);
 	const [isExpanded, setIsExpanded] = useState(false);
@@ -128,7 +137,7 @@ function TierPrice({accountId, channelId, cpInstanceId, namespace, productId}) {
 	};
 
 	useEffect(() => {
-		if (cpInstanceId) {
+		if (autoload && cpInstanceId) {
 			DeliveryCatalogAPIServiceProviderRef.current
 				.getChannelProductSku(
 					channelId,
@@ -140,7 +149,7 @@ function TierPrice({accountId, channelId, cpInstanceId, namespace, productId}) {
 					handleCPInstanceChanged({cpInstance});
 				});
 		}
-	}, [accountId, channelId, cpInstanceId, productId]);
+	}, [accountId, autoload, channelId, cpInstanceId, productId]);
 
 	useEffect(() => {
 		Liferay.on(
@@ -158,71 +167,75 @@ function TierPrice({accountId, channelId, cpInstanceId, namespace, productId}) {
 
 	return (
 		<>
-			{rows.length > 1 ? (
-				<div
-					className={classNames('table-container', {
-						expanded: isExpanded,
-					})}
-				>
-					<ClayTable className="table-bordered">
-						<ClayTable.Head>
-							<ClayTable.Row>
-								{columns.map((column, colIndex) => {
+			{alwaysVisible || rows.length > 1 ? (
+				<>
+					{label && <label>{label}</label>}
+
+					<div
+						className={classNames('table-container', {
+							expanded: isExpanded,
+						})}
+					>
+						<ClayTable className="table-bordered">
+							<ClayTable.Head>
+								<ClayTable.Row>
+									{columns.map((column, colIndex) => {
+										return (
+											<ClayTable.Cell
+												headingCell
+												key={`column-${colIndex}`}
+											>
+												<span>{column.label}</span>
+											</ClayTable.Cell>
+										);
+									})}
+								</ClayTable.Row>
+							</ClayTable.Head>
+
+							<ClayTable.Body>
+								{rows.map((row, rowIndex) => {
 									return (
-										<ClayTable.Cell
-											headingCell
-											key={`column-${colIndex}`}
-										>
-											<span>{column.label}</span>
-										</ClayTable.Cell>
+										<ClayTable.Row key={`row-${rowIndex}`}>
+											{columns.map((column, colIndex) => {
+												return (
+													<ClayTable.Cell
+														className={classNames(
+															column.classes,
+															row.classes,
+															{
+																'text-nowrap': true,
+															}
+														)}
+														key={`cell-${rowIndex}-${colIndex}`}
+													>
+														{row[column.key]}
+													</ClayTable.Cell>
+												);
+											})}
+										</ClayTable.Row>
 									);
 								})}
-							</ClayTable.Row>
-						</ClayTable.Head>
+							</ClayTable.Body>
+						</ClayTable>
 
-						<ClayTable.Body>
-							{rows.map((row, rowIndex) => {
-								return (
-									<ClayTable.Row key={`row-${rowIndex}`}>
-										{columns.map((column, colIndex) => {
-											return (
-												<ClayTable.Cell
-													className={classNames(
-														column.classes,
-														row.classes,
-														{
-															'text-nowrap': true,
-														}
-													)}
-													key={`cell-${rowIndex}-${colIndex}`}
-												>
-													{row[column.key]}
-												</ClayTable.Cell>
-											);
-										})}
-									</ClayTable.Row>
-								);
-							})}
-						</ClayTable.Body>
-					</ClayTable>
-
-					{rows.length > 5 ? (
-						<div
-							className="paginator"
-							onClick={() => {
-								setIsExpanded((prevState) => {
-									return !prevState;
-								});
-							}}
-						>
-							{isExpanded
-								? Liferay.Language.get('view-less')
-								: Liferay.Language.get('view-more')}
-						</div>
-					) : (
-						<></>
-					)}
-				</div>
+						{rows.length > 5 ? (
+							<div
+								className="paginator"
+								onClick={() => {
+									setIsExpanded((prevState) => {
+										return !prevState;
+									});
+								}}
+							>
+								{isExpanded
+									? Liferay.Language.get('view-less')
+									: Liferay.Language.get('view-more')}
+							</div>
+						) : (
+							<></>
+						)}
+					</div>
+				</>
 			) : (
 				<></>
 			)}
@@ -230,10 +243,18 @@ function TierPrice({accountId, channelId, cpInstanceId, namespace, productId}) {
 	);
 }
 
+TierPrice.defaultProps = {
+	alwaysVisible: false,
+	autoload: true,
+};
+
 TierPrice.propTypes = {
 	accountId: PropTypes.number,
+	alwaysVisible: PropTypes.bool,
+	autoload: PropTypes.bool,
 	channelId: PropTypes.number.isRequired,
 	cpInstanceId: PropTypes.number.isRequired,
+	label: PropTypes.string,
 	namespace: PropTypes.string,
 	productId: PropTypes.number.isRequired,
 };

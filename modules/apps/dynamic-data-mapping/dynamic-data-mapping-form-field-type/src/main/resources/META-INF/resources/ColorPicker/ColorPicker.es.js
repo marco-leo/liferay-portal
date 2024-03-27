@@ -6,7 +6,7 @@
 import ClayColorPicker from '@clayui/color-picker';
 import React, {useEffect, useState} from 'react';
 
-import {FieldBase} from '../FieldBase/ReactFieldBase.es';
+import FieldBase from '../FieldBase/ReactFieldBase.es';
 
 const DEFAULT_COLORS = [
 	'000000',
@@ -50,6 +50,10 @@ const ClayColorPickerWithState = ({
 			<input name={name} type="hidden" value={color} />
 			<ClayColorPicker
 				{...accessibleProps}
+				ariaLabels={{
+					selectColor: `${Liferay.Language.get('select-color')}`,
+					selectionIs: `${Liferay.Language.get('color-x-selected')}`,
+				}}
 				colors={customColors}
 				disabled={readOnly}
 				label={Liferay.Language.get('color-field-type-label')}

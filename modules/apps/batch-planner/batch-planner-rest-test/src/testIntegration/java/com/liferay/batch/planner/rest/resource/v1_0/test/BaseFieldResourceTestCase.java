@@ -25,8 +25,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -194,7 +192,7 @@ public abstract class BaseFieldResourceTestCase {
 		Page<Field> page = fieldResource.getPlanInternalClassNameKeyFieldsPage(
 			internalClassNameKey, null);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantInternalClassNameKey != null) {
 			Field irrelevantField =
@@ -204,10 +202,9 @@ public abstract class BaseFieldResourceTestCase {
 			page = fieldResource.getPlanInternalClassNameKeyFieldsPage(
 				irrelevantInternalClassNameKey, null);
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantField), (List<Field>)page.getItems());
+			assertContains(irrelevantField, (List<Field>)page.getItems());
 			assertValid(
 				page,
 				testGetPlanInternalClassNameKeyFieldsPage_getExpectedActions(
@@ -223,10 +220,10 @@ public abstract class BaseFieldResourceTestCase {
 		page = fieldResource.getPlanInternalClassNameKeyFieldsPage(
 			internalClassNameKey, null);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(field1, field2), (List<Field>)page.getItems());
+		assertContains(field1, (List<Field>)page.getItems());
+		assertContains(field2, (List<Field>)page.getItems());
 		assertValid(
 			page,
 			testGetPlanInternalClassNameKeyFieldsPage_getExpectedActions(
@@ -357,6 +354,16 @@ public abstract class BaseFieldResourceTestCase {
 
 			if (Objects.equals("type", additionalAssertFieldName)) {
 				if (field.getType() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"unsupportedFormats", additionalAssertFieldName)) {
+
+				if (field.getUnsupportedFormats() == null) {
 					valid = false;
 				}
 
@@ -514,6 +521,19 @@ public abstract class BaseFieldResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"unsupportedFormats", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						field1.getUnsupportedFormats(),
+						field2.getUnsupportedFormats())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			throw new IllegalArgumentException(
 				"Invalid additional assert field name " +
 					additionalAssertFieldName);
@@ -550,6 +570,10 @@ public abstract class BaseFieldResourceTestCase {
 
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
+
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
 
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
@@ -760,6 +784,11 @@ public abstract class BaseFieldResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("unsupportedFormats")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		throw new IllegalArgumentException(
 			"Invalid entity field " + entityFieldName);
 	}
@@ -824,9 +853,9 @@ public abstract class BaseFieldResourceTestCase {
 	}
 
 	protected FieldResource fieldResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

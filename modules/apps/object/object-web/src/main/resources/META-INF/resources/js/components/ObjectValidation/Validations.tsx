@@ -3,17 +3,12 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {
-	FrontendDataSet,
-
-	// @ts-ignore
-
-} from '@liferay/frontend-data-set-web';
+import {FrontendDataSet} from '@liferay/frontend-data-set-web';
 
 // @ts-ignore
 
 import moment from 'moment/min/moment-with-locales';
-import React from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 
 import {
 	IFDSTableProps,
@@ -22,6 +17,8 @@ import {
 	formatActionURL,
 } from '../../utils/fds';
 import FDSSourceDataRenderer from '../FDSPropsTransformer/FDSSourceDataRenderer';
+import LabelRenderer from '../LabelRenderer';
+import {ModalAddObjectValidation} from './ModalAddObjectValidation';
 
 interface ItemData {
 	active: boolean;
@@ -34,79 +31,50 @@ function ObjectFieldActiveDataRenderer({itemData}: {itemData: ItemData}) {
 		: Liferay.Language.get('no');
 }
 
-const fdsSchemaFields = [
-	{
-		contentRenderer: 'ObjectFieldLabelDataRenderer',
-		expand: false,
-		fieldName: 'name',
-		label: Liferay.Language.get('label'),
-		localizeLabel: true,
-		sortable: true,
-	},
-	{
-		expand: false,
-		fieldName: 'engineLabel',
-		label: Liferay.Language.get('type'),
-		localizeLabel: true,
-		sortable: false,
-	},
-	{
-		contentRenderer: 'ObjectFieldActiveDataRenderer',
-		expand: false,
-		fieldName: 'active',
-		label: Liferay.Language.get('active'),
-		localizeLabel: true,
-		sortable: false,
-	},
-	{
-		contentRenderer: 'ObjectFieldModifiedDateDataRenderer',
-		expand: false,
-		fieldName: 'dateModified',
-		label: Liferay.Language.get('modified-date'),
-		localizeLabel: true,
-		sortable: false,
-	},
-];
-
-if (Liferay.FeatureFlags['LPS-193355']) {
-	fdsSchemaFields.push({
-		contentRenderer: 'FDSSourceDataRenderer',
-		expand: false,
-		fieldName: 'system',
-		label: Liferay.Language.get('source'),
-		localizeLabel: true,
-		sortable: false,
-	});
-}
-
 const language = Liferay.ThemeDisplay.getBCP47LanguageId();
 
+interface ValidationsProps extends IFDSTableProps {
+	allowScriptContentBeExecutedOrIncluded: boolean;
+	objectValidationRuleEngines: LabelKeyObject[];
+}
+
 export default function Validations({
+	allowScriptContentBeExecutedOrIncluded,
 	apiURL,
 	creationMenu,
 	formName,
 	id,
 	items,
+	objectValidationRuleEngines,
 	style,
 	url,
-}: IFDSTableProps) {
+}: ValidationsProps) {
+	const [
+		showAddObjectRelationshipModal,
+		setShowAddObjectRelationshipModal,
+	] = useState(false);
+
+	const objectValidationRuleEnginesItems = useMemo(() => {
+		return objectValidationRuleEngines.map(({key, label}) => ({
+			label,
+			value: key,
+		})) as LabelValueObject[];
+	}, [objectValidationRuleEngines]);
+
 	function ObjectFieldLabelDataRenderer({
 		itemData,
 		openSidePanel,
 		value,
 	}: fdsItem<ItemData>) {
-		const handleEditField = () => {
-			openSidePanel({
-				url: formatActionURL(url, itemData.id),
-			});
-		};
-
 		return (
-			<div className="table-list-title">
-				<a href="#" onClick={handleEditField}>
-					{value}
-				</a>
-			</div>
+			<LabelRenderer
+				onClick={() => {
+					openSidePanel({
+						url: formatActionURL(url, itemData.id),
+					});
+				}}
+				value={value}
+			/>
 		);
 	}
 
@@ -141,12 +109,82 @@ export default function Validations({
 				label: 'Table',
 				name: 'table',
 				schema: {
-					fields: fdsSchemaFields,
+					fields: [
+						{
+							contentRenderer: 'ObjectFieldLabelDataRenderer',
+							expand: false,
+							fieldName: 'name',
+							label: Liferay.Language.get('label'),
+							localizeLabel: true,
+							sortable: true,
+						},
+						{
+							expand: false,
+							fieldName: 'engineLabel',
+							label: Liferay.Language.get('type'),
+							localizeLabel: true,
+							sortable: false,
+						},
+						{
+							contentRenderer: 'ObjectFieldActiveDataRenderer',
+							expand: false,
+							fieldName: 'active',
+							label: Liferay.Language.get('active'),
+							localizeLabel: true,
+							sortable: false,
+						},
+						{
+							contentRenderer:
+								'ObjectFieldModifiedDateDataRenderer',
+							expand: false,
+							fieldName: 'dateModified',
+							label: Liferay.Language.get('modified-date'),
+							localizeLabel: true,
+							sortable: false,
+						},
+						{
+							contentRenderer: 'FDSSourceDataRenderer',
+							expand: false,
+							fieldName: 'system',
+							label: Liferay.Language.get('source'),
+							localizeLabel: true,
+							sortable: false,
+						},
+					],
 				},
 				thumbnail: 'table',
 			},
 		],
 	};
 
-	return <FrontendDataSet {...dataSetProps} />;
+	useEffect(() => {
+		Liferay.on('addObjectValidation', () =>
+			setShowAddObjectRelationshipModal(true)
+		);
+
+		return () => Liferay.detach('addObjectValidation');
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	return (
+		<>
+			<FrontendDataSet {...dataSetProps} />
+
+			{showAddObjectRelationshipModal && (
+				<ModalAddObjectValidation
+					allowScriptContentBeExecutedOrIncluded={
+						allowScriptContentBeExecutedOrIncluded
+					}
+					apiURL={apiURL as string}
+					objectValidationRuleEngines={
+						objectValidationRuleEnginesItems
+					}
+					setShowAddObjectRelationshipModal={
+						setShowAddObjectRelationshipModal
+					}
+				/>
+			)}
+		</>
+	);
 }

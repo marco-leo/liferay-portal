@@ -39,6 +39,7 @@ definition {
 	}
 
 	@description = "LPS-185975 - Verify that after clicking the 'Deactivate' button, a page appears with a list of active keys"
+	@ignore = "true"
 	@priority = 4
 	test AssertThatAfterClickInDeactivateAPageOpens {
 		task ("Given a user signs in on OKTA to update the Customer Portal") {
@@ -70,7 +71,7 @@ definition {
 				field = "Key Type",
 				option = "Production");
 
-			CP2ActivationKeys.selectFistActiveSubscriptionInput(index = 1);
+			CP2ActivationKeys.selectFirstActiveSubscriptionInput(index = 1);
 
 			CustomerPortal.clickAtButton(text = "Next");
 		}

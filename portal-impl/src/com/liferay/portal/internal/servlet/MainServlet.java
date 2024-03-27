@@ -8,6 +8,7 @@ package com.liferay.portal.internal.servlet;
 import com.liferay.petra.io.StreamUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.db.index.IndexUpdaterUtil;
 import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.events.ShutdownHelperUtil;
 import com.liferay.portal.events.StartupAction;
@@ -19,6 +20,7 @@ import com.liferay.portal.kernel.dependency.manager.DependencyManagerSyncUtil;
 import com.liferay.portal.kernel.deploy.hot.HotDeployUtil;
 import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.instance.PortalInstancePool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -33,6 +35,7 @@ import com.liferay.portal.kernel.model.PortletFilter;
 import com.liferay.portal.kernel.model.PortletURLListener;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
+import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.module.util.ServiceLatch;
 import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.plugin.PluginPackage;
@@ -59,7 +62,6 @@ import com.liferay.portal.kernel.util.PortalLifecycleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ReleaseInfo;
-import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -121,6 +123,7 @@ import javax.servlet.http.HttpSession;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.util.tracker.ServiceTracker;
 
 /**
  * @author Brian Wing Shun Chan
@@ -390,10 +393,13 @@ public class MainServlet extends HttpServlet {
 
 			StartupHelperUtil.setUpgrading(false);
 		}
+		else if (PropsValues.DATABASE_INDEXES_UPDATE_ON_STARTUP &&
+				 !StartupHelperUtil.isDBNew()) {
+
+			IndexUpdaterUtil.updateAllIndexes();
+		}
 
 		servletContext.setAttribute(WebKeys.STARTUP_FINISHED, Boolean.TRUE);
-
-		StartupHelperUtil.setStartupFinished(true);
 
 		_registerPortalInitialized();
 
@@ -404,7 +410,7 @@ public class MainServlet extends HttpServlet {
 
 			try {
 				SetupWizardSampleDataUtil.addSampleData(
-					PortalInstances.getDefaultCompanyId());
+					PortalInstancePool.getDefaultCompanyId());
 			}
 			catch (Exception exception) {
 				_log.error(exception);
@@ -598,7 +604,9 @@ public class MainServlet extends HttpServlet {
 	}
 
 	private void _checkBuildDate() {
-		if (_releaseManager == null) {
+		ReleaseManager releaseManager = _serviceTracker.getService();
+
+		if (releaseManager == null) {
 			return;
 		}
 
@@ -611,8 +619,7 @@ public class MainServlet extends HttpServlet {
 			}
 
 			if (_log.isWarnEnabled()) {
-				String message = _releaseManager.getShortStatusMessage(
-					true);
+				String message = releaseManager.getShortStatusMessage(true);
 
 				if (Validator.isNotNull(message)) {
 					_log.warn(message);
@@ -621,7 +628,7 @@ public class MainServlet extends HttpServlet {
 				}
 			}
 
-			String message = _releaseManager.getShortStatusMessage(false);
+			String message = releaseManager.getShortStatusMessage(false);
 
 			if (Validator.isNotNull(message)) {
 				if (_log.isInfoEnabled()) {
@@ -795,6 +802,8 @@ public class MainServlet extends HttpServlet {
 					PortalInstances.initCompany(company, false);
 				}
 			});
+
+		PortalInstancePool.enableCache();
 	}
 
 	private void _initLayoutTemplates(PluginPackage pluginPackage) {
@@ -1049,7 +1058,10 @@ public class MainServlet extends HttpServlet {
 			return false;
 		}
 
-		_inactiveRequestHandler.processInactiveRequest(
+		InactiveRequestHandler inactiveRequestHandler =
+			_inactiveRequestHandlerSnapshot.get();
+
+		inactiveRequestHandler.processInactiveRequest(
 			httpServletRequest, httpServletResponse,
 			"this-instance-is-inactive-please-contact-the-administrator");
 
@@ -1073,7 +1085,10 @@ public class MainServlet extends HttpServlet {
 			return false;
 		}
 
-		_inactiveRequestHandler.processInactiveRequest(
+		InactiveRequestHandler inactiveRequestHandler =
+			_inactiveRequestHandlerSnapshot.get();
+
+		inactiveRequestHandler.processInactiveRequest(
 			httpServletRequest, httpServletResponse,
 			"this-site-is-inactive-please-contact-the-administrator");
 
@@ -1245,7 +1260,10 @@ public class MainServlet extends HttpServlet {
 			messageKey = "the-system-is-shutdown-please-try-again-later";
 		}
 
-		_inactiveRequestHandler.processInactiveRequest(
+		InactiveRequestHandler inactiveRequestHandler =
+			_inactiveRequestHandlerSnapshot.get();
+
+		inactiveRequestHandler.processInactiveRequest(
 			httpServletRequest, httpServletResponse, messageKey);
 
 		return true;
@@ -1318,13 +1336,22 @@ public class MainServlet extends HttpServlet {
 
 	private static final Log _log = LogFactoryUtil.getLog(MainServlet.class);
 
-	private static volatile InactiveRequestHandler _inactiveRequestHandler =
-		ServiceProxyFactory.newServiceTrackedInstance(
-			InactiveRequestHandler.class, MainServlet.class,
-			"_inactiveRequestHandler", false);
-	private static volatile ReleaseManager _releaseManager =
-		ServiceProxyFactory.newServiceTrackedInstance(
-			ReleaseManager.class, MainServlet.class, "_releaseManager", false);
+	private static final Snapshot<InactiveRequestHandler>
+		_inactiveRequestHandlerSnapshot = new Snapshot<>(
+			MainServlet.class, InactiveRequestHandler.class);
+	private static final ServiceTracker<ReleaseManager, ReleaseManager>
+		_serviceTracker;
+
+	static {
+		ServiceTracker<ReleaseManager, ReleaseManager> serviceTracker =
+			new ServiceTracker<>(
+				SystemBundleUtil.getBundleContext(), ReleaseManager.class,
+				null);
+
+		serviceTracker.open();
+
+		_serviceTracker = serviceTracker;
+	}
 
 	private PortalRequestProcessor _portalRequestProcessor;
 	private final List<ServiceRegistration<?>> _serviceRegistrations =

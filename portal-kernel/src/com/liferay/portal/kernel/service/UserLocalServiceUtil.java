@@ -2220,18 +2220,20 @@ public class UserLocalServiceUtil {
 	}
 
 	public static List<User> searchBySocial(
-		long companyId, long[] groupIds, String keywords, int start, int end) {
+		long companyId, long[] groupIds, long[] userGroupIds, String keywords,
+		int start, int end) {
 
 		return getService().searchBySocial(
-			companyId, groupIds, keywords, start, end);
+			companyId, groupIds, userGroupIds, keywords, start, end);
 	}
 
 	public static List<User> searchBySocial(
-		long companyId, long[] groupIds, String keywords, int start, int end,
-		OrderByComparator<User> orderByComparator) {
+		long companyId, long[] groupIds, long[] userGroupIds, String keywords,
+		int start, int end, OrderByComparator<User> orderByComparator) {
 
 		return getService().searchBySocial(
-			companyId, groupIds, keywords, start, end, orderByComparator);
+			companyId, groupIds, userGroupIds, keywords, start, end,
+			orderByComparator);
 	}
 
 	public static List<User> searchBySocial(
@@ -2365,6 +2367,17 @@ public class UserLocalServiceUtil {
 
 		getService().sendEmailAddressVerification(
 			user, emailAddress, serviceContext);
+	}
+
+	public static boolean sendEmailUserCreationAttempt(
+			long companyId, String emailAddress, String fromName,
+			String fromAddress, String subject, String body,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().sendEmailUserCreationAttempt(
+			companyId, emailAddress, fromName, fromAddress, subject, body,
+			serviceContext);
 	}
 
 	/**
@@ -2703,6 +2716,22 @@ public class UserLocalServiceUtil {
 			userId, emailAddressVerified);
 	}
 
+	public static User updateExternalReferenceCode(
+			long userId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().updateExternalReferenceCode(
+			userId, externalReferenceCode);
+	}
+
+	public static User updateExternalReferenceCode(
+			User user, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().updateExternalReferenceCode(
+			user, externalReferenceCode);
+	}
+
 	/**
 	 * Updates the user's Facebook ID.
 	 *
@@ -2811,6 +2840,12 @@ public class UserLocalServiceUtil {
 		throws PortalException {
 
 		return getService().updateJobTitle(userId, jobTitle);
+	}
+
+	public static User updateLanguageId(long userId, String languageId)
+		throws PortalException {
+
+		return getService().updateLanguageId(userId, languageId);
 	}
 
 	/**

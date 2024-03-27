@@ -24,9 +24,7 @@ definition {
 		}
 
 		task ("Activate local live staging") {
-			Staging.openStagingAdmin(siteURLKey = ${randomSiteURLKey});
-
-			Staging.activateStagingCP(siteName = ${randomSiteName});
+			JSONStaging.enableLocalStaging(groupName = ${randomSiteName});
 		}
 	}
 
@@ -505,7 +503,7 @@ definition {
 				locator1 = "Home#PAGE",
 				value1 = "Test Link to URL Page Name");
 
-			SelectWindow.selectPopUp(locator1 = "null");
+			SelectWindow.selectPopUp(value1 = "null");
 
 			AssertLocation.assertPartialLocation(value1 = "https://www.google.com");
 
@@ -520,7 +518,7 @@ definition {
 				locator1 = "PagesFinder#PAGE_NAME",
 				value1 = ${pageName});
 
-			SelectWindow.selectPopUp(locator1 = "null");
+			SelectWindow.selectPopUp(value1 = "null");
 
 			AssertLocation.assertPartialLocation(value1 = "https://www.google.com");
 
@@ -532,7 +530,7 @@ definition {
 				menuItem = "View",
 				pageName = "Test Link to URL Page Name");
 
-			SelectWindow.selectPopUp(locator1 = "null");
+			SelectWindow.selectPopUp(value1 = "null");
 
 			AssertLocation.assertPartialLocation(value1 = "https://www.google.com");
 
@@ -553,7 +551,7 @@ definition {
 				locator1 = "Home#PAGE",
 				value1 = "Test Link to URL Page Name");
 
-			SelectWindow.selectPopUp(locator1 = "null");
+			SelectWindow.selectPopUp(value1 = "null");
 
 			AssertLocation.assertPartialLocation(value1 = "https://www.google.com");
 
@@ -570,7 +568,7 @@ definition {
 				locator1 = "PagesFinder#PAGE_NAME",
 				value1 = ${pageName});
 
-			SelectWindow.selectPopUp(locator1 = "null");
+			SelectWindow.selectPopUp(value1 = "null");
 
 			AssertLocation.assertPartialLocation(value1 = "https://www.google.com");
 
@@ -582,7 +580,7 @@ definition {
 				menuItem = "View",
 				pageName = "Test Link to URL Page Name");
 
-			SelectWindow.selectPopUp(locator1 = "null");
+			SelectWindow.selectPopUp(value1 = "null");
 
 			AssertLocation.assertPartialLocation(value1 = "https://www.google.com");
 

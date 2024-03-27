@@ -105,13 +105,13 @@ public class LayoutPageTemplateEntryLocalServiceUtil {
 
 	public static LayoutPageTemplateEntry copyLayoutPageTemplateEntry(
 			long userId, long groupId, long layoutPageTemplateCollectionId,
-			long sourceLayoutPageTemplateEntryId,
+			long sourceLayoutPageTemplateEntryId, boolean copyPermissions,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws Exception {
 
 		return getService().copyLayoutPageTemplateEntry(
 			userId, groupId, layoutPageTemplateCollectionId,
-			sourceLayoutPageTemplateEntryId, serviceContext);
+			sourceLayoutPageTemplateEntryId, copyPermissions, serviceContext);
 	}
 
 	/**
@@ -367,6 +367,12 @@ public class LayoutPageTemplateEntryLocalServiceUtil {
 		long groupId) {
 
 		return getService().getLayoutPageTemplateEntries(groupId);
+	}
+
+	public static List<LayoutPageTemplateEntry> getLayoutPageTemplateEntries(
+		long groupId, int status) {
+
+		return getService().getLayoutPageTemplateEntries(groupId, status);
 	}
 
 	public static List<LayoutPageTemplateEntry> getLayoutPageTemplateEntries(

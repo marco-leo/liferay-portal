@@ -34,18 +34,18 @@ dependencies {
 #if (${liferayVersion.startsWith("7.0")} || ${liferayVersion.startsWith("7.1")})
 	implementation group: "javax.validation", name: "validation-api", version: "2.0.1.Final"
 #end
-	implementation(group: "org.hibernate.validator", name: "hibernate-validator", version: "6.0.14.Final") {
+	implementation(group: "org.hibernate.validator", name: "hibernate-validator", version: "6.2.5.Final") {
 		exclude group: "javax.validation", module: "validation-api"
 	}
 #if (${framework.equals("portletmvc4spring")})
-	implementation (group: "org.springframework", name: "spring-aop", version: "5.3.18") {force = true}
-	implementation (group: "org.springframework", name: "spring-beans", version: "5.3.18") {force = true}
-	implementation (group: "org.springframework", name: "spring-context", version: "5.3.18") {force = true}
-	implementation (group: "org.springframework", name: "spring-core", version: "5.3.18") {force = true}
-	implementation (group: "org.springframework", name: "spring-expression", version: "5.3.18") {force = true}
-	implementation (group: "org.springframework", name: "spring-jcl", version: "5.3.18") {force = true}
-	implementation (group: "org.springframework", name: "spring-web", version: "5.3.18") {force = true}
-	implementation (group: "org.springframework", name: "spring-webmvc", version: "5.3.18") {force = true}
+	implementation (group: "org.springframework", name: "spring-aop", version: "5.3.27") {force = true}
+	implementation (group: "org.springframework", name: "spring-beans", version: "5.3.27") {force = true}
+	implementation (group: "org.springframework", name: "spring-context", version: "5.3.27") {force = true}
+	implementation (group: "org.springframework", name: "spring-core", version: "5.3.27") {force = true}
+	implementation (group: "org.springframework", name: "spring-expression", version: "5.3.27") {force = true}
+	implementation (group: "org.springframework", name: "spring-jcl", version: "5.3.27") {force = true}
+	implementation (group: "org.springframework", name: "spring-web", version: "5.3.27") {force = true}
+	implementation (group: "org.springframework", name: "spring-webmvc", version: "5.3.27") {force = true}
 #elseif (${framework.equals("springportletmvc")})
 	implementation (group: "org.springframework", name: "spring-aop", version: "4.1.9.RELEASE") {force = true}
 	implementation (group: "org.springframework", name: "spring-beans", version: "4.1.9.RELEASE") {force = true}

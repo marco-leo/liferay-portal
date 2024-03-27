@@ -29,10 +29,6 @@ definition {
 	tearDown {
 		var testLiferayVirtualInstance = PropsUtil.get("test.liferay.virtual.instance");
 
-		// It is not possible to delete properties and data source after LRAC-13389. This functionality should return after LRAC-8040
-
-		//ACUtils.tearDownAC();
-
 		ACUtils.tearDownDXP();
 
 		if (${testLiferayVirtualInstance} == "true") {
@@ -41,6 +37,8 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
+
+		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8913 | Test Summary: Assert Individual Activities Chart popover follows format"
@@ -219,6 +217,10 @@ definition {
 			var previousDay = ${displayDateDay} - 1;
 			var previousMonth = DateUtil.getFormattedDate("-1", "MMMM");
 
+			if (${previousMonth} == "December") {
+				var displayDateYear = DateUtil.getFormattedDate("-1", "yyyy");
+			}
+
 			var previousDate = "${previousMonth} ${previousDay}, ${displayDateYear}";
 		}
 
@@ -295,7 +297,7 @@ definition {
 	@description = "Assert an Individual's Segments"
 	@priority = 5
 	test CanAssertIndividualSegment {
-		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
+		ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
@@ -305,13 +307,18 @@ definition {
 
 		ACDXPSettings.syncNewContactData();
 
-		User.logoutAndLoginPG(
-			userLoginEmailAddress = "userea@liferay.com",
-			userLoginFullName = "userfn userln");
+		ACUtils.navigateToSitePageWithUser(
+			actionType = "View WC",
+			documentTitleList = "1,2,3,4",
+			emailList = "userea@liferay.com",
+			pageName = "AC Page",
+			siteName = "Site Name");
+
+		ACUtils.closeAllSessionsAndWait();
 
 		ACUtils.launchAC();
 
-		ACProperties.switchProperty(propertyName = ${propertyName});
+		ACProperties.switchProperty(propertyName = ${assignedPropertyName});
 
 		ACNavigation.goToSegments();
 
@@ -397,14 +404,14 @@ definition {
 		ACNavigation.goToIndividuals();
 
 		ACTimeFilter.setCustomRange(
-			endDay = 13,
-			endMonth = "July",
-			endYear = 2020,
+			endDay = 30,
+			endMonth = "January",
+			endYear = 2024,
 			startDay = 1,
-			startMonth = "July",
-			startYear = 2020);
+			startMonth = "January",
+			startYear = 2024);
 
-		ACTimeFilter.assertCurrentTimeFilterRange(timeFilterRange = "Jul 1, 2020 - Jul 13, 2020");
+		ACTimeFilter.assertCurrentTimeFilterRange(timeFilterRange = "Jan 1, 2024 - Jan 30, 2024");
 
 		AssertElementNotPresent(locator1 = "ACIndividualsDashboard#ACTIVE_INDIVIDUAL_CHART");
 	}

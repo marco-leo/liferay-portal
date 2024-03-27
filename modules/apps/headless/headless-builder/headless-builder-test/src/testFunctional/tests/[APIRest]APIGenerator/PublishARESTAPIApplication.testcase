@@ -1,7 +1,7 @@
 @component-name = "portal-headless"
 definition {
 
-	property custom.properties = "feature.flag.LPS-167253=true${line.separator}feature.flag.LPS-178642=true";
+	property custom.properties = "feature.flag.LPS-178642=true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.component.names = "Object";
@@ -10,15 +10,13 @@ definition {
 	setUp {
 		TestCase.setUpPortalInstance();
 
-		User.firstLoginUI();
+		User.firstLoginPG();
 
 		task ("Given an API Application 'App-test' of status 'published' by post request postAPIApplication") {
 			ApplicationAPI.createAPIApplication(
 				baseURL = "app-test",
 				status = "published",
 				title = "App-test");
-
-			ApplicationAPI.setUpGlobalAPIApplicationId();
 		}
 	}
 
@@ -33,12 +31,12 @@ definition {
 	}
 
 	@priority = 4
-	test CanSeeNewApiEndpointAndApiSchemaInPublishedApiApplicationPage {
+	test CanSeeNewAPIEndpointAndAPISchemaInPublishedAPIApplicationPage {
 		property portal.acceptance = "true";
 
 		task ("And Given an API Schema 'AppTest' related to an Application by post request postAPISchema") {
 			var response = SchemaAPI.createAPISchema(
-				apiApplicationId = ${staticApplicationId},
+				apiApplicationERC = "App-test",
 				mainObjectDefinitionERC = "L_API_APPLICATION",
 				name = "AppTest");
 		}
@@ -47,9 +45,9 @@ definition {
 			var schemaId = JSONPathUtil.getIdValue(response = ${response});
 
 			EndpointAPI.createAPIEndpoint(
-				apiApplicationId = ${staticApplicationId},
-				name = "AppTest",
-				path = "/AppTest",
+				apiApplicationERC = "App-test",
+				name = "apptest",
+				path = "/apptest",
 				responseSchemaId = ${schemaId});
 		}
 
@@ -63,25 +61,25 @@ definition {
 
 		task ("And Then I can see a new schema and an endpoint appear in the page") {
 			WaitForElementPresent(
-				locator1 = "OpenAPI#SCHEMA_TITLE",
+				locator1 = "OpenAPI#SCHEMA_ENTITY",
 				schema = "AppTest");
 
 			WaitForElementPresent(
 				locator1 = "OpenAPI#API_METHOD",
-				method = "getAppTestPage",
+				method = "getApptestPage",
 				service = "AppTest");
 		}
 	}
 
 	@priority = 4
-	test CanSeeNewApiEndpointInPublishedApiApplcationPage {
+	test CanSeeNewAPIEndpointInPublishedAPIApplicationPage {
 		property portal.acceptance = "true";
 
 		task ("And Given an API endpoint 'AppTest' related to an Application by post request postAPIEndpoint") {
 			EndpointAPI.createAPIEndpoint(
-				apiApplicationId = ${staticApplicationId},
-				name = "AppTest",
-				path = "/AppTest");
+				apiApplicationERC = "App-test",
+				name = "apptest",
+				path = "/apptest");
 		}
 
 		task ("When I can navigate to App-test page in API Explorer") {
@@ -93,18 +91,18 @@ definition {
 
 			WaitForElementPresent(
 				locator1 = "OpenAPI#API_METHOD",
-				method = "getAppTestPage",
+				method = "getApptestPage",
 				service = "default");
 		}
 	}
 
 	@priority = 4
-	test CanSeeNewSchemaInPublishedApiApplcationPage {
+	test CanSeeNewSchemaInPublishedAPIApplicationPage {
 		property portal.acceptance = "true";
 
 		task ("And Given an API Schema 'AppTest' related to an Application by post request postAPISchema") {
 			SchemaAPI.createAPISchema(
-				apiApplicationId = ${staticApplicationId},
+				apiApplicationERC = "App-test",
 				mainObjectDefinitionERC = "L_API_APPLICATION",
 				name = "AppTest");
 		}
@@ -115,7 +113,7 @@ definition {
 
 		task ("Then I can see a new schema appear in the page") {
 			WaitForElementPresent(
-				locator1 = "OpenAPI#SCHEMA_TITLE",
+				locator1 = "OpenAPI#SCHEMA_ENTITY",
 				schema = "AppTest");
 		}
 	}

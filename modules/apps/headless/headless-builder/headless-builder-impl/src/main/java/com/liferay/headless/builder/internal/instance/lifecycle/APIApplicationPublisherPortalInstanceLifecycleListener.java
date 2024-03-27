@@ -5,14 +5,13 @@
 
 package com.liferay.headless.builder.internal.instance.lifecycle;
 
-import com.liferay.headless.builder.application.APIApplication;
-import com.liferay.headless.builder.application.provider.APIApplicationProvider;
 import com.liferay.headless.builder.application.publisher.APIApplicationPublisher;
 import com.liferay.portal.instance.lifecycle.BasePortalInstanceLifecycleListener;
 import com.liferay.portal.instance.lifecycle.EveryNodeEveryStartup;
 import com.liferay.portal.instance.lifecycle.PortalInstanceLifecycleListener;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -29,22 +28,18 @@ public class APIApplicationPublisherPortalInstanceLifecycleListener
 	implements EveryNodeEveryStartup {
 
 	@Override
-	public void portalInstanceRegistered(Company company) throws Exception {
+	public void portalInstanceRegistered(Company company) {
 		if (!FeatureFlagManagerUtil.isEnabled("LPS-178642")) {
 			return;
 		}
 
-		for (APIApplication apiApplication :
-				_apiApplicationProvider.getPublishedAPIApplications(
-					company.getCompanyId())) {
+		TransactionCommitCallbackUtil.registerCallback(
+			() -> {
+				_apiApplicationPublisher.publish(company.getCompanyId());
 
-			_apiApplicationPublisher.publish(
-				apiApplication.getBaseURL(), apiApplication.getCompanyId());
-		}
+				return null;
+			});
 	}
-
-	@Reference
-	private APIApplicationProvider _apiApplicationProvider;
 
 	@Reference
 	private APIApplicationPublisher _apiApplicationPublisher;

@@ -95,6 +95,8 @@ definition {
 	@description = "This is a test for LPS-177408. The page designer could add a 500 error type of utility page"
 	@priority = 5
 	test Add500ErrorUtilityPage {
+		property portal.acceptance = "true";
+
 		task ("Given a page designer navigates to the Pages admin") {
 			PagesAdmin.openPagesAdmin(siteURLKey = ${siteURLKey});
 		}
@@ -174,7 +176,7 @@ definition {
 				menuItem = "Mark as Default",
 				pageName = "First 404 Error Utility Page");
 
-			Confirm();
+			Confirm(value1 = "null");
 
 			Alert.viewSuccessMessage();
 		}
@@ -506,7 +508,7 @@ definition {
 				menuItem = "Preview",
 				pageName = 500);
 
-			SelectWindow.selectPopUp(locator1 = "null");
+			SelectWindow.selectPopUp(value1 = "null");
 
 			ContentPages.viewFragmentText(
 				fragmentName = "heading",
@@ -551,7 +553,7 @@ definition {
 				menuItem = "Mark as Default",
 				pageName = "404 Error Utility Page");
 
-			Confirm();
+			Confirm(value1 = "null");
 
 			Alert.viewSuccessMessage();
 		}
@@ -625,6 +627,8 @@ definition {
 	@description = "This is a test for LPS-177408. The page designer could mark a 500 error type of utility page as default."
 	@priority = 5
 	test Mark500ErrorUtilityPageAsDefault {
+		property portal.acceptance = "true";
+
 		task ("Given a page designer has a 500 error utility page") {
 			PagesAdmin.openPagesAdmin(siteURLKey = ${siteURLKey});
 
@@ -651,7 +655,7 @@ definition {
 				menuItem = "Mark as Default",
 				pageName = "500 Error Utility Page");
 
-			Confirm();
+			Confirm(value1 = "null");
 
 			Alert.viewSuccessMessage();
 		}
@@ -696,7 +700,7 @@ definition {
 				menuItem = "Preview",
 				pageName = "404 Error Utility Page");
 
-			SelectWindow.selectPopUp(locator1 = "null");
+			SelectWindow.selectPopUp(value1 = "null");
 
 			ContentPages.viewFragmentText(
 				fragmentName = "heading",
@@ -723,7 +727,7 @@ definition {
 				menuItem = "Preview",
 				pageName = "404 Error Utility Page");
 
-			SelectWindow.selectPopUp(locator1 = "null");
+			SelectWindow.selectPopUp(value1 = "null");
 
 			ContentPages.viewFragmentText(
 				fragmentName = "heading",
@@ -762,7 +766,7 @@ definition {
 				menuItem = "Preview",
 				pageName = "404 Error Utility Page");
 
-			SelectWindow.selectPopUp(locator1 = "null");
+			SelectWindow.selectPopUp(value1 = "null");
 
 			ContentPages.viewFragmentText(
 				fragmentName = "heading",
@@ -838,7 +842,7 @@ definition {
 				menuItem = "Mark as Default",
 				pageName = "404 Error Utility Page");
 
-			Confirm();
+			Confirm(value1 = "null");
 
 			Alert.viewSuccessMessage();
 
@@ -852,7 +856,7 @@ definition {
 				menuItem = "Unmark as Default",
 				pageName = "404 Error Utility Page");
 
-			Confirm();
+			Confirm(value1 = "null");
 
 			Alert.viewSuccessMessage();
 		}

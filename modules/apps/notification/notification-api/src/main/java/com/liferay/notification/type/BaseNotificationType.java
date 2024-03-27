@@ -6,8 +6,11 @@
 package com.liferay.notification.type;
 
 import com.liferay.notification.constants.NotificationQueueEntryConstants;
+import com.liferay.notification.constants.NotificationRecipientConstants;
+import com.liferay.notification.constants.NotificationRecipientSettingConstants;
 import com.liferay.notification.context.NotificationContext;
 import com.liferay.notification.exception.NotificationQueueEntrySubjectException;
+import com.liferay.notification.exception.NotificationRecipientSettingNameException;
 import com.liferay.notification.exception.NotificationTemplateAttachmentObjectFieldIdException;
 import com.liferay.notification.exception.NotificationTemplateDescriptionException;
 import com.liferay.notification.exception.NotificationTemplateEditorTypeException;
@@ -30,20 +33,27 @@ import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
 import com.liferay.object.service.ObjectFieldLocalServiceUtil;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -101,28 +111,48 @@ public abstract class BaseNotificationType implements NotificationType {
 			Map<String, Object> recipientMap = (Map<String, Object>)recipient;
 
 			for (Map.Entry<String, Object> entry : recipientMap.entrySet()) {
-				NotificationRecipientSetting notificationRecipientSetting =
-					notificationRecipientSettingLocalService.
-						createNotificationRecipientSetting(0);
+				if (!Objects.equals(
+						recipientMap.get(
+							NotificationRecipientSettingConstants.
+								getRecipientTypeName(entry.getKey())),
+						NotificationRecipientConstants.TYPE_ROLE)) {
 
-				notificationRecipientSetting.setCompanyId(user.getCompanyId());
-				notificationRecipientSetting.setUserId(user.getUserId());
-				notificationRecipientSetting.setUserName(user.getFullName());
-				notificationRecipientSetting.setNotificationRecipientId(
-					notificationRecipientId);
-				notificationRecipientSetting.setName(entry.getKey());
+					_addNotificationRecipientSetting(
+						entry.getKey(), notificationRecipientId,
+						notificationRecipientSettings, user, entry.getValue());
 
-				if (entry.getValue() instanceof LinkedHashMap) {
-					notificationRecipientSetting.setValueMap(
-						LocalizedMapUtil.getLocalizedMap(
-							(LinkedHashMap)entry.getValue()));
-				}
-				else {
-					notificationRecipientSetting.setValue(
-						String.valueOf(entry.getValue()));
+					continue;
 				}
 
-				notificationRecipientSettings.add(notificationRecipientSetting);
+				Set<String> roleNames = new HashSet<>();
+
+				for (Map<String, String> roleMap :
+						(List<Map<String, String>>)entry.getValue()) {
+
+					String roleName = roleMap.get(
+						NotificationRecipientSettingConstants.NAME_ROLE_NAME);
+
+					if (Validator.isNull(roleName) ||
+						roleNames.contains(roleName)) {
+
+						continue;
+					}
+
+					Role role = roleLocalService.fetchRole(
+						user.getCompanyId(), roleName);
+
+					if ((role == null) ||
+						(role.getType() != RoleConstants.TYPE_ACCOUNT)) {
+
+						continue;
+					}
+
+					roleNames.add(roleName);
+
+					_addNotificationRecipientSetting(
+						entry.getKey(), notificationRecipientId,
+						notificationRecipientSettings, user, roleName);
+				}
 			}
 		}
 
@@ -183,6 +213,31 @@ public abstract class BaseNotificationType implements NotificationType {
 	public void validateNotificationTemplate(
 			NotificationContext notificationContext)
 		throws PortalException {
+
+		Set<String> allowedNotificationRecipientSettingsNames =
+			getAllowedNotificationRecipientSettingsNames();
+
+		if (SetUtil.isNotEmpty(allowedNotificationRecipientSettingsNames)) {
+			Set<String> notAllowedNotificationRecipientSettingsNames =
+				new HashSet<>();
+
+			ListUtil.isNotEmptyForEach(
+				notificationContext.getNotificationRecipientSettings(),
+				notificationRecipientSetting -> {
+					if (!allowedNotificationRecipientSettingsNames.contains(
+							notificationRecipientSetting.getName())) {
+
+						notAllowedNotificationRecipientSettingsNames.add(
+							notificationRecipientSetting.getName());
+					}
+				});
+
+			if (!notAllowedNotificationRecipientSettingsNames.isEmpty()) {
+				throw new NotificationRecipientSettingNameException.
+					NotAllowedNames(
+						notAllowedNotificationRecipientSettingsNames);
+			}
+		}
 
 		NotificationTemplate notificationTemplate =
 			notificationContext.getNotificationTemplate();
@@ -289,8 +344,12 @@ public abstract class BaseNotificationType implements NotificationType {
 
 		NotificationRecipientSetting notificationTemplateRecipientSetting =
 			notificationRecipientSettingLocalService.
-				getNotificationRecipientSetting(
+				fetchNotificationRecipientSetting(
 					notificationTemplateRecipientId, settingName);
+
+		if (notificationTemplateRecipientSetting == null) {
+			return "";
+		}
 
 		String content = formatLocalizedContent(
 			notificationTemplateRecipientSetting.getValue(),
@@ -416,11 +475,41 @@ public abstract class BaseNotificationType implements NotificationType {
 	@Reference
 	protected Portal portal;
 
+	@Reference
+	protected RoleLocalService roleLocalService;
+
 	protected Locale siteDefaultLocale;
 	protected Locale userLocale;
 
 	@Reference
 	protected UserLocalService userLocalService;
+
+	private void _addNotificationRecipientSetting(
+		String name, long notificationRecipientId,
+		List<NotificationRecipientSetting> notificationRecipientSettings,
+		User user, Object value) {
+
+		NotificationRecipientSetting notificationRecipientSetting =
+			notificationRecipientSettingLocalService.
+				createNotificationRecipientSetting(0);
+
+		notificationRecipientSetting.setCompanyId(user.getCompanyId());
+		notificationRecipientSetting.setUserId(user.getUserId());
+		notificationRecipientSetting.setUserName(user.getFullName());
+		notificationRecipientSetting.setNotificationRecipientId(
+			notificationRecipientId);
+		notificationRecipientSetting.setName(name);
+
+		if (value instanceof LinkedHashMap) {
+			notificationRecipientSetting.setValueMap(
+				LocalizedMapUtil.getLocalizedMap((LinkedHashMap)value));
+		}
+		else {
+			notificationRecipientSetting.setValue(String.valueOf(value));
+		}
+
+		notificationRecipientSettings.add(notificationRecipientSetting);
+	}
 
 	private static final Pattern _termNamePattern = Pattern.compile(
 		"\\[%[^\\[%]+%\\]", Pattern.CASE_INSENSITIVE);

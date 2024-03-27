@@ -31,7 +31,6 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
 
@@ -63,9 +62,7 @@ public class ObjectDefinitionVulcanBatchEngineTaskItemDelegateTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany();
-
-		PortalInstances.initCompany(_company);
+		_company = CompanyTestUtil.addCompany(true);
 
 		User user = UserTestUtil.addCompanyAdminUser(_company);
 
@@ -144,18 +141,22 @@ public class ObjectDefinitionVulcanBatchEngineTaskItemDelegateTest {
 
 		com.liferay.object.model.ObjectDefinition
 			serviceBuilderObjectDefinition =
-				_objectDefinitionLocalService.fetchObjectDefinition(
-					_company.getCompanyId(), "C_Oapproved");
+				_objectDefinitionLocalService.
+					fetchObjectDefinitionByExternalReferenceCode(
+						objectDefinition1.getExternalReferenceCode(),
+						_company.getCompanyId());
 
 		Assert.assertNotNull(serviceBuilderObjectDefinition);
-		Assert.assertTrue(serviceBuilderObjectDefinition.getActive());
+		Assert.assertTrue(serviceBuilderObjectDefinition.isActive());
 
 		serviceBuilderObjectDefinition =
-			_objectDefinitionLocalService.fetchObjectDefinition(
-				_company.getCompanyId(), "C_Odraft");
+			_objectDefinitionLocalService.
+				fetchObjectDefinitionByExternalReferenceCode(
+					objectDefinition2.getExternalReferenceCode(),
+					_company.getCompanyId());
 
 		Assert.assertNotNull(serviceBuilderObjectDefinition);
-		Assert.assertFalse(serviceBuilderObjectDefinition.getActive());
+		Assert.assertFalse(serviceBuilderObjectDefinition.isActive());
 	}
 
 	private ObjectDefinition _createObjectDefinition(String name) {
@@ -175,8 +176,9 @@ public class ObjectDefinitionVulcanBatchEngineTaskItemDelegateTest {
 				externalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				id = RandomTestUtil.randomLong();
-				label = Collections.singletonMap("en_US", "O" + finalName);
-				name = "O" + finalName;
+				label = Collections.singletonMap("en_US", "Test" + finalName);
+				modifiable = !finalSystem;
+				name = "Test" + finalName;
 				objectFields = new ObjectField[] {_createObjectField()};
 				panelAppOrder = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
@@ -184,7 +186,7 @@ public class ObjectDefinitionVulcanBatchEngineTaskItemDelegateTest {
 					RandomTestUtil.randomString());
 				parameterRequired = RandomTestUtil.randomBoolean();
 				pluralLabel = Collections.singletonMap(
-					"en_US", "O" + finalName + "s");
+					"en_US", "Test" + finalName + "s");
 				portlet = RandomTestUtil.randomBoolean();
 				restContextPath = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
@@ -193,14 +195,6 @@ public class ObjectDefinitionVulcanBatchEngineTaskItemDelegateTest {
 				titleObjectFieldName = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 
-				setModifiable(
-					() -> {
-						if (!FeatureFlagManagerUtil.isEnabled("LPS-167253")) {
-							return null;
-						}
-
-						return !finalSystem;
-					});
 				setStorageType(
 					() -> {
 						if (!FeatureFlagManagerUtil.isEnabled("LPS-135430")) {

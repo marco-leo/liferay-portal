@@ -27,8 +27,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -367,7 +365,7 @@ public abstract class BaseMessageBoardAttachmentResourceTestCase {
 				getMessageBoardMessageMessageBoardAttachmentsPage(
 					messageBoardMessageId);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantMessageBoardMessageId != null) {
 			MessageBoardAttachment irrelevantMessageBoardAttachment =
@@ -380,10 +378,10 @@ public abstract class BaseMessageBoardAttachmentResourceTestCase {
 					getMessageBoardMessageMessageBoardAttachmentsPage(
 						irrelevantMessageBoardMessageId);
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantMessageBoardAttachment),
+			assertContains(
+				irrelevantMessageBoardAttachment,
 				(List<MessageBoardAttachment>)page.getItems());
 			assertValid(
 				page,
@@ -404,10 +402,13 @@ public abstract class BaseMessageBoardAttachmentResourceTestCase {
 				getMessageBoardMessageMessageBoardAttachmentsPage(
 					messageBoardMessageId);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(messageBoardAttachment1, messageBoardAttachment2),
+		assertContains(
+			messageBoardAttachment1,
+			(List<MessageBoardAttachment>)page.getItems());
+		assertContains(
+			messageBoardAttachment2,
 			(List<MessageBoardAttachment>)page.getItems());
 		assertValid(
 			page,
@@ -514,7 +515,7 @@ public abstract class BaseMessageBoardAttachmentResourceTestCase {
 				getMessageBoardThreadMessageBoardAttachmentsPage(
 					messageBoardThreadId);
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantMessageBoardThreadId != null) {
 			MessageBoardAttachment irrelevantMessageBoardAttachment =
@@ -527,10 +528,10 @@ public abstract class BaseMessageBoardAttachmentResourceTestCase {
 					getMessageBoardThreadMessageBoardAttachmentsPage(
 						irrelevantMessageBoardThreadId);
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantMessageBoardAttachment),
+			assertContains(
+				irrelevantMessageBoardAttachment,
 				(List<MessageBoardAttachment>)page.getItems());
 			assertValid(
 				page,
@@ -551,10 +552,13 @@ public abstract class BaseMessageBoardAttachmentResourceTestCase {
 				getMessageBoardThreadMessageBoardAttachmentsPage(
 					messageBoardThreadId);
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(messageBoardAttachment1, messageBoardAttachment2),
+		assertContains(
+			messageBoardAttachment1,
+			(List<MessageBoardAttachment>)page.getItems());
+		assertContains(
+			messageBoardAttachment2,
 			(List<MessageBoardAttachment>)page.getItems());
 		assertValid(
 			page,
@@ -1282,6 +1286,10 @@ public abstract class BaseMessageBoardAttachmentResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -1724,9 +1732,9 @@ public abstract class BaseMessageBoardAttachmentResourceTestCase {
 	}
 
 	protected MessageBoardAttachmentResource messageBoardAttachmentResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

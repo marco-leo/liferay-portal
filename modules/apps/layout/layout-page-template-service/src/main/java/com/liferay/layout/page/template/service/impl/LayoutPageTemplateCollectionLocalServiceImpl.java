@@ -206,6 +206,14 @@ public class LayoutPageTemplateCollectionLocalServiceImpl
 
 	@Override
 	public List<LayoutPageTemplateCollection> getLayoutPageTemplateCollections(
+		long groupId, long layoutPageTemplateCollectionId) {
+
+		return layoutPageTemplateCollectionPersistence.findByG_P(
+			groupId, layoutPageTemplateCollectionId);
+	}
+
+	@Override
+	public List<LayoutPageTemplateCollection> getLayoutPageTemplateCollections(
 		long groupId, String name, int type, int start, int end,
 		OrderByComparator<LayoutPageTemplateCollection> orderByComparator) {
 
@@ -265,6 +273,57 @@ public class LayoutPageTemplateCollectionLocalServiceImpl
 				return newName;
 			}
 		}
+	}
+
+	@Override
+	public LayoutPageTemplateCollection moveLayoutPageTemplateCollection(
+			long layoutPageTemplateCollectionId,
+			long parentLayoutPageTemplateCollectionId)
+		throws PortalException {
+
+		LayoutPageTemplateCollection layoutPageTemplateCollection =
+			layoutPageTemplateCollectionLocalService.
+				getLayoutPageTemplateCollection(layoutPageTemplateCollectionId);
+
+		if ((parentLayoutPageTemplateCollectionId ==
+				layoutPageTemplateCollection.
+					getLayoutPageTemplateCollectionId()) ||
+			(parentLayoutPageTemplateCollectionId ==
+				layoutPageTemplateCollection.
+					getParentLayoutPageTemplateCollectionId())) {
+
+			return layoutPageTemplateCollection;
+		}
+
+		layoutPageTemplateCollection.setParentLayoutPageTemplateCollectionId(
+			parentLayoutPageTemplateCollectionId);
+
+		return updateLayoutPageTemplateCollection(layoutPageTemplateCollection);
+	}
+
+	@Override
+	public LayoutPageTemplateCollection updateLayoutPageTemplateCollection(
+			long layoutPageTemplateCollectionId, String name)
+		throws PortalException {
+
+		LayoutPageTemplateCollection layoutPageTemplateCollection =
+			layoutPageTemplateCollectionPersistence.findByPrimaryKey(
+				layoutPageTemplateCollectionId);
+
+		if (!Objects.equals(layoutPageTemplateCollection.getName(), name)) {
+			_validate(
+				layoutPageTemplateCollection.getGroupId(), name,
+				layoutPageTemplateCollection.getType());
+		}
+
+		layoutPageTemplateCollection.setLayoutPageTemplateCollectionKey(
+			_generateLayoutPageTemplateCollectionKey(
+				layoutPageTemplateCollection.getGroupId(), name,
+				layoutPageTemplateCollection.getType()));
+		layoutPageTemplateCollection.setName(name);
+
+		return layoutPageTemplateCollectionPersistence.update(
+			layoutPageTemplateCollection);
 	}
 
 	@Override

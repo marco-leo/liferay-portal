@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
+import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -80,9 +81,13 @@ public class LayoutActionsDisplayContext {
 							dropdownItem.setLabel(
 								LanguageUtil.get(
 									_httpServletRequest, "configure"));
-							dropdownItem.setTarget("_blank");
 						}
 					).add(
+						() ->
+							LayoutPermissionUtil.
+								containsLayoutPreviewDraftPermission(
+									_themeDisplay.getPermissionChecker(),
+									layout),
 						dropdownItem -> {
 							String previewLayoutURL = _getPreviewLayoutURL(
 								layout);
@@ -199,6 +204,8 @@ public class LayoutActionsDisplayContext {
 			currentURL
 		).setBackURL(
 			currentURL
+		).setParameter(
+			"backURLTitle", layout.getName(_themeDisplay.getLocale())
 		).setParameter(
 			"groupId", layout.getGroupId()
 		).setParameter(

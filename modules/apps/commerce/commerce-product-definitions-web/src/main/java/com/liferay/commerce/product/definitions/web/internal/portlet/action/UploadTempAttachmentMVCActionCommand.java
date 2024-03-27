@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.util.Map;
+import java.util.Objects;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -242,11 +243,9 @@ public class UploadTempAttachmentMVCActionCommand extends BaseMVCActionCommand {
 			for (String imageExtension : imageExtensions) {
 				if (StringPool.STAR.equals(imageExtension) ||
 					(imageExtension.equals(StringPool.PERIOD + extension) &&
-					 MimeTypesUtil.getExtensionContentType(
-						 imageExtension
-					 ).equals(
-						 contentType
-					 ))) {
+					 Objects.equals(
+						 MimeTypesUtil.getExtensionContentType(imageExtension),
+						 contentType))) {
 
 					return;
 				}

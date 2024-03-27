@@ -23,8 +23,8 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.AssumeTestRule;
 import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -64,12 +64,15 @@ public class UserAccountResourcePerformanceTest {
 	@ClassRule
 	@Rule
 	public static final AggregateTestRule aggregateTestRule =
-		new LiferayIntegrationTestRule();
+		new AggregateTestRule(
+			new AssumeTestRule("assume"), new LiferayIntegrationTestRule());
+
+	public static void assume() {
+		Assume.assumeTrue(Validator.isNull(System.getenv("JENKINS_HOME")));
+	}
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
-		Assume.assumeTrue(Validator.isNull(System.getenv("JENKINS_HOME")));
-
 		_json = JSONUtil.put(
 			"additionalName", ""
 		).put(
@@ -318,8 +321,5 @@ public class UserAccountResourcePerformanceTest {
 
 	@Inject
 	private OAuth2ApplicationLocalService _oAuth2ApplicationLocalService;
-
-	@Inject
-	private UserLocalService _userLocalService;
 
 }

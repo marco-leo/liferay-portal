@@ -201,7 +201,8 @@ public class DBInspector {
 		DatabaseMetaData databaseMetaData = _connection.getMetaData();
 
 		try (ResultSet resultSet = db.getIndexResultSet(
-				_connection, normalizeName(tableName, databaseMetaData))) {
+				_connection, normalizeName(tableName, databaseMetaData),
+				false)) {
 
 			while (resultSet.next()) {
 				if (Objects.equals(
@@ -240,36 +241,31 @@ public class DBInspector {
 	}
 
 	public boolean hasTable(String tableName) throws Exception {
-		return hasTable(tableName, false);
+		return _hasElement(tableName, "TABLE");
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
+	 *             DBInspector#hasTable(String)}
+	 */
+	@Deprecated
 	public boolean hasTable(String tableName, boolean caseSensitive)
 		throws Exception {
 
-		DatabaseMetaData databaseMetaData = _connection.getMetaData();
-
-		if (!caseSensitive) {
-			tableName = normalizeName(tableName, databaseMetaData);
-		}
-
-		try (ResultSet resultSet = databaseMetaData.getTables(
-				getCatalog(), getSchema(), tableName, new String[] {"TABLE"})) {
-
-			while (resultSet.next()) {
-				return true;
-			}
-		}
-
-		return false;
+		return _hasElement(tableName, "TABLE");
 	}
 
-	public boolean isControlTable(List<Long> companyIds, String tableName)
-		throws Exception {
+	public boolean hasView(String viewName) throws Exception {
+		return _hasElement(viewName, "VIEW");
+	}
 
-		if (!isPartitionedControlTable(tableName) &&
-			!isObjectTable(companyIds, tableName) &&
-			(_controlTableNames.contains(StringUtil.toLowerCase(tableName)) ||
-			 !hasColumn(tableName, "companyId"))) {
+	public boolean isControlTable(String tableName) {
+		if (_controlTableNames.contains(StringUtil.toLowerCase(tableName)) ||
+			StringUtil.toLowerCase(
+				tableName
+			).startsWith(
+				"quartz"
+			)) {
 
 			return true;
 		}
@@ -405,6 +401,25 @@ public class DBInspector {
 			normalizeName(tableName, databaseMetaData), columnName);
 	}
 
+	private boolean _hasElement(String elementName, String elementType)
+		throws Exception {
+
+		DatabaseMetaData databaseMetaData = _connection.getMetaData();
+
+		elementName = normalizeName(elementName, databaseMetaData);
+
+		try (ResultSet resultSet = databaseMetaData.getTables(
+				getCatalog(), getSchema(), elementName,
+				new String[] {elementType})) {
+
+			if (resultSet.next()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private boolean _isColumnNullable(String typeName) {
 		typeName = typeName.trim();
 
@@ -426,9 +441,10 @@ public class DBInspector {
 	private static final Pattern _columnTypePattern = Pattern.compile(
 		"(^\\w+)", Pattern.CASE_INSENSITIVE);
 	private static final Set<String> _controlTableNames = new HashSet<>(
-		Arrays.asList("company", "virtualhost"));
+		Arrays.asList(
+			"company", "release_", "servicecomponent", "virtualhost"));
 	private static final Set<String> _partitionedControlTableNames =
-		new HashSet<>(Arrays.asList("classname_", "resourceaction"));
+		new HashSet<>(Arrays.asList("classname_", "counter", "resourceaction"));
 
 	private final Connection _connection;
 

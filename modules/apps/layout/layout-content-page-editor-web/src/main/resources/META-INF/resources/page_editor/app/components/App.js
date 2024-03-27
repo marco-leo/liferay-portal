@@ -21,6 +21,8 @@ import {
 	KeyboardMovementContextProvider,
 	useMovementSource,
 } from '../contexts/KeyboardMovementContext';
+import {LayoutKeyboardContextProvider} from '../contexts/LayoutKeyboardContext';
+import {LocalConfigContextProvider} from '../contexts/LocalConfigContext';
 import {StoreContextProvider} from '../contexts/StoreContext';
 import AppHooks from '../hooks/app_hooks/index';
 import {reducer} from '../reducers/index';
@@ -28,16 +30,17 @@ import {DragAndDropContextProvider} from '../utils/drag_and_drop/useDragAndDrop'
 import CommonStylesManager from './CommonStylesManager';
 import {DisplayPagePreviewItemSelector} from './DisplayPagePreviewItemSelector';
 import DragPreviewWrapper from './DragPreviewWrapper';
+import FocusManager from './FocusManager';
 import ItemConfigurationSidebar from './ItemConfigurationSidebar';
-import KeyboardMovementManager from './KeyboardMovementManager';
-import KeyboardMovementPreview from './KeyboardMovementPreview';
-import KeyboardMovementText from './KeyboardMovementText';
 import {LayoutBreadcrumbs} from './LayoutBreadcrumbs';
 import LayoutViewport from './LayoutViewport';
 import ShortcutManager from './ShortcutManager';
 import Sidebar from './Sidebar';
 import Toolbar from './Toolbar';
 import WidgetsManager from './WidgetsManager';
+import KeyboardMovementManager from './keyboard_movement/KeyboardMovementManager';
+import KeyboardMovementPreview from './keyboard_movement/KeyboardMovementPreview';
+import KeyboardMovementText from './keyboard_movement/KeyboardMovementText';
 
 export default function App({state}) {
 	const initialState = reducer(state, {type: INIT});
@@ -58,6 +61,8 @@ export default function App({state}) {
 
 									<DragPreviewWrapper />
 
+									<FocusManager />
+
 									<WidgetsManager />
 
 									<FormValidationContextProvider>
@@ -70,19 +75,23 @@ export default function App({state}) {
 
 											<KeyboardMovementText />
 
-											<GlobalContextProvider>
-												<CommonStylesManager />
+											<LocalConfigContextProvider>
+												<GlobalContextProvider>
+													<CommonStylesManager />
 
-												<LayoutViewport />
+													<StyleBookContextProvider>
+														<Sidebar />
 
-												<LayoutBreadcrumbs />
+														<LayoutKeyboardContextProvider>
+															<LayoutViewport />
+														</LayoutKeyboardContextProvider>
 
-												<StyleBookContextProvider>
-													<Sidebar />
+														<LayoutBreadcrumbs />
 
-													<ItemConfigurationSidebar />
-												</StyleBookContextProvider>
-											</GlobalContextProvider>
+														<ItemConfigurationSidebar />
+													</StyleBookContextProvider>
+												</GlobalContextProvider>
+											</LocalConfigContextProvider>
 										</KeyboardMovementContextProvider>
 									</FormValidationContextProvider>
 								</DisplayPagePreviewItemContextProvider>

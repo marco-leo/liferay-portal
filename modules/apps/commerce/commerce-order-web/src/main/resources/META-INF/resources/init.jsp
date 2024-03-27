@@ -35,6 +35,8 @@ page import="com.liferay.commerce.exception.CommerceOrderShippingMethodException
 page import="com.liferay.commerce.exception.CommerceOrderStatusException" %><%@
 page import="com.liferay.commerce.exception.CommerceOrderTypeExpirationDateException" %><%@
 page import="com.liferay.commerce.exception.CommerceOrderValidatorException" %><%@
+page import="com.liferay.commerce.exception.DuplicateCommerceOrderExternalReferenceCodeException" %><%@
+page import="com.liferay.commerce.exception.DuplicateCommerceOrderTypeExternalReferenceCodeException" %><%@
 page import="com.liferay.commerce.exception.NoSuchOrderException" %><%@
 page import="com.liferay.commerce.exception.NoSuchOrderNoteException" %><%@
 page import="com.liferay.commerce.model.CommerceAddress" %><%@
@@ -91,7 +93,3 @@ page import="java.util.Objects" %>
 <liferay-theme:defineObjects />
 
 <portlet:defineObjects />
-
-<%
-String redirect = ParamUtil.getString(request, "redirect");
-%>

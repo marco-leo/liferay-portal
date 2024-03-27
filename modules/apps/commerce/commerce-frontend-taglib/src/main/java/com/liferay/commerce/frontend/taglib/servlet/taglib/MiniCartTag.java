@@ -21,7 +21,6 @@ import com.liferay.commerce.product.url.CPFriendlyURL;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -63,7 +62,11 @@ public class MiniCartTag extends IncludeTag {
 				CommerceWebKeys.COMMERCE_CONTEXT);
 
 		try {
-			AccountEntry accountEntry = commerceContext.getAccountEntry();
+			AccountEntry accountEntry = null;
+
+			if (commerceContext != null) {
+				accountEntry = commerceContext.getAccountEntry();
+			}
 
 			if (accountEntry != null) {
 				_accountEntryId = accountEntry.getAccountEntryId();
@@ -83,7 +86,11 @@ public class MiniCartTag extends IncludeTag {
 				).buildString();
 			}
 
-			_commerceChannelId = commerceContext.getCommerceChannelId();
+			_commerceChannelId = 0;
+
+			if (commerceContext != null) {
+				_commerceChannelId = commerceContext.getCommerceChannelId();
+			}
 
 			if (_commerceChannelId == 0) {
 				_commerceChannelGroupId = 0;
@@ -315,10 +322,6 @@ public class MiniCartTag extends IncludeTag {
 	}
 
 	private boolean _isRequestQuoteEnabled() throws PortalException {
-		if (!FeatureFlagManagerUtil.isEnabled("COMMERCE-11028")) {
-			return false;
-		}
-
 		CommerceOrderFieldsConfiguration commerceOrderFieldsConfiguration =
 			_configurationProvider.getConfiguration(
 				CommerceOrderFieldsConfiguration.class,

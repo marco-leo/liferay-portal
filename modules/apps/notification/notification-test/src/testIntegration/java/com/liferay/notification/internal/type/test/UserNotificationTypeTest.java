@@ -156,7 +156,8 @@ public class UserNotificationTypeTest extends BaseNotificationTypeTest {
 		notificationTemplate.setName(RandomTestUtil.randomString());
 		notificationTemplate.setRecipientType(recipientType);
 		notificationTemplate.setSubject(
-			ListUtil.toString(getTermNames(), StringPool.BLANK));
+			ListUtil.toString(
+				getTermNames(), StringPool.BLANK, StringPool.SEMICOLON));
 		notificationTemplate.setType(
 			NotificationConstants.TYPE_USER_NOTIFICATION);
 
@@ -231,7 +232,7 @@ public class UserNotificationTypeTest extends BaseNotificationTypeTest {
 					).build();
 				}
 			},
-			ObjectDefinitionConstants.SCOPE_COMPANY);
+			group.getGroupKey());
 
 		notificationQueueEntries =
 			notificationQueueEntryLocalService.getNotificationQueueEntries(
@@ -246,7 +247,7 @@ public class UserNotificationTypeTest extends BaseNotificationTypeTest {
 		assertTermValues(
 			getTermValues(),
 			ListUtil.fromString(
-				notificationQueueEntry.getSubject(), StringPool.COMMA));
+				notificationQueueEntry.getSubject(), StringPool.SEMICOLON));
 
 		NotificationRecipient notificationRecipient =
 			notificationQueueEntry.getNotificationRecipient();
@@ -327,7 +328,7 @@ public class UserNotificationTypeTest extends BaseNotificationTypeTest {
 					).build();
 				}
 			},
-			ObjectDefinitionConstants.SCOPE_COMPANY);
+			group.getGroupKey());
 
 		notificationQueueEntries =
 			notificationQueueEntryLocalService.getNotificationQueueEntries(
@@ -342,7 +343,7 @@ public class UserNotificationTypeTest extends BaseNotificationTypeTest {
 		assertTermValues(
 			getTermValues(),
 			ListUtil.fromString(
-				notificationQueueEntry.getSubject(), StringPool.COMMA));
+				notificationQueueEntry.getSubject(), StringPool.SEMICOLON));
 
 		NotificationRecipient notificationRecipient =
 			notificationQueueEntry.getNotificationRecipient();

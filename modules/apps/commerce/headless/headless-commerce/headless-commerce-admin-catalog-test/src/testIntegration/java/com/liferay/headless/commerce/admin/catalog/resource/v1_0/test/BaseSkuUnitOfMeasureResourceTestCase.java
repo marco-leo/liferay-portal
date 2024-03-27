@@ -27,13 +27,12 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -369,7 +368,7 @@ public abstract class BaseSkuUnitOfMeasureResourceTestCase {
 				getSkuByExternalReferenceCodeSkuUnitOfMeasuresPage(
 					externalReferenceCode, Pagination.of(1, 10));
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantExternalReferenceCode != null) {
 			SkuUnitOfMeasure irrelevantSkuUnitOfMeasure =
@@ -380,12 +379,13 @@ public abstract class BaseSkuUnitOfMeasureResourceTestCase {
 			page =
 				skuUnitOfMeasureResource.
 					getSkuByExternalReferenceCodeSkuUnitOfMeasuresPage(
-						irrelevantExternalReferenceCode, Pagination.of(1, 2));
+						irrelevantExternalReferenceCode,
+						Pagination.of(1, (int)totalCount + 1));
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantSkuUnitOfMeasure),
+			assertContains(
+				irrelevantSkuUnitOfMeasure,
 				(List<SkuUnitOfMeasure>)page.getItems());
 			assertValid(
 				page,
@@ -406,11 +406,12 @@ public abstract class BaseSkuUnitOfMeasureResourceTestCase {
 				getSkuByExternalReferenceCodeSkuUnitOfMeasuresPage(
 					externalReferenceCode, Pagination.of(1, 10));
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(skuUnitOfMeasure1, skuUnitOfMeasure2),
-			(List<SkuUnitOfMeasure>)page.getItems());
+		assertContains(
+			skuUnitOfMeasure1, (List<SkuUnitOfMeasure>)page.getItems());
+		assertContains(
+			skuUnitOfMeasure2, (List<SkuUnitOfMeasure>)page.getItems());
 		assertValid(
 			page,
 			testGetSkuByExternalReferenceCodeSkuUnitOfMeasuresPage_getExpectedActions(
@@ -440,6 +441,14 @@ public abstract class BaseSkuUnitOfMeasureResourceTestCase {
 		String externalReferenceCode =
 			testGetSkuByExternalReferenceCodeSkuUnitOfMeasuresPage_getExternalReferenceCode();
 
+		Page<SkuUnitOfMeasure> skuUnitOfMeasurePage =
+			skuUnitOfMeasureResource.
+				getSkuByExternalReferenceCodeSkuUnitOfMeasuresPage(
+					externalReferenceCode, null);
+
+		int totalCount = GetterUtil.getInteger(
+			skuUnitOfMeasurePage.getTotalCount());
+
 		SkuUnitOfMeasure skuUnitOfMeasure1 =
 			testGetSkuByExternalReferenceCodeSkuUnitOfMeasuresPage_addSkuUnitOfMeasure(
 				externalReferenceCode, randomSkuUnitOfMeasure());
@@ -452,39 +461,87 @@ public abstract class BaseSkuUnitOfMeasureResourceTestCase {
 			testGetSkuByExternalReferenceCodeSkuUnitOfMeasuresPage_addSkuUnitOfMeasure(
 				externalReferenceCode, randomSkuUnitOfMeasure());
 
-		Page<SkuUnitOfMeasure> page1 =
-			skuUnitOfMeasureResource.
-				getSkuByExternalReferenceCodeSkuUnitOfMeasuresPage(
-					externalReferenceCode, Pagination.of(1, 2));
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<SkuUnitOfMeasure> skuUnitOfMeasures1 =
-			(List<SkuUnitOfMeasure>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(
-			skuUnitOfMeasures1.toString(), 2, skuUnitOfMeasures1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<SkuUnitOfMeasure> page1 =
+				skuUnitOfMeasureResource.
+					getSkuByExternalReferenceCodeSkuUnitOfMeasuresPage(
+						externalReferenceCode,
+						Pagination.of(
+							(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+							pageSizeLimit));
 
-		Page<SkuUnitOfMeasure> page2 =
-			skuUnitOfMeasureResource.
-				getSkuByExternalReferenceCodeSkuUnitOfMeasuresPage(
-					externalReferenceCode, Pagination.of(2, 2));
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(3, page2.getTotalCount());
+			assertContains(
+				skuUnitOfMeasure1, (List<SkuUnitOfMeasure>)page1.getItems());
 
-		List<SkuUnitOfMeasure> skuUnitOfMeasures2 =
-			(List<SkuUnitOfMeasure>)page2.getItems();
+			Page<SkuUnitOfMeasure> page2 =
+				skuUnitOfMeasureResource.
+					getSkuByExternalReferenceCodeSkuUnitOfMeasuresPage(
+						externalReferenceCode,
+						Pagination.of(
+							(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+							pageSizeLimit));
 
-		Assert.assertEquals(
-			skuUnitOfMeasures2.toString(), 1, skuUnitOfMeasures2.size());
+			assertContains(
+				skuUnitOfMeasure2, (List<SkuUnitOfMeasure>)page2.getItems());
 
-		Page<SkuUnitOfMeasure> page3 =
-			skuUnitOfMeasureResource.
-				getSkuByExternalReferenceCodeSkuUnitOfMeasuresPage(
-					externalReferenceCode, Pagination.of(1, 3));
+			Page<SkuUnitOfMeasure> page3 =
+				skuUnitOfMeasureResource.
+					getSkuByExternalReferenceCodeSkuUnitOfMeasuresPage(
+						externalReferenceCode,
+						Pagination.of(
+							(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+							pageSizeLimit));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(
-				skuUnitOfMeasure1, skuUnitOfMeasure2, skuUnitOfMeasure3),
-			(List<SkuUnitOfMeasure>)page3.getItems());
+			assertContains(
+				skuUnitOfMeasure3, (List<SkuUnitOfMeasure>)page3.getItems());
+		}
+		else {
+			Page<SkuUnitOfMeasure> page1 =
+				skuUnitOfMeasureResource.
+					getSkuByExternalReferenceCodeSkuUnitOfMeasuresPage(
+						externalReferenceCode,
+						Pagination.of(1, totalCount + 2));
+
+			List<SkuUnitOfMeasure> skuUnitOfMeasures1 =
+				(List<SkuUnitOfMeasure>)page1.getItems();
+
+			Assert.assertEquals(
+				skuUnitOfMeasures1.toString(), totalCount + 2,
+				skuUnitOfMeasures1.size());
+
+			Page<SkuUnitOfMeasure> page2 =
+				skuUnitOfMeasureResource.
+					getSkuByExternalReferenceCodeSkuUnitOfMeasuresPage(
+						externalReferenceCode,
+						Pagination.of(2, totalCount + 2));
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<SkuUnitOfMeasure> skuUnitOfMeasures2 =
+				(List<SkuUnitOfMeasure>)page2.getItems();
+
+			Assert.assertEquals(
+				skuUnitOfMeasures2.toString(), 1, skuUnitOfMeasures2.size());
+
+			Page<SkuUnitOfMeasure> page3 =
+				skuUnitOfMeasureResource.
+					getSkuByExternalReferenceCodeSkuUnitOfMeasuresPage(
+						externalReferenceCode,
+						Pagination.of(1, (int)totalCount + 3));
+
+			assertContains(
+				skuUnitOfMeasure1, (List<SkuUnitOfMeasure>)page3.getItems());
+			assertContains(
+				skuUnitOfMeasure2, (List<SkuUnitOfMeasure>)page3.getItems());
+			assertContains(
+				skuUnitOfMeasure3, (List<SkuUnitOfMeasure>)page3.getItems());
+		}
 	}
 
 	protected SkuUnitOfMeasure
@@ -543,7 +600,7 @@ public abstract class BaseSkuUnitOfMeasureResourceTestCase {
 			skuUnitOfMeasureResource.getSkuIdSkuUnitOfMeasuresPage(
 				id, Pagination.of(1, 10));
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantId != null) {
 			SkuUnitOfMeasure irrelevantSkuUnitOfMeasure =
@@ -551,12 +608,12 @@ public abstract class BaseSkuUnitOfMeasureResourceTestCase {
 					irrelevantId, randomIrrelevantSkuUnitOfMeasure());
 
 			page = skuUnitOfMeasureResource.getSkuIdSkuUnitOfMeasuresPage(
-				irrelevantId, Pagination.of(1, 2));
+				irrelevantId, Pagination.of(1, (int)totalCount + 1));
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantSkuUnitOfMeasure),
+			assertContains(
+				irrelevantSkuUnitOfMeasure,
 				(List<SkuUnitOfMeasure>)page.getItems());
 			assertValid(
 				page,
@@ -575,11 +632,12 @@ public abstract class BaseSkuUnitOfMeasureResourceTestCase {
 		page = skuUnitOfMeasureResource.getSkuIdSkuUnitOfMeasuresPage(
 			id, Pagination.of(1, 10));
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(skuUnitOfMeasure1, skuUnitOfMeasure2),
-			(List<SkuUnitOfMeasure>)page.getItems());
+		assertContains(
+			skuUnitOfMeasure1, (List<SkuUnitOfMeasure>)page.getItems());
+		assertContains(
+			skuUnitOfMeasure2, (List<SkuUnitOfMeasure>)page.getItems());
 		assertValid(
 			page, testGetSkuIdSkuUnitOfMeasuresPage_getExpectedActions(id));
 
@@ -605,6 +663,12 @@ public abstract class BaseSkuUnitOfMeasureResourceTestCase {
 
 		Long id = testGetSkuIdSkuUnitOfMeasuresPage_getId();
 
+		Page<SkuUnitOfMeasure> skuUnitOfMeasurePage =
+			skuUnitOfMeasureResource.getSkuIdSkuUnitOfMeasuresPage(id, null);
+
+		int totalCount = GetterUtil.getInteger(
+			skuUnitOfMeasurePage.getTotalCount());
+
 		SkuUnitOfMeasure skuUnitOfMeasure1 =
 			testGetSkuIdSkuUnitOfMeasuresPage_addSkuUnitOfMeasure(
 				id, randomSkuUnitOfMeasure());
@@ -617,36 +681,78 @@ public abstract class BaseSkuUnitOfMeasureResourceTestCase {
 			testGetSkuIdSkuUnitOfMeasuresPage_addSkuUnitOfMeasure(
 				id, randomSkuUnitOfMeasure());
 
-		Page<SkuUnitOfMeasure> page1 =
-			skuUnitOfMeasureResource.getSkuIdSkuUnitOfMeasuresPage(
-				id, Pagination.of(1, 2));
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<SkuUnitOfMeasure> skuUnitOfMeasures1 =
-			(List<SkuUnitOfMeasure>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(
-			skuUnitOfMeasures1.toString(), 2, skuUnitOfMeasures1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<SkuUnitOfMeasure> page1 =
+				skuUnitOfMeasureResource.getSkuIdSkuUnitOfMeasuresPage(
+					id,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+						pageSizeLimit));
 
-		Page<SkuUnitOfMeasure> page2 =
-			skuUnitOfMeasureResource.getSkuIdSkuUnitOfMeasuresPage(
-				id, Pagination.of(2, 2));
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(3, page2.getTotalCount());
+			assertContains(
+				skuUnitOfMeasure1, (List<SkuUnitOfMeasure>)page1.getItems());
 
-		List<SkuUnitOfMeasure> skuUnitOfMeasures2 =
-			(List<SkuUnitOfMeasure>)page2.getItems();
+			Page<SkuUnitOfMeasure> page2 =
+				skuUnitOfMeasureResource.getSkuIdSkuUnitOfMeasuresPage(
+					id,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+						pageSizeLimit));
 
-		Assert.assertEquals(
-			skuUnitOfMeasures2.toString(), 1, skuUnitOfMeasures2.size());
+			assertContains(
+				skuUnitOfMeasure2, (List<SkuUnitOfMeasure>)page2.getItems());
 
-		Page<SkuUnitOfMeasure> page3 =
-			skuUnitOfMeasureResource.getSkuIdSkuUnitOfMeasuresPage(
-				id, Pagination.of(1, 3));
+			Page<SkuUnitOfMeasure> page3 =
+				skuUnitOfMeasureResource.getSkuIdSkuUnitOfMeasuresPage(
+					id,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+						pageSizeLimit));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(
-				skuUnitOfMeasure1, skuUnitOfMeasure2, skuUnitOfMeasure3),
-			(List<SkuUnitOfMeasure>)page3.getItems());
+			assertContains(
+				skuUnitOfMeasure3, (List<SkuUnitOfMeasure>)page3.getItems());
+		}
+		else {
+			Page<SkuUnitOfMeasure> page1 =
+				skuUnitOfMeasureResource.getSkuIdSkuUnitOfMeasuresPage(
+					id, Pagination.of(1, totalCount + 2));
+
+			List<SkuUnitOfMeasure> skuUnitOfMeasures1 =
+				(List<SkuUnitOfMeasure>)page1.getItems();
+
+			Assert.assertEquals(
+				skuUnitOfMeasures1.toString(), totalCount + 2,
+				skuUnitOfMeasures1.size());
+
+			Page<SkuUnitOfMeasure> page2 =
+				skuUnitOfMeasureResource.getSkuIdSkuUnitOfMeasuresPage(
+					id, Pagination.of(2, totalCount + 2));
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<SkuUnitOfMeasure> skuUnitOfMeasures2 =
+				(List<SkuUnitOfMeasure>)page2.getItems();
+
+			Assert.assertEquals(
+				skuUnitOfMeasures2.toString(), 1, skuUnitOfMeasures2.size());
+
+			Page<SkuUnitOfMeasure> page3 =
+				skuUnitOfMeasureResource.getSkuIdSkuUnitOfMeasuresPage(
+					id, Pagination.of(1, (int)totalCount + 3));
+
+			assertContains(
+				skuUnitOfMeasure1, (List<SkuUnitOfMeasure>)page3.getItems());
+			assertContains(
+				skuUnitOfMeasure2, (List<SkuUnitOfMeasure>)page3.getItems());
+			assertContains(
+				skuUnitOfMeasure3, (List<SkuUnitOfMeasure>)page3.getItems());
+		}
 	}
 
 	protected SkuUnitOfMeasure
@@ -1203,6 +1309,10 @@ public abstract class BaseSkuUnitOfMeasureResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -1494,9 +1604,9 @@ public abstract class BaseSkuUnitOfMeasureResourceTestCase {
 	}
 
 	protected SkuUnitOfMeasureResource skuUnitOfMeasureResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

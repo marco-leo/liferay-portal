@@ -123,7 +123,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -370,6 +369,21 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 						typeSettingsUnicodeProperties.setProperty(
 							LayoutTypePortletConstants.SITEMAP_INCLUDE,
 							siteMapInclude);
+					}
+
+					Boolean includeChildSitePages =
+						siteMapSettings.getIncludeChildSitePages();
+
+					if (includeChildSitePages != null) {
+						String siteMapIncludeChildLayouts = "false";
+
+						if (includeChildSitePages) {
+							siteMapIncludeChildLayouts = "true";
+						}
+
+						typeSettingsUnicodeProperties.setProperty(
+							"sitemap-include-child-layouts",
+							siteMapIncludeChildLayouts);
 					}
 
 					Double pagePriority = siteMapSettings.getPagePriority();
@@ -705,7 +719,7 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 
 		long[] segmentsEntryIds = _segmentsEntryRetriever.getSegmentsEntryIds(
 			layout.getGroupId(), contextUser.getUserId(),
-			_requestContextMapper.map(contextHttpServletRequest));
+			_requestContextMapper.map(contextHttpServletRequest), new long[0]);
 
 		long[] segmentsExperienceIds =
 			_segmentsExperienceRequestProcessorRegistry.
@@ -756,7 +770,7 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 		try {
 			_layoutsImporter.importPageElement(
 				layout, layoutStructure, layoutStructure.getMainItemId(),
-				pageElement.toString(), 0);
+				pageElement.toString(), 0, true);
 		}
 		finally {
 			ServiceContextThreadLocal.popServiceContext();
@@ -852,13 +866,6 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 		contextHttpServletRequest.setAttribute(
 			WebKeys.THEME_DISPLAY, _getThemeDisplay(layout));
 
-		ServletContext servletContext = ServletContextPool.get(
-			StringPool.BLANK);
-
-		if (contextHttpServletRequest.getAttribute(WebKeys.CTX) == null) {
-			contextHttpServletRequest.setAttribute(WebKeys.CTX, servletContext);
-		}
-
 		layout.includeLayoutContent(
 			contextHttpServletRequest, contextHttpServletResponse);
 
@@ -870,9 +877,9 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 
 		Document document = Jsoup.parse(
 			ThemeUtil.include(
-				servletContext, contextHttpServletRequest,
-				contextHttpServletResponse, "portal_normal.ftl",
-				layoutSet.getTheme(), false));
+				ServletContextPool.get(StringPool.BLANK),
+				contextHttpServletRequest, contextHttpServletResponse,
+				"portal_normal.ftl", layoutSet.getTheme(), false));
 
 		Element bodyElement = document.body();
 

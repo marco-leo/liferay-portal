@@ -107,7 +107,7 @@ public class LayoutPageTemplateEntryActionDropdownItemsProvider {
 							!Objects.equals(
 								_layoutPageTemplateEntry.getType(),
 								LayoutPageTemplateEntryTypeConstants.
-									TYPE_WIDGET_PAGE),
+									WIDGET_PAGE),
 						_getViewLayoutPageTemplateEntryActionUnsafeConsumer()
 					).build());
 				dropdownGroupItem.setSeparator(true);
@@ -193,13 +193,17 @@ public class LayoutPageTemplateEntryActionDropdownItemsProvider {
 			PortletRequest.RENDER_PHASE);
 
 		return dropdownItem -> {
+			PortletDisplay portletDisplay = _themeDisplay.getPortletDisplay();
+
 			dropdownItem.setHref(
 				editPageURL, "mvcRenderCommandName",
 				"/layout_admin/edit_layout", "redirect",
 				_themeDisplay.getURLCurrent(), "backURL",
-				_themeDisplay.getURLCurrent(), "portletResource",
+				_themeDisplay.getURLCurrent(), "backURLTitle",
+				portletDisplay.getPortletDisplayName(), "portletResource",
 				LayoutPageTemplateAdminPortletKeys.LAYOUT_PAGE_TEMPLATES,
 				"selPlid", _layoutPageTemplateEntry.getPlid());
+
 			dropdownItem.setIcon("cog");
 			dropdownItem.setLabel(
 				LanguageUtil.get(_httpServletRequest, "configure"));
@@ -216,6 +220,14 @@ public class LayoutPageTemplateEntryActionDropdownItemsProvider {
 				"/edit_layout_prototype.jsp"
 			).setRedirect(
 				_themeDisplay.getURLCurrent()
+			).setParameter(
+				"backURLTitle",
+				() -> {
+					PortletDisplay portletDisplay =
+						_themeDisplay.getPortletDisplay();
+
+					return portletDisplay.getPortletDisplayName();
+				}
 			).setParameter(
 				"layoutPrototypeId",
 				_layoutPageTemplateEntry.getLayoutPrototypeId()
@@ -316,7 +328,7 @@ public class LayoutPageTemplateEntryActionDropdownItemsProvider {
 
 		if (Objects.equals(
 				_layoutPageTemplateEntry.getType(),
-				LayoutPageTemplateEntryTypeConstants.TYPE_WIDGET_PAGE)) {
+				LayoutPageTemplateEntryTypeConstants.WIDGET_PAGE)) {
 
 			LayoutPrototype layoutPrototype =
 				LayoutPrototypeLocalServiceUtil.fetchLayoutPrototype(
@@ -480,7 +492,7 @@ public class LayoutPageTemplateEntryActionDropdownItemsProvider {
 
 		if (Objects.equals(
 				_layoutPageTemplateEntry.getType(),
-				LayoutPageTemplateEntryTypeConstants.TYPE_WIDGET_PAGE)) {
+				LayoutPageTemplateEntryTypeConstants.WIDGET_PAGE)) {
 
 			LayoutPrototype layoutPrototype =
 				LayoutPrototypeServiceUtil.fetchLayoutPrototype(

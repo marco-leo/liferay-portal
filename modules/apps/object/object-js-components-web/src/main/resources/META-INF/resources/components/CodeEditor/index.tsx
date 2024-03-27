@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import CodeMirror from '@liferay/frontend-js-codemirror-web';
 import classNames from 'classnames';
-import CodeMirror from 'codemirror';
 import {FieldBase} from 'frontend-js-components-web';
 import React, {ReactNode, useRef} from 'react';
 
@@ -22,6 +22,7 @@ interface CodeEditorProps extends ICodeMirrorEditor {
 	CustomSidebarContent?: ReactNode;
 	className?: string;
 	error?: string;
+	readOnly?: boolean;
 	sidebarElements?: SidebarCategory[];
 	sidebarElementsDisabled?: boolean;
 }
@@ -33,6 +34,7 @@ const CodeEditor = React.forwardRef<CodeMirror.Editor, CodeEditorProps>(
 			className,
 			error,
 			mode,
+			readOnly,
 			sidebarElements,
 			sidebarElementsDisabled,
 			...options
@@ -62,12 +64,14 @@ const CodeEditor = React.forwardRef<CodeMirror.Editor, CodeEditorProps>(
 		return (
 			<FieldBase
 				className={classNames('lfr-objects__code-editor', className)}
+				disabled={readOnly}
 				errorMessage={error}
 			>
 				<div className="form-control lfr-objects__code-editor-source">
 					<CodeMirrorEditor
 						lineWrapping={true}
 						mode={mode}
+						readOnly={readOnly}
 						ref={handleDomNodeChange}
 						{...options}
 					/>
@@ -75,6 +79,7 @@ const CodeEditor = React.forwardRef<CodeMirror.Editor, CodeEditorProps>(
 					{sidebarElements && (
 						<Sidebar
 							CustomSidebarContent={CustomSidebarContent}
+							disabled={readOnly}
 							editorRef={editorRef}
 							elements={sidebarElements}
 							elementsDisabled={sidebarElementsDisabled}

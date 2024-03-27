@@ -77,7 +77,7 @@ entriesChecker.setRememberCheckBoxStateURLRegex("^(?!.*" + liferayPortletRespons
 							latestFileVersion = fileEntry.getLatestFileVersion();
 						}
 
-						if ((dlSearchContainer.getRowChecker() == null) && (DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DELETE) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE))) {
+						if ((dlSearchContainer.getRowChecker() == null) && (DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DELETE) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DOWNLOAD) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE))) {
 							dlSearchContainer.setRowChecker(entriesChecker);
 						}
 
@@ -148,16 +148,16 @@ entriesChecker.setRememberCheckBoxStateURLRegex("^(?!.*" + liferayPortletRespons
 											<div class="aspect-ratio card-item-first">
 												<div class="custom-checkbox custom-control">
 													<label>
+														<c:if test="<%= searchContainer.getRowChecker() != null %>">
 
-														<%
-														RowChecker rowChecker = searchContainer.getRowChecker();
+															<%
+															RowChecker rowChecker = searchContainer.getRowChecker();
 
-														rowChecker.setCssClass("custom-control-input");
-														%>
+															rowChecker.setCssClass("custom-control-input");
+															%>
 
-														<%= rowChecker.getRowCheckBox(request, row) %>
-
-														<span class="custom-control-label"></span>
+															<%= rowChecker.getRowCheckBox(request, row) %>
+														</c:if>
 
 														<c:choose>
 															<c:when test="<%= dlViewFileVersionDisplayContext.hasCustomThumbnail() %>">
@@ -200,10 +200,34 @@ entriesChecker.setRememberCheckBoxStateURLRegex("^(?!.*" + liferayPortletRespons
 														</div>
 
 														<div class="card-detail">
+															<c:if test='<%= FeatureFlagManagerUtil.isEnabled(latestFileVersion.getCompanyId(), "LPD-10701") && !latestFileVersion.isApproved() && dlViewFileVersionDisplayContext.hasApprovedVersion() %>'>
+																<liferay-portal-workflow:status
+																	showStatusLabel="<%= false %>"
+																	status="<%= WorkflowConstants.STATUS_APPROVED %>"
+																/>
+															</c:if>
+
 															<liferay-portal-workflow:status
 																showStatusLabel="<%= false %>"
 																status="<%= latestFileVersion.getStatus() %>"
 															/>
+
+															<c:if test='<%= FeatureFlagManagerUtil.isEnabled(latestFileVersion.getCompanyId(), "LPD-10701") && latestFileVersion.isScheduled() %>'>
+
+																<%
+																String displayDateString = StringPool.BLANK;
+
+																if (latestFileVersion.getDisplayDate() != null) {
+																	displayDateString = dateTimeFormat.format(latestFileVersion.getDisplayDate());
+																}
+																%>
+
+																<span aria-label="<%= displayDateString %>" class="lfr-portal-tooltip" tabindex="0" title="<%= displayDateString %>">
+																	<clay:icon
+																		symbol="question-circle-full"
+																	/>
+																</span>
+															</c:if>
 
 															<c:choose>
 																<c:when test="<%= fileShortcut != null %>">
@@ -342,11 +366,39 @@ entriesChecker.setRememberCheckBoxStateURLRegex("^(?!.*" + liferayPortletRespons
 											/>
 										</c:when>
 										<c:when test='<%= curEntryColumn.equals("status") %>'>
-											<liferay-ui:search-container-column-status
+											<liferay-ui:search-container-column-text
 												cssClass="table-cell-expand-smallest"
 												name="status"
-												status="<%= latestFileVersion.getStatus() %>"
-											/>
+											>
+												<c:if test='<%= FeatureFlagManagerUtil.isEnabled(latestFileVersion.getCompanyId(), "LPD-10701") && !latestFileVersion.isApproved() && dlViewFileVersionDisplayContext.hasApprovedVersion() %>'>
+													<liferay-portal-workflow:status
+														showStatusLabel="<%= false %>"
+														status="<%= WorkflowConstants.STATUS_APPROVED %>"
+													/>
+												</c:if>
+
+												<liferay-portal-workflow:status
+													showStatusLabel="<%= false %>"
+													status="<%= latestFileVersion.getStatus() %>"
+												/>
+
+												<c:if test='<%= FeatureFlagManagerUtil.isEnabled(latestFileVersion.getCompanyId(), "LPD-10701") && latestFileVersion.isScheduled() %>'>
+
+													<%
+													String displayDateString = StringPool.BLANK;
+
+													if (latestFileVersion.getDisplayDate() != null) {
+														displayDateString = dateTimeFormat.format(latestFileVersion.getDisplayDate());
+													}
+													%>
+
+													<span aria-label="<%= displayDateString %>" class="lfr-portal-tooltip" tabindex="0" title="<%= displayDateString %>">
+														<clay:icon
+															symbol="question-circle-full"
+														/>
+													</span>
+												</c:if>
+											</liferay-ui:search-container-column-text>
 										</c:when>
 										<c:when test='<%= curEntryColumn.equals("downloads") %>'>
 											<c:if test="<%= ViewCountManagerUtil.isViewCountEnabled(PortalUtil.getClassNameId(DLFileEntryConstants.getClassName())) %>">

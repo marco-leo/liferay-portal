@@ -84,7 +84,7 @@
 </tr>
 <tr>
 	<td>KEYWORD_NAME_BY_INDEX</td>
-	<td>//tr[${key_index}]//*[contains(@class,'table-title') and (text()='${key_keywordName}')]</td>
+	<td>xpath=(//*[contains(@class,'table-title')])[${key_index}]</td>
 	<td></td>
 </tr>
 <tr>
@@ -105,6 +105,14 @@
 <tr>
 	<td>KEYWORD_TEXTFIELD</td>
 	<td>//*[@class='form-control-inset']</td>
+	<td></td>
+</tr>
+
+<!-- DATA CONTROL & PRIVACY -->
+
+<tr>
+	<td>RETENTION_PERIOD</td>
+	<td>//button[contains(@class,'form-control')]</td>
 	<td></td>
 </tr>
 
@@ -230,7 +238,7 @@
 	<td></td>
 </tr>
 <tr>
-	<td>DELETE_CONFIRMATION_BUTTON</td>
+	<td>CONFIRMATION_BUTTON</td>
 	<td>//button[contains(@class,'btn-warning')]</td>
 	<td></td>
 </tr>

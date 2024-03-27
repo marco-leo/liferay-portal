@@ -21,10 +21,15 @@ export function DefaultSortScreen() {
 
 	const [visibleModal, setVisibleModal] = useState(false);
 	const [isEditingSort, setIsEditingSort] = useState(false);
-	const [editingObjectFieldName, setEditingObjectFieldName] = useState('');
+	const [editingObjectFieldName, setEditingObjectFieldName] = useState<
+		string
+	>();
 
 	const {observer, onClose} = useModal({
-		onClose: () => setVisibleModal(false),
+		onClose: () => {
+			setVisibleModal(false);
+			setEditingObjectFieldName(undefined);
+		},
 	});
 
 	useEffect(() => {
@@ -62,6 +67,7 @@ export function DefaultSortScreen() {
 
 			<Card title={Liferay.Language.get('default-sort')}>
 				<BuilderScreen
+					builderScreenItems={objectViewSortColumns ?? []}
 					defaultSort
 					emptyState={{
 						buttonText: Liferay.Language.get('new-default-sort'),
@@ -74,7 +80,6 @@ export function DefaultSortScreen() {
 					}}
 					firstColumnHeader={Liferay.Language.get('name')}
 					hasDragAndDrop
-					objectColumns={objectViewSortColumns ?? []}
 					onChangeColumnOrder={handleChangeColumnOrder}
 					onDeleteColumn={handleDeleteColumn}
 					onEditing={setIsEditingSort}

@@ -4,7 +4,7 @@ definition {
 	property ci.retries.disabled = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Content and Application Templates";
+	property testray.main.component.name = "Templates";
 
 	setUp {
 		task ("Set up instance and sign in") {
@@ -18,24 +18,11 @@ definition {
 		}
 	}
 
-	tearDown {
-		var testLiferayVirtualInstance = PropsUtil.get("test.liferay.virtual.instance");
-
-		if (${testLiferayVirtualInstance} == "true") {
-			PortalInstances.tearDownCP();
-		}
-		else {
-			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
-		}
-	}
-
 	@description = "This is a use case for LPS-138780. The template creator can see the information template when enabling staging with staged Templates portlet."
 	@priority = 4
 	test PublishStagedInformationTemplateToLive {
 		task ("Enable local live with staged Templates portlet") {
-			Staging.openStagingAdmin(siteURLKey = "test-site-name");
-
-			Staging.activateStagingCP(siteName = "Test Site Name");
+			JSONStaging.enableLocalStaging(groupName = "Test Site Name");
 		}
 
 		task ("Add an information template in staging site") {

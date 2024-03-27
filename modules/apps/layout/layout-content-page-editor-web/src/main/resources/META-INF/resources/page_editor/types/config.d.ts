@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import type {LayoutType} from "../app/config/constants/layoutTypes";
+import type {LayoutType} from '../app/config/constants/layoutTypes';
+import type {SidebarPanel} from './SidebarPanel';
 
 export interface Config {
 	actionableInfoItemSelectorURL: string;
@@ -13,6 +14,7 @@ export interface Config {
 	addFragmentEntryLinksURL: string;
 	addItemURL: string;
 	addPortletURL: string;
+	addRuleURL: string;
 	addSegmentsExperienceURL: string;
 
 	assetCategoryTreeNodeItemSelectorURL: string;
@@ -68,10 +70,13 @@ export interface Config {
 		}>;
 	}>;
 
-	commonStylesFields: Record<string, {
-		cssTemplate: string,
-		defaultValue: string | object,
-	}>;
+	commonStylesFields: Record<
+		string,
+		{
+			cssTemplate: string;
+			defaultValue: string | object;
+		}
+	>;
 
 	contentPagePersonalizationLearnURL: string;
 	createLayoutPageTemplateEntryURL: string;
@@ -84,12 +89,13 @@ export interface Config {
 		}
 	>;
 
-	defaultLanguageId: string;
+	defaultLanguageId: Liferay.Language.Locale;
 	defaultSegmentsEntryId: string;
 	defaultSegmentsExperienceId: string;
 	defaultStyleBookEntryImagePreviewURL: string;
 	defaultStyleBookEntryName: string;
 	deleteFragmentEntryLinkCommentURL: string;
+	deleteRuleURL: string;
 	deleteSegmentsExperienceURL: string;
 	discardDraftURL: string;
 	duplicateItemURL: string;
@@ -98,9 +104,6 @@ export interface Config {
 	editFragmentEntryLinkURL: string;
 	editSegmentsEntryURL: string;
 	frontendTokens: {
-		getAvailableImageConfigurationsURL: string;
-		getAvailableListItemRenderersURL: string;
-		getAvailableListRenderersURL: string;
 		[key: string]:
 			| {
 					cssVariable: string;
@@ -111,16 +114,23 @@ export interface Config {
 			  }
 			| string;
 	};
+	getAvailableImageConfigurationsURL: string;
+	getAvailableListItemRenderersURL: string;
+	getAvailableListRenderersURL: string;
 	getAvailableTemplatesURL: string;
-	getCollectionConfigurationURL: string;
 	getCollectionFieldURL: string;
 	getCollectionFiltersURL: string;
 	getCollectionItemCountURL: string;
 	getCollectionMappingFieldsURL: string;
 	getCollectionSupportedFiltersURL: string;
+	getCollectionVariationsURL: string;
 	getCollectionWarningMessageURL: string;
+	getEditCollectionConfigurationURL: string;
 	getExperienceDataURL: string;
+	getFileEntryURL: string;
 	getFormConfigURL: string;
+	getFormFieldsURL: string;
+	getFragmentEntryInputFieldTypesURL: string;
 	getIframeContentCssURL: string;
 	getIframeContentURL: string;
 	getInfoItemActionErrorMessageURL: string;
@@ -129,6 +139,8 @@ export interface Config {
 	getLayoutPageTemplateCollectionsURL: string;
 	getPageContentsURL: string;
 	getPortletsURL: string;
+	getRolesURL: string;
+	getUsersURL: string;
 	imageSelectorURL: string;
 	infoItemPreviewSelectorURL: string;
 	infoItemSelectorURL: string;
@@ -154,7 +166,6 @@ export interface Config {
 	panels: string[][];
 	pending: boolean;
 	plid: string;
-	pluginsRootPath: string;
 	portletNamespace: string;
 	publishURL: string;
 	redirectURL: string;
@@ -175,16 +186,7 @@ export interface Config {
 
 	selectedSegmentsEntryId: string;
 
-	sidebarPanels: {
-		[key: string]: {
-			icon: string;
-			isLink: boolean;
-			label: string;
-			pluginEntryPoint?: string;
-			sidebarPanelId: string;
-			url?: string | null;
-		};
-	};
+	sidebarPanels: SidebarPanel[] | Record<string, SidebarPanel>;
 
 	singleSegmentsExperienceMode: boolean;
 	siteNavigationMenuItemSelectorURL: string;
@@ -200,7 +202,7 @@ export interface Config {
 
 	toolbarPlugins: Array<{
 		loadingPlaceholder: string;
-		pluginEntryPoint: string;
+		pluginClass: any;
 		toolbarPluginId: string;
 	}>;
 
@@ -209,9 +211,12 @@ export interface Config {
 	updateConfigurationValuesURL: string;
 	updateFormItemConfigURL: string;
 	updateFragmentPortletSetsSortURL: string;
+	updateFragmentsHighlightedConfigurationURL: string;
 	updateItemConfigURL: string;
 	updateLayoutPageTemplateDataURL: string;
+	updatePortletsHighlightedConfigurationURL: string;
 	updateRowColumnsURL: string;
+	updateRuleURL: string;
 	updateSegmentsExperiencePriorityURL: string;
 	updateSegmentsExperienceURL: string;
 	videoItemSelectorURL: string;

@@ -13,14 +13,15 @@ import {fetch, openModal} from 'frontend-js-web';
 import fuzzy from 'fuzzy';
 import React, {useEffect, useState} from 'react';
 
-import {API_URL, FUZZY_OPTIONS, OBJECT_RELATIONSHIP} from '../Constants';
 import {IFDSViewSectionProps} from '../FDSView';
 import {FDSViewType} from '../FDSViews';
 import {getFields} from '../api';
 import OrderableTable from '../components/OrderableTable';
 import RequiredMark from '../components/RequiredMark';
+import {API_URL, FUZZY_OPTIONS, OBJECT_RELATIONSHIP} from '../utils/constants';
 import openDefaultFailureToast from '../utils/openDefaultFailureToast';
 import openDefaultSuccessToast from '../utils/openDefaultSuccessToast';
+import {IField} from '../utils/types';
 
 interface IAddFDSSortModalContentInterface {
 	closeModal: Function;
@@ -39,13 +40,6 @@ interface IFDSSort {
 	fieldName: string;
 	id: number;
 	sortingDirection: string;
-}
-
-interface IField {
-	format: string;
-	label: string;
-	name: string;
-	type: string;
 }
 
 const SORTING_DIRECTION = {

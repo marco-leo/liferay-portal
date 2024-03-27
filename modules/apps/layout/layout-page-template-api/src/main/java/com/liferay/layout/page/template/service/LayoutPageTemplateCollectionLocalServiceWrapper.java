@@ -401,6 +401,16 @@ public class LayoutPageTemplateCollectionLocalServiceWrapper
 	@Override
 	public java.util.List<LayoutPageTemplateCollection>
 		getLayoutPageTemplateCollections(
+			long groupId, long layoutPageTemplateCollectionId) {
+
+		return _layoutPageTemplateCollectionLocalService.
+			getLayoutPageTemplateCollections(
+				groupId, layoutPageTemplateCollectionId);
+	}
+
+	@Override
+	public java.util.List<LayoutPageTemplateCollection>
+		getLayoutPageTemplateCollections(
 			long groupId, String name, int type, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
 				<LayoutPageTemplateCollection> orderByComparator) {
@@ -504,6 +514,18 @@ public class LayoutPageTemplateCollectionLocalServiceWrapper
 			getUniqueLayoutPageTemplateCollectionName(groupId, name, type);
 	}
 
+	@Override
+	public LayoutPageTemplateCollection moveLayoutPageTemplateCollection(
+			long layoutPageTemplateCollectionId,
+			long parentLayoutPageTemplateCollectionId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _layoutPageTemplateCollectionLocalService.
+			moveLayoutPageTemplateCollection(
+				layoutPageTemplateCollectionId,
+				parentLayoutPageTemplateCollectionId);
+	}
+
 	/**
 	 * Updates the layout page template collection in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
@@ -520,6 +542,16 @@ public class LayoutPageTemplateCollectionLocalServiceWrapper
 
 		return _layoutPageTemplateCollectionLocalService.
 			updateLayoutPageTemplateCollection(layoutPageTemplateCollection);
+	}
+
+	@Override
+	public LayoutPageTemplateCollection updateLayoutPageTemplateCollection(
+			long layoutPageTemplateCollectionId, String name)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _layoutPageTemplateCollectionLocalService.
+			updateLayoutPageTemplateCollection(
+				layoutPageTemplateCollectionId, name);
 	}
 
 	@Override

@@ -26,7 +26,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.change.tracking.sql.CTSQLModeThreadLocal;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
@@ -190,22 +189,26 @@ public class GetEntryRenderDataMVCResourceCommand
 				ctEntry.getModelClassPK());
 
 			if (rightModel != null) {
-				String editURL = _ctDisplayRendererRegistry.getEditURL(
-					ctCollectionId, ctSQLMode, httpServletRequest, rightModel,
-					ctEntry.getModelClassNameId());
+				if (ctCollection.getStatus() ==
+						WorkflowConstants.STATUS_DRAFT) {
 
-				if (Validator.isNotNull(editURL)) {
-					editInPublicationJSONObject = _getEditJSONObject(
-						_language.format(
-							httpServletRequest,
-							"you-are-currently-working-on-production.-work-" +
-								"on-x",
-							new Object[] {ctCollection.getName()}, false),
-						ctCollection.getCtCollectionId(), editURL,
-						_language.format(
-							httpServletRequest, "edit-in-x",
-							new Object[] {ctCollection.getName()}, false),
-						resourceRequest, resourceResponse);
+					String editURL = _ctDisplayRendererRegistry.getEditURL(
+						ctCollectionId, ctSQLMode, httpServletRequest,
+						rightModel, ctEntry.getModelClassNameId());
+
+					if (Validator.isNotNull(editURL)) {
+						editInPublicationJSONObject = _getEditJSONObject(
+							_language.format(
+								httpServletRequest,
+								"you-are-currently-working-on-production.-" +
+									"work-on-x",
+								new Object[] {ctCollection.getName()}, false),
+							ctCollection.getCtCollectionId(), editURL,
+							_language.format(
+								httpServletRequest, "edit-in-x",
+								new Object[] {ctCollection.getName()}, false),
+							resourceRequest, resourceResponse);
+					}
 				}
 
 				if (localize) {
@@ -665,91 +668,15 @@ public class GetEntryRenderDataMVCResourceCommand
 			);
 		}
 
-		if ((ctEntry.getModelClassNameId() ==
-				_classNameLocalService.getClassNameId(Layout.class)) &&
-			FeatureFlagManagerUtil.isEnabled(
-				themeDisplay.getCompanyId(), "LPS-187183")) {
+		if (ctEntry.getModelClassNameId() ==
+				_classNameLocalService.getClassNameId(Layout.class)) {
 
-			JSONArray jsonArray = _jsonFactory.createJSONArray();
+			try (SafeCloseable safeCloseable =
+					CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+						ctEntry.getCtCollectionId())) {
 
-			List<SegmentsExperience> segmentsExperiences = new ArrayList<>(
-				_segmentsExperienceLocalService.dslQuery(
-					DSLQueryFactoryUtil.select(
-						SegmentsExperienceTable.INSTANCE
-					).from(
-						SegmentsExperienceTable.INSTANCE
-					).where(
-						SegmentsExperienceTable.INSTANCE.plid.eq(
-							ctEntry.getModelClassPK())
-					)));
-
-			segmentsExperiences.sort(
-				Comparator.comparingInt(SegmentsExperienceModel::getPriority));
-
-			SegmentsExperience highestPrioritySegmentsExperience =
-				segmentsExperiences.get(segmentsExperiences.size() - 1);
-
-			long highestPrioritySegmentsExperienceId =
-				highestPrioritySegmentsExperience.getSegmentsExperienceId();
-
-			for (SegmentsExperience segmentsExperience : segmentsExperiences) {
-				jsonArray.put(
-					JSONUtil.put(
-						"active",
-						() -> {
-							if (segmentsExperience.getSegmentsExperienceId() ==
-									highestPrioritySegmentsExperienceId) {
-
-								return true;
-							}
-
-							return false;
-						}
-					).put(
-						"id", segmentsExperience.getSegmentsExperienceId()
-					).put(
-						"isDefault",
-						Objects.equals(
-							segmentsExperience.getSegmentsExperienceKey(),
-							SegmentsExperienceConstants.KEY_DEFAULT) &&
-						(segmentsExperience.getSegmentsEntryId() == 0)
-					).put(
-						"name",
-						segmentsExperience.getName(
-							httpServletRequest.getLocale())
-					).put(
-						"segmentName",
-						() -> {
-							if (Objects.equals(
-									segmentsExperience.
-										getSegmentsExperienceKey(),
-									SegmentsExperienceConstants.KEY_DEFAULT) &&
-								(segmentsExperience.getSegmentsEntryId() ==
-									0)) {
-
-								return _language.get(
-									httpServletRequest, "anyone");
-							}
-
-							SegmentsEntry segmentsEntry =
-								_segmentsEntryLocalService.getSegmentsEntry(
-									segmentsExperience.getSegmentsEntryId());
-
-							return segmentsEntry.getName(
-								httpServletRequest.getLocale());
-						}
-					));
-
-				if (segmentsExperience.getSegmentsExperienceId() ==
-						highestPrioritySegmentsExperienceId) {
-
-					jsonObject.put(
-						"activeSegmentsExperience",
-						jsonArray.get(jsonArray.length() - 1));
-				}
+				_getSegmentExperiences(ctEntry, httpServletRequest, jsonObject);
 			}
-
-			jsonObject.put("segmentsExperiences", jsonArray);
 		}
 
 		return jsonObject;
@@ -979,6 +906,88 @@ public class GetEntryRenderDataMVCResourceCommand
 
 			return sb.toString();
 		}
+	}
+
+	private void _getSegmentExperiences(
+		CTEntry ctEntry, HttpServletRequest httpServletRequest,
+		JSONObject jsonObject) {
+
+		JSONArray jsonArray = _jsonFactory.createJSONArray();
+
+		List<SegmentsExperience> segmentsExperiences = new ArrayList<>(
+			_segmentsExperienceLocalService.dslQuery(
+				DSLQueryFactoryUtil.select(
+					SegmentsExperienceTable.INSTANCE
+				).from(
+					SegmentsExperienceTable.INSTANCE
+				).where(
+					SegmentsExperienceTable.INSTANCE.plid.eq(
+						ctEntry.getModelClassPK())
+				)));
+
+		if (segmentsExperiences.isEmpty()) {
+			return;
+		}
+
+		segmentsExperiences.sort(
+			Comparator.comparingInt(SegmentsExperienceModel::getPriority));
+
+		SegmentsExperience highestPrioritySegmentsExperience =
+			segmentsExperiences.get(segmentsExperiences.size() - 1);
+
+		long highestPrioritySegmentsExperienceId =
+			highestPrioritySegmentsExperience.getSegmentsExperienceId();
+
+		for (SegmentsExperience segmentsExperience : segmentsExperiences) {
+			jsonArray.put(
+				JSONUtil.put(
+					"active",
+					() -> {
+						if (segmentsExperience.getSegmentsExperienceId() ==
+								highestPrioritySegmentsExperienceId) {
+
+							return true;
+						}
+
+						return false;
+					}
+				).put(
+					"id", segmentsExperience.getSegmentsExperienceId()
+				).put(
+					"isDefault",
+					Objects.equals(
+						segmentsExperience.getSegmentsExperienceKey(),
+						SegmentsExperienceConstants.KEY_DEFAULT) &&
+					(segmentsExperience.getSegmentsEntryId() == 0)
+				).put(
+					"name",
+					segmentsExperience.getName(httpServletRequest.getLocale())
+				).put(
+					"segmentName",
+					() -> {
+						if (segmentsExperience.getSegmentsEntryId() == 0) {
+							return _language.get(httpServletRequest, "anyone");
+						}
+
+						SegmentsEntry segmentsEntry =
+							_segmentsEntryLocalService.getSegmentsEntry(
+								segmentsExperience.getSegmentsEntryId());
+
+						return segmentsEntry.getName(
+							httpServletRequest.getLocale());
+					}
+				));
+
+			if (segmentsExperience.getSegmentsExperienceId() ==
+					highestPrioritySegmentsExperienceId) {
+
+				jsonObject.put(
+					"activeSegmentsExperience",
+					jsonArray.get(jsonArray.length() - 1));
+			}
+		}
+
+		jsonObject.put("segmentsExperiences", jsonArray);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

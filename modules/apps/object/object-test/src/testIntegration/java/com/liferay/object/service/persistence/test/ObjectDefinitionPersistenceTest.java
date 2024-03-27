@@ -369,10 +369,27 @@ public class ObjectDefinitionPersistenceTest {
 	}
 
 	@Test
+	public void testCountByAccountEntryRestricted() throws Exception {
+		_persistence.countByAccountEntryRestricted(
+			RandomTestUtil.randomBoolean());
+
+		_persistence.countByAccountEntryRestricted(
+			RandomTestUtil.randomBoolean());
+	}
+
+	@Test
 	public void testCountBySystem() throws Exception {
 		_persistence.countBySystem(RandomTestUtil.randomBoolean());
 
 		_persistence.countBySystem(RandomTestUtil.randomBoolean());
+	}
+
+	@Test
+	public void testCountByC_RODI() throws Exception {
+		_persistence.countByC_RODI(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
+
+		_persistence.countByC_RODI(0L, 0L);
 	}
 
 	@Test

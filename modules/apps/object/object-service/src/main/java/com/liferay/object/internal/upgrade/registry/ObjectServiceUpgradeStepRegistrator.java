@@ -21,12 +21,15 @@ import com.liferay.object.internal.upgrade.v3_27_0.ObjectActionUpgradeProcess;
 import com.liferay.object.internal.upgrade.v3_3_0.util.ObjectViewFilterColumnTable;
 import com.liferay.object.internal.upgrade.v3_9_0.ObjectLayoutBoxUpgradeProcess;
 import com.liferay.object.internal.upgrade.v6_0_0.util.ObjectValidationRuleSettingTable;
+import com.liferay.object.internal.upgrade.v8_8_2.SchemaUpgradeProcess;
+import com.liferay.object.internal.upgrade.v9_0_1.ObjectFolderUpgradeProcess;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.upgrade.BaseExternalReferenceCodeUpgradeProcess;
 import com.liferay.portal.kernel.upgrade.DummyUpgradeStep;
 import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
-import com.liferay.portal.kernel.uuid.PortalUUID;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 
 import org.osgi.service.component.annotations.Component;
@@ -166,7 +169,7 @@ public class ObjectServiceUpgradeStepRegistrator
 		registry.register(
 			"3.17.0", "3.18.0",
 			new com.liferay.object.internal.upgrade.v3_18_0.
-				ObjectFieldUpgradeProcess(_portalUUID));
+				ObjectFieldUpgradeProcess());
 
 		registry.register("3.18.0", "3.19.0", ObjectFilterTable.create());
 
@@ -195,8 +198,7 @@ public class ObjectServiceUpgradeStepRegistrator
 			new com.liferay.object.internal.upgrade.v3_21_0.
 				ObjectDefinitionUpgradeProcess());
 
-		registry.register(
-			"3.21.0", "3.22.0", new ObjectFieldUpgradeProcess(_portalUUID));
+		registry.register("3.21.0", "3.22.0", new ObjectFieldUpgradeProcess());
 
 		registry.register(
 			"3.22.0", "3.23.0",
@@ -217,8 +219,7 @@ public class ObjectServiceUpgradeStepRegistrator
 				ObjectFieldUpgradeProcess());
 
 		registry.register(
-			"3.23.1", "3.24.0",
-			new ObjectFieldSettingUpgradeProcess(_portalUUID));
+			"3.23.1", "3.24.0", new ObjectFieldSettingUpgradeProcess());
 
 		registry.register(
 			"3.24.0", "3.25.0",
@@ -228,7 +229,7 @@ public class ObjectServiceUpgradeStepRegistrator
 		registry.register(
 			"3.25.0", "3.26.0",
 			new com.liferay.object.internal.upgrade.v3_26_0.
-				ObjectFieldSettingUpgradeProcess(_portalUUID));
+				ObjectFieldSettingUpgradeProcess());
 
 		registry.register(
 			"3.26.0", "3.26.1",
@@ -273,7 +274,7 @@ public class ObjectServiceUpgradeStepRegistrator
 		registry.register(
 			"4.1.1", "5.0.0",
 			new com.liferay.object.internal.upgrade.v5_0_0.
-				ObjectFieldSettingUpgradeProcess(_portalUUID));
+				ObjectFieldSettingUpgradeProcess());
 
 		registry.register(
 			"5.0.0", "5.1.0",
@@ -310,7 +311,7 @@ public class ObjectServiceUpgradeStepRegistrator
 			"6.0.0", "7.0.0",
 			new com.liferay.object.internal.upgrade.v7_0_0.
 				ObjectDefinitionUpgradeProcess(
-					_companyLocalService, _portalUUID, _resourceLocalService));
+					_companyLocalService, _resourceLocalService));
 
 		registry.register(
 			"7.0.0", "7.1.0",
@@ -326,10 +327,16 @@ public class ObjectServiceUpgradeStepRegistrator
 			UpgradeProcessFactory.alterColumnType(
 				"ObjectValidationRule", "engine", "VARCHAR(255) null"));
 
+		registry.register("7.1.1", "7.1.2", new DummyUpgradeStep());
+
+		registry.register("7.1.2", "7.2.0", new DummyUpgradeStep());
+
+		registry.register("7.2.0", "7.2.1", new DummyUpgradeStep());
+
 		registry.register(
-			"7.1.1", "8.0.0",
+			"7.2.1", "8.0.0",
 			new com.liferay.object.internal.upgrade.v8_0_0.
-				ObjectFolderItemUpgradeProcess(_portalUUID));
+				ObjectFolderItemUpgradeProcess());
 
 		registry.register(
 			"8.0.0", "8.1.0",
@@ -368,15 +375,76 @@ public class ObjectServiceUpgradeStepRegistrator
 			"8.5.0", "8.6.0",
 			new com.liferay.object.internal.upgrade.v8_6_0.
 				ObjectActionUpgradeProcess());
+
+		registry.register("8.6.0", "8.6.1", new DummyUpgradeStep());
+
+		registry.register("8.6.1", "8.6.2", new DummyUpgradeStep());
+
+		registry.register("8.6.2", "8.7.0", new DummyUpgradeStep());
+
+		registry.register("8.7.0", "8.7.1", new DummyUpgradeStep());
+
+		registry.register(
+			"8.7.1", "8.8.0",
+			new BaseExternalReferenceCodeUpgradeProcess() {
+
+				@Override
+				protected String[][] getTableAndPrimaryKeyColumnNames() {
+					return new String[][] {
+						{"ObjectRelationship", "objectRelationshipId"}
+					};
+				}
+
+			});
+
+		registry.register(
+			"8.8.0", "8.8.1",
+			new com.liferay.object.internal.upgrade.v8_8_1.
+				ObjectFieldSettingUpgradeProcess());
+
+		registry.register("8.8.1", "8.8.2", new SchemaUpgradeProcess());
+
+		registry.register("8.8.2", "8.8.3", new DummyUpgradeStep());
+
+		registry.register("8.8.3", "8.8.4", new DummyUpgradeStep());
+
+		registry.register(
+			"8.8.4", "9.0.0",
+			new com.liferay.object.internal.upgrade.v9_0_0.
+				ObjectFieldUpgradeProcess());
+
+		registry.register(
+			"9.0.0", "9.0.1",
+			new ObjectFolderUpgradeProcess(
+				_companyLocalService, _resourcePermissionLocalService,
+				_roleLocalService));
+
+		registry.register(
+			"9.0.1", "9.0.2",
+			new com.liferay.object.internal.upgrade.v9_0_2.
+				ObjectFolderUpgradeProcess());
+
+		registry.register(
+			"9.0.2", "9.1.0",
+			UpgradeProcessFactory.addColumns(
+				"ObjectEntry", "rootObjectEntryId LONG"));
+
+		registry.register(
+			"9.1.0", "9.1.1",
+			new com.liferay.object.internal.upgrade.v9_1_1.
+				ObjectFieldUpgradeProcess());
 	}
 
 	@Reference
 	private CompanyLocalService _companyLocalService;
 
 	@Reference
-	private PortalUUID _portalUUID;
+	private ResourceLocalService _resourceLocalService;
 
 	@Reference
-	private ResourceLocalService _resourceLocalService;
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
+
+	@Reference
+	private RoleLocalService _roleLocalService;
 
 }

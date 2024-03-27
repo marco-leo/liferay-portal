@@ -10,7 +10,8 @@ import PropTypes from 'prop-types';
 import React, {useContext, useRef} from 'react';
 
 import FrontendDataSetContext from '../../FrontendDataSetContext';
-import {handleAction, isLink} from '../../actions/Actions';
+import {getLocalizedValue} from '../../utils/getLocalizedValue';
+import isLink from '../../utils/isLink';
 
 const Cards = ({items, schema}) => {
 	const {selectedItemsKey, style} = useContext(FrontendDataSetContext);
@@ -46,12 +47,9 @@ const Cards = ({items, schema}) => {
 
 const Card = ({item, schema}) => {
 	const {
-		executeAsyncItemAction,
-		highlightItems,
 		itemsActions,
 		loadData,
 		onActionDropdownItemClick,
-		openModal,
 		openSidePanel,
 		selectItems,
 		selectable,
@@ -59,7 +57,13 @@ const Card = ({item, schema}) => {
 		selectedItemsValue,
 	} = useContext(FrontendDataSetContext);
 
-	const actionsRef = useRef(itemsActions || item.actionDropdownItems);
+	const actionsRef = useRef(
+		(itemsActions?.length && itemsActions) || item.actionDropdownItems
+	);
+
+	const localizedDescription = getLocalizedValue(item, schema.description)
+		?.value;
+	const localizedTitle = getLocalizedValue(item, schema.title)?.value || '';
 
 	return (
 		<ClayCardWithInfo
@@ -76,26 +80,11 @@ const Card = ({item, schema}) => {
 							openSidePanel,
 						});
 					}
-
-					handleAction(
-						{
-							event,
-							itemId: item[selectedItemsKey],
-							method: action.data?.method,
-							url: action.href,
-							...action,
-						},
-						{
-							executeAsyncItemAction,
-							highlightItems,
-							openModal,
-							openSidePanel,
-						}
-					);
 				},
+				symbolLeft: action.icon,
 			}))}
-			description={schema.description && item[schema.description]}
-			href={(schema.href && item[schema.href]) || null}
+			description={localizedDescription}
+			href={(schema.link && item[schema.link]) || null}
 			imgProps={schema.image && item[schema.image]}
 			onSelectChange={
 				selectable && (() => selectItems(item[selectedItemsKey]))
@@ -108,7 +97,7 @@ const Card = ({item, schema}) => {
 			}
 			stickerProps={schema.sticker && item[schema.sticker]}
 			symbol={schema.symbol && item[schema.symbol]}
-			title={schema.title && item[schema.title]}
+			title={localizedTitle}
 		/>
 	);
 };
@@ -117,9 +106,9 @@ Cards.propTypes = {
 	items: PropTypes.array,
 	schema: PropTypes.shape({
 		description: PropTypes.string,
-		href: PropTypes.string,
 		imgProps: PropTypes.imgProps,
 		labels: PropTypes.arrayOf(PropTypes.string),
+		link: PropTypes.string,
 		stickerProps: PropTypes.string,
 		title: PropTypes.string,
 	}).isRequired,

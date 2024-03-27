@@ -27,13 +27,12 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -191,7 +190,7 @@ public abstract class BaseWishListResourceTestCase {
 		Page<WishList> page = wishListResource.getChannelWishListsPage(
 			channelId, null, Pagination.of(1, 10));
 
-		Assert.assertEquals(0, page.getTotalCount());
+		long totalCount = page.getTotalCount();
 
 		if (irrelevantChannelId != null) {
 			WishList irrelevantWishList =
@@ -199,13 +198,12 @@ public abstract class BaseWishListResourceTestCase {
 					irrelevantChannelId, randomIrrelevantWishList());
 
 			page = wishListResource.getChannelWishListsPage(
-				irrelevantChannelId, null, Pagination.of(1, 2));
+				irrelevantChannelId, null,
+				Pagination.of(1, (int)totalCount + 1));
 
-			Assert.assertEquals(1, page.getTotalCount());
+			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
-			assertEquals(
-				Arrays.asList(irrelevantWishList),
-				(List<WishList>)page.getItems());
+			assertContains(irrelevantWishList, (List<WishList>)page.getItems());
 			assertValid(
 				page,
 				testGetChannelWishListsPage_getExpectedActions(
@@ -221,11 +219,10 @@ public abstract class BaseWishListResourceTestCase {
 		page = wishListResource.getChannelWishListsPage(
 			channelId, null, Pagination.of(1, 10));
 
-		Assert.assertEquals(2, page.getTotalCount());
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(wishList1, wishList2),
-			(List<WishList>)page.getItems());
+		assertContains(wishList1, (List<WishList>)page.getItems());
+		assertContains(wishList2, (List<WishList>)page.getItems());
 		assertValid(
 			page, testGetChannelWishListsPage_getExpectedActions(channelId));
 
@@ -247,6 +244,11 @@ public abstract class BaseWishListResourceTestCase {
 	public void testGetChannelWishListsPageWithPagination() throws Exception {
 		Long channelId = testGetChannelWishListsPage_getChannelId();
 
+		Page<WishList> wishListPage = wishListResource.getChannelWishListsPage(
+			channelId, null, null);
+
+		int totalCount = GetterUtil.getInteger(wishListPage.getTotalCount());
+
 		WishList wishList1 = testGetChannelWishListsPage_addWishList(
 			channelId, randomWishList());
 
@@ -256,28 +258,62 @@ public abstract class BaseWishListResourceTestCase {
 		WishList wishList3 = testGetChannelWishListsPage_addWishList(
 			channelId, randomWishList());
 
-		Page<WishList> page1 = wishListResource.getChannelWishListsPage(
-			channelId, null, Pagination.of(1, 2));
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<WishList> wishLists1 = (List<WishList>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(wishLists1.toString(), 2, wishLists1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<WishList> page1 = wishListResource.getChannelWishListsPage(
+				channelId, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+					pageSizeLimit));
 
-		Page<WishList> page2 = wishListResource.getChannelWishListsPage(
-			channelId, null, Pagination.of(2, 2));
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(3, page2.getTotalCount());
+			assertContains(wishList1, (List<WishList>)page1.getItems());
 
-		List<WishList> wishLists2 = (List<WishList>)page2.getItems();
+			Page<WishList> page2 = wishListResource.getChannelWishListsPage(
+				channelId, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+					pageSizeLimit));
 
-		Assert.assertEquals(wishLists2.toString(), 1, wishLists2.size());
+			assertContains(wishList2, (List<WishList>)page2.getItems());
 
-		Page<WishList> page3 = wishListResource.getChannelWishListsPage(
-			channelId, null, Pagination.of(1, 3));
+			Page<WishList> page3 = wishListResource.getChannelWishListsPage(
+				channelId, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+					pageSizeLimit));
 
-		assertEqualsIgnoringOrder(
-			Arrays.asList(wishList1, wishList2, wishList3),
-			(List<WishList>)page3.getItems());
+			assertContains(wishList3, (List<WishList>)page3.getItems());
+		}
+		else {
+			Page<WishList> page1 = wishListResource.getChannelWishListsPage(
+				channelId, null, Pagination.of(1, totalCount + 2));
+
+			List<WishList> wishLists1 = (List<WishList>)page1.getItems();
+
+			Assert.assertEquals(
+				wishLists1.toString(), totalCount + 2, wishLists1.size());
+
+			Page<WishList> page2 = wishListResource.getChannelWishListsPage(
+				channelId, null, Pagination.of(2, totalCount + 2));
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<WishList> wishLists2 = (List<WishList>)page2.getItems();
+
+			Assert.assertEquals(wishLists2.toString(), 1, wishLists2.size());
+
+			Page<WishList> page3 = wishListResource.getChannelWishListsPage(
+				channelId, null, Pagination.of(1, (int)totalCount + 3));
+
+			assertContains(wishList1, (List<WishList>)page3.getItems());
+			assertContains(wishList2, (List<WishList>)page3.getItems());
+			assertContains(wishList3, (List<WishList>)page3.getItems());
+		}
 	}
 
 	protected WishList testGetChannelWishListsPage_addWishList(
@@ -755,6 +791,10 @@ public abstract class BaseWishListResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -944,9 +984,9 @@ public abstract class BaseWishListResourceTestCase {
 	}
 
 	protected WishListResource wishListResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

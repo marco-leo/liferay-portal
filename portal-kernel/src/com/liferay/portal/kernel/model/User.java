@@ -46,9 +46,6 @@ public interface User extends PersistedModel, UserModel {
 
 		};
 
-	public void addRemotePreference(
-		com.liferay.portal.kernel.util.RemotePreference remotePreference);
-
 	public Contact fetchContact();
 
 	public String fetchPortraitURL(
@@ -271,12 +268,6 @@ public interface User extends PersistedModel, UserModel {
 	public java.util.Set<String> getReminderQueryQuestions()
 		throws com.liferay.portal.kernel.exception.PortalException;
 
-	public com.liferay.portal.kernel.util.RemotePreference getRemotePreference(
-		String name);
-
-	public Iterable<com.liferay.portal.kernel.util.RemotePreference>
-		getRemotePreferences();
-
 	public long[] getRoleIds();
 
 	public java.util.List<Role> getRoles();
@@ -347,6 +338,8 @@ public interface User extends PersistedModel, UserModel {
 
 	public boolean isPasswordModified();
 
+	public boolean isPasswordResetRequired();
+
 	public boolean isReminderQueryComplete();
 
 	public boolean isServiceAccountUser();
@@ -357,8 +350,18 @@ public interface User extends PersistedModel, UserModel {
 
 	public void setContact(Contact contact);
 
+	public void setGroupIds(long[] groupIds);
+
+	public void setOrganizationIds(long[] organizationIds);
+
 	public void setPasswordModified(boolean passwordModified);
 
 	public void setPasswordUnencrypted(String passwordUnencrypted);
+
+	public void setRoleIds(long[] roleIds);
+
+	public void setTeamIds(long[] teamIds);
+
+	public void setUserGroupIds(long[] userGroupIds);
 
 }

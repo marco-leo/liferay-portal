@@ -6,14 +6,17 @@
 package com.liferay.layout.admin.web.internal.portlet.action;
 
 import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
+import com.liferay.layout.admin.web.internal.handler.LayoutExceptionRequestHandlerUtil;
 import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.kernel.exception.GroupInheritContentException;
 import com.liferay.portal.kernel.exception.RequiredLayoutException;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutType;
 import com.liferay.portal.kernel.model.impl.VirtualLayout;
+import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
@@ -34,10 +37,10 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.segments.exception.RequiredSegmentsExperienceException;
-import com.liferay.sites.kernel.util.Sites;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
+import javax.portlet.PortletRequest;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -152,6 +155,23 @@ public class DeleteLayoutMVCActionCommand extends BaseMVCActionCommand {
 
 		try {
 			_layoutService.deleteLayout(selPlid, serviceContext);
+
+			JSONPortletResponseUtil.writeJSON(
+				actionRequest, actionResponse,
+				JSONUtil.put(
+					"redirectURL",
+					() -> {
+						String redirect = ParamUtil.getString(
+							actionRequest, "redirect");
+
+						if (redirect != null) {
+							return redirect;
+						}
+
+						return _portal.getControlPanelPortletURL(
+							actionRequest, LayoutAdminPortletKeys.GROUP_PAGES,
+							PortletRequest.RENDER_PHASE);
+					}));
 		}
 		catch (Exception exception) {
 			Throwable throwable = exception.getCause();
@@ -163,7 +183,10 @@ public class DeleteLayoutMVCActionCommand extends BaseMVCActionCommand {
 				SessionErrors.add(actionRequest, throwable.getClass());
 			}
 			else {
-				throw exception;
+				hideDefaultErrorMessage(actionRequest);
+
+				LayoutExceptionRequestHandlerUtil.handleException(
+					actionRequest, actionResponse, exception);
 			}
 		}
 	}
@@ -176,8 +199,5 @@ public class DeleteLayoutMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private Portal _portal;
-
-	@Reference
-	private Sites _sites;
 
 }

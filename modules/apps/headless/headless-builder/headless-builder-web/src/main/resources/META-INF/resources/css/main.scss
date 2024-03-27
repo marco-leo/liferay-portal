@@ -16,8 +16,8 @@
 }
 
 #portlet_com_liferay_headless_builder_web_internal_portlet_HeadlessBuilderPortlet {
-	.endpoint-table-list-title > a {
-		color: #272833 !important;
+	.endpoint-table-list-title > button.btn-link {
+		color: $gray-900 !important;
 		font-weight: 400;
 	}
 
@@ -140,7 +140,7 @@
 		background-color: $gray-200 !important;
 		border-color: $gray-300 !important;
 		color: $gray-900 !important;
-		font-weight: lighter !important;
+		font-weight: normal !important;
 		text-align: start !important;
 		width: 100% !important;
 	}
@@ -162,6 +162,12 @@
 			background-color: $danger-l2 !important;
 			border-color: $danger-l1 !important;
 		}
+	}
+}
+
+.disabled {
+	label {
+		color: $gray-500 !important;
 	}
 }
 

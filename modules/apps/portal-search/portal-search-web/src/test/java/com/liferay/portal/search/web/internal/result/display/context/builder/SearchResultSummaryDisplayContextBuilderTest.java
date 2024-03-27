@@ -199,13 +199,14 @@ public class SearchResultSummaryDisplayContextBuilderTest {
 		AssetEntry assetEntry = _createAssetEntryWithTagsPresent(userId);
 
 		String className = RandomTestUtil.randomString();
-
 		long entryClassPK = RandomTestUtil.randomLong();
 
 		_whenAssetEntryLocalServiceFetchEntry(
 			className, entryClassPK, assetEntry);
 
 		_whenAssetRendererFactoryGetAssetRenderer(entryClassPK, assetRenderer);
+
+		_whenAssetRendererFactoryHasPermission(true);
 
 		_whenAssetRendererFactoryLookupGetAssetRendererFactoryByClassName(
 			className);
@@ -225,6 +226,42 @@ public class SearchResultSummaryDisplayContextBuilderTest {
 		_assertTagsVisible(entryClassPK, searchResultSummaryDisplayContext);
 
 		_assertUserPortraitVisible(userId, searchResultSummaryDisplayContext);
+	}
+
+	@Test
+	public void testURLDownloadHiddenFromResult() throws Exception {
+		long userId = RandomTestUtil.randomLong();
+
+		AssetEntry assetEntry = _createAssetEntryWithTagsPresent(userId);
+
+		String className = RandomTestUtil.randomString();
+		long entryClassPK = RandomTestUtil.randomLong();
+
+		_whenAssetEntryLocalServiceFetchEntry(
+			className, entryClassPK, assetEntry);
+
+		_whenAssetRendererFactoryGetAssetRenderer(entryClassPK, assetRenderer);
+
+		_whenAssetRendererFactoryHasPermission(false);
+
+		_whenAssetRendererFactoryLookupGetAssetRendererFactoryByClassName(
+			className);
+
+		String urlDownload = RandomTestUtil.randomString();
+
+		_whenAssetRendererGetURLDownload(assetRenderer, urlDownload);
+
+		_whenIndexerRegistryGetIndexer(className, _createIndexer());
+
+		SearchResultSummaryDisplayContext searchResultSummaryDisplayContext =
+			build(_createDocument(className, entryClassPK));
+
+		Assert.assertEquals(
+			urlDownload,
+			searchResultSummaryDisplayContext.getAssetRendererURLDownload());
+		Assert.assertFalse(
+			searchResultSummaryDisplayContext.
+				isAssetRendererURLDownloadVisible());
 	}
 
 	@Test
@@ -258,6 +295,8 @@ public class SearchResultSummaryDisplayContextBuilderTest {
 
 		_whenAssetRendererFactoryGetAssetRenderer(
 			rootEntryClassPK, rootAssetRenderer);
+
+		_whenAssetRendererFactoryHasPermission(true);
 
 		_whenAssetRendererFactoryLookupGetAssetRendererFactoryByClassName(
 			className);
@@ -594,6 +633,18 @@ public class SearchResultSummaryDisplayContextBuilderTest {
 			assetRendererFactory
 		).getAssetRenderer(
 			entryClassPK
+		);
+	}
+
+	private void _whenAssetRendererFactoryHasPermission(boolean hasPermission)
+		throws Exception {
+
+		Mockito.doReturn(
+			hasPermission
+		).when(
+			assetRendererFactory
+		).hasPermission(
+			Mockito.any(), Mockito.anyLong(), Mockito.anyString()
 		);
 	}
 

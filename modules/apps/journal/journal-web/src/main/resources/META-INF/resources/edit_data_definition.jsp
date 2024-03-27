@@ -63,7 +63,7 @@ editDDMStructureURL.setParameter("structureKey", String.valueOf(ddmStructureKey)
 					<aui:input activeLanguageIds="<%= journalEditDDMStructuresDisplayContext.getAvailableLanguageIds() %>" adminMode="<%= true %>" cssClass="form-control-inline" defaultLanguageId="<%= (ddmForm == null) ? LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault()): LocaleUtil.toLanguageId(ddmForm.getDefaultLocale()) %>" label='<%= LanguageUtil.get(request, "name") %>' labelCssClass="sr-only" languagesDropdownDirection="down" localized="<%= true %>" name="name" placeholder='<%= LanguageUtil.format(request, "untitled-x", "structure") %>' required="<%= true %>" type="text" wrapperCssClass="article-content-title c-mb-0" />
 				</li>
 				<li class="tbar-item">
-					<div class="c-gap-3 form-group-sm journal-article-button-row tbar-section text-right">
+					<div class="c-gap-3 form-group-sm journal-article-button-row mb-0 tbar-section text-right">
 						<clay:link
 							borderless="<%= true %>"
 							displayType="secondary"
@@ -114,7 +114,7 @@ editDDMStructureURL.setParameter("structureKey", String.valueOf(ddmStructureKey)
 
 				<div class="contextual-sidebar-mr-n">
 					<liferay-data-engine:data-layout-builder
-						additionalPanels="<%= journalEditDDMStructuresDisplayContext.getAdditionalPanels(npmResolvedPackageName) %>"
+						additionalPanels="<%= journalEditDDMStructuresDisplayContext.getAdditionalPanels() %>"
 						componentId='<%= liferayPortletResponse.getNamespace() + "dataLayoutBuilder" %>'
 						contentType="journal"
 						dataDefinitionId="<%= ddmStructureId %>"
@@ -134,13 +134,13 @@ editDDMStructureURL.setParameter("structureKey", String.valueOf(ddmStructureKey)
 <liferay-frontend:component
 	componentId='<%= liferayPortletResponse.getNamespace() + "DataEngineLayoutBuilderHandler" %>'
 	context="<%= journalEditDDMStructuresDisplayContext.getDataEngineLayoutBuilderHandlerContext() %>"
-	module="js/DataEngineLayoutBuilderHandler.es"
+	module="{DataEngineLayoutBuilderHandler} from journal-web"
 	servletContext="<%= application %>"
 />
 
 <liferay-frontend:component
 	componentId='<%= liferayPortletResponse.getNamespace() + "LocaleChangedHandlerComponent" %>'
 	context="<%= journalEditDDMStructuresDisplayContext.getLocaleChangedHandlerContext() %>"
-	module="js/LocaleChangedHandler.es"
+	module="{LocaleChangedHandler} from journal-web"
 	servletContext="<%= application %>"
 />

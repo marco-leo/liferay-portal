@@ -27,6 +27,7 @@ page import="com.liferay.commerce.product.exception.CPOptionCategoryKeyException
 page import="com.liferay.commerce.product.exception.CPOptionKeyException" %><%@
 page import="com.liferay.commerce.product.exception.CPOptionValueKeyException" %><%@
 page import="com.liferay.commerce.product.exception.CPSpecificationOptionKeyException" %><%@
+page import="com.liferay.commerce.product.exception.DuplicateCPOptionExternalReferenceCodeException" %><%@
 page import="com.liferay.commerce.product.exception.NoSuchCPOptionCategoryException" %><%@
 page import="com.liferay.commerce.product.exception.NoSuchCPOptionException" %><%@
 page import="com.liferay.commerce.product.exception.NoSuchCPOptionValueException" %><%@
@@ -59,7 +60,6 @@ page import="com.liferay.portal.kernel.util.HashMapBuilder" %><%@
 page import="com.liferay.portal.kernel.util.HtmlUtil" %><%@
 page import="com.liferay.portal.kernel.util.LocaleUtil" %><%@
 page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
-page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.kernel.util.WebKeys" %><%@
 page import="com.liferay.taglib.util.CustomAttributesUtil" %>
 

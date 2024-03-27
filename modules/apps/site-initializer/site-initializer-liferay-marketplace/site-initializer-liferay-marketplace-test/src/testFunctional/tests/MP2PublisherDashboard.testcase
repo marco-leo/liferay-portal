@@ -1,4 +1,4 @@
-@component-name = "portal-liferay-online"
+@component-name = "portal-solutions"
 definition {
 
 	property osgi.modules.includes = "site-initializer-liferay-marketplace";
@@ -14,7 +14,12 @@ definition {
 
 	setUp {
 		task ("Set up instance and create a new Marketplace Site") {
-			MP2Configuration.marketplaceSetUp();
+
+			// This addition should be reverted when the issue ISSD-1572 is completed and the macro HeadlessSite.addSite() is usable.
+
+			MP2Configuration.marketplaceSetUp(
+				clientExtensionDeploy = "true",
+				viaFrontEnd = "true");
 		}
 
 		task ("Update the account with catalogId field") {
@@ -23,14 +28,14 @@ definition {
 
 		task ("Assign the users to the account") {
 			JSONAccountEntryUser.addExistUsertoAccount(
-				accountEntryName = "QA Development",
-				userEmailAddress = "da@administrator.com");
+				accountEntryName = "QA Test",
+				userEmailAddress = "dashboard@adm.com");
 		}
 
 		task ("Go to Marketplace and login with the created user") {
 			User.logoutAndLoginPG(
-				userLoginEmailAddress = "da@administrator.com",
-				userLoginFullName = "Dashboard Administrator");
+				userLoginEmailAddress = "dashboard@adm.com",
+				userLoginFullName = "Dashboard ADM");
 
 			MP2Navigator.gotoMP2();
 		}
@@ -41,11 +46,12 @@ definition {
 	}
 
 	@description = "LPS-160952 | Assert the subject of the e-mail: (Liferay Marketplace - Invitation from %Admin User%)"
-	@ignore = "true"
 	@priority = 4
 	test AssertTheDetailsOfTheEmail {
 		task ("Given that the user sends an invitation") {
 			MP2Navigator.openSitePage(pageName = "Publisher Dashboard");
+
+			MP2Dashboards.clickBreadcrumb(accountTitle = "QA Test");
 
 			MP2Navigator.gotoNavItem(navItem = "Members");
 
@@ -65,9 +71,9 @@ definition {
 
 		task ("Then I should be able to assert the subject of the email") {
 			MockMock._viewMailFromInbox(
-				asset = "Liferay Marketplace - Invitation from Dashboard Administrator",
+				asset = "Liferay Marketplace - Invitation from Dashboard",
 				recipient = "test.mp@liferay.com",
-				sender = "da@administrator.com");
+				sender = "dashboard@adm.com");
 		}
 	}
 
@@ -79,6 +85,8 @@ definition {
 		}
 
 		task ("And the user clicks Members in the side menu") {
+			MP2Dashboards.clickBreadcrumb(accountTitle = "QA Test");
+
 			MP2Navigator.gotoNavItem(navItem = "Members");
 		}
 
@@ -112,6 +120,8 @@ definition {
 		}
 
 		task ("And the user clicks Members in the side menu") {
+			MP2Dashboards.clickBreadcrumb(accountTitle = "QA Test");
+
 			MP2Navigator.gotoNavItem(navItem = "Members");
 		}
 
@@ -146,11 +156,12 @@ definition {
 	}
 
 	@description = "LPS-160952 | Verify that when the invited user accepts the invitation, and has a Liferay account, he can log in with the invited roles"
-	@ignore = "true"
 	@priority = 5
 	test CanLoginToMarketplaceAccount {
 		task ("Given that a marketplace account administrator invites a member to the Publisher Dashboard") {
 			MP2Navigator.openSitePage(pageName = "Publisher Dashboard");
+
+			MP2Dashboards.clickBreadcrumb(accountTitle = "QA Test");
 
 			MP2Navigator.gotoNavItem(navItem = "Members");
 
@@ -172,9 +183,10 @@ definition {
 
 		task ("When the user log into the account") {
 			MP2Utils.firstLoginMKT(
-				asset = "Liferay Marketplace - Invitation from Dashboard Administrator",
+				asset = "Liferay Marketplace - Invitation from Dashboard ADM",
 				bodyLink = "Accept invitation",
-				recipient = "da@administrator.com",
+				recipient = "dashboard@adm.com",
+				route = "loading",
 				userEmailAddress = "test.mp@liferay.com");
 		}
 
@@ -192,12 +204,74 @@ definition {
 
 	}
 
+	@description = "LPS-165215 | Verify that after the member accepts the invitation to the marketplace account, the 'Resend Invitation' button is no longer displayed"
+	@priority = 3
+	test CannotViewReinviteButton {
+		task ("Given that the admin user invites a new user to the Publisher Dashboard") {
+			MP2Navigator.openSitePage(pageName = "Publisher Dashboard");
+
+			MP2Dashboards.clickBreadcrumb(accountTitle = "QA Test");
+
+			MP2Navigator.gotoNavItem(navItem = "Members");
+
+			MP2Dashboards.inviteNewMember(
+				button = "true",
+				checkboxName = "App Editor",
+				emailAddress = "test.mp@liferay.com",
+				firstName = "Test",
+				lastName = "QA");
+		}
+
+		task ("And I see that the resend button is present on the page") {
+			MP2Dashboards.clickOnTheInvitedUser(
+				label = "Role",
+				value = "Invited Member");
+
+			MP2Dashboards.assertResendInvitationButton();
+		}
+
+		task ("When the invited member accepts the invitation") {
+			User.logoutPG();
+
+			MockMock._gotoMail();
+
+			MP2Utils.firstLoginMKT(
+				asset = "Liferay Marketplace - Invitation from Dashboard ADM",
+				bodyLink = "Accept invitation",
+				recipient = "dashboard@adm.com",
+				route = "loading",
+				userEmailAddress = "test.mp@liferay.com");
+		}
+
+		task ("And I go back to the members page details") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "dashboard@adm.com",
+				userLoginFullName = "Dashboard ADM");
+
+			MP2Navigator.gotoMP2();
+
+			MP2Navigator.openSitePage(pageName = "Publisher Dashboard");
+
+			MP2Dashboards.clickBreadcrumb(accountTitle = "QA Test");
+
+			MP2Navigator.gotoNavItem(navItem = "Members");
+
+			MP2Dashboards.clickOnTheInvitedUser(
+				label = "Role",
+				value = "App Editor");
+		}
+
+		task ("Then I should be able to assert that the 'Resend Invitation' button is not present on the page") {
+			MP2Dashboards.assertNoResendInvitationButton();
+		}
+	}
+
 	@description = "LPS-162211 | Assert that when you have an App Editor role, you should not be able to invite new members"
 	@priority = 4
 	test CannotViewTheNewMemberButton {
 		task ("Given that I log in with 'App Editor' credentials") {
 			JSONAccountEntryUser.addExistUsertoAccount(
-				accountEntryName = "QA Development",
+				accountEntryName = "QA Test",
 				userEmailAddress = "pae@editor.com");
 
 			User.logoutAndLoginPG(
@@ -212,6 +286,8 @@ definition {
 		}
 
 		task ("When the user clicks on Members in the side menu") {
+			MP2Dashboards.clickBreadcrumb(accountTitle = "QA Test");
+
 			MP2Navigator.gotoNavItem(navItem = "Members");
 		}
 
@@ -220,12 +296,78 @@ definition {
 		}
 	}
 
+	@description = "LPS-165215 | Verify that after inviting a member, as Publisher, if the member is still listed as invited, the member can be reinvited to marketplace account"
+	@priority = 4
+	test CanReinviteListedUser {
+		task ("Given that the admin user invites a new user to the Publisher Dashboard") {
+			MP2Navigator.openSitePage(pageName = "Publisher Dashboard");
+
+			MP2Dashboards.clickBreadcrumb(accountTitle = "QA Test");
+
+			MP2Navigator.gotoNavItem(navItem = "Members");
+
+			MP2Dashboards.inviteNewMember(
+				button = "true",
+				checkboxName = "App Editor",
+				emailAddress = "test.mp@liferay.com",
+				firstName = "Test",
+				lastName = "QA");
+		}
+
+		task ("And the user receives the invitation email") {
+			User.logoutPG();
+
+			MockMock._gotoMail();
+
+			MockMock._viewMailFromInbox(
+				asset = "Liferay Marketplace - Invitation from Dashboard",
+				recipient = "test.mp@liferay.com",
+				sender = "dashboard@adm.com");
+		}
+
+		task ("And delete the invitation email without accepting it") {
+			MockMock.deleteMail(deleteAll = "true");
+
+			MockMock.viewNoMail();
+		}
+
+		task ("And the user remains in the member list as a invited") {
+			User.loginUserPG(
+				password = "test",
+				userEmailAddress = "dashboard@adm.com");
+
+			MP2Navigator.openSitePage(pageName = "Publisher Dashboard");
+
+			MP2Navigator.gotoNavItem(navItem = "Members");
+
+			MP2Dashboards.clickOnTheInvitedUser(
+				label = "Role",
+				value = "Invited Member");
+		}
+
+		task ("When I click the 'Resend Invitation' button") {
+			MP2Dashboards.clickOnTheResendInvitationButton();
+		}
+
+		task ("Then I should be able to assert that the invitation can be resended") {
+			User.logoutPG();
+
+			MockMock._gotoMail();
+
+			MockMock._viewMailFromInbox(
+				asset = "Liferay Marketplace - Invitation from Dashboard",
+				recipient = "test.mp@liferay.com",
+				sender = "dashboard@adm.com");
+		}
+	}
+
 	@description = "LPS-160952 | Verify that after accepting the invitation, the guest user role is listed in the members section of the editor account"
-	@ignore = "true"
 	@priority = 3
 	test CanViewTheUserRoleInTheMemberList {
 		task ("Given the user accepts the invitation") {
 			MP2Navigator.openSitePage(pageName = "Publisher Dashboard");
+
+			MP2Dashboards.clickBreadcrumb(accountTitle = "QA Test");
 
 			MP2Navigator.gotoNavItem(navItem = "Members");
 
@@ -243,13 +385,16 @@ definition {
 
 		task ("And logs into the panel with the invited roles") {
 			MP2Utils.firstLoginMKT(
-				asset = "Liferay Marketplace - Invitation from Dashboard Administrator",
+				asset = "Liferay Marketplace - Invitation from Dashboard ADM",
 				bodyLink = "Accept invitation",
-				recipient = "da@administrator.com",
+				recipient = "dashboard@adm.com",
+				route = "loading",
 				userEmailAddress = "test.mp@liferay.com");
 		}
 
 		task ("When I go to the member page") {
+			MP2Dashboards.clickBreadcrumb(accountTitle = "QA Test");
+
 			MP2Navigator.gotoNavItem(navItem = "Members");
 		}
 

@@ -6,6 +6,7 @@
 import MDFClaimDTO from '../../../interfaces/dto/mdfClaimDTO';
 import MDFRequestDTO from '../../../interfaces/dto/mdfRequestDTO';
 import MDFClaim from '../../../interfaces/mdfClaim';
+import {Liferay} from '../../../services/liferay';
 
 export function getDTOFromMDFClaim(
 	mdfClaim: MDFClaim,
@@ -24,7 +25,11 @@ export function getDTOFromMDFClaim(
 			mdfRequest.r_accToMDFReqs_accountEntry?.id,
 		r_mdfReqToMDFClms_c_mdfRequestId:
 			mdfClaim.r_mdfReqToMDFClms_c_mdfRequestId,
-		reimbursementInvoice: mdfClaim.reimbursementInvoice?.documentId,
+		r_usrToMDFClms_userId: mdfClaim.id
+			? mdfClaim.r_usrToMDFClms_userId
+			: Number(Liferay.ThemeDisplay.getUserId()),
+		submitDate: mdfClaim.submitDate,
+		submitted: mdfClaim.submitted,
 		totalClaimAmount: mdfClaim.totalClaimAmount,
 		totalMDFRequestedAmount: mdfClaim.totalMDFRequestedAmount,
 	};

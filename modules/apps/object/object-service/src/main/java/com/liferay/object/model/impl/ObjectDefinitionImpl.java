@@ -94,7 +94,7 @@ public class ObjectDefinitionImpl extends ObjectDefinitionBaseImpl {
 
 	@Override
 	public String getOSGiJaxRsName(String className) {
-		return getName() + className;
+		return StringUtil.toLowerCase(getName()) + className;
 	}
 
 	@Override
@@ -146,6 +146,19 @@ public class ObjectDefinitionImpl extends ObjectDefinitionBaseImpl {
 	}
 
 	@Override
+	public String getRootObjectDefinitionExternalReferenceCode() {
+		ObjectDefinition rootObjectDefinition =
+			ObjectDefinitionLocalServiceUtil.fetchObjectDefinition(
+				getRootObjectDefinitionId());
+
+		if (rootObjectDefinition == null) {
+			return null;
+		}
+
+		return rootObjectDefinition.getExternalReferenceCode();
+	}
+
+	@Override
 	public String getShortName() {
 		return getShortName(getName());
 	}
@@ -171,12 +184,22 @@ public class ObjectDefinitionImpl extends ObjectDefinitionBaseImpl {
 		return false;
 	}
 
+	@Override
 	public boolean isLinkedToObjectFolder(long objectFolderId) {
 		if (getObjectFolderId() == objectFolderId) {
 			return false;
 		}
 
 		return true;
+	}
+
+	@Override
+	public boolean isNodeCandidate() {
+		if (!isApproved() && !isUnmodifiableSystemObject()) {
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override
@@ -207,15 +230,11 @@ public class ObjectDefinitionImpl extends ObjectDefinitionBaseImpl {
 
 	@Override
 	public boolean isUnmodifiableSystemObject() {
-		if (FeatureFlagManagerUtil.isEnabled("LPS-167253")) {
-			if (!isModifiable() && isSystem()) {
-				return true;
-			}
-
-			return false;
+		if (!isModifiable() && isSystem()) {
+			return true;
 		}
 
-		return isSystem();
+		return false;
 	}
 
 }

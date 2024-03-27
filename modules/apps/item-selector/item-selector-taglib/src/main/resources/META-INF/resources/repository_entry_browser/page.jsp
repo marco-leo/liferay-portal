@@ -45,7 +45,7 @@ if (uploadURL != null) {
 %>
 
 <liferay-util:html-top
-	outputKey="item_selector_repository_entry_browser"
+	outputKey="com.liferay.item.selector.taglib#/repository_entry_browser/page.jsp"
 >
 	<link href="<%= ServletContextUtil.getContextPath() %>/repository_entry_browser/css/main.css" rel="stylesheet" type="text/css" />
 </liferay-util:html-top>
@@ -70,6 +70,7 @@ SearchContainer<?> searchContainer = new SearchContainer(renderRequest, itemSele
 	filterLabelItems="<%= itemSelectorRepositoryEntryManagementToolbarDisplayContext.getFilterLabelItems() %>"
 	itemsTotal="<%= repositoryEntriesCount %>"
 	orderDropdownItems="<%= itemSelectorRepositoryEntryManagementToolbarDisplayContext.getOrderByDropdownItems() %>"
+	propsTransformer="{ItemSelectorRepositoryEntryBrowserManagementToolbarPropsTransformer} from item-selector-taglib"
 	searchActionURL="<%= String.valueOf(itemSelectorRepositoryEntryManagementToolbarDisplayContext.getSearchURL()) %>"
 	searchFormMethod="POST"
 	searchFormName="searchFm"
@@ -150,7 +151,13 @@ SearchContainer<?> searchContainer = new SearchContainer(renderRequest, itemSele
 					"validExtensions", StringUtil.merge(extensions)
 				).build()
 			%>'
-			module="repository_entry_browser/js/ItemSelectorRepositoryEntryBrowser"
+			module="{ItemSelectorRepositoryEntryBrowser} from item-selector-taglib"
+		/>
+	</div>
+
+	<div>
+		<react:component
+			module="{ItemSelectorRepositoryEntryBrowserConfigureAIModal} from item-selector-taglib"
 		/>
 	</div>
 
@@ -437,7 +444,11 @@ SearchContainer<?> searchContainer = new SearchContainer(renderRequest, itemSele
 												<div class="aspect-ratio card-item-first">
 													<c:choose>
 														<c:when test="<%= Validator.isNull(thumbnailSrc) %>">
-															<aui:icon cssClass="aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon" image="documents-and-media" markupView="lexicon" />
+															<span class="aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon">
+																<clay:icon
+																	symbol="documents-and-media"
+																/>
+															</span>
 														</c:when>
 														<c:otherwise>
 															<img alt="" class="aspect-ratio-item-center-middle aspect-ratio-item-fluid" src="<%= thumbnailSrc %>" />
@@ -503,7 +514,7 @@ SearchContainer<?> searchContainer = new SearchContainer(renderRequest, itemSele
 										</h5>
 
 										<c:if test="<%= repositoryEntryBrowserDisplayContext.isSearchEverywhere() %>">
-											<h6 class="text-default">
+											<div class="h6 text-default">
 												<liferay-ui:message key="location" />:
 												<span class="text-secondary">
 													<clay:icon
@@ -512,14 +523,14 @@ SearchContainer<?> searchContainer = new SearchContainer(renderRequest, itemSele
 
 													<small><%= repositoryEntryBrowserDisplayContext.getGroupLabel(folder.getGroupId(), locale) %></small>
 												</span>
-											</h6>
+											</div>
 										</c:if>
 
-										<h6 class="text-default">
+										<div class="h6 text-default">
 											<liferay-ui:message key="created" />:
 
 											<liferay-ui:message arguments="<%= new String[] {LanguageUtil.getTimeDescription(locale, System.currentTimeMillis() - folder.getCreateDate().getTime(), true), HtmlUtil.escape(folder.getUserName())} %>" key="x-ago-by-x" translateArguments="<%= false %>" />
-										</h6>
+										</div>
 									</liferay-ui:search-container-column-text>
 								</c:if>
 
@@ -561,7 +572,7 @@ SearchContainer<?> searchContainer = new SearchContainer(renderRequest, itemSele
 											</h5>
 
 											<c:if test="<%= repositoryEntryBrowserDisplayContext.isSearchEverywhere() %>">
-												<h6 class="text-default">
+												<div class="h6 text-default">
 													<liferay-ui:message key="location" />:
 													<span class="text-secondary">
 														<clay:icon
@@ -570,20 +581,20 @@ SearchContainer<?> searchContainer = new SearchContainer(renderRequest, itemSele
 
 														<small><%= repositoryEntryBrowserDisplayContext.getGroupLabel(fileEntry.getGroupId(), locale) %></small>
 													</span>
-												</h6>
+												</div>
 											</c:if>
 
-											<h6 class="text-default">
+											<div class="h6 text-default">
 												<liferay-ui:message key="version" />:
 
 												<%= String.valueOf(fileEntry.getVersion()) %>
-											</h6>
+											</div>
 
-											<h6 class="text-default">
+											<div class="h6 text-default">
 												<liferay-ui:message key="last-updated" />:
 
 												<liferay-ui:message arguments="<%= new String[] {LanguageUtil.getTimeDescription(locale, System.currentTimeMillis() - fileEntry.getModifiedDate().getTime(), true), HtmlUtil.escape(latestFileVersion.getUserName())} %>" key="x-ago-by-x" translateArguments="<%= false %>" />
-											</h6>
+											</div>
 										</div>
 									</liferay-ui:search-container-column-text>
 

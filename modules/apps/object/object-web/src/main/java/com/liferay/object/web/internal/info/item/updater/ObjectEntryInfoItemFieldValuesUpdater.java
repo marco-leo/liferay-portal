@@ -5,7 +5,6 @@
 
 package com.liferay.object.web.internal.info.item.updater;
 
-import com.liferay.info.exception.InfoFormException;
 import com.liferay.info.item.InfoItemFieldValues;
 import com.liferay.info.item.provider.InfoItemFormProvider;
 import com.liferay.info.item.updater.InfoItemFieldValuesUpdater;
@@ -17,6 +16,7 @@ import com.liferay.object.rest.manager.v1_0.ObjectEntryManagerRegistry;
 import com.liferay.object.scope.ObjectScopeProviderRegistry;
 import com.liferay.object.web.internal.info.item.handler.ObjectEntryInfoItemExceptionRequestHandler;
 import com.liferay.object.web.internal.util.ObjectEntryUtil;
+import com.liferay.portal.kernel.exception.InfoFormException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -80,17 +80,19 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 					objectEntry.getExternalReferenceCode(), _objectDefinition,
 					new com.liferay.object.rest.dto.v1_0.ObjectEntry() {
 						{
-							keywords = serviceContext.getAssetTagNames();
-							properties = ObjectEntryUtil.toProperties(
-								infoItemFieldValues);
-							taxonomyCategoryIds = ArrayUtil.toLongArray(
-								serviceContext.getAssetCategoryIds());
-
-							status = new Status() {
-								{
-									code = objectEntryStatus;
-								}
-							};
+							setKeywords(serviceContext::getAssetTagNames);
+							setProperties(
+								() -> ObjectEntryUtil.toProperties(
+									infoItemFieldValues));
+							setStatus(
+								() -> new Status() {
+									{
+										setCode(() -> objectEntryStatus);
+									}
+								});
+							setTaxonomyCategoryIds(
+								() -> ArrayUtil.toLongArray(
+									serviceContext.getAssetCategoryIds()));
 						}
 					},
 					ObjectEntryUtil.getScopeKey(

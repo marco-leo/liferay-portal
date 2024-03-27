@@ -94,7 +94,6 @@ import org.osgi.service.component.annotations.Reference;
 public class CommercePriceEntryLocalServiceImpl
 	extends CommercePriceEntryLocalServiceBaseImpl {
 
-	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public CommercePriceEntry addCommercePriceEntry(
 			String externalReferenceCode, long cProductId,
@@ -659,6 +658,7 @@ public class CommercePriceEntryLocalServiceImpl
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
+	@Override
 	public CommercePriceEntry updateCommercePriceEntry(
 			long commercePriceEntryId, boolean bulkPricing,
 			boolean discountDiscovery, BigDecimal discountLevel1,

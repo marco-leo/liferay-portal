@@ -6,6 +6,9 @@
 package com.liferay.address.internal.osgi.commands;
 
 import com.liferay.address.internal.util.CompanyCountriesUtil;
+import com.liferay.counter.kernel.service.CounterLocalService;
+import com.liferay.osgi.util.osgi.commands.OSGiCommands;
+import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
@@ -15,7 +18,8 @@ import com.liferay.portal.kernel.model.Country;
 import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.CountryLocalService;
-import com.liferay.portal.kernel.service.RegionLocalService;
+
+import java.sql.Connection;
 
 import java.util.HashSet;
 import java.util.List;
@@ -34,9 +38,9 @@ import org.osgi.service.component.annotations.Reference;
 		"osgi.command.function=repopulateCompanyCountries",
 		"osgi.command.scope=address"
 	},
-	service = PortalAddressOSGiCommands.class
+	service = OSGiCommands.class
 )
-public class PortalAddressOSGiCommands {
+public class PortalAddressOSGiCommands implements OSGiCommands {
 
 	public void initializeCompanyCountries(long companyId) throws Exception {
 		_countryLocalService.deleteCompanyCountries(companyId);
@@ -45,9 +49,11 @@ public class PortalAddressOSGiCommands {
 	}
 
 	public void populateCompanyCountries(long companyId) throws Exception {
-		CompanyCountriesUtil.populateCompanyCountries(
-			_companyLocalService.getCompany(companyId), _countryLocalService,
-			_regionLocalService);
+		try (Connection connection = DataAccess.getConnection()) {
+			CompanyCountriesUtil.populateCompanyCountries(
+				_companyLocalService.getCompany(companyId),
+				_counterLocalService, _countryLocalService, connection);
+		}
 	}
 
 	public void repopulateCompanyCountries(long companyId) throws Exception {
@@ -72,13 +78,13 @@ public class PortalAddressOSGiCommands {
 		for (int i = 0; i < countriesJSONArray.length(); i++) {
 			JSONObject countryJSONObject = countriesJSONArray.getJSONObject(i);
 
-			try {
+			try (Connection connection = DataAccess.getConnection()) {
 				String name = countryJSONObject.getString("name");
 
 				if (!countryNames.contains(name)) {
 					CompanyCountriesUtil.addCountry(
-						company, countryJSONObject, _countryLocalService,
-						_regionLocalService);
+						company, _counterLocalService, countryJSONObject,
+						_countryLocalService, connection);
 
 					continue;
 				}
@@ -96,7 +102,7 @@ public class PortalAddressOSGiCommands {
 					country.isSubjectToVAT());
 
 				CompanyCountriesUtil.processCountryRegions(
-					country, _regionLocalService);
+					country, connection, _counterLocalService);
 			}
 			catch (Exception exception) {
 				_log.error(exception);
@@ -111,10 +117,10 @@ public class PortalAddressOSGiCommands {
 	private CompanyLocalService _companyLocalService;
 
 	@Reference
-	private CountryLocalService _countryLocalService;
+	private CounterLocalService _counterLocalService;
 
 	@Reference
-	private RegionLocalService _regionLocalService;
+	private CountryLocalService _countryLocalService;
 
 	@Reference(
 		target = "(&(release.bundle.symbolic.name=portal)(release.schema.version>=9.2.0))"

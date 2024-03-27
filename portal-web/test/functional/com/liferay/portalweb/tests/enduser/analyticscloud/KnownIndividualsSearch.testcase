@@ -29,10 +29,6 @@ definition {
 	tearDown {
 		var testLiferayVirtualInstance = PropsUtil.get("test.liferay.virtual.instance");
 
-		// It is not possible to delete properties and data source after LRAC-13389. This functionality should return after LRAC-8040
-
-		//ACUtils.tearDownAC();
-
 		ACUtils.tearDownDXP();
 
 		if (${testLiferayVirtualInstance} == "true") {
@@ -41,6 +37,8 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
+
+		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9018 | Test Summary: Search an Individual's Activities List with a query that won't return results"
@@ -142,6 +140,8 @@ definition {
 				userLoginFullName = "ac ac");
 
 			ACUtils.navigateToSitePage(
+				actionType = "View WC",
+				documentTitleList = "1,2,3,4",
 				pageName = "AC Page",
 				siteName = "Site Name");
 		}
@@ -273,6 +273,8 @@ definition {
 				userLoginFullName = "ac ac");
 
 			ACUtils.navigateToSitePage(
+				actionType = "View WC",
+				documentTitleList = "1,2,3,4",
 				pageName = "AC Page",
 				siteName = "Site Name");
 		}
@@ -321,10 +323,6 @@ definition {
 	test CanCaseInsensitiveSearch {
 		var emailList = "randy.smith@liferay.com,maria.rau@liferay.com";
 
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
-		}
-
 		task ("Add new users in DXP and sync the Contact Data") {
 			JSONUser.addUser(
 				userEmailAddress = "randy.smith@liferay.com",
@@ -337,12 +335,16 @@ definition {
 				userFirstName = "Maria",
 				userLastName = "Rau",
 				userScreenName = "Mariasn");
+		}
 
-			ACDXPSettings.syncNewContactData();
+		task ("Get site assigned property name") {
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
 
 		task ("Sign in with the new user to visit the site pages") {
 			ACUtils.navigateToSitePageWithUser(
+				actionType = "View WC",
+				documentTitleList = "1,2,3,4",
 				emailList = ${emailList},
 				pageName = "AC Page",
 				siteName = "Site Name");
@@ -353,7 +355,7 @@ definition {
 
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = ${propertyName});
+			ACProperties.switchProperty(propertyName = ${assignedPropertyName});
 		}
 
 		task ("Go to the Individual > KnownIndividual > Details") {

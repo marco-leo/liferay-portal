@@ -38,7 +38,6 @@ import com.liferay.product.navigation.control.menu.ProductNavigationControlMenuE
 import com.liferay.product.navigation.control.menu.constants.ProductNavigationControlMenuCategoryKeys;
 import com.liferay.segments.model.SegmentsExperience;
 import com.liferay.segments.service.SegmentsExperienceLocalService;
-import com.liferay.sites.kernel.util.Sites;
 import com.liferay.staging.StagingGroupHelper;
 
 import java.util.Collections;
@@ -208,16 +207,8 @@ public class EditLayoutModeProductNavigationControlMenuEntry
 		return false;
 	}
 
-	private String _getRedirect(
-			HttpServletRequest httpServletRequest, String fullLayoutURL,
-			Layout layout, ThemeDisplay themeDisplay)
-		throws PortalException {
-
-		String redirect = HttpComponentsUtil.addParameters(
-			fullLayoutURL, "p_l_back_url",
-			_portal.getLayoutFullURL(layout, themeDisplay),
-			"p_l_back_url_title", layout.getName(themeDisplay.getLocale()),
-			"p_l_mode", Constants.EDIT);
+	private String _addSegmentsExperienceId(
+		HttpServletRequest httpServletRequest, Layout layout, String url) {
 
 		long segmentsExperienceId = ParamUtil.getLong(
 			httpServletRequest, "segmentsExperienceId", -1);
@@ -231,12 +222,28 @@ public class EditLayoutModeProductNavigationControlMenuEntry
 				((layout.getPlid() == segmentsExperience.getPlid()) ||
 				 (layout.getClassPK() == segmentsExperience.getPlid()))) {
 
-				redirect = HttpComponentsUtil.setParameter(
-					redirect, "segmentsExperienceId", segmentsExperienceId);
+				return HttpComponentsUtil.setParameter(
+					url, "segmentsExperienceId", segmentsExperienceId);
 			}
 		}
 
-		return redirect;
+		return url;
+	}
+
+	private String _getRedirect(
+			HttpServletRequest httpServletRequest, String fullLayoutURL,
+			Layout layout, ThemeDisplay themeDisplay)
+		throws PortalException {
+
+		String redirect = HttpComponentsUtil.addParameters(
+			fullLayoutURL, "p_l_back_url",
+			_addSegmentsExperienceId(
+				httpServletRequest, layout,
+				_portal.getLayoutFullURL(layout, themeDisplay)),
+			"p_l_back_url_title", layout.getName(themeDisplay.getLocale()),
+			"p_l_mode", Constants.EDIT);
+
+		return _addSegmentsExperienceId(httpServletRequest, layout, redirect);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -265,9 +272,6 @@ public class EditLayoutModeProductNavigationControlMenuEntry
 
 	@Reference
 	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
-
-	@Reference
-	private Sites _sites;
 
 	@Reference
 	private StagingGroupHelper _stagingGroupHelper;

@@ -28,8 +28,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -38,6 +36,7 @@ import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.test.rule.Inject;
@@ -62,8 +61,6 @@ import java.util.Set;
 import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
-import org.apache.commons.lang.time.DateUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -226,10 +223,10 @@ public abstract class BaseCountryResourceTestCase {
 
 	@Test
 	public void testGetCountriesPageWithPagination() throws Exception {
-		Page<Country> totalPage = countryResource.getCountriesPage(
+		Page<Country> countryPage = countryResource.getCountriesPage(
 			null, null, null, null);
 
-		int totalCount = GetterUtil.getInteger(totalPage.getTotalCount());
+		int totalCount = GetterUtil.getInteger(countryPage.getTotalCount());
 
 		Country country1 = testGetCountriesPage_addCountry(randomCountry());
 
@@ -237,29 +234,65 @@ public abstract class BaseCountryResourceTestCase {
 
 		Country country3 = testGetCountriesPage_addCountry(randomCountry());
 
-		Page<Country> page1 = countryResource.getCountriesPage(
-			null, null, Pagination.of(1, totalCount + 2), null);
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<Country> countries1 = (List<Country>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(
-			countries1.toString(), totalCount + 2, countries1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<Country> page1 = countryResource.getCountriesPage(
+				null, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+					pageSizeLimit),
+				null);
 
-		Page<Country> page2 = countryResource.getCountriesPage(
-			null, null, Pagination.of(2, totalCount + 2), null);
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+			assertContains(country1, (List<Country>)page1.getItems());
 
-		List<Country> countries2 = (List<Country>)page2.getItems();
+			Page<Country> page2 = countryResource.getCountriesPage(
+				null, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+					pageSizeLimit),
+				null);
 
-		Assert.assertEquals(countries2.toString(), 1, countries2.size());
+			assertContains(country2, (List<Country>)page2.getItems());
 
-		Page<Country> page3 = countryResource.getCountriesPage(
-			null, null, Pagination.of(1, totalCount + 3), null);
+			Page<Country> page3 = countryResource.getCountriesPage(
+				null, null,
+				Pagination.of(
+					(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+					pageSizeLimit),
+				null);
 
-		assertContains(country1, (List<Country>)page3.getItems());
-		assertContains(country2, (List<Country>)page3.getItems());
-		assertContains(country3, (List<Country>)page3.getItems());
+			assertContains(country3, (List<Country>)page3.getItems());
+		}
+		else {
+			Page<Country> page1 = countryResource.getCountriesPage(
+				null, null, Pagination.of(1, totalCount + 2), null);
+
+			List<Country> countries1 = (List<Country>)page1.getItems();
+
+			Assert.assertEquals(
+				countries1.toString(), totalCount + 2, countries1.size());
+
+			Page<Country> page2 = countryResource.getCountriesPage(
+				null, null, Pagination.of(2, totalCount + 2), null);
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<Country> countries2 = (List<Country>)page2.getItems();
+
+			Assert.assertEquals(countries2.toString(), 1, countries2.size());
+
+			Page<Country> page3 = countryResource.getCountriesPage(
+				null, null, Pagination.of(1, (int)totalCount + 3), null);
+
+			assertContains(country1, (List<Country>)page3.getItems());
+			assertContains(country2, (List<Country>)page3.getItems());
+			assertContains(country3, (List<Country>)page3.getItems());
+		}
 	}
 
 	@Test
@@ -269,7 +302,7 @@ public abstract class BaseCountryResourceTestCase {
 			(entityField, country1, country2) -> {
 				BeanTestUtil.setProperty(
 					country1, entityField.getName(),
-					DateUtils.addMinutes(new Date(), -2));
+					new Date(System.currentTimeMillis() - (2 * Time.MINUTE)));
 			});
 	}
 
@@ -367,22 +400,23 @@ public abstract class BaseCountryResourceTestCase {
 
 		country2 = testGetCountriesPage_addCountry(country2);
 
+		Page<Country> page = countryResource.getCountriesPage(
+			null, null, null, null);
+
 		for (EntityField entityField : entityFields) {
 			Page<Country> ascPage = countryResource.getCountriesPage(
-				null, null, Pagination.of(1, 2),
+				null, null, Pagination.of(1, (int)page.getTotalCount() + 1),
 				entityField.getName() + ":asc");
 
-			assertEquals(
-				Arrays.asList(country1, country2),
-				(List<Country>)ascPage.getItems());
+			assertContains(country1, (List<Country>)ascPage.getItems());
+			assertContains(country2, (List<Country>)ascPage.getItems());
 
 			Page<Country> descPage = countryResource.getCountriesPage(
-				null, null, Pagination.of(1, 2),
+				null, null, Pagination.of(1, (int)page.getTotalCount() + 1),
 				entityField.getName() + ":desc");
 
-			assertEquals(
-				Arrays.asList(country2, country1),
-				(List<Country>)descPage.getItems());
+			assertContains(country2, (List<Country>)descPage.getItems());
+			assertContains(country1, (List<Country>)descPage.getItems());
 		}
 	}
 
@@ -1364,6 +1398,10 @@ public abstract class BaseCountryResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -1703,9 +1741,9 @@ public abstract class BaseCountryResourceTestCase {
 	}
 
 	protected CountryResource countryResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

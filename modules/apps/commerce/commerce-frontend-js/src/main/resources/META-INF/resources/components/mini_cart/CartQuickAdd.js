@@ -11,13 +11,13 @@ import classNames from 'classnames';
 import {fetch} from 'frontend-js-web';
 import React, {useContext, useRef, useState} from 'react';
 
+import {CHANNEL_RESOURCE_ENDPOINT} from '../../utilities/constants';
 import {addToCart} from '../add_to_cart/data';
 import InfiniteScroller from '../infinite_scroller/InfiniteScroller';
 import MiniCartContext from './MiniCartContext';
 import {getCorrectedQuantity} from './util/index';
 
-const CHANNEL_RESOURCE_ENDPOINT =
-	'/o/headless-commerce-delivery-catalog/v1.0/channels';
+const CART_QUICK_ADD_NAMESPACE = 'cartQuickAdd_';
 
 const getSearchSKUsURL = (page, search, accountId, channelId) => {
 	const url = new URL(
@@ -198,7 +198,14 @@ export default function CartQuickAdd() {
 		);
 
 		if (!unavailableSKU) {
-			addToCart(readySKUs, cartId, channel, accountId)
+			addToCart(
+				readySKUs,
+				cartId,
+				channel,
+				accountId,
+				null,
+				CART_QUICK_ADD_NAMESPACE
+			)
 				.then(() => {})
 				.catch((error) => {
 					Liferay.Util.openToast({
@@ -362,6 +369,7 @@ export default function CartQuickAdd() {
 
 				<ClayInput.GroupItem shrink>
 					<ClayButtonWithIcon
+						data-qa-id="quick-add-to-cart-button"
 						disabled={!selectedSKUs.length || quickAddToCartError}
 						onClick={handleAddToCartClick}
 						symbol="shopping-cart"

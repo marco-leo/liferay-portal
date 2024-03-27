@@ -45,16 +45,6 @@
 				combine: COMBINE,
 				filter: Liferay.AUI.getFilterConfig(),
 				modules: {
-					'liferay-alert': {
-						path: 'alert.js',
-						requires: [
-							'aui-alert',
-							'aui-component',
-							'event-mouseenter',
-							'liferay-portlet-base',
-							'timers',
-						],
-					},
 					'liferay-auto-fields': {
 						path: 'auto_fields.js',
 						requires: [
@@ -134,9 +124,6 @@
 							'sortable',
 						],
 					},
-					'liferay-language': {
-						path: 'language.js',
-					},
 					'liferay-layout': {
 						path: 'layout.js',
 					},
@@ -147,10 +134,6 @@
 					'liferay-logo-editor': {
 						path: 'logo_editor.js',
 						requires: ['aui-image-cropper', 'liferay-portlet-base'],
-					},
-					'liferay-logo-selector': {
-						path: 'logo_selector.js',
-						requires: ['aui-base'],
 					},
 					'liferay-menu': {
 						path: 'menu.js',

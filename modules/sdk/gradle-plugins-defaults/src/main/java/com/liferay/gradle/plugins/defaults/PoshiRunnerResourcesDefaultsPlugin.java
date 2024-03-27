@@ -10,7 +10,11 @@ import com.liferay.gradle.plugins.defaults.internal.util.GradlePluginsDefaultsUt
 import com.liferay.gradle.plugins.defaults.internal.util.GradleUtil;
 import com.liferay.gradle.plugins.poshi.runner.PoshiRunnerResourcesExtension;
 import com.liferay.gradle.plugins.poshi.runner.PoshiRunnerResourcesPlugin;
+import com.liferay.gradle.util.Validator;
 
+import java.util.List;
+
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -18,11 +22,14 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin;
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
+import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -38,6 +45,9 @@ public class PoshiRunnerResourcesDefaultsPlugin implements Plugin<Project> {
 	public static final String ARTIFACT_VERSION_PROPERTY_NAME =
 		"artifactVersion";
 
+	public static final String UPLOAD_POSHI_RUNNER_RESOURCES_TASK_NAME =
+		"uploadPoshiRunnerResources";
+
 	@Override
 	public void apply(Project project) {
 		GradlePluginsDefaultsUtil.configureRepositories(project, null);
@@ -46,8 +56,34 @@ public class PoshiRunnerResourcesDefaultsPlugin implements Plugin<Project> {
 		GradleUtil.applyPlugin(project, PoshiRunnerResourcesPlugin.class);
 
 		_applyConfigScripts(project);
+
+		Task uploadPoshiRunnerResourcesTask =
+			_addTaskUploadPoshiRunnerResources(project);
+
 		_configurePoshiRunnerResources(project);
-		_configurePublishing(project);
+
+		Gradle gradle = project.getGradle();
+
+		StartParameter startParameter = gradle.getStartParameter();
+
+		List<String> taskNames = startParameter.getTaskNames();
+
+		if (taskNames.contains(UPLOAD_POSHI_RUNNER_RESOURCES_TASK_NAME)) {
+			_configurePublishing(project);
+
+			_configureTaskUploadPoshiRunnerResources(
+				uploadPoshiRunnerResourcesTask);
+		}
+	}
+
+	private Task _addTaskUploadPoshiRunnerResources(Project project) {
+		Task task = GradleUtil.addTask(
+			project, UPLOAD_POSHI_RUNNER_RESOURCES_TASK_NAME, Task.class);
+
+		task.setDescription("Uploads all Poshi Runner resources artifacts.");
+		task.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+
+		return task;
 	}
 
 	private void _applyConfigScripts(Project project) {
@@ -140,19 +176,44 @@ public class PoshiRunnerResourcesDefaultsPlugin implements Plugin<Project> {
 
 								MavenPublication mavenPublication =
 									publicationContainer.maybeCreate(
-										"maven", MavenPublication.class);
+										"poshiRunnerResources",
+										MavenPublication.class);
 
 								mavenPublication.artifact(abstractArchiveTask);
 
+								Property<String> archiveAppendixProperty =
+									abstractArchiveTask.getArchiveAppendix();
+								Property<String> archiveBaseNameProperty =
+									abstractArchiveTask.getArchiveBaseName();
+
+								String appendix = archiveAppendixProperty.get();
+								String artifactId =
+									archiveBaseNameProperty.get();
+
+								if (Validator.isNotNull(appendix)) {
+									artifactId += '-' + appendix;
+								}
+
+								mavenPublication.setArtifactId(artifactId);
 								mavenPublication.setGroupId(_GROUP_ID);
-								mavenPublication.setVersion(
-									abstractArchiveTask.getVersion());
+
+								Property<String> property =
+									abstractArchiveTask.getArchiveVersion();
+
+								mavenPublication.setVersion(property.get());
 							}
 
 						});
 				}
 
 			});
+	}
+
+	private void _configureTaskUploadPoshiRunnerResources(
+		Task uploadPoshiRunnerResourcesTask) {
+
+		uploadPoshiRunnerResourcesTask.finalizedBy(
+			"publishPoshiRunnerResourcesPublicationToReleasesRepository");
 	}
 
 	private static final String _GROUP_ID =

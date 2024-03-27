@@ -3,21 +3,35 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayButton from '@clayui/button';
 import ClayLabel from '@clayui/label';
-import ClayLink from '@clayui/link';
 import {ClayTooltipProvider} from '@clayui/tooltip';
 import React, {Dispatch, SetStateAction} from 'react';
 
 import StatusLabel from '../../StatusLabel';
 import {wrapStringInForwardSlashes} from '../../utils/string';
 
+export function getDisplayType(httpMethodName: string) {
+	if (httpMethodName === 'post') {
+		return 'success';
+	}
+	else {
+		return 'info';
+	}
+}
+
 export function itemMethodRenderer({
 	itemData,
 }: {
 	itemData: {httpMethod: {name: string}};
 }) {
-	return <ClayLabel displayType="info">{itemData.httpMethod.name}</ClayLabel>;
+	return (
+		<ClayLabel displayType={getDisplayType(itemData.httpMethod.name)}>
+			{itemData.httpMethod.name}
+		</ClayLabel>
+	);
 }
+
 export function itemPathRenderer({
 	fdsItem,
 	setMainEndpointNav,
@@ -30,18 +44,17 @@ export function itemPathRenderer({
 	return (
 		<ClayTooltipProvider>
 			<div className="endpoint-table-list-title table-list-title">
-				<ClayLink
+				<ClayButton
 					data-senna-off
 					data-tooltip-align="top"
-					decoration="none"
-					href="#"
+					displayType="link"
 					onClick={() =>
 						setMainEndpointNav({edit: fdsItem.itemData.id})
 					}
 					title={path}
 				>
 					{path}
-				</ClayLink>
+				</ClayButton>
 			</div>
 		</ClayTooltipProvider>
 	);

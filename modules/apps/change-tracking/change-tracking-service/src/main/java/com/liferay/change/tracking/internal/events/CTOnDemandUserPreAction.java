@@ -12,10 +12,13 @@ import com.liferay.portal.kernel.feature.flag.FeatureFlagManager;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.security.auth.session.AuthenticatedSessionManager;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.security.auth.session.AuthenticatedSessionManagerUtil;
 
 import java.util.Objects;
 
@@ -52,6 +55,33 @@ public class CTOnDemandUserPreAction extends Action {
 		}
 	}
 
+	private boolean _isPublicationsPortletRequest(
+		HttpServletRequest httpServletRequest) {
+
+		String portletId = ParamUtil.getString(httpServletRequest, "p_p_id");
+
+		if (Validator.isNull(portletId)) {
+			portletId = HttpComponentsUtil.getParameter(
+				httpServletRequest.getHeader(WebKeys.REFERER), "p_p_id", false);
+		}
+
+		if (Objects.equals(portletId, CTPortletKeys.PUBLICATIONS)) {
+			return true;
+		}
+
+		long previewCTCollectionId = GetterUtil.getLong(
+			HttpComponentsUtil.getParameter(
+				httpServletRequest.getHeader(WebKeys.REFERER),
+				"previewCTCollectionId", false),
+			-1);
+
+		if (previewCTCollectionId >= 0) {
+			return true;
+		}
+
+		return false;
+	}
+
 	private void _run(
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
@@ -63,10 +93,8 @@ public class CTOnDemandUserPreAction extends Action {
 			return;
 		}
 
-		String portletId = ParamUtil.getString(httpServletRequest, "p_p_id");
-
-		if (!Objects.equals(portletId, CTPortletKeys.PUBLICATIONS)) {
-			_authenticatedSessionManager.logout(
+		if (!_isPublicationsPortletRequest(httpServletRequest)) {
+			AuthenticatedSessionManagerUtil.logout(
 				httpServletRequest, httpServletResponse);
 
 			httpServletRequest.setAttribute(WebKeys.LOGOUT, Boolean.TRUE);
@@ -78,9 +106,6 @@ public class CTOnDemandUserPreAction extends Action {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		CTOnDemandUserPreAction.class);
-
-	@Reference
-	private AuthenticatedSessionManager _authenticatedSessionManager;
 
 	@Reference
 	private FeatureFlagManager _featureFlagManager;

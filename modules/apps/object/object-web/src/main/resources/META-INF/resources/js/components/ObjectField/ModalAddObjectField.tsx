@@ -7,6 +7,7 @@ import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayForm from '@clayui/form';
 import ClayModal, {ClayModalProvider, useModal} from '@clayui/modal';
+import {ClayTooltipProvider} from '@clayui/tooltip';
 import {API, Input, Toggle} from '@liferay/object-js-components-web';
 import React, {useEffect, useState} from 'react';
 
@@ -33,7 +34,6 @@ export function ModalAddObjectField({
 	baseResourceURL,
 	creationLanguageId,
 	objectDefinitionExternalReferenceCode,
-	objectDefinitionName,
 	onAfterSubmit,
 	setVisibility,
 }: ModalAddObjectField) {
@@ -41,15 +41,15 @@ export function ModalAddObjectField({
 	const [objectDefinition, setObjectDefinition] = useState<
 		ObjectDefinition
 	>();
-	const [objectFieldTypes, setObjectFieldTypes] = useState<ObjectFieldType[]>(
-		[]
-	);
+	const [objectFieldBusinessTypes, setObjectFieldBusinessTypes] = useState<
+		ObjectFieldBusinessType[]
+	>([]);
 	const {observer, onClose} = useModal({onClose: () => setVisibility(false)});
-
+	const formId = 'modalAddObjectField';
 	const initialValues: Partial<ObjectField> = {
 		indexed: true,
 		indexedAsKeyword: false,
-		indexedLanguageId: null,
+		indexedLanguageId: '',
 		listTypeDefinitionExternalReferenceCode: '',
 		listTypeDefinitionId: 0,
 		readOnly: 'false',
@@ -118,86 +118,86 @@ export function ModalAddObjectField({
 
 			const url = createResourceURL(baseResourceURL, {
 				objectDefinitionId: objectDefinitionResponse.id,
-				p_p_resource_id: '/object_definitions/get_object_field_types',
+				p_p_resource_id:
+					'/object_definitions/get_object_field_business_types',
 			}).href;
 
-			const objectFieldTypesResponse = await fetch(url, {
+			const objectFieldBusinessTypesResponse = await fetch(url, {
 				method: 'GET',
 			});
 
 			const {
-				objectFieldTypes,
-			} = (await objectFieldTypesResponse.json()) as {
-				objectFieldTypes: ObjectFieldType[];
+				objectFieldBusinessTypes,
+			} = (await objectFieldBusinessTypesResponse.json()) as {
+				objectFieldBusinessTypes: ObjectFieldBusinessType[];
 			};
 
-			setObjectFieldTypes(objectFieldTypes);
+			setObjectFieldBusinessTypes(
+				objectFieldBusinessTypes.filter((objectFieldBusinessType) => {
+					if (
+						objectFieldBusinessType.businessType !== 'Relationship'
+					) {
+						return objectFieldBusinessType;
+					}
+				})
+			);
 		};
 
 		makeFetch();
 
-		if (Liferay.FeatureFlags['LPS-172017']) {
-			if (
+		setValues({
+			localized:
 				objectDefinition?.enableLocalization &&
-				showEnableTranslationToggle
-			) {
-				setValues({
-					localized: true,
-				});
-
-				return;
-			}
-
-			setValues({
-				localized: false,
-			});
-
-			return;
-		}
+				showEnableTranslationToggle,
+		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [objectDefinitionExternalReferenceCode, values.businessType]);
 
 	return (
 		<ClayModalProvider>
-			<ClayModal center observer={observer}>
-				<ClayForm onSubmit={handleSubmit}>
+			<ClayTooltipProvider>
+				<ClayModal center observer={observer}>
 					<ClayModal.Header>
 						{Liferay.Language.get('new-field')}
 					</ClayModal.Header>
 
 					<ClayModal.Body>
-						{error && (
-							<ClayAlert displayType="danger">{error}</ClayAlert>
-						)}
+						<ClayForm id={formId} onSubmit={handleSubmit}>
+							{error && (
+								<ClayAlert displayType="danger">
+									{error}
+								</ClayAlert>
+							)}
 
-						<Input
-							error={errors.label}
-							label={Liferay.Language.get('label')}
-							name="label"
-							onChange={({target: {value}}) => {
-								setValues({
-									label: {[defaultLanguageId]: value},
-								});
-							}}
-							required
-							value={values.label?.[defaultLanguageId]}
-						/>
+							<Input
+								error={errors.label}
+								label={Liferay.Language.get('label')}
+								name="label"
+								onChange={({target: {value}}) => {
+									setValues({
+										label: {[defaultLanguageId]: value},
+									});
+								}}
+								required
+								value={values.label?.[defaultLanguageId]}
+							/>
 
-						<ObjectFieldFormBase
-							errors={errors}
-							handleChange={handleChange}
-							objectDefinition={objectDefinition}
-							objectDefinitionExternalReferenceCode={
-								objectDefinitionExternalReferenceCode
-							}
-							objectDefinitionName={objectDefinitionName ?? ''}
-							objectField={values}
-							objectFieldTypes={objectFieldTypes}
-							setValues={setValues}
-						>
-							{Liferay.FeatureFlags['LPS-172017'] &&
-								showEnableTranslationToggle && (
-									<div className="lfr-objects-add-object-field-enable-translations-toggle">
+							<ObjectFieldFormBase
+								baseResourceURL={baseResourceURL}
+								className="lfr-objects__modal-add-object-field-form-base"
+								errors={errors}
+								handleChange={handleChange}
+								objectDefinition={
+									objectDefinition as ObjectDefinition
+								}
+								objectField={values}
+								objectFieldBusinessTypesInfo={
+									objectFieldBusinessTypes
+								}
+								setValues={setValues}
+							>
+								{showEnableTranslationToggle && (
+									<div className="lfr-objects__modal-add-object-field-enable-translations-toggle">
 										<Toggle
 											disabled={
 												!objectDefinition?.enableLocalization
@@ -208,13 +208,9 @@ export function ModalAddObjectField({
 											onToggle={(localized) =>
 												setValues({
 													localized,
-													required: Liferay
-														.FeatureFlags[
-														'LPS-172017'
-													]
-														? !localized &&
-														  values.required
-														: values.required,
+													required:
+														!localized &&
+														values.required,
 												})
 											}
 											toggled={values.localized}
@@ -224,24 +220,27 @@ export function ModalAddObjectField({
 										/>
 									</div>
 								)}
-						</ObjectFieldFormBase>
+							</ObjectFieldFormBase>
 
-						{values.state && (
-							<ListTypeDefaultValueSelect
-								creationLanguageId={creationLanguageId}
-								defaultValue={
-									values.objectFieldSettings?.find(
-										(setting) =>
-											setting.name === 'defaultValue'
-									)?.value
-								}
-								error={errors.defaultValue}
-								label={Liferay.Language.get('default-value')}
-								required
-								setValues={setValues}
-								values={values}
-							/>
-						)}
+							{values.state && (
+								<ListTypeDefaultValueSelect
+									creationLanguageId={creationLanguageId}
+									defaultValue={
+										values.objectFieldSettings?.find(
+											(setting) =>
+												setting.name === 'defaultValue'
+										)?.value
+									}
+									error={errors.defaultValue}
+									label={Liferay.Language.get(
+										'default-value'
+									)}
+									required
+									setValues={setValues}
+									values={values}
+								/>
+							)}
+						</ClayForm>
 					</ClayModal.Body>
 
 					<ClayModal.Footer
@@ -254,14 +253,14 @@ export function ModalAddObjectField({
 									{Liferay.Language.get('cancel')}
 								</ClayButton>
 
-								<ClayButton type="submit">
+								<ClayButton form={formId} type="submit">
 									{Liferay.Language.get('save')}
 								</ClayButton>
 							</ClayButton.Group>
 						}
 					/>
-				</ClayForm>
-			</ClayModal>
+				</ClayModal>
+			</ClayTooltipProvider>
 		</ClayModalProvider>
 	);
 }

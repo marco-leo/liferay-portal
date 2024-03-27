@@ -12,8 +12,8 @@ import com.liferay.list.type.service.ListTypeEntryLocalService;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.field.builder.MultiselectPicklistObjectFieldBuilder;
 import com.liferay.object.model.ObjectDefinition;
-import com.liferay.object.rest.resource.v1_0.ObjectEntryResource;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -75,7 +75,7 @@ public class MultiselectPicklistObjectFieldBusinessTypeTest {
 			_objectDefinitionLocalService.addCustomObjectDefinition(
 				TestPropsValues.getUserId(), 0, false, false, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				"A" + RandomTestUtil.randomString(), null, null,
+				ObjectDefinitionTestUtil.getRandomName(), null, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				true, ObjectDefinitionConstants.SCOPE_COMPANY,
 				ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
@@ -128,7 +128,7 @@ public class MultiselectPicklistObjectFieldBusinessTypeTest {
 		RandomTestUtil.randomString();
 
 	private static final String _OBJECT_FIELD_NAME =
-		RandomTestUtil.randomString();
+		"a" + RandomTestUtil.randomString();
 
 	@Inject
 	private ListTypeDefinitionLocalService _listTypeDefinitionLocalService;
@@ -140,8 +140,5 @@ public class MultiselectPicklistObjectFieldBusinessTypeTest {
 
 	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
-
-	@Inject
-	private ObjectEntryResource.Factory _objectEntryResourceFactory;
 
 }

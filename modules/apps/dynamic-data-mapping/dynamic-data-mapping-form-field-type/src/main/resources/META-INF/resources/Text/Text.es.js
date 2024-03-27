@@ -12,7 +12,7 @@ import {normalizeFieldName} from 'data-engine-js-components-web';
 import {sub} from 'frontend-js-web';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
-import {FieldBase} from '../FieldBase/ReactFieldBase.es';
+import FieldBase from '../FieldBase/ReactFieldBase.es';
 import {useSyncValue} from '../hooks/useSyncValue.es';
 import {getTooltipTitle} from '../util/tooltip';
 import withConfirmationField from '../util/withConfirmationField.es';
@@ -82,6 +82,7 @@ const Text = ({
 	onFocus,
 	onKeyDown,
 	placeholder,
+	repeatable,
 	setError,
 	shouldUpdateValue,
 	showCounter,
@@ -169,6 +170,10 @@ const Text = ({
 						maxLength={showCounter ? '' : maxLength}
 						name={name}
 						onBlur={(event) => {
+							if (repeatable) {
+								Liferay.fire('disableRepeatableButton');
+							}
+
 							onBlur(event);
 							handleChangeInput(event);
 						}}
@@ -279,7 +284,7 @@ const Autocomplete = ({
 	const itemListRef = useRef(null);
 
 	const escapeChars = (string) =>
-		string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');
+		string?.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');
 
 	const filteredItems = options.filter(
 		(item) => item && item.match(escapeChars(value))
@@ -459,6 +464,7 @@ const Main = ({
 	placeholder,
 	predefinedValue = '',
 	readOnly,
+	repeatable,
 	shouldUpdateValue = false,
 	syncDelay = true,
 	valid,
@@ -488,6 +494,7 @@ const Main = ({
 			localizedValue={localizedValue}
 			name={name}
 			readOnly={readOnly}
+			repeatable={repeatable}
 			valid={error.valid ?? valid}
 		>
 			<Component
@@ -520,6 +527,7 @@ const Main = ({
 				onKeyDown={onKeyDown}
 				options={optionsMemo}
 				placeholder={placeholder}
+				repeatable={repeatable}
 				setError={setError}
 				shouldUpdateValue={shouldUpdateValue}
 				showCounter={showCounter}

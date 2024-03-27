@@ -17,12 +17,14 @@ import com.liferay.list.type.model.ListTypeDefinition;
 import com.liferay.list.type.model.ListTypeEntry;
 import com.liferay.list.type.service.ListTypeDefinitionLocalService;
 import com.liferay.list.type.service.ListTypeEntryLocalService;
+import com.liferay.object.entry.util.ObjectEntryThreadLocal;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.manager.v1_0.DefaultObjectEntryManager;
 import com.liferay.object.rest.manager.v1_0.DefaultObjectEntryManagerProvider;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManagerRegistry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -58,7 +60,6 @@ import java.io.Writer;
 
 import java.sql.Timestamp;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
@@ -116,10 +117,12 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 		return "table";
 	}
 
+	@Override
 	public String getLabel(Locale locale) {
 		return _language.get(locale, "data-set");
 	}
 
+	@Override
 	public boolean isSelectable(HttpServletRequest httpServletRequest) {
 		if (!FeatureFlagManagerUtil.isEnabled("LPS-164563")) {
 			return false;
@@ -136,6 +139,8 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 		throws IOException {
 
 		try {
+			ObjectEntryThreadLocal.setSkipObjectEntryResourcePermission(true);
+
 			PrintWriter printWriter = httpServletResponse.getWriter();
 
 			FragmentEntryLink fragmentEntryLink =
@@ -195,7 +200,7 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 
 				ComponentDescriptor componentDescriptor =
 					new ComponentDescriptor(
-						"{BetaBadge} from frontend-js-components-web",
+						"{FeatureIndicator} from frontend-js-components-web",
 						betaBadgeComponentId, null, true);
 
 				_reactRenderer.renderReact(
@@ -220,6 +225,9 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 			_log.error("Unable to render frontend data set view", exception);
 
 			throw new IOException(exception);
+		}
+		finally {
+			ObjectEntryThreadLocal.setSkipObjectEntryResourcePermission(false);
 		}
 	}
 
@@ -260,10 +268,32 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 			fragmentEntryLink.getCompanyId(), fdsEntryObjectEntryERC,
 			fdsEntryObjectDefinition);
 
+		Set<ObjectEntry> fdsFieldObjectEntries = _getFDSFieldObjectEntries(
+			fdsViewObjectDefinition, fdsViewObjectEntry);
+
+		Collection<ObjectEntry> fdsCardsSectionObjectEntries = null;
+		Collection<ObjectEntry> fdsListSectionObjectEntries = null;
+
+		if (FeatureFlagManagerUtil.isEnabled("LPD-10735")) {
+			fdsCardsSectionObjectEntries = _getRelatedObjectEntries(
+				fdsViewObjectDefinition, fdsViewObjectEntry,
+				"fdsViewFDSCardsSectionRelationship");
+			fdsListSectionObjectEntries = _getRelatedObjectEntries(
+				fdsViewObjectDefinition, fdsViewObjectEntry,
+				"fdsViewFDSListSectionRelationship");
+		}
+
 		_reactRenderer.renderReact(
 			componentDescriptor,
 			HashMapBuilder.<String, Object>put(
-				"apiURL", _getAPIURL(fdsEntryObjectEntry, httpServletRequest)
+				"apiURL",
+				_getAPIURL(
+					fdsEntryObjectEntry, fdsFieldObjectEntries,
+					httpServletRequest)
+			).put(
+				"creationMenu",
+				_getCreationMenuJSONObject(
+					fdsViewObjectDefinition, fdsViewObjectEntry)
 			).put(
 				"filters",
 				_getFiltersJSONArray(
@@ -286,19 +316,10 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 				"style", "fluid"
 			).put(
 				"views",
-				JSONUtil.putAll(
-					JSONUtil.put(
-						"contentRenderer", "table"
-					).put(
-						"name", "table"
-					).put(
-						"schema",
-						JSONUtil.put(
-							"fields",
-							_getFieldsJSONArray(
-								fragmentEntryLink, fdsViewObjectDefinition,
-								fdsViewObjectEntry))
-					))
+				_getFDSViewsJSONArray(
+					fragmentEntryLink.getCompanyId(),
+					fdsCardsSectionObjectEntries, fdsFieldObjectEntries,
+					fdsListSectionObjectEntries, httpServletRequest)
 			).build(),
 			httpServletRequest, writer);
 
@@ -310,8 +331,10 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 	}
 
 	private String _getAPIURL(
-		ObjectEntry fdsEntryObjectEntry,
-		HttpServletRequest httpServletRequest) {
+			ObjectEntry fdsEntryObjectEntry,
+			Set<ObjectEntry> fdsFieldObjectEntries,
+			HttpServletRequest httpServletRequest)
+		throws Exception {
 
 		Map<String, Object> properties = fdsEntryObjectEntry.getProperties();
 
@@ -324,7 +347,58 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 				StringPool.BLANK));
 		sb.append(String.valueOf(properties.get("restEndpoint")));
 
-		return _interpolateURL(sb.toString(), httpServletRequest);
+		return _interpolateURL(
+			_getNestedFields(sb.toString(), fdsFieldObjectEntries),
+			httpServletRequest);
+	}
+
+	private JSONObject _getCreationMenuJSONObject(
+			ObjectDefinition fdsViewObjectDefinition,
+			ObjectEntry fdsViewObjectEntry)
+		throws Exception {
+
+		Set<ObjectEntry> objectEntries = new TreeSet<>(
+			new ObjectEntryComparator(
+				ListUtil.toList(
+					ListUtil.fromString(
+						MapUtil.getString(
+							fdsViewObjectEntry.getProperties(),
+							"fdsCreationActionsOrder"),
+						StringPool.COMMA),
+					Long::parseLong)));
+
+		objectEntries.addAll(
+			_getRelatedObjectEntries(
+				fdsViewObjectDefinition, fdsViewObjectEntry,
+				"fdsViewFDSCreationActionRelationship"));
+
+		return JSONUtil.put(
+			"primaryItems",
+			JSONUtil.toJSONArray(
+				objectEntries,
+				(ObjectEntry objectEntry) -> {
+					Map<String, Object> properties =
+						objectEntry.getProperties();
+
+					return JSONUtil.put(
+						"data",
+						JSONUtil.put(
+							"permissionKey", properties.get("permissionKey")
+						).put(
+							"size", properties.get("modalSize")
+						).put(
+							"title", properties.get("title")
+						)
+					).put(
+						"href", properties.get("url")
+					).put(
+						"icon", properties.get("icon")
+					).put(
+						"label", properties.get("label")
+					).put(
+						"target", properties.get("type")
+					);
+				}));
 	}
 
 	private JSONObject _getDateJSONObject(Object object) {
@@ -347,8 +421,27 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 		);
 	}
 
-	private JSONArray _getFieldsJSONArray(
-			FragmentEntryLink fragmentEntryLink,
+	private JSONObject _getFDSCardsViewJSONObject(
+			Collection<ObjectEntry> fdsCardsSectionObjectEntries,
+			HttpServletRequest httpServletRequest)
+		throws Exception {
+
+		return JSONUtil.put(
+			"contentRenderer", "cards"
+		).put(
+			"default", false
+		).put(
+			"label", _language.get(httpServletRequest, "cards")
+		).put(
+			"name", "cards"
+		).put(
+			"schema", _getViewSchemaJSONObject(fdsCardsSectionObjectEntries)
+		).put(
+			"thumbnail", "cards2"
+		);
+	}
+
+	private Set<ObjectEntry> _getFDSFieldObjectEntries(
 			ObjectDefinition fdsViewObjectDefinition,
 			ObjectEntry fdsViewObjectEntry)
 		throws Exception {
@@ -368,25 +461,116 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 				fdsViewObjectDefinition, fdsViewObjectEntry,
 				"fdsViewFDSFieldRelationship"));
 
+		return fdsFieldObjectEntries;
+	}
+
+	private JSONObject _getFDSListViewJSONObject(
+			Collection<ObjectEntry> fdsListSectionObjectEntries,
+			HttpServletRequest httpServletRequest)
+		throws Exception {
+
+		return JSONUtil.put(
+			"contentRenderer", "list"
+		).put(
+			"default", false
+		).put(
+			"label", _language.get(httpServletRequest, "list")
+		).put(
+			"name", "list"
+		).put(
+			"schema", _getViewSchemaJSONObject(fdsListSectionObjectEntries)
+		).put(
+			"thumbnail", "list"
+		);
+	}
+
+	private JSONObject _getFDSTableViewJSONObject(
+			long companyId, Set<ObjectEntry> fdsFieldObjectEntries,
+			HttpServletRequest httpServletRequest)
+		throws Exception {
+
+		return JSONUtil.put(
+			"contentRenderer", "table"
+		).put(
+			"default", !FeatureFlagManagerUtil.isEnabled("LPD-10735")
+		).put(
+			"label", _language.get(httpServletRequest, "table")
+		).put(
+			"name", "table"
+		).put(
+			"schema",
+			JSONUtil.put(
+				"fields", _getFieldsJSONArray(companyId, fdsFieldObjectEntries))
+		).put(
+			"thumbnail", "table"
+		);
+	}
+
+	private JSONArray _getFDSViewsJSONArray(
+			long companyId,
+			Collection<ObjectEntry> fdsCardsSectionObjectEntries,
+			Set<ObjectEntry> fdsFieldObjectEntries,
+			Collection<ObjectEntry> fdsListSectionObjectEntries,
+			HttpServletRequest httpServletRequest)
+		throws Exception {
+
+		JSONArray viewsJSONArray = _jsonFactory.createJSONArray();
+
+		if (FeatureFlagManagerUtil.isEnabled("LPD-10735")) {
+			if (!fdsCardsSectionObjectEntries.isEmpty()) {
+				viewsJSONArray.put(
+					_getFDSCardsViewJSONObject(
+						fdsCardsSectionObjectEntries, httpServletRequest));
+			}
+
+			if (!fdsListSectionObjectEntries.isEmpty()) {
+				viewsJSONArray.put(
+					_getFDSListViewJSONObject(
+						fdsListSectionObjectEntries, httpServletRequest));
+			}
+
+			if (!fdsFieldObjectEntries.isEmpty()) {
+				viewsJSONArray.put(
+					_getFDSTableViewJSONObject(
+						companyId, fdsFieldObjectEntries, httpServletRequest));
+			}
+		}
+
+		if (!FeatureFlagManagerUtil.isEnabled("LPD-10735") ||
+			(fdsCardsSectionObjectEntries.isEmpty() &&
+			 fdsFieldObjectEntries.isEmpty() &&
+			 fdsListSectionObjectEntries.isEmpty())) {
+
+			viewsJSONArray.put(
+				_getFDSTableViewJSONObject(
+					companyId, fdsFieldObjectEntries, httpServletRequest));
+		}
+
+		return viewsJSONArray;
+	}
+
+	private JSONArray _getFieldsJSONArray(
+			long companyId, Set<ObjectEntry> fdsFieldObjectEntries)
+		throws Exception {
+
 		return JSONUtil.toJSONArray(
 			fdsFieldObjectEntries,
-			(ObjectEntry fdsFieldObjectEntry) -> {
-				Map<String, Object> fdsFieldProperties =
-					fdsFieldObjectEntry.getProperties();
+			(ObjectEntry objectEntry) -> {
+				Map<String, Object> properties = objectEntry.getProperties();
 
 				JSONObject jsonObject = JSONUtil.put(
 					"contentRenderer",
-					String.valueOf(fdsFieldProperties.get("renderer"))
+					String.valueOf(properties.get("renderer"))
 				).put(
-					"fieldName", String.valueOf(fdsFieldProperties.get("name"))
+					"fieldName", String.valueOf(properties.get("name"))
 				).put(
-					"label", _getValue("label", "name", fdsFieldProperties)
+					"label", _getValue("label", "name", properties)
 				).put(
-					"sortable", (boolean)fdsFieldProperties.get("sortable")
+					"sortable", (boolean)properties.get("sortable")
 				);
 
 				String rendererType = String.valueOf(
-					fdsFieldProperties.get("rendererType"));
+					properties.get("rendererType"));
 
 				if (!Objects.equals(rendererType, "clientExtension")) {
 					return jsonObject;
@@ -394,8 +578,7 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 
 				FDSCellRendererCET fdsCellRendererCET =
 					(FDSCellRendererCET)_cetManager.getCET(
-						fragmentEntryLink.getCompanyId(),
-						String.valueOf(fdsFieldProperties.get("renderer")));
+						companyId, String.valueOf(properties.get("renderer")));
 
 				return jsonObject.put(
 					"contentRendererClientExtension", true
@@ -412,7 +595,7 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 			HttpServletRequest httpServletRequest)
 		throws Exception {
 
-		Set<ObjectEntry> fdsFilterObjectEntries = new TreeSet<>(
+		Set<ObjectEntry> objectEntries = new TreeSet<>(
 			new ObjectEntryComparator(
 				ListUtil.toList(
 					ListUtil.fromString(
@@ -422,24 +605,23 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 						StringPool.COMMA),
 					Long::parseLong)));
 
-		fdsFilterObjectEntries.addAll(
+		objectEntries.addAll(
 			_getRelatedObjectEntries(
 				fdsViewObjectDefinition, fdsViewObjectEntry,
 				"fdsViewFDSClientExtensionFilter"));
-		fdsFilterObjectEntries.addAll(
+		objectEntries.addAll(
 			_getRelatedObjectEntries(
 				fdsViewObjectDefinition, fdsViewObjectEntry,
 				"fdsViewFDSDateFilterRelationship"));
-		fdsFilterObjectEntries.addAll(
+		objectEntries.addAll(
 			_getRelatedObjectEntries(
 				fdsViewObjectDefinition, fdsViewObjectEntry,
 				"fdsViewFDSDynamicFilterRelationship"));
 
 		return JSONUtil.toJSONArray(
-			fdsFilterObjectEntries,
-			(ObjectEntry fdsFilterObjectEntry) -> {
-				Map<String, Object> properties =
-					fdsFilterObjectEntry.getProperties();
+			objectEntries,
+			(ObjectEntry objectEntry) -> {
+				Map<String, Object> properties = objectEntry.getProperties();
 
 				String type = MapUtil.getString(properties, "type");
 
@@ -520,15 +702,25 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 						"multiple", properties.get("multiple")
 					).put(
 						"preloadedData",
-						JSONUtil.put(
-							"exclude", false
-						).put(
-							"selectedItems",
-							_getSelectedItemsJSONArray(
-								listTypeEntries, themeDisplay.getLocale(),
-								MapUtil.getString(
-									properties, "preselectedValues"))
-						)
+						() -> {
+							JSONArray selectedItemsJSONArray =
+								_getSelectedItemsJSONArray(
+									listTypeEntries, themeDisplay.getLocale(),
+									MapUtil.getString(
+										properties, "preselectedValues"));
+
+							if (JSONUtil.isEmpty(selectedItemsJSONArray)) {
+								return null;
+							}
+
+							return JSONUtil.put(
+								"exclude",
+								() -> Boolean.FALSE.equals(
+									(Boolean)properties.get("include"))
+							).put(
+								"selectedItems", selectedItemsJSONArray
+							);
+						}
 					).put(
 						"type", "selection"
 					);
@@ -558,13 +750,13 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 					}
 
 					return JSONUtil.put(
+						"clientExtensionFilterURL", fdsFilterCET.getURL()
+					).put(
 						"entityFieldType", FDSEntityFieldTypes.STRING
 					).put(
 						"id", properties.get("fieldName")
 					).put(
 						"label", _getValue("label", "fieldName", properties)
-					).put(
-						"moduleURL", fdsFilterCET.getURL()
 					).put(
 						"type", "clientExtension"
 					);
@@ -579,26 +771,25 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 			ObjectEntry fdsViewObjectEntry)
 		throws Exception {
 
-		Set<ObjectEntry> fdsActionObjectEntries = new TreeSet<>(
+		Set<ObjectEntry> objectEntries = new TreeSet<>(
 			new ObjectEntryComparator(
 				ListUtil.toList(
 					ListUtil.fromString(
 						MapUtil.getString(
 							fdsViewObjectEntry.getProperties(),
-							"fdsActionsOrder"),
+							"fdsItemActionsOrder"),
 						StringPool.COMMA),
 					Long::parseLong)));
 
-		fdsActionObjectEntries.addAll(
+		objectEntries.addAll(
 			_getRelatedObjectEntries(
 				fdsViewObjectDefinition, fdsViewObjectEntry,
-				"fdsViewFDSActionRelationship"));
+				"fdsViewFDSItemActionRelationship"));
 
 		return JSONUtil.toJSONArray(
-			fdsActionObjectEntries,
-			(ObjectEntry fdsActionObjectEntry) -> {
-				Map<String, Object> properties =
-					fdsActionObjectEntry.getProperties();
+			objectEntries,
+			(ObjectEntry objectEntry) -> {
+				Map<String, Object> properties = objectEntry.getProperties();
 
 				return JSONUtil.put(
 					"data",
@@ -606,11 +797,19 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 						"confirmationMessage",
 						properties.get("confirmationMessage")
 					).put(
+						"errorMessage", properties.get("errorMessage")
+					).put(
+						"method", properties.get("method")
+					).put(
 						"permissionKey", properties.get("permissionKey")
+					).put(
+						"size", properties.get("modalSize")
 					).put(
 						"status", properties.get("confirmationMessageType")
 					).put(
-						"title", properties.get("label")
+						"successMessage", properties.get("successMessage")
+					).put(
+						"title", properties.get("title")
 					)
 				).put(
 					"href", properties.get("url")
@@ -622,6 +821,60 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 					"target", properties.get("type")
 				);
 			});
+	}
+
+	private String _getNestedFields(
+			String apiURL, Set<ObjectEntry> fdsFieldObjectEntries)
+		throws Exception {
+
+		if (fdsFieldObjectEntries == null) {
+			return apiURL;
+		}
+
+		String nestedFields = StringPool.BLANK;
+		int nestedFieldsDepth = 1;
+
+		for (ObjectEntry fdsFieldObjectEntry : fdsFieldObjectEntries) {
+			Map<String, Object> properties =
+				fdsFieldObjectEntry.getProperties();
+
+			String[] fieldNameList = StringUtil.split(
+				String.valueOf(properties.get("name")), CharPool.PERIOD);
+
+			if (fieldNameList.length > 1) {
+				String[] fieldsName = new String[fieldNameList.length - 1];
+
+				System.arraycopy(
+					fieldNameList, 0, fieldsName, 0, fieldNameList.length - 1);
+
+				for (String fieldName : fieldsName) {
+					nestedFields = StringUtil.add(nestedFields, fieldName);
+				}
+
+				if (fieldNameList.length > nestedFieldsDepth) {
+					nestedFieldsDepth = fieldNameList.length - 1;
+				}
+			}
+		}
+
+		if (nestedFields.equals(StringPool.BLANK)) {
+			return apiURL;
+		}
+
+		StringBundler sb = new StringBundler(5);
+
+		sb.append(apiURL);
+		sb.append("?nestedFields=");
+		sb.append(
+			StringUtil.replaceLast(
+				nestedFields, CharPool.COMMA, StringPool.BLANK));
+
+		if (nestedFieldsDepth > 1) {
+			sb.append("&nestedFieldsDepth=");
+			sb.append(nestedFieldsDepth);
+		}
+
+		return sb.toString();
 	}
 
 	private ObjectEntry _getObjectEntry(
@@ -724,30 +977,19 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 			ObjectEntry fdsViewObjectEntry)
 		throws Exception {
 
-		List<ObjectEntry> fdsSortingObjectEntries = new ArrayList<>(
+		return JSONUtil.toJSONArray(
 			_getRelatedObjectEntries(
 				fdsViewObjectDefinition, fdsViewObjectEntry,
-				"fdsViewFDSSortRelationship"));
+				"fdsViewFDSSortRelationship"),
+			(ObjectEntry objectEntry) -> {
+				Map<String, Object> properties = objectEntry.getProperties();
 
-		if (ListUtil.isEmpty(fdsSortingObjectEntries)) {
-			return _jsonFactory.createJSONArray();
-		}
-
-		return JSONUtil.toJSONArray(
-			fdsSortingObjectEntries,
-			(ObjectEntry fdsSortingObjectEntry) -> _getSortsJSONObject(
-				fdsSortingObjectEntry));
-	}
-
-	private JSONObject _getSortsJSONObject(ObjectEntry fdsSortingObjectEntry) {
-		Map<String, Object> fdsSortingProperties =
-			fdsSortingObjectEntry.getProperties();
-
-		return JSONUtil.put(
-			"direction", fdsSortingProperties.get("sortingDirection")
-		).put(
-			"key", fdsSortingProperties.get("fieldName")
-		);
+				return JSONUtil.put(
+					"direction", properties.get("sortingDirection")
+				).put(
+					"key", properties.get("fieldName")
+				);
+			});
 	}
 
 	private String _getValue(
@@ -763,26 +1005,43 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 		return String.valueOf(fdsFieldProperties.get(fallbackKey));
 	}
 
+	private JSONObject _getViewSchemaJSONObject(
+			Collection<ObjectEntry> fdsViewObjectEntries)
+		throws Exception {
+
+		JSONObject jsonObject = _jsonFactory.createJSONObject();
+
+		for (ObjectEntry objectEntry : fdsViewObjectEntries) {
+			Map<String, Object> properties = objectEntry.getProperties();
+
+			jsonObject.put(
+				String.valueOf(properties.get("name")),
+				String.valueOf(properties.get("fieldName")));
+		}
+
+		return jsonObject;
+	}
+
 	private String _interpolateURL(
-		String apiUrl, HttpServletRequest httpServletRequest) {
+		String apiURL, HttpServletRequest httpServletRequest) {
 
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		apiUrl = StringUtil.replace(
-			apiUrl, "{siteId}", String.valueOf(themeDisplay.getScopeGroupId()));
-		apiUrl = StringUtil.replace(
-			apiUrl, "{scopeKey}",
+		apiURL = StringUtil.replace(
+			apiURL, "{siteId}", String.valueOf(themeDisplay.getScopeGroupId()));
+		apiURL = StringUtil.replace(
+			apiURL, "{scopeKey}",
 			String.valueOf(themeDisplay.getScopeGroupId()));
-		apiUrl = StringUtil.replace(
-			apiUrl, "{userId}", String.valueOf(themeDisplay.getUserId()));
+		apiURL = StringUtil.replace(
+			apiURL, "{userId}", String.valueOf(themeDisplay.getUserId()));
 
-		if (StringUtil.contains(apiUrl, "{") && _log.isWarnEnabled()) {
-			_log.warn("Unsupported parameter in API URL: " + apiUrl);
+		if (StringUtil.contains(apiURL, "{") && _log.isWarnEnabled()) {
+			_log.warn("Unsupported parameter in API URL: " + apiURL);
 		}
 
-		return apiUrl;
+		return apiURL;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

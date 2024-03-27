@@ -67,9 +67,9 @@ public class FragmentEntryLinkRichTextEditorConfigContributor
 				_getAllowedContentLists(), _getAllowedContentTable(),
 				" span[*](*){*}; ")
 		).put(
-			"documentBrowseLinkUrl", itemSelectorURL.toString()
+			"autoParagraph", false
 		).put(
-			"enterMode", 2
+			"documentBrowseLinkUrl", itemSelectorURL.toString()
 		).put(
 			"extraPlugins", getExtraPluginsLists()
 		).put(

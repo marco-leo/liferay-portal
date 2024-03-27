@@ -6,11 +6,12 @@
 package com.liferay.jethr0.entity;
 
 import com.liferay.jethr0.bui1d.repository.BuildEntityRepository;
-import com.liferay.jethr0.bui1d.repository.BuildParameterEntityRepository;
 import com.liferay.jethr0.bui1d.repository.BuildRunEntityRepository;
+import com.liferay.jethr0.git.branch.repository.GitBranchEntityRepository;
 import com.liferay.jethr0.jenkins.repository.JenkinsCohortEntityRepository;
 import com.liferay.jethr0.jenkins.repository.JenkinsNodeEntityRepository;
 import com.liferay.jethr0.jenkins.repository.JenkinsServerEntityRepository;
+import com.liferay.jethr0.job.queue.JobQueue;
 import com.liferay.jethr0.job.repository.JobComparatorEntityRepository;
 import com.liferay.jethr0.job.repository.JobEntityRepository;
 import com.liferay.jethr0.job.repository.JobPrioritizerEntityRepository;
@@ -25,14 +26,9 @@ import org.springframework.context.annotation.Configuration;
 public class EntityInitializer {
 
 	public void initialize() {
-		_buildEntityRepository.setBuildParameterEntityRepository(
-			_buildParameterEntityRepository);
 		_buildEntityRepository.setBuildRunEntityRepository(
 			_buildRunEntityRepository);
 		_buildEntityRepository.setJobEntityRepository(_jobEntityRepository);
-
-		_buildParameterEntityRepository.setBuildRepository(
-			_buildEntityRepository);
 
 		_buildRunEntityRepository.setBuildEntityRepository(
 			_buildEntityRepository);
@@ -52,13 +48,14 @@ public class EntityInitializer {
 			_jobPrioritizerEntityRepository);
 
 		_jobEntityRepository.setBuildEntityRepository(_buildEntityRepository);
+		_jobEntityRepository.setJobQueue(_jobQueue);
 
 		_jobPrioritizerEntityRepository.setJobComparatorEntityRepository(
 			_jobComparatorEntityRepository);
 
 		_buildEntityRepository.initialize();
-		_buildParameterEntityRepository.initialize();
 		_buildRunEntityRepository.initialize();
+		_gitBranchEntityRepository.initialize();
 		_jenkinsCohortEntityRepository.initialize();
 		_jenkinsNodeEntityRepository.initialize();
 		_jenkinsServerEntityRepository.initialize();
@@ -67,8 +64,8 @@ public class EntityInitializer {
 		_jobPrioritizerEntityRepository.initialize();
 
 		_buildEntityRepository.initializeRelationships();
-		_buildParameterEntityRepository.initializeRelationships();
 		_buildRunEntityRepository.initializeRelationships();
+		_gitBranchEntityRepository.initializeRelationships();
 		_jenkinsCohortEntityRepository.initializeRelationships();
 		_jenkinsNodeEntityRepository.initializeRelationships();
 		_jenkinsServerEntityRepository.initializeRelationships();
@@ -81,10 +78,10 @@ public class EntityInitializer {
 	private BuildEntityRepository _buildEntityRepository;
 
 	@Autowired
-	private BuildParameterEntityRepository _buildParameterEntityRepository;
+	private BuildRunEntityRepository _buildRunEntityRepository;
 
 	@Autowired
-	private BuildRunEntityRepository _buildRunEntityRepository;
+	private GitBranchEntityRepository _gitBranchEntityRepository;
 
 	@Autowired
 	private JenkinsCohortEntityRepository _jenkinsCohortEntityRepository;
@@ -103,5 +100,8 @@ public class EntityInitializer {
 
 	@Autowired
 	private JobPrioritizerEntityRepository _jobPrioritizerEntityRepository;
+
+	@Autowired
+	private JobQueue _jobQueue;
 
 }

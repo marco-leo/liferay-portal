@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.change.tracking.CTService;
 import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
+import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
@@ -55,6 +56,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @CTAware
+@OSGiBeanProperties(
+	property = {"model.class.name=com.liferay.asset.kernel.model.AssetTag"}
+)
 @ProviderType
 @Transactional(
 	isolation = Isolation.PORTAL,
@@ -510,16 +514,6 @@ public interface AssetTagLocalService
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException;
 
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<AssetTag> getSocialActivityCounterOffsetTags(
-		long groupId, String socialActivityCounterName, int startOffset,
-		int endOffset);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<AssetTag> getSocialActivityCounterPeriodTags(
-		long groupId, String socialActivityCounterName, int startPeriod,
-		int endPeriod);
-
 	/**
 	 * Returns the asset tag with the primary key.
 	 *
@@ -644,9 +638,6 @@ public interface AssetTagLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getTagsSize(long groupId, long classNameId, String name);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getTagsSize(long groupId, String name);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean hasAssetEntryAssetTag(long entryId, long tagId);

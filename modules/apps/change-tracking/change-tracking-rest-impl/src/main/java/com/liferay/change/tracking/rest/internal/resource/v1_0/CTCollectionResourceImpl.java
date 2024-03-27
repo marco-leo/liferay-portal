@@ -7,6 +7,7 @@ package com.liferay.change.tracking.rest.internal.resource.v1_0;
 
 import com.liferay.change.tracking.constants.CTActionKeys;
 import com.liferay.change.tracking.mapping.CTMappingTableInfo;
+import com.liferay.change.tracking.on.demand.user.ticket.generator.CTOnDemandUserTicketGenerator;
 import com.liferay.change.tracking.rest.dto.v1_0.CTCollection;
 import com.liferay.change.tracking.rest.internal.odata.entity.v1_0.CTCollectionEntityModel;
 import com.liferay.change.tracking.rest.internal.util.v1_0.PublishUtil;
@@ -16,17 +17,25 @@ import com.liferay.change.tracking.service.CTCollectionService;
 import com.liferay.change.tracking.service.CTEntryLocalService;
 import com.liferay.change.tracking.service.CTPreferencesLocalService;
 import com.liferay.change.tracking.service.CTPreferencesService;
+import com.liferay.change.tracking.spi.history.CTCollectionHistoryProvider;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.Ticket;
 import com.liferay.portal.kernel.scheduler.SchedulerEngineHelper;
 import com.liferay.portal.kernel.scheduler.TriggerFactory;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.odata.entity.EntityModel;
@@ -36,6 +45,7 @@ import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.util.SearchUtil;
+import com.liferay.portal.vulcan.util.TransformUtil;
 
 import java.util.Collections;
 import java.util.Date;
@@ -44,6 +54,8 @@ import java.util.List;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -89,6 +101,7 @@ public class CTCollectionResourceImpl extends BaseCTCollectionResourceImpl {
 		return _toCTCollection(ctCollectionId);
 	}
 
+	@Override
 	public CTCollection getCTCollectionByExternalReferenceCode(
 			String externalReferenceCode)
 		throws Exception {
@@ -97,8 +110,51 @@ public class CTCollectionResourceImpl extends BaseCTCollectionResourceImpl {
 	}
 
 	@Override
+	public String getCTCollectionByExternalReferenceCodeShareLink(
+			String externalReferenceCode)
+		throws Exception {
+
+		com.liferay.change.tracking.model.CTCollection ctCollection =
+			_ctCollectionLocalService.getCTCollectionByExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId());
+
+		return _getShareLink(ctCollection.getCtCollectionId());
+	}
+
+	@Override
+	public String getCTCollectionShareLink(Long ctCollectionId)
+		throws Exception {
+
+		return _getShareLink(ctCollectionId);
+	}
+
+	@Override
+	public Page<CTCollection> getCTCollectionsHistoryPage(
+			Integer classNameId, Integer classPK)
+		throws Exception {
+
+		CTCollectionHistoryProvider<?> ctCollectionHistoryProvider =
+			_serviceTrackerMap.getService(Long.valueOf(classNameId));
+
+		if (ctCollectionHistoryProvider == null) {
+			return Page.of(
+				TransformUtil.transform(
+					_ctCollectionLocalService.
+						getExclusivePublishedCTCollections(
+							classNameId, classPK),
+					this::_toCTCollection));
+		}
+
+		return Page.of(
+			TransformUtil.transform(
+				ctCollectionHistoryProvider.getCTCollections(
+					classNameId, classPK),
+				this::_toCTCollection));
+	}
+
+	@Override
 	public Page<CTCollection> getCTCollectionsPage(
-			Integer[] statuses, String search, Pagination pagination,
+			String search, Integer[] statuses, Pagination pagination,
 			Sort[] sorts)
 		throws Exception {
 
@@ -154,6 +210,31 @@ public class CTCollectionResourceImpl extends BaseCTCollectionResourceImpl {
 	}
 
 	@Override
+	public void postCTCollectionByExternalReferenceCodePublish(
+			String externalReferenceCode)
+		throws Exception {
+
+		com.liferay.change.tracking.model.CTCollection ctCollection =
+			_ctCollectionLocalService.getCTCollectionByExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId());
+
+		_ctCollectionService.publishCTCollection(
+			contextUser.getUserId(), ctCollection.getCtCollectionId());
+	}
+
+	@Override
+	public void postCTCollectionByExternalReferenceCodeSchedulePublish(
+			String externalReferenceCode, Date publishDate)
+		throws Exception {
+
+		com.liferay.change.tracking.model.CTCollection ctCollection =
+			_ctCollectionLocalService.getCTCollectionByExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId());
+
+		_schedulePublish(ctCollection.getCtCollectionId(), publishDate);
+	}
+
+	@Override
 	public void postCTCollectionCheckout(Long ctCollectionId)
 		throws PortalException {
 
@@ -175,38 +256,12 @@ public class CTCollectionResourceImpl extends BaseCTCollectionResourceImpl {
 			Long ctCollectionId, Date publishDate)
 		throws PortalException {
 
-		if (publishDate == null) {
-			_ctCollectionService.publishCTCollection(
-				contextUser.getUserId(), ctCollectionId);
-
-			return;
-		}
-
-		Date currentDate = new Date(System.currentTimeMillis());
-
-		if (!publishDate.after(currentDate)) {
-			throw new IllegalArgumentException(
-				"The publish time must be in the future");
-		}
-
-		com.liferay.change.tracking.model.CTCollection ctCollection =
-			_ctCollectionLocalService.fetchCTCollection(ctCollectionId);
-
-		if (ctCollection.getStatus() == WorkflowConstants.STATUS_SCHEDULED) {
-			PublishUtil.unschedulePublish(
-				ctCollectionId, _ctCollectionLocalService,
-				_schedulerEngineHelper);
-		}
-
-		PublishUtil.schedulePublish(
-			ctCollectionId, _ctCollectionLocalService,
-			_ctPreferencesLocalService, _schedulerEngineHelper, publishDate,
-			_triggerFactory, contextUser.getUserId());
+		_schedulePublish(ctCollectionId, publishDate);
 	}
 
 	@Override
 	public Response postCTCollectionsPageExportBatch(
-		Integer[] status, String search, Sort[] sorts, String callbackURL,
+		String search, Integer[] status, Sort[] sorts, String callbackURL,
 		String contentType, String fieldNames) {
 
 		return null;
@@ -221,6 +276,28 @@ public class CTCollectionResourceImpl extends BaseCTCollectionResourceImpl {
 			_ctCollectionService.updateCTCollection(
 				contextUser.getUserId(), ctCollectionId, ctCollection.getName(),
 				ctCollection.getDescription()));
+	}
+
+	@Activate
+	protected void activate(BundleContext bundleContext) {
+		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+			bundleContext,
+			(Class<CTCollectionHistoryProvider<?>>)
+				(Class<?>)CTCollectionHistoryProvider.class,
+			null,
+			(serviceReference, emitter) -> {
+				CTCollectionHistoryProvider<?> ctCollectionHistoryProvider =
+					bundleContext.getService(serviceReference);
+
+				try {
+					emitter.emit(
+						_classNameLocalService.getClassNameId(
+							ctCollectionHistoryProvider.getModelClass()));
+				}
+				finally {
+					bundleContext.ungetService(serviceReference);
+				}
+			});
 	}
 
 	private DefaultDTOConverterContext _getDTOConverterContext(
@@ -306,6 +383,23 @@ public class CTCollectionResourceImpl extends BaseCTCollectionResourceImpl {
 			contextUser);
 	}
 
+	private String _getShareLink(long ctCollectionId) throws Exception {
+		Ticket ticket = _ctOnDemandUserTicketGenerator.generate(ctCollectionId);
+
+		if (ticket == null) {
+			return StringPool.BLANK;
+		}
+
+		StringBundler sb = new StringBundler(4);
+
+		sb.append(contextUriInfo.getBaseUri());
+		sb.append(Portal.PATH_MODULE);
+		sb.append("/change_tracking/review_changes?ticketKey=");
+		sb.append(ticket.getKey());
+
+		return sb.toString();
+	}
+
 	private boolean _isPublishEnabled(long ctCollectionId) {
 		int count = _ctEntryLocalService.getCTCollectionCTEntriesCount(
 			ctCollectionId);
@@ -322,6 +416,38 @@ public class CTCollectionResourceImpl extends BaseCTCollectionResourceImpl {
 		}
 
 		return false;
+	}
+
+	private void _schedulePublish(long ctCollectionId, Date publishDate)
+		throws PortalException {
+
+		if (publishDate == null) {
+			_ctCollectionService.publishCTCollection(
+				contextUser.getUserId(), ctCollectionId);
+
+			return;
+		}
+
+		Date currentDate = new Date(System.currentTimeMillis());
+
+		if (!publishDate.after(currentDate)) {
+			throw new IllegalArgumentException(
+				"The publish time must be in the future");
+		}
+
+		com.liferay.change.tracking.model.CTCollection ctCollection =
+			_ctCollectionLocalService.fetchCTCollection(ctCollectionId);
+
+		if (ctCollection.getStatus() == WorkflowConstants.STATUS_SCHEDULED) {
+			PublishUtil.unschedulePublish(
+				ctCollectionId, _ctCollectionLocalService,
+				_schedulerEngineHelper);
+		}
+
+		PublishUtil.schedulePublish(
+			ctCollectionId, _ctCollectionLocalService,
+			_ctPreferencesLocalService, _schedulerEngineHelper, publishDate,
+			_triggerFactory, contextUser.getUserId());
 	}
 
 	private CTCollection _toCTCollection(
@@ -357,6 +483,9 @@ public class CTCollectionResourceImpl extends BaseCTCollectionResourceImpl {
 	private static final EntityModel _entityModel =
 		new CTCollectionEntityModel();
 
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
+
 	@Reference(
 		target = "(component.name=com.liferay.change.tracking.rest.internal.dto.v1_0.converter.CTCollectionDTOConverter)"
 	)
@@ -383,6 +512,9 @@ public class CTCollectionResourceImpl extends BaseCTCollectionResourceImpl {
 	private CTEntryLocalService _ctEntryLocalService;
 
 	@Reference
+	private CTOnDemandUserTicketGenerator _ctOnDemandUserTicketGenerator;
+
+	@Reference
 	private CTPreferencesLocalService _ctPreferencesLocalService;
 
 	@Reference
@@ -390,6 +522,9 @@ public class CTCollectionResourceImpl extends BaseCTCollectionResourceImpl {
 
 	@Reference
 	private SchedulerEngineHelper _schedulerEngineHelper;
+
+	private ServiceTrackerMap<Long, CTCollectionHistoryProvider<?>>
+		_serviceTrackerMap;
 
 	@Reference
 	private TriggerFactory _triggerFactory;

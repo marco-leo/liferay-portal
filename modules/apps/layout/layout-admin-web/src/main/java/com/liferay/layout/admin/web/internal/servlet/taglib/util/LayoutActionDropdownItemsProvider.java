@@ -12,7 +12,9 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuil
 import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
 import com.liferay.layout.admin.web.internal.display.context.LayoutsAdminDisplayContext;
 import com.liferay.layout.admin.web.internal.helper.LayoutActionsHelper;
+import com.liferay.layout.admin.web.internal.security.permission.resource.LayoutPageTemplatePermission;
 import com.liferay.layout.constants.LayoutTypeSettingsConstants;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateActionKeys;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -80,9 +82,7 @@ public class LayoutActionDropdownItemsProvider {
 				dropdownGroupItem.setDropdownItems(
 					DropdownItemListBuilder.add(
 						() ->
-							(_layoutsAdminDisplayContext.isConversionDraft(
-								layout) ||
-							 layout.isTypeContent()) &&
+							_isEditable(layout) &&
 							_layoutActionsHelper.isShowConfigureAction(layout),
 						_getEditLayoutActionUnsafeConsumer(layout)
 					).add(
@@ -143,7 +143,10 @@ public class LayoutActionDropdownItemsProvider {
 		).addGroup(
 			dropdownGroupItem -> {
 				dropdownGroupItem.setDropdownItems(
-					DropdownItemListBuilder.addContext(
+					DropdownItemListBuilder.add(
+						() -> _isShowConvertToPageTemplateAction(layout),
+						_getConvertToPageTemplateActionUnsafeConsumer(layout)
+					).addContext(
 						_getCopyLayoutWithPermissionsActionUnsafeConsumer(
 							layout)
 					).add(
@@ -223,6 +226,9 @@ public class LayoutActionDropdownItemsProvider {
 						return portletDisplay.getId();
 					}
 				).setParameter(
+					"backURLTitle",
+					LanguageUtil.get(_themeDisplay.getLocale(), "pages")
+				).setParameter(
 					"segmentsExperienceId",
 					SegmentsExperienceLocalServiceUtil.
 						fetchDefaultSegmentsExperienceId(layout.getPlid())
@@ -263,6 +269,26 @@ public class LayoutActionDropdownItemsProvider {
 			dropdownItem.setLabel(
 				LanguageUtil.get(
 					_httpServletRequest, "convert-to-content-page..."));
+		};
+	}
+
+	private UnsafeConsumer<DropdownItem, Exception>
+		_getConvertToPageTemplateActionUnsafeConsumer(Layout layout) {
+
+		return dropdownItem -> {
+			if (_layoutActionsHelper.isShowCopyLayoutAction(
+					layout, _layoutsAdminDisplayContext.getSelGroup())) {
+
+				dropdownItem.putData("action", "convertToPageTemplate");
+			}
+			else {
+				dropdownItem.setDisabled(true);
+			}
+
+			dropdownItem.setIcon("page-template");
+			dropdownItem.setLabel(
+				LanguageUtil.get(
+					_httpServletRequest, "convert-to-page-template"));
 		};
 	}
 
@@ -473,6 +499,9 @@ public class LayoutActionDropdownItemsProvider {
 
 						return portletDisplay.getId();
 					}
+				).setParameter(
+					"backURLTitle",
+					LanguageUtil.get(_themeDisplay.getLocale(), "pages")
 				).buildString());
 			dropdownItem.setIcon("upload");
 			dropdownItem.setLabel(
@@ -504,6 +533,9 @@ public class LayoutActionDropdownItemsProvider {
 
 						return portletDisplay.getId();
 					}
+				).setParameter(
+					"backURLTitle",
+					LanguageUtil.get(_themeDisplay.getLocale(), "pages")
 				).buildString());
 			dropdownItem.setIcon("download");
 			dropdownItem.setLabel(
@@ -526,8 +558,8 @@ public class LayoutActionDropdownItemsProvider {
 	private String _getOrphanPortletsURL(Layout layout) {
 		return PortletURLBuilder.createRenderURL(
 			_liferayPortletResponse
-		).setMVCPath(
-			"/orphan_portlets.jsp"
+		).setMVCRenderCommandName(
+			"/layout_admin/view_orphan_portlets"
 		).setBackURL(
 			_getBackURL()
 		).setParameter(
@@ -657,6 +689,8 @@ public class LayoutActionDropdownItemsProvider {
 
 		portletURL.setParameter(
 			"redirect", _layoutsAdminDisplayContext.getRedirect());
+		portletURL.setParameter(
+			"backURLTitle", LanguageUtil.get(_httpServletRequest, "pages"));
 		portletURL.setParameter("collectionPK", collectionPK);
 		portletURL.setParameter("collectionType", collectionType);
 		portletURL.setParameter("showActions", String.valueOf(Boolean.TRUE));
@@ -677,6 +711,32 @@ public class LayoutActionDropdownItemsProvider {
 		}
 
 		return draftLayout.hasScopeGroup();
+	}
+
+	private boolean _isEditable(Layout layout) {
+		if (_layoutsAdminDisplayContext.isConversionDraft(layout) ||
+			layout.isTypeContent()) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean _isShowConvertToPageTemplateAction(Layout layout) {
+		if (layout.isTypeContent() &&
+			LayoutPageTemplatePermission.contains(
+				_themeDisplay.getPermissionChecker(), layout.getGroupId(),
+				LayoutPageTemplateActionKeys.
+					ADD_LAYOUT_PAGE_TEMPLATE_COLLECTION) &&
+			LayoutPageTemplatePermission.contains(
+				_themeDisplay.getPermissionChecker(), layout.getGroupId(),
+				LayoutPageTemplateActionKeys.ADD_LAYOUT_PAGE_TEMPLATE_ENTRY)) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private final HttpServletRequest _httpServletRequest;

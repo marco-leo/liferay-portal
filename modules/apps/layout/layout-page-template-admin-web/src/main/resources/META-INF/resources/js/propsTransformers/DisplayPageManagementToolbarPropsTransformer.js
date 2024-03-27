@@ -3,9 +3,14 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {openSimpleInputModal} from 'frontend-js-web';
+import {openCreationModal} from '@liferay/layout-js-components-web';
+import {
+	getCheckedCheckboxes,
+	openSelectionModal,
+	setFormValues,
+} from 'frontend-js-web';
 
-import openDeletePageTemplateModal from '../modal/openDeletePageTemplateModal';
+import openDeletePageTemplateModal from '../commands/openDeletePageTemplateModal';
 
 export default function propsTransformer({portletNamespace, ...otherProps}) {
 	const deleteSelectedEntries = (itemData) => {
@@ -17,7 +22,7 @@ export default function propsTransformer({portletNamespace, ...otherProps}) {
 					submitForm(form, itemData?.deleteSelectedEntriesURL);
 				}
 			},
-			title: Liferay.Language.get('display-page-templates'),
+			title: Liferay.Language.get('entries'),
 		});
 	};
 
@@ -27,6 +32,38 @@ export default function propsTransformer({portletNamespace, ...otherProps}) {
 		if (form) {
 			submitForm(form, itemData?.exportDisplayPageURL);
 		}
+	};
+
+	const moveSelectedEntries = (itemData) => {
+		openSelectionModal({
+			height: '70vh',
+			onSelect: (selectedItem) => {
+				const form = document.getElementById(
+					`${portletNamespace}moveEntriesFm`
+				);
+
+				setFormValues(form, {
+					layoutPageTemplateCollectionsIds: getCheckedCheckboxes(
+						document.getElementById(`${portletNamespace}fm`),
+						'',
+						`${portletNamespace}rowIdsLayoutPageTemplateCollection`
+					),
+					layoutPageTemplateEntriesIds: getCheckedCheckboxes(
+						document.getElementById(`${portletNamespace}fm`),
+						'',
+						`${portletNamespace}rowIds`
+					),
+					targetLayoutPageTemplateCollectionId:
+						selectedItem.resourceid,
+				});
+
+				submitForm(form);
+			},
+			selectEventName: 'selectFolder',
+			size: 'md',
+			title: Liferay.Language.get('move-entries'),
+			url: itemData.itemSelectorURL,
+		});
 	};
 
 	return {
@@ -42,18 +79,19 @@ export default function propsTransformer({portletNamespace, ...otherProps}) {
 			else if (action === 'exportDisplayPages') {
 				exportDisplayPages(data);
 			}
+			else if (action === 'moveSelectedEntries') {
+				moveSelectedEntries(data);
+			}
 		},
 		onCreationMenuItemClick(event, {item}) {
 			const data = item?.data;
 
 			if (data?.action === 'addDisplayPageCollection') {
-				openSimpleInputModal({
-					dialogTitle: Liferay.Language.get('add-folder'),
+				openCreationModal({
+					buttonLabel: Liferay.Language.get('create'),
 					formSubmitURL: data.addDisplayPageCollectionURL,
-					mainFieldLabel: Liferay.Language.get('name'),
-					mainFieldName: 'name',
-					mainFieldPlaceholder: Liferay.Language.get('name'),
-					namespace: portletNamespace,
+					heading: Liferay.Language.get('new-folder'),
+					portletNamespace,
 				});
 			}
 		},

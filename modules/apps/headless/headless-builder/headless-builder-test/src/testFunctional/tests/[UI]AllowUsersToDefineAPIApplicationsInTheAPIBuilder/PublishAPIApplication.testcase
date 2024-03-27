@@ -1,7 +1,7 @@
 @component-name = "portal-headless"
 definition {
 
-	property custom.properties = "feature.flag.LPS-167253=true${line.separator}feature.flag.LPS-178642=true";
+	property custom.properties = "feature.flag.LPS-178642=true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.component.names = "Object";
@@ -10,9 +10,7 @@ definition {
 	setUp {
 		TestCase.setUpPortalInstance();
 
-		User.firstLoginUI();
-
-		SearchAdministration.executeReindex();
+		User.firstLoginPG();
 
 		task ("Given create an API application through Control Panel > Object > API Builder") {
 			APIBuilderUI.createAPIApplication(
@@ -72,39 +70,6 @@ definition {
 			TestUtils.assertEquals(
 				actual = ${actualValue},
 				expected = "published");
-		}
-	}
-
-	@priority = 4
-	test CanGetUpdatedTitleInResponseAfterPublish {
-		property portal.acceptance = "true";
-		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
-
-		task ("Given I publish an API application") {
-			APIBuilderUI.publishApplication(key_title = "App-test");
-		}
-
-		task ("And Given I edit the title and publish the api application again") {
-			APIBuilderUI.goToEditAPIApplicationPage(key_title = "App-test");
-
-			Type(
-				locator1 = "APIBuilder#ENTER_TITLE",
-				value1 = "App-test-1");
-
-			Click(locator1 = "APIBuilder#PUBLISH_BUTTON");
-		}
-
-		task ("When with getAPIApplicationsPage to retrieve the api application") {
-			var response = ApplicationAPI.getAPIApplications();
-		}
-
-		task ("Then I can get the update title in response") {
-			var actualValue = JSONUtil.getWithJSONPath(${response}, "$.items..title");
-
-			TestUtils.assertEquals(
-				actual = ${actualValue},
-				expected = "App-test-1");
 		}
 	}
 
@@ -228,8 +193,10 @@ definition {
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 
-		task ("When I edit the API application") {
-			APIBuilderUI.goToEditAPIApplicationPage(key_title = "App-test");
+		task ("When I finish creating the API application") {
+			WaitForElementPresent(
+				key_title = "Edit API Application",
+				locator1 = "Header#H1_TITLE");
 		}
 
 		task ("Then I can see Cancel, Save and Publish buttons are visible") {

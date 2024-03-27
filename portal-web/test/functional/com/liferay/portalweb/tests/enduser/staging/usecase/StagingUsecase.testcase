@@ -1191,6 +1191,7 @@ definition {
 		}
 	}
 
+	@description = "This is a use case for LPS-190360. TC-3: User can publish WC to live directly from the portlet and can see Staging recommendation."
 	@priority = 4
 	test PublishPortlet {
 		property portal.acceptance = "true";
@@ -1208,8 +1209,26 @@ definition {
 			PortletEntry.publish();
 		}
 
-		task ("Then: User add can publish it directly from the portlet") {
-			Staging.publishToLiveNowViaPortletCP();
+		task ("Then: User can publish it directly from the portlet") {
+			LexiconEntry.gotoHeaderMenuItem(menuItem = "Staging");
+
+			SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+			AssertTextEquals(
+				locator1 = "Message#WARNING",
+				value1 = "Recommendation:Publish small incremental changes to avoid large publishing processes that can take a long time to execute.");
+
+			ClickNoError(locator1 = "Staging#STAGING_PUBLISH_TO_LIVE_BUTTON");
+
+			Confirm(value1 = "null");
+
+			WaitForElementPresent(locator1 = "Staging#STAGING_STATUS_PORTLET");
+
+			AssertTextEquals(
+				locator1 = "Staging#STAGING_STATUS_PORTLET",
+				value1 = "Successful");
+
+			IFrame.closeFrame();
 		}
 	}
 
@@ -1377,7 +1396,7 @@ definition {
 				settingFieldName = "Publish Displayed Content by Default");
 		}
 
-		task ("And: Create 1WC, 1Form, 1Wiki content, 1DDL and connect them to display portlets on the page") {
+		task ("And: Create 1WC, 1Form, 1Wiki content and connect them to display portlets on the page") {
 			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
 
 			WebContentNavigator.gotoAddCP();
@@ -1388,7 +1407,9 @@ definition {
 
 			PortletEntry.publish();
 
-			FormsAdmin.addForm(groupName = "Site Name Staging");
+			FormsAdminNavigator.openFormsAdmin(siteURLKey = "site-name-staging");
+
+			FormsAdminNavigator.gotoAddForm();
 
 			Form.editName(formName = "Form Name");
 
@@ -1407,27 +1428,6 @@ definition {
 			WikiPage.addCP(
 				wikiPageContent = "Wiki Page Content",
 				wikiPageTitle = "Wiki Page Title");
-
-			DDLList.openDynamicDataListsAdmin(siteURLKey = "site-name-staging");
-
-			DDLList.addCP(
-				ddlListDescription = "Contacts Description",
-				ddlListName = "Contacts");
-
-			DDLDataDefinition.selectCP(ddlDataDefinitionName = "Contacts");
-
-			DDLDataDefinition.save();
-
-			DDLRecord.addCP(
-				ddlDataDefinitionName = "Contacts",
-				ddlListName = "Contacts");
-
-			DDLRecord.populateFieldText(
-				ddlRecordFieldData = "Liferay",
-				fieldFieldLabel = "Company",
-				fieldName = "company");
-
-			PortletEntry.publish();
 
 			PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
 
@@ -1454,12 +1454,6 @@ definition {
 				site = "false",
 				widgetName = "Wiki Display");
 
-			JSONLayout.addWidgetToPublicLayout(
-				groupName = "Site Name (Staging)",
-				layoutName = "Staging Test Page",
-				site = "false",
-				widgetName = "Dynamic Data Lists Display");
-
 			Navigator.gotoStagedSitePage(
 				pageName = "Staging Test Page",
 				siteName = "Site Name");
@@ -1481,10 +1475,6 @@ definition {
 				wikiPageName = "Wiki Page Title");
 
 			IFrame.closeFrame();
-
-			DDLList.selectViaDDLDisplayPG(ddlListName = "Contacts");
-
-			IFrame.closeFrame();
 		}
 
 		task ("And: Publish staging without any content and verify that on Live the portlets are present with the contents displayed in them") {
@@ -1493,7 +1483,7 @@ definition {
 			Staging.configurePublishToLive(
 				checkPageName = "Staging Test Page",
 				contentDateRange = "All",
-				uncheckContentNameList = "Dynamic Data Lists,Web Content,Forms,Wiki");
+				uncheckContentNameList = "Web Content,Forms,Wiki");
 
 			Staging.publishToLive();
 
@@ -1512,11 +1502,6 @@ definition {
 			WikiPage.viewPG(
 				wikiPageContent = "Wiki Page Content",
 				wikiPageTitle = "Wiki Page Title");
-
-			AssertElementPresent(
-				key_ddlRecordFieldData = "Liferay",
-				key_fieldFieldLabel = "Company",
-				locator1 = "DDL#RECORD_TABLE_ENTRY");
 		}
 
 		task ("When: Delete the previously created contents and republish staging with checking the replicate individual deletions function and all deleted contents") {
@@ -1528,10 +1513,6 @@ definition {
 			FormsAdminNavigator.openFormsAdmin(siteURLKey = "site-name-staging");
 
 			FormsAdmin.deleteForm(formName = "Form Name");
-
-			DDLList.openDynamicDataListsAdmin(siteURLKey = "site-name-staging");
-
-			DDLList.deleteCP(ddlListName = "Contacts");
 
 			WikiNavigator.openWikiAdmin(siteURLKey = "site-name-staging");
 
@@ -1548,7 +1529,7 @@ definition {
 			Staging.gotoPublishToLive();
 
 			Staging.configurePublishToLive(
-				checkContentNameList = "Dynamic Data Lists,Web Content,Wiki",
+				checkContentNameList = "Web Content,Wiki",
 				checkPageName = "Staging Test Page",
 				contentDateRange = "All",
 				contentDeletion = "true");
@@ -1568,10 +1549,6 @@ definition {
 			Portlet.viewPG(
 				portletBody = "Please configure this portlet to make it visible to all users.",
 				portletName = "Wiki Display");
-
-			Portlet.viewPG(
-				portletBody = "Select an existing list or add a list to be displayed in this application.",
-				portletName = "Dynamic Data Lists Display");
 		}
 	}
 
@@ -2386,7 +2363,9 @@ definition {
 
 			LAR.exportPortlet(larFileName = "Forms_blank_portlet.lar");
 
-			FormsAdmin.addForm(groupName = "Site Name Staging");
+			FormsAdminNavigator.openFormsAdmin(siteURLKey = "site-name-staging");
+
+			FormsAdminNavigator.gotoAddForm();
 
 			Form.editName(formName = "Test Form");
 
@@ -2462,7 +2441,9 @@ definition {
 
 			LAR.exportPortlet(larFileName = "Forms_blank_portlet.lar");
 
-			FormsAdmin.addForm(groupName = "Site Name Staging");
+			FormsAdminNavigator.openFormsAdmin(siteURLKey = "site-name-staging");
+
+			FormsAdminNavigator.gotoAddForm();
 
 			Form.editName(formName = "Test Form");
 
@@ -3009,6 +2990,143 @@ definition {
 			DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
 
 			DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
+		}
+	}
+
+	@description = "This is a use case for LPS-190736. TC1: Verify that the user is notified when choosing ALL in the Advanced Publish Process screen after enabling local staging."
+	@priority = 3
+	test ViewWarningMessageWhenChooseALL {
+		task ("Given: Navigate to the Advanced Publish Process screen") {
+			Navigator.gotoStagedSitePage(
+				pageName = "Staging Test Page",
+				siteName = "Site Name");
+
+			Staging.gotoPublishToLive();
+		}
+
+		task ("When: Click on ALL in the Content section and click on 'Refresh Counts' button") {
+			Staging.configurePublishToLive(contentDateRange = "All");
+		}
+
+		task ("Then: The warning message should still display") {
+			AssertVisible(
+				key_warningMessage = "Publishing all content or using a wide date range will take some time.",
+				locator1 = "StagingPublishToLive#WARNING_SPECIFIC");
+		}
+
+		task ("When: Click on Last in the Content section") {
+			Click.clickNoMouseOverNoWaitForVisible(locator1 = "StagingPublishToLive#CONTENT_LAST");
+		}
+
+		task ("Then: The warning message should not display") {
+			AssertElementNotPresent(
+				key_warningMessage = "Publishing all content or using a wide date range will take some time.",
+				locator1 = "StagingPublishToLive#WARNING_SPECIFIC");
+		}
+
+		task ("When: Publish from the portlet") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
+
+			Staging.configurePublishToLiveViaPortletCP(contentDateRange = "All");
+		}
+
+		task ("Then: The warning message should not display") {
+			AssertElementNotPresent(
+				key_warningMessage = "Publishing all content or using a wide date range will take some time.",
+				locator1 = "StagingPublishToLive#WARNING_SPECIFIC");
+		}
+	}
+
+	@description = "This is a use case for LPS-190736. TC2: Verify that the user is notified when choosing Date Range in the Advanced Publish Process screen after enabling local staging."
+	@priority = 3
+	test ViewWarningMessageWhenChooseDateRange {
+		task ("Given: Navigate to the Advanced Publish Process screen") {
+			Navigator.gotoStagedSitePage(
+				pageName = "Staging Test Page",
+				siteName = "Site Name");
+
+			Staging.gotoPublishToLive();
+		}
+
+		task ("When: Click on Date Range in the Content section and click on 'Refresh Counts' button") {
+			Staging.configurePublishToLive(
+				contentDateRange = "Date Range",
+				dateRangeEndDate = '''10/12/2019''',
+				dateRangeStartDate = '''10/11/2019''');
+		}
+
+		task ("Then: The warning message should still display") {
+			AssertVisible(
+				key_warningMessage = "Publishing all content or using a wide date range will take some time.",
+				locator1 = "StagingPublishToLive#WARNING_SPECIFIC");
+		}
+
+		task ("When: Click on From Last Publish Date in the Content section") {
+			Click.clickNoMouseOverNoWaitForVisible(locator1 = "Radio#CHOOSE_CONTENT_FROM_LAST_PUBLISH_DATE_CHANGE");
+		}
+
+		task ("Then: The warning message should not display") {
+			AssertElementNotPresent(
+				key_warningMessage = "Publishing all content or using a wide date range will take some time.",
+				locator1 = "StagingPublishToLive#WARNING_SPECIFIC");
+		}
+
+		task ("When: Publish from the portlet") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
+
+			Staging.configurePublishToLiveViaPortletCP(contentDateRange = "Date Range");
+		}
+
+		task ("Then: The warning message should not display") {
+			AssertElementNotPresent(
+				key_warningMessage = "Publishing all content or using a wide date range will take some time.",
+				locator1 = "StagingPublishToLive#WARNING_SPECIFIC");
+		}
+	}
+
+	@description = "This is a use case for LPS-190736. TC5: Verify that the user is notified when choosing ALL or Date Range in the Custom Publish Process screen after enabling local staging."
+	@priority = 3
+	test ViewWarningMessageWhenPublishFromStagingAdmin {
+		task ("Given: Navigate to the Advanced Publish Process screen") {
+			Staging.openStagingAdmin(siteURLKey = "site-name-staging");
+
+			Staging.addCustomPublication();
+
+			AssertElementNotPresent(
+				key_warningMessage = "Publishing all content or using a wide date range will take some time.",
+				locator1 = "StagingPublishToLive#WARNING_SPECIFIC");
+		}
+
+		task ("When: Click on ALL in the Content section and click on 'Refresh Counts' button") {
+			Staging.configurePublishToLive(contentDateRange = "All");
+		}
+
+		task ("Then: The warning message should still display") {
+			AssertVisible(
+				key_warningMessage = "Publishing all content or using a wide date range will take some time.",
+				locator1 = "StagingPublishToLive#WARNING_SPECIFIC");
+		}
+
+		task ("When: Click on Date Range in the Content section and click on 'Refresh Counts' button") {
+			Click(locator1 = "Radio#CHOOSE_CONTENT_DATE_RANGE_CHANGE");
+
+			ClickNoError(locator1 = "Link#REFRESH_COUNTS");
+		}
+
+		task ("Then: The warning message should still display") {
+			AssertVisible(
+				key_warningMessage = "Publishing all content or using a wide date range will take some time.",
+				locator1 = "StagingPublishToLive#WARNING_SPECIFIC");
+		}
+
+		task ("When: Click on Last in the Content section") {
+			Click.clickNoMouseOverNoWaitForVisible(locator1 = "StagingPublishToLive#CONTENT_LAST");
+		}
+
+		task ("Then: The warning message should not display") {
+			AssertElementNotPresent(
+				key_warningMessage = "Publishing all content or using a wide date range will take some time.",
+				locator1 = "StagingPublishToLive#WARNING_SPECIFIC");
 		}
 	}
 

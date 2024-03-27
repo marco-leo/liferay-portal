@@ -6,6 +6,7 @@ definition {
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property property.group = "analytics.cloud.profile";
+	property test.liferay.virtual.instance = "false";
 	property testray.main.component.name = "Analytics Cloud";
 
 	setUp {
@@ -18,7 +19,7 @@ definition {
 		task ("Set up instance and sign in DXP") {
 			TestCase.setUpPortalInstance();
 
-			ACUtils.launchDXP();
+			ACUtils.launchDXPUI();
 		}
 
 		task ("Connect the DXP to AC") {
@@ -29,15 +30,13 @@ definition {
 	tearDown {
 		var testLiferayVirtualInstance = PropsUtil.get("test.liferay.virtual.instance");
 
-		// It is not possible to delete properties and data source after LRAC-13389. This functionality should return after LRAC-8040
-
-		//ACUtils.tearDownAC();
-
 		ACUtils.tearDownDXP();
 
 		if (${testLiferayVirtualInstance} == "true") {
 			PortalInstances.tearDownCP();
 		}
+
+		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: LRAC-12058 | Automation ID: LRAC-12141 | Test Summary: Request search keywords using all parameters"
@@ -60,7 +59,15 @@ definition {
 		}
 
 		task ("Type keyword in search bar") {
-			SearchPortlets.searchEmbedded(searchTerm = ${keyword});
+			for (var n : list "1,2,3,4") {
+				SearchPage.searchEmbedded(searchTerm = ${keyword});
+
+				ACUtils.waitForSendingRequest();
+			}
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
 		}
 
 		task ("Run curl command to get keyword results") {
@@ -94,7 +101,7 @@ definition {
 		}
 
 		task ("Go to the search bar and search for a keyword") {
-			SearchPortlets.searchEmbedded(searchTerm = ${keyword});
+			SearchPage.searchEmbedded(searchTerm = ${keyword});
 		}
 
 		task ("Run curl command to get keyword results using languageId = en-US") {
@@ -144,7 +151,15 @@ definition {
 		}
 
 		task ("Go to the search bar and search for a keyword") {
-			SearchPortlets.searchEmbedded(searchTerm = ${keyword});
+			for (var n : list "1,2,3,4") {
+				SearchPage.searchEmbedded(searchTerm = ${keyword});
+
+				ACUtils.waitForSendingRequest();
+			}
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
 		}
 
 		task ("Run curl command to get keyword results using group Guest") {
@@ -190,7 +205,7 @@ definition {
 
 		task ("Type keyword in search bar") {
 			for (var keyword : list "${keyword1},${keyword2}") {
-				SearchPortlets.searchEmbedded(searchTerm = ${keyword});
+				SearchPage.searchEmbedded(searchTerm = ${keyword});
 			}
 		}
 
@@ -234,7 +249,7 @@ definition {
 
 		task ("Go to the search bar and search for a keyword") {
 			for (var keyword : list "${firstKeyword},${secondKeyword}") {
-				SearchPortlets.searchEmbedded(searchTerm = ${keyword});
+				SearchPage.searchEmbedded(searchTerm = ${keyword});
 			}
 		}
 
@@ -302,7 +317,7 @@ definition {
 
 		task ("Type keyword in search bar") {
 			for (var keyword : list "${keyword1},${keyword2},${keyword3}") {
-				SearchPortlets.searchEmbedded(searchTerm = ${keyword});
+				SearchPage.searchEmbedded(searchTerm = ${keyword});
 			}
 		}
 
@@ -348,8 +363,14 @@ definition {
 
 		task ("Type keyword in search bar") {
 			for (var keyword : list "${keyword1},${keyword1},${keyword2}") {
-				SearchPortlets.searchEmbedded(searchTerm = ${keyword});
+				SearchPage.searchEmbedded(searchTerm = ${keyword});
+
+				ACUtils.waitForSendingRequest();
 			}
+		}
+
+		task ("Close sessions") {
+			ACUtils.closeAllSessionsAndWait();
 		}
 
 		task ("Run curl command to get keyword results") {

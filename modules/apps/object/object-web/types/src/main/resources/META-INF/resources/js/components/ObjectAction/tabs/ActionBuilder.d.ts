@@ -5,14 +5,16 @@
 
 /// <reference types="react" />
 
-import {CustomItem, SidebarCategory} from '@liferay/object-js-components-web';
-import {ActionError} from '../index';
+import {SidebarCategory} from '@liferay/object-js-components-web';
+import {ActionError} from '../ObjectActionContainer';
+import './ActionBuilder.scss';
 interface ActionBuilderProps {
+	disableGroovyAction: boolean;
 	errors: ActionError;
 	isApproved: boolean;
 	objectActionCodeEditorElements: SidebarCategory[];
-	objectActionExecutors: CustomItem[];
-	objectActionTriggers: CustomItem[];
+	objectActionExecutors: ObjectActionTriggerExecutorItem[];
+	objectActionTriggers: ObjectActionTriggerExecutorItem[];
 	objectDefinitionExternalReferenceCode: string;
 	objectDefinitionId: number;
 	objectDefinitionsRelationshipsURL: string;
@@ -26,6 +28,7 @@ export interface WarningStates {
 	requiredFields: boolean;
 }
 export default function ActionBuilder({
+	disableGroovyAction,
 	errors,
 	isApproved,
 	objectActionCodeEditorElements,

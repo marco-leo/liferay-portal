@@ -44,6 +44,7 @@ import com.liferay.portal.kernel.model.OrganizationConstants;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.CountryLocalService;
@@ -62,6 +63,7 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -118,6 +120,10 @@ public class CommerceOrderTest {
 
 	@Before
 	public void setUp() throws Exception {
+		_originalCompanyId = CompanyThreadLocal.getCompanyId();
+
+		CompanyThreadLocal.setCompanyId(TestPropsValues.getCompanyId());
+
 		_group = GroupTestUtil.addGroup();
 		_user = UserTestUtil.addUser(true);
 
@@ -166,6 +172,8 @@ public class CommerceOrderTest {
 			componentDescriptionDTO);
 
 		voidPromise.getValue();
+
+		CompanyThreadLocal.setCompanyId(_originalCompanyId);
 	}
 
 	@Test
@@ -361,7 +369,7 @@ public class CommerceOrderTest {
 	}
 
 	@Test
-	public void testGetCommerceOrdersForOmniAdmin() throws Exception {
+	public void testGetCommerceOrdersForOmniadmin() throws Exception {
 		frutillaRule.scenario(
 			"Ensure that the Omni-Admin is able to pull all orders"
 		).given(
@@ -1158,6 +1166,7 @@ public class CommerceOrderTest {
 	@Inject
 	private OrganizationLocalService _organizationLocalService;
 
+	private long _originalCompanyId;
 	private Region _region;
 
 	@Inject

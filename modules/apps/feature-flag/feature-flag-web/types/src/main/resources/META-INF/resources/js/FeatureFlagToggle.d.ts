@@ -6,23 +6,21 @@
 /// <reference types="react" />
 
 interface IProps {
-	ariaDescribedBy: string;
+	ariaLabel: string;
 	companyId: number;
 	disabled: boolean;
+	enabled: boolean;
 	featureFlagKey: string;
 	inputName: string;
-	labelOff: string;
-	labelOn: string;
-	toggled: boolean;
+	onItemsChange: (value: Array<any>) => void;
 }
 declare const FeatureFlagToggle: ({
-	ariaDescribedBy,
+	ariaLabel,
 	companyId,
-	disabled: initialDisabled,
+	disabled,
+	enabled,
 	featureFlagKey,
 	inputName,
-	labelOff,
-	labelOn,
-	toggled: initialToggled,
+	onItemsChange,
 }: IProps) => JSX.Element;
 export default FeatureFlagToggle;

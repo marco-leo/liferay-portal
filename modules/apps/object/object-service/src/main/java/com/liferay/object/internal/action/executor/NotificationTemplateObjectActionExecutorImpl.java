@@ -21,6 +21,7 @@ import com.liferay.object.model.ObjectField;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.system.SystemObjectDefinitionManagerRegistry;
+import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -28,7 +29,13 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 
+import java.sql.Timestamp;
+
+import java.text.SimpleDateFormat;
+
+import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -74,6 +81,8 @@ public class NotificationTemplateObjectActionExecutorImpl
 				GetterUtil.getLong(termValues.get("id"))
 			).externalReferenceCode(
 				GetterUtil.getString(termValues.get("externalReferenceCode"))
+			).groupId(
+				GetterUtil.getLong(termValues.get("groupId"))
 			).notificationTemplate(
 				notificationTemplate
 			).termValues(
@@ -101,22 +110,66 @@ public class NotificationTemplateObjectActionExecutorImpl
 				_objectFieldLocalService.getObjectFields(
 					objectDefinition.getObjectDefinitionId())) {
 
-			if (!StringUtil.equals(
-					objectField.getBusinessType(),
-					ObjectFieldConstants.BUSINESS_TYPE_PICKLIST) ||
-				(termValues.get(objectField.getName()) == null)) {
-
+			if (termValues.get(objectField.getName()) == null) {
 				continue;
 			}
 
-			ListTypeEntry listTypeEntry =
-				_listTypeEntryLocalService.fetchListTypeEntry(
-					objectField.getListTypeDefinitionId(),
-					(String)termValues.get(objectField.getName()));
+			if (Objects.equals(
+					objectField.getBusinessType(),
+					ObjectFieldConstants.BUSINESS_TYPE_DATE) &&
+				!Objects.equals(objectField.getName(), "createDate") &&
+				!Objects.equals(objectField.getName(), "modifiedDate")) {
 
-			if (listTypeEntry != null) {
+				SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
+					"yyyy-MM-dd");
+
+				Timestamp timestamp = (Timestamp)termValues.get(
+					objectField.getName());
+
 				termValues.put(
-					objectField.getName(), listTypeEntry.getNameCurrentValue());
+					objectField.getName(),
+					simpleDateFormat.format(new Date(timestamp.getTime())));
+			}
+			else if (Objects.equals(
+						objectField.getBusinessType(),
+						ObjectFieldConstants.
+							BUSINESS_TYPE_MULTISELECT_PICKLIST)) {
+
+				termValues.put(
+					objectField.getName(),
+					StringUtil.merge(
+						TransformUtil.transform(
+							StringUtil.split(
+								String.valueOf(
+									termValues.get(objectField.getName())),
+								StringPool.COMMA_AND_SPACE),
+							listTypeEntryKey -> {
+								ListTypeEntry listTypeEntry =
+									_listTypeEntryLocalService.
+										fetchListTypeEntry(
+											objectField.
+												getListTypeDefinitionId(),
+											listTypeEntryKey);
+
+								return listTypeEntry.getNameCurrentValue();
+							},
+							String.class),
+						StringPool.COMMA_AND_SPACE));
+			}
+			else if (Objects.equals(
+						objectField.getBusinessType(),
+						ObjectFieldConstants.BUSINESS_TYPE_PICKLIST)) {
+
+				ListTypeEntry listTypeEntry =
+					_listTypeEntryLocalService.fetchListTypeEntry(
+						objectField.getListTypeDefinitionId(),
+						(String)termValues.get(objectField.getName()));
+
+				if (listTypeEntry != null) {
+					termValues.put(
+						objectField.getName(),
+						listTypeEntry.getNameCurrentValue());
+				}
 			}
 		}
 

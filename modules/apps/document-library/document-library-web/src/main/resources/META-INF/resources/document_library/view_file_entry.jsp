@@ -23,9 +23,10 @@ if (addPortletBreadcrumbEntries) {
 }
 
 boolean portletTitleBasedNavigation = GetterUtil.getBoolean(portletConfig.getInitParameter("portlet-title-based-navigation"));
+boolean showBackIcon = Validator.isNotNull(dlViewFileEntryDisplayContext.getRedirect());
 
 if (portletTitleBasedNavigation) {
-	portletDisplay.setShowBackIcon(true);
+	portletDisplay.setShowBackIcon(showBackIcon);
 	portletDisplay.setURLBack(dlViewFileEntryDisplayContext.getRedirect());
 
 	renderResponse.setTitle(fileVersion.getTitle());
@@ -84,17 +85,19 @@ if (portletTitleBasedNavigation) {
 			<div class="file-entry-actions management-bar management-bar-light navbar navbar-expand-md">
 				<ul class="navbar-nav navbar-nav-expand">
 					<li class="nav-item nav-item-expand">
-						<clay:link
-							aria-label='<%= LanguageUtil.get(request, "back") %>'
-							borderless="<%= true %>"
-							displayType="secondary"
-							href="<%= dlViewFileEntryDisplayContext.getRedirect() %>"
-							icon="angle-left"
-							monospaced="<%= true %>"
-							type="button"
-						/>
+						<c:if test="<%= showBackIcon %>">
+							<clay:link
+								aria-label='<%= LanguageUtil.get(request, "back") %>'
+								borderless="<%= true %>"
+								displayType="secondary"
+								href="<%= dlViewFileEntryDisplayContext.getRedirect() %>"
+								icon="angle-left"
+								monospaced="<%= true %>"
+								type="button"
+							/>
+						</c:if>
 
-						<h3 class="mb-1 text-secondary"><%= dlViewFileEntryDisplayContext.getDocumentTitle() %></h3>
+						<h3 class="mb-1 text-secondary"><%= HtmlUtil.escape(dlViewFileEntryDisplayContext.getDocumentTitle()) %></h3>
 					</li>
 					<li class="nav-item">
 						<liferay-frontend:sidebar-toggler-button
@@ -173,15 +176,7 @@ if (portletTitleBasedNavigation) {
 <%
 ItemSelector itemSelector = (ItemSelector)request.getAttribute(ItemSelector.class.getName());
 
-FolderItemSelectorCriterion folderItemSelectorCriterion = new FolderItemSelectorCriterion();
-
-folderItemSelectorCriterion.setDesiredItemSelectorReturnTypes(new FolderItemSelectorReturnType());
-folderItemSelectorCriterion.setFolderId(fileEntry.getFolderId());
-folderItemSelectorCriterion.setRepositoryId(fileEntry.getRepositoryId());
-folderItemSelectorCriterion.setSelectedFolderId(fileEntry.getFolderId());
-folderItemSelectorCriterion.setSelectedRepositoryId(fileEntry.getRepositoryId());
-
-PortletURL selectFolderURL = itemSelector.getItemSelectorURL(RequestBackedPortletURLFactoryUtil.create(request), portletDisplay.getNamespace() + "folderSelected", folderItemSelectorCriterion);
+FolderItemSelectorURLProvider folderItemSelectorURLProvider = new FolderItemSelectorURLProvider(request, itemSelector);
 %>
 
 <portlet:actionURL name="/document_library/edit_entry" var="editEntryURL" />
@@ -215,13 +210,14 @@ PortletURL selectFolderURL = itemSelector.getItemSelectorURL(RequestBackedPortle
 
 				form.elements[namespace + 'cmd'].value = 'move';
 				form.elements[namespace + 'newFolderId'].value =
-					selectedItem.folderid;
+					selectedItem.resourceid;
 
 				submitForm(form, actionUrl, false);
 			},
 			title:
 				'<liferay-ui:message arguments="<%= 1 %>" key="select-destination-folder-for-x-items" translateArguments="<%= false %>" />',
-			url: '<%= HtmlUtil.escapeJS(selectFolderURL.toString()) %>',
+			url:
+				'<%= HtmlUtil.escapeJS(folderItemSelectorURLProvider.getSelectMoveToFolderURL(fileEntry.getRepositoryId(), fileEntry.getFolderId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID)) %>',
 		});
 	}
 </aui:script>
@@ -246,4 +242,4 @@ PortletURL selectFolderURL = itemSelector.getItemSelectorURL(RequestBackedPortle
 
 <liferay-util:dynamic-include key="com.liferay.document.library.web#/document_library/view_file_entry.jsp#post" />
 
-<%@ include file="/document_library/friendly_url_changed_message.jspf" %>
+<%@ include file="/document_library/session_messages.jspf" %>

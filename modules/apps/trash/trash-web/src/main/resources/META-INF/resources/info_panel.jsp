@@ -51,7 +51,7 @@ List<TrashEntry> trashEntries = (List<TrashEntry>)request.getAttribute(TrashWebK
 												%>'
 												aria-label='<%= LanguageUtil.get(request, "show-actions") %>'
 												dropdownItems="<%= trashDisplayContext.getTrashEntryActionDropdownItems(trashEntry) %>"
-												propsTransformer="js/EntriesPropsTransformer"
+												propsTransformer="{EntriesPropsTransformer} from trash-web"
 											/>
 										</c:when>
 										<c:otherwise>
@@ -63,7 +63,7 @@ List<TrashEntry> trashEntries = (List<TrashEntry>)request.getAttribute(TrashWebK
 												%>'
 												aria-label='<%= LanguageUtil.get(request, "show-actions") %>'
 												dropdownItems="<%= trashDisplayContext.getTrashViewContentActionDropdownItems(trashRenderer.getClassName(), trashRenderer.getClassPK()) %>"
-												propsTransformer="js/EntriesPropsTransformer"
+												propsTransformer="{EntriesPropsTransformer} from trash-web"
 											/>
 										</c:otherwise>
 									</c:choose>
@@ -81,7 +81,7 @@ List<TrashEntry> trashEntries = (List<TrashEntry>)request.getAttribute(TrashWebK
 							<dt class="sidebar-dt"><liferay-ui:message key="removed-date" /></dt>
 
 							<dd class="sidebar-dd">
-								<%= dateFormatDateTime.format(trashEntry.getCreateDate()) %>
+								<%= dateTimeFormat.format(trashEntry.getCreateDate()) %>
 							</dd>
 							<dt class="sidebar-dt"><liferay-ui:message key="removed-by" /></dt>
 

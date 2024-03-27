@@ -25,10 +25,6 @@ definition {
 	tearDown {
 		var testLiferayVirtualInstance = PropsUtil.get("test.liferay.virtual.instance");
 
-		// It is not possible to delete properties and data source after LRAC-13389. This functionality should return after LRAC-8040
-
-		//ACUtils.tearDownAC();
-
 		ACUtils.tearDownDXP();
 
 		if (${testLiferayVirtualInstance} == "true") {
@@ -37,6 +33,8 @@ definition {
 		else {
 			JSONGroup.deleteGroupByName(groupName = "Site Name");
 		}
+
+		ACUtils.tearDownAC();
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8387 | Test Summary: Blogs asset appears on list shows pages that the blog exists on"
@@ -155,20 +153,24 @@ definition {
 				userScreenName = ${name});
 		}
 
-		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		ACUtils.navigateToSitePageWithUser(
 			actionType = "View Blog",
-			documentTitleList = "Blogs AC Title",
+			documentTitleList = "Blogs AC Title,Blogs AC Title,Blogs AC Title,Blogs AC Title",
 			emailList = ${emailList},
 			pageName = "AC Page",
 			siteName = "Site Name");
 
+		ACUtils.closeAllSessionsAndWait();
+
 		User.logoutPG();
+
+		ACUtils.clearLocalStorage();
 
 		ACUtils.navigateToSitePage(
 			actionType = "View Blog",
-			documentTitleList = "Blogs AC Title",
+			documentTitleList = "Blogs AC Title,Blogs AC Title,Blogs AC Title,Blogs AC Title",
 			pageName = "AC Page",
 			siteName = "Site Name");
 
@@ -176,7 +178,7 @@ definition {
 
 		ACUtils.launchAC();
 
-		ACProperties.switchProperty(propertyName = ${propertyName});
+		ACProperties.switchProperty(propertyName = ${assignedPropertyName});
 
 		ACNavigation.goToAssets();
 
@@ -705,7 +707,6 @@ definition {
 		var usernameList = "ac,dxp,liferay";
 		var emailList = "ac@liferay.com,dxp@liferay.com,liferay@liferay.com";
 		var nameList = "ac ac,liferay liferay,dxp dxp";
-		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		for (var name : list ${usernameList}) {
 			JSONUser.addUser(
@@ -715,11 +716,11 @@ definition {
 				userScreenName = ${name});
 		}
 
-		ACDXPSettings.syncNewContactData();
+		ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		ACUtils.navigateToSitePageWithUser(
 			actionType = "View Blog",
-			documentTitleList = "Blogs AC Title",
+			documentTitleList = "Blogs AC Title,Blogs AC Title,Blogs AC Title,Blogs AC Title",
 			emailList = ${emailList},
 			pageName = "AC Page",
 			siteName = "Site Name");
@@ -732,7 +733,7 @@ definition {
 
 		ACUtils.navigateToSitePageWithUser(
 			actionType = "View Blog",
-			documentTitleList = "Blogs AC Title",
+			documentTitleList = "Blogs AC Title,Blogs AC Title,Blogs AC Title,Blogs AC Title",
 			emailList = "userac@liferay.com",
 			pageName = "AC Page",
 			siteName = "Site Name");
@@ -741,7 +742,7 @@ definition {
 
 		ACUtils.launchAC();
 
-		ACProperties.switchProperty(propertyName = ${propertyName});
+		ACProperties.switchProperty(propertyName = ${assignedPropertyName});
 
 		ACNavigation.goToAssets();
 

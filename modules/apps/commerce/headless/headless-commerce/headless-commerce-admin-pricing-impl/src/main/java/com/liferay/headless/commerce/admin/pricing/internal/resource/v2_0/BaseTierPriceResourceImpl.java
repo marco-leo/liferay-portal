@@ -11,8 +11,8 @@ import com.liferay.petra.function.UnsafeBiConsumer;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.function.transform.TransformUtil;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
@@ -20,10 +20,12 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.odata.filter.ExpressionConvert;
 import com.liferay.portal.odata.filter.FilterParser;
@@ -506,8 +508,44 @@ public abstract class BaseTierPriceResourceImpl
 			Map<String, Serializable> parameters)
 		throws Exception {
 
-		throw new UnsupportedOperationException(
-			"This method needs to be implemented");
+		UnsafeFunction<TierPrice, TierPrice, Exception>
+			tierPriceUnsafeFunction = null;
+
+		String createStrategy = (String)parameters.getOrDefault(
+			"createStrategy", "INSERT");
+
+		if (StringUtil.equalsIgnoreCase(createStrategy, "INSERT")) {
+			if (parameters.containsKey("externalReferenceCode")) {
+				tierPriceUnsafeFunction =
+					tierPrice -> postPriceEntryByExternalReferenceCodeTierPrice(
+						(String)parameters.get("externalReferenceCode"),
+						tierPrice);
+			}
+			else {
+				throw new NotSupportedException(
+					"One of the following parameters must be specified: [externalReferenceCode]");
+			}
+		}
+
+		if (tierPriceUnsafeFunction == null) {
+			throw new NotSupportedException(
+				"Create strategy \"" + createStrategy +
+					"\" is not supported for TierPrice");
+		}
+
+		if (contextBatchUnsafeBiConsumer != null) {
+			contextBatchUnsafeBiConsumer.accept(
+				tierPrices, tierPriceUnsafeFunction);
+		}
+		else if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				tierPrices, tierPriceUnsafeFunction::apply);
+		}
+		else {
+			for (TierPrice tierPrice : tierPrices) {
+				tierPriceUnsafeFunction.apply(tierPrice);
+			}
+		}
 	}
 
 	@Override
@@ -522,7 +560,7 @@ public abstract class BaseTierPriceResourceImpl
 	}
 
 	public Set<String> getAvailableCreateStrategies() {
-		return SetUtil.fromArray();
+		return SetUtil.fromArray("INSERT");
 	}
 
 	public Set<String> getAvailableUpdateStrategies() {
@@ -662,6 +700,13 @@ public abstract class BaseTierPriceResourceImpl
 	public void setContextHttpServletRequest(
 		HttpServletRequest contextHttpServletRequest) {
 
+		if ((contextHttpServletRequest != null) &&
+			(contextHttpServletRequest.getAttribute(WebKeys.CTX) == null)) {
+
+			contextHttpServletRequest.setAttribute(
+				WebKeys.CTX, ServletContextPool.get(StringPool.BLANK));
+		}
+
 		this.contextHttpServletRequest = contextHttpServletRequest;
 	}
 
@@ -799,7 +844,9 @@ public abstract class BaseTierPriceResourceImpl
 	}
 
 	protected Map<String, String> addAction(
-		String actionName, GroupedModel groupedModel, String methodName) {
+		String actionName,
+		com.liferay.portal.kernel.model.GroupedModel groupedModel,
+		String methodName) {
 
 		return ActionUtil.addAction(
 			actionName, getClass(), groupedModel, methodName,
@@ -839,14 +886,15 @@ public abstract class BaseTierPriceResourceImpl
 	}
 
 	protected <T, R, E extends Throwable> R[] transform(
-		T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz) {
+		T[] array, UnsafeFunction<T, R, E> unsafeFunction,
+		Class<? extends R> clazz) {
 
 		return TransformUtil.transform(array, unsafeFunction, clazz);
 	}
 
 	protected <T, R, E extends Throwable> R[] transformToArray(
 		Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction,
-		Class<?> clazz) {
+		Class<? extends R> clazz) {
 
 		return TransformUtil.transformToArray(
 			collection, unsafeFunction, clazz);
@@ -872,7 +920,8 @@ public abstract class BaseTierPriceResourceImpl
 	}
 
 	protected <T, R, E extends Throwable> R[] unsafeTransform(
-			T[] array, UnsafeFunction<T, R, E> unsafeFunction, Class<?> clazz)
+			T[] array, UnsafeFunction<T, R, E> unsafeFunction,
+			Class<? extends R> clazz)
 		throws E {
 
 		return TransformUtil.unsafeTransform(array, unsafeFunction, clazz);
@@ -880,7 +929,7 @@ public abstract class BaseTierPriceResourceImpl
 
 	protected <T, R, E extends Throwable> R[] unsafeTransformToArray(
 			Collection<T> collection, UnsafeFunction<T, R, E> unsafeFunction,
-			Class<?> clazz)
+			Class<? extends R> clazz)
 		throws E {
 
 		return TransformUtil.unsafeTransformToArray(

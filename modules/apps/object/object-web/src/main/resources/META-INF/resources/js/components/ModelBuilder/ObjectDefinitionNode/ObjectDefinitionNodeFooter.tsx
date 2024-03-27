@@ -7,38 +7,45 @@ import ClayButton from '@clayui/button';
 import DropDown from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
 import {sub} from 'frontend-js-web';
-import React, {SetStateAction} from 'react';
+import React from 'react';
 
 import './ObjectDefinitionNodeFooter.scss';
+import {useObjectFolderContext} from '../ModelBuilderContext/objectFolderContext';
+import {TYPES} from '../ModelBuilderContext/typesEnum';
 
 interface ObjectDefinitionNodeFooterProps {
+	externalReferenceCode: string;
 	handleSelectObjectDefinitionNode: () => void;
 	isLinkedObjectDefinition: boolean;
-	setShowAllObjectFields: (value: boolean) => void;
-	setShowModal: (value: SetStateAction<Partial<ModelBuilderModals>>) => void;
 	showAllObjectFields: boolean;
 }
 
 export default function ObjectDefinitionNodeFooter({
+	externalReferenceCode,
 	handleSelectObjectDefinitionNode,
 	isLinkedObjectDefinition,
-	setShowAllObjectFields,
-	setShowModal,
 	showAllObjectFields,
 }: ObjectDefinitionNodeFooterProps) {
+	const [_, dispatch] = useObjectFolderContext();
+
 	return (
 		<>
-			<div
-				className="lfr-objects__model-builder-node-button-container"
-				onClick={handleSelectObjectDefinitionNode}
-			>
+			<div className="lfr-objects__model-builder-node-button-container">
 				{!isLinkedObjectDefinition && (
 					<DropDown
 						alignmentPosition={4}
 						trigger={
 							<ClayButton
+								aria-labelledby={sub(
+									Liferay.Language.get('x-or-x'),
+									Liferay.Language.get('add-field'),
+									Liferay.Language.get('relationship')
+								)}
 								displayType="secondary"
-								onClick={(event) => event.stopPropagation()}
+								onClick={() =>
+									handleSelectObjectDefinitionNode()
+								}
+								size="sm"
 							>
 								<span>
 									{sub(
@@ -53,10 +60,15 @@ export default function ObjectDefinitionNodeFooter({
 						<DropDown.ItemList>
 							<DropDown.Item
 								onClick={() =>
-									setShowModal((prevState) => ({
-										...prevState,
-										addObjectField: true,
-									}))
+									dispatch({
+										payload: {
+											updatedModelBuilderModals: {
+												addObjectField: true,
+											},
+										},
+										type:
+											TYPES.UPDATE_VISIBILITY_MODEL_BUILDER_MODALS,
+									})
 								}
 							>
 								<ClayIcon
@@ -69,16 +81,15 @@ export default function ObjectDefinitionNodeFooter({
 
 							<DropDown.Item
 								onClick={() => {
-									setShowModal(
-										(
-											previousState: Partial<
-												ModelBuilderModals
-											>
-										) => ({
-											...previousState,
-											addObjectRelationship: true,
-										})
-									);
+									dispatch({
+										payload: {
+											updatedModelBuilderModals: {
+												addObjectRelationship: true,
+											},
+										},
+										type:
+											TYPES.UPDATE_VISIBILITY_MODEL_BUILDER_MODALS,
+									});
 								}}
 							>
 								<ClayIcon
@@ -98,11 +109,29 @@ export default function ObjectDefinitionNodeFooter({
 
 			<div className="lfr-objects__model-builder-node-show-all-fields-container">
 				<ClayButton
+					aria-labelledby={
+						showAllObjectFields
+							? sub(
+									Liferay.Language.get('hide-x'),
+									Liferay.Language.get('fields')
+							  )
+							: sub(
+									Liferay.Language.get('show-all-x'),
+									Liferay.Language.get('fields')
+							  )
+					}
 					className="lfr-objects__model-builder-node-show-all-fields-button"
 					displayType="unstyled"
 					onClick={() => {
-						setShowAllObjectFields(!showAllObjectFields);
+						dispatch({
+							payload: {
+								objectDefinitionExternalReferenceCode: externalReferenceCode,
+								showAllObjectFields,
+							},
+							type: TYPES.SET_SHOW_ALL_OBJECT_FIELDS,
+						});
 					}}
+					size="sm"
 				>
 					{showAllObjectFields
 						? sub(

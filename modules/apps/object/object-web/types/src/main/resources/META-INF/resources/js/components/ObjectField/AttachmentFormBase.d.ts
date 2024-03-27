@@ -11,13 +11,17 @@ interface IAttachmentFormBaseProps {
 	error?: string;
 	objectDefinitionName: string;
 	objectFieldSettings: ObjectFieldSetting[];
+	onSubmit?: (values?: Partial<ObjectField>) => void;
 	setValues: (values: Partial<ObjectField>) => void;
+	values: Partial<ObjectField>;
 }
 export declare function AttachmentFormBase({
 	disabled,
 	error,
 	objectDefinitionName,
 	objectFieldSettings,
+	onSubmit,
 	setValues,
+	values,
 }: IAttachmentFormBaseProps): JSX.Element;
 export {};

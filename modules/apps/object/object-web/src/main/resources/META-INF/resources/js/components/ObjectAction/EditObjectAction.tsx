@@ -3,17 +3,18 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {CustomItem, SidebarCategory} from '@liferay/object-js-components-web';
+import {SidebarCategory} from '@liferay/object-js-components-web';
 import React from 'react';
 
-import ObjectAction from './index';
+import {ObjectActionContainer} from './ObjectActionContainer';
 
 interface EditObjectActionProps {
+	allowScriptContentBeExecutedOrIncluded: boolean;
 	isApproved: boolean;
 	objectAction: ObjectAction;
 	objectActionCodeEditorElements: SidebarCategory[];
-	objectActionExecutors: CustomItem[];
-	objectActionTriggers: CustomItem[];
+	objectActionExecutors: ObjectActionTriggerExecutorItem[];
+	objectActionTriggers: ObjectActionTriggerExecutorItem[];
 	objectDefinitionExternalReferenceCode: string;
 	objectDefinitionId: number;
 	objectDefinitionsRelationshipsURL: string;
@@ -23,6 +24,7 @@ interface EditObjectActionProps {
 }
 
 export default function EditObjectAction({
+	allowScriptContentBeExecutedOrIncluded,
 	isApproved,
 	objectAction: {id, ...values},
 	objectActionCodeEditorElements,
@@ -36,7 +38,11 @@ export default function EditObjectAction({
 	validateExpressionURL,
 }: EditObjectActionProps) {
 	return (
-		<ObjectAction
+		<ObjectActionContainer
+			allowScriptContentBeExecutedOrIncluded={
+				allowScriptContentBeExecutedOrIncluded
+			}
+			editingObjectAction
 			isApproved={isApproved}
 			objectAction={values}
 			objectActionCodeEditorElements={objectActionCodeEditorElements}

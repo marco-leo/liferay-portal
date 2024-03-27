@@ -28,8 +28,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -38,6 +36,7 @@ import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.search.test.util.SearchTestRule;
@@ -63,8 +62,6 @@ import java.util.Set;
 import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
-import org.apache.commons.lang.time.DateUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -350,11 +347,12 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 
 	@Test
 	public void testGetObjectDefinitionsPageWithPagination() throws Exception {
-		Page<ObjectDefinition> totalPage =
+		Page<ObjectDefinition> objectDefinitionPage =
 			objectDefinitionResource.getObjectDefinitionsPage(
 				null, null, null, null, null);
 
-		int totalCount = GetterUtil.getInteger(totalPage.getTotalCount());
+		int totalCount = GetterUtil.getInteger(
+			objectDefinitionPage.getTotalCount());
 
 		ObjectDefinition objectDefinition1 =
 			testGetObjectDefinitionsPage_addObjectDefinition(
@@ -368,39 +366,82 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 			testGetObjectDefinitionsPage_addObjectDefinition(
 				randomObjectDefinition());
 
-		Page<ObjectDefinition> page1 =
-			objectDefinitionResource.getObjectDefinitionsPage(
-				null, null, null, Pagination.of(1, totalCount + 2), null);
+		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
-		List<ObjectDefinition> objectDefinitions1 =
-			(List<ObjectDefinition>)page1.getItems();
+		int pageSizeLimit = 500;
 
-		Assert.assertEquals(
-			objectDefinitions1.toString(), totalCount + 2,
-			objectDefinitions1.size());
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<ObjectDefinition> page1 =
+				objectDefinitionResource.getObjectDefinitionsPage(
+					null, null, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+						pageSizeLimit),
+					null);
 
-		Page<ObjectDefinition> page2 =
-			objectDefinitionResource.getObjectDefinitionsPage(
-				null, null, null, Pagination.of(2, totalCount + 2), null);
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
 
-		Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+			assertContains(
+				objectDefinition1, (List<ObjectDefinition>)page1.getItems());
 
-		List<ObjectDefinition> objectDefinitions2 =
-			(List<ObjectDefinition>)page2.getItems();
+			Page<ObjectDefinition> page2 =
+				objectDefinitionResource.getObjectDefinitionsPage(
+					null, null, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+						pageSizeLimit),
+					null);
 
-		Assert.assertEquals(
-			objectDefinitions2.toString(), 1, objectDefinitions2.size());
+			assertContains(
+				objectDefinition2, (List<ObjectDefinition>)page2.getItems());
 
-		Page<ObjectDefinition> page3 =
-			objectDefinitionResource.getObjectDefinitionsPage(
-				null, null, null, Pagination.of(1, totalCount + 3), null);
+			Page<ObjectDefinition> page3 =
+				objectDefinitionResource.getObjectDefinitionsPage(
+					null, null, null,
+					Pagination.of(
+						(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+						pageSizeLimit),
+					null);
 
-		assertContains(
-			objectDefinition1, (List<ObjectDefinition>)page3.getItems());
-		assertContains(
-			objectDefinition2, (List<ObjectDefinition>)page3.getItems());
-		assertContains(
-			objectDefinition3, (List<ObjectDefinition>)page3.getItems());
+			assertContains(
+				objectDefinition3, (List<ObjectDefinition>)page3.getItems());
+		}
+		else {
+			Page<ObjectDefinition> page1 =
+				objectDefinitionResource.getObjectDefinitionsPage(
+					null, null, null, Pagination.of(1, totalCount + 2), null);
+
+			List<ObjectDefinition> objectDefinitions1 =
+				(List<ObjectDefinition>)page1.getItems();
+
+			Assert.assertEquals(
+				objectDefinitions1.toString(), totalCount + 2,
+				objectDefinitions1.size());
+
+			Page<ObjectDefinition> page2 =
+				objectDefinitionResource.getObjectDefinitionsPage(
+					null, null, null, Pagination.of(2, totalCount + 2), null);
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<ObjectDefinition> objectDefinitions2 =
+				(List<ObjectDefinition>)page2.getItems();
+
+			Assert.assertEquals(
+				objectDefinitions2.toString(), 1, objectDefinitions2.size());
+
+			Page<ObjectDefinition> page3 =
+				objectDefinitionResource.getObjectDefinitionsPage(
+					null, null, null, Pagination.of(1, (int)totalCount + 3),
+					null);
+
+			assertContains(
+				objectDefinition1, (List<ObjectDefinition>)page3.getItems());
+			assertContains(
+				objectDefinition2, (List<ObjectDefinition>)page3.getItems());
+			assertContains(
+				objectDefinition3, (List<ObjectDefinition>)page3.getItems());
+		}
 	}
 
 	@Test
@@ -412,7 +453,7 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 			(entityField, objectDefinition1, objectDefinition2) -> {
 				BeanTestUtil.setProperty(
 					objectDefinition1, entityField.getName(),
-					DateUtils.addMinutes(new Date(), -2));
+					new Date(System.currentTimeMillis() - (2 * Time.MINUTE)));
 			});
 	}
 
@@ -518,24 +559,32 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 		objectDefinition2 = testGetObjectDefinitionsPage_addObjectDefinition(
 			objectDefinition2);
 
+		Page<ObjectDefinition> page =
+			objectDefinitionResource.getObjectDefinitionsPage(
+				null, null, null, null, null);
+
 		for (EntityField entityField : entityFields) {
 			Page<ObjectDefinition> ascPage =
 				objectDefinitionResource.getObjectDefinitionsPage(
-					null, null, null, Pagination.of(1, 2),
+					null, null, null,
+					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":asc");
 
-			assertEquals(
-				Arrays.asList(objectDefinition1, objectDefinition2),
-				(List<ObjectDefinition>)ascPage.getItems());
+			assertContains(
+				objectDefinition1, (List<ObjectDefinition>)ascPage.getItems());
+			assertContains(
+				objectDefinition2, (List<ObjectDefinition>)ascPage.getItems());
 
 			Page<ObjectDefinition> descPage =
 				objectDefinitionResource.getObjectDefinitionsPage(
-					null, null, null, Pagination.of(1, 2),
+					null, null, null,
+					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":desc");
 
-			assertEquals(
-				Arrays.asList(objectDefinition2, objectDefinition1),
-				(List<ObjectDefinition>)descPage.getItems());
+			assertContains(
+				objectDefinition2, (List<ObjectDefinition>)descPage.getItems());
+			assertContains(
+				objectDefinition1, (List<ObjectDefinition>)descPage.getItems());
 		}
 	}
 
@@ -1984,6 +2033,10 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
 		throws Exception {
 
+		if (clazz.getClassLoader() == null) {
+			return new java.lang.reflect.Field[0];
+		}
+
 		return TransformUtil.transform(
 			ReflectionUtil.getDeclaredFields(clazz),
 			field -> {
@@ -2115,22 +2168,20 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 
 		if (entityFieldName.equals("dateCreated")) {
 			if (operator.equals("between")) {
+				Date date = objectDefinition.getDateCreated();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							objectDefinition.getDateCreated(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							objectDefinition.getDateCreated(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -2149,22 +2200,20 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 
 		if (entityFieldName.equals("dateModified")) {
 			if (operator.equals("between")) {
+				Date date = objectDefinition.getDateModified();
+
 				sb = new StringBundler();
 
 				sb.append("(");
 				sb.append(entityFieldName);
 				sb.append(" gt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							objectDefinition.getDateModified(), -2)));
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
 				sb.append(" and ");
 				sb.append(entityFieldName);
 				sb.append(" lt ");
 				sb.append(
-					_dateFormat.format(
-						DateUtils.addSeconds(
-							objectDefinition.getDateModified(), 2)));
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
 				sb.append(")");
 			}
 			else {
@@ -2884,9 +2933,9 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 	}
 
 	protected ObjectDefinitionResource objectDefinitionResource;
-	protected Group irrelevantGroup;
-	protected Company testCompany;
-	protected Group testGroup;
+	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
+	protected com.liferay.portal.kernel.model.Company testCompany;
+	protected com.liferay.portal.kernel.model.Group testGroup;
 
 	protected static class BeanTestUtil {
 

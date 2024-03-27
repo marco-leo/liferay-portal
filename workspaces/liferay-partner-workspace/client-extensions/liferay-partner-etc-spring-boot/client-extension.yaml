@@ -1,0 +1,10 @@
+assemble:
+    - fromTask: bootJar
+liferay-partner-etc-spring-boot-oauth-application-headless-server:
+    .serviceAddress: localhost:18080
+    .serviceScheme: http
+    name: Liferay Partner Etc Spring Boot OAuth Application Headless Server
+    scopes:
+        - Liferay.Headless.Admin.User.everything
+        - c_proxyaccount.everything.read
+    type: oAuthApplicationHeadlessServer
