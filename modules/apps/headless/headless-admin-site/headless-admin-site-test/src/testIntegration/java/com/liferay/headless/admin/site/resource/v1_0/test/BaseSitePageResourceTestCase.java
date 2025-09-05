@@ -177,6 +177,7 @@ public abstract class BaseSitePageResourceTestCase {
 		sitePage.setCreatorExternalReferenceCode(regex);
 		sitePage.setExternalReferenceCode(regex);
 		sitePage.setParentSitePageExternalReferenceCode(regex);
+		sitePage.setSiteExternalReferenceCode(regex);
 		sitePage.setUuid(regex);
 
 		String json = SitePageSerDes.toJSON(sitePage);
@@ -189,6 +190,7 @@ public abstract class BaseSitePageResourceTestCase {
 		Assert.assertEquals(regex, sitePage.getExternalReferenceCode());
 		Assert.assertEquals(
 			regex, sitePage.getParentSitePageExternalReferenceCode());
+		Assert.assertEquals(regex, sitePage.getSiteExternalReferenceCode());
 		Assert.assertEquals(regex, sitePage.getUuid());
 	}
 
@@ -204,33 +206,24 @@ public abstract class BaseSitePageResourceTestCase {
 			204,
 			sitePageResource.
 				deleteSiteSiteByExternalReferenceCodeSitePageHttpResponse(
-					testDeleteSiteSiteByExternalReferenceCodeSitePage_getSiteExternalReferenceCode(),
+					sitePage.getSiteExternalReferenceCode(),
 					sitePage.getExternalReferenceCode()));
 
 		assertHttpResponseStatusCode(
 			404,
 			sitePageResource.
 				getSiteSiteByExternalReferenceCodeSitePageHttpResponse(
-					testDeleteSiteSiteByExternalReferenceCodeSitePage_getSiteExternalReferenceCode(),
+					sitePage.getSiteExternalReferenceCode(),
 					sitePage.getExternalReferenceCode()));
 		assertHttpResponseStatusCode(
 			404,
 			sitePageResource.
 				getSiteSiteByExternalReferenceCodeSitePageHttpResponse(
-					testDeleteSiteSiteByExternalReferenceCodeSitePage_getSiteExternalReferenceCode(),
-					"-"));
+					sitePage.getSiteExternalReferenceCode(), "-"));
 	}
 
 	protected SitePage
 			testDeleteSiteSiteByExternalReferenceCodeSitePage_addSitePage()
-		throws Exception {
-
-		throw new UnsupportedOperationException(
-			"This method needs to be implemented");
-	}
-
-	protected String
-			testDeleteSiteSiteByExternalReferenceCodeSitePage_getSiteExternalReferenceCode()
 		throws Exception {
 
 		throw new UnsupportedOperationException(
@@ -246,7 +239,7 @@ public abstract class BaseSitePageResourceTestCase {
 
 		SitePage getSitePage =
 			sitePageResource.getSiteSiteByExternalReferenceCodeSitePage(
-				testGetSiteSiteByExternalReferenceCodeSitePage_getSiteExternalReferenceCode(),
+				postSitePage.getSiteExternalReferenceCode(),
 				postSitePage.getExternalReferenceCode());
 
 		assertEquals(postSitePage, getSitePage);
@@ -255,14 +248,6 @@ public abstract class BaseSitePageResourceTestCase {
 
 	protected SitePage
 			testGetSiteSiteByExternalReferenceCodeSitePage_addSitePage()
-		throws Exception {
-
-		throw new UnsupportedOperationException(
-			"This method needs to be implemented");
-	}
-
-	protected String
-			testGetSiteSiteByExternalReferenceCodeSitePage_getSiteExternalReferenceCode()
 		throws Exception {
 
 		throw new UnsupportedOperationException(
@@ -291,8 +276,9 @@ public abstract class BaseSitePageResourceTestCase {
 										put(
 											"siteExternalReferenceCode",
 											"\"" +
-												testGraphQLGetSiteSiteByExternalReferenceCodeSitePage_getSiteExternalReferenceCode() +
-													"\"");
+												sitePage.
+													getSiteExternalReferenceCode() +
+														"\"");
 										put(
 											"sitePageExternalReferenceCode",
 											"\"" +
@@ -322,8 +308,9 @@ public abstract class BaseSitePageResourceTestCase {
 											put(
 												"siteExternalReferenceCode",
 												"\"" +
-													testGraphQLGetSiteSiteByExternalReferenceCodeSitePage_getSiteExternalReferenceCode() +
-														"\"");
+													sitePage.
+														getSiteExternalReferenceCode() +
+															"\"");
 											put(
 												"sitePageExternalReferenceCode",
 												"\"" +
@@ -335,14 +322,6 @@ public abstract class BaseSitePageResourceTestCase {
 									getGraphQLFields()))),
 						"JSONObject/data", "JSONObject/headlessAdminSite_v1_0",
 						"Object/siteByExternalReferenceCodeSitePage"))));
-	}
-
-	protected String
-			testGraphQLGetSiteSiteByExternalReferenceCodeSitePage_getSiteExternalReferenceCode()
-		throws Exception {
-
-		throw new UnsupportedOperationException(
-			"This method needs to be implemented");
 	}
 
 	@Test
@@ -886,8 +865,8 @@ public abstract class BaseSitePageResourceTestCase {
 		@SuppressWarnings("PMD.UnusedLocalVariable")
 		SitePage patchSitePage =
 			sitePageResource.patchSiteSiteByExternalReferenceCodeSitePage(
-				null, postSitePage.getExternalReferenceCode(),
-				randomPatchSitePage);
+				postSitePage.getSiteExternalReferenceCode(),
+				postSitePage.getExternalReferenceCode(), randomPatchSitePage);
 
 		SitePage expectedPatchSitePage = postSitePage.clone();
 
@@ -895,7 +874,8 @@ public abstract class BaseSitePageResourceTestCase {
 
 		SitePage getSitePage =
 			sitePageResource.getSiteSiteByExternalReferenceCodeSitePage(
-				null, patchSitePage.getExternalReferenceCode());
+				patchSitePage.getSiteExternalReferenceCode(),
+				patchSitePage.getExternalReferenceCode());
 
 		assertEquals(expectedPatchSitePage, getSitePage);
 		assertValid(getSitePage);
@@ -910,22 +890,80 @@ public abstract class BaseSitePageResourceTestCase {
 	}
 
 	@Test
-	public void testPostByExternalReferenceCodeSitePage() throws Exception {
+	public void testPostSitePage() throws Exception {
 		SitePage randomSitePage = randomSitePage();
 
-		SitePage postSitePage =
-			testPostByExternalReferenceCodeSitePage_addSitePage(randomSitePage);
+		SitePage postSitePage = testPostSitePage_addSitePage(randomSitePage);
 
 		assertEquals(randomSitePage, postSitePage);
 		assertValid(postSitePage);
 	}
 
-	protected SitePage testPostByExternalReferenceCodeSitePage_addSitePage(
-			SitePage sitePage)
+	protected SitePage testPostSitePage_addSitePage(SitePage sitePage)
 		throws Exception {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testPutSitePageByExternalReferenceCode() throws Exception {
+		SitePage postSitePage =
+			testPutSitePageByExternalReferenceCode_addSitePage();
+
+		SitePage randomSitePage = randomSitePage();
+
+		SitePage putSitePage =
+			sitePageResource.putSitePageByExternalReferenceCode(
+				postSitePage.getExternalReferenceCode(), randomSitePage);
+
+		assertEquals(randomSitePage, putSitePage);
+		assertValid(putSitePage);
+
+		SitePage getSitePage =
+			testPutSitePageByExternalReferenceCode_getSitePage(
+				putSitePage.getExternalReferenceCode());
+
+		assertEquals(randomSitePage, getSitePage);
+		assertValid(getSitePage);
+
+		SitePage newSitePage =
+			testPutSitePageByExternalReferenceCode_createSitePage();
+
+		putSitePage = sitePageResource.putSitePageByExternalReferenceCode(
+			newSitePage.getExternalReferenceCode(), newSitePage);
+
+		assertEquals(newSitePage, putSitePage);
+		assertValid(putSitePage);
+
+		getSitePage = testPutSitePageByExternalReferenceCode_getSitePage(
+			putSitePage.getExternalReferenceCode());
+
+		assertEquals(newSitePage, getSitePage);
+
+		Assert.assertEquals(
+			newSitePage.getExternalReferenceCode(),
+			putSitePage.getExternalReferenceCode());
+	}
+
+	protected SitePage testPutSitePageByExternalReferenceCode_getSitePage(
+		String externalReferenceCode) {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected SitePage testPutSitePageByExternalReferenceCode_addSitePage()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected SitePage testPutSitePageByExternalReferenceCode_createSitePage()
+		throws Exception {
+
+		return randomSitePage();
 	}
 
 	@Test
@@ -939,7 +977,7 @@ public abstract class BaseSitePageResourceTestCase {
 
 		SitePage putSitePage =
 			sitePageResource.putSiteSiteByExternalReferenceCodeSitePage(
-				testPutSiteSiteByExternalReferenceCodeSitePage_getSiteExternalReferenceCode(),
+				postSitePage.getSiteExternalReferenceCode(),
 				postSitePage.getExternalReferenceCode(), randomSitePage);
 
 		assertEquals(randomSitePage, putSitePage);
@@ -947,7 +985,7 @@ public abstract class BaseSitePageResourceTestCase {
 
 		SitePage getSitePage =
 			sitePageResource.getSiteSiteByExternalReferenceCodeSitePage(
-				testPutSiteSiteByExternalReferenceCodeSitePage_getSiteExternalReferenceCode(),
+				putSitePage.getSiteExternalReferenceCode(),
 				putSitePage.getExternalReferenceCode());
 
 		assertEquals(randomSitePage, getSitePage);
@@ -956,14 +994,6 @@ public abstract class BaseSitePageResourceTestCase {
 
 	protected SitePage
 			testPutSiteSiteByExternalReferenceCodeSitePage_addSitePage()
-		throws Exception {
-
-		throw new UnsupportedOperationException(
-			"This method needs to be implemented");
-	}
-
-	protected String
-			testPutSiteSiteByExternalReferenceCodeSitePage_getSiteExternalReferenceCode()
 		throws Exception {
 
 		throw new UnsupportedOperationException(
@@ -982,7 +1012,7 @@ public abstract class BaseSitePageResourceTestCase {
 		assertHttpResponseStatusCode(
 			200,
 			sitePageResource.putSiteSitePagePermissionsPageHttpResponse(
-				testGroup.getExternalReferenceCode(), null,
+				sitePage.getSiteExternalReferenceCode(), null,
 				new Permission[] {
 					new Permission() {
 						{
@@ -995,7 +1025,7 @@ public abstract class BaseSitePageResourceTestCase {
 		assertHttpResponseStatusCode(
 			404,
 			sitePageResource.putSiteSitePagePermissionsPageHttpResponse(
-				testGroup.getExternalReferenceCode(), null,
+				sitePage.getSiteExternalReferenceCode(), null,
 				new Permission[] {
 					new Permission() {
 						{
@@ -1226,6 +1256,16 @@ public abstract class BaseSitePageResourceTestCase {
 					additionalAssertFieldName)) {
 
 				if (sitePage.getParentSitePageExternalReferenceCode() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"siteExternalReferenceCode", additionalAssertFieldName)) {
+
+				if (sitePage.getSiteExternalReferenceCode() == null) {
 					valid = false;
 				}
 
@@ -1587,6 +1627,19 @@ public abstract class BaseSitePageResourceTestCase {
 				if (!Objects.deepEquals(
 						sitePage1.getParentSitePageExternalReferenceCode(),
 						sitePage2.getParentSitePageExternalReferenceCode())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"siteExternalReferenceCode", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						sitePage1.getSiteExternalReferenceCode(),
+						sitePage2.getSiteExternalReferenceCode())) {
 
 					return false;
 				}
@@ -2057,6 +2110,52 @@ public abstract class BaseSitePageResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("siteExternalReferenceCode")) {
+			Object object = sitePage.getSiteExternalReferenceCode();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("taxonomyCategoryItemExternalReferences")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -2172,6 +2271,8 @@ public abstract class BaseSitePageResourceTestCase {
 					RandomTestUtil.randomString());
 				parentSitePageExternalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
+				siteExternalReferenceCode =
+					testGroup.getExternalReferenceCode();
 				uuid = StringUtil.toLowerCase(RandomTestUtil.randomString());
 			}
 		};
@@ -2179,6 +2280,9 @@ public abstract class BaseSitePageResourceTestCase {
 
 	protected SitePage randomIrrelevantSitePage() throws Exception {
 		SitePage randomIrrelevantSitePage = randomSitePage();
+
+		randomIrrelevantSitePage.setSiteExternalReferenceCode(
+			irrelevantGroup.getExternalReferenceCode());
 
 		return randomIrrelevantSitePage;
 	}

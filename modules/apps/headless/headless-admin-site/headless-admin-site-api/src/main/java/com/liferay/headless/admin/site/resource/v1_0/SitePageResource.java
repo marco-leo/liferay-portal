@@ -25,6 +25,7 @@ import jakarta.annotation.Generated;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 
 import java.util.Collections;
@@ -75,8 +76,9 @@ public interface SitePageResource {
 			String sitePageExternalReferenceCode, SitePage sitePage)
 		throws Exception;
 
-	public SitePage postByExternalReferenceCodeSitePage(
-			String siteExternalReferenceCode, SitePage sitePage)
+	public SitePage postSitePage(SitePage sitePage) throws Exception;
+
+	public Response postSitePageBatch(String callbackURL, Object object)
 		throws Exception;
 
 	public ContentPageSpecification
@@ -84,6 +86,10 @@ public interface SitePageResource {
 				String siteExternalReferenceCode,
 				String sitePageExternalReferenceCode,
 				ContentPageSpecification contentPageSpecification)
+		throws Exception;
+
+	public SitePage putSitePageByExternalReferenceCode(
+			String externalReferenceCode, SitePage sitePage)
 		throws Exception;
 
 	public SitePage putSiteSiteByExternalReferenceCodeSitePage(

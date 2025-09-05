@@ -469,15 +469,23 @@ public class ServletDataImpl implements ServletData {
 							SitePageResourceImpl.class,
 							"patchSiteSiteByExternalReferenceCodeSitePage"));
 					put(
-						"mutation#createByExternalReferenceCodeSitePage",
+						"mutation#createSitePage",
 						new ObjectValuePair<>(
-							SitePageResourceImpl.class,
-							"postByExternalReferenceCodeSitePage"));
+							SitePageResourceImpl.class, "postSitePage"));
+					put(
+						"mutation#createSitePageBatch",
+						new ObjectValuePair<>(
+							SitePageResourceImpl.class, "postSitePageBatch"));
 					put(
 						"mutation#createSiteSiteByExternalReferenceCodeSitePagePageSpecification",
 						new ObjectValuePair<>(
 							SitePageResourceImpl.class,
 							"postSiteSiteByExternalReferenceCodeSitePagePageSpecification"));
+					put(
+						"mutation#updateSitePageByExternalReferenceCode",
+						new ObjectValuePair<>(
+							SitePageResourceImpl.class,
+							"putSitePageByExternalReferenceCode"));
 					put(
 						"mutation#updateSiteSiteByExternalReferenceCodeSitePage",
 						new ObjectValuePair<>(

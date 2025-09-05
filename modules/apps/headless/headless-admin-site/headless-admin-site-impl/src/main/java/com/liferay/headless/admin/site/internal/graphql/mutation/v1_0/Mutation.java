@@ -54,6 +54,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import jakarta.validation.constraints.NotEmpty;
 
+import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 
 import java.util.function.BiFunction;
@@ -1553,18 +1554,26 @@ public class Mutation {
 	}
 
 	@GraphQLField(description = "Adds a new site page")
-	public SitePage createByExternalReferenceCodeSitePage(
-			@GraphQLName("siteExternalReferenceCode") @NotEmpty String
-				siteExternalReferenceCode,
-			@GraphQLName("sitePage") SitePage sitePage)
+	public SitePage createSitePage(@GraphQLName("sitePage") SitePage sitePage)
 		throws Exception {
 
 		return _applyComponentServiceObjects(
 			_sitePageResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			sitePageResource ->
-				sitePageResource.postByExternalReferenceCodeSitePage(
-					siteExternalReferenceCode, sitePage));
+			sitePageResource -> sitePageResource.postSitePage(sitePage));
+	}
+
+	@GraphQLField
+	public Response createSitePageBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_sitePageResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			sitePageResource -> sitePageResource.postSitePageBatch(
+				callbackURL, object));
 	}
 
 	@GraphQLField(description = "Adds a new page specification to a site page.")
@@ -1587,6 +1596,20 @@ public class Mutation {
 						siteExternalReferenceCode,
 						sitePageExternalReferenceCode,
 						contentPageSpecification));
+	}
+
+	@GraphQLField(description = "Add ot update a site page")
+	public SitePage updateSitePageByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("sitePage") SitePage sitePage)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_sitePageResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			sitePageResource ->
+				sitePageResource.putSitePageByExternalReferenceCode(
+					externalReferenceCode, sitePage));
 	}
 
 	@GraphQLField(

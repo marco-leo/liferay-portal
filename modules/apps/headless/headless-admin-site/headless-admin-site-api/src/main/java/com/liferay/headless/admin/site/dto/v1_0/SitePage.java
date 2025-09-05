@@ -699,6 +699,51 @@ public class SitePage implements Serializable {
 	private Supplier<String> _parentSitePageExternalReferenceCodeSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The site external reference."
+	)
+	public String getSiteExternalReferenceCode() {
+		if (_siteExternalReferenceCodeSupplier != null) {
+			siteExternalReferenceCode =
+				_siteExternalReferenceCodeSupplier.get();
+
+			_siteExternalReferenceCodeSupplier = null;
+		}
+
+		return siteExternalReferenceCode;
+	}
+
+	public void setSiteExternalReferenceCode(String siteExternalReferenceCode) {
+		this.siteExternalReferenceCode = siteExternalReferenceCode;
+
+		_siteExternalReferenceCodeSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setSiteExternalReferenceCode(
+		UnsafeSupplier<String, Exception>
+			siteExternalReferenceCodeUnsafeSupplier) {
+
+		_siteExternalReferenceCodeSupplier = () -> {
+			try {
+				return siteExternalReferenceCodeUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(description = "The site external reference.")
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String siteExternalReferenceCode;
+
+	@JsonIgnore
+	private Supplier<String> _siteExternalReferenceCodeSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "The external references to the associated categories."
 	)
 	@Valid
@@ -1161,6 +1206,22 @@ public class SitePage implements Serializable {
 			sb.append("\"");
 
 			sb.append(_escape(parentSitePageExternalReferenceCode));
+
+			sb.append("\"");
+		}
+
+		String siteExternalReferenceCode = getSiteExternalReferenceCode();
+
+		if (siteExternalReferenceCode != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"siteExternalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(siteExternalReferenceCode));
 
 			sb.append("\"");
 		}
