@@ -11,6 +11,7 @@ import com.liferay.headless.admin.site.dto.v1_0.SitePage;
 import com.liferay.headless.admin.site.dto.v1_0.WidgetPageSettings;
 import com.liferay.headless.admin.site.internal.dto.v1_0.util.AssetUtil;
 import com.liferay.headless.admin.site.internal.dto.v1_0.util.SitePageTypeUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutTypePortletConstants;
 import com.liferay.portal.kernel.service.LayoutLocalService;
@@ -68,6 +69,12 @@ public class SitePageDTOConverter implements DTOConverter<Layout, SitePage> {
 							layout.getParentLayoutId());
 
 						return parentLayout.getExternalReferenceCode();
+					});
+				setSiteExternalReferenceCode(
+					() -> {
+						Group group = layout.getGroup();
+
+						return group.getExternalReferenceCode();
 					});
 				setTaxonomyCategoryItemExternalReferences(
 					() -> AssetUtil.getTaxonomyCategoryItemExternalReferences(
