@@ -152,10 +152,7 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 	}
 
 	@Override
-	public SitePage postByExternalReferenceCodeSitePage(
-			String siteExternalReferenceCode, SitePage sitePage)
-		throws Exception {
-
+	public SitePage postSitePage(SitePage sitePage) throws Exception {
 		if (!FeatureFlagManagerUtil.isEnabled("LPD-35443")) {
 			throw new UnsupportedOperationException();
 		}
@@ -165,7 +162,7 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 				sitePage.getExternalReferenceCode(),
 				GroupUtil.getGroupId(
 					false, contextCompany.getCompanyId(),
-					siteExternalReferenceCode),
+					sitePage.getSiteExternalReferenceCode()),
 				sitePage));
 	}
 
@@ -197,6 +194,26 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 				ServiceContextUtil.createServiceContext(
 					layout.getGroupId(), contextHttpServletRequest,
 					contextUser.getUserId())));
+	}
+
+	@Override
+	public SitePage putSitePageByExternalReferenceCode(
+			String externalReferenceCode, SitePage sitePage)
+		throws Exception {
+
+		Layout layout = _layoutService.getLayoutByExternalReferenceCode(
+			externalReferenceCode,
+			GroupUtil.getGroupId(
+				false, contextCompany.getCompanyId(),
+				sitePage.getSiteExternalReferenceCode()));
+
+		if (layout == null) {
+			sitePage.setExternalReferenceCode(() -> externalReferenceCode);
+
+			return postSitePage(sitePage);
+		}
+
+		return _toSitePage(_updateLayout(layout, sitePage));
 	}
 
 	@Override
