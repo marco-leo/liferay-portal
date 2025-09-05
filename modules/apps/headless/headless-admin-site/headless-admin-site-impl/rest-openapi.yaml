@@ -2714,6 +2714,11 @@ components:
                     description:
                         The parent page external reference code or null if it is a top level page.
                     type: string
+                siteExternalReferenceCode:
+                    # @review
+                    description:
+                        The site external reference.
+                    type: string
                 taxonomyCategoryItemExternalReferences:
                     # @review
                     description:
@@ -3500,7 +3505,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.headless.admin.site.client', and version '1.0.14'."
+        'com.liferay.headless.admin.site.client', and version '1.0.15'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -3508,6 +3513,62 @@ info:
     version: v1.0
 openapi: 3.0.1
 paths:
+    "/site-pages":
+        post:
+            # @review
+            description:
+                Adds a new site page
+            operationId: postSitePage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/SitePage"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/SitePage"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SitePage"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/SitePage"
+            # @review
+            tags: ["SitePage"]
+    "/site-pages/by-external-reference-code/{externalReferenceCode}":
+        put:
+            # @review
+            description:
+                Add ot update a site page
+            operationId: putSitePageByExternalReferenceCode
+            parameters:
+                -   in: path
+                    name: externalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/SitePage"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/SitePage"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SitePage"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/SitePage"
+            # @review
+            tags: ["SitePage"]
     "/sites/{siteExternalReferenceCode}/display-page-template-folders":
         get:
             # @review
@@ -7517,36 +7578,6 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/SitePage"
                                 type: array
-            tags: ["SitePage"]
-        post:
-            # @review
-            description:
-                Adds a new site page
-            operationId: postByExternalReferenceCodeSitePage
-            parameters:
-                -   in: path
-                    name: siteExternalReferenceCode
-                    required: true
-                    schema:
-                        type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: "#/components/schemas/SitePage"
-                    application/xml:
-                        schema:
-                            $ref: "#/components/schemas/SitePage"
-            responses:
-                200:
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/SitePage"
-                        application/xml:
-                            schema:
-                                $ref: "#/components/schemas/SitePage"
-            # @review
             tags: ["SitePage"]
     "/sites/{siteExternalReferenceCode}/site-pages/{sitePageExternalReferenceCode}":
         delete:
