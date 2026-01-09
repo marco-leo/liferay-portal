@@ -1,1 +1,332 @@
-apply from: "../modules/build-portal.gradle"
+buildscript {
+	dependencies {
+		classpath group: "biz.aQute.bnd", name: "biz.aQute.bnd.gradle", version: "6.4.0"
+	}
+
+	repositories {
+		maven {
+			url = uri(System.properties["repository.url"] ?: "https://repository-cdn.liferay.com/nexus/content/groups/public")
+		}
+	}
+}
+
+apply plugin: "java-library"
+
+def portalRootDir = rootProject.projectDir.parentFile
+
+// Load properties files
+def loadProperties(File portalDir, String fileName) {
+	def props = new Properties()
+	def propsFile = new File(portalDir, fileName)
+	if (propsFile.exists()) {
+		propsFile.withInputStream { props.load(it) }
+	}
+	return props
+}
+
+def resolveProperties(Properties props, Map resolvedProps) {
+	props.each { key, value ->
+		resolvedProps[key] = value
+	}
+
+	10.times {
+		resolvedProps.each { key, value ->
+			if (value instanceof String) {
+				resolvedProps[key] = value.replaceAll(/\$\{([^}]+)\}/) { match, propName ->
+					resolvedProps[propName] ?: match
+				}
+			}
+		}
+	}
+
+	return resolvedProps
+}
+
+ext {
+	def buildProps = loadProperties(portalRootDir, "build.properties")
+	def releaseProps = loadProperties(portalRootDir, "release.properties")
+	def appServerProps = loadProperties(portalRootDir, "app.server.properties")
+
+	def allProps = [:]
+	allProps['project.dir'] = portalRootDir.absolutePath
+
+	resolveProperties(buildProps, allProps)
+	resolveProperties(releaseProps, allProps)
+	resolveProperties(appServerProps, allProps)
+
+	portalProps = allProps
+}
+
+group = "com.liferay.portal"
+version = "122.0.0"
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+	mavenLocal()
+
+	maven {
+		url = uri(System.properties["repository.url"] ?: "https://repository-cdn.liferay.com/nexus/content/groups/public")
+	}
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ["src"]
+		}
+		resources {
+			srcDirs = ["src"]
+			exclude "**/*.java"
+		}
+	}
+}
+
+dependencies {
+	// Portal kernel (using fileTree for lenient resolution - won't fail if file doesn't exist yet)
+	compileOnly fileTree(dir: "${portalRootDir}/portal-kernel", includes: ["portal-kernel.jar"])
+
+	// Util projects (using fileTree for lenient resolution)
+	compileOnly fileTree(dir: "${portalRootDir}/util-bridges", includes: ["util-bridges.jar"])
+	compileOnly fileTree(dir: "${portalRootDir}/util-java", includes: ["util-java.jar"])
+	compileOnly fileTree(dir: "${portalRootDir}/util-slf4j", includes: ["util-slf4j.jar"])
+	compileOnly fileTree(dir: "${portalRootDir}/util-taglib", includes: ["util-taglib.jar"])
+
+	// Petra dependencies from tools/sdk/dist
+	compileOnly fileTree(dir: "${portalRootDir}/tools/sdk/dist", includes: [
+		"com.liferay.petra.*.jar",
+		"com.liferay.osgi.service.tracker.collections-*.jar",
+		"com.liferay.osgi.util-*.jar",
+		"com.liferay.registry-*.jar"
+	])
+
+	// Development dependencies
+	compileOnly fileTree(dir: "${portalRootDir}/lib/development", includes: ["*.jar"])
+
+	// Portal dependencies
+	compileOnly fileTree(dir: "${portalRootDir}/lib/portal", includes: ["*.jar"])
+}
+
+compileJava {
+	options.encoding = "UTF-8"
+	options.warnings = false
+	options.compilerArgs += ["-Xlint:none"]
+}
+
+// Configure classes output to match Ant
+tasks.withType(JavaCompile) {
+	destinationDirectory = file("classes")
+}
+
+processResources {
+	destinationDir = file("classes")
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+// Copy additional resources (init-compile equivalent from Ant)
+task copyResources {
+	doLast {
+		// Copy definitions
+		copy {
+			from "${portalRootDir}/definitions"
+			into "classes/com/liferay/portal/definitions"
+		}
+
+		// Copy deploy dependencies
+		copy {
+			from("${portalRootDir}/classes") {
+				include "*.properties"
+			}
+			into "classes/com/liferay/portal/deploy/dependencies"
+		}
+
+		// Copy TLDs
+		copy {
+			from("${portalRootDir}/portal-web/docroot/WEB-INF/tld") {
+				include "*.tld"
+			}
+			into "classes/com/liferay/portal/deploy/dependencies"
+		}
+
+		// Copy SQL files
+		copy {
+			from("${portalRootDir}/sql") {
+				include "portal-data-counter.sql"
+				include "portal-tables.sql"
+				include "indexes.properties"
+				include "indexes.sql"
+				include "sequences.sql"
+				include "update-*.sql"
+			}
+			into "classes/com/liferay/portal/tools/sql/dependencies"
+		}
+
+		// Copy log4j2.properties and logging.properties
+		copy {
+			from "${portalRootDir}/classes/log4j2.properties"
+			from "${portalRootDir}/classes/logging.properties"
+			into "classes"
+		}
+	}
+}
+
+compileJava.dependsOn copyResources
+
+// Create OSGi bundle using BND
+import aQute.bnd.gradle.Bundle
+
+task bundleJar(type: Bundle) {
+	dependsOn classes
+
+	archiveFileName = "portal-impl.jar"
+	destinationDirectory = projectDir
+
+	// Use sourceDirectories instead of from to avoid eager evaluation
+	sourceSet = sourceSets.main
+
+	def gitDescribe = ""
+	def gitSha = ""
+	doFirst {
+		try {
+			def gitDescProcess = ["git", "describe", "--dirty", "--always"].execute()
+			gitDescProcess.waitFor()
+			gitDescribe = gitDescProcess.text.trim()
+
+			def gitShaProcess = ["git", "rev-list", "-1", "HEAD"].execute()
+			gitShaProcess.waitFor()
+			gitSha = gitShaProcess.text.trim()
+		} catch (Exception e) {
+			// Ignore git errors
+		}
+	}
+
+	bnd(
+		"Bundle-Name": "Liferay Portal Impl",
+		"Bundle-SymbolicName": "com.liferay.portal.impl;singleton:=true",
+		"Bundle-Version": "122.0.0",
+		"Bundle-Vendor": "Liferay, Inc.",
+		"Export-Package": """
+			com.liferay.portal.bean,
+			com.liferay.portal.dao.orm.hibernate,
+			com.liferay.portal.deploy.hot,
+			com.liferay.portal.events,
+			com.liferay.portal.format.util,
+			com.liferay.portal.freemarker,
+			com.liferay.portal.minifier,
+			com.liferay.portal.plugin,
+			com.liferay.portal.security.auth,
+			com.liferay.portal.security.lang,
+			com.liferay.portal.service,
+			com.liferay.portal.service.http,
+			com.liferay.portal.service.permission,
+			com.liferay.portal.service.persistence.constants,
+			com.liferay.portal.servlet,
+			com.liferay.portal.servlet.filters,
+			com.liferay.portal.servlet.filters.authverifier,
+			com.liferay.portal.spring.configurator,
+			com.liferay.portal.template,
+			com.liferay.portal.tools,
+			com.liferay.portal.upgrade.util,
+			com.liferay.portal.upgrade.v7_0_0,
+			com.liferay.portal.upgrade.v7_0_5,
+			com.liferay.portal.upgrade.v7_1_x,
+			com.liferay.portal.upload,
+			com.liferay.portal.util,
+			com.liferay.portal.xml,
+			com.liferay.portlet,
+			com.liferay.portlet.asset,
+			com.liferay.portlet.asset.model.impl,
+			com.liferay.portlet.asset.service.permission,
+			com.liferay.portlet.asset.util,
+			com.liferay.portlet.documentlibrary,
+			com.liferay.portlet.documentlibrary.lar,
+			com.liferay.portlet.documentlibrary.store,
+			com.liferay.portlet.documentlibrary.util,
+			com.liferay.portlet.expando.model.impl,
+			com.liferay.portlet.usersadmin.search
+		""".trim().replaceAll(/\s+/, ""),
+		"Import-Package": "*",
+		"Include-Resource": "classes",
+		"Liferay-Service": "true",
+		"Private-Package": "com.liferay.*.dependencies",
+		"Liferay-Portal-Build-Date": new Date().format("EEE MMM d HH:mm:ss zzz yyyy"),
+		"Liferay-Portal-Build-Number": portalProps['release.info.build'] ?: "0",
+		"Liferay-Portal-Version": portalProps['release.info.version'] ?: "",
+		"Liferay-Portal-Version-Display-Name": portalProps['release.info.version.display.name'] ?: "",
+		"Require-Capability": "osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=17))\"",
+		"-removeheaders": "Bnd-LastModified,DSTAMP,TODAY,TSTAMP",
+		"-sources": "false",
+		"-fixupmessages.deprecated": "annotations are deprecated",
+		"-donotcopy": "(log4j\\.properties|logging\\.properties|portal-.*\\.properties|system-.*\\.properties|\\.touch)"
+	)
+}
+
+jar {
+	enabled = false
+}
+
+// Create sources JAR
+task sourcesJar(type: Jar) {
+	from sourceSets.main.allSource
+	archiveFileName = "portal-impl-sources.jar"
+	destinationDirectory = projectDir
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Main jar task that creates the bundle
+task createJar {
+	dependsOn bundleJar, sourcesJar
+}
+
+// Deploy task
+task deploy {
+	dependsOn createJar
+
+	doLast {
+		def serverType = portalProps['app.server.type'] ?: 'tomcat'
+		def deployDir = portalProps["app.server.${serverType}.shielded-container-lib.portal.dir"]
+		def classesDir = portalProps["app.server.${serverType}.classes.portal.dir"]
+
+		if (!deployDir) {
+			throw new GradleException("app.server.${serverType}.shielded-container-lib.portal.dir not configured")
+		}
+
+		// Deploy JAR
+		copy {
+			from "portal-impl.jar"
+			into deployDir
+		}
+
+		// Deploy log4j2.properties and logging.properties
+		if (classesDir) {
+			copy {
+				from "classes/log4j2.properties"
+				from "classes/logging.properties"
+				into classesDir
+			}
+		}
+
+		println "Deployed portal-impl.jar to ${deployDir}"
+	}
+}
+
+// Baseline task (no-op for compatibility with Ant build)
+// Note: The JAR is already created by Ant's bnd-invoker, so we don't need to recreate it
+task baseline {
+	doLast {
+		println "Baseline check skipped for Gradle build"
+	}
+}
+
+// Clean task
+clean {
+	delete "classes"
+	delete "build"
+	delete "portal-impl.jar"
+	delete "portal-impl-sources.jar"
+	delete "test-classes"
+	delete "test-results"
+}
