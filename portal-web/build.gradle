@@ -1,0 +1,278 @@
+import org.gradle.api.tasks.bundling.War
+
+buildscript {
+	apply from: file("../modules/build-develocity-buildscript.gradle"), to: buildscript
+}
+
+apply from: "../modules/build-develocity.gradle"
+apply plugin: "war"
+
+group = "com.liferay.portal"
+version = "5.0.248"
+
+def projectDir = rootProject.projectDir.parentFile
+
+// Load app.server.properties to get deployment paths
+def portalRootDir = rootProject.projectDir.parentFile
+
+def loadAppServerProperties(File portalDir) {
+	def props = new Properties()
+	def propsFile = new File(portalDir, "app.server.properties")
+	if (propsFile.exists()) {
+		propsFile.withInputStream { props.load(it) }
+	}
+
+	// Load user-specific overrides if they exist
+	def userPropsFile = new File(portalDir, "app.server.${System.getProperty('user.name')}.properties")
+	if (userPropsFile.exists()) {
+		userPropsFile.withInputStream { props.load(it) }
+	}
+
+	// Resolve property references like ${project.dir}
+	def resolvedProps = [:]
+	resolvedProps['project.dir'] = portalDir.absolutePath
+
+	props.each { key, value ->
+		resolvedProps[key] = value
+	}
+
+	// Iteratively resolve references (do it multiple times to handle nested refs)
+	10.times {
+		resolvedProps.each { key, value ->
+			if (value instanceof String) {
+				resolvedProps[key] = value.replaceAll(/\$\{([^}]+)\}/) { match, propName ->
+					resolvedProps[propName] ?: match
+				}
+			}
+		}
+	}
+
+	return resolvedProps
+}
+
+ext.appServerProps = loadAppServerProperties(portalRootDir)
+
+repositories {
+	mavenLocal()
+
+	maven {
+		url = uri(System.properties["repository.url"] ?: "https://repository-cdn.liferay.com/nexus/content/groups/public")
+	}
+}
+
+dependencies {
+	// Sibling project JARs
+	compileOnly files("${projectDir}/portal-impl/portal-impl.jar")
+	compileOnly files("${projectDir}/portal-kernel/portal-kernel.jar")
+	compileOnly files("${projectDir}/util-bridges/util-bridges.jar")
+	compileOnly files("${projectDir}/util-java/util-java.jar")
+	compileOnly files("${projectDir}/util-taglib/util-taglib.jar")
+
+	// Development dependencies
+	compileOnly files("${projectDir}/lib/development/activation.jar")
+	compileOnly files("${projectDir}/lib/development/jstl-api.jar")
+	compileOnly files("${projectDir}/lib/development/jstl-impl.jar")
+	compileOnly files("${projectDir}/lib/development/mail.jar")
+	compileOnly files("${projectDir}/lib/development/portlet.jar")
+	compileOnly files("${projectDir}/lib/development/velocity.jar")
+
+	// Tomcat dependencies for JSP compilation
+	compileOnly files("${projectDir}/lib/development/tomcat-api.jar")
+	compileOnly files("${projectDir}/lib/development/tomcat-el-api.jar")
+	compileOnly files("${projectDir}/lib/development/tomcat-jasper-el.jar")
+	compileOnly files("${projectDir}/lib/development/tomcat-jasper.jar")
+	compileOnly files("${projectDir}/lib/development/tomcat-jsp-api.jar")
+	compileOnly files("${projectDir}/lib/development/tomcat-juli.jar")
+	compileOnly files("${projectDir}/lib/development/tomcat-servlet-api.jar")
+	compileOnly files("${projectDir}/lib/development/tomcat-util-scan.jar")
+	compileOnly files("${projectDir}/lib/development/tomcat-util.jar")
+
+	// Portal dependencies
+	compileOnly files("${projectDir}/lib/portal/commons-lang.jar")
+	compileOnly files("${projectDir}/lib/portal/commons-logging.jar")
+	compileOnly files("${projectDir}/lib/portal/dom4j.jar")
+	compileOnly files("${projectDir}/lib/portal/jabsorb.jar")
+	compileOnly files("${projectDir}/lib/portal/log4j-api.jar")
+	compileOnly files("${projectDir}/lib/portal/log4j-core.jar")
+	compileOnly files("${projectDir}/lib/portal/openid4java.jar")
+}
+
+// Configure source sets - portal-web doesn't have Java sources, just web resources
+sourceSets {
+	main {
+		resources {
+			srcDirs = []
+		}
+	}
+}
+
+// Configure WAR task
+war {
+	archiveBaseName = "portal-web"
+	archiveVersion = ""  // No version suffix to match Ant output: portal-web.war
+	destinationDirectory = file(".")  // Output to portal-web directory (same as Ant)
+
+	// Handle duplicates by excluding them (web.xml is specified separately)
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+	from("docroot") {
+		into ""
+		exclude "WEB-INF/web.xml"
+	}
+
+	webXml = file("docroot/WEB-INF/web.xml")
+
+	// Include OSS licenses in META-INF
+	metaInf {
+		from("${projectDir}/oss-licenses") {
+			exclude "**/development/**"
+		}
+	}
+
+	// Generate manifest
+	manifest {
+		attributes(
+			"Extension-List": "crypto",
+			"crypto-Extension-Name": "javax.crypto"
+		)
+	}
+
+	// Exclude SCSS source files from WAR
+	exclude "**/*.scss"
+}
+
+// Clean task to match Ant behavior
+task cleanPortalWeb(type: Delete) {
+	delete "classes"
+	delete "docroot/dtd"
+	delete "docroot/html/portal/aui"
+	delete "docroot/WEB-INF/classes"
+	delete "docroot/WEB-INF/lib"
+	delete "test-classes"
+	delete "test-results"
+	delete fileTree("docroot/WEB-INF/tld") {
+		include "liferay*.tld"
+	}
+}
+
+clean {
+	dependsOn cleanPortalWeb
+}
+
+// Deploy task - copies docroot to app server portal directory (like Ant deploy)
+task deploy {
+	description = "Deploys portal-web to the application server"
+	group = "build"
+
+	doLast {
+		def serverType = appServerProps['app.server.type'] ?: 'tomcat'
+		def portalDirKey = 'app.server.' + serverType + '.portal.dir'
+		def destDir = appServerProps[portalDirKey]
+
+		if (!destDir) {
+			throw new GradleException("${portalDirKey} not configured in app.server.properties")
+		}
+
+		// Create manifest directory
+		def manifestDir = file("docroot/WEB-INF/classes/META-INF")
+		manifestDir.mkdirs()
+
+		def manifestFile = new File(manifestDir, "MANIFEST.MF")
+		manifestFile.text = """Manifest-Version: 1.0
+Extension-List: crypto
+crypto-Extension-Name: javax.crypto
+"""
+
+		// Copy docroot to app server portal directory
+		copy {
+			from "docroot"
+			into destDir
+			exclude "**/*.scss"
+		}
+
+		println "Deployed portal-web to ${destDir}"
+	}
+}
+
+// JSP precompilation task for Tomcat
+task compileJsp {
+	description = "Precompiles JSPs for Tomcat"
+	group = "build"
+
+	dependsOn war
+
+	doLast {
+		if (appServerType != "tomcat") {
+			println "JSP precompilation is only supported for Tomcat"
+			return
+		}
+
+		def jspClassesDir = file("classes/${appServerType}")
+		jspClassesDir.mkdirs()
+
+		def webAppDir = file("docroot")
+
+		javaexec {
+			classpath = files(
+				"${projectDir}/lib/development/tomcat-jasper.jar",
+				"${projectDir}/lib/development/tomcat-jasper-el.jar",
+				"${projectDir}/lib/development/tomcat-servlet-api.jar",
+				"${projectDir}/lib/development/tomcat-jsp-api.jar",
+				"${projectDir}/lib/development/tomcat-el-api.jar",
+				"${projectDir}/lib/development/tomcat-api.jar",
+				"${projectDir}/lib/development/tomcat-util.jar",
+				"${projectDir}/lib/development/tomcat-util-scan.jar",
+				"${projectDir}/lib/development/tomcat-juli.jar",
+				"${projectDir}/portal-impl/portal-impl.jar",
+				"${projectDir}/portal-kernel/portal-kernel.jar",
+				"${projectDir}/util-bridges/util-bridges.jar",
+				"${projectDir}/util-java/util-java.jar",
+				"${projectDir}/util-taglib/util-taglib.jar",
+				"${projectDir}/lib/development/activation.jar",
+				"${projectDir}/lib/development/jstl-api.jar",
+				"${projectDir}/lib/development/jstl-impl.jar",
+				"${projectDir}/lib/development/mail.jar",
+				"${projectDir}/lib/development/portlet.jar",
+				"${projectDir}/lib/development/velocity.jar",
+				"${projectDir}/lib/portal/commons-lang.jar",
+				"${projectDir}/lib/portal/commons-logging.jar",
+				"${projectDir}/lib/portal/dom4j.jar",
+				"${projectDir}/lib/portal/jabsorb.jar",
+				"${projectDir}/lib/portal/log4j-api.jar",
+				"${projectDir}/lib/portal/log4j-core.jar",
+				"${projectDir}/lib/portal/openid4java.jar",
+				"docroot/WEB-INF/classes"
+			)
+
+			mainClass = "org.apache.jasper.JspC"
+
+			args = [
+				"-d", jspClassesDir.absolutePath,
+				"-webapp", webAppDir.absolutePath
+			]
+
+			systemProperty "log4j2.disable.jmx", "true"
+		}
+
+		// Compile generated Java files
+		if (jspClassesDir.exists()) {
+			ant.javac(
+				srcdir: jspClassesDir,
+				destdir: jspClassesDir,
+				includeantruntime: false,
+				encoding: "UTF-8",
+				nowarn: "on"
+			)
+		}
+	}
+}
+
+// Task to update Gradle cache (matches Ant target)
+task updateGradleCache {
+	doLast {
+		exec {
+			workingDir = projectDir
+			commandLine "./gradlew", "-p", "portal-web", "--build-file=build-test.gradle", "updateGradleCache", "-Dmaven.local.ignore=true"
+		}
+	}
+}
