@@ -33,8 +33,6 @@ import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
@@ -49,7 +47,6 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
-import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -64,7 +61,6 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.validation.ModelValidator;
 import com.liferay.portal.validation.ModelValidatorRegistryUtil;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
-import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.TrashHelper;
 import com.liferay.trash.exception.RestoreEntryException;
@@ -707,14 +703,6 @@ public class JournalFolderLocalServiceImpl
 				folder.getGroupId(), folder.getFolderId()),
 			trashEntry.getEntryId());
 
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put("title", title);
-
-		SocialActivityManagerUtil.addActivity(
-			userId, folder, SocialActivityConstants.TYPE_MOVE_TO_TRASH,
-			extraDataJSONObject.toString(), 0);
-
 		return folder;
 	}
 
@@ -775,15 +763,6 @@ public class JournalFolderLocalServiceImpl
 
 		_trashEntryLocalService.deleteEntry(
 			JournalFolder.class.getName(), folder.getFolderId());
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", folder.getName());
-
-		SocialActivityManagerUtil.addActivity(
-			userId, folder, SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-			extraDataJSONObject.toString(), 0);
 	}
 
 	@Override

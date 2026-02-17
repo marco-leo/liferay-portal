@@ -269,53 +269,6 @@ if (wikiPageInfoPanelDisplayContext.isSinglePageSelection()) {
 
 		<liferay-ui:section>
 			<div class="sidebar-body">
-				<ul class="list-group sidebar-list-group">
-
-					<%
-					WikiSocialActivityHelper wikiSocialActivityHelper = new WikiSocialActivityHelper(wikiRequestHelper);
-
-					List<SocialActivity> socialActivities = SocialActivityLocalServiceUtil.getActivities(0, WikiPage.class.getName(), wikiPage.getResourcePrimKey(), QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
-					for (SocialActivity socialActivity : socialActivities) {
-						JSONObject extraDataJSONObject = JSONFactoryUtil.createJSONObject(socialActivity.getExtraData());
-
-						String path = wikiSocialActivityHelper.getSocialActivityActionJSP(socialActivity, extraDataJSONObject);
-					%>
-
-						<li class="list-group-item list-group-item-flex">
-							<div class="autofit-col autofit-col-expand">
-								<div class="h5">
-									<%= wikiSocialActivityHelper.getSocialActivityDescription(wikiPage, socialActivity, extraDataJSONObject, resourceBundle) %>
-								</div>
-
-								<div class="h6 sidebar-caption">
-									<%= dateTimeFormat.format(socialActivity.getCreateDate()) %>
-								</div>
-							</div>
-
-							<c:if test="<%= Validator.isNotNull(path) %>">
-								<div class="autofit-col">
-
-									<%
-									request.setAttribute(WikiWebKeys.WIKI_PAGE, wikiPage);
-									request.setAttribute("page_info_panel.jsp-socialActivity", socialActivity);
-									%>
-
-									<liferay-util:include page="<%= path %>" servletContext="<%= application %>" />
-								</div>
-							</c:if>
-						</li>
-
-					<%
-					}
-					%>
-
-				</ul>
-			</div>
-		</liferay-ui:section>
-
-		<liferay-ui:section>
-			<div class="sidebar-body">
 				<liferay-util:include page="/wiki/page_links.jsp" servletContext="<%= application %>" />
 			</div>
 		</liferay-ui:section>

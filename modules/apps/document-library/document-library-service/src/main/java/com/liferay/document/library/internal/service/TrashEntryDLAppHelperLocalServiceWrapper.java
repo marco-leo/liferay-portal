@@ -27,8 +27,6 @@ import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.dao.orm.custom.sql.CustomSQL;
 import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.lock.Lock;
 import com.liferay.portal.kernel.repository.Repository;
 import com.liferay.portal.kernel.repository.RepositoryProviderUtil;
@@ -46,7 +44,6 @@ import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
-import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -56,7 +53,6 @@ import com.liferay.portal.repository.liferayrepository.model.LiferayFileShortcut
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileVersion;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFolder;
 import com.liferay.portlet.documentlibrary.util.DLAppUtil;
-import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.trash.TrashHelper;
 import com.liferay.trash.exception.RestoreEntryException;
 import com.liferay.trash.exception.TrashEntryException;
@@ -188,16 +184,6 @@ public class TrashEntryDLAppHelperLocalServiceWrapper
 			if (trashVersion != null) {
 				_trashVersionLocalService.deleteTrashVersion(trashVersion);
 			}
-
-			// Social
-
-			JSONObject extraDataJSONObject = JSONUtil.put(
-				"title", fileShortcut.getToTitle());
-
-			SocialActivityManagerUtil.addActivity(
-				userId, fileShortcut,
-				SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-				extraDataJSONObject.toString(), 0);
 		}
 
 		return _dlAppLocalService.updateFileShortcut(
@@ -230,15 +216,6 @@ public class TrashEntryDLAppHelperLocalServiceWrapper
 		dlFileShortcut = _dlFileShortcutLocalService.updateStatus(
 			userId, fileShortcut.getFileShortcutId(),
 			WorkflowConstants.STATUS_IN_TRASH, new ServiceContext());
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", _trashHelper.getOriginalTitle(fileShortcut.getToTitle()));
-
-		SocialActivityManagerUtil.addActivity(
-			userId, fileShortcut, SocialActivityConstants.TYPE_MOVE_TO_TRASH,
-			extraDataJSONObject.toString(), 0);
 
 		// Trash
 
@@ -415,15 +392,6 @@ public class TrashEntryDLAppHelperLocalServiceWrapper
 		}
 
 		_trashEntryLocalService.deleteEntry(trashEntry.getEntryId());
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", fileEntry.getTitle());
-
-		SocialActivityManagerUtil.addActivity(
-			userId, fileEntry, SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-			extraDataJSONObject.toString(), 0);
 	}
 
 	@Override
@@ -447,16 +415,6 @@ public class TrashEntryDLAppHelperLocalServiceWrapper
 		_dlFileShortcutLocalService.updateStatus(
 			userId, fileShortcut.getFileShortcutId(), trashEntry.getStatus(),
 			new ServiceContext());
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", fileShortcut.getToTitle());
-
-		SocialActivityManagerUtil.addActivity(
-			userId, fileShortcut,
-			SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-			extraDataJSONObject.toString(), 0);
 
 		// Trash
 
@@ -505,15 +463,6 @@ public class TrashEntryDLAppHelperLocalServiceWrapper
 		// Trash
 
 		_trashEntryLocalService.deleteEntry(trashEntry.getEntryId());
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", folder.getName());
-
-		SocialActivityManagerUtil.addActivity(
-			userId, folder, SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-			extraDataJSONObject.toString(), 0);
 	}
 
 	protected FileEntry doMoveFileEntryFromTrash(
@@ -618,15 +567,6 @@ public class TrashEntryDLAppHelperLocalServiceWrapper
 			TrashRepositoryEventType.EntryRestored.class, FileEntry.class,
 			fileEntry);
 
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", fileEntry.getTitle());
-
-		SocialActivityManagerUtil.addActivity(
-			userId, fileEntry, SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-			extraDataJSONObject.toString(), 0);
-
 		// Indexer
 
 		Indexer<DLFileEntry> indexer = IndexerRegistryUtil.nullSafeGetIndexer(
@@ -727,15 +667,6 @@ public class TrashEntryDLAppHelperLocalServiceWrapper
 
 		indexer.reindex(dlFileEntry);
 
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", _trashHelper.getOriginalTitle(fileEntry.getTitle()));
-
-		SocialActivityManagerUtil.addActivity(
-			userId, fileEntry, SocialActivityConstants.TYPE_MOVE_TO_TRASH,
-			extraDataJSONObject.toString(), 0);
-
 		// Workflow
 
 		int oldStatus = fileVersion.getStatus();
@@ -798,15 +729,6 @@ public class TrashEntryDLAppHelperLocalServiceWrapper
 				folder.getRepositoryId(),
 				TrashRepositoryEventType.EntryRestored.class, Folder.class,
 				folder);
-
-			// Social
-
-			JSONObject extraDataJSONObject = JSONUtil.put(
-				"title", folder.getName());
-
-			SocialActivityManagerUtil.addActivity(
-				userId, folder, SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-				extraDataJSONObject.toString(), 0);
 		}
 
 		return _dlAppLocalService.moveFolder(
@@ -851,15 +773,6 @@ public class TrashEntryDLAppHelperLocalServiceWrapper
 		triggerRepositoryEvent(
 			folder.getRepositoryId(),
 			TrashRepositoryEventType.EntryTrashed.class, Folder.class, folder);
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", folder.getName());
-
-		SocialActivityManagerUtil.addActivity(
-			userId, folder, SocialActivityConstants.TYPE_MOVE_TO_TRASH,
-			extraDataJSONObject.toString(), 0);
 
 		// Indexer
 

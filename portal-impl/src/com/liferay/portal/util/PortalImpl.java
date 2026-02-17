@@ -212,7 +212,6 @@ import com.liferay.portlet.LiferayPortletUtil;
 import com.liferay.portlet.PortletPreferencesWrapper;
 import com.liferay.portlet.admin.util.OmniadminUtil;
 import com.liferay.sites.kernel.util.Sites;
-import com.liferay.social.kernel.model.SocialRelationConstants;
 import com.liferay.util.JS;
 
 import jakarta.portlet.ActionRequest;
@@ -6263,17 +6262,7 @@ public class PortalImpl implements Portal {
 				ResourceConstants.SCOPE_GROUP,
 				ResourceConstants.SCOPE_GROUP_TEMPLATE,
 				ResourceConstants.SCOPE_INDIVIDUAL,
-				SocialRelationConstants.TYPE_BI_COWORKER,
-				SocialRelationConstants.TYPE_BI_FRIEND,
-				SocialRelationConstants.TYPE_BI_ROMANTIC_PARTNER,
-				SocialRelationConstants.TYPE_BI_SIBLING,
-				SocialRelationConstants.TYPE_BI_SPOUSE,
-				SocialRelationConstants.TYPE_UNI_CHILD,
-				SocialRelationConstants.TYPE_UNI_ENEMY,
-				SocialRelationConstants.TYPE_UNI_FOLLOWER,
-				SocialRelationConstants.TYPE_UNI_PARENT,
-				SocialRelationConstants.TYPE_UNI_SUBORDINATE,
-				SocialRelationConstants.TYPE_UNI_SUPERVISOR,
+				1, 2, 3, 4, 5, 6, 9, 8, 7, 10, 11,
 				db.getTemplateFalse(), db.getTemplateTrue()
 			});
 	}

@@ -33,9 +33,6 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.SubscriptionSender;
-import com.liferay.social.kernel.util.SocialInteractionsConfiguration;
-import com.liferay.social.kernel.util.SocialInteractionsConfigurationUtil;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -191,19 +188,13 @@ public class DefaultMentionsNotifier implements MentionsNotifier {
 
 		User user = _userLocalService.getUser(userId);
 
-		SocialInteractionsConfiguration socialInteractionsConfiguration =
-			SocialInteractionsConfigurationUtil.
-				getSocialInteractionsConfiguration(
-					user.getCompanyId(), MentionsPortletKeys.MENTIONS);
-
 		Set<String> mentionedUsersScreenNames = new HashSet<>();
 
 		MentionsMatcher mentionsMatcher = getMentionsMatcher(className);
 
 		for (String mentionedUserScreenName : mentionsMatcher.match(content)) {
 			List<User> users = _mentionsUserFinder.getUsers(
-				user.getCompanyId(), userId, mentionedUserScreenName,
-				socialInteractionsConfiguration);
+				user.getCompanyId(), userId, mentionedUserScreenName);
 
 			for (User curUser : users) {
 				if (mentionedUserScreenName.equals(curUser.getScreenName())) {

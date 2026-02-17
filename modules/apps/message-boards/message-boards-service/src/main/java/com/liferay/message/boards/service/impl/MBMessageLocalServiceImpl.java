@@ -49,7 +49,6 @@ import com.liferay.message.boards.service.base.MBMessageLocalServiceBaseImpl;
 import com.liferay.message.boards.service.persistence.MBCategoryPersistence;
 import com.liferay.message.boards.service.persistence.MBThreadPersistence;
 import com.liferay.message.boards.settings.MBGroupServiceSettings;
-import com.liferay.message.boards.social.MBActivityKeys;
 import com.liferay.message.boards.util.comparator.MessageCreateDateComparator;
 import com.liferay.message.boards.util.comparator.MessageThreadComparator;
 import com.liferay.petra.lang.SafeCloseable;
@@ -65,8 +64,6 @@ import com.liferay.portal.kernel.comment.Comment;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -106,7 +103,6 @@ import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 import com.liferay.portal.kernel.settings.LocalizedValuesMap;
-import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
@@ -136,7 +132,6 @@ import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
 import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
 import com.liferay.portal.linkback.LinkbackProducerUtil;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
-import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.subscription.service.SubscriptionLocalService;
 
 import jakarta.portlet.PortletRequest;
@@ -681,10 +676,6 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 	public MBMessage deleteDiscussionMessage(long messageId)
 		throws PortalException {
 
-		MBMessage message = mbMessagePersistence.findByPrimaryKey(messageId);
-
-		SocialActivityManagerUtil.deleteActivities(message);
-
 		return mbMessageLocalService.deleteMessage(messageId);
 	}
 
@@ -713,8 +704,6 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 
 		if (!messages.isEmpty()) {
 			MBMessage message = messages.get(0);
-
-			SocialActivityManagerUtil.deleteActivities(message);
 
 			MBThread thread = _mbThreadPersistence.findByPrimaryKey(
 				message.getThreadId());
@@ -1509,10 +1498,6 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 
 		if (message.isApproved() && !message.isDiscussion()) {
 			_mbThreadLocalService.incrementViewCounter(thread.getThreadId(), 1);
-
-			SocialActivityManagerUtil.addActivity(
-				userId, thread, SocialActivityConstants.TYPE_VIEW,
-				StringPool.BLANK, 0);
 		}
 
 		List<MBMessage> messages = null;
@@ -2004,10 +1989,6 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 						publishDate, null, true, true);
 				}
 			}
-
-			// Social
-
-			_updateSocialActivity(user, message, serviceContext);
 
 			// Subscriptions
 
@@ -2952,76 +2933,6 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 				message.setPriority(priority);
 
 				mbMessagePersistence.update(message);
-			}
-		}
-	}
-
-	private void _updateSocialActivity(
-			User user, MBMessage message, ServiceContext serviceContext)
-		throws PortalException {
-
-		String title = message.getSubject();
-
-		if (message.isDiscussion()) {
-			title = HtmlUtil.stripHtml(title);
-		}
-
-		JSONObject extraDataJSONObject = JSONUtil.put("title", title);
-
-		if (!message.isDiscussion()) {
-			if (!message.isAnonymous() && !user.isGuestUser()) {
-				long receiverUserId = 0;
-
-				MBMessage parentMessage =
-					mbMessagePersistence.fetchByPrimaryKey(
-						message.getParentMessageId());
-
-				if (parentMessage != null) {
-					receiverUserId = parentMessage.getUserId();
-				}
-
-				int activityKey = MBActivityKeys.UPDATE_MESSAGE;
-
-				if (serviceContext.isCommandAdd()) {
-					activityKey = MBActivityKeys.ADD_MESSAGE;
-				}
-
-				SocialActivityManagerUtil.addActivity(
-					message.getUserId(), message, activityKey,
-					extraDataJSONObject.toString(), receiverUserId);
-
-				if ((parentMessage != null) &&
-					(receiverUserId != message.getUserId())) {
-
-					SocialActivityManagerUtil.addActivity(
-						message.getUserId(), parentMessage,
-						MBActivityKeys.REPLY_MESSAGE,
-						extraDataJSONObject.toString(), 0);
-				}
-			}
-		}
-		else if (serviceContext.isCommandAdd()) {
-			long parentMessageId = message.getParentMessageId();
-
-			if (parentMessageId !=
-					MBMessageConstants.DEFAULT_PARENT_MESSAGE_ID) {
-
-				String className = (String)serviceContext.getAttribute(
-					"className");
-				long classPK = ParamUtil.getLong(serviceContext, "classPK");
-
-				AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
-					className, classPK);
-
-				if (assetEntry != null) {
-					extraDataJSONObject.put(
-						"messageId", message.getMessageId());
-
-					SocialActivityManagerUtil.addActivity(
-						message.getUserId(), assetEntry,
-						SocialActivityConstants.TYPE_ADD_COMMENT,
-						extraDataJSONObject.toString(), assetEntry.getUserId());
-				}
 			}
 		}
 	}

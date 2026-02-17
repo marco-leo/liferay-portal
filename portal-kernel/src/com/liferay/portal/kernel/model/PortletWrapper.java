@@ -1422,55 +1422,6 @@ public class PortletWrapper
 	}
 
 	/**
-	 * Returns the names of the classes that represent social activity
-	 * interpreters associated with the portlet.
-	 *
-	 * @return the names of the classes that represent social activity
-	 interpreters associated with the portlet
-	 */
-	@Override
-	public java.util.List<String> getSocialActivityInterpreterClasses() {
-		return model.getSocialActivityInterpreterClasses();
-	}
-
-	/**
-	 * Returns the social activity interpreter instances of the portlet.
-	 *
-	 * @return the social activity interpreter instances of the portlet
-	 */
-	@Override
-	public java.util.List
-		<com.liferay.social.kernel.model.SocialActivityInterpreter>
-			getSocialActivityInterpreterInstances() {
-
-		return model.getSocialActivityInterpreterInstances();
-	}
-
-	/**
-	 * Returns the name of the social request interpreter class of the portlet.
-	 *
-	 * @return the name of the social request interpreter class of the portlet
-	 */
-	@Override
-	public String getSocialRequestInterpreterClass() {
-		return model.getSocialRequestInterpreterClass();
-	}
-
-	/**
-	 * Returns the name of the social request interpreter instance of the
-	 * portlet.
-	 *
-	 * @return the name of the social request interpreter instance of the
-	 portlet
-	 */
-	@Override
-	public com.liferay.social.kernel.model.SocialRequestInterpreter
-		getSocialRequestInterpreterInstance() {
-
-		return model.getSocialRequestInterpreterInstance();
-	}
-
-	/**
 	 * Returns the names of the classes that represent staged model data
 	 * handlers associated with the portlet.
 	 *
@@ -3431,34 +3382,6 @@ public class PortletWrapper
 	@Override
 	public void setSinglePageApplication(boolean singlePageApplication) {
 		model.setSinglePageApplication(singlePageApplication);
-	}
-
-	/**
-	 * Sets the names of the classes that represent social activity interpreters
-	 * associated with the portlet.
-	 *
-	 * @param socialActivityInterpreterClasses the names of the classes that
-	 represent social activity interpreters associated with the portlet
-	 */
-	@Override
-	public void setSocialActivityInterpreterClasses(
-		java.util.List<String> socialActivityInterpreterClasses) {
-
-		model.setSocialActivityInterpreterClasses(
-			socialActivityInterpreterClasses);
-	}
-
-	/**
-	 * Sets the name of the social request interpreter class of the portlet.
-	 *
-	 * @param socialRequestInterpreterClass the name of the request interpreter
-	 class of the portlet
-	 */
-	@Override
-	public void setSocialRequestInterpreterClass(
-		String socialRequestInterpreterClass) {
-
-		model.setSocialRequestInterpreterClass(socialRequestInterpreterClass);
 	}
 
 	/**

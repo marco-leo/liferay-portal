@@ -15,8 +15,6 @@
 
 		<#list dataFactory.newMBMessageModels(mbThreadModel) as mbMessageModel>
 			<@insertMBMessage _mbMessageModel = mbMessageModel />
-
-			${dataFactory.toInsertSQL(dataFactory.newSocialActivityModel(mbMessageModel))}
 		</#list>
 
 		${csvFileWriter.write("mbThread", virtualHostModel.hostname + "," + groupModel.friendlyURL + "," + mbCategoryModel.categoryId + "," + mbThreadModel.threadId + "," + mbThreadModel.rootMessageId + "\n")}

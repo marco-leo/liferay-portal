@@ -24,7 +24,6 @@ import com.liferay.blogs.internal.image.ImageSelectorProcessor;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.base.BlogsEntryLocalServiceBaseImpl;
 import com.liferay.blogs.settings.BlogsGroupServiceSettings;
-import com.liferay.blogs.social.BlogsActivityKeys;
 import com.liferay.blogs.util.comparator.EntryDisplayDateComparator;
 import com.liferay.blogs.util.comparator.EntryIdComparator;
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
@@ -44,8 +43,6 @@ import com.liferay.portal.configuration.module.configuration.ConfigurationProvid
 import com.liferay.portal.kernel.comment.CommentManager;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -75,7 +72,6 @@ import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.servlet.taglib.ui.ImageSelector;
 import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 import com.liferay.portal.kernel.settings.LocalizedValuesMap;
-import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -106,7 +102,6 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
 import com.liferay.portal.linkback.LinkbackProducerUtil;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
-import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.subscription.util.UnsubscribeHelper;
 import com.liferay.trash.exception.RestoreEntryException;
@@ -1000,8 +995,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	}
 
 	/**
-	 * Moves the blogs entry to the recycle bin. Social activity counters for
-	 * this entry get disabled.
+	 * Moves the blogs entry to the recycle bin.
 	 *
 	 * @param  userId the primary key of the user moving the blogs entry
 	 * @param  entry the blogs entry to be moved
@@ -1029,15 +1023,6 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 		entry = updateStatus(
 			userId, entry.getEntryId(), WorkflowConstants.STATUS_IN_TRASH,
 			new ServiceContext(), new HashMap<>());
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", entry.getTitle());
-
-		SocialActivityManagerUtil.addActivity(
-			userId, entry, SocialActivityConstants.TYPE_MOVE_TO_TRASH,
-			extraDataJSONObject.toString(), 0);
 
 		// Workflow
 
@@ -1067,8 +1052,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 	}
 
 	/**
-	 * Restores the blogs entry with the ID from the recycle bin. Social
-	 * activity counters for this entry get activated.
+	 * Restores the blogs entry with the ID from the recycle bin.
 	 *
 	 * @param  userId the primary key of the user restoring the blogs entry
 	 * @param  entryId the primary key of the blogs entry to be restored
@@ -1094,15 +1078,6 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 		entry = updateStatus(
 			userId, entryId, trashEntry.getStatus(), new ServiceContext(),
 			new HashMap<>());
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", entry.getTitle());
-
-		SocialActivityManagerUtil.addActivity(
-			userId, entry, SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-			extraDataJSONObject.toString(), 0);
 
 		return entry;
 	}
@@ -1482,9 +1457,6 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 			serviceContext.setCommand(Constants.ADD);
 		}
 
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", entry.getTitle());
-
 		if (status == WorkflowConstants.STATUS_APPROVED) {
 
 			// Resources
@@ -1511,23 +1483,6 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 			_assetEntryLocalService.updateEntry(
 				BlogsEntry.class.getName(), entryId, entry.getDisplayDate(),
 				null, true, true);
-
-			// Social
-
-			if ((oldStatus != WorkflowConstants.STATUS_IN_TRASH) &&
-				(oldStatus != WorkflowConstants.STATUS_SCHEDULED)) {
-
-				if (serviceContext.isCommandUpdate()) {
-					SocialActivityManagerUtil.addActivity(
-						user.getUserId(), entry, BlogsActivityKeys.UPDATE_ENTRY,
-						extraDataJSONObject.toString(), 0);
-				}
-				else {
-					SocialActivityManagerUtil.addUniqueActivity(
-						user.getUserId(), entry, BlogsActivityKeys.ADD_ENTRY,
-						extraDataJSONObject.toString(), 0);
-				}
-			}
 
 			// Trash
 
@@ -1567,23 +1522,6 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 
 			_assetEntryLocalService.updateVisible(
 				BlogsEntry.class.getName(), entryId, false);
-
-			// Social
-
-			if ((status == WorkflowConstants.STATUS_SCHEDULED) &&
-				(oldStatus != WorkflowConstants.STATUS_IN_TRASH)) {
-
-				if (serviceContext.isCommandUpdate()) {
-					SocialActivityManagerUtil.addActivity(
-						user.getUserId(), entry, BlogsActivityKeys.UPDATE_ENTRY,
-						extraDataJSONObject.toString(), 0);
-				}
-				else {
-					SocialActivityManagerUtil.addUniqueActivity(
-						user.getUserId(), entry, BlogsActivityKeys.ADD_ENTRY,
-						extraDataJSONObject.toString(), 0);
-				}
-			}
 
 			// Trash
 

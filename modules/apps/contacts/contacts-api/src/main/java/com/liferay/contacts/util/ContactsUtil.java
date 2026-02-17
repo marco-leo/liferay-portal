@@ -6,7 +6,6 @@
 package com.liferay.contacts.util;
 
 import com.liferay.contacts.constants.ContactsConstants;
-import com.liferay.contacts.constants.SocialRelationConstants;
 import com.liferay.contacts.model.Entry;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -35,9 +34,6 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.social.kernel.model.SocialRequestConstants;
-import com.liferay.social.kernel.service.SocialRelationLocalServiceUtil;
-import com.liferay.social.kernel.service.SocialRequestLocalServiceUtil;
 
 import java.lang.reflect.Field;
 
@@ -102,16 +98,19 @@ public class ContactsUtil {
 		throws PortalException {
 
 		JSONObject jsonObject = JSONUtil.put(
-			"block",
-			SocialRelationLocalServiceUtil.hasRelation(
-				userId, user.getUserId(),
-				SocialRelationConstants.TYPE_UNI_ENEMY)
+			"block", false
+		).put(
+			"connected", false
+		).put(
+			"connectionRequested", false
 		).put(
 			"contactId", String.valueOf(user.getContactId())
 		).put(
 			"emailAddress", user.getEmailAddress()
 		).put(
 			"firstName", user.getFirstName()
+		).put(
+			"following", false
 		).put(
 			"fullName", user.getFullName()
 		).put(
@@ -127,40 +126,6 @@ public class ContactsUtil {
 		).put(
 			"uuid", user.getUuid()
 		);
-
-		if (!SocialRelationLocalServiceUtil.hasRelation(
-				user.getUserId(), userId,
-				SocialRelationConstants.TYPE_UNI_ENEMY) &&
-			!SocialRelationLocalServiceUtil.hasRelation(
-				userId, user.getUserId(),
-				SocialRelationConstants.TYPE_UNI_ENEMY)) {
-
-			boolean connectionRequested =
-				SocialRequestLocalServiceUtil.hasRequest(
-					userId, User.class.getName(), userId,
-					SocialRelationConstants.TYPE_BI_CONNECTION,
-					user.getUserId(), SocialRequestConstants.STATUS_PENDING);
-
-			jsonObject.put("connectionRequested", connectionRequested);
-
-			boolean connected = false;
-
-			if (!connectionRequested &&
-				SocialRelationLocalServiceUtil.hasRelation(
-					userId, user.getUserId(),
-					SocialRelationConstants.TYPE_BI_CONNECTION)) {
-
-				connected = true;
-			}
-
-			jsonObject.put("connected", connected);
-
-			boolean following = SocialRelationLocalServiceUtil.hasRelation(
-				userId, user.getUserId(),
-				SocialRelationConstants.TYPE_UNI_FOLLOWER);
-
-			jsonObject.put("following", following);
-		}
 
 		return jsonObject;
 	}

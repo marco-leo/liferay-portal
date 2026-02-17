@@ -67,9 +67,6 @@ import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.workflow.WorkflowHandler;
 import com.liferay.portal.kernel.xml.QName;
 import com.liferay.portal.kernel.xmlrpc.Method;
-import com.liferay.social.kernel.model.SocialActivityInterpreter;
-import com.liferay.social.kernel.model.SocialRequestInterpreter;
-
 import jakarta.portlet.GenericPortlet;
 import jakarta.portlet.HeaderRequest;
 import jakarta.portlet.HeaderResponse;
@@ -80,6 +77,7 @@ import jakarta.servlet.ServletContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -142,7 +140,6 @@ public class PortletImpl extends PortletBaseImpl {
 		_roleMappers = new LinkedHashMap<>();
 		_rootPortlet = this;
 		_schedulerEntries = new ArrayList<>();
-		_socialActivityInterpreterClasses = new ArrayList<>();
 		_stagedModelDataHandlerClasses = new ArrayList<>();
 		_supportedLocales = new HashSet<>();
 		_trashHandlerClasses = new ArrayList<>();
@@ -169,8 +166,6 @@ public class PortletImpl extends PortletBaseImpl {
 		List<String> stagedModelDataHandlerClasses, String templateHandlerClass,
 		String portletConfigurationListenerClass,
 		String portletLayoutListenerClass, String popMessageListenerClass,
-		List<String> socialActivityInterpreterClasses,
-		String socialRequestInterpreterClass,
 		String userNotificationDefinitions,
 		List<String> userNotificationHandlerClasses, String webDAVStorageToken,
 		String webDAVStorageClass, String xmlRpcMethodClass,
@@ -247,8 +242,6 @@ public class PortletImpl extends PortletBaseImpl {
 		_portletConfigurationListenerClass = portletConfigurationListenerClass;
 		_portletLayoutListenerClass = portletLayoutListenerClass;
 		_popMessageListenerClass = popMessageListenerClass;
-		_socialActivityInterpreterClasses = socialActivityInterpreterClasses;
-		_socialRequestInterpreterClass = socialRequestInterpreterClass;
 		_userNotificationDefinitions = userNotificationDefinitions;
 		_userNotificationHandlerClasses = userNotificationHandlerClasses;
 		_webDAVStorageToken = webDAVStorageToken;
@@ -415,8 +408,6 @@ public class PortletImpl extends PortletBaseImpl {
 			getPortletDataHandlerClass(), getStagedModelDataHandlerClasses(),
 			getTemplateHandlerClass(), getPortletConfigurationListenerClass(),
 			getPortletLayoutListenerClass(), getPopMessageListenerClass(),
-			getSocialActivityInterpreterClasses(),
-			getSocialRequestInterpreterClass(),
 			getUserNotificationDefinitions(),
 			getUserNotificationHandlerClasses(), getWebDAVStorageToken(),
 			getWebDAVStorageClass(), getXmlRpcMethodClass(),
@@ -1749,60 +1740,6 @@ public class PortletImpl extends PortletBaseImpl {
 	@Override
 	public boolean getSinglePageApplication() {
 		return _singlePageApplication;
-	}
-
-	/**
-	 * Returns the names of the classes that represent social activity
-	 * interpreters associated with the portlet.
-	 *
-	 * @return the names of the classes that represent social activity
-	 *         interpreters associated with the portlet
-	 */
-	@Override
-	public List<String> getSocialActivityInterpreterClasses() {
-		return _socialActivityInterpreterClasses;
-	}
-
-	/**
-	 * Returns the social activity interpreter instances of the portlet.
-	 *
-	 * @return the social activity interpreter instances of the portlet
-	 */
-	@Override
-	public List<SocialActivityInterpreter>
-		getSocialActivityInterpreterInstances() {
-
-		if (_socialActivityInterpreterClasses.isEmpty()) {
-			return null;
-		}
-
-		PortletBag portletBag = PortletBagPool.get(getRootPortletId());
-
-		return portletBag.getSocialActivityInterpreterInstances();
-	}
-
-	/**
-	 * Returns the name of the social request interpreter class of the portlet.
-	 *
-	 * @return the name of the social request interpreter class of the portlet
-	 */
-	@Override
-	public String getSocialRequestInterpreterClass() {
-		return _socialRequestInterpreterClass;
-	}
-
-	/**
-	 * Returns the name of the social request interpreter instance of the
-	 * portlet.
-	 *
-	 * @return the name of the social request interpreter instance of the
-	 *         portlet
-	 */
-	@Override
-	public SocialRequestInterpreter getSocialRequestInterpreterInstance() {
-		PortletBag portletBag = PortletBagPool.get(getRootPortletId());
-
-		return portletBag.getSocialRequestInterpreterInstance();
 	}
 
 	/**
@@ -3903,33 +3840,6 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
-	 * Sets the names of the classes that represent social activity interpreters
-	 * associated with the portlet.
-	 *
-	 * @param socialActivityInterpreterClasses the names of the classes that
-	 *        represent social activity interpreters associated with the portlet
-	 */
-	@Override
-	public void setSocialActivityInterpreterClasses(
-		List<String> socialActivityInterpreterClasses) {
-
-		_socialActivityInterpreterClasses = socialActivityInterpreterClasses;
-	}
-
-	/**
-	 * Sets the name of the social request interpreter class of the portlet.
-	 *
-	 * @param socialRequestInterpreterClass the name of the request interpreter
-	 *        class of the portlet
-	 */
-	@Override
-	public void setSocialRequestInterpreterClass(
-		String socialRequestInterpreterClass) {
-
-		_socialRequestInterpreterClass = socialRequestInterpreterClass;
-	}
-
-	/**
 	 * Sets the names of the classes that represent staged model data handlers
 	 * associated with the portlet.
 	 *
@@ -4814,17 +4724,6 @@ public class PortletImpl extends PortletBaseImpl {
 	 * <code>True</code> if the portlet uses Single Page Application.
 	 */
 	private boolean _singlePageApplication = true;
-
-	/**
-	 * The names of the classes that represents social activity interpreters
-	 * associated with the portlet.
-	 */
-	private List<String> _socialActivityInterpreterClasses;
-
-	/**
-	 * The name of the social request interpreter class of the portlet.
-	 */
-	private String _socialRequestInterpreterClass;
 
 	/**
 	 * The names of the classes that represent staged model data handlers

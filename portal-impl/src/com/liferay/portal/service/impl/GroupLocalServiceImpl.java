@@ -176,9 +176,6 @@ import com.liferay.portal.theme.ThemeLoader;
 import com.liferay.portal.theme.ThemeLoaderFactory;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.site.initializer.kernel.util.SiteInitializerThreadLocal;
-import com.liferay.social.kernel.service.SocialActivityLocalService;
-import com.liferay.social.kernel.service.SocialActivitySettingLocalService;
-import com.liferay.social.kernel.service.SocialRequestLocalService;
 import com.liferay.util.dao.orm.CustomSQLUtil;
 
 import java.io.File;
@@ -1116,15 +1113,6 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			_expandoRowLocalService.deleteRows(
 				group.getCompanyId(),
 				_classNameLocalService.getClassNameId(Group.class.getName()),
-				group.getGroupId());
-
-			// Social
-
-			_socialActivityLocalService.deleteActivities(group.getGroupId());
-			_socialActivitySettingLocalService.deleteActivitySettings(
-				group.getGroupId());
-			_socialRequestLocalService.deleteRequests(
-				_classNameLocalService.getClassNameId(Group.class),
 				group.getGroupId());
 
 			// Workflow
@@ -5656,15 +5644,6 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 
 	private ServiceRegistration<?> _serviceRegistration;
 
-	@BeanReference(type = SocialActivityLocalService.class)
-	private SocialActivityLocalService _socialActivityLocalService;
-
-	@BeanReference(type = SocialActivitySettingLocalService.class)
-	private SocialActivitySettingLocalService
-		_socialActivitySettingLocalService;
-
-	@BeanReference(type = SocialRequestLocalService.class)
-	private SocialRequestLocalService _socialRequestLocalService;
 
 	@BeanReference(type = StagingLocalService.class)
 	private StagingLocalService _stagingLocalService;

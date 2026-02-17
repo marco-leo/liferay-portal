@@ -5,7 +5,6 @@
 
 package com.liferay.layout.content.page.editor.web.internal.mentions.strategy;
 
-import com.liferay.mentions.constants.MentionsPortletKeys;
 import com.liferay.mentions.strategy.MentionsStrategy;
 import com.liferay.mentions.util.MentionsUserFinder;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -18,7 +17,6 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactory;
 import com.liferay.portal.kernel.service.permission.LayoutPermission;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.social.kernel.util.SocialInteractionsConfigurationUtil;
 
 import java.util.List;
 
@@ -44,10 +42,7 @@ public class PageEditorCommentMentionsStrategy implements MentionsStrategy {
 
 		return ListUtil.filter(
 			_mentionsUserFinder.getUsers(
-				companyId, groupId, userId, query,
-				SocialInteractionsConfigurationUtil.
-					getSocialInteractionsConfiguration(
-						companyId, MentionsPortletKeys.MENTIONS)),
+				companyId, groupId, userId, query),
 			user -> {
 				try {
 					return _layoutPermission.contains(

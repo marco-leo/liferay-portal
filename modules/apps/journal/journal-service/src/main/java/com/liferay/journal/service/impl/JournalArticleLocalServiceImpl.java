@@ -59,7 +59,6 @@ import com.liferay.friendly.url.model.FriendlyURLEntryLocalizationTable;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.journal.configuration.JournalGroupServiceConfiguration;
 import com.liferay.journal.configuration.JournalServiceConfiguration;
-import com.liferay.journal.constants.JournalActivityKeys;
 import com.liferay.journal.constants.JournalArticleConstants;
 import com.liferay.journal.constants.JournalConstants;
 import com.liferay.journal.constants.JournalFolderConstants;
@@ -164,7 +163,6 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
-import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.systemevent.SystemEventHierarchyEntryThreadLocal;
 import com.liferay.portal.kernel.templateparser.TransformerListener;
@@ -203,7 +201,6 @@ import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.validation.ModelValidator;
 import com.liferay.portal.validation.ModelValidatorRegistryUtil;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
-import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.TrashHelper;
 import com.liferay.trash.exception.RestoreEntryException;
@@ -4162,15 +4159,6 @@ public class JournalArticleLocalServiceImpl
 				JournalArticle.class.getName(), article.getResourcePrimKey());
 		}
 
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", article.getTitleMapAsXML());
-
-		SocialActivityManagerUtil.addActivity(
-			userId, article, SocialActivityConstants.TYPE_MOVE_TO_TRASH,
-			extraDataJSONObject.toString(), 0);
-
 		if (oldStatus == WorkflowConstants.STATUS_PENDING) {
 			_workflowInstanceLinkLocalService.deleteWorkflowInstanceLink(
 				article.getCompanyId(), article.getGroupId(),
@@ -4389,15 +4377,6 @@ public class JournalArticleLocalServiceImpl
 			_commentManager.restoreDiscussionFromTrash(
 				JournalArticle.class.getName(), article.getResourcePrimKey());
 		}
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", article.getTitleMapAsXML());
-
-		SocialActivityManagerUtil.addActivity(
-			userId, article, SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-			extraDataJSONObject.toString(), 0);
 
 		return article;
 	}
@@ -5728,22 +5707,6 @@ public class JournalArticleLocalServiceImpl
 				expireMaxVersionArticles(
 					article, user.getUserId(), serviceContext, articleURL);
 
-				// Social
-
-				JSONObject extraDataJSONObject = JSONUtil.put("title", title);
-
-				if (serviceContext.isCommandUpdate()) {
-					SocialActivityManagerUtil.addActivity(
-						user.getUserId(), article,
-						JournalActivityKeys.UPDATE_ARTICLE,
-						extraDataJSONObject.toString(), 0);
-				}
-				else {
-					SocialActivityManagerUtil.addUniqueActivity(
-						user.getUserId(), article,
-						JournalActivityKeys.ADD_ARTICLE,
-						extraDataJSONObject.toString(), 0);
-				}
 			}
 			else if ((oldStatus == WorkflowConstants.STATUS_APPROVED) &&
 					 (status != WorkflowConstants.STATUS_IN_TRASH)) {

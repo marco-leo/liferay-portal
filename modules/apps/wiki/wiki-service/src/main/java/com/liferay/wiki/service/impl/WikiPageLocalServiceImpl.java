@@ -36,8 +36,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.increment.BufferedIncrement;
 import com.liferay.portal.kernel.increment.DateOverrideIncrement;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -61,7 +59,6 @@ import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 import com.liferay.portal.kernel.settings.LocalizedValuesMap;
-import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.systemevent.SystemEventHierarchyEntryThreadLocal;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
@@ -89,7 +86,6 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
 import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
-import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.TrashHelper;
 import com.liferay.trash.exception.RestoreEntryException;
@@ -126,7 +122,6 @@ import com.liferay.wiki.service.WikiPageResourceLocalService;
 import com.liferay.wiki.service.base.WikiPageLocalServiceBaseImpl;
 import com.liferay.wiki.service.persistence.WikiNodePersistence;
 import com.liferay.wiki.service.persistence.WikiPageResourcePersistence;
-import com.liferay.wiki.social.WikiActivityKeys;
 import com.liferay.wiki.util.comparator.PageCreateDateComparator;
 import com.liferay.wiki.util.comparator.PageVersionComparator;
 import com.liferay.wiki.validator.WikiPageTitleValidator;
@@ -350,24 +345,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			page.getResourcePrimKey(), WikiConstants.SERVICE_NAME,
 			folder.getFolderId(), file, fileName, mimeType, true);
 
-		if (userId == 0) {
-			userId = page.getUserId();
-		}
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"fileEntryId", fileEntry.getFileEntryId()
-		).put(
-			"fileEntryTitle", fileEntry.getTitle()
-		).put(
-			"title", page.getTitle()
-		).put(
-			"version", page.getVersion()
-		);
-
-		SocialActivityManagerUtil.addActivity(
-			userId, page, SocialActivityConstants.TYPE_ADD_ATTACHMENT,
-			extraDataJSONObject.toString(), 0);
-
 		return fileEntry;
 	}
 
@@ -388,24 +365,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			null, page.getGroupId(), userId, WikiPage.class.getName(),
 			page.getResourcePrimKey(), WikiConstants.SERVICE_NAME,
 			folder.getFolderId(), inputStream, fileName, mimeType, true);
-
-		if (userId == 0) {
-			userId = page.getUserId();
-		}
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"fileEntryId", fileEntry.getFileEntryId()
-		).put(
-			"fileEntryTitle", fileEntry.getTitle()
-		).put(
-			"title", page.getTitle()
-		).put(
-			"version", page.getVersion()
-		);
-
-		SocialActivityManagerUtil.addActivity(
-			userId, page, SocialActivityConstants.TYPE_ADD_ATTACHMENT,
-			extraDataJSONObject.toString(), 0);
 
 		return fileEntry;
 	}
@@ -1631,21 +1590,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		fileEntry = _portletFileRepository.movePortletFileEntryToTrash(
 			userId, fileEntry.getFileEntryId());
 
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"fileEntryId", fileEntry.getFileEntryId()
-		).put(
-			"fileEntryTitle",
-			_trashHelper.getOriginalTitle(fileEntry.getTitle())
-		).put(
-			"title", page.getTitle()
-		).put(
-			"version", page.getVersion()
-		);
-
-		SocialActivityManagerUtil.addActivity(
-			userId, page, SocialActivityConstants.TYPE_MOVE_ATTACHMENT_TO_TRASH,
-			extraDataJSONObject.toString(), 0);
-
 		return fileEntry;
 	}
 
@@ -1795,18 +1739,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		_commentManager.moveDiscussionToTrash(
 			WikiPage.class.getName(), page.getResourcePrimKey());
 
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", _trashHelper.getOriginalTitle(page.getTitle())
-		).put(
-			"version", page.getVersion()
-		);
-
-		SocialActivityManagerUtil.addActivity(
-			userId, page, SocialActivityConstants.TYPE_MOVE_TO_TRASH,
-			extraDataJSONObject.toString(), 0);
-
 		// Indexer
 
 		Indexer<WikiPage> indexer = _indexerRegistry.nullSafeGetIndexer(
@@ -1928,24 +1860,8 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		FileEntry fileEntry = _portletFileRepository.getPortletFileEntry(
 			page.getGroupId(), page.getAttachmentsFolderId(), fileName);
 
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"fileEntryId", fileEntry.getFileEntryId()
-		).put(
-			"fileEntryTitle",
-			_trashHelper.getOriginalTitle(fileEntry.getTitle())
-		).put(
-			"title", page.getTitle()
-		).put(
-			"version", page.getVersion()
-		);
-
 		_portletFileRepository.restorePortletFileEntryFromTrash(
 			userId, fileEntry.getFileEntryId());
-
-		SocialActivityManagerUtil.addActivity(
-			userId, page,
-			SocialActivityConstants.TYPE_RESTORE_ATTACHMENT_FROM_TRASH,
-			extraDataJSONObject.toString(), 0);
 	}
 
 	@Override
@@ -2232,7 +2148,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			_assetEntryLocalService.updateVisible(
 				WikiPage.class.getName(), page.getResourcePrimKey(), true);
 
-			// Social
+			// Subscriptions
 
 			WikiGroupServiceOverriddenConfiguration
 				wikiGroupServiceOverriddenConfiguration =
@@ -2240,29 +2156,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 						WikiGroupServiceOverriddenConfiguration.class,
 						new GroupServiceSettingsLocator(
 							page.getGroupId(), WikiConstants.SERVICE_NAME));
-
-			if ((oldStatus != WorkflowConstants.STATUS_IN_TRASH) &&
-				(!page.isMinorEdit() ||
-				 wikiGroupServiceOverriddenConfiguration.
-					 pageMinorEditAddSocialActivity())) {
-
-				JSONObject extraDataJSONObject = JSONUtil.put(
-					"title", page.getTitle()
-				).put(
-					"version", page.getVersion()
-				);
-
-				int type = WikiActivityKeys.UPDATE_PAGE;
-
-				if (serviceContext.isCommandAdd()) {
-					type = WikiActivityKeys.ADD_PAGE;
-				}
-
-				SocialActivityManagerUtil.addActivity(
-					userId, page, type, extraDataJSONObject.toString(), 0);
-			}
-
-			// Subscriptions
 
 			if (NotificationThreadLocal.isEnabled() &&
 				(!page.isMinorEdit() ||
@@ -2981,18 +2874,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		_commentManager.restoreDiscussionFromTrash(
 			WikiPage.class.getName(), page.getResourcePrimKey());
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", page.getTitle()
-		).put(
-			"version", page.getVersion()
-		);
-
-		SocialActivityManagerUtil.addActivity(
-			userId, page, SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-			extraDataJSONObject.toString(), 0);
 
 		Indexer<WikiPage> indexer = _indexerRegistry.nullSafeGetIndexer(
 			WikiPage.class);

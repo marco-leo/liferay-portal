@@ -7,7 +7,6 @@ package com.liferay.mentions.util;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.social.kernel.util.SocialInteractionsConfiguration;
 
 import java.util.List;
 
@@ -20,13 +19,10 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface MentionsUserFinder {
 
 	public List<User> getUsers(
-			long companyId, long groupId, long userId, String query,
-			SocialInteractionsConfiguration socialInteractionsConfiguration)
+			long companyId, long groupId, long userId, String query)
 		throws PortalException;
 
-	public List<User> getUsers(
-			long companyId, long userId, String query,
-			SocialInteractionsConfiguration socialInteractionsConfiguration)
+	public List<User> getUsers(long companyId, long userId, String query)
 		throws PortalException;
 
 }

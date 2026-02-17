@@ -1460,132 +1460,6 @@ public class UserLocalServiceUtil {
 		return getService().getRoleUsersCount(roleId, status);
 	}
 
-	public static List<User> getSocialUsers(
-			long userId, int socialRelationType,
-			String socialRelationTypeComparator, int start, int end,
-			OrderByComparator<User> orderByComparator)
-		throws PortalException {
-
-		return getService().getSocialUsers(
-			userId, socialRelationType, socialRelationTypeComparator, start,
-			end, orderByComparator);
-	}
-
-	/**
-	 * Returns an ordered range of all the users with a mutual social relation
-	 * of the type with both of the given users.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end -
-	 * start</code> instances. <code>start</code> and <code>end</code> are not
-	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
-	 * refers to the first result in the set. Setting both <code>start</code>
-	 * and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full
-	 * result set.
-	 * </p>
-	 *
-	 * @param userId1 the primary key of the first user
-	 * @param userId2 the primary key of the second user
-	 * @param socialRelationType the type of social relation. The possible
-	 types can be found in {@link SocialRelationConstants}.
-	 * @param start the lower bound of the range of users
-	 * @param end the upper bound of the range of users (not inclusive)
-	 * @param orderByComparator the comparator to order the users by
-	 (optionally <code>null</code>)
-	 * @return the ordered range of users with a mutual social relation of the
-	 type with the user
-	 */
-	public static List<User> getSocialUsers(
-			long userId1, long userId2, int socialRelationType, int start,
-			int end, OrderByComparator<User> orderByComparator)
-		throws PortalException {
-
-		return getService().getSocialUsers(
-			userId1, userId2, socialRelationType, start, end,
-			orderByComparator);
-	}
-
-	/**
-	 * Returns an ordered range of all the users with a mutual social relation
-	 * with both of the given users.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end -
-	 * start</code> instances. <code>start</code> and <code>end</code> are not
-	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
-	 * refers to the first result in the set. Setting both <code>start</code>
-	 * and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full
-	 * result set.
-	 * </p>
-	 *
-	 * @param userId1 the primary key of the first user
-	 * @param userId2 the primary key of the second user
-	 * @param start the lower bound of the range of users
-	 * @param end the upper bound of the range of users (not inclusive)
-	 * @param orderByComparator the comparator to order the users by
-	 (optionally <code>null</code>)
-	 * @return the ordered range of users with a mutual social relation with the
-	 user
-	 */
-	public static List<User> getSocialUsers(
-			long userId1, long userId2, int start, int end,
-			OrderByComparator<User> orderByComparator)
-		throws PortalException {
-
-		return getService().getSocialUsers(
-			userId1, userId2, start, end, orderByComparator);
-	}
-
-	/**
-	 * Returns the number of users with a social relation with the user.
-	 *
-	 * @param userId the primary key of the user
-	 * @param socialRelationType the type of social relation. The possible
-	 types can be found in {@link SocialRelationConstants}.
-	 * @return the number of users with a social relation with the user
-	 */
-	public static int getSocialUsersCount(
-			long userId, int socialRelationType,
-			String socialRelationTypeComparator)
-		throws PortalException {
-
-		return getService().getSocialUsersCount(
-			userId, socialRelationType, socialRelationTypeComparator);
-	}
-
-	/**
-	 * Returns the number of users with a mutual social relation with both of
-	 * the given users.
-	 *
-	 * @param userId1 the primary key of the first user
-	 * @param userId2 the primary key of the second user
-	 * @return the number of users with a mutual social relation with the user
-	 */
-	public static int getSocialUsersCount(long userId1, long userId2)
-		throws PortalException {
-
-		return getService().getSocialUsersCount(userId1, userId2);
-	}
-
-	/**
-	 * Returns the number of users with a mutual social relation of the type
-	 * with both of the given users.
-	 *
-	 * @param userId1 the primary key of the first user
-	 * @param userId2 the primary key of the second user
-	 * @param socialRelationType the type of social relation. The possible
-	 types can be found in {@link SocialRelationConstants}.
-	 * @return the number of users with a mutual social relation of the type
-	 with the user
-	 */
-	public static int getSocialUsersCount(
-			long userId1, long userId2, int socialRelationType)
-		throws PortalException {
-
-		return getService().getSocialUsersCount(
-			userId1, userId2, socialRelationType);
-	}
-
 	/**
 	 * Returns the teamIds of the teams associated with the user.
 	 *
@@ -2118,41 +1992,6 @@ public class UserLocalServiceUtil {
 			emailAddress, status, params, andSearch, start, end, sorts);
 	}
 
-	public static List<User> searchBySocial(
-			long userId, int[] socialRelationTypes, String keywords, int start,
-			int end)
-		throws PortalException {
-
-		return getService().searchBySocial(
-			userId, socialRelationTypes, keywords, start, end);
-	}
-
-	public static List<User> searchBySocial(
-		long companyId, long[] groupIds, long[] userGroupIds, String keywords,
-		int start, int end) {
-
-		return getService().searchBySocial(
-			companyId, groupIds, userGroupIds, keywords, start, end);
-	}
-
-	public static List<User> searchBySocial(
-		long companyId, long[] groupIds, long[] userGroupIds, String keywords,
-		int start, int end, OrderByComparator<User> orderByComparator) {
-
-		return getService().searchBySocial(
-			companyId, groupIds, userGroupIds, keywords, start, end,
-			orderByComparator);
-	}
-
-	public static List<User> searchBySocial(
-			long[] groupIds, long userId, int[] socialRelationTypes,
-			String keywords, int start, int end)
-		throws PortalException {
-
-		return getService().searchBySocial(
-			groupIds, userId, socialRelationTypes, keywords, start, end);
-	}
-
 	/**
 	 * Returns the number of users who match the keywords and status.
 	 *
@@ -2202,13 +2041,6 @@ public class UserLocalServiceUtil {
 		return getService().searchCount(
 			companyId, firstName, middleName, lastName, screenName,
 			emailAddress, status, params, andSearch);
-	}
-
-	public static int searchCountBySocial(
-		long companyId, long[] groupIds, long[] userGroupIds, String keywords) {
-
-		return getService().searchCountBySocial(
-			companyId, groupIds, userGroupIds, keywords);
 	}
 
 	public static Map<Long, Integer> searchCounts(

@@ -35,7 +35,6 @@ import com.liferay.calendar.recurrence.Recurrence;
 import com.liferay.calendar.recurrence.RecurrenceSerializer;
 import com.liferay.calendar.service.base.CalendarBookingLocalServiceBaseImpl;
 import com.liferay.calendar.service.persistence.CalendarPersistence;
-import com.liferay.calendar.social.CalendarActivityKeys;
 import com.liferay.calendar.util.JCalendarUtil;
 import com.liferay.calendar.util.RecurrenceUtil;
 import com.liferay.calendar.workflow.constants.CalendarBookingWorkflowConstants;
@@ -56,8 +55,6 @@ import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -95,9 +92,6 @@ import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
-import com.liferay.social.kernel.model.SocialActivityConstants;
-import com.liferay.social.kernel.service.SocialActivityCounterLocalService;
-import com.liferay.social.kernel.service.SocialActivityLocalService;
 import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.exception.RestoreEntryException;
 import com.liferay.trash.exception.TrashEntryException;
@@ -288,14 +282,6 @@ public class CalendarBookingLocalServiceImpl
 			serviceContext.getAssetTagNames(),
 			serviceContext.getAssetLinkEntryIds(),
 			serviceContext.getAssetPriority());
-
-		// Social
-
-		_socialActivityLocalService.addActivity(
-			userId, calendarBooking.getGroupId(),
-			CalendarBooking.class.getName(), calendarBookingId,
-			CalendarActivityKeys.ADD_CALENDAR_BOOKING,
-			_getExtraDataJSON(calendarBooking), 0);
 
 		// Notifications
 
@@ -968,19 +954,6 @@ public class CalendarBookingLocalServiceImpl
 				userId, recurringCalendarBooking,
 				WorkflowConstants.STATUS_IN_TRASH, serviceContext);
 
-			// Social
-
-			_socialActivityCounterLocalService.disableActivityCounters(
-				CalendarBooking.class.getName(),
-				recurringCalendarBooking.getCalendarBookingId());
-
-			_socialActivityLocalService.addActivity(
-				userId, recurringCalendarBooking.getGroupId(),
-				CalendarBooking.class.getName(),
-				recurringCalendarBooking.getCalendarBookingId(),
-				SocialActivityConstants.TYPE_MOVE_TO_TRASH,
-				_getExtraDataJSON(recurringCalendarBooking), 0);
-
 			// Workflow
 
 			_workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
@@ -1031,17 +1004,6 @@ public class CalendarBookingLocalServiceImpl
 
 		calendarBookingLocalService.updateStatus(
 			userId, calendarBookingId, trashEntry.getStatus(), serviceContext);
-
-		// Social
-
-		_socialActivityCounterLocalService.enableActivityCounters(
-			CalendarBooking.class.getName(), calendarBookingId);
-
-		_socialActivityLocalService.addActivity(
-			userId, calendarBooking.getGroupId(),
-			CalendarBooking.class.getName(), calendarBookingId,
-			SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-			_getExtraDataJSON(calendarBooking), 0);
 
 		// Workflow
 
@@ -1312,14 +1274,6 @@ public class CalendarBookingLocalServiceImpl
 			serviceContext.getAssetTagNames(),
 			serviceContext.getAssetLinkEntryIds(),
 			serviceContext.getAssetPriority());
-
-		// Social
-
-		_socialActivityLocalService.addActivity(
-			userId, calendarBooking.getGroupId(),
-			CalendarBooking.class.getName(), calendarBookingId,
-			CalendarActivityKeys.UPDATE_CALENDAR_BOOKING,
-			_getExtraDataJSON(calendarBooking), 0);
 
 		// Notifications
 
@@ -1903,13 +1857,6 @@ public class CalendarBookingLocalServiceImpl
 		}
 
 		return user;
-	}
-
-	private String _getExtraDataJSON(CalendarBooking calendarBooking) {
-		JSONObject jsonObject = JSONUtil.put(
-			"title", calendarBooking.getTitle());
-
-		return jsonObject.toString();
 	}
 
 	private int _getNewChildStatus(
@@ -2811,13 +2758,6 @@ public class CalendarBookingLocalServiceImpl
 	private ResourceLocalService _resourceLocalService;
 
 	private ServiceTrackerMap<String, NotificationSender> _serviceTrackerMap;
-
-	@Reference
-	private SocialActivityCounterLocalService
-		_socialActivityCounterLocalService;
-
-	@Reference
-	private SocialActivityLocalService _socialActivityLocalService;
 
 	@Reference
 	private UserLocalService _userLocalService;

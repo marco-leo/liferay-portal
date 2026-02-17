@@ -34,7 +34,6 @@ import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.comparator.UserFirstNameComparator;
-import com.liferay.social.kernel.model.SocialRelationConstants;
 import com.liferay.subscription.service.SubscriptionLocalServiceUtil;
 
 import jakarta.portlet.PortletRequest;
@@ -144,10 +143,7 @@ public class MicroblogsUtil {
 
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
-		List<User> users = UserLocalServiceUtil.getSocialUsers(
-			userId, SocialRelationConstants.TYPE_BI_CONNECTION,
-			QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-			UserFirstNameComparator.getInstance(true));
+		List<User> users = new ArrayList<>();
 
 		for (User user : users) {
 			if (user.isGuestUser() || (userId == user.getUserId())) {

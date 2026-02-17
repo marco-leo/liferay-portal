@@ -48,7 +48,7 @@ page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
 page import="com.liferay.portal.kernel.util.PortalUtil" %><%@
 page import="com.liferay.portal.kernel.util.PrefsParamUtil" %><%@
 page import="com.liferay.portal.kernel.util.StringUtil" %><%@
-page import="com.liferay.social.kernel.model.SocialRelationConstants" %>
+page import="com.liferay.contacts.constants.SocialRelationConstants" %>
 
 <%@ page import="jakarta.portlet.PortletRequest" %><%@
 page import="jakarta.portlet.PortletURL" %><%@

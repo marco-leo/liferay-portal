@@ -5,28 +5,21 @@
 
 package com.liferay.subscription.service.impl;
 
-import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetTag;
-import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.model.ClassName;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.subscription.constants.SubscriptionConstants;
 import com.liferay.subscription.model.Subscription;
 import com.liferay.subscription.service.base.SubscriptionLocalServiceBaseImpl;
@@ -61,12 +54,6 @@ public class SubscriptionLocalServiceImpl
 	 * entry is created.
 	 * </p>
 	 *
-	 * <p>
-	 * A social activity for the subscription is created using the asset entry
-	 * associated with the class name and class PK, or the newly created asset
-	 * entry.
-	 * </p>
-	 *
 	 * @param  userId the primary key of the user
 	 * @param  groupId the primary key of the entity's group
 	 * @param  className the entity's class name
@@ -89,12 +76,6 @@ public class SubscriptionLocalServiceImpl
 	 * <p>
 	 * If there is no asset entry with the class name and class PK a new asset
 	 * entry is created.
-	 * </p>
-	 *
-	 * <p>
-	 * A social activity for the subscription is created using the asset entry
-	 * associated with the class name and class PK, or the newly created asset
-	 * entry.
 	 * </p>
 	 *
 	 * @param  userId the primary key of the user
@@ -134,23 +115,6 @@ public class SubscriptionLocalServiceImpl
 			subscription = subscriptionPersistence.update(subscription);
 		}
 
-		if (groupId > 0) {
-
-			// Social
-
-			AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
-				className, classPK);
-
-			if (assetEntry != null) {
-				JSONObject extraDataJSONObject = JSONUtil.put(
-					"title", assetEntry.getTitle());
-
-				SocialActivityManagerUtil.addActivity(
-					userId, assetEntry, SocialActivityConstants.TYPE_SUBSCRIBE,
-					extraDataJSONObject.toString(), 0);
-			}
-		}
-
 		if (className.equals(AssetTag.class.getName())) {
 			AssetTag assetTag = _assetTagLocalService.fetchAssetTag(classPK);
 
@@ -173,8 +137,7 @@ public class SubscriptionLocalServiceImpl
 	}
 
 	/**
-	 * Deletes the subscription with the primary key. A social activity with the
-	 * unsubscribe action is created.
+	 * Deletes the subscription with the primary key.
 	 *
 	 * @param  subscriptionId the primary key of the subscription
 	 * @return the subscription that was removed
@@ -190,8 +153,7 @@ public class SubscriptionLocalServiceImpl
 	}
 
 	/**
-	 * Deletes the user's subscription to the entity. A social activity with the
-	 * unsubscribe action is created.
+	 * Deletes the user's subscription to the entity.
 	 *
 	 * @param userId the primary key of the user
 	 * @param className the entity's class name
@@ -226,8 +188,7 @@ public class SubscriptionLocalServiceImpl
 	}
 
 	/**
-	 * Deletes the subscription. A social activity with the unsubscribe action
-	 * is created.
+	 * Deletes the subscription.
 	 *
 	 * @param  subscription the subscription
 	 * @return the subscription that was removed
@@ -240,24 +201,6 @@ public class SubscriptionLocalServiceImpl
 		// Subscription
 
 		subscriptionPersistence.remove(subscription);
-
-		// Social
-
-		ClassName className = _classNameLocalService.getClassName(
-			subscription.getClassNameId());
-
-		AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
-			className.getClassName(), subscription.getClassPK());
-
-		if (assetEntry != null) {
-			JSONObject extraDataJSONObject = JSONUtil.put(
-				"title", assetEntry.getTitle());
-
-			SocialActivityManagerUtil.addActivity(
-				subscription.getUserId(), subscription,
-				SocialActivityConstants.TYPE_UNSUBSCRIBE,
-				extraDataJSONObject.toString(), 0);
-		}
 
 		return subscription;
 	}
@@ -546,9 +489,6 @@ public class SubscriptionLocalServiceImpl
 			subscriptionPersistence.update(subscription);
 		}
 	}
-
-	@Reference
-	private AssetEntryLocalService _assetEntryLocalService;
 
 	@Reference
 	private AssetTagLocalService _assetTagLocalService;

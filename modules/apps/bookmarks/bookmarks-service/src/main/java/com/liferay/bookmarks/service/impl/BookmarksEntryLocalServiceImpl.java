@@ -16,7 +16,6 @@ import com.liferay.bookmarks.exception.EntryURLException;
 import com.liferay.bookmarks.model.BookmarksEntry;
 import com.liferay.bookmarks.model.BookmarksFolder;
 import com.liferay.bookmarks.service.base.BookmarksEntryLocalServiceBaseImpl;
-import com.liferay.bookmarks.social.BookmarksActivityKeys;
 import com.liferay.bookmarks.util.comparator.EntryModifiedDateComparator;
 import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.petra.string.StringBundler;
@@ -28,8 +27,6 @@ import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -67,8 +64,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.view.count.ViewCountManager;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
-import com.liferay.social.kernel.model.SocialActivityConstants;
-import com.liferay.social.kernel.service.SocialActivityLocalService;
 import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.TrashHelper;
 import com.liferay.trash.exception.RestoreEntryException;
@@ -149,14 +144,6 @@ public class BookmarksEntryLocalServiceImpl
 			serviceContext.getAssetTagNames(),
 			serviceContext.getAssetLinkEntryIds(),
 			serviceContext.getAssetPriority());
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put("title", entry.getName());
-
-		_socialActivityLocalService.addActivity(
-			userId, groupId, BookmarksEntry.class.getName(), entryId,
-			BookmarksActivityKeys.ADD_ENTRY, extraDataJSONObject.toString(), 0);
 
 		// Subscriptions
 
@@ -649,15 +636,6 @@ public class BookmarksEntryLocalServiceImpl
 			serviceContext.getAssetLinkEntryIds(),
 			serviceContext.getAssetPriority());
 
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put("title", entry.getName());
-
-		_socialActivityLocalService.addActivity(
-			userId, entry.getGroupId(), BookmarksEntry.class.getName(), entryId,
-			BookmarksActivityKeys.UPDATE_ENTRY, extraDataJSONObject.toString(),
-			0);
-
 		// Subscriptions
 
 		_notifySubscribers(userId, entry, serviceContext);
@@ -681,22 +659,12 @@ public class BookmarksEntryLocalServiceImpl
 
 		entry = bookmarksEntryPersistence.update(entry);
 
-		JSONObject extraDataJSONObject = JSONUtil.put("title", entry.getName());
-
 		if (status == WorkflowConstants.STATUS_APPROVED) {
 
 			// Asset
 
 			_assetEntryLocalService.updateVisible(
 				BookmarksEntry.class.getName(), entry.getEntryId(), true);
-
-			// Social
-
-			_socialActivityLocalService.addActivity(
-				userId, entry.getGroupId(), BookmarksEntry.class.getName(),
-				entry.getEntryId(),
-				SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-				extraDataJSONObject.toString(), 0);
 		}
 		else if (status == WorkflowConstants.STATUS_IN_TRASH) {
 
@@ -704,13 +672,6 @@ public class BookmarksEntryLocalServiceImpl
 
 			_assetEntryLocalService.updateVisible(
 				BookmarksEntry.class.getName(), entry.getEntryId(), false);
-
-			// Social
-
-			_socialActivityLocalService.addActivity(
-				userId, entry.getGroupId(), BookmarksEntry.class.getName(),
-				entry.getEntryId(), SocialActivityConstants.TYPE_MOVE_TO_TRASH,
-				extraDataJSONObject.toString(), 0);
 		}
 
 		return entry;
@@ -921,9 +882,6 @@ public class BookmarksEntryLocalServiceImpl
 
 	@Reference
 	private ResourceLocalService _resourceLocalService;
-
-	@Reference
-	private SocialActivityLocalService _socialActivityLocalService;
 
 	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;

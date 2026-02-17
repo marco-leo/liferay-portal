@@ -7,7 +7,6 @@ package com.liferay.user.service.persistence.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.lang.SafeCloseable;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Organization;
@@ -32,13 +31,10 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserGroupTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
-import com.liferay.portal.kernel.util.comparator.UserFirstNameComparator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.TransactionalTestRule;
-import com.liferay.social.kernel.model.SocialRelationConstants;
-import com.liferay.social.kernel.service.SocialRelationLocalService;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -84,12 +80,6 @@ public class UserFinderTest {
 		_organizationLocalService.addUserOrganization(
 			_organizationUser2.getUserId(), _organization2);
 
-		_socialUser = UserTestUtil.addUser();
-
-		_socialRelationLocalService.addRelation(
-			_groupUser.getUserId(), _socialUser.getUserId(),
-			SocialRelationConstants.TYPE_BI_CONNECTION);
-
 		_team = _teamLocalService.addTeam(
 			TestPropsValues.getUserId(), TestPropsValues.getGroupId(),
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
@@ -121,7 +111,6 @@ public class UserFinderTest {
 
 		_teamLocalService.deleteTeam(_team);
 
-		_userLocalService.deleteUser(_socialUser);
 		_userLocalService.deleteUser(_userGroupUser);
 
 		_userGroupLocalService.deleteUserGroup(_userGroup);
@@ -386,17 +375,6 @@ public class UserFinderTest {
 			users.toString(), expectedUsers.size() + 1, users.size());
 	}
 
-	@Test
-	public void testFindBySocialUsers() throws Exception {
-		List<User> users = _userFinder.findBySocialUsers(
-			TestPropsValues.getCompanyId(), _groupUser.getUserId(),
-			SocialRelationConstants.TYPE_BI_CONNECTION, StringPool.EQUAL,
-			WorkflowConstants.STATUS_APPROVED, QueryUtil.ALL_POS,
-			QueryUtil.ALL_POS, UserFirstNameComparator.getInstance(true));
-
-		Assert.assertEquals(users.toString(), 1, users.size());
-	}
-
 	private static Group _group;
 
 	@Inject
@@ -412,10 +390,6 @@ public class UserFinderTest {
 	private static User _organizationUser1;
 	private static User _organizationUser2;
 
-	@Inject
-	private static SocialRelationLocalService _socialRelationLocalService;
-
-	private static User _socialUser;
 	private static Team _team;
 
 	@Inject

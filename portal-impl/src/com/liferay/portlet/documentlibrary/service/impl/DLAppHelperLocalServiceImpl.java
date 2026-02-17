@@ -35,8 +35,6 @@ import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.interval.IntervalActionProcessor;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.messaging.async.Async;
 import com.liferay.portal.kernel.repository.Repository;
 import com.liferay.portal.kernel.repository.RepositoryProviderUtil;
@@ -51,7 +49,6 @@ import com.liferay.portal.kernel.repository.model.RepositoryModel;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -62,7 +59,6 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFolder;
 import com.liferay.portlet.documentlibrary.service.base.DLAppHelperLocalServiceBaseImpl;
-import com.liferay.portlet.documentlibrary.social.DLActivityKeys;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
 
 import java.io.Serializable;
@@ -761,23 +757,6 @@ public class DLAppHelperLocalServiceImpl
 
 			if ((oldStatus != WorkflowConstants.STATUS_IN_TRASH) &&
 				!fileEntry.isInTrash()) {
-
-				// Social
-
-				Date activityCreateDate = latestFileVersion.getModifiedDate();
-				int activityType = DLActivityKeys.UPDATE_FILE_ENTRY;
-
-				if (event.equals(DLSyncConstants.EVENT_ADD)) {
-					activityCreateDate = latestFileVersion.getCreateDate();
-					activityType = DLActivityKeys.ADD_FILE_ENTRY;
-				}
-
-				JSONObject extraDataJSONObject = JSONUtil.put(
-					"title", fileEntry.getTitle());
-
-				SocialActivityManagerUtil.addUniqueActivity(
-					latestFileVersion.getStatusByUserId(), activityCreateDate,
-					fileEntry, activityType, extraDataJSONObject.toString(), 0);
 			}
 		}
 		else {

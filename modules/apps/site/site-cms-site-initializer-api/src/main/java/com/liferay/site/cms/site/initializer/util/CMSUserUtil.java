@@ -10,21 +10,19 @@ import com.liferay.depot.service.DepotEntryLocalServiceUtil;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
-import com.liferay.portal.kernel.service.UserGroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.SetUtil;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -64,28 +62,10 @@ public class CMSUserUtil {
 			Comparator.comparing(User::getFullName));
 
 		users.addAll(
-			UserLocalServiceUtil.searchBySocial(
-				CompanyThreadLocal.getCompanyId(),
-				ArrayUtil.toLongArray(depotEntryGroupIds), null, keywords,
-				start, end));
-
-		Set<Long> depotEntryUserGroupIds = new HashSet<>();
-
-		for (long depotEntryGroupId : depotEntryGroupIds) {
-			depotEntryUserGroupIds.addAll(
-				TransformUtil.transform(
-					UserGroupLocalServiceUtil.getGroupUserGroups(
-						depotEntryGroupId),
-					UserGroup::getUserGroupId));
-		}
-
-		if (SetUtil.isNotEmpty(depotEntryUserGroupIds)) {
-			users.addAll(
-				UserLocalServiceUtil.searchBySocial(
-					CompanyThreadLocal.getCompanyId(), null,
-					ArrayUtil.toLongArray(depotEntryUserGroupIds), keywords,
-					start, end));
-		}
+			UserLocalServiceUtil.search(
+				CompanyThreadLocal.getCompanyId(), keywords,
+				WorkflowConstants.STATUS_APPROVED, new LinkedHashMap<>(),
+				start, end, (OrderByComparator<User>)null));
 
 		return users;
 	}

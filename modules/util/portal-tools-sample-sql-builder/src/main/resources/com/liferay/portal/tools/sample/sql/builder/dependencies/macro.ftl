@@ -163,8 +163,6 @@
 					_mbThreadId = dataFactory.getCounterNext()
 				/>
 
-				${dataFactory.toInsertSQL(dataFactory.newSocialActivityModel(dlFileEntryModel))}
-
 				<#local dlFileEntryMetadataModel = dataFactory.newDLFileEntryMetadataModel(ddmStorageLinkId, _ddmStructureId, dlFileVersionModel)>
 
 				${dataFactory.toInsertSQL(dlFileEntryMetadataModel)}
@@ -226,8 +224,6 @@
 
 	${dataFactory.toInsertSQL(dataFactory.newDDMStorageLinkModel(_journalArticleModel, _journalDDMStructureModel.structureId))}
 
-	${dataFactory.toInsertSQL(dataFactory.newSocialActivityModel(_journalArticleModel))}
-
 	<#if _insertAssetEntry>
 		<@insertAssetEntry
 			_categoryAndTag = true
@@ -264,8 +260,6 @@
 
 	<#list mbMessageModels as mbMessageModel>
 		<@insertMBMessage _mbMessageModel = mbMessageModel />
-
-		${dataFactory.toInsertSQL(dataFactory.newSocialActivityModel(mbMessageModel))}
 	</#list>
 
 	${dataFactory.toInsertSQL(dataFactory.newMBDiscussionModel(_groupId, _classNameId, _classPK, _mbThreadId))}

@@ -11,9 +11,7 @@ import com.liferay.change.tracking.spi.reference.builder.ParentTableReferenceInf
 import com.liferay.knowledge.base.model.KBTemplate;
 import com.liferay.knowledge.base.model.KBTemplateTable;
 import com.liferay.knowledge.base.service.persistence.KBTemplatePersistence;
-import com.liferay.portal.kernel.model.ClassNameTable;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
-import com.liferay.social.kernel.model.SocialActivitySetTable;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -30,22 +28,7 @@ public class KBTemplateTableReferenceDefinition
 		ChildTableReferenceInfoBuilder<KBTemplateTable>
 			childTableReferenceInfoBuilder) {
 
-		childTableReferenceInfoBuilder.referenceInnerJoin(
-			fromStep -> fromStep.from(
-				SocialActivitySetTable.INSTANCE
-			).innerJoinON(
-				KBTemplateTable.INSTANCE,
-				KBTemplateTable.INSTANCE.kbTemplateId.eq(
-					SocialActivitySetTable.INSTANCE.classPK)
-			).innerJoinON(
-				ClassNameTable.INSTANCE,
-				ClassNameTable.INSTANCE.classNameId.eq(
-					SocialActivitySetTable.INSTANCE.classNameId
-				).and(
-					ClassNameTable.INSTANCE.value.eq(KBTemplate.class.getName())
-				)
-			)
-		).resourcePermissionReference(
+		childTableReferenceInfoBuilder.resourcePermissionReference(
 			KBTemplateTable.INSTANCE.kbTemplateId, KBTemplate.class
 		);
 	}

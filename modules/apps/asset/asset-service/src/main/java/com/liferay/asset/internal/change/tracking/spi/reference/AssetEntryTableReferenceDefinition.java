@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.model.LayoutTable;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.ratings.kernel.model.RatingsStatsTable;
-import com.liferay.social.kernel.model.SocialActivitySetTable;
 import com.liferay.subscription.model.SubscriptionTable;
 import com.liferay.trash.model.TrashEntryTable;
 import com.liferay.trash.model.TrashVersionTable;
@@ -95,18 +94,6 @@ public class AssetEntryTableReferenceDefinition
 					LayoutClassedModelUsageTable.INSTANCE.containerType
 				).and(
 					ClassNameTable.INSTANCE.value.eq(Portlet.class.getName())
-				)
-			)
-		).referenceInnerJoin(
-			fromStep -> fromStep.from(
-				SocialActivitySetTable.INSTANCE
-			).innerJoinON(
-				AssetEntryTable.INSTANCE,
-				AssetEntryTable.INSTANCE.classNameId.eq(
-					SocialActivitySetTable.INSTANCE.classNameId
-				).and(
-					AssetEntryTable.INSTANCE.classPK.eq(
-						SocialActivitySetTable.INSTANCE.classPK)
 				)
 			)
 		).referenceInnerJoin(

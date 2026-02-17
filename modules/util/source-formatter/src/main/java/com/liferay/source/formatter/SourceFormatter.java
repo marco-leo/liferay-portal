@@ -622,10 +622,6 @@ public class SourceFormatter {
 
 				dependentFileNames.add(
 					_sourceFormatterArgs.getBaseDirName() +
-						"/modules/sdk/ant-bnd/src/main/java/com/liferay/ant" +
-							"/bnd/social/SocialAnalyzerPlugin.java");
-				dependentFileNames.add(
-					_sourceFormatterArgs.getBaseDirName() +
 						"/portal-impl/src/com/liferay/portal/util" +
 							"/EntityResolver.java");
 				dependentFileNames.add(

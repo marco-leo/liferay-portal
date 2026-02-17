@@ -63,10 +63,6 @@ import com.liferay.portal.kernel.xmlrpc.Method;
 import com.liferay.portal.notifications.UserNotificationHandlerImpl;
 import com.liferay.portal.util.JavaFieldsParser;
 import com.liferay.portlet.internal.PortletBagImpl;
-import com.liferay.social.kernel.model.SocialActivityInterpreter;
-import com.liferay.social.kernel.model.SocialRequestInterpreter;
-import com.liferay.social.kernel.model.impl.SocialActivityInterpreterImpl;
-import com.liferay.social.kernel.model.impl.SocialRequestInterpreterImpl;
 
 import jakarta.portlet.PreferencesValidator;
 
@@ -150,12 +146,6 @@ public class PortletBagFactory {
 			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerPOPMessageListeners(
-			bundleContext, portlet, properties, serviceRegistrations);
-
-		_registerSocialActivityInterpreterInstances(
-			bundleContext, portlet, properties, serviceRegistrations);
-
-		_registerSocialRequestInterpreterInstances(
 			bundleContext, portlet, properties, serviceRegistrations);
 
 		_registerUserNotificationDefinitionInstances(
@@ -613,57 +603,6 @@ public class PortletBagFactory {
 					new SchedulerEntrySchedulerJobConfiguration(
 						schedulerEntry, _classLoader),
 					properties);
-
-			serviceRegistrations.add(serviceRegistration);
-		}
-	}
-
-	private void _registerSocialActivityInterpreterInstances(
-			BundleContext bundleContext, Portlet portlet,
-			Dictionary<String, Object> properties,
-			List<ServiceRegistration<?>> serviceRegistrations)
-		throws Exception {
-
-		for (String socialActivityInterpreterClass :
-				portlet.getSocialActivityInterpreterClasses()) {
-
-			SocialActivityInterpreter socialActivityInterpreterInstance =
-				_newInstance(
-					SocialActivityInterpreter.class,
-					socialActivityInterpreterClass);
-
-			socialActivityInterpreterInstance =
-				new SocialActivityInterpreterImpl(
-					portlet.getPortletId(), socialActivityInterpreterInstance);
-
-			ServiceRegistration<?> serviceRegistration =
-				bundleContext.registerService(
-					SocialActivityInterpreter.class,
-					socialActivityInterpreterInstance, properties);
-
-			serviceRegistrations.add(serviceRegistration);
-		}
-	}
-
-	private void _registerSocialRequestInterpreterInstances(
-			BundleContext bundleContext, Portlet portlet,
-			Dictionary<String, Object> properties,
-			List<ServiceRegistration<?>> serviceRegistrations)
-		throws Exception {
-
-		if (Validator.isNotNull(portlet.getSocialRequestInterpreterClass())) {
-			SocialRequestInterpreter socialRequestInterpreterInstance =
-				_newInstance(
-					SocialRequestInterpreter.class,
-					portlet.getSocialRequestInterpreterClass());
-
-			socialRequestInterpreterInstance = new SocialRequestInterpreterImpl(
-				portlet.getPortletId(), socialRequestInterpreterInstance);
-
-			ServiceRegistration<?> serviceRegistration =
-				bundleContext.registerService(
-					SocialRequestInterpreter.class,
-					socialRequestInterpreterInstance, properties);
 
 			serviceRegistrations.add(serviceRegistration);
 		}

@@ -29,8 +29,10 @@ import com.liferay.portal.kernel.service.UserService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
@@ -40,6 +42,7 @@ import com.liferay.portal.vulcan.pagination.Pagination;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -175,6 +178,11 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 	private Page<UserAccount> _getUserAccountsPage(
 		Long groupId, String keywords, Pagination pagination, Sort[] sorts) {
 
+		LinkedHashMap<String, Object> params =
+			LinkedHashMapBuilder.<String, Object>put(
+				"usersGroups", groupId
+			).build();
+
 		return Page.of(
 			HashMapBuilder.put(
 				"create",
@@ -195,15 +203,16 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 					_groupModelResourcePermission)
 			).build(),
 			transform(
-				_userLocalService.searchBySocial(
-					contextCompany.getCompanyId(), new long[] {groupId}, null,
-					keywords, pagination.getStartPosition(),
+				_userLocalService.search(
+					contextCompany.getCompanyId(), keywords,
+					WorkflowConstants.STATUS_APPROVED, params,
+					pagination.getStartPosition(),
 					pagination.getEndPosition(), _toOrderByComparator(sorts)),
 				user -> _toUserAccount(groupId, user)),
 			pagination,
-			_userLocalService.searchCountBySocial(
-				contextCompany.getCompanyId(), new long[] {groupId}, null,
-				keywords));
+			_userLocalService.searchCount(
+				contextCompany.getCompanyId(), keywords,
+				WorkflowConstants.STATUS_APPROVED, params));
 	}
 
 	private long[] _getUserGroupIds(

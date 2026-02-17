@@ -6,32 +6,16 @@
 package com.liferay.contacts.web.internal.notifications;
 
 import com.liferay.contacts.web.internal.constants.ContactsPortletKeys;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONFactory;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserNotificationEvent;
 import com.liferay.portal.kernel.notifications.BaseUserNotificationHandler;
 import com.liferay.portal.kernel.notifications.UserNotificationHandler;
-import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
-import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.UserNotificationEventLocalService;
-import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
-import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.social.kernel.model.SocialRelationConstants;
-import com.liferay.social.kernel.model.SocialRequest;
-import com.liferay.social.kernel.model.SocialRequestConstants;
-import com.liferay.social.kernel.service.SocialRequestLocalService;
-
-import jakarta.portlet.WindowState;
-
-import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -59,79 +43,7 @@ public class ContactsCenterUserNotificationHandler
 			ServiceContext serviceContext)
 		throws Exception {
 
-		JSONObject jsonObject = _jsonFactory.createJSONObject(
-			userNotificationEvent.getPayload());
-
-		long socialRequestId = jsonObject.getLong("classPK");
-
-		SocialRequest socialRequest =
-			_socialRequestLocalService.fetchSocialRequest(socialRequestId);
-
-		if (socialRequest == null) {
-			_userNotificationEventLocalService.deleteUserNotificationEvent(
-				userNotificationEvent.getUserNotificationEventId());
-
-			return null;
-		}
-
-		String title = getTitle(userNotificationEvent, serviceContext);
-
-		if ((socialRequest.getStatus() !=
-				SocialRequestConstants.STATUS_PENDING) ||
-			(socialRequest.getModifiedDate() >
-				userNotificationEvent.getTimestamp())) {
-
-			return StringUtil.replace(
-				_BODY, new String[] {"[$BODY$]", "[$TITLE$]"},
-				new String[] {StringPool.BLANK, title});
-		}
-
-		LiferayPortletResponse liferayPortletResponse =
-			serviceContext.getLiferayPortletResponse();
-
-		return StringUtil.replace(
-			getBodyTemplate(),
-			new String[] {
-				"[$CONFIRM$]", "[$CONFIRM_URL$]", "[$IGNORE$]",
-				"[$IGNORE_URL$]", "[$TITLE$]"
-			},
-			new String[] {
-				serviceContext.translate("confirm"),
-				PortletURLBuilder.createActionURL(
-					liferayPortletResponse, ContactsPortletKeys.CONTACTS_CENTER
-				).setActionName(
-					"updateSocialRequest"
-				).setRedirect(
-					serviceContext.getLayoutFullURL()
-				).setParameter(
-					"socialRequestId", socialRequestId
-				).setParameter(
-					"status", SocialRequestConstants.STATUS_CONFIRM
-				).setParameter(
-					"userNotificationEventId",
-					userNotificationEvent.getUserNotificationEventId()
-				).setWindowState(
-					WindowState.NORMAL
-				).buildString(),
-				serviceContext.translate("ignore"),
-				PortletURLBuilder.createActionURL(
-					liferayPortletResponse, ContactsPortletKeys.CONTACTS_CENTER
-				).setActionName(
-					"updateSocialRequest"
-				).setRedirect(
-					serviceContext.getLayoutFullURL()
-				).setParameter(
-					"socialRequestId", socialRequestId
-				).setParameter(
-					"status", SocialRequestConstants.STATUS_IGNORE
-				).setParameter(
-					"userNotificationEventId",
-					userNotificationEvent.getUserNotificationEventId()
-				).setWindowState(
-					WindowState.NORMAL
-				).buildString(),
-				title
-			});
+		return null;
 	}
 
 	@Override
@@ -149,82 +61,14 @@ public class ContactsCenterUserNotificationHandler
 			ServiceContext serviceContext)
 		throws Exception {
 
-		JSONObject jsonObject = _jsonFactory.createJSONObject(
-			userNotificationEvent.getPayload());
-
-		long socialRequestId = jsonObject.getLong("classPK");
-
-		SocialRequest socialRequest =
-			_socialRequestLocalService.fetchSocialRequest(socialRequestId);
-
-		if (socialRequest == null) {
-			_userNotificationEventLocalService.deleteUserNotificationEvent(
-				userNotificationEvent.getUserNotificationEventId());
-
-			return null;
-		}
-
-		String creatorUserName = _getUserNameLink(
-			socialRequest.getUserId(), serviceContext);
-
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			serviceContext.getLocale(),
-			ContactsCenterUserNotificationHandler.class);
-
-		if (socialRequest.getType() ==
-				SocialRelationConstants.TYPE_BI_CONNECTION) {
-
-			return ResourceBundleUtil.getString(
-				resourceBundle,
-				"request-social-networking-summary-add-connection",
-				new Object[] {creatorUserName});
-		}
-
-		return ResourceBundleUtil.getString(
-			resourceBundle, "x-sends-you-a-social-relationship-request",
-			new Object[] {creatorUserName});
+		return StringPool.BLANK;
 	}
-
-	private String _getUserNameLink(
-		long userId, ServiceContext serviceContext) {
-
-		try {
-			if (userId <= 0) {
-				return StringPool.BLANK;
-			}
-
-			User user = _userLocalService.getUserById(userId);
-
-			String userName = user.getFullName();
-
-			String userDisplayURL = user.getDisplayURL(
-				serviceContext.getThemeDisplay());
-
-			return StringBundler.concat(
-				"<a href=\"", userDisplayURL, "\">", HtmlUtil.escape(userName),
-				"</a>");
-		}
-		catch (Exception exception) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(exception);
-			}
-
-			return StringPool.BLANK;
-		}
-	}
-
-	private static final String _BODY =
-		"<div class=\"title\">[$TITLE$]</div><div class=\"body\">[$BODY$]" +
-			"</div>";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ContactsCenterUserNotificationHandler.class);
 
 	@Reference
 	private JSONFactory _jsonFactory;
-
-	@Reference
-	private SocialRequestLocalService _socialRequestLocalService;
 
 	@Reference
 	private UserLocalService _userLocalService;

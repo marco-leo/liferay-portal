@@ -13,7 +13,6 @@
 taglib uri="http://liferay.com/tld/clay" prefix="clay" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
 taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %><%@
-taglib uri="http://liferay.com/tld/social-activities" prefix="liferay-social-activities" %><%@
 taglib uri="http://liferay.com/tld/text-localizer" prefix="liferay-text-localizer" %><%@
 taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %><%@
@@ -24,6 +23,7 @@ page import="com.liferay.asset.kernel.model.AssetTag" %><%@
 page import="com.liferay.asset.kernel.service.AssetTagLocalServiceUtil" %><%@
 page import="com.liferay.contacts.constants.ContactsConstants" %><%@
 page import="com.liferay.contacts.constants.ContactsWebKeys" %><%@
+page import="com.liferay.contacts.constants.SocialRelationConstants" %><%@
 page import="com.liferay.contacts.model.Entry" %><%@
 page import="com.liferay.contacts.service.EntryLocalServiceUtil" %><%@
 page import="com.liferay.contacts.service.EntryServiceUtil" %><%@
@@ -71,12 +71,7 @@ page import="com.liferay.portal.kernel.util.StringUtil" %><%@
 page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.kernel.util.comparator.UserLastNameComparator" %><%@
 page import="com.liferay.portal.kernel.workflow.WorkflowConstants" %><%@
-page import="com.liferay.product.navigation.personal.menu.util.PersonalApplicationURLUtil" %><%@
-page import="com.liferay.social.kernel.model.SocialRelationConstants" %><%@
-page import="com.liferay.social.kernel.model.SocialRequestConstants" %><%@
-page import="com.liferay.social.kernel.service.SocialActivityLocalServiceUtil" %><%@
-page import="com.liferay.social.kernel.service.SocialRelationLocalServiceUtil" %><%@
-page import="com.liferay.social.kernel.service.SocialRequestLocalServiceUtil" %>
+page import="com.liferay.product.navigation.personal.menu.util.PersonalApplicationURLUtil" %>
 
 <%@ page import="jakarta.portlet.PortletRequest" %><%@
 page import="jakarta.portlet.PortletURL" %><%@

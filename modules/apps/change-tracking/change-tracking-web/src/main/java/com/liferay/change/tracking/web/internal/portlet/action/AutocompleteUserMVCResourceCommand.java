@@ -31,7 +31,6 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
 import com.liferay.portal.kernel.service.permission.UserPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
@@ -120,18 +119,10 @@ public class AutocompleteUserMVCResourceCommand extends BaseMVCResourceCommand {
 				0, 20, UserScreenNameComparator.getInstance(true));
 		}
 
-		User user = themeDisplay.getUser();
-
-		long[] groupIds = user.getGroupIds();
-		long[] userGroupIds = user.getUserGroupIds();
-
-		if (ArrayUtil.isEmpty(groupIds) && ArrayUtil.isEmpty(userGroupIds)) {
-			return Collections.emptyList();
-		}
-
-		return _userLocalService.searchBySocial(
-			themeDisplay.getCompanyId(), groupIds, userGroupIds, keywords, 0,
-			20, UserScreenNameComparator.getInstance(true));
+		return _userLocalService.search(
+			themeDisplay.getCompanyId(), keywords,
+			WorkflowConstants.STATUS_APPROVED, new LinkedHashMap<>(), 0, 20,
+			UserScreenNameComparator.getInstance(true));
 	}
 
 	private JSONArray _getUsersJSONArray(ResourceRequest resourceRequest)

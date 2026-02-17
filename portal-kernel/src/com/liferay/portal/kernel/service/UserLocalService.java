@@ -1179,113 +1179,6 @@ public interface UserLocalService
 	public int getRoleUsersCount(long roleId, int status)
 		throws PortalException;
 
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<User> getSocialUsers(
-			long userId, int socialRelationType,
-			String socialRelationTypeComparator, int start, int end,
-			OrderByComparator<User> orderByComparator)
-		throws PortalException;
-
-	/**
-	 * Returns an ordered range of all the users with a mutual social relation
-	 * of the type with both of the given users.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end -
-	 * start</code> instances. <code>start</code> and <code>end</code> are not
-	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
-	 * refers to the first result in the set. Setting both <code>start</code>
-	 * and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full
-	 * result set.
-	 * </p>
-	 *
-	 * @param userId1 the primary key of the first user
-	 * @param userId2 the primary key of the second user
-	 * @param socialRelationType the type of social relation. The possible
-	 types can be found in {@link SocialRelationConstants}.
-	 * @param start the lower bound of the range of users
-	 * @param end the upper bound of the range of users (not inclusive)
-	 * @param orderByComparator the comparator to order the users by
-	 (optionally <code>null</code>)
-	 * @return the ordered range of users with a mutual social relation of the
-	 type with the user
-	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<User> getSocialUsers(
-			long userId1, long userId2, int socialRelationType, int start,
-			int end, OrderByComparator<User> orderByComparator)
-		throws PortalException;
-
-	/**
-	 * Returns an ordered range of all the users with a mutual social relation
-	 * with both of the given users.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end -
-	 * start</code> instances. <code>start</code> and <code>end</code> are not
-	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
-	 * refers to the first result in the set. Setting both <code>start</code>
-	 * and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full
-	 * result set.
-	 * </p>
-	 *
-	 * @param userId1 the primary key of the first user
-	 * @param userId2 the primary key of the second user
-	 * @param start the lower bound of the range of users
-	 * @param end the upper bound of the range of users (not inclusive)
-	 * @param orderByComparator the comparator to order the users by
-	 (optionally <code>null</code>)
-	 * @return the ordered range of users with a mutual social relation with the
-	 user
-	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<User> getSocialUsers(
-			long userId1, long userId2, int start, int end,
-			OrderByComparator<User> orderByComparator)
-		throws PortalException;
-
-	/**
-	 * Returns the number of users with a social relation with the user.
-	 *
-	 * @param userId the primary key of the user
-	 * @param socialRelationType the type of social relation. The possible
-	 types can be found in {@link SocialRelationConstants}.
-	 * @return the number of users with a social relation with the user
-	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getSocialUsersCount(
-			long userId, int socialRelationType,
-			String socialRelationTypeComparator)
-		throws PortalException;
-
-	/**
-	 * Returns the number of users with a mutual social relation with both of
-	 * the given users.
-	 *
-	 * @param userId1 the primary key of the first user
-	 * @param userId2 the primary key of the second user
-	 * @return the number of users with a mutual social relation with the user
-	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getSocialUsersCount(long userId1, long userId2)
-		throws PortalException;
-
-	/**
-	 * Returns the number of users with a mutual social relation of the type
-	 * with both of the given users.
-	 *
-	 * @param userId1 the primary key of the first user
-	 * @param userId2 the primary key of the second user
-	 * @param socialRelationType the type of social relation. The possible
-	 types can be found in {@link SocialRelationConstants}.
-	 * @return the number of users with a mutual social relation of the type
-	 with the user
-	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getSocialUsersCount(
-			long userId1, long userId2, int socialRelationType)
-		throws PortalException;
-
 	/**
 	 * Returns the teamIds of the teams associated with the user.
 	 *
@@ -1725,28 +1618,6 @@ public interface UserLocalService
 		LinkedHashMap<String, Object> params, boolean andSearch, int start,
 		int end, Sort[] sorts);
 
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<User> searchBySocial(
-			long userId, int[] socialRelationTypes, String keywords, int start,
-			int end)
-		throws PortalException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<User> searchBySocial(
-		long companyId, long[] groupIds, long[] userGroupIds, String keywords,
-		int start, int end);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<User> searchBySocial(
-		long companyId, long[] groupIds, long[] userGroupIds, String keywords,
-		int start, int end, OrderByComparator<User> orderByComparator);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<User> searchBySocial(
-			long[] groupIds, long userId, int[] socialRelationTypes,
-			String keywords, int start, int end)
-		throws PortalException;
-
 	/**
 	 * Returns the number of users who match the keywords and status.
 	 *
@@ -1791,10 +1662,6 @@ public interface UserLocalService
 		long companyId, String firstName, String middleName, String lastName,
 		String screenName, String emailAddress, int status,
 		LinkedHashMap<String, Object> params, boolean andSearch);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int searchCountBySocial(
-		long companyId, long[] groupIds, long[] userGroupIds, String keywords);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public Map<Long, Integer> searchCounts(

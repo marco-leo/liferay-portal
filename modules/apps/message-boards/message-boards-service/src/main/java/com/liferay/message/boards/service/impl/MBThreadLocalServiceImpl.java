@@ -34,8 +34,6 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.increment.BufferedIncrement;
 import com.liferay.portal.kernel.increment.DateOverrideIncrement;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
@@ -57,7 +55,6 @@ import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
-import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
 import com.liferay.portal.kernel.spring.aop.Property;
 import com.liferay.portal.kernel.spring.aop.Retry;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
@@ -68,7 +65,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.view.count.ViewCountManager;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
-import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.TrashHelper;
 import com.liferay.trash.exception.RestoreEntryException;
@@ -756,21 +752,6 @@ public class MBThreadLocalServiceImpl extends MBThreadLocalServiceBaseImpl {
 		mbThreadLocalService.moveDependentsToTrash(
 			thread.getGroupId(), thread.getThreadId(), trashEntry.getEntryId());
 
-		// Social
-
-		MBMessage message = _mbMessagePersistence.findByPrimaryKey(
-			thread.getRootMessageId());
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"rootMessageId", thread.getRootMessageId()
-		).put(
-			"title", message.getSubject()
-		);
-
-		SocialActivityManagerUtil.addActivity(
-			userId, thread, SocialActivityConstants.TYPE_MOVE_TO_TRASH,
-			extraDataJSONObject.toString(), 0);
-
 		return thread;
 	}
 
@@ -871,21 +852,6 @@ public class MBThreadLocalServiceImpl extends MBThreadLocalServiceBaseImpl {
 		// Trash
 
 		_trashEntryLocalService.deleteEntry(trashEntry.getEntryId());
-
-		// Social
-
-		MBMessage message = _mbMessagePersistence.findByPrimaryKey(
-			thread.getRootMessageId());
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"rootMessageId", thread.getRootMessageId()
-		).put(
-			"title", message.getSubject()
-		);
-
-		SocialActivityManagerUtil.addActivity(
-			userId, thread, SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-			extraDataJSONObject.toString(), 0);
 	}
 
 	@Override

@@ -54,7 +54,6 @@ import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.persistence.GroupPersistence;
-import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -71,10 +70,7 @@ import com.liferay.portal.kernel.view.count.ViewCountManagerUtil;
 import com.liferay.portlet.asset.model.impl.AssetEntryModelImpl;
 import com.liferay.portlet.asset.service.base.AssetEntryLocalServiceBaseImpl;
 import com.liferay.portlet.asset.service.permission.AssetCategoryPermission;
-import com.liferay.portlet.asset.util.DeletedAssetEntryThreadLocal;
 import com.liferay.portlet.asset.util.DeletedAssetObjectThreadLocal;
-import com.liferay.social.kernel.model.SocialActivityConstants;
-import com.liferay.social.kernel.service.SocialActivityCounterLocalService;
 
 import java.sql.PreparedStatement;
 
@@ -420,12 +416,6 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		assetEntryLocalService.incrementViewCounter(
 			assetEntry.getCompanyId(), user.getUserId(),
 			assetEntry.getClassName(), assetEntry.getClassPK(), 1);
-
-		if (!user.isGuestUser()) {
-			SocialActivityManagerUtil.addActivity(
-				user.getUserId(), assetEntry, SocialActivityConstants.TYPE_VIEW,
-				StringPool.BLANK, 0);
-		}
 	}
 
 	@Override
@@ -444,12 +434,6 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			companyId, user.getUserId(), className, classPK, 1);
 
 		AssetEntry assetEntry = getEntry(className, classPK);
-
-		if (!user.isGuestUser()) {
-			SocialActivityManagerUtil.addActivity(
-				user.getUserId(), assetEntry, SocialActivityConstants.TYPE_VIEW,
-				StringPool.BLANK, 0);
-		}
 
 		return assetEntry;
 	}
@@ -976,18 +960,12 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 				_assetTagLocalService.incrementAssetCount(
 					tag.getTagId(), entry.getClassNameId());
 			}
-
-			_socialActivityCounterLocalService.enableActivityCounters(
-				entry.getClassNameId(), entry.getClassPK());
 		}
 		else {
 			for (AssetTag tag : tags) {
 				_assetTagLocalService.decrementAssetCount(
 					tag.getTagId(), entry.getClassNameId());
 			}
-
-			_socialActivityCounterLocalService.disableActivityCounters(
-				entry.getClassNameId(), entry.getClassPK());
 		}
 
 		return entry;
@@ -1388,15 +1366,6 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			_classNameLocalService.getClassNameId(AssetEntry.class),
 			entry.getEntryId());
 
-		// Social
-
-		try (SafeCloseable safeCloseable =
-				DeletedAssetEntryThreadLocal.setAssetEntryWithSafeCloseable(
-					entry)) {
-
-			SocialActivityManagerUtil.deleteActivities(entry);
-		}
-
 		return entry;
 	}
 
@@ -1515,10 +1484,6 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 	@BeanReference(type = GroupPersistence.class)
 	private GroupPersistence _groupPersistence;
-
-	@BeanReference(type = SocialActivityCounterLocalService.class)
-	private SocialActivityCounterLocalService
-		_socialActivityCounterLocalService;
 
 	@BeanReference(type = UserLocalService.class)
 	private UserLocalService _userLocalService;

@@ -12,7 +12,6 @@ import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.microblogs.constants.MicroblogsEntryConstants;
 import com.liferay.microblogs.constants.MicroblogsPortletKeys;
 import com.liferay.microblogs.exception.UnsupportedMicroblogsEntryException;
-import com.liferay.microblogs.internal.social.MicroblogsActivityKeys;
 import com.liferay.microblogs.internal.util.MicroblogsUtil;
 import com.liferay.microblogs.model.MicroblogsEntry;
 import com.liferay.microblogs.service.base.MicroblogsEntryLocalServiceBaseImpl;
@@ -43,7 +42,6 @@ import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.social.kernel.service.SocialActivityLocalService;
 import com.liferay.subscription.model.Subscription;
 import com.liferay.subscription.service.SubscriptionLocalService;
 
@@ -168,27 +166,6 @@ public class MicroblogsEntryLocalServiceImpl
 			microblogsEntry, serviceContext.getAssetCategoryIds(),
 			serviceContext.getAssetTagNames());
 
-		// Social
-
-		int activityKey = MicroblogsActivityKeys.ADD_ENTRY;
-
-		if (type == MicroblogsEntryConstants.TYPE_REPLY) {
-			activityKey = MicroblogsActivityKeys.REPLY_ENTRY;
-		}
-		else if (type == MicroblogsEntryConstants.TYPE_REPOST) {
-			activityKey = MicroblogsActivityKeys.REPOST_ENTRY;
-		}
-
-		_socialActivityLocalService.addActivity(
-			userId, 0, MicroblogsEntry.class.getName(), microblogsEntryId,
-			activityKey,
-			JSONUtil.put(
-				"content", microblogsEntry.getContent()
-			).put(
-				"parentMicroblogsEntryId", parentMicroblogsEntryId
-			).toString(),
-			microblogsEntry.getParentMicroblogsEntryUserId());
-
 		// Notification
 
 		_subscribeUsers(microblogsEntry, serviceContext);
@@ -248,12 +225,6 @@ public class MicroblogsEntryLocalServiceImpl
 			// Asset
 
 			_assetEntryLocalService.deleteEntry(
-				MicroblogsEntry.class.getName(),
-				curMicroblogsEntry.getMicroblogsEntryId());
-
-			// Social
-
-			_socialActivityLocalService.deleteActivities(
 				MicroblogsEntry.class.getName(),
 				curMicroblogsEntry.getMicroblogsEntryId());
 		}
@@ -631,9 +602,6 @@ public class MicroblogsEntryLocalServiceImpl
 
 	@Reference
 	private ResourceLocalService _resourceLocalService;
-
-	@Reference
-	private SocialActivityLocalService _socialActivityLocalService;
 
 	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;

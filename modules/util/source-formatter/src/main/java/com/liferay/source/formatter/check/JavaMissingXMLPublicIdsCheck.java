@@ -27,9 +27,6 @@ public class JavaMissingXMLPublicIdsCheck extends BaseFileCheck {
 		throws IOException {
 
 		if (!fileName.endsWith(
-				"/modules/sdk/ant-bnd/src/main/java/com/liferay/ant/bnd" +
-					"/social/SocialAnalyzerPlugin.java") &&
-			!fileName.endsWith(
 				"/portal-impl/src/com/liferay/portal/util" +
 					"/EntityResolver.java") &&
 			!fileName.endsWith(

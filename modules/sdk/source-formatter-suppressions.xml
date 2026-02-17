@@ -48,7 +48,6 @@
 		<suppress checks="JavaTestMethodAnnotationsCheck" files="project-templates/project-templates/src/test/java/com/liferay/project/templates/BaseProjectTemplatesTestCase\.java" />
 		<suppress checks="JavaXMLSecurityCheck" files="ant-bnd/src/main/java/com/liferay/ant/bnd/jsp/JspAnalyzerPlugin\.java" />
 		<suppress checks="JavaXMLSecurityCheck" files="ant-bnd/src/main/java/com/liferay/ant/bnd/service/ServiceAnalyzerPlugin\.java" />
-		<suppress checks="JavaXMLSecurityCheck" files="ant-bnd/src/main/java/com/liferay/ant/bnd/social/SocialAnalyzerPlugin\.java" />
 		<suppress checks="JavaXMLSecurityCheck" files="gradle-plugins-defaults/src/main/java/com/liferay/gradle/plugins/defaults/internal/util/XMLUtil\.java" />
 		<suppress checks="JavaXMLSecurityCheck" files="gradle-plugins-maven-plugin-builder/src/main/java/com/liferay/gradle/plugins/maven/plugin/builder/internal/util/XMLUtil\.java" />
 		<suppress checks="JavaXMLSecurityCheck" files="gradle-plugins-maven-plugin-builder/src/main/java/com/liferay/gradle/plugins/maven/plugin/builder/task/BuildPluginDescriptorTask\.java" />

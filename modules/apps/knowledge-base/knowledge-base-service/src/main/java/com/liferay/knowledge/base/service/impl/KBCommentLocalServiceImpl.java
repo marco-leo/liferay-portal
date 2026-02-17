@@ -6,7 +6,6 @@
 package com.liferay.knowledge.base.service.impl;
 
 import com.liferay.knowledge.base.configuration.KBGroupServiceConfiguration;
-import com.liferay.knowledge.base.constants.AdminActivityKeys;
 import com.liferay.knowledge.base.constants.KBCommentConstants;
 import com.liferay.knowledge.base.constants.KBConstants;
 import com.liferay.knowledge.base.exception.KBCommentContentException;
@@ -23,8 +22,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONFactory;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ClassName;
@@ -44,8 +41,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.ratings.kernel.model.RatingsEntry;
 import com.liferay.ratings.kernel.service.RatingsEntryLocalService;
-import com.liferay.social.kernel.service.SocialActivityLocalService;
-
 import java.text.DateFormat;
 
 import java.util.Date;
@@ -97,17 +92,6 @@ public class KBCommentLocalServiceImpl extends KBCommentLocalServiceBaseImpl {
 
 		kbComment = kbCommentPersistence.update(kbComment);
 
-		// Social
-
-		JSONObject extraDataJSONObject = _jSONFactory.createJSONObject();
-
-		_putTitle(extraDataJSONObject, kbComment);
-
-		_socialActivityLocalService.addActivity(
-			userId, kbComment.getGroupId(), KBComment.class.getName(),
-			kbCommentId, AdminActivityKeys.ADD_KB_COMMENT,
-			extraDataJSONObject.toString(), 0);
-
 		// Subscriptions
 
 		_notifySubscribers(userId, kbComment, serviceContext);
@@ -134,11 +118,6 @@ public class KBCommentLocalServiceImpl extends KBCommentLocalServiceBaseImpl {
 		// KB comment
 
 		kbCommentPersistence.remove(kbComment);
-
-		// Social
-
-		_socialActivityLocalService.deleteActivities(
-			KBComment.class.getName(), kbComment.getKbCommentId());
 
 		return kbComment;
 	}
@@ -297,18 +276,6 @@ public class KBCommentLocalServiceImpl extends KBCommentLocalServiceBaseImpl {
 		kbComment.setStatus(status);
 
 		kbComment = kbCommentPersistence.update(kbComment);
-
-		// Social
-
-		JSONObject extraDataJSONObject = _jSONFactory.createJSONObject();
-
-		_putTitle(extraDataJSONObject, kbComment);
-
-		_socialActivityLocalService.addActivity(
-			kbComment.getUserId(), kbComment.getGroupId(),
-			KBComment.class.getName(), kbCommentId,
-			AdminActivityKeys.UPDATE_KB_COMMENT, extraDataJSONObject.toString(),
-			0);
 
 		return kbComment;
 	}
@@ -518,31 +485,6 @@ public class KBCommentLocalServiceImpl extends KBCommentLocalServiceBaseImpl {
 		subscriptionSender.flushNotificationsAsync();
 	}
 
-	private void _putTitle(JSONObject jsonObject, KBComment kbComment) {
-		KBArticle kbArticle = null;
-		KBTemplate kbTemplate = null;
-
-		String className = kbComment.getClassName();
-
-		try {
-			if (className.equals(KBArticle.class.getName())) {
-				kbArticle = _kbArticleLocalService.getLatestKBArticle(
-					kbComment.getClassPK(), WorkflowConstants.STATUS_APPROVED);
-
-				jsonObject.put("title", kbArticle.getTitle());
-			}
-			else if (className.equals(KBTemplate.class.getName())) {
-				kbTemplate = _kbTemplateLocalService.getKBTemplate(
-					kbComment.getClassPK());
-
-				jsonObject.put("title", kbTemplate.getTitle());
-			}
-		}
-		catch (Exception exception) {
-			_log.error("Unable to put title", exception);
-		}
-	}
-
 	private void _validate(String content) throws PortalException {
 		if (Validator.isNull(content)) {
 			throw new KBCommentContentException();
@@ -559,9 +501,6 @@ public class KBCommentLocalServiceImpl extends KBCommentLocalServiceBaseImpl {
 	private ConfigurationProvider _configurationProvider;
 
 	@Reference
-	private JSONFactory _jSONFactory;
-
-	@Reference
 	private KBArticleLocalService _kbArticleLocalService;
 
 	@Reference
@@ -569,9 +508,6 @@ public class KBCommentLocalServiceImpl extends KBCommentLocalServiceBaseImpl {
 
 	@Reference
 	private RatingsEntryLocalService _ratingsEntryLocalService;
-
-	@Reference
-	private SocialActivityLocalService _socialActivityLocalService;
 
 	@Reference
 	private UserLocalService _userLocalService;

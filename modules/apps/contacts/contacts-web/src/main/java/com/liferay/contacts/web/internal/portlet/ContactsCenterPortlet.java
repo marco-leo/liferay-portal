@@ -49,12 +49,9 @@ import com.liferay.portal.kernel.model.ListTypeConstants;
 import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.model.UserNotificationDeliveryConstants;
 import com.liferay.portal.kernel.model.UserNotificationEvent;
 import com.liferay.portal.kernel.model.role.RoleConstants;
-import com.liferay.portal.kernel.notifications.UserNotificationManagerUtil;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
-import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.PortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
@@ -80,13 +77,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.util.comparator.UserLastNameComparator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portlet.usersadmin.util.UsersAdminUtil;
-import com.liferay.social.kernel.exception.NoSuchRelationException;
-import com.liferay.social.kernel.model.SocialRelation;
-import com.liferay.social.kernel.model.SocialRequest;
-import com.liferay.social.kernel.model.SocialRequestConstants;
-import com.liferay.social.kernel.service.SocialRelationLocalService;
-import com.liferay.social.kernel.service.SocialRequestLocalService;
-
 import jakarta.portlet.ActionRequest;
 import jakarta.portlet.ActionResponse;
 import jakarta.portlet.Portlet;
@@ -143,80 +133,6 @@ import org.osgi.service.component.annotations.Reference;
 )
 @Deprecated
 public class ContactsCenterPortlet extends MVCPortlet {
-
-	public void addSocialRelation(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		int type = ParamUtil.getInteger(actionRequest, "type");
-
-		if (type == SocialRelationConstants.TYPE_BI_CONNECTION) {
-			return;
-		}
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		for (long userId : _getUserIds(actionRequest)) {
-			if (userId == themeDisplay.getUserId()) {
-				continue;
-			}
-
-			boolean blocked = socialRelationLocalService.hasRelation(
-				userId, themeDisplay.getUserId(),
-				SocialRelationConstants.TYPE_UNI_ENEMY);
-
-			if (type == SocialRelationConstants.TYPE_UNI_ENEMY) {
-				socialRelationLocalService.deleteRelations(
-					themeDisplay.getUserId(), userId);
-
-				socialRelationLocalService.deleteRelations(
-					userId, themeDisplay.getUserId());
-			}
-			else if (blocked) {
-				continue;
-			}
-
-			socialRelationLocalService.addRelation(
-				themeDisplay.getUserId(), userId, type);
-
-			if (blocked) {
-				socialRelationLocalService.addRelation(
-					userId, themeDisplay.getUserId(), type);
-			}
-		}
-	}
-
-	public void deleteSocialRelation(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		long[] userIds = _getUserIds(actionRequest);
-
-		int type = ParamUtil.getInteger(actionRequest, "type");
-
-		for (long userId : userIds) {
-			if (userId == themeDisplay.getUserId()) {
-				continue;
-			}
-
-			try {
-				socialRelationLocalService.deleteRelation(
-					themeDisplay.getUserId(), userId, type);
-			}
-			catch (NoSuchRelationException noSuchRelationException) {
-
-				// LPS-52675
-
-				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchRelationException);
-				}
-			}
-		}
-	}
 
 	public void exportVCard(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
@@ -335,16 +251,6 @@ public class ContactsCenterPortlet extends MVCPortlet {
 				actionRequest, "jsonFormat");
 
 			if (jsonFormat) {
-				if (actionName.equals("addSocialRelation")) {
-					addSocialRelation(actionRequest, actionResponse);
-				}
-				else if (actionName.equals("deleteSocialRelation")) {
-					deleteSocialRelation(actionRequest, actionResponse);
-				}
-				else if (actionName.equals("requestSocialRelation")) {
-					requestSocialRelation(actionRequest, actionResponse);
-				}
-
 				JSONObject jsonObject = _getContactsDisplayJSONObject(
 					actionRequest, actionResponse);
 
@@ -359,63 +265,12 @@ public class ContactsCenterPortlet extends MVCPortlet {
 			else if (actionName.equals("updateFieldGroup")) {
 				updateFieldGroup(actionRequest, actionResponse);
 			}
-			else if (actionName.equals("updateSocialRequest")) {
-				updateSocialRequest(actionRequest, actionResponse);
-			}
 			else {
 				super.processAction(actionRequest, actionResponse);
 			}
 		}
 		catch (Exception exception) {
 			throw new PortletException(exception);
-		}
-	}
-
-	public void requestSocialRelation(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		long[] userIds = _getUserIds(actionRequest);
-
-		int type = ParamUtil.getInteger(actionRequest, "type");
-
-		for (long userId : userIds) {
-			if ((userId == themeDisplay.getUserId()) ||
-				socialRelationLocalService.hasRelation(
-					userId, themeDisplay.getUserId(),
-					SocialRelationConstants.TYPE_BI_CONNECTION) ||
-				socialRelationLocalService.hasRelation(
-					userId, themeDisplay.getUserId(),
-					SocialRelationConstants.TYPE_UNI_ENEMY) ||
-				socialRequestLocalService.hasRequest(
-					themeDisplay.getUserId(), User.class.getName(),
-					themeDisplay.getUserId(), type, userId,
-					SocialRequestConstants.STATUS_PENDING)) {
-
-				continue;
-			}
-
-			String portletId = PortletIdCodec.decodePortletName(
-				portal.getPortletId(actionRequest));
-
-			if (portletId.equals(ContactsPortletKeys.MEMBERS) ||
-				portletId.equals(ContactsPortletKeys.PROFILE)) {
-
-				portletId = ContactsPortletKeys.CONTACTS_CENTER;
-			}
-
-			JSONObject extraDataJSONObject = JSONUtil.put(
-				"portletId", portletId);
-
-			SocialRequest socialRequest = socialRequestLocalService.addRequest(
-				themeDisplay.getUserId(), 0, User.class.getName(),
-				themeDisplay.getUserId(), type, extraDataJSONObject.toString(),
-				userId);
-
-			_sendNotificationEvent(socialRequest);
 		}
 	}
 
@@ -652,61 +507,6 @@ public class ContactsCenterPortlet extends MVCPortlet {
 		writeJSON(actionRequest, actionResponse, jsonObject);
 	}
 
-	public void updateSocialRequest(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		long socialRequestId = ParamUtil.getLong(
-			actionRequest, "socialRequestId");
-		int status = ParamUtil.getInteger(actionRequest, "status");
-
-		JSONObject jsonObject = jsonFactory.createJSONObject();
-
-		try {
-			SocialRequest socialRequest =
-				socialRequestLocalService.getSocialRequest(socialRequestId);
-
-			if (socialRelationLocalService.hasRelation(
-					socialRequest.getReceiverUserId(),
-					socialRequest.getUserId(),
-					SocialRelationConstants.TYPE_UNI_ENEMY)) {
-
-				status = SocialRequestConstants.STATUS_IGNORE;
-			}
-
-			socialRequestLocalService.updateRequest(
-				socialRequestId, status, themeDisplay);
-
-			if (status == SocialRequestConstants.STATUS_CONFIRM) {
-				socialRelationLocalService.addRelation(
-					socialRequest.getUserId(),
-					socialRequest.getReceiverUserId(), socialRequest.getType());
-			}
-
-			long userNotificationEventId = ParamUtil.getLong(
-				actionRequest, "userNotificationEventId");
-
-			if (userNotificationEventId != 0) {
-				_updateArchived(
-					themeDisplay.getUserId(), userNotificationEventId);
-			}
-
-			jsonObject.put("success", Boolean.TRUE);
-		}
-		catch (Exception exception) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(exception);
-			}
-
-			jsonObject.put("success", Boolean.FALSE);
-		}
-
-		writeJSON(actionRequest, actionResponse, jsonObject);
-	}
-
 	@Reference
 	protected AnnouncementsDeliveryLocalService
 		announcementsDeliveryLocalService;
@@ -733,12 +533,6 @@ public class ContactsCenterPortlet extends MVCPortlet {
 
 	@Reference
 	protected RoleLocalService roleLocalService;
-
-	@Reference
-	protected SocialRelationLocalService socialRelationLocalService;
-
-	@Reference
-	protected SocialRequestLocalService socialRequestLocalService;
 
 	@Reference
 	protected UserLocalService userLocalService;
@@ -859,21 +653,6 @@ public class ContactsCenterPortlet extends MVCPortlet {
 				}
 
 				jsonArray.put(contactJSONObject);
-			}
-		}
-		else if (filterBy.equals(ContactsConstants.FILTER_BY_FOLLOWERS) &&
-				 !portletId.equals(ContactsPortletKeys.MEMBERS)) {
-
-			List<SocialRelation> socialRelations =
-				socialRelationLocalService.getInverseRelations(
-					themeDisplay.getUserId(),
-					SocialRelationConstants.TYPE_UNI_FOLLOWER, start, end);
-
-			for (SocialRelation socialRelation : socialRelations) {
-				jsonArray.put(
-					_getUserJSONObject(
-						portletResponse, themeDisplay,
-						socialRelation.getUserId1()));
 			}
 		}
 		else if (filterBy.equals(
@@ -1118,27 +897,6 @@ public class ContactsCenterPortlet extends MVCPortlet {
 		);
 
 		return jsonObject;
-	}
-
-	private void _sendNotificationEvent(SocialRequest socialRequest)
-		throws Exception {
-
-		if (UserNotificationManagerUtil.isDeliver(
-				socialRequest.getReceiverUserId(),
-				ContactsPortletKeys.CONTACTS_CENTER, 0,
-				SocialRelationConstants.SOCIAL_RELATION_REQUEST,
-				UserNotificationDeliveryConstants.TYPE_WEBSITE)) {
-
-			userNotificationEventLocalService.sendUserNotificationEvents(
-				socialRequest.getReceiverUserId(),
-				ContactsPortletKeys.CONTACTS_CENTER,
-				UserNotificationDeliveryConstants.TYPE_WEBSITE, true,
-				JSONUtil.put(
-					"classPK", socialRequest.getRequestId()
-				).put(
-					"userId", socialRequest.getUserId()
-				));
-		}
 	}
 
 	private void _updateAdditionalEmailAddresses(ActionRequest actionRequest)

@@ -1,4 +1,4 @@
-apiDir: ../headless-delivery-api/src/main/java
+ apiDir: ../headless-delivery-api/src/main/java
 apiPackagePath: com.liferay.headless.delivery
 application:
     baseURI: /headless-delivery

@@ -17,7 +17,6 @@ import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -99,17 +98,9 @@ public class AutocompleteUserMVCResourceCommand extends BaseMVCResourceCommand {
 				UserScreenNameComparator.getInstance(false));
 		}
 
-		User user = themeDisplay.getUser();
-
-		if (ArrayUtil.isEmpty(user.getGroupIds()) &&
-			ArrayUtil.isEmpty(user.getUserGroupIds())) {
-
-			return Collections.emptyList();
-		}
-
-		return _userLocalService.searchBySocial(
-			themeDisplay.getCompanyId(), user.getGroupIds(),
-			user.getUserGroupIds(), query, 0, 20,
+		return _userLocalService.search(
+			themeDisplay.getCompanyId(), query,
+			WorkflowConstants.STATUS_APPROVED, new LinkedHashMap<>(), 0, 20,
 			UserScreenNameComparator.getInstance(false));
 	}
 

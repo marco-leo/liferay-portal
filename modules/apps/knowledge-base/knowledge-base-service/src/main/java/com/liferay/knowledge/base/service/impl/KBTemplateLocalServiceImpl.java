@@ -5,7 +5,6 @@
 
 package com.liferay.knowledge.base.service.impl;
 
-import com.liferay.knowledge.base.constants.AdminActivityKeys;
 import com.liferay.knowledge.base.exception.KBTemplateContentException;
 import com.liferay.knowledge.base.exception.KBTemplateTitleException;
 import com.liferay.knowledge.base.exception.NoSuchTemplateException;
@@ -26,8 +25,6 @@ import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -41,8 +38,6 @@ import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.social.kernel.service.SocialActivityLocalService;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -95,16 +90,6 @@ public class KBTemplateLocalServiceImpl extends KBTemplateLocalServiceBaseImpl {
 
 		_resourceLocalService.addModelResources(kbTemplate, serviceContext);
 
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", kbTemplate.getTitle());
-
-		_socialActivityLocalService.addActivity(
-			userId, groupId, KBTemplate.class.getName(), kbTemplateId,
-			AdminActivityKeys.ADD_KB_TEMPLATE, extraDataJSONObject.toString(),
-			0);
-
 		return kbTemplate;
 	}
 
@@ -141,11 +126,6 @@ public class KBTemplateLocalServiceImpl extends KBTemplateLocalServiceBaseImpl {
 		KBCommentUtil.deleteKBComments(
 			KBTemplate.class.getName(), _classNameLocalService,
 			kbTemplate.getKbTemplateId(), _kbCommentPersistence);
-
-		// Social
-
-		_socialActivityLocalService.deleteActivities(
-			KBTemplate.class.getName(), kbTemplate.getKbTemplateId());
 
 		return kbTemplate;
 	}
@@ -225,17 +205,6 @@ public class KBTemplateLocalServiceImpl extends KBTemplateLocalServiceBaseImpl {
 		kbTemplate.setContent(content);
 
 		kbTemplate = kbTemplatePersistence.update(kbTemplate);
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", kbTemplate.getTitle());
-
-		_socialActivityLocalService.addActivity(
-			kbTemplate.getUserId(), kbTemplate.getGroupId(),
-			KBTemplate.class.getName(), kbTemplateId,
-			AdminActivityKeys.UPDATE_KB_TEMPLATE,
-			extraDataJSONObject.toString(), 0);
 
 		return kbTemplate;
 	}
@@ -345,9 +314,6 @@ public class KBTemplateLocalServiceImpl extends KBTemplateLocalServiceBaseImpl {
 
 	@Reference
 	private ResourceLocalService _resourceLocalService;
-
-	@Reference
-	private SocialActivityLocalService _socialActivityLocalService;
 
 	@Reference
 	private UserLocalService _userLocalService;

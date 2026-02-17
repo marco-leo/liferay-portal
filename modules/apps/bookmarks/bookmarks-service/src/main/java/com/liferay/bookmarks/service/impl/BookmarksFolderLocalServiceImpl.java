@@ -23,8 +23,6 @@ import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
@@ -44,8 +42,6 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
-import com.liferay.social.kernel.model.SocialActivityConstants;
-import com.liferay.social.kernel.service.SocialActivityLocalService;
 import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.TrashHelper;
 import com.liferay.trash.exception.RestoreEntryException;
@@ -481,16 +477,6 @@ public class BookmarksFolderLocalServiceImpl
 				folder.getGroupId(), folder.getFolderId()),
 			trashEntry.getEntryId());
 
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", folder.getName());
-
-		_socialActivityLocalService.addActivity(
-			userId, folder.getGroupId(), BookmarksFolder.class.getName(),
-			folder.getFolderId(), SocialActivityConstants.TYPE_MOVE_TO_TRASH,
-			extraDataJSONObject.toString(), 0);
-
 		return folder;
 	}
 
@@ -564,17 +550,6 @@ public class BookmarksFolderLocalServiceImpl
 		// Trash
 
 		_trashEntryLocalService.deleteEntry(trashEntry.getEntryId());
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", folder.getName());
-
-		_socialActivityLocalService.addActivity(
-			userId, folder.getGroupId(), BookmarksFolder.class.getName(),
-			folder.getFolderId(),
-			SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-			extraDataJSONObject.toString(), 0);
 
 		return folder;
 	}
@@ -1014,9 +989,6 @@ public class BookmarksFolderLocalServiceImpl
 
 	@Reference
 	private ResourceLocalService _resourceLocalService;
-
-	@Reference
-	private SocialActivityLocalService _socialActivityLocalService;
 
 	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;

@@ -15,7 +15,6 @@ import com.liferay.ant.bnd.npm.NpmAnalyzerPlugin;
 import com.liferay.ant.bnd.resource.bundle.ResourceBundleLoaderAnalyzerPlugin;
 import com.liferay.ant.bnd.sass.SassAnalyzerPlugin;
 import com.liferay.ant.bnd.service.ServiceAnalyzerPlugin;
-import com.liferay.ant.bnd.social.SocialAnalyzerPlugin;
 import com.liferay.ant.bnd.spring.SpringDependencyAnalyzerPlugin;
 import com.liferay.osgi.bundle.builder.internal.converters.PathParameterSplitter;
 
@@ -97,7 +96,6 @@ public class OSGiBundleBuilderArgs {
 		ResourceBundleLoaderAnalyzerPlugin.class.getName(),
 		SassAnalyzerPlugin.class.getName(),
 		ServiceAnalyzerPlugin.class.getName(),
-		SocialAnalyzerPlugin.class.getName(),
 		SpringDependencyAnalyzerPlugin.class.getName(),
 		EnterpriseAnalyzerPlugin.class.getName());
 

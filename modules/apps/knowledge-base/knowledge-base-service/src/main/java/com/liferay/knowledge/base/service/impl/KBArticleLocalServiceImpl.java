@@ -15,7 +15,6 @@ import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.knowledge.base.configuration.KBGroupServiceConfiguration;
-import com.liferay.knowledge.base.constants.AdminActivityKeys;
 import com.liferay.knowledge.base.constants.KBArticleConstants;
 import com.liferay.knowledge.base.constants.KBConstants;
 import com.liferay.knowledge.base.constants.KBFolderConstants;
@@ -71,8 +70,6 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.lock.DuplicateLockException;
 import com.liferay.portal.kernel.lock.Lock;
 import com.liferay.portal.kernel.lock.LockManager;
@@ -132,8 +129,6 @@ import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
 import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
 import com.liferay.portal.kernel.zip.ZipReaderFactory;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
-import com.liferay.social.kernel.model.SocialActivityConstants;
-import com.liferay.social.kernel.service.SocialActivityLocalService;
 import com.liferay.subscription.model.Subscription;
 import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.TrashHelper;
@@ -489,11 +484,6 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 			// Ratings
 
 			_ratingsStatsLocalService.deleteStats(
-				KBArticle.class.getName(), kbArticle.getResourcePrimKey());
-
-			// Social
-
-			_socialActivityLocalService.deleteActivities(
 				KBArticle.class.getName(), kbArticle.getResourcePrimKey());
 
 			// Indexer
@@ -1376,19 +1366,6 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 			KBArticle latestKBArticle = getLatestKBArticle(
 				resourcePrimKey, WorkflowConstants.STATUS_ANY);
 
-			JSONObject extraDataJSONObject = JSONUtil.put(
-				"title", latestKBArticle.getTitle());
-
-			if (latestKBArticle.isApproved() ||
-				!latestKBArticle.isFirstVersion()) {
-
-				_socialActivityLocalService.addActivity(
-					userId, latestKBArticle.getGroupId(),
-					KBArticle.class.getName(), resourcePrimKey,
-					AdminActivityKeys.MOVE_KB_ARTICLE,
-					extraDataJSONObject.toString(), 0);
-			}
-
 			_indexKBArticle(latestKBArticle);
 		}
 		finally {
@@ -1445,14 +1422,6 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 			_assetEntryLocalService.updateVisible(
 				KBArticle.class.getName(), classPK, false);
 
-			JSONObject extraDataJSONObject = JSONUtil.put(
-				"title", kbArticle.getTitle());
-
-			_socialActivityLocalService.addActivity(
-				userId, kbArticle.getGroupId(), KBArticle.class.getName(),
-				resourcePrimKey, SocialActivityConstants.TYPE_MOVE_TO_TRASH,
-				extraDataJSONObject.toString(), 0);
-
 			TrashEntry trashEntry = _trashEntryLocalService.addTrashEntry(
 				userId, kbArticle.getGroupId(), KBArticle.class.getName(),
 				resourcePrimKey, kbArticle.getUuid(), null, oldStatus, null,
@@ -1508,14 +1477,6 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 			_assetEntryLocalService.updateVisible(
 				KBArticle.class.getName(), resourcePrimKey, true);
 		}
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", kbArticle.getTitle());
-
-		_socialActivityLocalService.addActivity(
-			userId, kbArticle.getGroupId(), KBArticle.class.getName(),
-			resourcePrimKey, SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-			extraDataJSONObject.toString(), 0);
 
 		restoreDependentKBArticlesFromTrash(resourcePrimKey);
 
@@ -1951,24 +1912,6 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 
 		_assetEntryLocalService.updateVisible(
 			KBArticle.class.getName(), kbArticle.getResourcePrimKey(), visible);
-
-		// Social
-
-		JSONObject extraDataJSONObject = JSONUtil.put(
-			"title", kbArticle.getTitle());
-
-		if (!kbArticle.isFirstVersion()) {
-			_socialActivityLocalService.addActivity(
-				userId, kbArticle.getGroupId(), KBArticle.class.getName(),
-				resourcePrimKey, AdminActivityKeys.UPDATE_KB_ARTICLE,
-				extraDataJSONObject.toString(), 0);
-		}
-		else {
-			_socialActivityLocalService.addActivity(
-				userId, kbArticle.getGroupId(), KBArticle.class.getName(),
-				resourcePrimKey, AdminActivityKeys.ADD_KB_ARTICLE,
-				extraDataJSONObject.toString(), 0);
-		}
 
 		// Indexer
 
@@ -3213,9 +3156,6 @@ public class KBArticleLocalServiceImpl extends KBArticleLocalServiceBaseImpl {
 
 	@Reference
 	private ResourceLocalService _resourceLocalService;
-
-	@Reference
-	private SocialActivityLocalService _socialActivityLocalService;
 
 	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;

@@ -14,8 +14,6 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
-import com.liferay.social.kernel.service.SocialRelationLocalService;
-
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -90,14 +88,6 @@ public class MicroblogsEntryModelResourcePermission
 			return true;
 		}
 
-		if ((microblogsEntry.getUserId() != permissionChecker.getUserId()) &&
-			_socialRelationLocalService.hasRelation(
-				permissionChecker.getUserId(), microblogsEntry.getUserId(),
-				microblogsEntry.getSocialRelationType())) {
-
-			return true;
-		}
-
 		return false;
 	}
 
@@ -118,8 +108,5 @@ public class MicroblogsEntryModelResourcePermission
 		target = "(resource.name=" + MicroblogsConstants.RESOURCE_NAME + ")"
 	)
 	private PortletResourcePermission _portletResourcePermission;
-
-	@Reference
-	private SocialRelationLocalService _socialRelationLocalService;
 
 }

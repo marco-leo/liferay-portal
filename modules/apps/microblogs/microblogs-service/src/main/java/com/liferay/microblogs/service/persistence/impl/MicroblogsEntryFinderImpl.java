@@ -16,8 +16,6 @@ import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.social.kernel.model.SocialRelationConstants;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -110,7 +108,7 @@ public class MicroblogsEntryFinderImpl
 			queryPos.add(companyId);
 			queryPos.add(MicroblogsEntryConstants.TYPE_EVERYONE);
 			queryPos.add(userId);
-			queryPos.add(SocialRelationConstants.TYPE_UNI_ENEMY);
+			queryPos.add(9);
 			queryPos.add(userId);
 			queryPos.add(userId);
 			queryPos.add(MicroblogsEntryConstants.TYPE_REPLY);
@@ -367,7 +365,7 @@ public class MicroblogsEntryFinderImpl
 			queryPos.add(companyId);
 			queryPos.add(MicroblogsEntryConstants.TYPE_EVERYONE);
 			queryPos.add(userId);
-			queryPos.add(SocialRelationConstants.TYPE_UNI_ENEMY);
+			queryPos.add(9);
 			queryPos.add(userId);
 			queryPos.add(userId);
 			queryPos.add(MicroblogsEntryConstants.TYPE_REPLY);

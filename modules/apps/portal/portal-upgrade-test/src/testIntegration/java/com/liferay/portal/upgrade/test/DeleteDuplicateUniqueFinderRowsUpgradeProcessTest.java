@@ -28,9 +28,6 @@ import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.social.kernel.model.SocialActivitySetting;
-import com.liferay.social.kernel.service.SocialActivitySettingLocalService;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -151,48 +148,6 @@ public class DeleteDuplicateUniqueFinderRowsUpgradeProcessTest {
 	}
 
 	@Test
-	public void testUpgradeSocialActivitySetting() throws Exception {
-		List<IndexMetadata> indexMetadatas = _dropUniqueIndexes(
-			"SocialActivitySetting", "groupId");
-
-		SocialActivitySetting socialActivitySetting1 =
-			_socialActivitySettingLocalService.createSocialActivitySetting(1);
-
-		socialActivitySetting1.setGroupId(1);
-		socialActivitySetting1.setClassNameId(1);
-		socialActivitySetting1.setActivityType(1);
-		socialActivitySetting1.setName("Test");
-
-		List<SocialActivitySetting> socialActivitySettings = new ArrayList<>();
-
-		socialActivitySettings.add(
-			_socialActivitySettingLocalService.addSocialActivitySetting(
-				socialActivitySetting1));
-
-		SocialActivitySetting socialActivitySetting2 =
-			socialActivitySetting1.cloneWithOriginalValues();
-
-		socialActivitySetting2.setActivitySettingId(2);
-
-		socialActivitySettings.add(
-			_socialActivitySettingLocalService.addSocialActivitySetting(
-				socialActivitySetting2));
-
-		_runUpgrade(
-			"SocialActivitySetting",
-			new String[] {"groupId", "classNameId", "activityType", "name"},
-			"activitySettingId asc");
-
-		Collections.sort(socialActivitySettings, Collections.reverseOrder());
-
-		Assert.assertEquals(
-			socialActivitySettings.get(0),
-			_socialActivitySettingLocalService.getSocialActivitySetting(2));
-
-		_assertIndexes("SocialActivitySetting", indexMetadatas);
-	}
-
-	@Test
 	public void testUpgradeTicket() throws Exception {
 		List<IndexMetadata> indexMetadatas = _dropUniqueIndexes(
 			"Ticket", "key_");
@@ -305,10 +260,6 @@ public class DeleteDuplicateUniqueFinderRowsUpgradeProcessTest {
 
 	@Inject
 	private static PortletItemLocalService _portletItemLocalService;
-
-	@Inject
-	private static SocialActivitySettingLocalService
-		_socialActivitySettingLocalService;
 
 	@Inject
 	private static TicketLocalService _ticketLocalService;

@@ -17,7 +17,6 @@ import com.liferay.ant.bnd.resource.AddResourceVerifierPlugin;
 import com.liferay.ant.bnd.resource.bundle.ResourceBundleLoaderAnalyzerPlugin;
 import com.liferay.ant.bnd.sass.SassAnalyzerPlugin;
 import com.liferay.ant.bnd.service.ServiceAnalyzerPlugin;
-import com.liferay.ant.bnd.social.SocialAnalyzerPlugin;
 import com.liferay.ant.bnd.spring.SpringDependencyAnalyzerPlugin;
 import com.liferay.gradle.plugins.internal.util.GradleUtil;
 import com.liferay.gradle.util.StringUtil;
@@ -191,7 +190,7 @@ public class LiferayOSGiExtension {
 		ResourceBundleLoaderAnalyzerPlugin.class.getName(),
 		SassAnalyzerPlugin.class.getName(),
 		ServiceAnalyzerPlugin.class.getName(),
-		SocialAnalyzerPlugin.class.getName(), SpringComponent.class.getName(),
+		SpringComponent.class.getName(),
 		SpringDependencyAnalyzerPlugin.class.getName(),
 		EnterpriseAnalyzerPlugin.class.getName()
 	};
