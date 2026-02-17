@@ -40,11 +40,9 @@ List<BaseModel<?>> contacts = null;
 int contactsCount = 0;
 
 if (userPublicPage) {
-	List<User> users = UserLocalServiceUtil.getSocialUsers(scopeGroup.getClassPK(), SocialRelationConstants.TYPE_BI_CONNECTION, StringPool.EQUAL, 0, ContactsConstants.MAX_RESULT_COUNT, UserLastNameComparator.getInstance(true));
+	contacts = new ArrayList<>();
 
-	contacts = new ArrayList<BaseModel<?>>(users);
-
-	contactsCount = UserLocalServiceUtil.getSocialUsersCount(scopeGroup.getClassPK(), SocialRelationConstants.TYPE_BI_CONNECTION, StringPool.EQUAL);
+	contactsCount = 0;
 }
 else if (showOnlySiteMembers || !filterBy.equals(ContactsConstants.FILTER_BY_DEFAULT)) {
 	List<User> users = UserLocalServiceUtil.search(company.getCompanyId(), name, WorkflowConstants.STATUS_APPROVED, params, 0, ContactsConstants.MAX_RESULT_COUNT, UserLastNameComparator.getInstance(true));
@@ -374,7 +372,7 @@ else {
 
 										int followingUsersCount = UserLocalServiceUtil.searchCount(themeDisplay.getCompanyId(), null, WorkflowConstants.STATUS_APPROVED, params);
 
-										int followerUsersCount = SocialRelationLocalServiceUtil.getInverseRelationsCount(themeDisplay.getUserId(), SocialRelationConstants.TYPE_UNI_FOLLOWER);
+										int followerUsersCount = 0;
 										%>
 
 										<clay:row>

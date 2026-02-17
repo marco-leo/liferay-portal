@@ -27,114 +27,6 @@ request.setAttribute("view_user.jsp-user", user2);
 <c:if test="<%= user2 != null %>">
 	<div class="contacts-profile <%= (user.getUserId() == user2.getUserId()) ? "my-profile" : StringPool.BLANK %>" id="<portlet:namespace />contactsProfile">
 		<c:if test="<%= (displayStyle == ContactsConstants.DISPLAY_STYLE_BASIC) || (displayStyle == ContactsConstants.DISPLAY_STYLE_FULL) %>">
-			<clay:row>
-				<clay:col
-					cssClass="social-relations"
-				>
-
-					<%
-					boolean connection = SocialRelationLocalServiceUtil.hasRelation(themeDisplay.getUserId(), user2.getUserId(), SocialRelationConstants.TYPE_BI_CONNECTION);
-					boolean follower = SocialRelationLocalServiceUtil.hasRelation(user2.getUserId(), themeDisplay.getUserId(), SocialRelationConstants.TYPE_UNI_FOLLOWER);
-					boolean following = SocialRelationLocalServiceUtil.hasRelation(themeDisplay.getUserId(), user2.getUserId(), SocialRelationConstants.TYPE_UNI_FOLLOWER);
-					%>
-
-					<c:if test="<%= connection || follower || following %>">
-						<div class="lfr-asset-metadata">
-							<c:if test="<%= connection %>">
-								<span class="lfr-asset-icon lfr-asset-connection<%= (following || follower) ? StringPool.BLANK : " last" %>">
-									<liferay-ui:icon
-										icon="user"
-										markupView="lexicon"
-									/>
-
-									<liferay-ui:message key="connection" />
-								</span>
-							</c:if>
-
-							<c:if test="<%= following %>">
-								<span class="lfr-asset-icon lfr-asset-following<%= follower ? StringPool.BLANK : " last" %>">
-									<liferay-ui:icon
-										icon="user"
-										markupView="lexicon"
-									/>
-
-									<liferay-ui:message key="following" />
-								</span>
-							</c:if>
-
-							<c:if test="<%= follower %>">
-								<span class="last lfr-asset-follower lfr-asset-icon">
-									<liferay-ui:icon
-										icon="user"
-										markupView="lexicon"
-									/>
-
-									<liferay-ui:message key="follower" />
-								</span>
-							</c:if>
-						</div>
-					</c:if>
-
-					<clay:row>
-						<clay:col
-							cssClass="contacts-action"
-						>
-							<c:choose>
-								<c:when test="<%= portletId.equals(ContactsPortletKeys.CONTACTS_CENTER) || portletId.equals(ContactsPortletKeys.MEMBERS) %>">
-
-									<%
-									boolean blocked = false;
-
-									if (SocialRelationLocalServiceUtil.hasRelation(user2.getUserId(), themeDisplay.getUserId(), SocialRelationConstants.TYPE_UNI_ENEMY)) {
-										blocked = true;
-									}
-									else if (SocialRelationLocalServiceUtil.hasRelation(themeDisplay.getUserId(), user2.getUserId(), SocialRelationConstants.TYPE_UNI_ENEMY)) {
-										blocked = true;
-									}
-
-									boolean showConnectedRequestedIcon = !blocked && SocialRequestLocalServiceUtil.hasRequest(themeDisplay.getUserId(), User.class.getName(), themeDisplay.getUserId(), SocialRelationConstants.TYPE_BI_CONNECTION, user2.getUserId(), SocialRequestConstants.STATUS_PENDING);
-									boolean showConnectedIcon = !blocked && SocialRelationLocalServiceUtil.hasRelation(themeDisplay.getUserId(), user2.getUserId(), SocialRelationConstants.TYPE_BI_CONNECTION);
-									boolean showFollowingIcon = !blocked && SocialRelationLocalServiceUtil.hasRelation(themeDisplay.getUserId(), user2.getUserId(), SocialRelationConstants.TYPE_UNI_FOLLOWER);
-									boolean showBlockIcon = SocialRelationLocalServiceUtil.hasRelation(themeDisplay.getUserId(), user2.getUserId(), SocialRelationConstants.TYPE_UNI_ENEMY);
-									%>
-
-									<liferay-ui:icon
-										cssClass='<%= showConnectedRequestedIcon ? "action disabled" : "action disabled hide" %>'
-										image="../aui/user"
-										label="<%= true %>"
-										message="connection-requested"
-									/>
-
-									<liferay-ui:icon
-										cssClass='<%= showConnectedIcon ? "action connected" : "action connected hide" %>'
-										image="../aui/user"
-										label="<%= true %>"
-										message="connected"
-									/>
-
-									<liferay-ui:icon
-										cssClass='<%= showFollowingIcon ? "action following" : "action following hide" %>'
-										image="../aui/user"
-										label="<%= true %>"
-										message="following"
-									/>
-
-									<liferay-ui:icon
-										cssClass='<%= showBlockIcon ? "action block" : "action block hide" %>'
-										image="../aui/ban-circle"
-										label="<%= true %>"
-										message="blocked"
-									/>
-								</c:when>
-								<c:otherwise>
-									<liferay-util:include page="/user/user_toolbar.jsp" servletContext="<%= application %>" />
-								</c:otherwise>
-							</c:choose>
-						</clay:col>
-					</clay:row>
-				</clay:col>
-			</clay:row>
-
 			<div class="d-flex lfr-detail-info lfr-field-group" data-title="<%= LanguageUtil.get(request, "details") %>">
 
 				<%
@@ -359,16 +251,6 @@ request.setAttribute("view_user.jsp-user", user2);
 				</clay:row>
 			</div>
 
-			<c:if test="<%= showRecentActivity && UserPermissionUtil.contains(permissionChecker, user2.getUserId(), ActionKeys.VIEW) %>">
-				<div class="user-information-title">
-					<liferay-ui:message key="recent-activity" />
-				</div>
-
-				<liferay-social-activities:social-activities
-					activities="<%= SocialActivityLocalServiceUtil.getUserActivities(user2.getUserId(), 0, 10) %>"
-					feedEnabled="<%= false %>"
-				/>
-			</c:if>
 		</c:if>
 	</div>
 </c:if>

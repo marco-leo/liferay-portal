@@ -11,7 +11,7 @@
 	<c:when test="<%= scopeGroup.isUser() %>">
 
 		<%
-		List<User> users = UserLocalServiceUtil.getSocialUsers(scopeGroup.getClassPK(), SocialRelationConstants.TYPE_BI_CONNECTION, StringPool.EQUAL, 0, 10, UserLastNameComparator.getInstance(false));
+		List<User> users = new ArrayList<>();
 
 		PortletURL portletURL = null;
 
