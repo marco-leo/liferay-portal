@@ -9,6 +9,7 @@ import com.liferay.petra.io.BigEndianCodec;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.security.SecureRandomUtil;
+import com.liferay.portal.kernel.security.fips.FIPSModeUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.math.BigInteger;
@@ -29,7 +30,8 @@ import jodd.util.Base32;
  */
 public class MFATimeBasedOTPUtil {
 
-	public static final String MFA_TIMEBASED_OTP_ALGORITHM = "HmacSHA1";
+	public static final String MFA_TIMEBASED_OTP_ALGORITHM =
+		FIPSModeUtil.isFIPSModeEnabled() ? "HmacSHA256" : "HmacSHA1";
 
 	public static final int MFA_TIMEBASED_OTP_COUNTER = 30 * 1000;
 

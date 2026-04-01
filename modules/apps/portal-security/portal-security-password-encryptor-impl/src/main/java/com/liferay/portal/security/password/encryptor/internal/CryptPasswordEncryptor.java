@@ -7,6 +7,7 @@ package com.liferay.portal.security.password.encryptor.internal;
 
 import com.liferay.portal.kernel.exception.PwdEncryptorException;
 import com.liferay.portal.kernel.security.SecureRandom;
+import com.liferay.portal.kernel.security.fips.FIPSModeUtil;
 import com.liferay.portal.kernel.security.pwd.PasswordEncryptor;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DigesterUtil;
@@ -35,6 +36,12 @@ public class CryptPasswordEncryptor implements PasswordEncryptor {
 			String algorithm, String plainTextPassword,
 			String encryptedPassword, boolean upgradeHashSecurity)
 		throws PwdEncryptorException {
+
+		if (FIPSModeUtil.isFIPSModeEnabled() && !upgradeHashSecurity) {
+			throw new PwdEncryptorException(
+				"UFC-CRYPT algorithm is not available in FIPS mode. Use " +
+					"PBKDF2WithHmacSHA256 instead.");
+		}
 
 		if (upgradeHashSecurity) {
 			encryptedPassword = null;

@@ -1783,10 +1783,11 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		String[] digestArray = StringUtil.split(user.getDigest());
 
 		for (String ha1 : digestArray) {
-			String ha2 = DigesterUtil.digestHex(DigesterUtil.MD5, method, uri);
+			String ha2 = DigesterUtil.digestHex(
+				DigesterUtil.SHA_256, method, uri);
 
 			String curResponse = DigesterUtil.digestHex(
-				DigesterUtil.MD5, ha1, nonce, ha2);
+				DigesterUtil.SHA_256, ha1, nonce, ha2);
 
 			if (response.equals(curResponse)) {
 				resetFailedLoginAttempts(user);
