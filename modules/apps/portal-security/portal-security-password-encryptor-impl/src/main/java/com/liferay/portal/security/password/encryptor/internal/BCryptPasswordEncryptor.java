@@ -7,6 +7,8 @@ package com.liferay.portal.security.password.encryptor.internal;
 
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.exception.PwdEncryptorException;
+import com.liferay.portal.kernel.security.fips.FIPSModeUtil;
 import com.liferay.portal.kernel.security.pwd.PasswordEncryptor;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -30,8 +32,15 @@ public class BCryptPasswordEncryptor implements PasswordEncryptor {
 
 	@Override
 	public String encrypt(
-		String algorithm, String plainTextPassword, String encryptedPassword,
-		boolean upgradeHashSecurity) {
+			String algorithm, String plainTextPassword,
+			String encryptedPassword, boolean upgradeHashSecurity)
+		throws PwdEncryptorException {
+
+		if (FIPSModeUtil.isFIPSModeEnabled() && !upgradeHashSecurity) {
+			throw new PwdEncryptorException(
+				"BCrypt with non-certified provider is not available in " +
+					"FIPS mode. Use PBKDF2WithHmacSHA256 instead.");
+		}
 
 		String salt = null;
 

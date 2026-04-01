@@ -33,6 +33,13 @@ import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.encryptor.EncryptorException;
 import com.liferay.portal.kernel.encryptor.EncryptorUtil;
 import com.liferay.portal.kernel.exception.CompanyMxException;
+
+// FIPS imports
+
+import com.liferay.portal.kernel.security.fips.CompanyKeyStoreUtil;
+import com.liferay.portal.kernel.security.fips.FIPSModeUtil;
+
+import java.security.Key;
 import com.liferay.portal.kernel.exception.CompanyNameException;
 import com.liferay.portal.kernel.exception.CompanyVirtualHostException;
 import com.liferay.portal.kernel.exception.CompanyWebIdException;
@@ -275,9 +282,21 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 					// Company info
 
 					try {
-						updatedCompany.setKey(
-							EncryptorUtil.serializeKey(
-								EncryptorUtil.generateKey()));
+						Key generatedKey = EncryptorUtil.generateKey();
+
+						if (FIPSModeUtil.isFIPSModeEnabled()) {
+							String alias =
+								CompanyKeyStoreUtil.generateAlias(
+									updatedCompany.getCompanyId());
+
+							CompanyKeyStoreUtil.setKey(alias, generatedKey);
+
+							updatedCompany.setKey(alias);
+						}
+						else {
+							updatedCompany.setKey(
+								EncryptorUtil.serializeKey(generatedKey));
+						}
 					}
 					catch (EncryptorException encryptorException) {
 						throw new SystemException(encryptorException);
@@ -583,8 +602,21 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		}
 
 		try {
-			company.setKey(
-				EncryptorUtil.serializeKey(EncryptorUtil.generateKey()));
+			Key generatedKey = EncryptorUtil.generateKey();
+
+				if (FIPSModeUtil.isFIPSModeEnabled()) {
+					String alias =
+						CompanyKeyStoreUtil.generateAlias(
+							company.getCompanyId());
+
+					CompanyKeyStoreUtil.setKey(alias, generatedKey);
+
+					company.setKey(alias);
+				}
+				else {
+					company.setKey(
+						EncryptorUtil.serializeKey(generatedKey));
+				}
 		}
 		catch (EncryptorException encryptorException) {
 			throw new SystemException(encryptorException);

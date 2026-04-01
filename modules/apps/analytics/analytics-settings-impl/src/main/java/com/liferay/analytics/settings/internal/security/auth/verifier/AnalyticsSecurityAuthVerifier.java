@@ -166,9 +166,9 @@ public class AnalyticsSecurityAuthVerifier implements AuthVerifier {
 			String signatureString, String timestamp)
 		throws Exception {
 
-		Signature signature = Signature.getInstance("DSA");
+		Signature signature = Signature.getInstance("SHA256withRSA");
 
-		KeyFactory keyFactory = KeyFactory.getInstance("DSA");
+		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
 		signature.initVerify(
 			keyFactory.generatePublic(

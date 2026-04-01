@@ -29,7 +29,7 @@ import java.util.Objects;
  */
 public class DigesterUtil {
 
-	public static final String DEFAULT_ALGORITHM = "SHA";
+	public static final String DEFAULT_ALGORITHM = "SHA-256";
 
 	public static final String ENCODING = StringPool.UTF8;
 
